@@ -44,6 +44,8 @@ import { selectContractExchangeRates } from '../../../selectors/tokenRatesContro
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     container: {
@@ -58,6 +60,8 @@ const createStyles = (colors: any) =>
     },
     tokenImage: { height: 36, width: 36, marginRight: 8 },
     sectionTitleLabel: {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...(fontStyles.bold as any),
       fontSize: 16,
       color: colors.text.default,
@@ -67,6 +71,8 @@ const createStyles = (colors: any) =>
       marginTop: 8,
     },
     descriptionLabel: {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...(fontStyles.normal as any),
       fontSize: 16,
       color: colors.text.default,
@@ -75,11 +81,15 @@ const createStyles = (colors: any) =>
       marginTop: 48,
     },
     hideButtonLabel: {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...(fontStyles.normal as any),
       fontSize: 16,
       color: colors.error.default,
     },
     addressLinkLabel: {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...(fontStyles.normal as any),
       fontSize: 16,
       color: colors.primary.default,
@@ -114,6 +124,8 @@ const AssetDetails = (props: Props) => {
   const currentCurrency = useSelector(selectCurrentCurrency);
   const chainId = useSelector(selectChainId);
   const primaryCurrency = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.settings.primaryCurrency,
   );
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
@@ -130,6 +142,8 @@ const AssetDetails = (props: Props) => {
       name = providerConfig.nickname;
     } else {
       name =
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (Networks as any)[providerConfig.type]?.name ||
         { ...Networks.rpc, color: null }.name;
     }
@@ -162,6 +176,8 @@ const AssetDetails = (props: Props) => {
   };
 
   const triggerHideToken = () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { TokensController } = Engine.context as any;
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: 'AssetHideConfirmation',
@@ -253,7 +269,9 @@ const AssetDetails = (props: Props) => {
   const renderTokenBalance = () => {
     let balanceDisplay = '';
     const exchangeRate =
-      address in tokenExchangeRates ? tokenExchangeRates[address] : undefined;
+      tokenExchangeRates && address in tokenExchangeRates
+        ? tokenExchangeRates[address]?.price
+        : undefined;
     const balance =
       address in tokenBalances
         ? renderFromTokenMinimalUnit(tokenBalances[address], decimals)

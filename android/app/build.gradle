@@ -1,8 +1,7 @@
 apply plugin: "com.android.application"
 apply plugin: "com.facebook.react"
 apply plugin: "io.sentry.android.gradle"
-
-import com.android.build.OutputFile
+apply plugin: 'com.google.gms.google-services'
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -14,8 +13,8 @@ react {
     // root = file("../")
     //   The folder where the react-native NPM package is. Default is ../node_modules/react-native
     // reactNativeDir = file("../node_modules/react-native")
-    //   The folder where the react-native Codegen package is. Default is ../node_modules/react-native-codegen
-    // codegenDir = file("../node_modules/react-native-codegen")
+    //   The folder where the react-native Codegen package is. Default is ../node_modules/@react-native/codegen
+    // codegenDir = file("../node_modules/@react-native/codegen")
     //   The cli.js file which is the React Native CLI entrypoint. Default is ../node_modules/react-native/cli.js
     // cliFile = file("../node_modules/react-native/cli.js")
     /* Variants */
@@ -127,14 +126,6 @@ def getPassword(String currentUser, String keyChain) {
 }
 
 /**
- * Set this to true to create four separate APKs instead of one,
- * one for each native architecture. This is useful if you don't
- * use App Bundles (https://developer.android.com/guide/app-bundle/)
- * and want to have separate APKs to upload to the Play Store.
- */
-def enableSeparateBuildPerCPUArchitecture = false
-
-/**
  * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
  */
 def enableProguardInReleaseBuilds = true
@@ -162,6 +153,7 @@ def reactNativeArchitectures() {
     return value ? value.split(",") : ["armeabi-v7a", "x86", "x86_64", "arm64-v8a"]
 }
 
+
 /**
 * Adding function that will retuen the Bitrise ndkPath if it is a QA or Production Build
 */
@@ -181,8 +173,8 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1346
-        versionName "7.24.1"
+        versionCode 1364
+        versionName "7.27.0"
         testBuildType System.getProperty('testBuildType', 'debug')
         missingDimensionStrategy 'react-native-camera', 'general'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -192,6 +184,14 @@ android {
 
 	  packagingOptions {
 		  exclude 'META-INF/DEPENDENCIES'
+      pickFirst 'lib/x86/libc++_shared.so'
+      pickFirst 'lib/x86_64/libc++_shared.so'
+      pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+      pickFirst 'lib/arm64-v8a/libc++_shared.so'
+      pickFirst 'lib/arm64-v8a/libcrypto.so'
+      pickFirst 'lib/armeabi-v7a/libcrypto.so'
+      pickFirst 'lib/x86/libcrypto.so'
+      pickFirst 'lib/x86_64/libcrypto.so'
 	  }
 
 	  signingConfigs {
@@ -219,15 +219,6 @@ android {
         keyAlias System.getenv("BITRISEIO_ANDROID_FLASK_KEYSTORE_ALIAS")
         keyPassword System.getenv("BITRISEIO_ANDROID_FLASK_KEYSTORE_PRIVATE_KEY_PASSWORD")
       }
-    }
-
-    splits {
-        abi {
-            reset()
-            enable enableSeparateBuildPerCPUArchitecture
-            universalApk false  // If true, also generate a universal APK
-            include (*reactNativeArchitectures())
-        }
     }
 
     buildTypes {
@@ -269,21 +260,6 @@ android {
       it.buildConfigField 'String', 'IS_RAMP_UAT', "\"$System.env.RAMP_INTERNAL_BUILD\""
       // Used to point to dev environment API for ramp
       it.buildConfigField 'String', 'IS_RAMP_DEV', "\"$System.env.RAMP_DEV_BUILD\""
-	  }
-    // applicationVariants are e.g. debug, release
-    applicationVariants.all { variant ->
-        variant.outputs.each { output ->
-            // For each separate APK per architecture, set a unique version code as described here:
-            // https://developer.android.com/studio/build/configure-apk-splits.html
-            // Example: versionCode will generate 1001 for armeabi-v7a, 1002 for x86, etc.
-            def versionCodes = ["armeabi-v7a": 1, "x86": 2, "arm64-v8a": 3, "x86_64": 4]
-            def abi = output.getFilter(OutputFile.ABI)
-            if (abi != null) {  // null for the universal-debug, universal-release variants
-                output.versionCodeOverride =
-                        defaultConfig.versionCode * 1000 + versionCodes.get(abi)
-            }
-
-        }
     }
 }
 
@@ -292,7 +268,6 @@ dependencies {
     implementation(files("../libs/ecies.aar"))
     implementation(files("../libs/nativesdk.aar"))
     implementation("com.facebook.react:react-android")
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.0.0")
     implementation 'org.apache.commons:commons-compress:1.22'
     androidTestImplementation 'org.mockito:mockito-android:4.2.0'
     androidTestImplementation 'androidx.test:core:1.5.0'

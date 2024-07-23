@@ -1,17 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  View,
-  StyleSheet,
+  ActivityIndicator,
   Image,
   SafeAreaView,
-  TextStyle,
-  ActivityIndicator,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { Device as NanoDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
 import { useDispatch } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
-import Engine from '../../../core/Engine';
 import StyledButton from '../../../components/UI/StyledButton';
 import Text from '../../../components/Base/Text';
 import {
@@ -20,7 +18,6 @@ import {
   useAssetFromTheme,
 } from '../../../util/theme';
 import Device from '../../../util/device';
-import { fontStyles } from '../../../styles/common';
 import Scan from './Scan';
 import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
 import { showSimpleNotification } from '../../../actions/notification';
@@ -28,95 +25,25 @@ import LedgerConnectionError, {
   LedgerConnectionErrorProps,
 } from './LedgerConnectionError';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import { unlockLedgerDefaultAccount } from '../../../core/Ledger/Ledger';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import { LEDGER_SUPPORT_LINK } from '../../../constants/urls';
 
 import ledgerDeviceDarkImage from '../../../images/ledger-device-dark.png';
 import ledgerDeviceLightImage from '../../../images/ledger-device-light.png';
 import ledgerConnectLightImage from '../../../images/ledger-connect-light.png';
 import ledgerConnectDarkImage from '../../../images/ledger-connect-dark.png';
-import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getSystemVersion } from 'react-native-device-info';
 import { LedgerCommunicationErrors } from '../../../core/Ledger/ledgerErrors';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import createStyles from './index.styles';
 
-const createStyles = (theme: any) =>
-  StyleSheet.create({
-    container: {
-      position: 'relative',
-      flex: 1,
-      backgroundColor: theme.colors.background.default,
-      alignItems: 'center',
-    },
-    connectLedgerWrapper: {
-      marginLeft: Device.getDeviceWidth() * 0.07,
-      marginRight: Device.getDeviceWidth() * 0.07,
-    },
-    ledgerImage: {
-      width: 68,
-      height: 68,
-    },
-    coverImage: {
-      resizeMode: 'contain',
-      width: Device.getDeviceWidth() * 0.6,
-      height: 64,
-      overflow: 'visible',
-    },
-    connectLedgerText: {
-      ...(fontStyles.normal as TextStyle),
-      fontSize: 24,
-    },
-    bodyContainer: {
-      flex: 1,
-      marginTop: Device.getDeviceHeight() * 0.025,
-    },
-    textContainer: {
-      marginTop: Device.getDeviceHeight() * 0.05,
-    },
+interface LedgerConnectProps {
+  onConnectLedger: () => void;
+}
 
-    instructionsText: {
-      marginTop: Device.getDeviceHeight() * 0.02,
-    },
-    imageContainer: {
-      alignItems: 'center',
-      marginTop: Device.getDeviceHeight() * 0.08,
-    },
-    buttonContainer: {
-      position: 'absolute',
-      display: 'flex',
-      bottom: Device.getDeviceHeight() * 0.025,
-      left: 0,
-      width: '100%',
-    },
-    lookingForDeviceContainer: {
-      flexDirection: 'row',
-    },
-    lookingForDeviceText: {
-      fontSize: 18,
-    },
-    activityIndicatorStyle: {
-      marginLeft: 10,
-    },
-    ledgerInstructionText: {
-      paddingLeft: 7,
-    },
-    howToInstallEthAppText: {
-      marginTop: Device.getDeviceHeight() * 0.025,
-    },
-    openEthAppMessage: {
-      marginTop: Device.getDeviceHeight() * 0.025,
-    },
-    loader: {
-      color: theme.brandColors.white,
-    },
-  });
-
-const LedgerConnect = () => {
-  const { AccountTrackerController } = Engine.context as any;
+const LedgerConnect = ({ onConnectLedger }: LedgerConnectProps) => {
   const theme = useAppThemeFromContext() ?? mockTheme;
-  const { trackEvent } = useMetrics();
   const navigation = useNavigation();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const styles = useMemo(() => createStyles(theme.colors), [theme]);
   const [selectedDevice, setSelectedDevice] = useState<NanoDevice>(null);
   const [errorDetail, setErrorDetails] = useState<LedgerConnectionErrorProps>();
   const [loading, setLoading] = useState(false);
@@ -140,16 +67,8 @@ const LedgerConnect = () => {
 
   const connectLedger = () => {
     setLoading(true);
-    trackEvent(MetaMetricsEvents.CONTINUE_LEDGER_HARDWARE_WALLET, {
-      device_type: 'Ledger',
-    });
     ledgerLogicToRun(async () => {
-      const account = await unlockLedgerDefaultAccount(true);
-      await AccountTrackerController.syncBalanceWithAddresses([account]);
-      trackEvent(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS, {
-        device_type: 'Ledger',
-      });
-      navigation.dispatch(StackActions.pop(2));
+      onConnectLedger();
     });
   };
 
@@ -250,14 +169,22 @@ const LedgerConnect = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.connectLedgerWrapper}>
-        <Image
-          source={useAssetFromTheme(
-            ledgerDeviceLightImage,
-            ledgerDeviceDarkImage,
-          )}
-          style={styles.ledgerImage}
-          resizeMode="contain"
-        />
+        <View style={styles.header}>
+          <Image
+            source={useAssetFromTheme(
+              ledgerDeviceLightImage,
+              ledgerDeviceDarkImage,
+            )}
+            style={styles.ledgerImage}
+            resizeMode="contain"
+          />
+          <TouchableOpacity
+            onPress={navigation.goBack}
+            style={styles.navbarRightButton}
+          >
+            <MaterialIcon name="close" size={15} style={styles.closeIcon} />
+          </TouchableOpacity>
+        </View>
         <Text bold style={styles.connectLedgerText}>
           {strings('ledger.connect_ledger')}
         </Text>

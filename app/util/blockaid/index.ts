@@ -1,3 +1,4 @@
+import Engine from '../../core/Engine';
 import {
   ResultType,
   SecurityAlertResponse,
@@ -34,31 +35,33 @@ export const isSupportedChainId = (chainId: string) => {
   return isSupported;
 };
 
-// eslint-disable-next-line import/prefer-default-export
 export const isBlockaidSupportedOnCurrentChain = () => {
   const chainId = selectChainId(store.getState());
   return isSupportedChainId(chainId);
 };
 
-// eslint-disable-next-line import/prefer-default-export
+export const isBlockaidPreferenceEnabled = () => {
+  const { PreferencesController } = Engine.context;
+  return PreferencesController.state.securityAlertsEnabled;
+};
+
 export const isBlockaidFeatureEnabled = () =>
-  process.env.MM_BLOCKAID_UI_ENABLED;
+  isBlockaidSupportedOnCurrentChain() && isBlockaidPreferenceEnabled();
 
 export const getBlockaidMetricsParams = (
   securityAlertResponse?: SecurityAlertResponse,
 ) => {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const additionalParams: Record<string, any> = {};
 
-  if (
-    securityAlertResponse &&
-    isBlockaidFeatureEnabled() &&
-    isBlockaidSupportedOnCurrentChain()
-  ) {
-    const { result_type, reason, providerRequestsCount } =
+  if (securityAlertResponse && isBlockaidFeatureEnabled()) {
+    const { result_type, reason, providerRequestsCount, source } =
       securityAlertResponse;
 
     additionalParams.security_alert_response = result_type;
     additionalParams.security_alert_reason = reason;
+    additionalParams.security_alert_source = source;
 
     if (result_type === ResultType.Malicious) {
       additionalParams.ui_customizations = ['flagged_as_malicious'];

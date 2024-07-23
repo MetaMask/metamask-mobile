@@ -91,7 +91,7 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { resetTransaction, setRecipient } from '../../../actions/transaction';
-import Routes from '../../../constants/navigation/Routes';
+import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import {
   SWAP_QUOTE_SUMMARY,
   SWAP_GAS_FEE,
@@ -889,6 +889,7 @@ function SwapsQuotesView({
         ),
         network_fees_ETH: renderFromWei(toWei(selectedQuoteValue?.ethFee)),
         chain_id: getDecimalChainId(chainId),
+        is_smart_transaction: shouldUseSmartTransaction,
       };
       trackAnonymousEvent(MetaMetricsEvents.SWAP_STARTED, parameters);
     },
@@ -914,7 +915,7 @@ function SwapsQuotesView({
 
       try {
         resetTransaction();
-        const { transactionMeta } = await addTransaction(
+        const { transactionMeta, result } = await addTransaction(
           {
             ...selectedQuote.trade,
             ...getTransactionPropertiesFromGasEstimates(
@@ -928,6 +929,8 @@ function SwapsQuotesView({
             origin: process.env.MM_FOX_CODE,
           },
         );
+
+        await result;
 
         updateSwapsTransactions(
           transactionMeta,
@@ -965,7 +968,7 @@ function SwapsQuotesView({
     ) => {
       try {
         resetTransaction();
-        const { transactionMeta } = await addTransaction(
+        const { transactionMeta, result } = await addTransaction(
           {
             ...approvalTransaction,
             ...getTransactionPropertiesFromGasEstimates(
@@ -979,6 +982,7 @@ function SwapsQuotesView({
           },
         );
 
+        await result;
         setRecipient(selectedAddress);
 
         approvalTransactionMetaId = transactionMeta.id;
@@ -1041,9 +1045,8 @@ function SwapsQuotesView({
     const newSwapsTransactions =
       TransactionController.state.swapsTransactions || {};
     let approvalTransactionMetaId;
-
     if (approvalTransaction) {
-      handleApprovaltransaction(
+      await handleApprovaltransaction(
         TransactionController,
         newSwapsTransactions,
         approvalTransactionMetaId,
@@ -1060,7 +1063,7 @@ function SwapsQuotesView({
       !shouldUseSmartTransaction ||
       (shouldUseSmartTransaction && !approvalTransaction)
     ) {
-      handleSwapTransaction(
+      await handleSwapTransaction(
         TransactionController,
         newSwapsTransactions,
         approvalTransactionMetaId,
@@ -1292,7 +1295,7 @@ function SwapsQuotesView({
 
   const buyEth = useCallback(() => {
     try {
-      navigation.navigate(Routes.RAMP.BUY);
+      navigation.navigate(...createBuyNavigationDetails());
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
@@ -1422,7 +1425,7 @@ function SwapsQuotesView({
 
   /* errorKey effect: hide every modal */
   useEffect(() => {
-    if (error) {
+    if (error?.key) {
       hideFeeModal();
       hideQuotesModal();
       hideUpdateModal();

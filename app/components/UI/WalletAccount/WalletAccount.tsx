@@ -2,7 +2,7 @@
 import React, { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { Platform, View } from 'react-native';
+import { View } from 'react-native';
 
 // External dependencies
 import { IconName } from '../../../component-library/components/Icons/Icon';
@@ -10,16 +10,12 @@ import PickerAccount from '../../../component-library/components/Pickers/PickerA
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
 import { useStyles } from '../../../component-library/hooks';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import AddressCopy from '../AddressCopy';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
 import { ButtonIconSizes } from '../../../component-library/components/Buttons/ButtonIcon';
 import Routes from '../../../constants/navigation/Routes';
-import {
-  WALLET_ACCOUNT_ICON,
-  MAIN_WALLET_ACCOUNT_ACTIONS,
-} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { getLabelTextByAddress } from '../../../util/address';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import useEnsNameByAddress from '../../../components/hooks/useEnsNameByAddress';
@@ -29,6 +25,8 @@ import Logger from '../../../util/Logger';
 import styleSheet from './WalletAccount.styles';
 import { WalletAccountProps } from './WalletAccount.types';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
   const { styles } = useStyles(styleSheet, { style });
 
@@ -50,6 +48,8 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
     accountActionsRef,
   }));
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -84,7 +84,7 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
         showAddress={false}
         cellAccountContainerStyle={styles.account}
         style={styles.accountPicker}
-        {...generateTestId(Platform, WALLET_ACCOUNT_ICON)}
+        testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
       />
       <View style={styles.middleBorder} />
       <View style={styles.addressContainer} ref={accountActionsRef}>
@@ -93,7 +93,7 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
           iconName={IconName.MoreHorizontal}
           size={ButtonIconSizes.Sm}
           onPress={onNavigateToAccountActions}
-          {...generateTestId(Platform, MAIN_WALLET_ACCOUNT_ACTIONS)}
+          testID={WalletViewSelectorsIDs.ACCOUNT_ACTIONS}
         />
       </View>
     </View>

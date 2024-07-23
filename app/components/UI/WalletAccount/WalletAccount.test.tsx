@@ -7,13 +7,14 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { Account } from '../../hooks/useAccounts';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   internalAccount2,
   expectedUuid2,
 } from '../../../util/test/accountsControllerTestUtils';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 // Internal dependencies
 import WalletAccount from './WalletAccount';
@@ -36,7 +37,7 @@ const mockInitialState = {
   },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       NetworkController: {
         providerConfig: {
@@ -111,7 +112,7 @@ describe('WalletAccount', () => {
     const { getByTestId } = renderWithProvider(<WalletAccount />, {
       state: mockInitialState,
     });
-    expect(getByTestId('wallet-account-address')).toBeDefined();
+    expect(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ADDRESS)).toBeDefined();
   });
 
   it('copies the account address to the clipboard when the copy button is pressed', async () => {
@@ -119,7 +120,7 @@ describe('WalletAccount', () => {
       state: mockInitialState,
     });
 
-    fireEvent.press(getByTestId('wallet-account-copy-button'));
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_COPY_BUTTON));
     expect(ClipboardManager.setString).toHaveBeenCalledTimes(1);
   });
 
@@ -128,7 +129,7 @@ describe('WalletAccount', () => {
       state: mockInitialState,
     });
 
-    fireEvent.press(getByTestId('account-picker'));
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON));
     expect(mockNavigate).toHaveBeenCalledWith(
       ...createAccountSelectorNavDetails({}),
     );
