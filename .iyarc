@@ -1,7 +1,3 @@
 # ReDoS vulnerability, no impact to this application, and fix not backported yet to the versions we use
 
 GHSA-c2qf-rxjj-qqgw
-
-# ip SSRF improper categorization in isPublic, since it only affect dev tools on, and the server is actually a local server, this advisory shouldn't apply to this use cases
-
-GHSA-2p57-rm9w-gvfp
