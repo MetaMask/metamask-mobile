@@ -1,13 +1,13 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 
 export interface FeatureFlagsState {
-  featureFlags: object[] | null;
+  featureFlags: [];
   loading: boolean;
   error: string | null;
 }
 
 export const initialState: FeatureFlagsState = {
-  featureFlags: null,
+  featureFlags: [],
   loading: false,
   error: null,
 };
@@ -33,7 +33,7 @@ const slice = createSlice({
      */
     getFeatureFlagsSuccess: (
       state: FeatureFlagsState,
-      action: PayloadAction<object>,
+      action: PayloadAction<[]>,
     ) => {
       state.featureFlags = action.payload;
       state.loading = false;

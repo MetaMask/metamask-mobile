@@ -192,14 +192,14 @@ function* fetchFeatureFlags(): Generator {
       .then((res) => res.json())
       .then((res) => (response = res));
 
-    if (response.status !== 'ok') {
+    if (response.status !== 'ok' && response.message) {
       yield put(getFeatureFlagsError(response.message));
       return;
     }
     yield put(getFeatureFlagsSuccess(response.data));
   } catch (error) {
     console.error(error);
-    yield put(getFeatureFlagsError(error));
+    yield put(getFeatureFlagsError(error as string));
   }
 }
 
