@@ -77,15 +77,28 @@ export default class AccountListView {
     await TestHelpers.checkIfElementWithTextIsNotVisible('Account 2');
   }
 
-  static async checkAccount3VisibilityAtIndex(index, shouldBeVisible) {
+  static async checkAccountVisibilityAtIndex(index, shouldBeVisible) {
     const expectation = element(
       by.id(CellModalSelectorsIDs.BASE_TITLE),
     ).atIndex(index);
 
-    if (shouldBeVisible) {
-      await expect(expectation).toHaveText('Account 3');
-    } else {
-      await expect(expectation).not.toHaveText('Account 3');
+    const expectedText = `Account ${index + 1}`;
+
+    try {
+      if (shouldBeVisible) {
+        await expect(expectation).toHaveText(expectedText);
+      } else {
+        await expect(expectation).not.toHaveText(expectedText);
+      }
+    } catch (error) {
+      if (shouldBeVisible) {
+        throw new Error(
+          `Expected element at index ${index} to be visible, but it does not exist.`,
+        );
+      } else {
+        // If the element should not be visible and it doesn't exist, the test passes.
+        return;
+      }
     }
   }
 

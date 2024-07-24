@@ -7,23 +7,23 @@ import { loginToApp } from '../../viewHelper.js';
 import WalletView from '../../pages/wallet/WalletView.js';
 import AccountListView from '../../pages/AccountListView.js';
 import ImportAccountView from '../../pages/ImportAccountView.js';
-import { AccountListViewSelectorsIDs } from '../../selectors/AccountListView.selectors.js';
 import Assertions from '../../utils/Assertions.js';
-// import { WalletViewSelectorsText } from '../../selectors/wallet/WalletView.selectors.js';
 
 // This key is for testing private key import only
 // It should NEVER hold any eth or token
 const TEST_PRIVATE_KEY =
   'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
-const IMPORTED_ACCOUNT_NAME = 'Account 3';
+const IMPORTED_LABEL = 'Imported';
 
-describe(SmokeAccounts('Imported account remove and import'), () => {
+const accountListView = new AccountListView();
+
+describe(SmokeAccounts('Imported account removal and reimport'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     await device.launchApp();
   });
 
-  it('remove imported account then import private key again', async () => {
+  it('remove an account then import private key again', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -37,24 +37,17 @@ describe(SmokeAccounts('Imported account remove and import'), () => {
         //make sure imported account is present
         await WalletView.tapIdenticon();
         await AccountListView.isVisible();
-        await AccountListView.checkAccount3VisibilityAtIndex(2, true);
-
+        await AccountListView.checkAccountVisibilityAtIndex(2, true);
         await Assertions.checkIfElementToHaveText(
-          WalletView.accountName,
-          IMPORTED_ACCOUNT_NAME,
+          accountListView.accountTypeLabel,
+          IMPORTED_LABEL,
         );
-        // await Assertions.checkIfElementToHaveText(
-        //   AccountListView.accountTypeLabel,
-        //   AccountListViewSelectorsIDs.ACCOUNT_TYPE_LABEL_TEXT,
-        // );
 
         //remove the imported account
         await AccountListView.longPressImportedAccountThree();
         await AccountListView.tapYesToRemoveImportedAccountAlertButton();
-        await Assertions.checkIfElementNotToHaveText(
-          WalletView.accountName,
-          IMPORTED_ACCOUNT_NAME,
-        );
+        await AccountListView.checkAccountVisibilityAtIndex(2, false);
+        await Assertions.checkIfNotVisible(accountListView.accountTypeLabel);
 
         //import account again
         await AccountListView.tapAddAccountButton();
@@ -63,10 +56,10 @@ describe(SmokeAccounts('Imported account remove and import'), () => {
         await ImportAccountView.enterPrivateKey(TEST_PRIVATE_KEY);
         await ImportAccountView.isImportSuccessSreenVisible();
         await ImportAccountView.tapCloseButtonOnImportSuccess();
-        await AccountListView.checkAccount3VisibilityAtIndex(2, true);
+        await AccountListView.checkAccountVisibilityAtIndex(2, true);
         await Assertions.checkIfElementToHaveText(
-          WalletView.accountName,
-          IMPORTED_ACCOUNT_NAME,
+          accountListView.accountTypeLabel,
+          IMPORTED_LABEL,
         );
       },
     );
