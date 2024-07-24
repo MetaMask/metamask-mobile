@@ -286,6 +286,18 @@ export class BackgroundBridge extends EventEmitter {
     }
     const publicState = this.getProviderNetworkState();
 
+    if (!this.chainIdSent) {
+      this.chainIdSent = publicState.chainId;
+    }
+
+    if (!this.networkVersionSent) {
+      this.networkVersionSent = publicState.networkVersion;
+    }
+
+    if (!this.addressSent) {
+      this.addressSent = memState.selectedAddress;
+    }
+
     // Check if update already sent
     if (
       this.chainIdSent !== publicState.chainId ||
@@ -296,10 +308,12 @@ export class BackgroundBridge extends EventEmitter {
       this.networkVersionSent = publicState.networkVersion;
       this.notifyChainChanged(publicState);
     }
-
     // ONLY NEEDED FOR WC FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
     if (this.isWalletConnect || this.isRemoteConn) {
-      if (this.addressSent !== memState.selectedAddress) {
+      if (
+        this.addressSent?.toLowerCase() !==
+        memState.selectedAddress?.toLowerCase()
+      ) {
         this.addressSent = memState.selectedAddress;
         this.notifySelectedAddressChanged(memState.selectedAddress);
       }
@@ -335,6 +349,11 @@ export class BackgroundBridge extends EventEmitter {
       'PreferencesController:stateChange',
       this.sendStateUpdate,
     );
+
+    this.addressSent = null;
+    this.chainIdSent = null;
+    this.networkVersionSent = null;
+
     this.port.emit('disconnect', { name: this.port.name, data: null });
   };
 
