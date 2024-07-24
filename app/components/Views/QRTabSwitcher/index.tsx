@@ -109,7 +109,7 @@ const QRTabSwitcher = () => {
       {selectedIndex === Screens.Receive ? (
         <ReceiveRequest
           navigation={navigation}
-          hideModal={false}
+          hideModal={() => false}
           showReceiveModal
         />
       ) : null}
