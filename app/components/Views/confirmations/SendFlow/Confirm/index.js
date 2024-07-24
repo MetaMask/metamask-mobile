@@ -127,6 +127,10 @@ import { TransactionConfirmViewSelectorsIDs } from '../../../../../../e2e/select
 import { selectTransactionMetrics } from '../../../../../core/redux/slices/transactionMetrics';
 import SimulationDetails from '../../../../UI/SimulationDetails/SimulationDetails';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
+import {
+  validateEthOrTokenTransaction,
+  validateTokenTransaction,
+} from './validation';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -531,11 +535,16 @@ class Confirm extends PureComponent {
     }
 
     if (
-      this.props.gasFeeEstimates &&
-      gas &&
-      (!prevProps.gasFeeEstimates ||
-        !shallowEqual(prevProps.gasFeeEstimates, this.props.gasFeeEstimates) ||
-        gas !== prevProps?.transactionState?.transaction?.gas)
+      (this.props.gasFeeEstimates &&
+        gas &&
+        (!prevProps.gasFeeEstimates ||
+          !shallowEqual(
+            prevProps.gasFeeEstimates,
+            this.props.gasFeeEstimates,
+          ) ||
+          gas !== prevProps?.transactionState?.transaction?.gas)) ||
+      EIP1559GasTransaction.totalMaxHex !==
+        prevState.EIP1559GasTransaction.totalMaxHex
     ) {
       const gasEstimateTypeChanged =
         prevProps.gasEstimateType !== this.props.gasEstimateType;
@@ -762,39 +771,30 @@ class Confirm extends PureComponent {
         transaction: { value },
       },
     } = this.props;
+
     const selectedAddress = transaction?.from;
-    let weiBalance, weiInput, error;
+    const weiBalance = hexToBN(accounts[selectedAddress].balance);
+    const totalTransactionValue = hexToBN(total);
 
-    if (isDecimal(value)) {
-      if (selectedAsset.isETH || selectedAsset.tokenId) {
-        weiBalance = hexToBN(accounts[selectedAddress].balance);
-        const totalTransactionValue = hexToBN(total);
-        if (!weiBalance.gte(totalTransactionValue)) {
-          const amount = renderFromWei(totalTransactionValue.sub(weiBalance));
-          const tokenSymbol = getTicker(ticker);
-          error = strings('transaction.insufficient_amount', {
-            amount,
-            tokenSymbol,
-          });
-        }
-      } else {
-        const [, , amount] = decodeTransferData('transfer', transaction.data);
-
-        weiBalance = hexToBN(contractBalances[selectedAsset.address]);
-
-        weiInput = hexToBN(amount);
-        error =
-          weiBalance && weiBalance.gte(weiInput)
-            ? undefined
-            : strings('transaction.insufficient_tokens', {
-                token: selectedAsset.symbol,
-              });
-      }
-    } else {
-      error = strings('transaction.invalid_amount');
+    if (!isDecimal(value)) {
+      return strings('transaction.invalid_amount');
     }
 
-    return error;
+    if (selectedAsset.isETH || selectedAsset.tokenId) {
+      return validateEthOrTokenTransaction(
+        weiBalance,
+        totalTransactionValue,
+        ticker,
+      );
+    }
+    return validateTokenTransaction(
+      transaction,
+      weiBalance,
+      totalTransactionValue,
+      contractBalances,
+      selectedAsset,
+      ticker,
+    );
   };
 
   setError = (errorMessage) => {
