@@ -1,5 +1,6 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures.js';
+<<<<<<< HEAD
 import { ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID } from './testIDs/Components/OnboardingWizard.testIds';
 import {
   IMPORT_NFT_BUTTON_ID,
@@ -14,6 +15,11 @@ import {
   VIEW_ETHERSCAN,
   WALLET_ACCOUNT_ICON,
 } from './testIDs/Screens/WalletView.testIds';
+=======
+import { OnboardingWizardModalSelectorsIDs } from '../../e2e/selectors/Modals/OnboardingWizardModal.selectors';
+import { ProtectWalletModalSelectorsIDs } from '../../e2e/selectors/Modals/ProtectWalletModal.selectors';
+import { AccountActionsModalSelectorsIDs } from '../../e2e/selectors/Modals/AccountActionsModal.selectors';
+>>>>>>> ca52e90402 (test: Add step to close onboarding modals (#10387))
 import { NOTIFICATION_TITLE } from './testIDs/Components/Notification.testIds';
 import { TabBarSelectorIDs } from '../../e2e/selectors/TabBar.selectors';
 
@@ -23,7 +29,7 @@ import { WalletViewSelectorsIDs } from "../../e2e/selectors/wallet/WalletView.se
 class WalletMainScreen {
   get noThanks() {
     return Selectors.getElementByPlatform(
-      ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
+      OnboardingWizardModalSelectorsIDs.NO_THANKS_BUTTON,
     );
   }
 
