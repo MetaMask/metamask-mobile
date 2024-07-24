@@ -1,6 +1,6 @@
 import { RootState } from '../reducers';
 
-import selectShowFiatInTestnets from './settings';
+import { selectShowFiatInTestnets } from './settings';
 
 describe('selectShowFiatInTestnets', () => {
   it('returns showFiatOnTestnets from state', () => {
