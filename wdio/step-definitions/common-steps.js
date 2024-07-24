@@ -18,6 +18,7 @@ import Gestures from '../helpers/Gestures';
 import OnboardingSucessScreen from '../screen-objects/OnboardingSucessScreen.js';
 import ExperienceEnhancerModal from '../screen-objects/Modals/ExperienceEnhancerModal';
 import TransactionProtectionModal from '../screen-objects/Modals/TransactionProtectionModal';
+import SettingsScreen from '../screen-objects/SettingsScreen';
 
 Then(/^the Welcome screen is displayed$/, async () => {
   await WelcomeScreen.isScreenDisplayed();
@@ -273,6 +274,7 @@ Given(/^I close the Whats New modal$/, async () => {
 
 When(/^I tap on the Settings tab option$/, async () => {
   await TabBarModal.tapSettingButton();
+  await SettingsScreen.waitForDisplay();
 });
 
 When(/^I tap on the Activity tab option$/, async () => {
@@ -337,17 +339,6 @@ Given(/^I close all the onboarding modals$/, async () => {
     console.log('The whats new modal is not visible');
   }
 
-  // TODO: Define the correct order of onboarding modals to be displayed
-  try {
-    await WhatsNewModal.waitForDisplay();
-    await WhatsNewModal.tapCloseButton();
-    await WhatsNewModal.waitForDisappear();
-  } catch {
-    /* eslint-disable no-console */
-
-    console.log('The whats new modal is not visible');
-  }
-
   try {
     // Handle Marketing consent modal
 
@@ -357,14 +348,7 @@ Given(/^I close all the onboarding modals$/, async () => {
   } catch {
     console.log('The marketing consent modal is not visible');
   }
-
-  try {
-    await CommonScreen.waitForToastToDisplay();
-    await CommonScreen.tapToastCloseButton();
-    await CommonScreen.waitForToastToDisplay();
-  } catch {
-    /* eslint-disable no-undef */
-
-    console.log('The marketing toast is not visible');
-  }
+});
+Then(/^I use the back button on Android$/, async () => {
+  await driver.back();
 });
