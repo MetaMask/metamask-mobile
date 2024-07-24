@@ -46,23 +46,13 @@ const createStyles = () =>
     badgeWrapper: {
       flex: 1,
     },
-    badgeElement: {
-      position: 'absolute',
-      top: 8,
-      left: 5,
-    },
-    testImageStyle: {
+    imageStyle: {
       width: '100%',
       height: '100%',
       borderRadius: 8,
     },
     detailedImageStyle: {
       borderRadius: 8,
-    },
-    testImageContainer: {
-      width: 114,
-      height: 114,
-      borderRadius: 12,
     },
   });
 
@@ -227,7 +217,7 @@ const RemoteImage = (props) => {
                 >
                   <View style={style}>
                     <Image
-                      style={styles.testImageStyle}
+                      style={styles.imageStyle}
                       {...restProps}
                       source={{ uri }}
                       onError={onError}
