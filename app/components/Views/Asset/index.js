@@ -492,6 +492,7 @@ class Asset extends PureComponent {
           sourceToken: asset.isETH
             ? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS
             : asset.address,
+          sourcePage: 'TokenView',
         },
       });
     };
