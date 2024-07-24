@@ -89,6 +89,9 @@ const initialState = {
     primaryCurrency: 'usd',
     hideZeroBalanceTokens: true,
   },
+  security: {
+    dataCollectionForMarketing: true,
+  },
 };
 
 const mockNavigate = jest.fn();
@@ -194,10 +197,12 @@ describe('Tokens', () => {
   it('navigates to Portfolio url when portfolio button is pressed', () => {
     const { getByTestId } = renderComponent(initialState);
 
+    const expectedUrl = `${AppConstants.PORTFOLIO.URL}/?metamaskEntry=mobile&metricsEnabled=false&marketingEnabled=${initialState.security.dataCollectionForMarketing}`;
+
     fireEvent.press(getByTestId(WalletViewSelectorsIDs.PORTFOLIO_BUTTON));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
       params: {
-        newTabUrl: `${AppConstants.PORTFOLIO.URL}/?metamaskEntry=mobile`,
+        newTabUrl: expectedUrl,
         timestamp: 123,
       },
       screen: Routes.BROWSER.VIEW,

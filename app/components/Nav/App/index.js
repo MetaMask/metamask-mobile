@@ -299,6 +299,7 @@ const VaultRecoveryFlow = () => (
   </Stack.Navigator>
 );
 
+// eslint-disable-next-line react/prop-types
 const App = ({ userLoggedIn }) => {
   const animationRef = useRef(null);
   const animationNameRef = useRef(null);

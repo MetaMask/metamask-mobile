@@ -19,6 +19,11 @@ import Icon, {
   IconColor,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+import {
+  MetaMetricsEvents,
+  useMetrics,
+} from '../../../components/hooks/useMetrics';
+import { getDecimalChainId } from '../../../util/networks';
 
 const DEVICE_WIDTH = Device.getDeviceWidth();
 const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
@@ -101,6 +106,7 @@ function CollectibleContractElement({
   const longPressedCollectible = useRef(null);
   const { colors, themeAppearance, brandColors } = useTheme();
   const styles = createStyles(colors, brandColors);
+  const { trackEvent } = useMetrics();
 
   const toggleCollectibles = useCallback(() => {
     setCollectiblesVisible(!collectiblesVisible);
@@ -132,6 +138,9 @@ function CollectibleContractElement({
       longPressedCollectible.current.address,
       longPressedCollectible.current.tokenId,
     );
+    trackEvent(MetaMetricsEvents.COLLECTIBLE_REMOVED, {
+      chain_id: getDecimalChainId(chainId),
+    });
     Alert.alert(
       strings('wallet.collectible_removed_title'),
       strings('wallet.collectible_removed_desc'),

@@ -1688,6 +1688,7 @@
     "search": "Search for previously added network",
     "search-short": "Search",
     "add": "Add",
+    "continue": "Continue",
     "cancel": "Cancel",
     "approve": "Approve",
     "edit_network_details": "Edit network details",
