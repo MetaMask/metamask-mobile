@@ -49,6 +49,7 @@ const QuizContent = ({
         <Text
           variant={TextVariant.HeadingLG}
           style={{ ...styles.title, ...title.style }}
+          testID={title.testID}
         >
           {title.content}
         </Text>
@@ -67,6 +68,7 @@ const QuizContent = ({
             onPress={btn.onPress}
             label={btn.label}
             style={styles.button}
+            testID={btn.testID}
           />
         ))}
       </View>

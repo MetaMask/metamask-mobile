@@ -142,7 +142,6 @@ exports[`NFT Auto detection modal render matches snapshot 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -235,7 +234,6 @@ exports[`NFT Auto detection modal render matches snapshot 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
