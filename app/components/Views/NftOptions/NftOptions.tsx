@@ -21,6 +21,11 @@ import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { Collectible } from '../../../components/UI/CollectibleMedia/CollectibleMedia.types';
 import Routes from '../../../constants/navigation/Routes';
+import {
+  useMetrics,
+  MetaMetricsEvents,
+} from '../../../components/hooks/useMetrics';
+import { getDecimalChainId } from '../../../util/networks';
 
 interface Props {
   route: {
@@ -37,6 +42,7 @@ const NftOptions = (props: Props) => {
   const navigation = useNavigation();
   const modalRef = useRef<ReusableModalRef>(null);
   const chainId = useSelector(selectChainId);
+  const { trackEvent } = useMetrics();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountChecksummedAddress,
   );
@@ -90,6 +96,9 @@ const NftOptions = (props: Props) => {
       collectible.address,
       collectible.tokenId.toString(),
     );
+    trackEvent(MetaMetricsEvents.COLLECTIBLE_REMOVED, {
+      chain_id: getDecimalChainId(chainId),
+    });
     Alert.alert(
       strings('wallet.collectible_removed_title'),
       strings('wallet.collectible_removed_desc'),

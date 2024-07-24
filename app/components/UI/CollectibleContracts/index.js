@@ -125,10 +125,6 @@ const CollectibleContracts = ({
       navigation.push('NftDetails', {
         collectible,
       });
-      /*     navigation.navigate('CollectiblesDetails', {
-        collectible,
-        contractName,
-      });    */
     },
     [navigation],
   );

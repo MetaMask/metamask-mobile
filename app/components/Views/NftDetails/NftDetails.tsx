@@ -42,6 +42,9 @@ import ContentDisplay from '../../../components/UI/AssetOverview/AboutAsset/Cont
 import BigNumber from 'bignumber.js';
 import { addUrlProtocolPrefix } from '../../../util/url';
 import formatTimestampToYYYYMMDD from './nftDetails.utils';
+import { getDecimalChainId } from '../../../util/networks';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const NftDetails = () => {
   const navigation = useNavigation();
@@ -50,6 +53,7 @@ const NftDetails = () => {
   const dispatch = useDispatch();
   const currentCurrency = useSelector(selectCurrentCurrency);
   const ticker = useSelector(selectTicker);
+  const { trackEvent } = useMetrics();
   const selectedNativeConversionRate = useSelector(selectConversionRate);
   const hasLastSalePrice = Boolean(
     collectible.lastSale?.price?.amount?.usd &&
@@ -87,6 +91,15 @@ const NftDetails = () => {
   useEffect(() => {
     updateNavBar();
   }, [updateNavBar]);
+
+  useEffect(() => {
+    trackEvent(MetaMetricsEvents.COLLECTIBLE_DETAILS_OPENED, {
+      chain_id: getDecimalChainId(chainId),
+    });
+    // The linter wants `trackEvent` to be added as a dependency,
+    // But the event fires twice if I do that.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chainId]);
 
   const viewHighestFloorPriceSource = () => {
     const url =
