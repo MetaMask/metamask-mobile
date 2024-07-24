@@ -112,7 +112,6 @@ function useNotificationListProps(props: {
           />
         ),
         contentContainerStyle: styles.list,
-        // eslint-disable-next-line react/display-name, react/prop-types
         renderItem: ({ item }) => (
           <NotificationsListItem
             notification={item}
