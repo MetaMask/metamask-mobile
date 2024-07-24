@@ -13,7 +13,7 @@ const selectGasFeeControllerEstimatesStrict = createSelector(
 
 export const selectGasFeeControllerEstimates = createDeepEqualSelector(
   selectGasFeeControllerEstimatesStrict,
-  (gasFeeEstimates: Record<string, never>) => gasFeeEstimates,
+  (gasFeeEstimates) => gasFeeEstimates,
 );
 
 export const selectGasFeeControllerEstimateType = createSelector(
