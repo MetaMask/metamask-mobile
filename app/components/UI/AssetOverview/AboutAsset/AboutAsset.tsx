@@ -17,6 +17,10 @@ interface AboutAssetProps {
   chainId: string;
 }
 
+const ensureHexPrefix = (chainId: string): `0x${string}` => {
+  return chainId.startsWith('0x') ? chainId as `0x${string}` : `0x${chainId}`;
+};
+
 const AboutAsset = ({ asset, chainId }: AboutAssetProps) => {
   const { styles } = useStyles(styleSheet, {});
   const locale: keyof TokenDescriptions = i18n.locale;
@@ -29,7 +33,7 @@ const AboutAsset = ({ asset, chainId }: AboutAssetProps) => {
   const { data: descriptions, isLoading: isDescriptionLoading } =
     useTokenDescriptions({
       address: asset.isETH ? zeroAddress() : asset.address,
-      chainId: chainId as string,
+      chainId: ensureHexPrefix(chainId),
     });
 
   const description = descriptions[locale] || descriptions.en;
