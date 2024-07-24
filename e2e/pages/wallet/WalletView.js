@@ -112,8 +112,8 @@ class WalletView {
 
   get testCollectible() {
     return device.getPlatform() === 'android'
-      ? Matchers.getElementByID('collectible-Test Dapp NFTs #1-1')
-      : Matchers.getElementByID('fallback-nft-with-token-id', 1);
+      ? Matchers.getElementByID('fallback-nft-with-token-id', 1)
+      : Matchers.getElementByID('collectible-Test Dapp NFTs #1-1');
   }
 
   async tapOnNftName() {
