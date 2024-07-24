@@ -5,7 +5,7 @@ import Button, {
 import { zeroAddress } from 'ethereumjs-util';
 import React, { useCallback, useEffect } from 'react';
 import { Platform, TouchableOpacity, View } from 'react-native';
-import { RootStateOrAny, useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import {
   TOKEN_ASSET_OVERVIEW,
@@ -70,19 +70,19 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const conversionRate = useSelector(selectConversionRate);
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const primaryCurrency = useSelector(
-    (state: RootStateOrAny) => state.settings.primaryCurrency,
+    (state: any) => state.settings.primaryCurrency,
   );
   const selectedAddress = useSelector(
     selectSelectedInternalAccountChecksummedAddress,
   );
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const tokenBalances = useSelector(selectContractBalances);
-  const chainId = useSelector((state: RootStateOrAny) => selectChainId(state));
-  const ticker = useSelector((state: RootStateOrAny) => selectTicker(state));
+  const chainId = useSelector((state: any) => selectChainId(state));
+  const ticker = useSelector((state: any) => selectTicker(state));
 
   const { data: prices = [], isLoading } = useTokenHistoricalPrices({
     address: asset.isETH ? zeroAddress() : asset.address,
-    chainId: chainId as string,
+    chainId: `0x${chainId.toString(16)}`,
     timePeriod,
     vsCurrency: currentCurrency,
   });
@@ -174,13 +174,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   let balance, balanceFiat;
   if (asset.isETH) {
-    balance = renderFromWei(
-      accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
-    );
+    const ethBalance = chainId && selectedAddress ? accountsByChainId[toHexadecimal(chainId)]?.[selectedAddress]?.balance : '0';
+    balance = renderFromWei(ethBalance);
     balanceFiat = weiToFiat(
-      hexToBN(
-        accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
-      ),
+      hexToBN(ethBalance),
       conversionRate,
       currentCurrency,
     );
