@@ -29,7 +29,7 @@ const AboutAsset = ({ asset, chainId }: AboutAssetProps) => {
   const { data: descriptions, isLoading: isDescriptionLoading } =
     useTokenDescriptions({
       address: asset.isETH ? zeroAddress() : asset.address,
-      chainId: chainId as string,
+      chainId: `0x${chainId}`, // Fix: Ensure chainId is formatted as a hexadecimal string prefixed with `0x`
     });
 
   const description = descriptions[locale] || descriptions.en;
