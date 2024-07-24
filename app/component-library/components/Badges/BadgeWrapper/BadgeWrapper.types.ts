@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { StyleProp, ViewProps, ViewStyle } from 'react-native';
+import { ViewProps } from 'react-native';
 
 /**
  * Badge Anchor Element Shape.
@@ -52,10 +52,6 @@ export interface BadgeWrapperProps extends ViewProps {
    * Any element that will be placed in the position of the badge.
    */
   badgeElement: React.ReactNode;
-
-  badgeElementStyle?: StyleProp<ViewStyle> | undefined;
-  badgeWrapperStyle?: StyleProp<ViewStyle> | undefined;
-  isTokenImage?: boolean;
 }
 
 /**
@@ -65,5 +61,4 @@ export type BadgeWrapperStyleSheetVars = Pick<BadgeWrapperProps, 'style'> & {
   anchorElementShape: BadgeAnchorElementShape;
   badgePosition: BadgePosition | BadgePositionCustom;
   containerSize: { width: number; height: number } | null;
-  isTokenImage?: boolean;
 };

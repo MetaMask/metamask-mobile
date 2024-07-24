@@ -33,10 +33,10 @@ import {
 } from '../../../util/networks';
 import images from 'images/image-icons';
 import { selectNetworkName } from '../../../selectors/networkInfos';
-import { DEFAULT_BADGEWRAPPER_BADGEPOSITION } from '../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
 
 import { BadgeAnchorElementShape } from '../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
 import useSvgUriViewBox from '../../hooks/useSvgUriViewBox';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -179,25 +179,29 @@ const RemoteImage = (props) => {
 
   if (props.fadeIn) {
     const { style, ...restProps } = props;
+    const badge = {
+      top: -4,
+      right: -4,
+    };
     return (
       <>
         {props.isTokenImage ? (
           <FadeIn placeholderStyle={props.placeholderStyle}>
             <View>
-              <BadgeWrapper
-                isTokenImage
-                badgePosition={DEFAULT_BADGEWRAPPER_BADGEPOSITION}
-                anchorElementShape={BadgeAnchorElementShape.Rectangular}
-                badgeElement={
-                  <Badge
-                    variant={BadgeVariant.Network}
-                    imageSource={NetworkBadgeSource()}
-                    name={networkName}
-                    isScaled
-                  />
-                }
-              >
-                {props.isFullRatio && dimensions ? (
+              {props.isFullRatio && dimensions ? (
+                <BadgeWrapper
+                  badgePosition={badge}
+                  anchorElementShape={BadgeAnchorElementShape.Rectangular}
+                  badgeElement={
+                    <Badge
+                      variant={BadgeVariant.Network}
+                      imageSource={NetworkBadgeSource()}
+                      name={networkName}
+                      isScaled={false}
+                      size={AvatarSize.Md}
+                    />
+                  }
+                >
                   <Image
                     source={{ uri }}
                     style={{
@@ -206,7 +210,21 @@ const RemoteImage = (props) => {
                       ...styles.detailedImageStyle,
                     }}
                   />
-                ) : (
+                </BadgeWrapper>
+              ) : (
+                <BadgeWrapper
+                  badgePosition={badge}
+                  anchorElementShape={BadgeAnchorElementShape.Rectangular}
+                  badgeElement={
+                    <Badge
+                      variant={BadgeVariant.Network}
+                      imageSource={NetworkBadgeSource()}
+                      name={networkName}
+                      isScaled={false}
+                      size={AvatarSize.Xs}
+                    />
+                  }
+                >
                   <View style={style}>
                     <Image
                       style={styles.testImageStyle}
@@ -216,8 +234,8 @@ const RemoteImage = (props) => {
                       resizeMode={'cover'}
                     />
                   </View>
-                )}
-              </BadgeWrapper>
+                </BadgeWrapper>
+              )}
             </View>
           </FadeIn>
         ) : (

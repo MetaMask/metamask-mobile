@@ -21,7 +21,6 @@ const BadgeWrapper: React.FC<BadgeWrapperProps> = ({
   children,
   badgeElement,
   style,
-  isTokenImage,
 }) => {
   const { size: containerSize, onLayout: onLayoutContainerSize } =
     useComponentSize();
@@ -31,7 +30,6 @@ const BadgeWrapper: React.FC<BadgeWrapperProps> = ({
     anchorElementShape,
     badgePosition,
     containerSize,
-    isTokenImage,
   });
 
   return (
