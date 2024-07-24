@@ -1,4 +1,10 @@
-diff --git a/node_modules/@metamask/approval-controller/dist/.patch.txt b/node_modules/@metamask/approval-controller/dist/.patch.txt
+dito update patch:
++* Create a new core branch from: patch/mobile-approval-controller-3-5-2
++* Run "yarn build" in the core monorepo
++* Run "yarn patch:approval <core-directory>" in the mobile repo
++* Once the new patch is merged, add your changes to: patch/mobile-approval-controller-3-5-2
+diff --git a/node_modules/@metamask/approval-controller/dist/ApprovalController.d.ts b/node_modules/@metamask/approval-controller/dist/ApprovalController.d.ts
+indeff --git a/node_modules/@metamask/approval-controller/dist/.patch.txt b/node_modules/@metamask/approval-controller/dist/.patch.txt
 new file mode 100644
 index 0000000..550de56
 --- /dev/null
@@ -6,13 +12,7 @@ index 0000000..550de56
 @@ -0,0 +1,7 @@
 +PATCH GENERATED FROM MetaMask/core branch: patch/mobile-approval-controller-3-5-2
 +This patch backports various transaction controller features from the main branch of MetaMask/core
-+Steps to update patch:
-+* Create a new core branch from: patch/mobile-approval-controller-3-5-2
-+* Run "yarn build" in the core monorepo
-+* Run "yarn patch:approval <core-directory>" in the mobile repo
-+* Once the new patch is merged, add your changes to: patch/mobile-approval-controller-3-5-2
-diff --git a/node_modules/@metamask/approval-controller/dist/ApprovalController.d.ts b/node_modules/@metamask/approval-controller/dist/ApprovalController.d.ts
-index 32f61cb..4e4d7a1 100644
++Steps x 32f61cb..4e4d7a1 100644
 --- a/node_modules/@metamask/approval-controller/dist/ApprovalController.d.ts
 +++ b/node_modules/@metamask/approval-controller/dist/ApprovalController.d.ts
 @@ -99,6 +99,12 @@ export declare type AcceptOptions = {
