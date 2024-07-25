@@ -60,7 +60,7 @@ const PickerAccount: React.ForwardRefRenderFunction<
           <Text
             variant={TextVariant.BodySM}
             style={styles.accountNameLabelText}
-            testID={AccountListViewSelectorsIDs.ACCOUNT_TYPE_LABEL_TEXT}
+            testID={AccountListViewSelectorsIDs.ACCOUNT_TYPE_LABEL}
           >
             {strings(accountTypeLabel)}
           </Text>

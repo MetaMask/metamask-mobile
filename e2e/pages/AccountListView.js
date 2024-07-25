@@ -15,13 +15,13 @@ import Matchers from '../utils/Matchers';
 export default class AccountListView {
   get accountTypeLabel() {
     return Matchers.getElementByID(
-      AccountListViewSelectorsIDs.ACCOUNT_TYPE_LABEL_TEXT,
+      AccountListViewSelectorsIDs.ACCOUNT_TYPE_LABEL,
     );
   }
 
   get accountName() {
     return Matchers.getElementByID(
-      AccountListViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT,
+      AccountListViewSelectorsIDs.ACCOUNT_NAME_LABEL,
     );
   }
 
