@@ -9,8 +9,8 @@ pipelines:
   create_qa_builds_pipeline:
     stages:
       - create_build_qa: {}
-  #Creates MetaMask, MetaMask-QA apps and stores apk/ipa in Bitrise
-  create_prod_builds_pipeline:
+  #Builds MetaMask, MetaMask-QA apps and stores apk/ipa in Bitrise
+  build_all_targets_pipeline:
     stages:
       - create_build_release: {}
       - create_build_qa: {} #Generate QA builds for E2E app upgrade tests
