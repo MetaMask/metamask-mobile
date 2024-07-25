@@ -2,7 +2,11 @@
 
 ## Current Main Branch
 
-## 7.27.0 - Jul 5, 2024
+## 7.27.1 - Jul 25, 2024
+### Fixed
+
+
+## 7.27.0 - Jul 19, 2024
 ### Added
 - [#7759](https://github.com/MetaMask/metamask-mobile/pull/7759): feat: upgrade react-native-webview (#7759)
 - [#10000](https://github.com/MetaMask/metamask-mobile/pull/10000): feat: support security alerts API (#10000)
