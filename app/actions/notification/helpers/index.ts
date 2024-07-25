@@ -10,7 +10,7 @@ const {
   NotificationServicesController,
 } = Engine.context;
 
-type MarkAsReadNotificationsParam = Pick<
+export type MarkAsReadNotificationsParam = Pick<
   Notification,
   'id' | 'type' | 'isRead'
 >[];

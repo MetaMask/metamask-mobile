@@ -500,8 +500,8 @@ PODS:
   - React-jsinspector (0.72.15)
   - React-logger (0.72.15):
     - glog
-  - react-native-aes (1.3.9):
-    - React
+  - react-native-aes (3.0.3):
+    - React-Core
   - react-native-background-timer (2.1.1):
     - React
   - react-native-ble-plx (3.1.2):
@@ -1199,7 +1199,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: ce8ecfcd3b7dbc9cb65a661110be17f5afd18aa3
   React-jsinspector: b86a8abae760c28d69366bbc1d991561e51341ed
   React-logger: ed7c9e01e58529065e7da6bf8318baf15024283e
-  react-native-aes: ff31f0dd4c791eb423a631ee04570fcf3c618924
+  react-native-aes: 0143040f4e0cb19296b69b4acc7ddd8d3df9d62d
   react-native-background-timer: 1b6e6b4e10f1b74c367a1fdc3c72b67c619b222b
   react-native-ble-plx: f0557dbb6bd1f26cca75a67b5f33cfc7f7f9abed
   react-native-blob-jsi-helper: 13c10135af4614dbc0712afba5960784cd44f043
