@@ -30,7 +30,9 @@ import { selectSelectedInternalAccount } from '../../../selectors/accountsContro
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
-const AddressCopy = ({ formatAddressType = 'full' }: AddressCopyProps) => {
+type FormatAddressType = Parameters<typeof formatAddress>[1];
+
+const AddressCopy = ({ formatAddressType = 'full' as FormatAddressType }: AddressCopyProps & { formatAddressType?: FormatAddressType }) => {
   const { styles } = useStyles(styleSheet, {});
 
   const dispatch = useDispatch();
