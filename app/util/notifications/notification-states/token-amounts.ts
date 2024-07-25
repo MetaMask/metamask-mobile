@@ -1,4 +1,4 @@
-import { getAmount, getUsdAmount } from '../notification.util';
+import { getAmount, getUsdAmount } from '../methods/common';
 
 export function getTokenAmount(token: {
   amount: string;
