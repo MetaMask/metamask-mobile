@@ -72,12 +72,12 @@ class WalletConnect2Session {
   // timeoutRef is used on android to prevent automatic redirect on switchChain and wait for wallet_addEthereumChain.
   // If addEthereumChain is not received after 3 seconds, it will redirect.
   private timeoutRef: NodeJS.Timeout | null = null;
-  private session: SessionTypes.Struct;
   private requestsToRedirect: { [request: string]: boolean } = {};
   private topicByRequestId: { [requestId: string]: string } = {};
   private requestByRequestId: {
     [requestId: string]: SingleEthereumTypes.SessionRequest;
   } = {};
+  public session: SessionTypes.Struct;
 
   constructor({
     web3Wallet,
@@ -512,6 +512,10 @@ class WalletConnect2Session {
       origin,
     });
   };
+
+  removeListeners = async () => {
+    this.backgroundBridge.onDisconnect();
+  };
 }
 
 export class WC2Manager {
@@ -535,10 +539,6 @@ export class WC2Manager {
     this.deeplinkSessions = deeplinkSessions;
     this.navigation = navigation;
 
-    const sessions = web3Wallet.getActiveSessions
-      ? web3Wallet.getActiveSessions()
-      : {};
-
     DevLogger.log(`WC2Manager::constructor()`, navigation);
 
     web3Wallet.on('session_proposal', this.onSessionProposal.bind(this));
@@ -546,7 +546,9 @@ export class WC2Manager {
     web3Wallet.on(
       'session_delete',
       async (event: SingleEthereumTypes.SessionDelete) => {
-        const session = sessions?.[event.topic];
+        const session =
+          this.getSession(event.topic) || this.sessions[event.topic].session;
+
         if (session && deeplinkSessions[session?.pairingTopic]) {
           delete deeplinkSessions[session.pairingTopic];
           await AsyncStorage.setItem(
@@ -554,6 +556,10 @@ export class WC2Manager {
             JSON.stringify(this.deeplinkSessions),
           );
         }
+
+        // Remove session from local list
+        this.sessions[event.topic]?.removeListeners();
+        delete this.sessions[event.topic];
       },
     );
 
@@ -576,11 +582,11 @@ export class WC2Manager {
       }
     ).PermissionController;
 
-    if (sessions) {
-      Object.keys(sessions).forEach(async (sessionKey) => {
+    const activeSessions = this.getSessions();
+    if (activeSessions) {
+      activeSessions.forEach(async (session) => {
+        const sessionKey = session.topic;
         try {
-          const session = sessions[sessionKey];
-
           this.sessions[sessionKey] = new WalletConnect2Session({
             web3Wallet,
             channelId: sessionKey,
@@ -766,13 +772,11 @@ export class WC2Manager {
   }
 
   public getSessions(): SessionTypes.Struct[] {
-    const actives = this.web3Wallet.getActiveSessions() || {};
-    const sessions: SessionTypes.Struct[] = [];
-    Object.keys(actives).forEach(async (sessionKey) => {
-      const session = actives[sessionKey];
-      sessions.push(session);
-    });
-    return sessions;
+    return Object.values(this.web3Wallet.getActiveSessions() || {});
+  }
+
+  public getSession(topic: string): SessionTypes.Struct | undefined {
+    return this.getSessions().find((session) => session.topic === topic);
   }
 
   public async removeSession(session: SessionTypes.Struct) {
@@ -781,6 +785,11 @@ export class WC2Manager {
         topic: session.topic,
         error: { code: 1, message: ERROR_MESSAGES.MANUAL_DISCONNECT },
       });
+
+      // Remove session from local list
+      this.sessions[session.topic]?.removeListeners();
+      delete this.sessions[session.topic];
+
       // Remove associated permissions
       const permissionsController = (
         Engine.context as {
@@ -817,6 +826,9 @@ export class WC2Manager {
           console.warn(`Can't remove active session ${session.topic}`, err);
         });
     });
+
+    // Clear local sessions
+    this.sessions = {};
 
     await AsyncStorage.setItem(
       AppConstants.WALLET_CONNECT.DEEPLINK_SESSIONS,
