@@ -305,7 +305,10 @@ class OptinMetrics extends PureComponent {
     } = this.props;
     setTimeout(async () => {
       const { clearOnboardingEvents, metrics } = this.props;
-      if (isDataCollectionForMarketingEnabled === null) {
+      if (
+        isDataCollectionForMarketingEnabled === null &&
+        setDataCollectionForMarketing
+      ) {
         setDataCollectionForMarketing(false);
       }
       // if users refuses tracking, get rid of the stored events
@@ -331,7 +334,10 @@ class OptinMetrics extends PureComponent {
     InteractionManager.runAfterInteractions(async () => {
       // add traits to user for identification
 
-      if (isDataCollectionForMarketingEnabled === null) {
+      if (
+        isDataCollectionForMarketingEnabled === null &&
+        setDataCollectionForMarketing
+      ) {
         setDataCollectionForMarketing(false);
       }
 
