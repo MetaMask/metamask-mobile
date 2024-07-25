@@ -11,7 +11,10 @@ import { useTheme } from '../../../../../../util/theme';
 import { PopularList } from '../../../../../../util/networks/customNetworks';
 import createStyles from '../styles';
 import { CustomNetworkProps, Network } from './CustomNetwork.types';
-import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../../../../../selectors/networkController';
 import AvatarNetwork from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import { isNetworkUiRedesignEnabled } from '../../../../../../util/networks';
@@ -27,10 +30,12 @@ const CustomNetwork = ({
   onNetworkSwitch,
   showAddedNetworks,
   customNetworksList,
+  displayContinue,
   showCompletionMessage = true,
   hideWarningIcons = false,
 }: CustomNetworkProps) => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const selectedChainId = useSelector(selectChainId);
 
   const supportedNetworkList = (customNetworksList ?? PopularList).map(
     (networkConfiguration: Network) => {
@@ -109,11 +114,16 @@ const CustomNetwork = ({
                 onPress={toggleWarningModal}
               />
             ) : null}
-            <CustomText link>
-              {networkConfiguration.isAdded
-                ? strings('networks.switch')
-                : strings('networks.add')}
-            </CustomText>
+            {displayContinue &&
+            networkConfiguration.chainId === selectedChainId ? (
+              <CustomText link>{strings('networks.continue')}</CustomText>
+            ) : (
+              <CustomText link>
+                {networkConfiguration.isAdded
+                  ? strings('networks.switch')
+                  : strings('networks.add')}
+              </CustomText>
+            )}
           </View>
         </TouchableOpacity>
       ))}

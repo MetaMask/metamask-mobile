@@ -1,85 +1,74 @@
-import {
-  ONBOARDING_WIZARD_BACK_BUTTON,
-  ONBOARDING_WIZARD_FIFTH_STEP_CONTENT_ID,
-  ONBOARDING_WIZARD_FOURTH_STEP_CONTENT_ID,
-  ONBOARDING_WIZARD_NEXT_GOT_IT_BUTTON,
-  ONBOARDING_WIZARD_SECOND_STEP_CONTENT_ID,
-  ONBOARDING_WIZARD_SIXTH_STEP_CONTENT_ID,
-  ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
-  ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
-  ONBOARDING_WIZARD_STEP_1_TAKE_THE_TOUR_ID,
-  ONBOARDING_WIZARD_THIRD_STEP_CONTENT_ID,
-  ONBOARDING_WIZARD_SEVENTH_STEP_CONTENT_ID,
-} from '../testIDs/Components/OnboardingWizard.testIds';
-
+import { OnboardingWizardModalSelectorsIDs } from '../../../e2e/selectors/Modals/OnboardingWizardModal.selectors';
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 
 class OnboardingWizardModal {
   get container() {
     return Selectors.getXpathElementByResourceId(
-      ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
+      OnboardingWizardModalSelectorsIDs.STEP_ONE_CONTAINER,
     );
   }
 
   get noThanksButton() {
     return Selectors.getXpathElementByResourceId(
-      ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
+      OnboardingWizardModalSelectorsIDs.NO_THANKS_BUTTON,
     );
   }
 
   get backButton() {
-    return Selectors.getElementByPlatform(ONBOARDING_WIZARD_BACK_BUTTON);
+    return Selectors.getElementByPlatform(
+      OnboardingWizardModalSelectorsIDs.BACK_BUTTON
+    );
   }
 
   get takeTourButton() {
     return Selectors.getElementByPlatform(
-      ONBOARDING_WIZARD_STEP_1_TAKE_THE_TOUR_ID,
+      OnboardingWizardModalSelectorsIDs.TAKE_TOUR_BUTTON,
     );
   }
 
   get step2Description() {
     return Selectors.getElementByPlatform(
-      ONBOARDING_WIZARD_SECOND_STEP_CONTENT_ID,
+      OnboardingWizardModalSelectorsIDs.STEP_TWO_CONTAINER,
     );
   }
 
   get step3Description() {
     return Selectors.getElementByPlatform(
-      ONBOARDING_WIZARD_THIRD_STEP_CONTENT_ID,
+      OnboardingWizardModalSelectorsIDs.STEP_THREE_CONTAINER,
     );
   }
 
   get step4Description() {
     return Selectors.getElementByPlatform(
-      ONBOARDING_WIZARD_FOURTH_STEP_CONTENT_ID,
+      OnboardingWizardModalSelectorsIDs.STEP_FOUR_CONTAINER,
     );
   }
 
   get step5Description() {
     return Selectors.getElementByPlatform(
-      ONBOARDING_WIZARD_FIFTH_STEP_CONTENT_ID,
+      OnboardingWizardModalSelectorsIDs.STEP_FIVE_CONTAINER,
     );
   }
 
   get step6Description() {
     return Selectors.getElementByPlatform(
-      ONBOARDING_WIZARD_SIXTH_STEP_CONTENT_ID,
-    );
-  }
-
-  get step7Description() {
-    return Selectors.getElementByPlatform(
-      ONBOARDING_WIZARD_SEVENTH_STEP_CONTENT_ID,
+      OnboardingWizardModalSelectorsIDs.STEP_SIX_CONTAINER,
     );
   }
 
   get onBoardingWizardGotItButton() {
-    return Selectors.getElementByPlatform(ONBOARDING_WIZARD_NEXT_GOT_IT_BUTTON);
+    return Selectors.getElementByPlatform(
+      OnboardingWizardModalSelectorsIDs.GOT_IT_BUTTON
+    );
   }
 
   async isVisible() {
     await expect(this.container).toBeDisplayed();
+  }
+
+  async isNotVisible() {
+    await expect(this.container).not.toBeDisplayed();
   }
 
   async tapNoThanksButton() {
@@ -112,10 +101,6 @@ class OnboardingWizardModal {
 
   async isStep6ContentDisplayed() {
     await expect(await this.step6Description).toBeDisplayed();
-  }
-
-  async isStep7ContentDisplayed() {
-    await expect(await this.step7Description).toBeDisplayed();
   }
 
   async tapGotItButton() {
