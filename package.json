@@ -136,7 +136,7 @@
     "**/puppeteer-core/ws": "^8.17.1",
     "react-native/ws": "^6.2.3",
     "socket.io-client/engine.io-client/ws": "^8.17.1"
-      },
+  },
   "dependencies": {
     "@consensys/on-ramp-sdk": "1.28.1",
     "@eth-optimism/contracts": "0.0.0-2021919175625",
@@ -215,6 +215,10 @@
     "@segment/sovran-react-native": "^1.0.4",
     "@sentry/integrations": "6.3.1",
     "@sentry/react-native": "5.19.3",
+    "@tamagui/config": "^1.104.2",
+    "@tamagui/core": "^1.104.2",
+    "@tamagui/lucide-icons": "^1.104.2",
+    "@tamagui/shorthands": "^1.104.2",
     "@tradle/react-native-http": "2.0.1",
     "@walletconnect/client": "^1.8.0",
     "@walletconnect/core": "2.13.0",
@@ -347,6 +351,7 @@
     "rxjs": "^7.8.1",
     "socket.io-client": "^4.5.3",
     "stream-browserify": "3.0.0",
+    "tamagui": "^1.104.2",
     "through2": "3.0.1",
     "unicode-confusables": "^0.1.1",
     "url": "0.11.0",

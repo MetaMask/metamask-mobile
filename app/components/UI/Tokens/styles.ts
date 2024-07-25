@@ -9,6 +9,10 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.background.default,
       flex: 1,
     },
+    portfolioButton: {
+      marginTop: 160,
+      backgroundColor: colors.primary.default,
+    },
     emptyView: {
       backgroundColor: colors.background.default,
       justifyContent: 'center',

@@ -10,6 +10,7 @@ import {
 import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
 import ActionSheet from '@metamask/react-native-actionsheet';
+import { Button as ButtonTamagui } from 'tamagui';
 import { strings } from '../../../../locales/i18n';
 import {
   renderFromTokenMinimalUnit,
@@ -650,16 +651,18 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             />
           ) : null}
         </View>
-        <Button
-          variant={ButtonVariants.Secondary}
-          size={ButtonSize.Md}
-          width={ButtonWidthTypes.Full}
-          style={styles.buyButton}
+        <ButtonTamagui
           onPress={onOpenPortfolio}
-          label={strings('asset_overview.portfolio_button')}
           testID={WalletViewSelectorsIDs.PORTFOLIO_BUTTON}
-          endIconName={IconName.Export}
-        />
+          iconAfter={<Icon name={IconName.Export} />}
+          // style prop and style object work as expected and override shorthands
+          style={styles.portfolioButton}
+          // trying shorthands style utility props
+          m={60}
+          bg={colors.error.default}
+        >
+          {strings('asset_overview.portfolio_button')}
+        </ButtonTamagui>
       </View>
     );
   };
