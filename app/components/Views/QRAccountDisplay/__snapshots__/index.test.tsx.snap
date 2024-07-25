@@ -326,7 +326,9 @@ exports[`QRAccountDisplay renders correctly 1`] = `
                             "marginBottom": 16,
                           }
                         }
-                      />
+                      >
+                        0xd8dA...6045
+                      </Text>
                       <Text
                         accessibilityRole="text"
                         style={

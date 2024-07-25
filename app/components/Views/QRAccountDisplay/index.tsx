@@ -27,12 +27,20 @@ import { renderAccountName } from '../../../util/address';
 import createStyles from './styles';
 
 const copyAddressToClipboard = async (address: string) => {
-  await ClipboardManager.setString(address);
+  let alertData;
+
+  try {
+    await ClipboardManager.setString(address);
+    alertData = { msg: strings('account_details.account_copied_to_clipboard') };
+  } catch (error) {
+    alertData = { msg: strings('qr_scanner.error') };
+  }
+
   showAlert({
     isVisible: true,
     autodismiss: 1500,
     content: 'clipboard-alert',
-    data: { msg: strings('account_details.account_copied_to_clipboard') },
+    data: alertData,
   });
 };
 

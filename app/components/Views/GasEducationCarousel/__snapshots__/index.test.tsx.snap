@@ -107,6 +107,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                   }
                 }
                 directionalLockEnabled={true}
+                forwardedRef={[Function]}
                 horizontal={true}
                 keyboardDismissMode="on-drag"
                 onMomentumScrollBegin={[Function]}

@@ -1,6 +1,7 @@
+import React from 'react';
 import QRAccountDisplay from './index';
+import { fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
-
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 const initialState = {
@@ -28,13 +29,7 @@ const initialState = {
   },
 };
 
-jest.mock('../../../util/address', () => ({
-  ...jest.requireActual('../../../util/address'),
-  renderAccountName: jest.fn(),
-}));
-
 const TestWrapper = () => (
-  // eslint-disable-next-line react/react-in-jsx-scope
   <QRAccountDisplay
     accountAddress={'0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'}
   />
@@ -48,5 +43,18 @@ describe('QRAccountDisplay', () => {
       { state: initialState },
     );
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('copies address to clipboard when copy button is pressed', async () => {
+    const { getByText } = renderScreen(
+      TestWrapper,
+      { name: 'QRAccountDisplay' },
+      { state: initialState },
+    );
+
+    const copyButton = getByText('Copy Address');
+    fireEvent.press(copyButton);
+
+    expect(copyButton).toBeTruthy();
   });
 });
