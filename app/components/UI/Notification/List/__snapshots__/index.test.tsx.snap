@@ -1,0 +1,29 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NotificationsList should render correctly 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+      "marginHorizontal": 8,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "height": "100%",
+        "position": "absolute",
+        "width": "100%",
+        "zIndex": 999,
+      }
+    }
+  >
+    <ActivityIndicator
+      color="#0376c9"
+      size="large"
+    />
+  </View>
+</View>
+`;
