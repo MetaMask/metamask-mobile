@@ -5,7 +5,8 @@ import Button, {
 import { zeroAddress } from 'ethereumjs-util';
 import React, { useCallback, useEffect } from 'react';
 import { Platform, TouchableOpacity, View } from 'react-native';
-import { RootStateOrAny, useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import type { RootState } from '../../../reducers';
 import { strings } from '../../../../locales/i18n';
 import {
   TOKEN_ASSET_OVERVIEW,
@@ -44,6 +45,7 @@ import Text from '../../Base/Text';
 import { createWebviewNavDetails } from '../../Views/SimpleWebview';
 import useTokenHistoricalPrices, {
   TimePeriod,
+  TokenPrice,
 } from '../../hooks/useTokenHistoricalPrices';
 import { Asset } from './AssetOverview.types';
 import Balance from './Balance';
@@ -54,9 +56,7 @@ import { useStyles } from '../../../component-library/hooks';
 
 interface AssetOverviewProps {
   navigation: {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    navigate: (route: string, props?: any) => void;
+    navigate: (route: string, props?: Record<string, unknown>) => void;
   };
   asset: Asset;
 }
@@ -70,19 +70,25 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const conversionRate = useSelector(selectConversionRate);
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const primaryCurrency = useSelector(
-    (state: RootStateOrAny) => state.settings.primaryCurrency,
+    (state: RootState) => state.settings.primaryCurrency,
   );
   const selectedAddress = useSelector(
     selectSelectedInternalAccountChecksummedAddress,
-  );
+  )!; // Non-null assertion
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const tokenBalances = useSelector(selectContractBalances);
-  const chainId = useSelector((state: RootStateOrAny) => selectChainId(state));
-  const ticker = useSelector((state: RootStateOrAny) => selectTicker(state));
+  const chainId = useSelector((state: RootState) => selectChainId(state));
+  const ticker = useSelector((state: RootState) => selectTicker(state));
 
   const { data: prices = [], isLoading } = useTokenHistoricalPrices({
-    address: asset.isETH ? zeroAddress() : asset.address,
-    chainId: chainId as string,
+    address: asset.isETH
+      ? (zeroAddress() as `0x${string}`)
+      : (typeof asset.address === 'string'
+        ? (asset.address.startsWith('0x')
+          ? (asset.address as `0x${string}`)
+          : (`0x${asset.address}` as `0x${string}`))
+        : '0x0000000000000000000000000000000000000000'),
+    chainId: chainId as `0x${string}`,
     timePeriod,
     vsCurrency: currentCurrency,
   });
@@ -91,17 +97,16 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { SwapsController } = Engine.context as { SwapsController: any };
+    interface SwapsControllerType {
+      fetchTokenWithCache: () => Promise<void>;
+    }
+    const { SwapsController } = Engine.context as { SwapsController: SwapsControllerType };
     const fetchTokenWithCache = async () => {
       try {
         await SwapsController.fetchTokenWithCache();
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
+      } catch (error) {
         Logger.error(
-          error,
+          error as Error,
           'Swaps: error while fetching tokens with cache in AssetOverview',
         );
       }
@@ -124,9 +129,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   const goToBrowserUrl = (url: string) => {
     navigation.navigate(
-      ...createWebviewNavDetails({
+      ...(createWebviewNavDetails({
         url,
-      }),
+      }) as [string, Record<string, unknown>])
     );
   };
 
@@ -172,29 +177,26 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       ? tokenExchangeRates?.[itemAddress]?.price
       : undefined;
 
-  let balance, balanceFiat;
+  let balance: string, balanceFiat: string;
   if (asset.isETH) {
-    balance = renderFromWei(
-      accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
-    );
+    const accountBalance = accountsByChainId[toHexadecimal(chainId)]?.[selectedAddress]?.balance ?? '0';
+    balance = renderFromWei(accountBalance);
     balanceFiat = weiToFiat(
-      hexToBN(
-        accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
-      ),
+      hexToBN(accountBalance),
       conversionRate,
       currentCurrency,
-    );
+    ) ?? '0';
   } else {
     balance =
       itemAddress && itemAddress in tokenBalances
         ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], asset.decimals)
-        : 0;
+        : '0';
     balanceFiat = balanceToFiat(
       balance,
       conversionRate,
       exchangeRate,
       currentCurrency,
-    );
+    ) ?? '0';
   }
 
   let mainBalance, secondaryBalance;
@@ -210,17 +212,18 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   let currentPrice = 0;
   let priceDiff = 0;
+  const latestPrice = prices[prices.length - 1];
 
   if (asset.isETH) {
     currentPrice = conversionRate || 0;
   } else if (exchangeRate && conversionRate) {
     currentPrice = exchangeRate * conversionRate;
+  } else if (latestPrice && Array.isArray(latestPrice) && typeof latestPrice[1] === 'number') {
+    currentPrice = latestPrice[1];
   }
 
-  const comparePrice = prices[0]?.[1] || 0;
-  if (currentPrice !== undefined && currentPrice !== null) {
-    priceDiff = currentPrice - comparePrice;
-  }
+  const comparePrice = prices[0] && Array.isArray(prices[0]) && typeof prices[0][1] === 'number' ? prices[0][1] : currentPrice;
+  priceDiff = currentPrice - comparePrice;
 
   return (
     <View
