@@ -4,10 +4,8 @@ import { ChainId } from '@metamask/controller-utils';
 import { JsonRpcEngine } from 'json-rpc-engine';
 import MobilePortStream from '../MobilePortStream';
 import { setupMultiplex } from '../../util/streams';
-import {
-  createOriginMiddleware,
-  createLoggerMiddleware,
-} from '../../util/middlewares';
+import createLoggerMiddleware from '../../util/middlewares/logger';
+import createOriginMiddleware from '../../util/middlewares/origin';
 import Engine from '../Engine';
 import { createSanitizationMiddleware } from '../SanitizationMiddleware';
 import { getAllNetworks } from '../../util/networks';
@@ -30,12 +28,14 @@ import { SubjectType } from '@metamask/permission-controller';
 const createFilterMiddleware = require('eth-json-rpc-filters');
 const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager');
 const providerAsMiddleware = require('eth-json-rpc-middleware/providerAsMiddleware');
+import createRPCMethodTrackingMiddleware from '../../util/middlewares/rpcMethodTracking';
 const pump = require('pump');
 // eslint-disable-next-line import/no-nodejs-modules
 const EventEmitter = require('events').EventEmitter;
 const { NOTIFICATION_NAMES } = AppConstants;
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { getPermittedAccounts } from '../Permissions';
+import { MetaMetrics } from '../Analytics';
 import { NetworkStatus } from '@metamask/network-controller';
 import { NETWORK_ID_LOADING } from '../redux/slices/inpageProvider';
 import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMethodMiddleware';
@@ -364,6 +364,7 @@ export class BackgroundBridge extends EventEmitter {
    **/
   setupProviderEngine() {
     const origin = this.hostname;
+    const metrics = MetaMetrics.getInstance();
     // setup json rpc engine stack
     const engine = new JsonRpcEngine();
     const { blockTracker, provider } =
@@ -384,6 +385,10 @@ export class BackgroundBridge extends EventEmitter {
     // metadata
     engine.push(createOriginMiddleware({ origin }));
     engine.push(createLoggerMiddleware({ origin }));
+
+    // tracking
+    engine.push(createRPCMethodTrackingMiddleware({ metrics }));
+
     // filter and subscription polyfills
     engine.push(filterMiddleware);
     engine.push(subscriptionManager.middleware);

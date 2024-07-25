@@ -82,6 +82,9 @@ enum EVENT_NAME {
   NETWORK_REQUEST_REJECTED = 'Network Request Rejected',
   NETWORK_SELECTOR = 'Network Menu Opened',
 
+  // Provider
+  INPAGE_PROVIDER = 'Inpage Provider',
+
   // Send transaction
   SEND_TRANSACTION_STARTED = 'Send Transaction Started',
   SEND_TRANSACTION_COMPLETED = 'Send Transaction Completed',
@@ -426,6 +429,8 @@ enum ACTIONS {
   SELECTS_ALL_NOTIFICATIONS = 'Selects All Notifications',
   SELECTS_WALLET_NOTIFICATIONS = 'Selects Wallet Notifications',
   SELECTS_ANNOUCEMENTS_NOTIFICATIONS = 'Selects Annoucements Notifications',
+  // Provider
+  PROVIDER_METHOD_CALLED = 'Provider Method Called',
 }
 
 const events = {
@@ -816,6 +821,12 @@ const events = {
   SWAP_BUTTON_CLICKED: generateOpt(EVENT_NAME.SWAP_BUTTON_CLICKED),
   SEND_BUTTON_CLICKED: generateOpt(EVENT_NAME.SEND_BUTTON_CLICKED),
   NETWORK_SELECTOR_PRESSED: generateOpt(EVENT_NAME.NETWORK_SELECTOR),
+
+  // Provider
+  PROVIDER_METHOD_CALLED: generateOpt(
+    EVENT_NAME.INPAGE_PROVIDER,
+    ACTIONS.PROVIDER_METHOD_CALLED,
+  ),
 
   // Edit account name
   ACCOUNT_RENAMED: generateOpt(EVENT_NAME.ACCOUNT_RENAMED),
