@@ -1645,14 +1645,9 @@ class Engine {
 
     if (tokens.length > 0) {
       const { contractBalances: tokenBalances } = TokenBalancesController.state;
-      const { marketData } = TokenRatesController.state;
-      const tokenExchangeRates = marketData[chainId];
       tokens.forEach(
         (item: { address: string; balance?: string; decimals: number }) => {
-          const exchangeRate =
-            tokenExchangeRates && item.address in tokenExchangeRates
-              ? tokenExchangeRates[item.address as Hex]?.price
-              : undefined;
+          const exchangeRate = tokenExchangeRates?.[item.address as Hex]?.price;
 
           const tokenBalance =
             item.balance ||
