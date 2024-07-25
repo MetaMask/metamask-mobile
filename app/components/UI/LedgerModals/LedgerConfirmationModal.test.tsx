@@ -52,17 +52,20 @@ describe('LedgerConfirmationModal', () => {
     jest.resetAllMocks();
 
     //mock hook return value
+    // @ts-expect-error Mocked function in test environment
     useBluetoothPermissions.mockReturnValue({
       hasBluetoothPermissions: true,
       bluetoothPermissionError: null,
       checkPermissions: jest.fn(),
     });
 
+    // @ts-expect-error Mocked function in test environment
     useBluetooth.mockReturnValue({
       bluetoothOn: true,
       bluetoothConnectionError: false,
     });
 
+    // @ts-expect-error Mocked function in test environment
     useLedgerBluetooth.mockReturnValue({
       isSendingLedgerCommands: false,
       isAppLaunchConfirmationNeeded: false,
@@ -70,6 +73,7 @@ describe('LedgerConfirmationModal', () => {
       error: null,
     });
 
+    // @ts-expect-error Mocked function in test environment
     useMetrics.mockReturnValue({
       trackEvent: jest.fn(),
     });
@@ -80,6 +84,7 @@ describe('LedgerConfirmationModal', () => {
     expectedTitle: string,
     expectedErrorBody: string,
   ) {
+    // @ts-expect-error Mocked function in test environment
     useLedgerBluetooth.mockReturnValue({
       isSendingLedgerCommands: true,
       isAppLaunchConfirmationNeeded: false,
@@ -105,6 +110,7 @@ describe('LedgerConfirmationModal', () => {
     expectedTitle: string,
     expectedErrorBody: string,
   ) {
+    // @ts-expect-error Mocked function in test environment
     useBluetoothPermissions.mockReturnValue({
       hasBluetoothPermissions: false,
       bluetoothPermissionError,
@@ -146,6 +152,7 @@ describe('LedgerConfirmationModal', () => {
   });
 
   it('renders OpenETHAppStep when app launch confirmation is needed', () => {
+    // @ts-expect-error Mocked function in test environment
     useLedgerBluetooth.mockReturnValue({
       isSendingLedgerCommands: true,
       isAppLaunchConfirmationNeeded: true,
@@ -260,6 +267,7 @@ describe('LedgerConfirmationModal', () => {
   });
 
   it('renders ErrorStep when there is a bluetooth connection error', () => {
+    // @ts-expect-error Mocked function in test environment
     useBluetooth.mockReturnValue({
       bluetoothOn: false,
       bluetoothConnectionError: true,
@@ -280,6 +288,7 @@ describe('LedgerConfirmationModal', () => {
   it('retries connectLedger when retry button is used', async () => {
     const ledgerLogicToRun = jest.fn();
 
+    // @ts-expect-error Mocked function in test environment
     useLedgerBluetooth.mockReturnValue({
       isSendingLedgerCommands: true,
       isAppLaunchConfirmationNeeded: false,
@@ -309,6 +318,7 @@ describe('LedgerConfirmationModal', () => {
 
   it('retries checkPermissions when retry button is used', async () => {
     const checkPermissions = jest.fn();
+    // @ts-expect-error Mocked function in test environment
     useBluetoothPermissions.mockReturnValue({
       hasBluetoothPermissions: false,
       bluetoothPermissionError:
@@ -336,6 +346,7 @@ describe('LedgerConfirmationModal', () => {
 
   it('calls onConfirmation when ledger commands are being sent and confirmed have been received.', async () => {
     const onConfirmation = jest.fn();
+    // @ts-expect-error Mocked function in test environment
     useLedgerBluetooth.mockReturnValue({
       isSendingLedgerCommands: true,
       isAppLaunchConfirmationNeeded: false,
@@ -361,6 +372,7 @@ describe('LedgerConfirmationModal', () => {
     const onConfirmation = jest.fn();
 
     const ledgerLogicToRun = jest.fn();
+    // @ts-expect-error Mocked function in test environment
     useLedgerBluetooth.mockReturnValue({
       isSendingLedgerCommands: true,
       isAppLaunchConfirmationNeeded: false,
@@ -373,6 +385,7 @@ describe('LedgerConfirmationModal', () => {
     });
 
     const trackEvent = jest.fn();
+    // @ts-expect-error Mocked function in test environment
     useMetrics.mockReturnValue({
       trackEvent,
     });
@@ -402,6 +415,7 @@ describe('LedgerConfirmationModal', () => {
 
   it('calls onRejection when user refuses confirmation', async () => {
     const onRejection = jest.fn();
+    // @ts-expect-error Mocked function in test environment
     useLedgerBluetooth.mockReturnValue({
       isSendingLedgerCommands: true,
       isAppLaunchConfirmationNeeded: false,
