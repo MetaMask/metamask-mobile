@@ -75,6 +75,7 @@ import usePrevious from '../../hooks/usePrevious';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
 import { selectUseNftDetection } from '../../../selectors/preferencesController';
+import { selectIsMetamaskNotificationsEnabled } from '../../../selectors/notifications';
 import { setNftAutoDetectionModalOpen } from '../../../actions/security';
 import {
   hideNftFetchingLoadingIndicator as hideNftFetchingLoadingIndicatorAction,
@@ -268,11 +269,8 @@ const Wallet = ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.networkOnboarded.networkOnboardedState,
   );
-
   const isNotificationEnabled = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.notification?.notificationsSettings?.isEnabled,
+    selectIsMetamaskNotificationsEnabled,
   );
 
   const networkName = useSelector(selectNetworkName);
