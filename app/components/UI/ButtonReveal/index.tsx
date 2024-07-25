@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ViewStyle, TextStyle } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { fontStyles } from '../../../styles/common';
 import Svg, { Circle } from 'react-native-svg';
@@ -187,7 +187,7 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
     });
   };
 
-  const outerCircleStyle = useAnimatedStyle(() => ({
+  const outerCircleStyle = useAnimatedStyle((): ViewStyle => ({
     transform: [
       {
         scale: interpolate(
@@ -200,7 +200,7 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
     ],
   }));
 
-  const innerCircleStyle = useAnimatedStyle(() => ({
+  const innerCircleStyle = useAnimatedStyle((): ViewStyle => ({
     transform: [
       {
         scale: interpolate(
@@ -217,12 +217,12 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
     opacity: progressContainerOpacity.value,
   }));
 
-  const lockIconStyle = useAnimatedStyle(() => ({
+  const lockIconStyle = useAnimatedStyle((): ViewStyle => ({
     opacity: pressControl.value,
     // transform: [{ scale: pressControl.value }],
   }));
 
-  const checkIconStyle = useAnimatedStyle(() => ({
+  const checkIconStyle = useAnimatedStyle((): ViewStyle => ({
     transform: [
       {
         scale: interpolate(
@@ -235,7 +235,7 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
     ],
   }));
 
-  const containerStyle = useAnimatedStyle(() => ({
+  const containerStyle = useAnimatedStyle((): ViewStyle => ({
     transform: [
       {
         scale: interpolate(
