@@ -1619,7 +1619,8 @@ class Engine {
 
     const { accountsByChainId } = AccountTrackerController.state;
     const { tokens } = TokensController.state;
-    const { marketData: tokenExchangeRates } = TokenRatesController.state;
+    const { marketData } = TokenRatesController.state;
+    const tokenExchangeRates = marketData?.[toHexadecimal(chainId)];
 
     let ethFiat = 0;
     let ethFiat1dAgo = 0;
@@ -1635,9 +1636,7 @@ class Engine {
     }
 
     const ethPricePercentChange1d =
-      tokenExchangeRates?.[toHexadecimal(chainId)]?.[
-        zeroAddress() as `0x${string}`
-      ]?.pricePercentChange1d;
+      tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
 
     ethFiat1dAgo =
       ethPricePercentChange1d !== undefined
@@ -1673,8 +1672,7 @@ class Engine {
           );
 
           const tokenPricePercentChange1d =
-            tokenExchangeRates?.[item.address as `0x${string}`]
-              ?.pricePercentChange1d;
+            tokenExchangeRates?.[item.address as Hex]?.pricePercentChange1d;
 
           const tokenBalance1dAgo =
             tokenPricePercentChange1d !== undefined
