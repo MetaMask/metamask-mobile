@@ -161,6 +161,7 @@ class Approval extends PureComponent {
       const { transactionHandled } = this.state;
       const { transaction, selectedAddress } = this.props;
       const { KeyringController } = Engine.context;
+
       if (!transactionHandled) {
         if (isQRHardwareAccount(selectedAddress)) {
           KeyringController.cancelQRSignRequest();
@@ -181,8 +182,9 @@ class Approval extends PureComponent {
         );
 
         this.appStateListener?.remove();
-        this.clear();
       }
+
+      this.clear();
     } catch (e) {
       if (e) {
         throw e;
