@@ -374,6 +374,8 @@ enum EVENT_NAME {
   // Nft auto detection modal
   NFT_AUTO_DETECTION_ENABLED_MODAL = 'Nft Autodetection Enabled from modal',
   NFT_AUTO_DETECTION_DISBLED_MODAL = 'Nft Autodetection Disabled from modal',
+  // NFT auto detection events
+  NFT_AUTO_DETECTION_ENABLED = 'nft_autodetection_enabled',
 }
 
 enum ACTIONS {
@@ -884,6 +886,10 @@ const events = {
   ),
   NFT_AUTO_DETECTION_MODAL_DISABLE: generateOpt(
     EVENT_NAME.NFT_AUTO_DETECTION_DISBLED_MODAL,
+  ),
+  // Nft detection event
+  NFT_AUTO_DETECTION_ENABLED: generateOpt(
+    EVENT_NAME.NFT_AUTO_DETECTION_ENABLED,
   ),
 };
 

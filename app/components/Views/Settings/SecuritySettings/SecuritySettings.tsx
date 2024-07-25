@@ -119,7 +119,7 @@ import Button, {
 import trackErrorAsAnalytics from '../../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
 import Routes from '../../../../constants/navigation/Routes';
-import { MetaMetrics } from '../../../../core/Analytics';
+import { EVENT_NAME, MetaMetrics } from '../../../../core/Analytics';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
@@ -135,7 +135,7 @@ const Heading: React.FC<HeadingProps> = ({ children, first }) => {
 };
 
 const Settings: React.FC = () => {
-  const { trackEvent, isEnabled } = useMetrics();
+  const { trackEvent, isEnabled, addTraitsToUser } = useMetrics();
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
@@ -542,13 +542,24 @@ const Settings: React.FC = () => {
     if (!value) PreferencesController?.setUseNftDetection(value);
   };
 
-  const toggleNftAutodetect = (value: boolean) => {
-    const { PreferencesController } = Engine.context;
-    if (value) {
-      PreferencesController.setDisplayNftMedia(value);
-    }
-    PreferencesController.setUseNftDetection(value);
-  };
+  const toggleNftAutodetect = useCallback(
+    (value) => {
+      const { PreferencesController } = Engine.context;
+      if (value) {
+        PreferencesController.setDisplayNftMedia(value);
+      }
+      PreferencesController.setUseNftDetection(value);
+      const traits = {
+        [EVENT_NAME.NFT_AUTO_DETECTION_ENABLED]: value,
+      };
+      addTraitsToUser(traits);
+      trackEvent(MetaMetricsEvents.NFT_AUTO_DETECTION_ENABLED, {
+        ...traits,
+        location: 'app_settings',
+      });
+    },
+    [addTraitsToUser, trackEvent],
+  );
 
   const renderDisplayNftMedia = useCallback(
     () => (
@@ -709,7 +720,7 @@ const Settings: React.FC = () => {
         </Text>
       </View>
     ),
-    [colors, styles, useNftDetection, theme],
+    [colors, styles, useNftDetection, theme, toggleNftAutodetect],
   );
 
   const setIpfsGateway = (gateway: string) => {

@@ -29,7 +29,7 @@ import {
 } from '../../../component-library/components/Toast';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { EVENT_NAME, MetaMetricsEvents } from '../../../core/Analytics';
 import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
@@ -148,7 +148,7 @@ const Wallet = ({
   const walletRef = useRef(null);
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
-  const { trackEvent } = useMetrics();
+  const { trackEvent, addTraitsToUser } = useMetrics();
   const styles = createStyles(theme);
   const { colors } = theme;
   const dispatch = useDispatch();
@@ -319,6 +319,19 @@ const Wallet = ({
       checkNftAutoDetectionModal();
     }
   });
+
+  useEffect(() => {
+    const traits = {
+      [EVENT_NAME.NFT_AUTO_DETECTION_ENABLED]: useNftDetection,
+    };
+    addTraitsToUser(traits);
+    trackEvent(MetaMetricsEvents.NFT_AUTO_DETECTION_ENABLED, {
+      ...traits,
+      location: 'onboarding_metametrics',
+    });
+    //Disabling this hook for this line to make sure the event is only fired once
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array ensures this runs only once
 
   /**
    * Check to see if we need to show What's New modal and Smart Transactions Opt In modal
