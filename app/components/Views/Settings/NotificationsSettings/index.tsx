@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/display-name */
 import React, { FC, useEffect, useMemo, useCallback } from 'react';
-import { Pressable, ScrollView, Switch, View } from 'react-native';
+import { Pressable, ScrollView, Switch, View, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
@@ -36,6 +36,7 @@ import {
   useDisableNotifications,
   useEnableNotifications,
 } from '../../../../util/notifications/hooks/useNotifications';
+import { CONSENSYS_PRIVACY_POLICY } from '../../../../constants/urls';
 import { useAccountSettingsProps } from '../../../../util/notifications/hooks/useSwitchNotifications';
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
@@ -93,6 +94,10 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     }
   };
 
+  const goToLearnMore = () => {
+    Linking.openURL(CONSENSYS_PRIVACY_POLICY);
+  };
+
   useEffect(() => {
     navigation.setOptions(
       getNavigationOptionsTitle(
@@ -129,6 +134,13 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
       <View style={styles.setting}>
         <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
           {strings('app_settings.allow_notifications_desc')}
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Info}
+            onPress={goToLearnMore}
+          >
+            {strings('notifications.activation_card.learn_more')}
+          </Text>
         </Text>
       </View>
     </>

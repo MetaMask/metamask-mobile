@@ -791,7 +791,7 @@
     "notifications_title": "Notifications",
     "notifications_desc": "Manage your notifications",
     "allow_notifications": "Allow notifications",
-    "allow_notifications_desc": "Stay in the loop on what’s happening in your wallet with notifications. To use notifications, we use a profile to sync some settings across your devices. Learn how we protect your privacy while using this feature.",
+    "allow_notifications_desc": "Stay in the loop on what’s happening in your wallet with notifications. To use notifications, we use a profile to sync some settings across your devices.",
     "notifications_opts": {
       "customize_session_title": "Customize your notifications",
       "customize_session_desc": "Turn on the types of notifications you want to receive:",
