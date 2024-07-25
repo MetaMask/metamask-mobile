@@ -536,7 +536,6 @@ workflows:
           inputs:
             - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
             - destination: android/keystores/internalRelease.keystore
-    steps:
       - script@1:
           title: Generating ccache key using native folder checksum
           inputs:
@@ -588,9 +587,7 @@ workflows:
                 fi
                 node -v
                 node -v
-                export METAMASK_ENVIRONMENT='qa'
-                export METAMASK_BUILD_TYPE='main'
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn test:e2e:android:bitrise:build
+                 METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn test:e2e:android:bitrise:build
       - save-gradle-cache@1: {}
       - save-cache@1:
           title: Save CCache

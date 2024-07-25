@@ -94,7 +94,7 @@ module.exports = {
     },
     'android.bitrise.debug': {
       type: 'android.apk',
-      binaryPath: 'android/app/build/outputs/apk/prod/debug/app-prod-debug.apk',
+      binaryPath: 'android/app/build/outputs/apk/prod/qa/release/app-qa-release.apk',
       build: 'yarn build:android:pre-release:bundle:qa',
     },
     'android.debug': {
