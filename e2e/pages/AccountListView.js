@@ -72,17 +72,21 @@ export default class AccountListView {
   }
 
   static async checkAccountVisibilityAtIndex(index, shouldBeVisible) {
-    const expectation = element(
+    const expectedAccountElement = element(
       by.id(CellModalSelectorsIDs.BASE_TITLE),
     ).atIndex(index);
 
-    const expectedText = `Account ${index + 1}`;
+    const expectedAccountNameText = `Account ${index + 1}`;
 
     try {
       if (shouldBeVisible) {
-        await expect(expectation).toHaveText(expectedText);
+        await expect(expectedAccountElement).toHaveText(
+          expectedAccountNameText,
+        );
       } else {
-        await expect(expectation).not.toHaveText(expectedText);
+        await expect(expectedAccountElement).not.toHaveText(
+          expectedAccountNameText,
+        );
       }
     } catch (error) {
       if (shouldBeVisible) {
