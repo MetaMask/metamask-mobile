@@ -4760,7 +4760,7 @@
     ethereumjs-wallet "^1.0.1"
     immer "^9.0.6"
 
-"@metamask/keyring-controller@^17.1.0":
+"@metamask/keyring-controller@^17.1.1":
   version "17.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-17.1.1.tgz#af4c9d2c3558003e16829a1ce80f4e13e7a0c7b3"
   integrity sha512-NuVv9yZ+Qg2VsZtvB01MDqW5PEFYgmAKGK6Ru7mfbh/Qtov+fz9q/owEBSfXqMp4hbEs9SSzyI6E0B0/soM9iA==
@@ -4925,16 +4925,16 @@
     "@ethersproject/providers" "^5.7.2"
     async-mutex "^0.3.1"
 
-"@metamask/notification-services-controller@^0.1.1":
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/@metamask/notification-services-controller/-/notification-services-controller-0.1.1.tgz#c709baa32bf40c09b4ff8900bf5e3501f27f0923"
-  integrity sha512-r/6IycpMStITsGNDnQjSRm8DruwvMGuQFc8yIW31/dOkiIG4RlDnC2h/yeemKuNexxgGd2XoVrqaIXb8WMNhGw==
+"@metamask/notification-services-controller@^0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@metamask/notification-services-controller/-/notification-services-controller-0.1.2.tgz#491ae7ab2b85e1b4b96c17d4c8c95508f1a50370"
+  integrity sha512-gb2itcNp++ILc9z9hAyLndCxUPdN8xyaQ8tbD943MjZk7TvykipgMeZ2fdiYXAMOqBP4g63191u/W7NjuqxYGA==
   dependencies:
     "@contentful/rich-text-html-renderer" "^16.5.2"
-    "@metamask/base-controller" "^6.0.0"
-    "@metamask/controller-utils" "^11.0.0"
-    "@metamask/keyring-controller" "^17.1.0"
-    "@metamask/profile-sync-controller" "^0.1.1"
+    "@metamask/base-controller" "^6.0.1"
+    "@metamask/controller-utils" "^11.0.1"
+    "@metamask/keyring-controller" "^17.1.1"
+    "@metamask/profile-sync-controller" "^0.1.4"
     bignumber.js "^4.1.0"
     contentful "^10.3.6"
     firebase "^10.11.0"
@@ -5104,15 +5104,14 @@
     "@metamask/base-controller" "^5.0.2"
     "@metamask/controller-utils" "^9.1.0"
 
-"@metamask/profile-sync-controller@^0.1.1", "@metamask/profile-sync-controller@^0.1.3":
-  version "0.1.3"
-  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-0.1.3.tgz#fbe8a0c17c4b47c75aadd3dc6fd304d960da923c"
-  integrity sha512-CkgVlBfqSMLmuKAdwoMsk9DZZvVxusr3Xv9pRPfOHDYn735fwrO6ra8iZdoWJndoHPBQ+iBPk/F/xecHmq/v9Q==
+"@metamask/profile-sync-controller@^0.1.4":
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-0.1.4.tgz#a0d1dc5ce69ed2ee49721dd386a236ca5923af7a"
+  integrity sha512-qO63sAKpEnBZWtTB+tNtNrgWEuH/W4peS2h2n7nQvvmKkgHahjwmZoEZWVPZDY6EAcieyu27CmGAcEdyjdpZZg==
   dependencies:
     "@metamask/base-controller" "^6.0.1"
     "@metamask/snaps-controllers" "^8.1.1"
     "@metamask/snaps-sdk" "^4.2.0"
-    "@metamask/snaps-utils" "^7.4.0"
     "@noble/ciphers" "^0.5.2"
     "@noble/hashes" "^1.4.0"
     immer "^9.0.6"
