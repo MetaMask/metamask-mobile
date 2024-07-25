@@ -1087,12 +1087,12 @@ export function getImportTokenNavbarOptions(
             onClose
               ? () => onClose()
               : () =>
-                  navigation.navigate(Routes.WALLET.HOME, {
-                    screen: Routes.WALLET.TAB_STACK_FLOW,
-                    params: {
-                      screen: Routes.WALLET_VIEW,
-                    },
-                  })
+                navigation.navigate(Routes.WALLET.HOME, {
+                  screen: Routes.WALLET.TAB_STACK_FLOW,
+                  params: {
+                    screen: Routes.WALLET_VIEW,
+                  },
+                })
           }
         />
       </TouchableOpacity>
@@ -1166,15 +1166,15 @@ export function getNetworkNavbarOptions(
     ),
     headerRight: onRightPress
       ? () => (
-          <TouchableOpacity style={styles.backButton} onPress={onRightPress}>
-            <MaterialCommunityIcon
-              name={'dots-horizontal'}
-              size={28}
-              style={innerStyles.headerIcon}
-            />
-          </TouchableOpacity>
-          // eslint-disable-next-line no-mixed-spaces-and-tabs
-        )
+        <TouchableOpacity style={styles.backButton} onPress={onRightPress}>
+          <MaterialCommunityIcon
+            name={'dots-horizontal'}
+            size={28}
+            style={innerStyles.headerIcon}
+          />
+        </TouchableOpacity>
+        // eslint-disable-next-line no-mixed-spaces-and-tabs
+      )
       : () => <View />,
     headerStyle: [
       innerStyles.headerStyle,

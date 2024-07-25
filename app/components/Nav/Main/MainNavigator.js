@@ -20,6 +20,7 @@ import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
 import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
+import NotificationsView from '../../Views/Notifications';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
@@ -600,6 +601,11 @@ const PaymentRequestView = () => (
 const NotificationsModeView = (props) => (
   <Stack.Navigator>
     <Stack.Screen
+      name={Routes.NOTIFICATIONS.VIEW}
+      component={NotificationsView}
+      options={NotificationsView.navigationOptions}
+    />
+    <Stack.Screen
       name={Routes.SETTINGS.NOTIFICATIONS}
       component={NotificationsSettings}
       options={NotificationsSettings.navigationOptions}
@@ -612,7 +618,7 @@ const NotificationsModeView = (props) => (
     />
     <Stack.Screen
       mode={'modal'}
-      name="NotificationsOptIn"
+      name={Routes.NOTIFICATIONS.OPT_IN}
       component={OptIn}
       options={OptIn.navigationOptions}
     />
