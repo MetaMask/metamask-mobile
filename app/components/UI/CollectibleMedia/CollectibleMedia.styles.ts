@@ -1,19 +1,22 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ViewStyle, TextStyle, ImageStyle } from 'react-native';
 import scaling from '../../../util/scaling';
 import Device from '../../../util/device';
 
 import { MEDIA_WIDTH_MARGIN } from './Collectible.constants';
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createStyles = (colors: any) =>
+interface Colors {
+  background: {
+    alternative: string;
+  };
+  // Add other color properties as needed
+}
+
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
-    container(backgroundColor: string) {
-      return {
-        flex: 0,
-        borderRadius: 12,
-        backgroundColor: `#${backgroundColor}`,
-      };
+    container: {
+      flex: 0,
+      borderRadius: 12,
+      backgroundColor: 'transparent', // This will be overridden when applying styles
     },
     tinyImage: {
       width: 32,
