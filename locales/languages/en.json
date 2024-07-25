@@ -1974,7 +1974,7 @@
     "swap": "Swapped",
     "sent": "Sent to {{address}}",
     "menu_item_title": {
-      "metamask_swap_completed": "Swapped {{symbol1}} for {{symbol2}}",
+      "metamask_swap_completed": "Swapped {{symbolIn}} for {{symbolOut}}",
       "erc20_sent": "Sent to {{address}}",
       "erc20_received": "Received from {{address}}",
       "eth_sent": "Sent to {{address}}",
