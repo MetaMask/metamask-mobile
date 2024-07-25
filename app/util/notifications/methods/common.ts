@@ -181,6 +181,29 @@ export const formatAmount = (numericAmount: number, opts?: FormatOptions) => {
   return numericAmount.toString();
 };
 
+/**
+ * Formats an ISO date string into a more readable format.
+ *
+ * @param isoDateString - The ISO date string to format.
+ * @returns The formatted date string.
+ */
+export function formatIsoDateString(isoDateString: string) {
+  const date = new Date(isoDateString);
+
+  const options = {
+    year: 'numeric' as const,
+    month: 'short' as const,
+    day: 'numeric' as const,
+    hour: 'numeric' as const,
+    minute: 'numeric' as const,
+    hour12: true,
+  };
+
+  const formattedDate = new Intl.DateTimeFormat('en-US', options).format(date);
+
+  return formattedDate;
+}
+
 export function hasNetworkFeeFields(
   notification: NotificationServicesController.Types.OnChainRawNotification,
 ): notification is NotificationServicesController.Types.OnChainRawNotificationsWithNetworkFields {
