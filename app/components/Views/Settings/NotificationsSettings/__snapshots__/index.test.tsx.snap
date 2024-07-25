@@ -115,7 +115,23 @@ exports[`NotificationsSettings should render correctly 1`] = `
           }
         }
       >
-        Stay in the loop on what’s happening in your wallet with notifications. To use notifications, we use a profile to sync some settings across your devices. Learn how we protect your privacy while using this feature.
+        Stay in the loop on what’s happening in your wallet with notifications. To use notifications, we use a profile to sync some settings across your devices.
+        <Text
+          accessibilityRole="text"
+          onPress={[Function]}
+          style={
+            {
+              "color": "#0376c9",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Learn how we protect your privacy while using this feature. 
+        </Text>
       </Text>
     </View>
     <Modal
