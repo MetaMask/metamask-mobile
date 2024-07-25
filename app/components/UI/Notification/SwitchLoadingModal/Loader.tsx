@@ -39,7 +39,7 @@ const createStyles = (colors) =>
       lineHeight: 20,
       paddingHorizontal: 24,
       marginVertical: 12,
-      width: '100%',
+      alignSelf: 'center',
     },
     button: {
       alignSelf: 'center',
@@ -72,7 +72,7 @@ const Loader = ({
         )}
       </View>
       <Text variant={TextVariant.HeadingSMRegular} style={styles.text}>
-        {errorText || loadingText}
+        {errorText?.replace(/"/g, '') || loadingText.replace(/"/g, '')}
       </Text>
       {!!errorText && (
         <Button
