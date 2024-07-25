@@ -1,4 +1,5 @@
 'use strict';
+
 import { SmokeAccounts } from '../../tags.js';
 import TestHelpers from '../../helpers.js';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
@@ -34,34 +35,46 @@ describe(SmokeAccounts('Imported account removal and reimport'), () => {
       async () => {
         await loginToApp();
 
-        //make sure imported account is present
-        await WalletView.tapIdenticon();
-        await AccountListView.isVisible();
-        await AccountListView.checkAccountVisibilityAtIndex(2, true);
-        await Assertions.checkIfElementToHaveText(
-          accountListView.accountTypeLabel,
-          IMPORTED_LABEL,
-        );
+        // Ensure imported account is present
+        await verifyImportedAccountPresence();
 
-        //remove the imported account
-        await AccountListView.longPressImportedAccountThree();
-        await AccountListView.tapYesToRemoveImportedAccountAlertButton();
-        await AccountListView.checkAccountVisibilityAtIndex(2, false);
-        await Assertions.checkIfNotVisible(accountListView.accountTypeLabel);
+        // Remove the imported account
+        await removeImportedAccount();
 
-        //import account again
-        await AccountListView.tapAddAccountButton();
-        await AccountListView.tapImportAccountButton();
-        await ImportAccountView.isVisible();
-        await ImportAccountView.enterPrivateKey(TEST_PRIVATE_KEY);
-        await ImportAccountView.isImportSuccessSreenVisible();
-        await ImportAccountView.tapCloseButtonOnImportSuccess();
-        await AccountListView.checkAccountVisibilityAtIndex(2, true);
-        await Assertions.checkIfElementToHaveText(
-          accountListView.accountTypeLabel,
-          IMPORTED_LABEL,
-        );
+        // Import account again
+        await importAccountAgain();
       },
     );
   });
 });
+
+async function verifyImportedAccountPresence() {
+  await WalletView.tapIdenticon();
+  await AccountListView.isVisible();
+  await AccountListView.checkAccountVisibilityAtIndex(2, true);
+  await Assertions.checkIfElementToHaveText(
+    accountListView.accountTypeLabel,
+    IMPORTED_LABEL,
+  );
+}
+
+async function removeImportedAccount() {
+  await AccountListView.longPressImportedAccountThree();
+  await AccountListView.tapYesToRemoveImportedAccountAlertButton();
+  await AccountListView.checkAccountVisibilityAtIndex(2, false);
+  await Assertions.checkIfNotVisible(accountListView.accountTypeLabel);
+}
+
+async function importAccountAgain() {
+  await AccountListView.tapAddAccountButton();
+  await AccountListView.tapImportAccountButton();
+  await ImportAccountView.isVisible();
+  await ImportAccountView.enterPrivateKey(TEST_PRIVATE_KEY);
+  await ImportAccountView.isImportSuccessSreenVisible();
+  await ImportAccountView.tapCloseButtonOnImportSuccess();
+  await AccountListView.checkAccountVisibilityAtIndex(2, true);
+  await Assertions.checkIfElementToHaveText(
+    accountListView.accountTypeLabel,
+    IMPORTED_LABEL,
+  );
+}
