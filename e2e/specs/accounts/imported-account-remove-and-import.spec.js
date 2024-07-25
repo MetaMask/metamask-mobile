@@ -18,35 +18,38 @@ const IMPORTED_LABEL = 'Imported';
 
 const accountListView = new AccountListView();
 
-describe(SmokeAccounts('Imported account removal and reimport'), () => {
-  beforeAll(async () => {
-    await TestHelpers.reverseServerPort();
-    await device.launchApp();
-  });
+describe(
+  SmokeAccounts('removes and reimports an account using a private key'),
+  () => {
+    beforeAll(async () => {
+      await TestHelpers.reverseServerPort();
+      await device.launchApp();
+    });
 
-  it('remove an account then import private key again', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder()
-          .withImportedAccountKeyringController()
-          .build(),
-        restartDevice: true,
-      },
-      async () => {
-        await loginToApp();
+    it('removes an imported account and reimports it using a private key', async () => {
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder()
+            .withImportedAccountKeyringController()
+            .build(),
+          restartDevice: true,
+        },
+        async () => {
+          await loginToApp();
 
-        // Ensure imported account is present
-        await verifyImportedAccountPresence();
+          // Ensure imported account is present
+          await verifyImportedAccountPresence();
 
-        // Remove the imported account
-        await removeImportedAccount();
+          // Remove the imported account
+          await removeImportedAccount();
 
-        // Import account again
-        await importAccountAgain();
-      },
-    );
-  });
-});
+          // Import account again
+          await importAccountAgain();
+        },
+      );
+    });
+  },
+);
 
 async function verifyImportedAccountPresence() {
   await WalletView.tapIdenticon();
