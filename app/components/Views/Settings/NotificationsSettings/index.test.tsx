@@ -11,9 +11,6 @@ const mockInitialState = {
   settings: {
     useBlockieIcon: false,
   },
-  notificationsSettings: {
-    isEnabled: true,
-  },
   engine: {
     backgroundState: {
       ...backgroundState,

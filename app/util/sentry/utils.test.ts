@@ -399,9 +399,7 @@ describe('captureSentryFeedback', () => {
         events: [],
       },
       notification: {
-        notification: {
-          notificationsSettings: {},
-        },
+        notification: {},
         notifications: [],
       },
       swaps: {
