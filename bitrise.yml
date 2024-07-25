@@ -9,14 +9,17 @@ pipelines:
   create_qa_builds_pipeline:
     stages:
       - create_build_qa: {}
-      - notify: {}
+  #Creates MetaMask, MetaMask-QA apps and stores apk/ipa in Bitrise
+  create_prod_builds_pipeline:
+    stages:
+      - create_build_release: {}
+      - create_build_qa: {} #Generate QA builds for E2E app upgrade tests
   #Releases MetaMask apps and stores apk/ipa into Play(Internal Testing)/App(TestFlight) Store
   release_builds_to_store_pipeline:
     stages:
       - create_build_release: {}
       - deploy_build_release: {}
       - create_build_qa: {} #Generate QA builds for E2E app upgrade tests
-      - release_notify: {}
   #Releases MetaMask apps and stores ipa into App(TestFlight) Store
   release_ios_to_store_pipeline:
     stages:
@@ -63,7 +66,6 @@ pipelines:
       - create_build_flask_release: {}
       - deploy_flask_build_release: {}
       - release_notify: {}
-
   #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
   pr_regression_e2e_pipeline:
     stages:
