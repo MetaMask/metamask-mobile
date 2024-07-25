@@ -35,7 +35,7 @@ const AggregatedPercentage = ({
   const amountChange = totalBalance - totalBalance1dAgo;
 
   const percentageChange =
-    ((totalBalance - totalBalance1dAgo) / totalBalance1dAgo) * 100 || 0;
+    ((totalBalance - totalBalance1dAgo) / totalBalance) * 100 || 0;
 
   let percentageTextColor = TextColor.Default;
 

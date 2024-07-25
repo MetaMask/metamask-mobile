@@ -1635,7 +1635,7 @@ class Engine {
     }
 
     ethFiat1dAgo =
-      ethFiat +
+      ethFiat -
         (ethFiat *
           tokenExchangeRates?.[toHexadecimal(chainId)]?.[
             zeroAddress() as `0x${string}`
@@ -1671,7 +1671,7 @@ class Engine {
           );
 
           const tokenBalance1dAgo =
-            tokenBalanceFiat +
+            tokenBalanceFiat -
               (tokenBalanceFiat *
                 tokenExchangeRates?.[item.address as `0x${string}`]
                   ?.pricePercentChange1d) /
