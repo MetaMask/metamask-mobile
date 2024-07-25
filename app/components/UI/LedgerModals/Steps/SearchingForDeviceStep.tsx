@@ -1,4 +1,8 @@
+// Note: PNG module declarations should be in a global declaration file (e.g., declarations.d.ts)
+// instead of in individual component files.
+
 import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React, { useMemo } from 'react';
 import {
   ActivityIndicator,
@@ -60,7 +64,7 @@ const createStyles = () =>
 
 const SearchingForDeviceStep = () => {
   const styles = useMemo(() => createStyles(), []);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<ParamListBase>>();
 
   const deviceOSVersion = Number(getSystemVersion()) || 0;
 
@@ -70,7 +74,7 @@ const SearchingForDeviceStep = () => {
   );
 
   const handleOpenInstallEthAppInstructions = () => {
-    navigation.push('Webview', {
+    navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
         url: LEDGER_SUPPORT_LINK,
@@ -123,7 +127,7 @@ const SearchingForDeviceStep = () => {
         </Text>
       </View>
       <TouchableOpacity onPress={handleOpenInstallEthAppInstructions}>
-        <Text style={styles.howToInstallEthAppText} bold link numerOfLines={2}>
+        <Text style={styles.howToInstallEthAppText} bold link numberOfLines={2}>
           {strings('ledger.how_to_install_eth_app')}
         </Text>
       </TouchableOpacity>
