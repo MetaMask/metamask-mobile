@@ -85,6 +85,7 @@ const Routes = {
     ACCOUNT_SELECTOR: 'AccountSelector',
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     BASIC_FUNCTIONALITY: 'BasicFunctionality',
+    PROFILE_SYNCING: 'ProfileSyncing',
     SDK_LOADING: 'SDKLoading',
     SDK_FEEDBACK: 'SDKFeedback',
     DATA_COLLECTION: 'DataCollection',
