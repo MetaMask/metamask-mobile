@@ -286,18 +286,6 @@ export class BackgroundBridge extends EventEmitter {
     }
     const publicState = this.getProviderNetworkState();
 
-    if (!this.chainIdSent) {
-      this.chainIdSent = publicState.chainId;
-    }
-
-    if (!this.networkVersionSent) {
-      this.networkVersionSent = publicState.networkVersion;
-    }
-
-    if (!this.addressSent) {
-      this.addressSent = memState.selectedAddress;
-    }
-
     // Check if update already sent
     if (
       this.chainIdSent !== publicState.chainId ||
@@ -349,10 +337,6 @@ export class BackgroundBridge extends EventEmitter {
       'PreferencesController:stateChange',
       this.sendStateUpdate,
     );
-
-    this.addressSent = null;
-    this.chainIdSent = null;
-    this.networkVersionSent = null;
 
     this.port.emit('disconnect', { name: this.port.name, data: null });
   };
