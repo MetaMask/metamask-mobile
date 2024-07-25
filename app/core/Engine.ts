@@ -1044,7 +1044,7 @@ class Engine {
         name: 'AuthenticationController',
         allowedActions: [
           'SnapController:handleRequest',
-          'UserStorageController:disableProfileSyncing',
+          'UserStorageController:enableProfileSyncing',
         ],
         allowedEvents: [],
       }),
