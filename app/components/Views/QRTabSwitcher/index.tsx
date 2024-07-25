@@ -17,6 +17,8 @@ import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import createStyles from './styles';
 import NavbarTitle from '../../../components/UI/NavbarTitle';
+import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 
 export enum Screens {
   Scanner,
@@ -118,13 +120,12 @@ const QRTabSwitcher = () => {
         {selectedIndex === Screens.Receive ? (
           <NavbarTitle title={'Receive'} translate={false} disableNetwork />
         ) : null}
-        <TouchableOpacity style={styles.closeIcon} onPress={goBack}>
-          <Icon
-            name={'ios-close'}
-            size={30}
-            color={selectedIndex === Screens.Receive ? 'black' : 'white'}
-          />
-        </TouchableOpacity>
+        <ButtonIcon
+          style={styles.closeIcon}
+          iconName={IconName.Close}
+          iconColor={selectedIndex === Screens.Receive ? 'black' : 'white'}
+          onPress={goBack}
+        />
       </View>
 
       {disableTabber ? null : (
