@@ -155,6 +155,10 @@ export const selectSwapsQuotesLastFetched = createSelector(
   selectSwapsControllerState,
   (swapsControllerState) => swapsControllerState.quotesLastFetched,
 );
+export const selectSwapsIsInPolling = createSelector(
+  selectSwapsControllerState,
+  (swapsControllerState) => swapsControllerState.isInPolling,
+);
 
 const swapsControllerAndUserTokens = createSelector(
   swapsControllerTokens,
