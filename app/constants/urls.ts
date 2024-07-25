@@ -25,7 +25,8 @@ export const HOWTO_MANAGE_METAMETRICS =
   'https://support.metamask.io/privacy-and-security/how-to-manage-your-metametrics-settings';
 
 // Policies
-export const CONSENSYS_PRIVACY_POLICY = 'https://consensys.net/privacy-policy/';
+export const CONSENSYS_PRIVACY_POLICY =
+  'https://support.metamask.io/privacy-and-security/profile-privacy';
 
 // SES
 export const SES_URL =
