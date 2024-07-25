@@ -118,9 +118,13 @@ import Button, {
 } from '../../../../component-library/components/Buttons/Button';
 import trackErrorAsAnalytics from '../../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
+import ProfileSyncingComponent from '../../../UI/ProfileSyncing/ProfileSyncing';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetrics } from '../../../../core/Analytics';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
+import { selectIsProfileSyncingEnabled } from '../../../../selectors/notifications';
+import { useProfileSyncing } from '../../../../util/notifications/hooks/useProfileSyncing';
+import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -150,6 +154,12 @@ const Settings: React.FC = () => {
   const [hintText, setHintText] = useState('');
   const [onlineIpfsGateways, setOnlineIpfsGateways] = useState<Gateway[]>([]);
   const [gotAvailableGateways, setGotAvailableGateways] = useState(false);
+  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+  const {
+    enableProfileSyncing,
+    loading: profileSyncLoading,
+    error: profileSyncError,
+  } = useProfileSyncing();
 
   const scrollViewRef = useRef<ScrollView>(null);
   const detectNftComponentRef = useRef<View>(null);
@@ -973,6 +983,16 @@ const Settings: React.FC = () => {
     );
   }
 
+  const toggleProfileSyncing = async () => {
+    if (isProfileSyncingEnabled) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.PROFILE_SYNCING,
+      });
+    } else {
+      await enableProfileSyncing();
+    }
+  };
+
   return (
     <ScrollView
       style={styles.wrapper}
@@ -1010,6 +1030,7 @@ const Settings: React.FC = () => {
             handleSwitchToggle={toggleBasicFunctionality}
           />
         </View>
+        <ProfileSyncingComponent handleSwitchToggle={toggleProfileSyncing} />
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}
@@ -1073,6 +1094,11 @@ const Settings: React.FC = () => {
         <DeleteWalletData />
         {renderHint()}
       </View>
+      <SwitchLoadingModal
+        loading={profileSyncLoading}
+        loadingText={strings('app_settings.enabling_profile_sync')}
+        error={profileSyncError}
+      />
     </ScrollView>
   );
 };
