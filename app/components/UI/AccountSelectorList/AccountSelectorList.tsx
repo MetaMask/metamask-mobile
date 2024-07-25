@@ -176,7 +176,7 @@ const AccountSelectorList = ({
         <Cell
           onLongPress={() => {
             onLongPress({
-              address,
+              address: address as Hex,
               imported: type === KeyringTypes.simple,
               isSelected: isSelectedAccount,
               index,
