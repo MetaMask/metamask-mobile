@@ -9,8 +9,8 @@ import { createStyles } from './styles';
 import { WebViewInterface } from '@metamask/snaps-controllers/dist/types/services/webview/WebViewMessageStream';
 import { WebViewError } from '@metamask/react-native-webview/lib/WebViewTypes';
 import { PostMessageEvent } from '@metamask/post-message-stream';
-// @ts-expect-error Can't type a distritibuted html file
-import WebViewHTML from '@metamask/snaps-execution-environments/dist/browserify/webview/index.html';
+
+const WebViewHTML = require('@metamask/snaps-execution-environments/dist/browserify/webview/index.html');
 
 const styles = createStyles();
 
@@ -29,6 +29,8 @@ export const getSnapsWebViewPromise = new Promise<WebViewInterface>(
     rejectGetWebView = reject;
   },
 );
+
+const SNAPS_EE_URL = 'https://execution.metamask.io/webview/6.5.0/index.html';
 
 // This is a class component because storing the references we are don't work in functional components.
 export class SnapsExecutionWebView extends Component {
@@ -89,11 +91,15 @@ export class SnapsExecutionWebView extends Component {
             ref={
               this.setWebViewRef as unknown as React.RefObject<WebView> | null
             }
-            source={WebViewHTML}
+            // source={{ html: WebViewHTML }}
+            source={{
+              uri: SNAPS_EE_URL,
+            }}
             onMessage={this.onWebViewMessage}
             onError={this.onWebViewError}
             onLoadEnd={this.onWebViewLoad}
-            originWhitelist={['*']}
+            // originWhitelist={['*']}
+            originWhitelist={['https://execution.metamask.io*']}
             javaScriptEnabled
           />
         </View>
