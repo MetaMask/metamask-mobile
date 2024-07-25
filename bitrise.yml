@@ -527,6 +527,16 @@ workflows:
     after_run:
       - notify_failure
     steps:
+      - change-android-versioncode-and-versionname@1:
+          inputs:
+            - new_version_name: $VERSION_NAME
+            - new_version_code: $VERSION_NUMBER
+            - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
+      - file-downloader@1:
+          inputs:
+            - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
+            - destination: android/keystores/internalRelease.keystore
+    steps:
       - script@1:
           title: Generating ccache key using native folder checksum
           inputs:
@@ -577,9 +587,10 @@ workflows:
                   TEST_SUITE="Smoke"
                 fi
                 node -v
-                export METAMASK_ENVIRONMENT='local'
+                node -v
+                export METAMASK_ENVIRONMENT='qa'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:build
+                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn test:e2e:android:bitrise:build
       - save-gradle-cache@1: {}
       - save-cache@1:
           title: Save CCache
@@ -588,6 +599,13 @@ workflows:
             - key: '{{ getenv "CCACHE_KEY" }}'
             - paths: |-
                 ccache
+      
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/$QA_APK_NAME.apk
+          title: Bitrise Deploy APK
       - deploy-to-bitrise-io@2.2.3:
           inputs:
             - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
@@ -1076,7 +1094,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
+                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn test:e2e:android:bitrise:build
           title: Build Android Pre-Release Bundle
           is_always_run: false
       - save-gradle-cache@1: {}
@@ -1500,3 +1518,5 @@ trigger_map:
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline
+  - push_branch: try-running-detox-on-qa-build
+    pipeline: pr_regression_e2e_pipeline

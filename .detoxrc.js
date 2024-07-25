@@ -95,7 +95,7 @@ module.exports = {
     'android.bitrise.debug': {
       type: 'android.apk',
       binaryPath: 'android/app/build/outputs/apk/prod/debug/app-prod-debug.apk',
-      build: 'yarn start:android:e2e',
+      build: 'yarn build:android:pre-release:bundle:qa',
     },
     'android.debug': {
       type: 'android.apk',
