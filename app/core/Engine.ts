@@ -1634,13 +1634,15 @@ class Engine {
       );
     }
 
+    const ethPricePercentChange1d =
+      tokenExchangeRates?.[toHexadecimal(chainId)]?.[
+        zeroAddress() as `0x${string}`
+      ]?.pricePercentChange1d;
+
     ethFiat1dAgo =
-      ethFiat -
-        (ethFiat *
-          tokenExchangeRates?.[toHexadecimal(chainId)]?.[
-            zeroAddress() as `0x${string}`
-          ]?.pricePercentChange1d) /
-          100 || ethFiat;
+      ethPricePercentChange1d !== undefined
+        ? ethFiat / (1 + ethPricePercentChange1d / 100)
+        : ethFiat;
 
     if (tokens.length > 0) {
       const { contractBalances: tokenBalances } = TokenBalancesController.state;
@@ -1670,12 +1672,14 @@ class Engine {
             decimalsToShow,
           );
 
+          const tokePricePercentChange1d =
+            tokenExchangeRates?.[item.address as `0x${string}`]
+              ?.pricePercentChange1d;
+
           const tokenBalance1dAgo =
-            tokenBalanceFiat -
-              (tokenBalanceFiat *
-                tokenExchangeRates?.[item.address as `0x${string}`]
-                  ?.pricePercentChange1d) /
-                100 || tokenBalanceFiat;
+            tokePricePercentChange1d !== undefined
+              ? tokenBalanceFiat / (1 + tokePricePercentChange1d / 100)
+              : tokenBalanceFiat;
 
           tokenFiat += tokenBalanceFiat;
           tokenFiat1dAgo += tokenBalance1dAgo;
