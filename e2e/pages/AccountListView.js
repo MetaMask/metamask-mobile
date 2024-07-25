@@ -13,15 +13,9 @@ import { ConnectAccountModalSelectorsIDs } from '../selectors/Modals/ConnectAcco
 import Matchers from '../utils/Matchers';
 
 export default class AccountListView {
-  get accountTypeLabel() {
-    return Matchers.getElementByID(
+  static async accountTypeLabel() {
+    return await Matchers.getElementByID(
       AccountListViewSelectorsIDs.ACCOUNT_TYPE_LABEL,
-    );
-  }
-
-  get accountName() {
-    return Matchers.getElementByID(
-      AccountListViewSelectorsIDs.ACCOUNT_NAME_LABEL,
     );
   }
 

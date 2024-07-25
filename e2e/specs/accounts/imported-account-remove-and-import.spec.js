@@ -16,8 +16,6 @@ const TEST_PRIVATE_KEY =
   'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
 const IMPORTED_LABEL = 'Imported';
 
-const accountListView = new AccountListView();
-
 describe(
   SmokeAccounts('removes and reimports an account using a private key'),
   () => {
@@ -56,7 +54,7 @@ async function verifyImportedAccountPresence() {
   await AccountListView.isVisible();
   await AccountListView.checkAccountVisibilityAtIndex(2, true);
   await Assertions.checkIfElementToHaveText(
-    accountListView.accountTypeLabel,
+    AccountListView.accountTypeLabel(),
     IMPORTED_LABEL,
   );
 }
@@ -65,7 +63,7 @@ async function removeImportedAccount() {
   await AccountListView.longPressImportedAccountThree();
   await AccountListView.tapYesToRemoveImportedAccountAlertButton();
   await AccountListView.checkAccountVisibilityAtIndex(2, false);
-  await Assertions.checkIfNotVisible(accountListView.accountTypeLabel);
+  await Assertions.checkIfNotVisible(AccountListView.accountTypeLabel());
 }
 
 async function importAccountAgain() {
@@ -77,7 +75,7 @@ async function importAccountAgain() {
   await ImportAccountView.tapCloseButtonOnImportSuccess();
   await AccountListView.checkAccountVisibilityAtIndex(2, true);
   await Assertions.checkIfElementToHaveText(
-    accountListView.accountTypeLabel,
+    AccountListView.accountTypeLabel(),
     IMPORTED_LABEL,
   );
 }
