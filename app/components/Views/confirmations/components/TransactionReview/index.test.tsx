@@ -64,6 +64,11 @@ jest.mock('../../../../../core/Engine', () => ({
         ],
       },
     },
+    PreferencesController: {
+      state: {
+        securityAlertsEnabled: true,
+      },
+    },
   },
 }));
 

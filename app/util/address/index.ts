@@ -317,7 +317,7 @@ export function resemblesAddress(address: string) {
 
 export function safeToChecksumAddress(address: string) {
   if (!address) return undefined;
-  return toChecksumAddress(address);
+  return toChecksumAddress(address) as Hex;
 }
 
 /**

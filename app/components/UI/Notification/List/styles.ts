@@ -2,15 +2,17 @@
 import { StyleSheet, TextStyle } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 
+export type NotificationListStyles = ReturnType<typeof createStyles>;
+
 export const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: colors.background.default,
+      marginHorizontal: 8,
     },
     wrapper: {
       flex: 1,
-      paddingHorizontal: 16,
       paddingVertical: 10,
       justifyContent: 'center',
       borderRadius: 10,
@@ -21,9 +23,11 @@ export const createStyles = ({ colors, typography }: Theme) =>
       width: '100%',
       height: '100%',
     },
-    base: {
-      paddingHorizontal: 16,
+    menuItemContainer: {
+      flexDirection: 'row',
+      gap: 16,
     },
+
     tabUnderlineStyle: {
       height: 2,
       backgroundColor: colors.primary.default,
@@ -54,6 +58,11 @@ export const createStyles = ({ colors, typography }: Theme) =>
       width: 20,
       height: 20,
     },
+    itemLogoSize: {
+      width: 32,
+      height: 32,
+    },
+    containerFill: { flex: 1 },
     badgeWrapper: {
       alignItems: 'center',
       justifyContent: 'center',
@@ -61,7 +70,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
       position: 'absolute',
       top: '10%',
     },
-    assetLogo: {
+    circleLogo: {
       width: 32,
       height: 32,
       borderRadius: 16,
@@ -69,7 +78,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
       borderWidth: 0.5,
       borderColor: colors.background.alternative,
     },
-    assetPlaceholder: {
+    circleLogoPlaceholder: {
       backgroundColor: colors.background.alternative,
       width: 32,
       height: 32,
@@ -77,7 +86,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
       borderWidth: 0.5,
       borderColor: colors.background.alternative,
     },
-    nftLogo: {
+    squareLogo: {
       width: 32,
       height: 32,
       borderRadius: 8,
@@ -85,7 +94,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
       borderWidth: 0.5,
       borderColor: colors.background.alternative,
     },
-    nftPlaceholder: {
+    squareLogoPlaceholder: {
       backgroundColor: colors.background.alternative,
       width: 32,
       height: 32,
@@ -93,10 +102,10 @@ export const createStyles = ({ colors, typography }: Theme) =>
       borderWidth: 0.5,
       borderColor: colors.background.alternative,
     },
-    rowContainer: { flex: 1, marginLeft: 42, alignItem: 'center' },
     rowInsider: {
       flex: 1,
       flexDirection: 'row',
+      gap: 8,
       justifyContent: 'space-between',
     },
     ethLogo: {
@@ -114,10 +123,6 @@ export const createStyles = ({ colors, typography }: Theme) =>
       alignSelf: 'flex-start',
       position: 'absolute',
       top: '25%',
-    },
-    textBox: {
-      flexShrink: 1,
-      maxWidth: '85%',
     },
     button: {
       marginTop: 16,

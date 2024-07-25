@@ -37,6 +37,9 @@ export const NETWORKS_CHAIN_ID = {
   OPTIMISM_GOERLI: toHex('420'),
   MUMBAI: toHex('80001'),
   OPBNB: toHex('204'),
+  SCROLL: toHex('534352'),
+  BERACHAIN: toHex('80085'),
+  METACHAIN_ONE: toHex('112358'),
 };
 
 // To add a deprecation warning to a network, add it to the array

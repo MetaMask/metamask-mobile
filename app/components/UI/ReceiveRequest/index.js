@@ -1,6 +1,12 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { SafeAreaView, Dimensions, StyleSheet, View } from 'react-native';
+import {
+  SafeAreaView,
+  Dimensions,
+  StyleSheet,
+  View,
+  Alert,
+} from 'react-native';
 import Share from 'react-native-share';
 import QRCode from 'react-native-qrcode-svg';
 import { connect } from 'react-redux';
@@ -22,10 +28,12 @@ import {
   selectTicker,
 } from '../../../selectors/networkController';
 import { isNetworkRampSupported } from '../Ramp/utils';
+import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Modals/RequestPaymentModal.selectors';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
+import { getDecimalChainId } from '../../../util/networks';
 import QRAccountDisplay from '../../Views/QRAccountDisplay';
 import PNG_MM_LOGO_PATH from '../../../images/fox.png';
 
@@ -140,6 +148,10 @@ class ReceiveRequest extends PureComponent {
      */
     seedphraseBackedUp: PropTypes.bool,
     /**
+     * Boolean that indicates if the network supports buy
+     */
+    isNetworkBuySupported: PropTypes.bool,
+    /**
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
@@ -169,6 +181,27 @@ class ReceiveRequest extends PureComponent {
     this.props.metrics.trackEvent(
       MetaMetricsEvents.RECEIVE_OPTIONS_SHARE_ADDRESS,
     );
+  };
+
+  /**
+   * Shows an alert message with a coming soon message
+   */
+  onBuy = async () => {
+    const { navigation, isNetworkBuySupported } = this.props;
+    if (!isNetworkBuySupported) {
+      Alert.alert(
+        strings('fiat_on_ramp.network_not_supported'),
+        strings('fiat_on_ramp.switch_network'),
+      );
+    } else {
+      navigation.navigate(...createBuyNavigationDetails());
+
+      this.props.metrics.trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+        text: 'Buy Native Token',
+        location: 'Receive Modal',
+        chain_id_destination: getDecimalChainId(this.props.chainId),
+      });
+    }
   };
 
   copyAccountToClipboard = async () => {
