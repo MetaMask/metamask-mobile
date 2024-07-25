@@ -70,7 +70,21 @@ import useModalHandler from '../../Base/hooks/useModalHandler';
 import useBalance from './utils/useBalance';
 import { decodeApproveData, getTicker } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
-import { swapsTokensSelector } from '../../../reducers/swaps';
+import {
+  selectSwapsAggregatorMetadata,
+  selectSwapsApprovalTransaction,
+  selectSwapsError,
+  selectSwapsIsInPolling,
+  selectSwapsPollingCyclesLeft,
+  selectSwapsQuoteRefreshSeconds,
+  selectSwapsQuoteValues,
+  selectSwapsQuotes,
+  selectSwapsQuotesLastFetched,
+  selectSwapsTopAggId,
+  selectSwapsUsedCustomGas,
+  selectSwapsUsedGasEstimate,
+  swapsTokensSelector,
+} from '../../../reducers/swaps';
 import { decGWEIToHexWEI } from '../../../util/conversions';
 import FadeAnimationView from '../FadeAnimationView';
 import Logger from '../../../util/Logger';
@@ -101,6 +115,7 @@ import { addTransaction } from '../../../util/transaction-controller';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
+import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeController';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -2325,26 +2340,20 @@ const mapStateToProps = (state) => ({
   selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  isInPolling: state.engine.backgroundState.SwapsController.isInPolling,
-  quotesLastFetched:
-    state.engine.backgroundState.SwapsController.quotesLastFetched,
-  pollingCyclesLeft:
-    state.engine.backgroundState.SwapsController.pollingCyclesLeft,
-  topAggId: state.engine.backgroundState.SwapsController.topAggId,
-  aggregatorMetadata:
-    state.engine.backgroundState.SwapsController.aggregatorMetadata,
-  quotes: state.engine.backgroundState.SwapsController.quotes,
-  quoteValues: state.engine.backgroundState.SwapsController.quoteValues,
-  approvalTransaction:
-    state.engine.backgroundState.SwapsController.approvalTransaction,
-  error: state.engine.backgroundState.SwapsController.error,
-  quoteRefreshSeconds:
-    state.engine.backgroundState.SwapsController.quoteRefreshSeconds,
-  gasEstimateType:
-    state.engine.backgroundState.GasFeeController.gasEstimateType,
+  isInPolling: selectSwapsIsInPolling(state),
+  quotesLastFetched: selectSwapsQuotesLastFetched(state),
+  pollingCyclesLeft: selectSwapsPollingCyclesLeft(state),
+  topAggId: selectSwapsTopAggId(state),
+  aggregatorMetadata: selectSwapsAggregatorMetadata(state),
+  quotes: selectSwapsQuotes(state),
+  quoteValues: selectSwapsQuoteValues(state),
+  approvalTransaction: selectSwapsApprovalTransaction(state),
+  error: selectSwapsError(state),
+  quoteRefreshSeconds: selectSwapsQuoteRefreshSeconds(state),
+  gasEstimateType: selectGasFeeControllerEstimateType(state),
   gasFeeEstimates: selectGasFeeEstimates(state),
-  usedGasEstimate: state.engine.backgroundState.SwapsController.usedGasEstimate,
-  usedCustomGas: state.engine.backgroundState.SwapsController.usedCustomGas,
+  usedGasEstimate: selectSwapsUsedGasEstimate(state),
+  usedCustomGas: selectSwapsUsedCustomGas(state),
   primaryCurrency: state.settings.primaryCurrency,
   swapsTokens: swapsTokensSelector(state),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
