@@ -1,5 +1,6 @@
 import Engine from './Engine';
 import { backgroundState } from '../util/test/initial-root-state';
+import { store } from '../store'; // Ensure this import is added
 
 jest.unmock('./Engine');
 
@@ -87,5 +88,74 @@ describe('Engine', () => {
     expect(() => engine.setSelectedAccount(invalidAddress)).toThrow(
       `No account found for address: ${invalidAddress}`,
     );
+  });
+
+  // Test for getTotalFiatAccountBalance
+  it('should calculate total fiat account balance correctly', () => {
+    // const engine = Engine.init(mockState);
+    const mockState = {
+      CurrencyRateController: {
+        currentCurrency: 'usd',
+        currencyRates: {
+          ETH: {
+            conversionRate: 2000, // Example rate: 1 ETH = 2000 USD
+          },
+        },
+      },
+      PreferencesController: {
+        selectedAddress: '0x123',
+      },
+      AccountTrackerController: {
+        accountsByChainId: {
+          '0x1': {
+            '0x123': {
+              balance: '1000000000000000000', // 1 ETH
+            },
+          },
+        },
+      },
+      TokenBalancesController: {
+        contractBalances: {},
+      },
+      TokenRatesController: {
+        marketData: {
+          '0x1': {
+            '0x0000000000000000000000000000000000000000': {
+              pricePercentChange1d: -4.867211076998867, // Example decrease of 4.867211076998867%
+            },
+          },
+        },
+      },
+      TokensController: {
+        tokens: [],
+      },
+      NetworkController: {
+        state: {
+          providerConfig: {
+            chainId: '0x1',
+            ticker: 'eth',
+          },
+        },
+      },
+    };
+
+    const engine = Engine.init(mockState);
+
+    // Mock store.getState() to return the above mock state
+    store.getState = jest.fn(() => ({
+      settings: {
+        showFiatOnTestnets: true,
+      },
+      engine: {
+        backgroundState: mockState,
+      },
+    }));
+
+    const result = engine.getTotalFiatAccountBalance();
+
+    expect(result.ethFiat).toBe(2000);
+    expect(result.ethFiat1dAgo).toBeCloseTo(2102.42, 0); // Calculated as 2000 / (1 - 4.867211076998867 / 100)
+    expect(result.tokenFiat).toBe(0);
+    expect(result.tokenFiat1dAgo).toBe(0);
   });
 });

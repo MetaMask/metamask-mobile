@@ -1543,13 +1543,14 @@ class Engine {
       );
     }
 
-    ethFiat1dAgo =
-      ethFiat +
-        (ethFiat *
-          tokenExchangeRates?.[toHexadecimal(chainId)]?.[
-            zeroAddress() as `0x${string}`
-          ]?.pricePercentChange1d) /
-          100 || ethFiat;
+    // Get the percentage change in ETH price over the last day
+    const ethPriceChange1d =
+      tokenExchangeRates?.[toHexadecimal(chainId)]?.[
+        zeroAddress() as `0x${string}`
+      ]?.pricePercentChange1d ?? 0;
+
+    // Calculate the ETH Fiat value from 1 day ago
+    ethFiat1dAgo = ethFiat / (1 + ethPriceChange1d / 100);
 
     if (tokens.length > 0) {
       const { contractBalances: tokenBalances } = TokenBalancesController.state;
@@ -1579,12 +1580,13 @@ class Engine {
             decimalsToShow,
           );
 
+          // Get the percentage change in token price over the last day
+          const tokenPriceChange1d =
+            tokenExchangeRates?.[item.address as `0x${string}`]
+              ?.pricePercentChange1d ?? 0;
+          // Calculate the token Fiat value from 1 day ago
           const tokenBalance1dAgo =
-            tokenBalanceFiat +
-              (tokenBalanceFiat *
-                tokenExchangeRates?.[item.address as `0x${string}`]
-                  ?.pricePercentChange1d) /
-                100 || tokenBalanceFiat;
+            tokenBalanceFiat / (1 + tokenPriceChange1d / 100);
 
           tokenFiat += tokenBalanceFiat;
           tokenFiat1dAgo += tokenBalance1dAgo;
