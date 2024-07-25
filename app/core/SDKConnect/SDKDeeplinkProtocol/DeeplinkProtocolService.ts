@@ -203,6 +203,18 @@ export default class DeeplinkProtocolService {
         )}`,
       );
 
+      const origRpcId = messageWithMetadata?.data?.id;
+
+      const isPartOfBatchRequest = origRpcId?.includes('_');
+
+      if (isPartOfBatchRequest) {
+        DevLogger.log(
+          `DeeplinkProtocolService::sendMessage skip openDeeplink for origRpcId=${origRpcId}`,
+        );
+
+        return;
+      }
+
       this.openDeeplink({
         message: messageWithMetadata,
         clientId: this.currentClientId ?? '',
