@@ -1,9 +1,6 @@
 import enContent from '../../locales/languages/en.json';
 
 export const AccountListViewSelectorsIDs = {
-  ACCOUNT_LIST_ID: 'account-list',
-  ACCOUNT_LIST_ADD_BUTTON_ID: 'account-list-add-button',
-  ACCOUNT_NAME: 'account-name',
   ACCOUNT_TYPE_LABEL: 'account-type-label',
 };
 
