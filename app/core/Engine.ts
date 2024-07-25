@@ -1672,13 +1672,13 @@ class Engine {
             decimalsToShow,
           );
 
-          const tokePricePercentChange1d =
+          const tokenPricePercentChange1d =
             tokenExchangeRates?.[item.address as `0x${string}`]
               ?.pricePercentChange1d;
 
           const tokenBalance1dAgo =
-            tokePricePercentChange1d !== undefined
-              ? tokenBalanceFiat / (1 + tokePricePercentChange1d / 100)
+            tokenPricePercentChange1d !== undefined
+              ? tokenBalanceFiat / (1 + tokenPricePercentChange1d / 100)
               : tokenBalanceFiat;
 
           tokenFiat += tokenBalanceFiat;
