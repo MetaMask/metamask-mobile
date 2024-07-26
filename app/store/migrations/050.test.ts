@@ -1,10 +1,11 @@
 import migrate from './050';
 import DefaultPreference from 'react-native-default-preference';
 
-const defaultPreferenceItems: { [key: string]: string } = {
+const defaultPreferenceItems: { [key: string]: string | null } = {
   valueA: 'a',
   valueB: 'true',
   valueC: 'myValue',
+  valueD: null,
 };
 
 jest.mock('../async-storage-wrapper', () => ({
@@ -19,6 +20,7 @@ jest.mock('react-native-default-preference', () => ({
 describe('Migration #50', () => {
   it('migrates asyncStorage values to mmkv ', async () => {
     for (const key in defaultPreferenceItems) {
+      //@ts-expect-error - The null value is for test purposes
       await DefaultPreference.set(key, defaultPreferenceItems[key]);
     }
 
