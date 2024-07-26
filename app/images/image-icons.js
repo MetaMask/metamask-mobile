@@ -10,8 +10,8 @@ import AVAX from './avalanche.png';
 import LINEA_TESTNET from './linea-testnet-logo.png';
 import SEPOLIA from './sepolia-logo-dark.png';
 import LINEA_MAINNET from './linea-mainnet-logo.png';
-import FLARE_MAINNET from "./flare-mainnet.png"
-import SONGBIRD from "./songbird.png"
+import FLARE_MAINNET from './flare-mainnet.png';
+import SONGBIRD from './songbird.png';
 
 export default {
   PALM,
@@ -28,5 +28,5 @@ export default {
   SEPOLIA,
   'LINEA-MAINNET': LINEA_MAINNET,
   FLR: FLARE_MAINNET,
-  SGB: SONGBIRD
+  SGB: SONGBIRD,
 };
