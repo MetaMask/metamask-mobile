@@ -603,17 +603,13 @@ workflows:
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/$QA_APK_NAME.apk
           title: Bitrise Deploy APK
-      - deploy-to-bitrise-io@2.2.3:
-          inputs:
-            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
-          title: Save Android build
       - script@1:
           title: Log Android apk path
           inputs:  
             - content: |-
                 #!/usr/bin/env bash
                 set -ex
-                echo Here it is: $PROJECT_LOCATION/app/build/outputs:$INTERMEDIATE_ANDROID_BUILD_DIR
+                ls $PROJECT_LOCATION/app/build/outputs/apk/qa/release/
       - save-cache@1:
           title: Save node_modules
           inputs:
