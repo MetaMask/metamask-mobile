@@ -126,7 +126,6 @@ describe('Engine', () => {
       });
     });
 
-    // TODO: Why do these tests work when running individually but not when running all tests?
     it('calculates when theres only ETH', () => {
       const ethBalance = 1; // 1 ETH
       const ethPricePercentChange1d = 5; // up 5%
@@ -162,7 +161,6 @@ describe('Engine', () => {
       });
     });
 
-    // TODO: Why do these tests work when running individually but not when running all tests?
     it('calculates when there are ETH and tokens', () => {
       const ethBalance = 1;
       const ethPricePercentChange1d = 5;
