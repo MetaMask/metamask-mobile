@@ -596,13 +596,10 @@ workflows:
             - key: '{{ getenv "CCACHE_KEY" }}'
             - paths: |-
                 ccache
-      
-      # - deploy-to-bitrise-io@2.2.3:
-      #     is_always_run: false
-      #     is_skippable: true
-      #     inputs:
-      #       - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/$QA_APK_NAME.apk
-      #     title: Bitrise Deploy APK
+      - deploy-to-bitrise-io@2.2.3:
+          inputs:
+            - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
+          title: Save Android build
       # - script@1:
       #     title: Log Android apk path
       #     inputs:  
