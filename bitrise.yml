@@ -68,7 +68,7 @@ pipelines:
   pr_regression_e2e_pipeline:
     stages:
       - build_regression_e2e_ios_android_stage: {}
-      # - run_regression_e2e_ios_android_stage: {}
+      - run_regression_e2e_ios_android_stage: {}
       - notify: {}
 
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
@@ -597,19 +597,19 @@ workflows:
             - paths: |-
                 ccache
       
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/$QA_APK_NAME.apk
-          title: Bitrise Deploy APK
-      - script@1:
-          title: Log Android apk path
-          inputs:  
-            - content: |-
-                #!/usr/bin/env bash
-                set -ex
-                ls $PROJECT_LOCATION/app/build/outputs/apk/qa/release/
+      # - deploy-to-bitrise-io@2.2.3:
+      #     is_always_run: false
+      #     is_skippable: true
+      #     inputs:
+      #       - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/$QA_APK_NAME.apk
+      #     title: Bitrise Deploy APK
+      # - script@1:
+      #     title: Log Android apk path
+      #     inputs:  
+      #       - content: |-
+      #           #!/usr/bin/env bash
+      #           set -ex
+      #           ls $PROJECT_LOCATION/app/build/outputs/apk/qa/release/
       - save-cache@1:
           title: Save node_modules
           inputs:
