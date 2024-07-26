@@ -67,7 +67,7 @@ pipelines:
   #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
   pr_regression_e2e_pipeline:
     stages:
-      - build_regression_e2e_ios_android_stage: {}
+      # - build_regression_e2e_ios_android_stage: {}
       - run_regression_e2e_ios_android_stage: {}
       - notify: {}
 
@@ -607,6 +607,13 @@ workflows:
           inputs:
             - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
           title: Save Android build
+      - script@1:
+          title: Log Android apk path
+          inputs:  
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                echo Here it is: $PROJECT_LOCATION/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
       - save-cache@1:
           title: Save node_modules
           inputs:
