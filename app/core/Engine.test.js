@@ -95,6 +95,9 @@ describe('Engine', () => {
   });
 
   describe('getTotalFiatAccountBalance', () => {
+    let engine;
+    afterEach(() => engine?.destroyEngineInstance());
+
     const selectedAddress = '0x123';
     const chainId = '0x1';
     const ticker = 'ETH';
@@ -113,7 +116,7 @@ describe('Engine', () => {
     };
 
     it('calculates when theres no balances', () => {
-      const engine = Engine.init(state);
+      engine = Engine.init(state);
       const totalFiatBalance = engine.getTotalFiatAccountBalance();
       expect(totalFiatBalance).toStrictEqual({
         ethFiat: 0,
@@ -128,7 +131,7 @@ describe('Engine', () => {
       const ethBalance = 1; // 1 ETH
       const ethPricePercentChange1d = 5; // up 5%
 
-      const engine = Engine.init({
+      engine = Engine.init({
         ...state,
         AccountTrackerController: {
           accountsByChainId: {
@@ -179,7 +182,7 @@ describe('Engine', () => {
         },
       ];
 
-      const engine = Engine.init({
+      engine = Engine.init({
         ...state,
         AccountTrackerController: {
           accountsByChainId: {
