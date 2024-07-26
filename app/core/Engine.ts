@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import Crypto from 'react-native-quick-crypto';
+import { v4 as uuidv4 } from 'uuid';
 import {
   AccountTrackerController,
   AccountTrackerState,
@@ -1051,7 +1052,8 @@ class Engine {
       metametrics: {
         agent: 'mobile',
         getMetaMetricsId: async () =>
-          (await MetaMetrics.getInstance().getMetaMetricsId()) ?? '',
+          (await MetaMetrics.getInstance().getMetaMetricsId()) ??
+          (await Promise.resolve(uuidv4())),
       },
     });
 
