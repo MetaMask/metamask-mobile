@@ -119,8 +119,9 @@ import Button, {
 import trackErrorAsAnalytics from '../../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
 import Routes from '../../../../constants/navigation/Routes';
-import { EVENT_NAME, MetaMetrics } from '../../../../core/Analytics';
+import { MetaMetrics } from '../../../../core/Analytics';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
+import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -550,7 +551,9 @@ const Settings: React.FC = () => {
       }
       PreferencesController.setUseNftDetection(value);
       const traits = {
-        [EVENT_NAME.NFT_AUTO_DETECTION_ENABLED]: value,
+        [UserProfileProperty.NFT_AUTODETECTION]: value
+          ? UserProfileProperty.ON
+          : UserProfileProperty.OFF,
       };
       addTraitsToUser(traits);
       trackEvent(MetaMetricsEvents.NFT_AUTO_DETECTION_ENABLED, {
