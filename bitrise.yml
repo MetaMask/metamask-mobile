@@ -605,7 +605,7 @@ workflows:
           title: Bitrise Deploy APK
       - deploy-to-bitrise-io@2.2.3:
           inputs:
-            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/$QA_APK_NAME.apk
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
           title: Save Android build
       - save-cache@1:
           title: Save node_modules
