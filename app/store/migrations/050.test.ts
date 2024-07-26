@@ -1,5 +1,6 @@
 import migrate from './050';
 import DefaultPreference from 'react-native-default-preference';
+import StorageWrapper from '../async-storage-wrapper';
 
 const defaultPreferenceItems: { [key: string]: string | null } = {
   valueA: 'a',
@@ -14,20 +15,26 @@ jest.mock('../async-storage-wrapper', () => ({
 jest.mock('react-native-default-preference', () => ({
   set: jest.fn(),
   clear: jest.fn(),
-  getAll: jest.fn().mockReturnValue({}),
+  getAll: jest.fn().mockReturnValue(defaultPreferenceItems),
 }));
 
 describe('Migration #50', () => {
-  it('migrates asyncStorage values to mmkv ', async () => {
-    for (const key in defaultPreferenceItems) {
-      //@ts-expect-error - The null value is for test purposes
-      await DefaultPreference.set(key, defaultPreferenceItems[key]);
-    }
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
+  it('migrates default preferences values to mmkv and clears DefaultPreference', async () => {
     await migrate({});
 
-    const keyValues = await DefaultPreference.getAll();
+    expect(StorageWrapper.setItem).toHaveBeenCalledTimes(3);
+    expect(StorageWrapper.setItem).toHaveBeenCalledWith('valueA', 'a');
+    expect(StorageWrapper.setItem).toHaveBeenCalledWith('valueB', 'true');
+    expect(StorageWrapper.setItem).toHaveBeenCalledWith('valueC', 'myValue');
 
-    expect(Object.keys(keyValues).length).toBe(0);
+    expect(DefaultPreference.clear).toHaveBeenCalledTimes(4);
+    expect(DefaultPreference.clear).toHaveBeenCalledWith('valueA');
+    expect(DefaultPreference.clear).toHaveBeenCalledWith('valueB');
+    expect(DefaultPreference.clear).toHaveBeenCalledWith('valueC');
+    expect(DefaultPreference.clear).toHaveBeenCalledWith('valueD');
   });
 });
