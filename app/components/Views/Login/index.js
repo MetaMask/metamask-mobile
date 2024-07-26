@@ -493,7 +493,6 @@ class Login extends PureComponent {
   };
 
   handleDownloadStateLogs = () => {
-    console.log('ENTER HERE');
     const { fullState } = this.props;
     downloadStateLogs(fullState, false);
   };
