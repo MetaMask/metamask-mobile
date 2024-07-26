@@ -1,5 +1,20 @@
 import { AppThemeKey } from '../../util/theme/models';
 
+export interface IUserReducer {
+  loadingMsg: string;
+  loadingSet: boolean;
+  passwordSet: boolean;
+  seedphraseBackedUp: boolean;
+  backUpSeedphraseVisible: boolean;
+  protectWalletModalVisible: boolean;
+  gasEducationCarouselSeen: boolean;
+  userLoggedIn: boolean;
+  isAuthChecked: boolean;
+  initialScreen: string;
+  appTheme: AppThemeKey;
+  ambiguousAddressEntries: Record<string, unknown>; // Adjust the type of values if known
+}
+
 const initialState = {
   loadingMsg: '',
   loadingSet: false,
@@ -15,7 +30,28 @@ const initialState = {
   ambiguousAddressEntries: {},
 };
 
-const userReducer = (state = initialState, action) => {
+// Define action types
+type UserAction =
+  | { type: 'LOGIN' }
+  | { type: 'LOGOUT' }
+  | { type: 'LOADING_SET'; loadingMsg: string }
+  | { type: 'LOADING_UNSET' }
+  | { type: 'PASSWORD_SET' }
+  | { type: 'PASSWORD_UNSET' }
+  | { type: 'SEEDPHRASE_NOT_BACKED_UP' }
+  | { type: 'SEEDPHRASE_BACKED_UP' }
+  | { type: 'BACK_UP_SEEDPHRASE_VISIBLE' }
+  | { type: 'BACK_UP_SEEDPHRASE_NOT_VISIBLE' }
+  | { type: 'PROTECT_MODAL_VISIBLE' }
+  | { type: 'PROTECT_MODAL_NOT_VISIBLE' }
+  | { type: 'SET_GAS_EDUCATION_CAROUSEL_SEEN' }
+  | { type: 'SET_APP_THEME'; payload: { theme: AppThemeKey } };
+
+const userReducer = (
+  // eslint-disable-next-line @typescript-eslint/default-param-last
+  state: IUserReducer = initialState,
+  action: UserAction,
+) => {
   switch (action.type) {
     case 'LOGIN':
       return {
