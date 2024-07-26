@@ -140,4 +140,16 @@ export const UnpopularNetworkList = [
       imageSource: require('../../images/flare-mainnet.png'),
     },
   },
+  {
+    chainId: toHex('19'),
+    nickname: 'Songbird',
+    rpcUrl: 'https://songbird-api.flare.network/ext/bc/C/rpc',
+    ticker: 'SGB',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://songbird-explorer.flare.network',
+      imageUrl: 'SGB',
+      imageSource: require('../../images/songbird.png'),
+    },
+  },
 ];
