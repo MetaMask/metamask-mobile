@@ -9,26 +9,27 @@ pipelines:
   create_qa_builds_pipeline:
     stages:
       - create_build_qa: {}
-      - notify: {}
+  #Builds MetaMask, MetaMask-QA apps and stores apk/ipa in Bitrise
+  build_all_targets_pipeline:
+    stages:
+      - create_build_release: {}
+      - create_build_qa: {} #Generate QA builds for E2E app upgrade tests
   #Releases MetaMask apps and stores apk/ipa into Play(Internal Testing)/App(TestFlight) Store
   release_builds_to_store_pipeline:
     stages:
       - create_build_release: {}
       - deploy_build_release: {}
       - create_build_qa: {} #Generate QA builds for E2E app upgrade tests
-      - release_notify: {}
   #Releases MetaMask apps and stores ipa into App(TestFlight) Store
   release_ios_to_store_pipeline:
     stages:
       - create_ios_release: {}
       - deploy_ios_release: {}
-      - notify: {}
   #Releases MetaMask apps and stores apk Play(Internal Testing) Store
   release_android_to_store_pipeline:
     stages:
       - create_android_release: {}
       - deploy_android_release: {}
-      - notify: {}
   #Run E2E test suite for iOS only
   run_e2e_ios_pipeline:
     stages:
@@ -63,7 +64,6 @@ pipelines:
       - create_build_flask_release: {}
       - deploy_flask_build_release: {}
       - release_notify: {}
-
   #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
   pr_regression_e2e_pipeline:
     stages:
@@ -187,6 +187,24 @@ workflows:
       - activate-ssh-key@4:
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
       - git-clone@6: {}
+  set_commit_hash:
+    steps:
+      - script@1:
+          title: Set commit hash env variable
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                BRANCH_COMMIT_HASH="$(git rev-parse HEAD)"
+
+                # Log the value of BRANCH_COMMIT_HASH
+                echo "BRANCH_COMMIT_HASH is set to: $BRANCH_COMMIT_HASH"
+
+                envman add --key BRANCH_COMMIT_HASH --value "$BRANCH_COMMIT_HASH"
+      - share-pipeline-variable@1:
+          title: Persist commit hash across all stages
+          inputs:
+            - variables: |-
+                BRANCH_COMMIT_HASH
   code_setup:
     before_run:
       - setup
@@ -409,9 +427,9 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
     envs:
-      - PRODUCTION_APP_URL: 'bs://c2c414d2b4935096274bd2fb98232cc7b8408b2a' # Last production's QA build
-      - PRODUCTION_BUILD_NAME: 7.24.4
-      - PRODUCTION_BUILD_NUMBER: 1354
+      - PRODUCTION_APP_URL: 'bs://f0eefdd04dd0b913eb8b6494e4990e3e9f1c2bd3' # Last production's QA build
+      - PRODUCTION_BUILD_NAME: 7.26.1
+      - PRODUCTION_BUILD_NUMBER: 1360
       - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
       - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_NAME ($PRODUCTION_BUILD_NUMBER)'
       - NEW_BUILD_STRING: 'MetaMask-QA v$VERSION_NAME ($VERSION_NUMBER)'
@@ -505,6 +523,7 @@ workflows:
   android_e2e_build:
     before_run:
       - code_setup
+      - set_commit_hash
     after_run:
       - notify_failure
     steps:
@@ -576,7 +595,7 @@ workflows:
       - save-cache@1:
           title: Save node_modules
           inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
             - paths: node_modules
     meta:
       bitrise.io:
@@ -610,7 +629,7 @@ workflows:
       - restore-cache@2:
           title: Restore cache node_modules
           inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
       - script@1:
           title: Download cmake 3.22.1 with sdkmanager
           is_always_run: false
@@ -710,7 +729,7 @@ workflows:
       - restore-cache@2:
           title: Restore cache node_modules
           inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
@@ -749,6 +768,7 @@ workflows:
   ios_e2e_build:
     before_run:
       - code_setup
+      - set_commit_hash
     after_run:
       - notify_failure
     steps:
@@ -828,7 +848,7 @@ workflows:
       - save-cache@1:
           title: Save node_modules
           inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
             - paths: node_modules
   ios_e2e_test:
     before_run:
@@ -860,7 +880,7 @@ workflows:
       - restore-cache@2:
           title: Restore cache node_modules
           inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:

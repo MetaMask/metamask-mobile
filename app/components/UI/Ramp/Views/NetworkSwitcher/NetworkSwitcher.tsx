@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { RefreshControl, TouchableOpacity, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
+import { ChainId, toHex } from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
 
 import LoadingNetworksSkeleton from './LoadingNetworksSkeleton';
@@ -36,6 +36,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 
 import { PopularList } from '../../../../../util/networks/customNetworks';
+import { getDecimalChainId } from '../../../../../util/networks';
 
 function NetworkSwitcher() {
   const navigation = useNavigation();
@@ -53,14 +54,14 @@ function NetworkSwitcher() {
   } = useRampNetworksDetail();
   const supportedNetworks = useSelector(getRampNetworks);
   const [isCurrentNetworkRampSupported] = useRampNetwork();
-  const { selectedChainId, isBuy } = useRampSDK();
+  const { selectedChainId, isBuy, intent } = useRampSDK();
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const [networkToBeAdded, setNetworkToBeAdded] = useState<Network>();
 
   const isLoading = isLoadingNetworks || isLoadingNetworksDetail;
   const error = errorFetchingNetworks || errorFetchingNetworksDetail;
-  const rampNetworks = useMemo(() => {
+  const rampNetworksDetails = useMemo(() => {
     const activeNetworkDetails: Network[] = [];
     // TODO(ramp, btc): filter supportedNetworks by EVM compatible chains (chainId are strings of decimal numbers)
     supportedNetworks.forEach(({ chainId: supportedChainId, active }) => {
@@ -78,12 +79,12 @@ function NetworkSwitcher() {
         return;
       }
 
-      const popularNetwork = PopularList.find(
+      const popularNetworkDetail = PopularList.find(
         ({ chainId }) => chainId === rampSupportedNetworkChainIdAsHex,
       );
 
-      if (popularNetwork) {
-        activeNetworkDetails.push(popularNetwork);
+      if (popularNetworkDetail) {
+        activeNetworkDetails.push(popularNetworkDetail);
         return;
       }
 
@@ -132,16 +133,18 @@ function NetworkSwitcher() {
     );
   }, [isBuy, navigation, colors, handleCancelPress]);
 
-  useEffect(() => {
-    if (isCurrentNetworkRampSupported) {
-      navigation.navigate(Routes.RAMP.GET_STARTED);
-    }
-  }, [isCurrentNetworkRampSupported, navigation]);
+  const navigateToGetStarted = useCallback(() => {
+    navigation.navigate(Routes.RAMP.GET_STARTED, { chainId: undefined });
+  }, [navigation]);
 
-  const switchToMainnet = useCallback((type: 'mainnet' | 'linea-mainnet') => {
-    const { NetworkController } = Engine.context;
-    NetworkController.setProviderType(type as NetworkType);
-  }, []);
+  const switchToMainnet = useCallback(
+    (type: 'mainnet' | 'linea-mainnet') => {
+      const { NetworkController } = Engine.context;
+      NetworkController.setProviderType(type);
+      navigateToGetStarted();
+    },
+    [navigateToGetStarted],
+  );
 
   const switchNetwork = useCallback(
     (networkConfiguration) => {
@@ -156,9 +159,10 @@ function NetworkSwitcher() {
 
         CurrencyRateController.updateExchangeRate(ticker);
         NetworkController.setActiveNetwork(networkConfigurationId);
+        navigateToGetStarted();
       }
     },
-    [networkConfigurations],
+    [navigateToGetStarted, networkConfigurations],
   );
 
   const handleNetworkPress = useCallback(
@@ -172,13 +176,75 @@ function NetworkSwitcher() {
     [switchNetwork],
   );
 
+  const handleIntentChainId = useCallback(
+    (chainId: string) => {
+      if (!isNetworkRampSupported(chainId, supportedNetworks)) {
+        return;
+      }
+      if (getDecimalChainId(ChainId.mainnet) === chainId) {
+        return switchToMainnet('mainnet');
+      }
+
+      if (getDecimalChainId(ChainId['linea-mainnet']) === chainId) {
+        return switchToMainnet('linea-mainnet');
+      }
+
+      const supportedNetworkConfigurations = rampNetworksDetails.map(
+        (networkConfiguration) => {
+          const isAdded = Object.values(networkConfigurations).some(
+            (savedNetwork) =>
+              savedNetwork.chainId === networkConfiguration.chainId,
+          );
+          return {
+            ...networkConfiguration,
+            isAdded,
+          };
+        },
+      );
+
+      const networkConfiguration = supportedNetworkConfigurations.find(
+        ({ chainId: configurationChainId }) =>
+          toHex(configurationChainId) === toHex(chainId),
+      );
+
+      if (networkConfiguration) {
+        handleNetworkPress(networkConfiguration);
+      }
+    },
+    [
+      supportedNetworks,
+      switchToMainnet,
+      rampNetworksDetails,
+      networkConfigurations,
+      handleNetworkPress,
+    ],
+  );
+
+  useEffect(() => {
+    if (
+      isCurrentNetworkRampSupported &&
+      (!intent?.chainId || selectedChainId === intent.chainId)
+    ) {
+      navigateToGetStarted();
+    } else if (intent?.chainId) {
+      handleIntentChainId(intent.chainId);
+    }
+  }, [
+    handleIntentChainId,
+    intent?.chainId,
+    isCurrentNetworkRampSupported,
+    navigateToGetStarted,
+    navigation,
+    selectedChainId,
+  ]);
+
   const handleNetworkModalClose = useCallback(() => {
     if (networkToBeAdded) {
       setNetworkToBeAdded(undefined);
     }
   }, [networkToBeAdded]);
 
-  if (!isLoading && (error || rampNetworks.length === 0)) {
+  if (!isLoading && (error || rampNetworksDetails.length === 0)) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -251,7 +317,12 @@ function NetworkSwitcher() {
                       <Text bold>Ethereum Main Network</Text>
                     </View>
                     <View style={customNetworkStyle.popularWrapper}>
-                      <Text link>{strings('networks.switch')}</Text>
+                      {selectedChainId ===
+                      getDecimalChainId(ChainId.mainnet) ? (
+                        <Text link>{strings('networks.continue')}</Text>
+                      ) : (
+                        <Text link>{strings('networks.switch')}</Text>
+                      )}
                     </View>
                   </TouchableOpacity>
                 ) : null}
@@ -275,7 +346,12 @@ function NetworkSwitcher() {
                       <Text bold>Linea Main Network</Text>
                     </View>
                     <View style={customNetworkStyle.popularWrapper}>
-                      <Text link>{strings('networks.switch')}</Text>
+                      {selectedChainId ===
+                      getDecimalChainId(ChainId['linea-mainnet']) ? (
+                        <Text link>{strings('networks.continue')}</Text>
+                      ) : (
+                        <Text link>{strings('networks.switch')}</Text>
+                      )}
                     </View>
                   </TouchableOpacity>
                 ) : null}
@@ -288,7 +364,9 @@ function NetworkSwitcher() {
                   showNetworkModal={handleNetworkPress}
                   onNetworkSwitch={() => undefined}
                   shouldNetworkSwitchPopToWallet={false}
-                  customNetworksList={rampNetworks}
+                  customNetworksList={rampNetworksDetails}
+                  showCompletionMessage={false}
+                  displayContinue
                 />
               </>
             )}

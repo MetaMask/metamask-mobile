@@ -114,7 +114,9 @@ import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
 import SmartTransactionsOptInModal from '../../Views/SmartTransactionsOptInModal/SmartTranactionsOptInModal';
+import ProfileSyncingModal from '../../UI/ProfileSyncing/ProfileSyncingModal/ProfileSyncingModal';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
+import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
@@ -298,6 +300,7 @@ const VaultRecoveryFlow = () => (
   </Stack.Navigator>
 );
 
+// eslint-disable-next-line react/prop-types
 const App = ({ userLoggedIn }) => {
   const animationRef = useRef(null);
   const animationNameRef = useRef(null);
@@ -656,6 +659,10 @@ const App = ({ userLoggedIn }) => {
         component={BasicFunctionalityModal}
       />
       <Stack.Screen
+        name={Routes.SHEET.PROFILE_SYNCING}
+        component={ProfileSyncingModal}
+      />
+      <Stack.Screen
         name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
         component={ReturnToAppModal}
       />
@@ -705,6 +712,10 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}
         component={NFTAutoDetectionModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.ORIGIN_SPAM_MODAL}
+        component={OriginSpamModal}
       />
     </Stack.Navigator>
   );
