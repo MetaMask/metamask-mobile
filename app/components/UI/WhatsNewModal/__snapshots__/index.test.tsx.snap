@@ -4,909 +4,596 @@ exports[`WhatsNewModal should render correctly 1`] = `
 <View
   style={
     {
-      "flex": 1,
+      "bottom": 0,
+      "left": 0,
+      "position": "absolute",
+      "right": 0,
+      "top": 0,
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       [
         {
-          "flex": 1,
+          "backgroundColor": "#00000099",
+          "bottom": 0,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
         },
-        undefined,
+        {
+          "opacity": undefined,
+        },
       ]
     }
-  >
-    <View
-      collapsable={false}
-      pointerEvents="box-none"
-      style={
-        {
-          "zIndex": 1,
-        }
-      }
-    >
-      <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
-        pointerEvents="box-none"
-        style={null}
-      >
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "rgb(255, 255, 255)",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0.85,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
-              {
-                "alignItems": "center",
-                "flex": 1,
-                "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 16,
-                  "opacity": 1,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
-                style={
-                  {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
-                  }
-                }
-              >
-                WhatsNewModal
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
-    </View>
-    <RNSScreenContainer
-      onLayout={[Function]}
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        forwardedRef={[Function]}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        pointerEvents="box-none"
-        style={
+  />
+  <View
+    collapsable={false}
+    onGestureHandlerEvent={[Function]}
+    onGestureHandlerStateChange={[Function]}
+    style={
+      [
+        [
           {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
             "right": 0,
             "top": 0,
+          },
+          {
+            "transform": [
+              {
+                "translateY": 1334,
+              },
+            ],
+          },
+        ],
+        {
+          "alignItems": "center",
+          "justifyContent": "center",
+        },
+      ]
+    }
+  >
+    <TouchableOpacity
+      disabled={false}
+      onPress={[Function]}
+      style={
+        {
+          "bottom": 0,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
+      }
+    />
+    <View
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "borderRadius": 10,
+          "marginHorizontal": 24,
+        }
+      }
+      testID="whats-new-modal-container"
+    >
+      <View
+        style={
+          {
+            "paddingVertical": 32,
           }
         }
       >
         <View
-          collapsable={false}
           style={
             {
-              "opacity": 1,
-            }
-          }
-        />
-        <View
-          accessibilityElementsHidden={false}
-          closing={false}
-          gestureVelocityImpact={0.3}
-          importantForAccessibility="auto"
-          onClose={[Function]}
-          onGestureBegin={[Function]}
-          onGestureCanceled={[Function]}
-          onGestureEnd={[Function]}
-          onOpen={[Function]}
-          onTransition={[Function]}
-          pointerEvents="box-none"
-          style={
-            [
-              {
-                "overflow": undefined,
-              },
-              {
-                "bottom": 0,
-                "left": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              },
-            ]
-          }
-          transitionSpec={
-            {
-              "close": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-              "open": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
+              "alignItems": "center",
+              "flexDirection": "row",
+              "justifyContent": "center",
+              "marginBottom": 20,
+              "paddingHorizontal": 24,
             }
           }
         >
-          <View
-            collapsable={false}
-            needsOffscreenAlphaCompositing={false}
-            pointerEvents="box-none"
+          <Text
+            accessibilityRole="text"
             style={
               {
+                "color": "#141618",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 18,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            What's new
+          </Text>
+          <View
+            style={
+              {
+                "alignItems": "flex-end",
                 "flex": 1,
               }
             }
           >
-            <View
-              collapsable={false}
-              forwardedRef={[Function]}
-              onGestureHandlerEvent={[Function]}
-              onGestureHandlerStateChange={[Function]}
-              style={
+            <TouchableOpacity
+              hitSlop={
                 {
-                  "flex": 1,
-                  "transform": [
-                    {
-                      "translateX": 0,
-                    },
-                    {
-                      "translateX": 0,
-                    },
-                  ],
+                  "bottom": 10,
+                  "left": 10,
+                  "right": 10,
+                  "top": 10,
                 }
               }
+              onPress={[Function]}
+              testID="whats-new-modal-close-button"
             >
-              <View
-                collapsable={false}
-                pointerEvents="none"
+              <SvgMock
+                color="#141618"
+                height={20}
+                name="Close"
                 style={
                   {
-                    "backgroundColor": "rgb(242, 242, 242)",
-                    "bottom": 0,
-                    "left": 0,
-                    "position": "absolute",
-                    "shadowColor": "#000",
-                    "shadowOffset": {
-                      "height": 1,
-                      "width": -1,
-                    },
-                    "shadowOpacity": 0.3,
-                    "shadowRadius": 5,
-                    "top": 0,
-                    "width": 3,
+                    "height": 20,
+                    "width": 20,
                   }
                 }
+                width={20}
               />
-              <View
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "maxHeight": 1134,
+            }
+          }
+        >
+          <RCTScrollView
+            collapsable={false}
+            horizontal={true}
+            onGestureHandlerEvent={[Function]}
+            onGestureHandlerStateChange={[Function]}
+            onMomentumScrollEnd={[Function]}
+            onScrollEndDrag={[Function]}
+            pagingEnabled={true}
+            scrollEnabled={true}
+            showsHorizontalScrollIndicator={false}
+            style={
+              {
+                "flexGrow": 0,
+              }
+            }
+          >
+            <View>
+              <RCTScrollView
+                collapsable={false}
+                onGestureHandlerEvent={[Function]}
+                onGestureHandlerStateChange={[Function]}
                 style={
-                  [
-                    {
-                      "flex": 1,
-                      "overflow": "hidden",
-                    },
-                    [
-                      {
-                        "backgroundColor": "rgb(242, 242, 242)",
-                      },
-                      undefined,
-                    ],
-                  ]
+                  {
+                    "flex": 1,
+                    "paddingBottom": 16,
+                    "paddingHorizontal": 24,
+                    "width": 702,
+                  }
                 }
               >
-                <View
-                  style={
-                    {
-                      "flex": 1,
-                      "flexDirection": "column-reverse",
-                    }
-                  }
-                >
+                <View>
                   <View
-                    style={
+                    accessibilityState={
                       {
-                        "flex": 1,
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": undefined,
+                        "expanded": undefined,
+                        "selected": undefined,
                       }
                     }
+                    accessible={true}
+                    focusable={false}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
                   >
-                    <View
-                      style={
-                        {
-                          "bottom": 0,
-                          "left": 0,
-                          "position": "absolute",
-                          "right": 0,
-                          "top": 0,
-                        }
-                      }
-                    >
-                      <View
+                    <View>
+                      <Text
+                        accessibilityRole="text"
                         style={
-                          [
-                            {
-                              "backgroundColor": "#00000099",
-                              "bottom": 0,
-                              "left": 0,
-                              "position": "absolute",
-                              "right": 0,
-                              "top": 0,
-                            },
-                            {
-                              "opacity": undefined,
-                            },
-                          ]
-                        }
-                      />
-                      <View
-                        collapsable={false}
-                        onGestureHandlerEvent={[Function]}
-                        onGestureHandlerStateChange={[Function]}
-                        style={
-                          [
-                            [
-                              {
-                                "bottom": 0,
-                                "left": 0,
-                                "position": "absolute",
-                                "right": 0,
-                                "top": 0,
-                              },
-                              {
-                                "transform": [
-                                  {
-                                    "translateY": 1334,
-                                  },
-                                ],
-                              },
-                            ],
-                            {
-                              "alignItems": "center",
-                              "justifyContent": "center",
-                            },
-                          ]
+                          {
+                            "color": "#141618",
+                            "fontFamily": "Euclid Circular B",
+                            "fontSize": 16,
+                            "fontWeight": "500",
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                            "marginBottom": 12,
+                          }
                         }
                       >
-                        <TouchableOpacity
-                          disabled={false}
-                          onPress={[Function]}
+                        Stay safe with security alerts
+                      </Text>
+                    </View>
+                    <View>
+                      <View
+                        style={
+                          {
+                            "borderRadius": 10,
+                            "flexDirection": "row",
+                            "marginBottom": 24,
+                          }
+                        }
+                      >
+                        <Image
+                          resizeMode="stretch"
+                          source={
+                            {
+                              "default": {
+                                "uri": "MockImage",
+                              },
+                            }
+                          }
                           style={
                             {
-                              "bottom": 0,
-                              "left": 0,
-                              "position": "absolute",
-                              "right": 0,
-                              "top": 0,
+                              "borderRadius": 10,
+                              "flex": 1,
+                              "height": 317.0909090909091,
+                              "width": 654,
                             }
                           }
                         />
-                        <View
-                          style={
-                            {
-                              "backgroundColor": "#ffffff",
-                              "borderRadius": 10,
-                              "marginHorizontal": 24,
-                            }
+                      </View>
+                    </View>
+                    <View>
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#141618",
+                            "fontFamily": "Euclid Circular B",
+                            "fontSize": 16,
+                            "fontWeight": "400",
+                            "letterSpacing": 0,
+                            "lineHeight": 20,
+                            "marginBottom": 24,
                           }
-                          testID="whats-new-modal-container"
+                        }
+                      >
+                        Steer safe from known scams while still protecting your privacy with security alerts powered by Blockaid. This feature is now on by default for all MetaMask users.
+                      </Text>
+                    </View>
+                    <View>
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#141618",
+                            "fontFamily": "Euclid Circular B",
+                            "fontSize": 16,
+                            "fontWeight": "400",
+                            "letterSpacing": 0,
+                            "lineHeight": 20,
+                            "marginBottom": 24,
+                          }
+                        }
+                      >
+                        Always do your own due diligence before approving requests.
+                      </Text>
+                    </View>
+                    <View>
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#141618",
+                            "fontFamily": "Euclid Circular B",
+                            "fontSize": 16,
+                            "fontWeight": "400",
+                            "letterSpacing": 0,
+                            "lineHeight": 20,
+                            "marginBottom": 24,
+                          }
+                        }
+                      >
+                        Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism, Polygon, Sepolia and Base.
+                      </Text>
+                    </View>
+                    <View>
+                      <View
+                        style={
+                          {
+                            "marginTop": 8,
+                          }
+                        }
+                      >
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessible={true}
+                          activeOpacity={0.2}
+                          onPress={[Function]}
+                          style={
+                            [
+                              [
+                                {
+                                  "borderRadius": 100,
+                                  "justifyContent": "center",
+                                  "padding": 15,
+                                },
+                                {
+                                  "backgroundColor": "#0376c9",
+                                },
+                                undefined,
+                              ],
+                              null,
+                            ]
+                          }
                         >
-                          <View
+                          <Text
                             style={
-                              {
-                                "paddingVertical": 32,
-                              }
+                              [
+                                {
+                                  "color": "#007aff",
+                                  "fontSize": 17,
+                                  "fontWeight": "500",
+                                  "textAlign": "center",
+                                },
+                                null,
+                                [
+                                  {
+                                    "fontFamily": "EuclidCircularB-Bold",
+                                    "fontSize": 14,
+                                    "fontWeight": "600",
+                                    "textAlign": "center",
+                                  },
+                                  {
+                                    "color": "#ffffff",
+                                  },
+                                  undefined,
+                                ],
+                                null,
+                              ]
                             }
                           >
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "justifyContent": "center",
-                                  "marginBottom": 20,
-                                  "paddingHorizontal": 24,
-                                }
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#141618",
-                                    "fontFamily": "Euclid Circular B",
-                                    "fontSize": 18,
-                                    "fontWeight": "700",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                What's new
-                              </Text>
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "flex-end",
-                                    "flex": 1,
-                                  }
-                                }
-                              >
-                                <TouchableOpacity
-                                  hitSlop={
-                                    {
-                                      "bottom": 10,
-                                      "left": 10,
-                                      "right": 10,
-                                      "top": 10,
-                                    }
-                                  }
-                                  onPress={[Function]}
-                                  testID="whats-new-modal-close-button"
-                                >
-                                  <SvgMock
-                                    color="#141618"
-                                    height={20}
-                                    name="Close"
-                                    style={
-                                      {
-                                        "height": 20,
-                                        "width": 20,
-                                      }
-                                    }
-                                    width={20}
-                                  />
-                                </TouchableOpacity>
-                              </View>
-                            </View>
-                            <View
-                              style={
-                                {
-                                  "maxHeight": 1134,
-                                }
-                              }
-                            >
-                              <RCTScrollView
-                                collapsable={false}
-                                horizontal={true}
-                                onGestureHandlerEvent={[Function]}
-                                onGestureHandlerStateChange={[Function]}
-                                onMomentumScrollEnd={[Function]}
-                                onScrollEndDrag={[Function]}
-                                pagingEnabled={true}
-                                scrollEnabled={true}
-                                showsHorizontalScrollIndicator={false}
-                                style={
-                                  {
-                                    "flexGrow": 0,
-                                  }
-                                }
-                              >
-                                <View>
-                                  <RCTScrollView
-                                    collapsable={false}
-                                    onGestureHandlerEvent={[Function]}
-                                    onGestureHandlerStateChange={[Function]}
-                                    style={
-                                      {
-                                        "flex": 1,
-                                        "paddingBottom": 16,
-                                        "paddingHorizontal": 24,
-                                        "width": 702,
-                                      }
-                                    }
-                                  >
-                                    <View>
-                                      <View
-                                        accessibilityState={
-                                          {
-                                            "busy": undefined,
-                                            "checked": undefined,
-                                            "disabled": undefined,
-                                            "expanded": undefined,
-                                            "selected": undefined,
-                                          }
-                                        }
-                                        accessible={true}
-                                        focusable={false}
-                                        onClick={[Function]}
-                                        onResponderGrant={[Function]}
-                                        onResponderMove={[Function]}
-                                        onResponderRelease={[Function]}
-                                        onResponderTerminate={[Function]}
-                                        onResponderTerminationRequest={[Function]}
-                                        onStartShouldSetResponder={[Function]}
-                                      >
-                                        <View>
-                                          <Text
-                                            accessibilityRole="text"
-                                            style={
-                                              {
-                                                "color": "#141618",
-                                                "fontFamily": "Euclid Circular B",
-                                                "fontSize": 16,
-                                                "fontWeight": "500",
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
-                                                "marginBottom": 12,
-                                              }
-                                            }
-                                          >
-                                            Stay safe with security alerts
-                                          </Text>
-                                        </View>
-                                        <View>
-                                          <View
-                                            style={
-                                              {
-                                                "borderRadius": 10,
-                                                "flexDirection": "row",
-                                                "marginBottom": 24,
-                                              }
-                                            }
-                                          >
-                                            <Image
-                                              resizeMode="stretch"
-                                              source={
-                                                {
-                                                  "default": {
-                                                    "uri": "MockImage",
-                                                  },
-                                                }
-                                              }
-                                              style={
-                                                {
-                                                  "borderRadius": 10,
-                                                  "flex": 1,
-                                                  "height": 317.0909090909091,
-                                                  "width": 654,
-                                                }
-                                              }
-                                            />
-                                          </View>
-                                        </View>
-                                        <View>
-                                          <Text
-                                            accessibilityRole="text"
-                                            style={
-                                              {
-                                                "color": "#141618",
-                                                "fontFamily": "Euclid Circular B",
-                                                "fontSize": 16,
-                                                "fontWeight": "400",
-                                                "letterSpacing": 0,
-                                                "lineHeight": 20,
-                                                "marginBottom": 24,
-                                              }
-                                            }
-                                          >
-                                            Steer safe from known scams while still protecting your privacy with security alerts powered by Blockaid. This feature is now on by default for all MetaMask users.
-                                          </Text>
-                                        </View>
-                                        <View>
-                                          <Text
-                                            accessibilityRole="text"
-                                            style={
-                                              {
-                                                "color": "#141618",
-                                                "fontFamily": "Euclid Circular B",
-                                                "fontSize": 16,
-                                                "fontWeight": "400",
-                                                "letterSpacing": 0,
-                                                "lineHeight": 20,
-                                                "marginBottom": 24,
-                                              }
-                                            }
-                                          >
-                                            Always do your own due diligence before approving requests.
-                                          </Text>
-                                        </View>
-                                        <View>
-                                          <Text
-                                            accessibilityRole="text"
-                                            style={
-                                              {
-                                                "color": "#141618",
-                                                "fontFamily": "Euclid Circular B",
-                                                "fontSize": 16,
-                                                "fontWeight": "400",
-                                                "letterSpacing": 0,
-                                                "lineHeight": 20,
-                                                "marginBottom": 24,
-                                              }
-                                            }
-                                          >
-                                            Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism, Polygon, Sepolia and Base.
-                                          </Text>
-                                        </View>
-                                        <View>
-                                          <View
-                                            style={
-                                              {
-                                                "marginTop": 8,
-                                              }
-                                            }
-                                          >
-                                            <TouchableOpacity
-                                              accessibilityRole="button"
-                                              accessible={true}
-                                              activeOpacity={0.2}
-                                              onPress={[Function]}
-                                              style={
-                                                [
-                                                  [
-                                                    {
-                                                      "borderRadius": 100,
-                                                      "justifyContent": "center",
-                                                      "padding": 15,
-                                                    },
-                                                    {
-                                                      "backgroundColor": "#0376c9",
-                                                    },
-                                                    undefined,
-                                                  ],
-                                                  null,
-                                                ]
-                                              }
-                                            >
-                                              <Text
-                                                style={
-                                                  [
-                                                    {
-                                                      "color": "#007aff",
-                                                      "fontSize": 17,
-                                                      "fontWeight": "500",
-                                                      "textAlign": "center",
-                                                    },
-                                                    null,
-                                                    [
-                                                      {
-                                                        "fontFamily": "EuclidCircularB-Bold",
-                                                        "fontSize": 14,
-                                                        "fontWeight": "600",
-                                                        "textAlign": "center",
-                                                      },
-                                                      {
-                                                        "color": "#ffffff",
-                                                      },
-                                                      undefined,
-                                                    ],
-                                                    null,
-                                                  ]
-                                                }
-                                              >
-                                                Got it
-                                              </Text>
-                                            </TouchableOpacity>
-                                          </View>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </RCTScrollView>
-                                  <RCTScrollView
-                                    collapsable={false}
-                                    onGestureHandlerEvent={[Function]}
-                                    onGestureHandlerStateChange={[Function]}
-                                    style={
-                                      {
-                                        "flex": 1,
-                                        "paddingBottom": 16,
-                                        "paddingHorizontal": 24,
-                                        "width": 702,
-                                      }
-                                    }
-                                  >
-                                    <View>
-                                      <View
-                                        accessibilityState={
-                                          {
-                                            "busy": undefined,
-                                            "checked": undefined,
-                                            "disabled": undefined,
-                                            "expanded": undefined,
-                                            "selected": undefined,
-                                          }
-                                        }
-                                        accessible={true}
-                                        focusable={false}
-                                        onClick={[Function]}
-                                        onResponderGrant={[Function]}
-                                        onResponderMove={[Function]}
-                                        onResponderRelease={[Function]}
-                                        onResponderTerminate={[Function]}
-                                        onResponderTerminationRequest={[Function]}
-                                        onStartShouldSetResponder={[Function]}
-                                      >
-                                        <View>
-                                          <View
-                                            style={
-                                              {
-                                                "borderRadius": 10,
-                                                "flexDirection": "row",
-                                                "marginBottom": 24,
-                                              }
-                                            }
-                                          >
-                                            <Image
-                                              resizeMode="stretch"
-                                              source={
-                                                {
-                                                  "default": {
-                                                    "uri": "MockImage",
-                                                  },
-                                                }
-                                              }
-                                              style={
-                                                {
-                                                  "borderRadius": 10,
-                                                  "flex": 1,
-                                                  "height": 317.0909090909091,
-                                                  "width": 654,
-                                                }
-                                              }
-                                            />
-                                          </View>
-                                        </View>
-                                        <View>
-                                          <Text
-                                            accessibilityRole="text"
-                                            style={
-                                              {
-                                                "color": "#141618",
-                                                "fontFamily": "Euclid Circular B",
-                                                "fontSize": 16,
-                                                "fontWeight": "500",
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
-                                                "marginBottom": 12,
-                                              }
-                                            }
-                                          >
-                                            Estimated balance changes
-                                          </Text>
-                                        </View>
-                                        <View>
-                                          <Text
-                                            accessibilityRole="text"
-                                            style={
-                                              {
-                                                "color": "#141618",
-                                                "fontFamily": "Euclid Circular B",
-                                                "fontSize": 16,
-                                                "fontWeight": "400",
-                                                "letterSpacing": 0,
-                                                "lineHeight": 20,
-                                                "marginBottom": 24,
-                                              }
-                                            }
-                                          >
-                                            Now you can see the potential outcome of your transactions before you make them!
-                                          </Text>
-                                        </View>
-                                        <View>
-                                          <Text
-                                            accessibilityRole="text"
-                                            style={
-                                              {
-                                                "color": "#141618",
-                                                "fontFamily": "Euclid Circular B",
-                                                "fontSize": 16,
-                                                "fontWeight": "400",
-                                                "letterSpacing": 0,
-                                                "lineHeight": 20,
-                                                "marginBottom": 24,
-                                              }
-                                            }
-                                          >
-                                            This is just a simulation, so we can’t guarantee the final outcome. You can turn this off anytime in Settings &gt; Security & Privacy.
-                                          </Text>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </RCTScrollView>
-                                </View>
-                              </RCTScrollView>
-                              <View
-                                style={
-                                  {
-                                    "alignSelf": "center",
-                                    "flexDirection": "row",
-                                    "marginBottom": 8,
-                                    "marginTop": 16,
-                                  }
-                                }
-                              >
-                                <View
-                                  accessibilityState={
-                                    {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": undefined,
-                                      "expanded": undefined,
-                                      "selected": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  focusable={true}
-                                  hitSlop={
-                                    {
-                                      "bottom": 10,
-                                      "left": 10,
-                                      "right": 10,
-                                      "top": 10,
-                                    }
-                                  }
-                                  onClick={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
-                                  style={
-                                    [
-                                      {
-                                        "backgroundColor": "#141618",
-                                        "borderRadius": 4,
-                                        "height": 8,
-                                        "marginHorizontal": 8,
-                                        "opacity": 0.4,
-                                        "width": 8,
-                                      },
-                                      {
-                                        "opacity": 1,
-                                      },
-                                    ]
-                                  }
-                                />
-                                <View
-                                  accessibilityState={
-                                    {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": undefined,
-                                      "expanded": undefined,
-                                      "selected": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  focusable={true}
-                                  hitSlop={
-                                    {
-                                      "bottom": 10,
-                                      "left": 10,
-                                      "right": 10,
-                                      "top": 10,
-                                    }
-                                  }
-                                  onClick={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
-                                  style={
-                                    [
-                                      {
-                                        "backgroundColor": "#141618",
-                                        "borderRadius": 4,
-                                        "height": 8,
-                                        "marginHorizontal": 8,
-                                        "opacity": 0.4,
-                                        "width": 8,
-                                      },
-                                      {},
-                                    ]
-                                  }
-                                />
-                              </View>
-                            </View>
-                          </View>
-                        </View>
+                            Got it
+                          </Text>
+                        </TouchableOpacity>
                       </View>
                     </View>
                   </View>
                 </View>
-              </View>
+              </RCTScrollView>
+              <RCTScrollView
+                collapsable={false}
+                onGestureHandlerEvent={[Function]}
+                onGestureHandlerStateChange={[Function]}
+                style={
+                  {
+                    "flex": 1,
+                    "paddingBottom": 16,
+                    "paddingHorizontal": 24,
+                    "width": 702,
+                  }
+                }
+              >
+                <View>
+                  <View
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": undefined,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessible={true}
+                    focusable={false}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                  >
+                    <View>
+                      <View
+                        style={
+                          {
+                            "borderRadius": 10,
+                            "flexDirection": "row",
+                            "marginBottom": 24,
+                          }
+                        }
+                      >
+                        <Image
+                          resizeMode="stretch"
+                          source={
+                            {
+                              "default": {
+                                "uri": "MockImage",
+                              },
+                            }
+                          }
+                          style={
+                            {
+                              "borderRadius": 10,
+                              "flex": 1,
+                              "height": 317.0909090909091,
+                              "width": 654,
+                            }
+                          }
+                        />
+                      </View>
+                    </View>
+                    <View>
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#141618",
+                            "fontFamily": "Euclid Circular B",
+                            "fontSize": 16,
+                            "fontWeight": "500",
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                            "marginBottom": 12,
+                          }
+                        }
+                      >
+                        Estimated balance changes
+                      </Text>
+                    </View>
+                    <View>
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#141618",
+                            "fontFamily": "Euclid Circular B",
+                            "fontSize": 16,
+                            "fontWeight": "400",
+                            "letterSpacing": 0,
+                            "lineHeight": 20,
+                            "marginBottom": 24,
+                          }
+                        }
+                      >
+                        Now you can see the potential outcome of your transactions before you make them!
+                      </Text>
+                    </View>
+                    <View>
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#141618",
+                            "fontFamily": "Euclid Circular B",
+                            "fontSize": 16,
+                            "fontWeight": "400",
+                            "letterSpacing": 0,
+                            "lineHeight": 20,
+                            "marginBottom": 24,
+                          }
+                        }
+                      >
+                        This is just a simulation, so we can’t guarantee the final outcome. You can turn this off anytime in Settings &gt; Security & Privacy.
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </RCTScrollView>
             </View>
+          </RCTScrollView>
+          <View
+            style={
+              {
+                "alignSelf": "center",
+                "flexDirection": "row",
+                "marginBottom": 8,
+                "marginTop": 16,
+              }
+            }
+          >
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessible={true}
+              focusable={true}
+              hitSlop={
+                {
+                  "bottom": 10,
+                  "left": 10,
+                  "right": 10,
+                  "top": 10,
+                }
+              }
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                [
+                  {
+                    "backgroundColor": "#141618",
+                    "borderRadius": 4,
+                    "height": 8,
+                    "marginHorizontal": 8,
+                    "opacity": 0.4,
+                    "width": 8,
+                  },
+                  {
+                    "opacity": 1,
+                  },
+                ]
+              }
+            />
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessible={true}
+              focusable={true}
+              hitSlop={
+                {
+                  "bottom": 10,
+                  "left": 10,
+                  "right": 10,
+                  "top": 10,
+                }
+              }
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                [
+                  {
+                    "backgroundColor": "#141618",
+                    "borderRadius": 4,
+                    "height": 8,
+                    "marginHorizontal": 8,
+                    "opacity": 0.4,
+                    "width": 8,
+                  },
+                  {},
+                ]
+              }
+            />
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
-  </RNCSafeAreaProvider>
+      </View>
+    </View>
+  </View>
 </View>
 `;
