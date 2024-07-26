@@ -5,6 +5,7 @@ import { initialState as initialSecurityState } from '../../reducers/security';
 import { initialState as initialInpageProvider } from '../../core/redux/slices/inpageProvider';
 import { initialState as initialSmartTransactions } from '../../core/redux/slices/smartTransactions';
 import { initialState as transactionMetrics } from '../../core/redux/slices/transactionMetrics';
+import { initialState as originThrottling } from '../../core/redux/slices/originThrottling';
 import initialBackgroundState from './initial-background-state.json';
 
 // A cast is needed here because we use enums in some controllers, and TypeScript doesn't consider
@@ -45,6 +46,7 @@ const initialRootState: RootState = {
   accounts: undefined,
   inpageProvider: initialInpageProvider,
   transactionMetrics,
+  originThrottling,
 };
 
 export default initialRootState;

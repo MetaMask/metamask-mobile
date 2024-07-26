@@ -1,20 +1,17 @@
-import LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
 import {
-  connectLedgerHardware,
-  openEthereumAppOnLedger,
   closeRunningAppOnLedger,
+  connectLedgerHardware,
   forgetLedger,
-  ledgerSignTypedMessage,
-  unlockLedgerDefaultAccount,
   getDeviceId,
-  withLedgerKeyring,
+  getLedgerAccountsByOperation,
+  ledgerSignTypedMessage,
+  openEthereumAppOnLedger,
+  unlockLedgerWalletAccount,
 } from './Ledger';
 import Engine from '../../core/Engine';
-import {
-  KeyringTypes,
-  SignTypedDataVersion,
-} from '@metamask/keyring-controller';
+import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
+import OperationTypes from './types';
 
 jest.mock('../../core/Engine', () => ({
   context: {
@@ -26,27 +23,86 @@ jest.mock('../../core/Engine', () => ({
 }));
 const MockEngine = jest.mocked(Engine);
 
+interface mockKeyringType {
+  addAccounts: jest.Mock;
+  bridge: {
+    getAppNameAndVersion: jest.Mock;
+    updateTransportMethod: jest.Mock;
+    openEthApp: jest.Mock;
+    closeApps: jest.Mock;
+  };
+  deserialize: jest.Mock;
+  forgetDevice: jest.Mock;
+  getDeviceId: jest.Mock;
+  getFirstPage: jest.Mock;
+  getNextPage: jest.Mock;
+  getPreviousPage: jest.Mock;
+  setDeviceId: jest.Mock;
+  setHdPath: jest.Mock;
+  setAccountToUnlock: jest.Mock;
+}
+
 describe('Ledger core', () => {
-  let ledgerKeyring: LedgerKeyring;
+  let ledgerKeyring: mockKeyringType;
 
   beforeEach(() => {
     jest.resetAllMocks();
 
-    // @ts-expect-error This is a partial mock, not completely identical
-    // TODO: Replace this with a type-safe mock
+    const mockKeyringController = MockEngine.context.KeyringController;
+
     ledgerKeyring = {
       addAccounts: jest.fn(),
-      setTransport: jest.fn(),
-      getAppAndVersion: jest.fn().mockResolvedValue({ appName: 'appName' }),
-      getDefaultAccount: jest.fn().mockResolvedValue('defaultAccount'),
-      openEthApp: jest.fn(),
-      quitApp: jest.fn(),
-      forgetDevice: jest.fn(),
+      bridge: {
+        getAppNameAndVersion: jest
+          .fn()
+          .mockResolvedValue({ appName: 'appName' }),
+        updateTransportMethod: jest.fn(),
+        openEthApp: jest.fn(),
+        closeApps: jest.fn(),
+      },
       deserialize: jest.fn(),
-      deviceId: 'deviceId',
-      getName: jest.fn().mockResolvedValue('name'),
+      forgetDevice: jest.fn(),
+      getDeviceId: jest.fn().mockReturnValue('deviceId'),
+      getFirstPage: jest.fn().mockResolvedValue([
+        {
+          balance: '0',
+          address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
+          index: 0,
+        },
+        {
+          balance: '1',
+          address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB3',
+          index: 1,
+        },
+      ]),
+      getNextPage: jest.fn().mockResolvedValue([
+        {
+          balance: '4',
+          address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB4',
+          index: 4,
+        },
+        {
+          balance: '5',
+          address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB5',
+          index: 5,
+        },
+      ]),
+      getPreviousPage: jest.fn().mockResolvedValue([
+        {
+          balance: '2',
+          address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB6',
+          index: 2,
+        },
+        {
+          balance: '3',
+          address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB7',
+          index: 3,
+        },
+      ]),
+      setDeviceId: jest.fn(),
+      setHdPath: jest.fn(),
+      setAccountToUnlock: jest.fn(),
     };
-    const mockKeyringController = MockEngine.context.KeyringController;
 
     mockKeyringController.withKeyring.mockImplementation(
       // @ts-expect-error The Ledger keyring is not compatible with our keyring type yet
@@ -57,99 +113,73 @@ describe('Ledger core', () => {
 
   describe('connectLedgerHardware', () => {
     const mockTransport = 'foo' as unknown as BleTransport;
-    it('should call keyring.setTransport', async () => {
+    it('calls keyring.setTransport', async () => {
       await connectLedgerHardware(mockTransport, 'bar');
-      expect(ledgerKeyring.setTransport).toHaveBeenCalled();
+      expect(ledgerKeyring.bridge.updateTransportMethod).toHaveBeenCalled();
     });
 
-    it('should call keyring.getAppAndVersion', async () => {
+    it('calls keyring.getAppAndVersion', async () => {
       await connectLedgerHardware(mockTransport, 'bar');
-      expect(ledgerKeyring.getAppAndVersion).toHaveBeenCalled();
+      expect(ledgerKeyring.bridge.getAppNameAndVersion).toHaveBeenCalled();
     });
 
-    it('should return app name', async () => {
+    it('returns app name correctly', async () => {
       const value = await connectLedgerHardware(mockTransport, 'bar');
       expect(value).toBe('appName');
     });
-  });
 
-  describe('withLedgerKeyring', () => {
-    it('runs the operation with a Ledger keyring', async () => {
-      const mockOperation = jest.fn();
-      const mockLedgerKeyring = {};
-      MockEngine.context.KeyringController.withKeyring.mockImplementation(
-        async (
-          selector: Record<string, unknown>,
-          operation: Parameters<
-            typeof MockEngine.context.KeyringController.withKeyring
-          >[1],
-          options?: Record<string, unknown>,
-        ) => {
-          expect(selector).toStrictEqual({ type: KeyringTypes.ledger });
-          expect(options).toStrictEqual({ createIfMissing: true });
-          // @ts-expect-error This mock keyring is not type compatible
-          await operation(mockLedgerKeyring);
-        },
-      );
-
-      await withLedgerKeyring(mockOperation);
-
-      expect(mockOperation).toHaveBeenCalledWith(mockLedgerKeyring);
-    });
-  });
-
-  describe('unlockLedgerDefaultAccount', () => {
-    it('should not call KeyringController.addNewAccountForKeyring if isAccountImportReq is false', async () => {
-      const account = await unlockLedgerDefaultAccount(false);
-
-      expect(ledgerKeyring.getDefaultAccount).toHaveBeenCalled();
-      expect(account).toEqual({
-        address: 'defaultAccount',
-        balance: '0x0',
-      });
-    });
-
-    it('should call KeyringController.addNewAccountForKeyring if isAccountImportReq is true', async () => {
-      const account = await unlockLedgerDefaultAccount(true);
-
-      expect(ledgerKeyring.getDefaultAccount).toHaveBeenCalled();
-      expect(account).toEqual({
-        address: 'defaultAccount',
-        balance: '0x0',
-      });
+    it('calls keyring.setHdPath and keyring.setDeviceId if deviceId is different', async () => {
+      await connectLedgerHardware(mockTransport, 'bar');
+      expect(ledgerKeyring.setHdPath).toHaveBeenCalled();
+      expect(ledgerKeyring.setDeviceId).toHaveBeenCalled();
     });
   });
 
   describe('openEthereumAppOnLedger', () => {
-    it('should call keyring.openEthApp', async () => {
+    it('calls keyring.openEthApp', async () => {
       await openEthereumAppOnLedger();
-      expect(ledgerKeyring.openEthApp).toHaveBeenCalled();
+      expect(ledgerKeyring.bridge.openEthApp).toHaveBeenCalled();
     });
   });
 
   describe('closeRunningAppOnLedger', () => {
-    it('should call keyring.quitApp', async () => {
+    it('calls keyring.quitApp', async () => {
       await closeRunningAppOnLedger();
-      expect(ledgerKeyring.quitApp).toHaveBeenCalled();
+      expect(ledgerKeyring.bridge.closeApps).toHaveBeenCalled();
     });
   });
 
   describe('forgetLedger', () => {
-    it('should call keyring.forgetDevice', async () => {
+    it('calls keyring.forgetDevice', async () => {
       await forgetLedger();
       expect(ledgerKeyring.forgetDevice).toHaveBeenCalled();
     });
   });
 
   describe('getDeviceId', () => {
-    it('should return deviceId', async () => {
+    it('returns deviceId', async () => {
       const value = await getDeviceId();
       expect(value).toBe('deviceId');
     });
   });
 
+  describe('getLedgerAccountsByOperation', () => {
+    it('calls ledgerKeyring.getNextPage on ledgerKeyring', async () => {
+      await getLedgerAccountsByOperation(OperationTypes.GET_NEXT_PAGE);
+      expect(ledgerKeyring.getNextPage).toHaveBeenCalled();
+    });
+    it('calls getPreviousPage on ledgerKeyring', async () => {
+      await getLedgerAccountsByOperation(OperationTypes.GET_PREVIOUS_PAGE);
+      expect(ledgerKeyring.getPreviousPage).toHaveBeenCalled();
+    });
+    it('calls getFirstPage on ledgerKeyring', async () => {
+      await getLedgerAccountsByOperation(OperationTypes.GET_FIRST_PAGE);
+      expect(ledgerKeyring.getFirstPage).toHaveBeenCalled();
+    });
+  });
+
   describe('ledgerSignTypedMessage', () => {
-    it('should call signTypedMessage from keyring controller and return correct signature', async () => {
+    it('calls signTypedMessage from keyring controller and return correct signature', async () => {
       const expectedArg = {
         from: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
         data: 'data',
@@ -162,6 +192,14 @@ describe('Ledger core', () => {
         MockEngine.context.KeyringController.signTypedMessage,
       ).toHaveBeenCalledWith(expectedArg, SignTypedDataVersion.V4);
       expect(value).toBe('signature');
+    });
+  });
+
+  describe(`unlockLedgerWalletAccount`, () => {
+    it(`calls keyring.setAccountToUnlock and addAccounts`, async () => {
+      await unlockLedgerWalletAccount(1);
+      expect(ledgerKeyring.setAccountToUnlock).toHaveBeenCalled();
+      expect(ledgerKeyring.addAccounts).toHaveBeenCalledWith(1);
     });
   });
 });
