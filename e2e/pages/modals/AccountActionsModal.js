@@ -10,7 +10,7 @@ class AccountActionsModal {
   }
 
   async tapEditAccount() {
-    await Gestures.waitAndTap(this.editAccount);
+    await Gestures.waitAndTap(await this.editAccount);
   }
 }
 

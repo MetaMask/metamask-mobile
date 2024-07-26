@@ -13,6 +13,10 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 import { SmokeAccounts } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
 import AccountActionsModal from '../../pages/modals/AccountActionsModal';
+import EditAccountNameView from '../../pages/EditAccountNameView';
+import EditAccountNameSelectorIDs from '../../selectors/EditAccountName.selectors';
+import Gestures from '../../utils/Gestures';
+
 // import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
@@ -37,10 +41,12 @@ describe(SmokeAccounts('Change Account Name'), () => {
   });
   it('renames an account', async () => {
     await WalletView.tapMainWalletAccountActions();
-    await TestHelpers.tapWebviewElement(AccountActionsModal.tapEditAccount());
-    await TestHelpers.replaceTextInField(
-      'account-name-input',
+    await AccountActionsModal.tapEditAccount();
+    await Gestures.clearField(EditAccountNameView.accountNameInput());
+    await TestHelpers.typeText(
+      EditAccountNameSelectorIDs.ACCOUNT_NAME_INPUT,
       NEW_ACCOUNT_NAME,
     );
+    await EditAccountNameView.tapSave();
   });
 });
