@@ -67,7 +67,7 @@ pipelines:
   #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
   pr_regression_e2e_pipeline:
     stages:
-      # - build_regression_e2e_ios_android_stage: {}
+      - build_regression_e2e_ios_android_stage: {}
       - run_regression_e2e_ios_android_stage: {}
       - notify: {}
 
@@ -128,11 +128,11 @@ stages:
       - run_tag_smoke_core_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
-      - ios_build_regression_tests: {}
+      # - ios_build_regression_tests: {}
       - android_build_regression_tests: {}
   run_regression_e2e_ios_android_stage:
     workflows:
-      - ios_run_regression_tests: {}
+      # - ios_run_regression_tests: {}
       - android_run_regression_tests: {}
   run_release_e2e_ios_android_stage:
     workflows:
