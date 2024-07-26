@@ -1,19 +1,23 @@
-import React from 'react';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import { renderScreen } from '../../../util/test/renderWithProvider';
 import WhatsNewModal from './';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
-// Mock the useNavigation hook
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: jest.fn(),
-    goBack: jest.fn(),
-  }),
-}));
+const mockInitialState = {
+  settings: {},
+  engine: {
+    backgroundState,
+  },
+};
 
 describe('WhatsNewModal', () => {
-  it('should render correctly', () => {
-    const { toJSON } = renderWithProvider(<WhatsNewModal />);
+  it('render matches snapshot', () => {
+    const { toJSON } = renderScreen(
+      WhatsNewModal,
+      {
+        name: 'WhatsNewModal',
+      },
+      { state: mockInitialState },
+    );
     expect(toJSON()).toMatchSnapshot();
   });
 });
