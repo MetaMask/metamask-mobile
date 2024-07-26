@@ -1510,16 +1510,26 @@ class Engine {
            * ! These `stateChange` events must be included in the datamodel's events allowlist.
            * TODO: Upstream fixes in the source packages are required for the following controllers.
            */
-          'AuthenticationController:stateChange', // BaseControllerV2, messenger defined without `stateChange` event type
-          'LoggingController:stateChange', // BaseControllerV2, messenger defined without `stateChange` event type
-          'NftController:stateChange', // BaseControllerV1, has `messagingSystem` but as private field, messenger defined without `stateChange` event type
-          'NotificationServicesController:stateChange', // BaseControllerV2, messenger defined without `stateChange` event type
-          'PhishingController:stateChange', // BaseControllerV2, messenger defined without `stateChange` event type
-          'PPOMController:stateChange', // BaseControllerV2, messenger defined without `stateChange` event type
-          'SnapsRegistry:stateChange', // BaseControllerV2, messenger defined without `stateChange` event type
-          'TokenBalancesController:stateChange', // BaseControllerV2, `TokenBalancesControllerState` import error
-          'TransactionController:stateChange', // BaseControllerV1, has `messagingSystem` but as private field, messenger defined without `stateChange` event type
-          'UserStorageController:stateChange', // BaseControllerV2, messenger defined without `stateChange` event type
+          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
+          'AuthenticationController:stateChange',
+          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
+          'LoggingController:stateChange',
+          // @ts-expect-error BaseControllerV1, has `messagingSystem` but as private field, messenger defined without `stateChange` event type
+          'NftController:stateChange',
+          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
+          'NotificationServicesController:stateChange',
+          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
+          'PhishingController:stateChange',
+          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
+          'PPOMController:stateChange',
+          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
+          'SnapsRegistry:stateChange',
+          // @ts-expect-error BaseControllerV2, `TokenBalancesControllerState` import error
+          'TokenBalancesController:stateChange',
+          // @ts-expect-error BaseControllerV1, has `messagingSystem` but as private field, messenger defined without `stateChange` event type
+          'TransactionController:stateChange',
+          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
+          'UserStorageController:stateChange',
 
           /**
            * V1 controllers that should be excluded from the datamodel's events allowlist for now.
