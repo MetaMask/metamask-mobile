@@ -1486,37 +1486,55 @@ class Engine {
         name: 'ComposableController',
         allowedActions: [],
         allowedEvents: [
+          /**
+           * V1/V2 controllers with correctly defined messengers and `stateChange` events.
+           */
           'AccountsController:stateChange',
-          'AccountTrackerController:stateChange',
-          'AddressBookController:stateChange',
           'ApprovalController:stateChange',
-          'AssetsContractController:stateChange',
-          'AuthenticationController:stateChange',
           'CurrencyRateController:stateChange',
           'GasFeeController:stateChange',
           'KeyringController:stateChange',
-          'LoggingController:stateChange',
           'NetworkController:stateChange',
-          'NftController:stateChange',
-          'NftDetectionController:stateChange',
-          'NotificationServicesController:stateChange',
           'PermissionController:stateChange',
-          'PhishingController:stateChange',
-          'PPOMController:stateChange',
           'PreferencesController:stateChange',
           'SignatureController:stateChange',
-          'SmartTransactionsController:stateChange',
           'SnapController:stateChange',
-          'SnapsRegistry:stateChange',
           'SubjectMetadataController:stateChange',
-          'SwapsController:stateChange',
-          'TokenBalancesController:stateChange',
-          'TokenDetectionController:stateChange',
           'TokenListController:stateChange',
-          'TokenRatesController:stateChange',
           'TokensController:stateChange',
-          'TransactionController:stateChange',
-          'UserStorageController:stateChange',
+
+          /**
+           * V1/V2 controllers incorrectly defined with a `messagingSystem` that is missing its `stateChange` event.
+           * ! These `stateChange` events must be included in the datamodel's events allowlist.
+           * TODO: Upstream fixes in the source packages are required for the following controllers.
+           */
+          'AuthenticationController:stateChange', // BaseControllerV2, messenger defined without `stateChange` event type
+          'LoggingController:stateChange', // BaseControllerV2, messenger defined without `stateChange` event type
+          'NftController:stateChange', // BaseControllerV1, has `messagingSystem` but as private field, messenger defined without `stateChange` event type
+          'NotificationServicesController:stateChange', // BaseControllerV2, messenger defined without `stateChange` event type
+          'PhishingController:stateChange', // BaseControllerV2, messenger defined without `stateChange` event type
+          'PPOMController:stateChange', // BaseControllerV2, messenger defined without `stateChange` event type
+          'SnapsRegistry:stateChange', // BaseControllerV2, messenger defined without `stateChange` event type
+          'TokenBalancesController:stateChange', // BaseControllerV2, `TokenBalancesControllerState` import error
+          'TransactionController:stateChange', // BaseControllerV1, has `messagingSystem` but as private field, messenger defined without `stateChange` event type
+          'UserStorageController:stateChange', // BaseControllerV2, messenger defined without `stateChange` event type
+
+          /**
+           * V1 controllers that should be excluded from the datamodel's events allowlist for now.
+           * TODO: Each of these events should be added to the allowlist once its controller is migrated to V2.
+           */
+          // 'AccountTrackerController:stateChange', // StaticIntervalPollingControllerV1, no `messagingSystem`
+          // 'AddressBookController:stateChange', // BaseControllerV1, no `messagingSystem`
+          // 'SmartTransactionsController:stateChange', // StaticIntervalPollingControllerV1, no `messagingSystem`
+          // 'SwapsController:stateChange', // BaseControllerV1, no `messagingSystem`
+          // 'TokenRatesController:stateChange', // StaticIntervalPollingControllerV1, no `messagingSystem`
+
+          /**
+           * Non-controllers that should always be excluded from the datamodel's events allowlist.
+           */
+          // 'AssetsContractController:stateChange', // BaseControllerV1, no `messagingSystem`
+          // 'NftDetectionController:stateChange', // StaticIntervalPollingControllerV1, no `messagingSystem`
+          // 'TokenDetectionController:stateChange', // StaticIntervalPollingController, empty state
         ],
       }),
     });
