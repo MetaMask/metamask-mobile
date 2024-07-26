@@ -167,9 +167,7 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
     },
   },
   "notification": {
-    "notification": {
-      "notificationsSettings": {},
-    },
+    "notification": {},
     "notifications": [],
   },
   "onboarding": {
