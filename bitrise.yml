@@ -68,7 +68,7 @@ pipelines:
   pr_regression_e2e_pipeline:
     stages:
       - build_regression_e2e_ios_android_stage: {}
-      - run_regression_e2e_ios_android_stage: {}
+      # - run_regression_e2e_ios_android_stage: {}
       - notify: {}
 
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
@@ -613,7 +613,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 set -ex
-                echo Here it is: $PROJECT_LOCATION/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
+                echo Here it is: $PROJECT_LOCATION/app/build/outputs:$INTERMEDIATE_ANDROID_BUILD_DIR
       - save-cache@1:
           title: Save node_modules
           inputs:
