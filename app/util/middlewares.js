@@ -43,7 +43,7 @@ export function createOriginMiddleware(opts) {
  * @param {String} errorMessage
  * @returns {boolean}
  */
-function containsUserRejectedError(errorMessage, errorCode) {
+export function containsUserRejectedError(errorMessage, errorCode) {
   try {
     if (!errorMessage || !(typeof errorMessage === 'string')) return false;
 

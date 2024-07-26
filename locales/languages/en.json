@@ -375,6 +375,10 @@
     "accept": "I agree",
     "cancel": "No thanks"
   },
+  "qr_tab_switcher": {
+    "scanner_tab": "Scan QR code",
+    "receive_tab": "Your QR code"
+  },
   "wallet": {
     "title": "Wallet",
     "tokens": "Tokens",
@@ -1256,7 +1260,8 @@
     "unrecognized_address_qr_code_title": "Unrecognized QR Code",
     "unrecognized_address_qr_code_desc": "Sorry, this QR code is not associated with an account address or a contract address.",
     "url_redirection_alert_title": "You are about to visit  an external link",
-    "url_redirection_alert_desc": "Links can be used to try to defraud or phish people, so make sure to only visit websites that you trust."
+    "url_redirection_alert_desc": "Links can be used to try to defraud or phish people, so make sure to only visit websites that you trust.",
+    "label": "Scan a QR code"
   },
   "action_view": {
     "cancel": "Cancel",
@@ -2139,7 +2144,8 @@
     "coming_soon": "Coming soon...",
     "request_payment": "Request Payment",
     "copy": "Copy",
-    "scan_address": "Scan address to receive payment"
+    "scan_address": "Scan address to receive payment",
+    "copy_address": "Copy address"
   },
   "experimental_settings": {
     "wallet_connect_dapps": "WalletConnect Sessions",
@@ -3186,6 +3192,15 @@
     "title": "Estimated changes",
     "tooltip_description": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
     "total_fiat": "Total = {{currency}}"
+  },
+  "spam_filter": {
+    "block_origin_requests_for_1_minute": "Temporarily block this site",
+    "cancel": "Cancel",
+    "description": "If you're being spammed with multiple requests, you can temporarily block the site.",
+    "got_it": "Got it",
+    "site_blocked_description": "The site will be blocked for 1 minute.",
+    "site_blocked_title": "You've temporarily blocked this site",
+    "title": "We've noticed multiple requests"
   },
   "common": {
     "please_wait": "Please wait"
