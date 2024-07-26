@@ -1036,7 +1036,6 @@ class Engine {
           store.getState().settings.basicFunctionalityEnabled === false,
       }),
     });
-
     const authenticationController = new AuthenticationController.Controller({
       state: initialState.AuthenticationController,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -1056,7 +1055,6 @@ class Engine {
           (await Promise.resolve(uuidv4())),
       },
     });
-
     const userStorageController = new UserStorageController.Controller({
       getMetaMetricsState: () => MetaMetrics.getInstance().isEnabled(),
       state: initialState.UserStorageController,
@@ -1738,12 +1736,17 @@ class Engine {
       TokenBalancesController,
       TokenRatesController,
       PermissionController,
+      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+      SnapController,
+      ///: END:ONLY_INCLUDE_IF
       LoggingController,
     } = this.context;
 
     // Remove all permissions.
     PermissionController?.clearState?.();
-
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    SnapController.clearState();
+    ///: END:ONLY_INCLUDE_IF
     //Clear assets info
     TokensController.update({
       allTokens: {},
