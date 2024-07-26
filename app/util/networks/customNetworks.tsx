@@ -128,4 +128,16 @@ export const UnpopularNetworkList = [
       imageSource: require('../../images/base.png'),
     },
   },
+  {
+    chainId: toHex('14'),
+    nickname: 'Flare Mainnet',
+    rpcUrl: 'https://flare-api.flare.network/ext/bc/C/rpc',
+    ticker: 'FLR',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://flare-explorer.flare.network/',
+      imageUrl: 'FLR',
+      imageSource: require('../../images/flare-mainnet.png'),
+    },
+  },
 ];
