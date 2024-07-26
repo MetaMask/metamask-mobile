@@ -785,10 +785,7 @@ class FixtureBuilder {
       keyrings: [
         {
           type: 'HD Key Tree',
-          accounts: [
-            '0x378f19ddbF56ecd512C364FbA1F271A3F571C12f',
-            '0x64BaFB5F26F088966d13C6Cb1013F81fBb3d416F',
-          ],
+          accounts: ['0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3'],
         },
         {
           type: 'Simple Key Pair',
@@ -796,7 +793,7 @@ class FixtureBuilder {
         },
       ],
       vault:
-        '{"cipher":"vyeTKbchR1hfxITIK7f7eYy3SP/UqB82EFlsa7Pq/tJqDHXX6Xcaour8iU9PZx7WznSlYbZ61ViJ/DXek0i02LBmOX5esAMx/hwCHbJHr2aCf7Kk9Ps2/7kCjoglVgJszTri71jgDVLOVx+FB9xxT11qj8VIUX4JDIiOzAx5b7XH085YeftBvqbN0VCstOYipHo43ozjqR5CJaF3D8zg53bD41gGUkcv/LUiAehNyXLiFtG2xYFtcgcHQNNBJcd4c2iaZNJWsyjpZJpFXbAkXnJYs+ZyKBOSULNnDVjHu9dvixhUF6hUqKNDHS4qOxg9WqfY5KzKk4sQAXuLcdmNZxWbpYbgHhpCtHuTzprdC4vzbne62bYhDCKm4NPBB+tEs9Naho7811KtJ4UjukHMCWCNudgA3cWz/pRM96CugmTEnAH0Xp4WcbReINUZWNZs7Updv80gLgLLYMvpZLmVYMqpwGZZoOrU1sKB+w+WHs4IUg2gzaN+312H3pEfQdwpI7NQ3SJmJNUJefMrgkKrlnmHQPbSfLyXPPzXakPezrTLbBAvKDC4Lrm2IPqv9Uf056pduCS0aGDxV4dp2/+1A/uuaeNWrlBmyINnqv4vQGkAuw9CQCErd3+TSAg2gXsxp9ArLRuiTzayyOI7UC3cTEyjAzt1roSlvhZiCjQC0LUAVmM4k/FjIs/krDFJ04QdxmCvUfkcX4+5tc/Jy/gn3M/SJOBXsxVXC1Fu6ZHbost/wuTaXpnI9oDY+Re6yW/BU5leHIh0ykwoMxyuPCOi4t3StlBDtCE3CNFcjhrc4T7HMP7pKQUf/wDubgoXfcARmyhIsrrT+IK7jBln0lQOKy//86ZaO6wMjwdi+XPXoi/3oIxDRbqm6H2ZeAz80/JBIq+u0JO52eXu+bKTh741im1xI+hqwGrxMmbXlTx8tf/SSlMNTZNxVm5bXhTOU0025NdRrIf67GUC8MQbPCLUpmbB6aSIHYaJYLJWtIU7Zpqxoq11OLxSEH2xauCC0A+D","iv":"a7254e0ebbd2c568411bb58b29989bfc","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"ARGmG0oNlBcK1V8wFexJLw=="}',
+        '{"cipher":"vxFqPMlClX2xjUidoCTiwazr43W59dKIBp6ihT2lX66q8qPTeBRwv7xgBaGDIwDfk4DpJ3r5FBety1kFpS9ni3HtcoNQsDN60Pa80L94gta0Fp4b1jVeP8EJ7Ho71mJ360aDFyIgxPBSCcHWs+l27L3WqF2VpEuaQonK1UTF7c3WQ4pyio4jMAH9x2WQtB11uzyOYiXWmiD3FMmWizqYZY4tHuRlzJZTWrgE7njJLaGMlMmw86+ZVkMf55jryaDtrBVAoqVzPsK0bvo1cSsonxpTa6B15A5N2ANyEjDAP1YVl17roouuVGVWZk0FgDpP82i0YqkSI9tMtOTwthi7/+muDPl7Oc7ppj9LU91JYH6uHGomU/pYj9ufrjWBfnEH/+ZDvPoXl00H1SmX8FWs9NvOg7DZDB6ULs4vAi2/5KGs7b+Td2PLmDf75NKqt03YS2XeRGbajZQ/jjmRt4AhnWgnwRzsSavzyjySWTWiAgn9Vp/kWpd70IgXWdCOakVf2TtKQ6cFQcAf4JzP+vqC0EzgkfbOPRetrovD8FHEFXQ+crNUJ7s41qRw2sketk7FtYUDCz/Junpy5YnYgkfcOTRBHAoOy6BfDFSncuY+08E6eiRHzXsXtbmVXenor15pfbEp/wtfV9/vZVN7ngMpkho3eGQjiTJbwIeA9apIZ+BtC5b7TXWLtGuxSZPhomVkKvNx/GNntjD7ieLHvzCWYmDt6BA9hdfOt1T3UKTN4yLWG0v+IsnngRnhB6G3BGjJHUvdR6Zp5SzZraRse8B3z5ixgVl2hBxOS8+Uvr6LlfImaUcZLMMzkRdKeowS/htAACLowVJe3pU544IJ2CGTsnjwk9y3b5bUJKO3jXukWjDYtrLNKfdNuQjg+kqvIHaCQW40t+vfXGhC5IDBWC5kuev4DJAIFEcvJfJgRrm8ua6LrzEfH0GuhjLwYb+pnQ/eg8dmcXwzzggJF7xK56kxgnA4qLtOqKV4NgjVR0QsCqOBKb3l5LQMlSktdfgp9hlW","iv":"b09c32a79ed33844285c0f1b1b4d1feb","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"GYNFQCSCigu8wNp8cS8C3w=="}',
     });
     return this;
   }

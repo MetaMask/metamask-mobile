@@ -39,10 +39,6 @@ export default class AccountListView {
     await TestHelpers.tapAndLongPressAtIndex(CellModalSelectorsIDs.SELECT, 1);
   }
 
-  static async longPressImportedAccountThree() {
-    await TestHelpers.tapAndLongPressAtIndex(CellModalSelectorsIDs.SELECT, 2);
-  }
-
   static async swipeToDimssAccountsModal() {
     if (device.getPlatform() === 'android') {
       await TestHelpers.swipe(ACCOUNT_LIST_ID, 'down', 'fast', 0.6);
