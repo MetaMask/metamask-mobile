@@ -41,10 +41,14 @@ import CollectibleMedia from '../../../components/UI/CollectibleMedia';
 import ContentDisplay from '../../../components/UI/AssetOverview/AboutAsset/ContentDisplay';
 import BigNumber from 'bignumber.js';
 import { addUrlProtocolPrefix } from '../../../util/url';
-import formatTimestampToYYYYMMDD from './nftDetails.utils';
+import {
+  formatTimestampToYYYYMMDD,
+  MAX_TOKEN_ID_LENGTH,
+} from './nftDetails.utils';
 import { getDecimalChainId } from '../../../util/networks';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { renderShortText } from '../../../util/general';
 
 const NftDetails = () => {
   const navigation = useNavigation();
@@ -265,6 +269,18 @@ const NftDetails = () => {
     });
   }, [collectible, navigation]);
 
+  const goToTokenIdSheet = (tokenId: string) => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SHOW_TOKEN_ID,
+      params: {
+        tokenId,
+      },
+    });
+  };
+
+  const shouldShowTokenIdBottomSheet = (tokenId: string) =>
+    tokenId.length > MAX_TOKEN_ID_LENGTH;
+
   const hasPriceSection =
     getCurrentHighestBidValue() || collectible?.lastSale?.timestamp;
   const hasCollectionSection =
@@ -427,6 +443,7 @@ const NftDetails = () => {
               icon={
                 <TouchableOpacity
                   onPress={() => copyAddressToClipboard(collectible.address)}
+                  style={styles.iconPadding}
                 >
                   <Icon
                     name={IconName.Copy}
@@ -450,9 +467,27 @@ const NftDetails = () => {
 
           <NftDetailsInformationRow
             title={strings('nft_details.token_id')}
-            value={collectible.tokenId}
+            value={
+              shouldShowTokenIdBottomSheet(collectible.tokenId)
+                ? renderShortText(collectible.tokenId, 5)
+                : collectible.tokenId
+            }
             titleStyle={styles.informationRowTitleStyle}
             valueStyle={styles.informationRowValueStyle}
+            icon={
+              shouldShowTokenIdBottomSheet(collectible.tokenId) ? (
+                <TouchableOpacity
+                  onPress={() => goToTokenIdSheet(collectible.tokenId)}
+                  style={styles.iconPadding}
+                >
+                  <Icon
+                    name={IconName.ArrowDown}
+                    size={IconSize.Xs}
+                    color={colors.text.default}
+                  />
+                </TouchableOpacity>
+              ) : null
+            }
           />
           <NftDetailsInformationRow
             title={strings('nft_details.token_symbol')}
@@ -516,6 +551,7 @@ const NftDetails = () => {
                 onPress={() =>
                   copyAddressToClipboard(collectible?.collection?.creator)
                 }
+                style={styles.iconPadding}
               >
                 <Icon
                   name={IconName.Copy}

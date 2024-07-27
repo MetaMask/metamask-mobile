@@ -145,6 +145,9 @@ const styleSheet = (params: { theme: Theme }) => {
       right: 0,
       padding: 16,
     },
+    iconPadding: {
+      paddingLeft: 8,
+    },
   });
 };
 export default styleSheet;
