@@ -677,6 +677,10 @@ export function renderFiat(value, currencyCode, decimalsToShow = 5) {
   const base = Math.pow(10, decimalsToShow);
   let fiatFixed = parseFloat(Math.round(value * base) / base);
   fiatFixed = isNaN(fiatFixed) ? 0.0 : fiatFixed;
+
+  // Ensures two decimal places for fiat rendering on FE
+  fiatFixed = fiatFixed.toFixed(2);
+
   if (currencySymbols[currencyCode]) {
     return `${currencySymbols[currencyCode]}${fiatFixed}`;
   }
