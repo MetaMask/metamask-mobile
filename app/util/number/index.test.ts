@@ -9,6 +9,7 @@ import {
   calculateEthFeeForMultiLayer,
   dotAndCommaDecimalFormatter,
   fastSplit,
+  fiatCurrencyFormatted,
   fiatNumberToTokenMinimalUnit,
   fiatNumberToWei,
   formatValueToMatchTokenDecimals,
@@ -600,10 +601,67 @@ describe('Number utils :: balanceToFiatNumber', () => {
   });
 });
 
+describe('Number utils :: fiatCurrencyFormatted', () => {
+  it('formats currency with symbol for known currency code', () => {
+    expect(fiatCurrencyFormatted('usd', '123.45')).toEqual('$123.45');
+  });
+
+  it('formats currency with code in uppercase if symbol is not known', () => {
+    expect(fiatCurrencyFormatted('abc', '123.45')).toEqual('123.45 ABC');
+  });
+
+  it('handles lowercase currency codes correctly', () => {
+    expect(fiatCurrencyFormatted('eur', '67.89')).toEqual('€67.89');
+  });
+});
+
 describe('Number utils :: renderFiat', () => {
-  it('renderFiat', () => {
-    expect(renderFiat(0.1, 'usd')).toEqual('$0.1');
+  it('formats small numbers with two decimal places by default', () => {
+    expect(renderFiat(0.1, 'usd')).toEqual('$0.10');
+  });
+
+  it('removes trailing zeros after the decimal point', () => {
     expect(renderFiat(0.0010000001, 'usd')).toEqual('$0.001');
+  });
+
+  it('shows at least two decimal places', () => {
+    expect(renderFiat(659.6, 'usd')).toEqual('$659.60');
+  });
+
+  it('removes trailing zeros beyond two decimal places', () => {
+    expect(renderFiat(0.0010000001, 'usd')).toEqual('$0.001');
+  });
+
+  it('formats correctly for higher decimals to show', () => {
+    expect(renderFiat(123.456789, 'eur', 5)).toEqual('€123.45679');
+  });
+
+  it('handles cases with fewer decimals correctly', () => {
+    expect(renderFiat(789.0, 'jpy', 2)).toEqual('¥789.00');
+  });
+
+  it('returns formatted value for unknown currency code', () => {
+    expect(renderFiat(2500, 'xyz', 2)).toEqual('2500.00 XYZ');
+  });
+
+  it('handles zero value correctly', () => {
+    expect(renderFiat(0, 'usd', 2)).toEqual('$0.00');
+  });
+
+  it('formats small numbers correctly with rounding', () => {
+    expect(renderFiat(0.000049, 'usd', 5)).toEqual('$0.00005');
+  });
+
+  it('handles negative values correctly', () => {
+    expect(renderFiat(-123.4567, 'eur', 2)).toEqual('€-123.46');
+  });
+
+  it('handles very large numbers correctly', () => {
+    expect(renderFiat(1234567890.123456, 'usd', 2)).toEqual('$1234567890.12');
+  });
+
+  it('formats numbers with more than two decimals when decimalsToShow is high', () => {
+    expect(renderFiat(1.23456789, 'jpy', 8)).toEqual('¥1.23456789');
   });
 });
 

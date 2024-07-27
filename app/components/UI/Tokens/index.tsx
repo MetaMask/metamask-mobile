@@ -588,7 +588,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       total = balance?.tokenFiat ?? 0;
     }
 
-    const fiatBalance = `${renderFiat(total, currentCurrency)}`;
+    const fiatBalance = `${renderFiat(total, currentCurrency, 2)}`;
 
     const onOpenPortfolio = () => {
       const existingPortfolioTab = browserTabs.find(({ url }: BrowserTab) =>

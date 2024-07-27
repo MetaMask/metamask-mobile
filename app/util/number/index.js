@@ -666,25 +666,49 @@ export function getCurrencySymbol(currencyCode) {
 }
 
 /**
- * Formats a fiat value into a string ready to be rendered
+ * Formats a fiat currency value with its respective currency symbol or code.
+ *
+ * @param {string} currencyCode - The code of the currency (e.g., 'usd', 'eur').
+ * @param {string} fiatValue - The numerical value of the fiat currency.
+ * @returns {string} The formatted currency string, including the currency symbol if available,
+ *                   otherwise the currency code in uppercase.
+ */
+export const fiatCurrencyFormatted = (currencyCode, fiatValue) =>
+  currencySymbols[currencyCode]
+    ? `${currencySymbols[currencyCode]}${fiatValue}`
+    : `${fiatValue} ${currencyCode.toUpperCase()}`;
+
+/**
+ * Formats a fiat value into a string ready to be rendered.
+ * 1.	Always shows at least two decimal places.
+ * 2.	Removes any trailing zeros beyond the required decimal places.
+ * This means that there should only ever be at max 2 trailing zeroes, and they should only ever be the starting two decimal places
  *
  * @param {number} value - number corresponding to a balance of an asset
  * @param {string} currencyCode - Current currency code to display
  * @param {number} decimalsToShow - Decimals to 5
- * @returns {string} - The converted balance
+ * @returns {string} - The converted balance, ie $125.75
  */
 export function renderFiat(value, currencyCode, decimalsToShow = 5) {
   const base = Math.pow(10, decimalsToShow);
-  let fiatFixed = parseFloat(Math.round(value * base) / base);
+  let fiatFixed = parseFloat(`${Math.round(value * base) / base}`);
   fiatFixed = isNaN(fiatFixed) ? 0.0 : fiatFixed;
 
-  // Ensures two decimal places for fiat rendering on FE
-  fiatFixed = fiatFixed.toFixed(2);
+  // Always shows at least two decimal places.
+  let fiatFormatted = fiatFixed.toFixed(
+    decimalsToShow > 2 ? decimalsToShow : 2,
+  );
 
-  if (currencySymbols[currencyCode]) {
-    return `${currencySymbols[currencyCode]}${fiatFixed}`;
+  if (decimalsToShow <= 2) {
+    return fiatCurrencyFormatted(currencyCode, fiatFormatted);
   }
-  return `${fiatFixed} ${currencyCode.toUpperCase()}`;
+  fiatFormatted = fiatFormatted.replace(/(\.\d*?[1-9])0+$/g, '$1'); // Remove trailing zeros after the last non-zero digit for things like 0.0010000
+  const decimals = fiatFormatted.split('.')[1];
+  if (decimals.length === 1) {
+    // we need an extra zero for things like 0.1 or 15.7
+    fiatFormatted += '0';
+  }
+  return fiatCurrencyFormatted(currencyCode, fiatFormatted);
 }
 
 /**
