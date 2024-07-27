@@ -3216,6 +3216,15 @@
     "tooltip_description": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
     "total_fiat": "Total = {{currency}}"
   },
+  "spam_filter": {
+    "block_origin_requests_for_1_minute": "Temporarily block this site",
+    "cancel": "Cancel",
+    "description": "If you're being spammed with multiple requests, you can temporarily block the site.",
+    "got_it": "Got it",
+    "site_blocked_description": "The site will be blocked for 1 minute.",
+    "site_blocked_title": "You've temporarily blocked this site",
+    "title": "We've noticed multiple requests"
+  },
   "common": {
     "please_wait": "Please wait"
   }

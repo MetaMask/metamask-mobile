@@ -118,6 +118,7 @@ import ProfileSyncingModal from '../../UI/ProfileSyncing/ProfileSyncingModal/Pro
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
 import NftOptions from '../../../components/Views/NftOptions';
 import ShowTokenIdSheet from '../../../components/Views/ShowTokenIdSheet';
+import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
@@ -718,6 +719,11 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.SHOW_TOKEN_ID}
         component={ShowTokenIdSheet}
+      />
+
+      <Stack.Screen
+        name={Routes.SHEET.ORIGIN_SPAM_MODAL}
+        component={OriginSpamModal}
       />
     </Stack.Navigator>
   );
