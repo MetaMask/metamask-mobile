@@ -682,7 +682,7 @@ export const fiatCurrencyFormatted = (currencyCode, fiatValue) =>
  * Formats a fiat value into a string ready to be rendered.
  * 1.	Always shows at least two decimal places.
  * 2.	Removes any trailing zeros beyond the required decimal places.
- * This means that there should only ever be at max 2 trailing zeroes, and they should only ever be the starting two decimal places
+ * This means that there should only ever be at max 2 trailing zeroes, and they should only ever be one or both the starting two decimal places
  *
  * @param {number} value - number corresponding to a balance of an asset
  * @param {string} currencyCode - Current currency code to display
@@ -704,8 +704,10 @@ export function renderFiat(value, currencyCode, decimalsToShow = 5) {
   }
   fiatFormatted = fiatFormatted.replace(/(\.\d*?[1-9])0+$/g, '$1'); // Remove trailing zeros after the last non-zero digit for things like 0.0010000
   const decimals = fiatFormatted.split('.')[1];
+
+  // still a chance we have things like 0.1 or 15.7 if decimalsToShow is high and after stripping zeros
+  // add an extra zero in this case
   if (decimals.length === 1) {
-    // we need an extra zero for things like 0.1 or 15.7
     fiatFormatted += '0';
   }
   return fiatCurrencyFormatted(currencyCode, fiatFormatted);
