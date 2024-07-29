@@ -1,5 +1,5 @@
 import MetaMetrics from './MetaMetrics';
-import StorageWrapper from '../../store/async-storage-wrapper';
+import StorageWrapper from '../../store/storage-wrapper';
 import {
   AGREED,
   ANALYTICS_DATA_DELETION_DATE,
@@ -16,7 +16,7 @@ import {
   IMetaMetricsEvent,
 } from './MetaMetrics.types';
 
-jest.mock('../../store/async-storage-wrapper');
+jest.mock('../../store/storage-wrapper');
 const mockGet = jest.fn();
 const mockSet = jest.fn();
 const mockClear = jest.fn();

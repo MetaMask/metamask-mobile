@@ -313,7 +313,7 @@ jest.mock('redux-persist', () => ({
   createMigrate: jest.fn(),
 }));
 
-jest.mock('../../store/async-storage-wrapper', () => ({
+jest.mock('../../store/storage-wrapper', () => ({
   getItem: jest.fn(),
   setItem: jest.fn(),
 }));

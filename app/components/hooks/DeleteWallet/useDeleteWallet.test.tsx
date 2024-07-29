@@ -16,7 +16,7 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../store/async-storage-wrapper', () => ({
+jest.mock('../../../store/storage-wrapper', () => ({
   getItem: jest.fn(),
   removeItem: jest.fn(),
 }));

@@ -3,7 +3,7 @@ import { Platform, Linking } from 'react-native';
 /* eslint-disable-next-line */
 import { NavigationContainerRef } from '@react-navigation/core';
 import InAppReview from 'react-native-in-app-review';
-import StorageWrapper from '../store/async-storage-wrapper';
+import StorageWrapper from '../store/storage-wrapper';
 import { REVIEW_EVENT_COUNT, REVIEW_SHOWN_TIME } from '../constants/storage';
 import Logger from '../util/Logger';
 import { MM_APP_STORE_LINK, MM_PLAY_STORE_LINK } from '../constants/urls';

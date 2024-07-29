@@ -15,7 +15,7 @@ import Logger from '../../util/Logger';
 
 const storage: Record<string, unknown> = {};
 
-jest.mock('../../store/async-storage-wrapper', () => ({
+jest.mock('../../store/storage-wrapper', () => ({
   getItem: jest.fn((key) => Promise.resolve(storage[key] ?? null)),
   setItem: jest.fn((key, value) => {
     storage[key] = value;
