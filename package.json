@@ -135,7 +135,8 @@
     "**/appium-base-driver/webdriverio/puppeteer-core/ws": "^7.5.10",
     "**/puppeteer-core/ws": "^8.17.1",
     "react-native/ws": "^6.2.3",
-    "socket.io-client/engine.io-client/ws": "^8.17.1"
+    "socket.io-client/engine.io-client/ws": "^8.17.1",
+    "fast-xml-parser": "^4.4.1"
   },
   "dependencies": {
     "@consensys/on-ramp-sdk": "1.28.1",
