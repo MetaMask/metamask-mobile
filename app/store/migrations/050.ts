@@ -1,6 +1,6 @@
 import DefaultPreference from 'react-native-default-preference';
 import { captureException } from '@sentry/react-native';
-import StorageWrapper from '../async-storage-wrapper';
+import StorageWrapper from '../storage-wrapper';
 
 /**
  * The goal of this migration is set all the data that was on DefaultPreference to MMKV

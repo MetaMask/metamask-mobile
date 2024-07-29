@@ -1,7 +1,7 @@
 import Logger from '.';
 import { captureException, withScope } from '@sentry/react-native';
 import { AGREED, METRICS_OPT_IN } from '../../constants/storage';
-import StorageWrapper from '../../store/async-storage-wrapper';
+import StorageWrapper from '../../store/storage-wrapper';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
