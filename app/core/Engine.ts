@@ -1505,10 +1505,8 @@ class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'ComposableController',
         allowedActions: [],
+        // Exclude non-controllers with empty state and V1 controllers with no messagingSystem.
         allowedEvents: [
-          /**
-           * V1/V2 controllers with correctly defined messengers and `stateChange` events.
-           */
           'AccountsController:stateChange',
           'AccountTrackerController:stateChange',
           'AddressBookController:stateChange',
@@ -1526,29 +1524,17 @@ class Engine {
           'PPOMController:stateChange',
           'PreferencesController:stateChange',
           'SignatureController:stateChange',
+          // 'SmartTransactionsController:stateChange', // TODO: uncomment once controller is migrated to V2.
           'SnapController:stateChange',
           'SnapsRegistry:stateChange',
           'SubjectMetadataController:stateChange',
+          // 'SwapsController:stateChange', // TODO: uncomment once controller is migrated to V2.
           'TokenBalancesController:stateChange',
           'TokenRatesController:stateChange',
           'TokenListController:stateChange',
           'TokensController:stateChange',
           'TransactionController:stateChange',
           'UserStorageController:stateChange',
-
-          /**
-           * V1 controllers that should be excluded from the datamodel's events allowlist for now.
-           * TODO: Each of these events should be added to the allowlist once its controller is migrated to V2.
-           */
-          // 'SmartTransactionsController:stateChange', // StaticIntervalPollingControllerV1, no `messagingSystem`
-          // 'SwapsController:stateChange', // BaseControllerV1, no `messagingSystem`
-
-          /**
-           * Non-controllers that should always be excluded from the datamodel's events allowlist.
-           */
-          // 'AssetsContractController:stateChange', // BaseControllerV1, no `messagingSystem`
-          // 'NftDetectionController:stateChange', // StaticIntervalPollingControllerV1, no `messagingSystem`
-          // 'TokenDetectionController:stateChange', // StaticIntervalPollingController, empty state
         ],
       }),
     });
