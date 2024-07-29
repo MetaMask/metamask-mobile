@@ -1,5 +1,5 @@
 /* eslint-disable react/display-name */
-import React, { useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { NotificationsViewSelectorsIDs } from '../../../../e2e/selectors/NotificationsView.selectors';
@@ -11,6 +11,10 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 
+import Button, {
+  ButtonVariants,
+} from '../../../../component-library/components/Buttons/Button';
+
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -21,7 +25,10 @@ import {
   selectIsMetamaskNotificationsEnabled,
   getNotificationsList,
 } from '../../../selectors/notifications';
-import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
+import {
+  useListNotifications,
+  useMarkNotificationAsRead,
+} from '../../../util/notifications/hooks/useNotifications';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
 const TRIGGER_TYPES_VALS: ReadonlySet<string> = new Set<string>(
@@ -38,7 +45,12 @@ const NotificationsView = ({
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
+  const { markNotificationAsRead } = useMarkNotificationAsRead();
   const notifications = useSelector(getNotificationsList);
+
+  const handleMarkAllAsRead = useCallback(() => {
+    markNotificationAsRead(notifications);
+  }, [markNotificationAsRead, notifications]);
 
   const allNotifications = useMemo(() => {
     // All unique notifications
@@ -77,13 +89,21 @@ const NotificationsView = ({
       testID={NotificationsViewSelectorsIDs.NOTIFICATIONS_CONTAINER}
     >
       {isNotificationEnabled && allNotifications.length > 0 ? (
-        <Notifications
-          navigation={navigation}
-          allNotifications={allNotifications}
-          walletNotifications={walletNotifications}
-          web3Notifications={announcementNotifications}
-          loading={isLoading}
-        />
+        <>
+          <Notifications
+            navigation={navigation}
+            allNotifications={allNotifications}
+            walletNotifications={walletNotifications}
+            web3Notifications={announcementNotifications}
+            loading={isLoading}
+          />
+          <Button
+            variant={ButtonVariants.Primary}
+            label={strings('notifications.mark_all_as_read')}
+            onPress={handleMarkAllAsRead}
+            style={styles.stickyButton}
+          />
+        </>
       ) : (
         <Empty
           testID={NotificationsViewSelectorsIDs.NO_NOTIFICATIONS_CONTAINER}
