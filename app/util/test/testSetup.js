@@ -313,9 +313,9 @@ jest.mock('redux-persist', () => ({
   createMigrate: jest.fn(),
 }));
 
-jest.mock('react-native-default-preference', () => ({
-  get: jest.fn(),
-  set: jest.fn(),
+jest.mock('../../store/storage-wrapper', () => ({
+  getItem: jest.fn(),
+  setItem: jest.fn(),
 }));
 
 // eslint-disable-next-line import/no-commonjs
