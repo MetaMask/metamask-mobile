@@ -1,14 +1,7 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
-<<<<<<< HEAD
 import { ANDROID_PROGRESS_BAR, TOAST_ID } from './testIDs/Common.testIds';
-=======
-import {
-  ToastSelectorsIDs,
-  ToastSelectorsText,
-} from '../../e2e/selectors/Modals/ToastModal.selectors';
-import { CommonSelectorsIDs } from '../../e2e/selectors/Common.selectors';
->>>>>>> ca52e90402 (test: Add step to close onboarding modals (#10387))
+import { ToastSelectorsText } from '../../e2e/selectors/Modals/ToastModal.selectors';
 import { NOTIFICATION_TITLE } from './testIDs/Components/Notification.testIds';
 
 class CommonScreen {
