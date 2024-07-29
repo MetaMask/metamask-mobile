@@ -123,7 +123,9 @@
     "@metamask/metamask-eth-abis": "3.1.1",
     "react-native/ws": "^6.2.3",
     "@metamask/snaps-controllers@^9.3.1": "patch:@metamask/snaps-controllers@npm%3A9.3.1#./.yarn/patches/@metamask-snaps-controllers-npm-9.3.1-6a141c6563.patch",
-    "@metamask/snaps-controllers@^8.1.1": "patch:@metamask/snaps-controllers@npm%3A9.3.1#./.yarn/patches/@metamask-snaps-controllers-npm-9.3.1-6a141c6563.patch"
+    "@metamask/snaps-controllers@^8.1.1": "patch:@metamask/snaps-controllers@npm%3A9.3.1#./.yarn/patches/@metamask-snaps-controllers-npm-9.3.1-6a141c6563.patch",
+    "@metamask/phishing-controller@^9.0.0": "patch:@metamask/phishing-controller@npm%3A10.1.1#./.yarn/patches/@metamask-phishing-controller-npm-10.1.1-0005d84315.patch",
+    "@metamask/phishing-controller@^10.1.1": "patch:@metamask/phishing-controller@npm%3A10.1.1#./.yarn/patches/@metamask-phishing-controller-npm-10.1.1-0005d84315.patch"
   },
   "dependencies": {
     "@consensys/on-ramp-sdk": "1.28.1",
@@ -156,7 +158,7 @@
     "@metamask/network-controller": "^18.1.0",
     "@metamask/notification-services-controller": "^0.1.1",
     "@metamask/permission-controller": "^9.0.0",
-    "@metamask/phishing-controller": "^9.0.0",
+    "@metamask/phishing-controller": "^10.1.1",
     "@metamask/post-message-stream": "^8.0.0",
     "@metamask/ppom-validator": "github:MetaMask/ppom-validator#bump-base-controller-to-6.0.2-expose-build",
     "@metamask/preferences-controller": "^11.0.0",

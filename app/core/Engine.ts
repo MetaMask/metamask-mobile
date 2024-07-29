@@ -66,6 +66,7 @@ import {
 } from '@metamask/network-controller';
 import {
   PhishingController,
+  PhishingControllerEvents,
   PhishingControllerState,
 } from '@metamask/phishing-controller';
 import {
@@ -282,6 +283,7 @@ type GlobalActions =
   | NetworkControllerActions
   | NftControllerActions
   | PermissionControllerActions
+  | PhishingControllerActions
   | SignatureControllerActions
   | TransactionControllerActions
   | LoggingControllerActions
@@ -312,6 +314,7 @@ type GlobalEvents =
   | NetworkControllerEvents
   | NftControllerEvents
   | PermissionControllerEvents
+  | PhishingControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalEvents
   | SnapsRegistryEvents
@@ -1509,6 +1512,7 @@ class Engine {
           'NetworkController:stateChange',
           'NftController:stateChange',
           'PermissionController:stateChange',
+          'PhishingController:stateChange',
           'PPOMController:stateChange',
           'PreferencesController:stateChange',
           'SignatureController:stateChange',
@@ -1532,8 +1536,6 @@ class Engine {
           'LoggingController:stateChange',
           // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
           'NotificationServicesController:stateChange',
-          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
-          'PhishingController:stateChange',
           // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
           'UserStorageController:stateChange',
 
