@@ -27,7 +27,7 @@ import { connect } from 'react-redux';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
-import DefaultPreference from 'react-native-default-preference';
+import StorageWrapper from '../../../store/async-storage-wrapper';
 import { useTheme } from '../../../util/theme';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
@@ -192,7 +192,7 @@ const AccountBackupStep1 = (props) => {
     hideRemindLaterModal();
     track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED);
     // Get onboarding wizard state
-    const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
+    const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
     !onboardingWizard && props.setOnboardingWizardStep(1);
     props.navigation.reset({
       index: 1,
