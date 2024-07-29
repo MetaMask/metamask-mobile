@@ -171,7 +171,7 @@ class WalletConnect {
           if (payload.method === 'eth_sendTransaction') {
             try {
               const selectedAddress =
-                Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
+                Engine.context.AccountsController.getSelectedAccount().address?.toLowerCase();
 
               checkActiveAccountAndChainId({
                 address: payload.params[0].from,
@@ -305,7 +305,7 @@ class WalletConnect {
   startSession = async (sessionData, existing) => {
     const chainId = selectChainId(store.getState());
     const selectedAddress =
-      Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
+      Engine.context.AccountsController.getSelectedAccount().address?.toLowerCase();
     const approveData = {
       chainId: parseInt(chainId, 10),
       accounts: [selectedAddress],

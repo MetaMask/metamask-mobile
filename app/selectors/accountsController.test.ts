@@ -2,7 +2,7 @@ import { AccountsControllerState } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import { Hex, isValidChecksumAddress } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-api';
-import DefaultPreference from 'react-native-default-preference';
+import StorageWrapper from '../store/async-storage-wrapper';
 import {
   selectSelectedInternalAccount,
   selectInternalAccounts,
@@ -65,7 +65,7 @@ const mockedCaptureException = jest.mocked(captureException);
 describe('Accounts Controller Selectors', () => {
   beforeEach(() => {
     jest.resetAllMocks();
-    DefaultPreference.get = jest.fn(() => Promise.resolve(AGREED));
+    StorageWrapper.getItem = jest.fn(() => Promise.resolve(AGREED));
   });
   describe('selectSelectedInternalAccount', () => {
     it('returns selected internal account', () => {

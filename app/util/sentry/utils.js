@@ -2,7 +2,7 @@
 import * as Sentry from '@sentry/react-native';
 import { Dedupe, ExtraErrorData } from '@sentry/integrations';
 import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
-import DefaultPreference from 'react-native-default-preference';
+import StorageWrapper from '../../store/async-storage-wrapper';
 import { regex } from '../regex';
 import { AGREED, METRICS_OPT_IN } from '../../constants/storage';
 import { isTest } from '../test/utils';
@@ -480,7 +480,7 @@ export function setupSentry() {
   const init = async () => {
     const dsn = process.env.MM_SENTRY_DSN;
 
-    const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
+    const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
 
     const integrations = [new Dedupe(), new ExtraErrorData()];
     const environment = deriveSentryEnvironment(
