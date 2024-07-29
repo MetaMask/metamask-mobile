@@ -122,10 +122,6 @@ describe('Authentication', () => {
 
   it('should return a type AUTHENTICATION_TYPE.PASSWORD if the user does not exist and there are no available biometrics options', async () => {
     SecureKeychain.getSupportedBiometryType = jest.fn().mockReturnValue(null);
-    const mockCredentials = { username: 'test', password: 'test' };
-    SecureKeychain.getGenericPassword = jest
-      .fn()
-      .mockReturnValue(mockCredentials);
     await StorageWrapper.setItem(EXISTING_USER, TRUE);
     const result = await Authentication.getType();
     expect(result.availableBiometryType).toBeNull();
