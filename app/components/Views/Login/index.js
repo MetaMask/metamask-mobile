@@ -10,7 +10,7 @@ import {
   Image,
   InteractionManager,
   BackHandler,
-  TouchableWithoutFeedback,
+  TouchableOpacity,
 } from 'react-native';
 import Text, {
   TextColor,
@@ -515,23 +515,23 @@ class Login extends PureComponent {
             style={styles.wrapper}
           >
             <View testID={LoginViewSelectors.CONTAINER}>
-              <TouchableWithoutFeedback
-                onLongPress={this.handleDownloadStateLogs}
-                delayLongPress={10 * 1000} // 10 seconds
+              <TouchableOpacity
                 style={styles.foxWrapper}
+                delayLongPress={10 * 1000} // 10 seconds
+                onLongPress={this.handleDownloadStateLogs}
+                activeOpacity={1}
               >
-                <View style={styles.foxWrapper}>
-                  {Device.isAndroid() ? (
-                    <Image
-                      source={require('../../../images/fox.png')}
-                      style={styles.image}
-                      resizeMethod={'auto'}
-                    />
-                  ) : (
-                    <AnimatedFox bgColor={colors.background.default} />
-                  )}
-                </View>
-              </TouchableWithoutFeedback>
+                {Device.isAndroid() ? (
+                  <Image
+                    source={require('../../../images/fox.png')}
+                    style={styles.image}
+                    resizeMethod={'auto'}
+                  />
+                ) : (
+                  <AnimatedFox bgColor={colors.background.default} />
+                )}
+              </TouchableOpacity>
+
               <Text
                 style={styles.title}
                 testID={LoginViewSelectors.LOGIN_VIEW_TITLE_ID}
