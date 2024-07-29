@@ -18,7 +18,7 @@ import {
   WalletDevice,
   TransactionStatus,
 } from '@metamask/transaction-controller';
-import { query } from '@metamask/controller-utils';
+import { query, toHex } from '@metamask/controller-utils';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 
 import {
@@ -799,16 +799,12 @@ function SwapsQuotesView({
       newSwapsTransactions,
     ) => {
       const { TransactionController } = Engine.context;
-      const blockNumber = await query(
-        TransactionController.ethQuery,
-        'blockNumber',
-        [],
-      );
-      const currentBlock = await query(
-        TransactionController.ethQuery,
-        'getBlockByNumber',
-        [blockNumber, false],
-      );
+      const ethQuery = Engine.getGlobalEthQuery();
+      const blockNumber = await query(ethQuery, 'blockNumber', []);
+      const currentBlock = await query(ethQuery, 'getBlockByNumber', [
+        blockNumber,
+        false,
+      ]);
       newSwapsTransactions[transactionMeta.id] = {
         action: 'swap',
         sourceToken: {
@@ -857,7 +853,9 @@ function SwapsQuotesView({
           approvalTransactionMetaId,
         },
       };
-      TransactionController.update({ swapsTransactions: newSwapsTransactions });
+      TransactionController.update((state) => {
+        state.swapsTransactions = newSwapsTransactions;
+      });
     },
     [
       chainId,
@@ -937,7 +935,7 @@ function SwapsQuotesView({
               gasEstimateType,
               gasEstimates,
             ),
-            gas: new BigNumber(gasLimit).toString(16),
+            gas: toHex(gasLimit),
           },
           {
             deviceConfirmedOn: WalletDevice.MM_MOBILE,
@@ -1014,8 +1012,10 @@ function SwapsQuotesView({
           ).toString(10),
         };
         if (isHardwareAddress || shouldUseSmartTransaction) {
-          TransactionController.hub.once(
-            `${transactionMeta.id}:confirmed`,
+          const { id: transactionId } = transactionMeta;
+
+          Engine.controllerMessenger.subscribeOnceIf(
+            'TransactionController:transactionConfirmed',
             (transactionMeta) => {
               if (transactionMeta.status === TransactionStatus.confirmed) {
                 handleSwapTransaction(
@@ -1026,6 +1026,7 @@ function SwapsQuotesView({
                 );
               }
             },
+            (transactionMeta) => transactionMeta.id === transactionId,
           );
         }
       } catch (e) {

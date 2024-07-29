@@ -73,7 +73,7 @@ import {
 import { CustomDefaultNetworkIDs } from '../../../../../../e2e/selectors/Onboarding/CustomDefaultNetwork.selectors';
 import { updateIncomingTransactions } from '../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
-import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectUseSafeChainsListValidation } from '../../../../../../app/selectors/preferencesController';
 import withIsOriginalNativeToken from './withIsOriginalNativeToken';

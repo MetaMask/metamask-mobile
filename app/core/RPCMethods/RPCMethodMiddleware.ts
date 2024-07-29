@@ -20,6 +20,10 @@ import Networks, {
   getAllNetworks,
 } from '../../util/networks';
 import { polyfillGasPrice } from './utils';
+import {
+  processOriginThrottlingRejection,
+  validateOriginThrottling,
+} from './spam';
 import ImportedEngine from '../Engine';
 import { strings } from '../../../locales/i18n';
 import { resemblesAddress, safeToChecksumAddress } from '../../util/address';
@@ -920,6 +924,8 @@ export const getRpcMethodMiddleware = ({
       return next();
     }
 
+    validateOriginThrottling({ req, store });
+
     const isWhiteListedMethod = isWhitelistedRPC(req.method);
 
     try {
@@ -929,9 +935,19 @@ export const getRpcMethodMiddleware = ({
 
       isWhiteListedMethod &&
         store.dispatch(setEventStage(req.method, RPCStageTypes.COMPLETE));
-    } catch (e) {
-      isWhiteListedMethod && store.dispatch(setEventStageError(req.method, e));
-      throw e;
+    } catch (error: unknown) {
+      processOriginThrottlingRejection({
+        req,
+        error: error as {
+          message: string;
+          code?: number;
+        },
+        store,
+        navigation,
+      });
+      isWhiteListedMethod &&
+        store.dispatch(setEventStageError(req.method, error));
+      throw error;
     }
   });
 };

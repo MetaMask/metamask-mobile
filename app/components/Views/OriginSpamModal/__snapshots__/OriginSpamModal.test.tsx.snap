@@ -1,0 +1,360 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`OriginSpamModal renders SiteBlockedContent if user opt in to block dapp 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "padding": 16,
+    }
+  }
+>
+  <SvgMock
+    color="#1c8234"
+    height={32}
+    name="Confirmation"
+    style={
+      {
+        "height": 32,
+        "width": 32,
+      }
+    }
+    width={32}
+  />
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "flexDirection": "row",
+        "height": 32,
+        "justifyContent": "space-between",
+        "margin": 16,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    />
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#141618",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 18,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      You've temporarily blocked this site
+    </Text>
+    <View
+      style={
+        {
+          "alignItems": "flex-end",
+          "flex": 1,
+        }
+      }
+    />
+  </View>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#141618",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    The site will be blocked for 1 minute.
+  </Text>
+  <View
+    style={
+      {
+        "alignSelf": "stretch",
+        "flexDirection": "column",
+        "gap": 16,
+        "paddingTop": 24,
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "stretch",
+          "backgroundColor": "#0376c9",
+          "borderRadius": 24,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+      variant="Primary"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Got it
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
+`;
+
+exports[`OriginSpamModal renders spam modal content by default 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "padding": 16,
+    }
+  }
+>
+  <SvgMock
+    color="#bf5208"
+    height={32}
+    name="Danger"
+    style={
+      {
+        "height": 32,
+        "width": 32,
+      }
+    }
+    width={32}
+  />
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "marginBottom": 16,
+        "marginTop": 16,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#141618",
+          "flex": 1,
+          "flexWrap": "wrap",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 18,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+          "textAlign": "center",
+        }
+      }
+    >
+      We've noticed multiple requests
+    </Text>
+  </View>
+  <View
+    style={
+      {
+        "marginBottom": 16,
+      }
+    }
+  >
+    <View
+      iconName="LockSlash"
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "center",
+          "backgroundColor": "#ffffff",
+          "borderColor": "#bbc0c5",
+          "borderRadius": 99,
+          "borderWidth": 1,
+          "flexDirection": "row",
+          "paddingLeft": 8,
+          "paddingRight": 16,
+          "paddingVertical": 8,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "backgroundColor": "#ffffff",
+            "borderRadius": 16,
+            "height": 24,
+            "marginRight": 8,
+            "overflow": "hidden",
+            "width": 24,
+          }
+        }
+      >
+        <Image
+          onError={[Function]}
+          resizeMode="contain"
+          source={
+            {
+              "uri": "https://api.faviconkit.com/scam.origin/50",
+            }
+          }
+          style={
+            {
+              "flex": 1,
+              "height": undefined,
+              "width": undefined,
+            }
+          }
+          testID="favicon-avatar-image"
+        />
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#6a737d",
+            "flexShrink": 1,
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        https://scam.origin
+      </Text>
+    </View>
+  </View>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#141618",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+        "textAlign": "center",
+      }
+    }
+  >
+    If you're being spammed with multiple requests, you can temporarily block the site.
+  </Text>
+  <View
+    style={
+      {
+        "alignSelf": "stretch",
+        "flexDirection": "column",
+        "gap": 16,
+        "paddingTop": 24,
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "stretch",
+          "backgroundColor": "transparent",
+          "borderColor": "#0376c9",
+          "borderRadius": 24,
+          "borderWidth": 1,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+      testID="continue-origin-button"
+      variant="Secondary"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#0376c9",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Cancel
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "stretch",
+          "backgroundColor": "#0376c9",
+          "borderRadius": 24,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+      testID="block-origin-button"
+      variant="Primary"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Temporarily block this site
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
+`;
