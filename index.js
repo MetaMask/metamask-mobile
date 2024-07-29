@@ -22,7 +22,7 @@ import { name } from './app.json';
 import { isTest } from './app/util/test/utils.js';
 
 import NotificationManager from './app/core/NotificationManager';
-import { isNotificationsFeatureEnabled } from './app/util/notifications/methods';
+import { isNotificationsFeatureEnabled } from './app/util/notifications';
 
 // List of warnings that we're ignoring
 
