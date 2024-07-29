@@ -128,7 +128,9 @@
     "@metamask/phishing-controller@^10.1.1": "patch:@metamask/phishing-controller@npm%3A10.1.1#./.yarn/patches/@metamask-phishing-controller-npm-10.1.1-0005d84315.patch",
     "@metamask/notification-services-controller@^0.1.1": "patch:@metamask/notification-services-controller@npm%3A0.1.1#./.yarn/patches/@metamask-notification-services-controller-npm-0.1.1-6e91f27363.patch",
     "@metamask/profile-sync-controller@^0.1.3": "patch:@metamask/profile-sync-controller@npm%3A0.1.3#./.yarn/patches/@metamask-profile-sync-controller-npm-0.1.3-111e75acee.patch",
-    "@metamask/profile-sync-controller@^0.1.1": "patch:@metamask/profile-sync-controller@npm%3A0.1.3#./.yarn/patches/@metamask-profile-sync-controller-npm-0.1.3-111e75acee.patch"
+    "@metamask/profile-sync-controller@^0.1.1": "patch:@metamask/profile-sync-controller@npm%3A0.1.3#./.yarn/patches/@metamask-profile-sync-controller-npm-0.1.3-111e75acee.patch",
+    "@metamask/logging-controller@^3.0.0": "patch:@metamask/logging-controller@npm%3A3.0.1#./.yarn/patches/@metamask-logging-controller-npm-3.0.1-dc772bba77.patch",
+    "@metamask/logging-controller@^3.0.1": "patch:@metamask/logging-controller@npm%3A3.0.1#./.yarn/patches/@metamask-logging-controller-npm-3.0.1-dc772bba77.patch"
   },
   "dependencies": {
     "@consensys/on-ramp-sdk": "1.28.1",

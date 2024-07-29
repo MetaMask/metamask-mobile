@@ -6378,7 +6378,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/logging-controller@npm:^3.0.0, @metamask/logging-controller@npm:^3.0.1":
+"@metamask/logging-controller@npm:3.0.1":
   version: 3.0.1
   resolution: "@metamask/logging-controller@npm:3.0.1"
   dependencies:
@@ -6386,6 +6386,17 @@ __metadata:
     "@metamask/controller-utils": ^9.0.1
     uuid: ^8.3.2
   checksum: fc4f63399de8b948a8b5f5dbd17f13c869c50c44d6841f8f319024e781479543c0f40084c55eaddfec46a43bc04386b08f4344dc2d5e5d279ad0a8386af39e64
+  languageName: node
+  linkType: hard
+
+"@metamask/logging-controller@patch:@metamask/logging-controller@npm%3A3.0.1#./.yarn/patches/@metamask-logging-controller-npm-3.0.1-dc772bba77.patch::locator=metamask%40workspace%3A.":
+  version: 3.0.1
+  resolution: "@metamask/logging-controller@patch:@metamask/logging-controller@npm%3A3.0.1#./.yarn/patches/@metamask-logging-controller-npm-3.0.1-dc772bba77.patch::version=3.0.1&hash=54377f&locator=metamask%40workspace%3A."
+  dependencies:
+    "@metamask/base-controller": ^5.0.1
+    "@metamask/controller-utils": ^9.0.1
+    uuid: ^8.3.2
+  checksum: affb19556f91334da7f9e9c53f81c405152b0b6b0448350f30ca5bc1df8c1ff33a5d179c9a8e787296ffbba889df50a39e591050fd0be2d430d04f9305cebf25
   languageName: node
   linkType: hard
 

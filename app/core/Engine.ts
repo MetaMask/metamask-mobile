@@ -143,6 +143,7 @@ import {
   LoggingController,
   LoggingControllerState,
   LoggingControllerActions,
+  LoggingControllerEvents,
 } from '@metamask/logging-controller';
 import {
   LedgerKeyring,
@@ -313,6 +314,7 @@ type GlobalEvents =
   | KeyringControllerEvents
   | TokenListStateChange
   | TransactionControllerEvents
+  | LoggingControllerEvents
   | NetworkControllerEvents
   | NftControllerEvents
   | PermissionControllerEvents
@@ -1515,6 +1517,7 @@ class Engine {
           'CurrencyRateController:stateChange',
           'GasFeeController:stateChange',
           'KeyringController:stateChange',
+          'LoggingController:stateChange',
           'NetworkController:stateChange',
           'NftController:stateChange',
           'NotificationServicesController:stateChange',
@@ -1532,14 +1535,6 @@ class Engine {
           'TokensController:stateChange',
           'TransactionController:stateChange',
           'UserStorageController:stateChange',
-
-          /**
-           * V1/V2 controllers incorrectly defined with a `messagingSystem` that is missing its `stateChange` event.
-           * ! These `stateChange` events must be included in the datamodel's events allowlist.
-           * TODO: Upstream fixes in the source packages are required for the following controllers.
-           */
-          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
-          'LoggingController:stateChange',
 
           /**
            * V1 controllers that should be excluded from the datamodel's events allowlist for now.
