@@ -52,6 +52,12 @@ const createStyles = (colors: Colors) =>
       marginBottom: 20,
       color: colors.text.default,
     },
+    loader: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.background.default,
+      flex: 1,
+    },
   });
 
 export default createStyles;
