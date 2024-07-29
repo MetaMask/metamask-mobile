@@ -29,6 +29,10 @@ import {
   TokenBalancesControllerState,
   TokenBalancesControllerActions,
   TokenBalancesControllerEvents,
+  TokenRatesControllerActions,
+  TokenRatesControllerEvents,
+  AccountTrackerControllerActions,
+  AccountTrackerControllerEvents,
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { AppState } from 'react-native';
@@ -279,8 +283,10 @@ type GlobalActions =
   ///: END:ONLY_INCLUDE_IF
   | KeyringControllerActions
   | AccountsControllerActions
+  | AccountTrackerControllerActions
   | PreferencesControllerActions
   | TokenBalancesControllerActions
+  | TokenRatesControllerActions
   | TokensControllerActions
   | TokenListControllerActions;
 
@@ -299,8 +305,10 @@ type GlobalEvents =
   | KeyringControllerEvents
   | PPOMControllerEvents
   | AccountsControllerEvents
+  | AccountTrackerControllerEvents
   | PreferencesControllerEvents
   | TokenBalancesControllerEvents
+  | TokenRatesControllerEvents
   | TokensControllerEvents
   | TokenListControllerEvents
   | TransactionControllerEvents;
@@ -1477,6 +1485,7 @@ class Engine {
            * V1/V2 controllers with correctly defined messengers and `stateChange` events.
            */
           'AccountsController:stateChange',
+          'AccountTrackerController:stateChange',
           'ApprovalController:stateChange',
           'CurrencyRateController:stateChange',
           'GasFeeController:stateChange',
@@ -1489,6 +1498,7 @@ class Engine {
           'SnapController:stateChange',
           'SubjectMetadataController:stateChange',
           'TokenBalancesController:stateChange',
+          'TokenRatesController:stateChange',
           'TokenListController:stateChange',
           'TokensController:stateChange',
           'TransactionController:stateChange',
@@ -1517,11 +1527,9 @@ class Engine {
            * V1 controllers that should be excluded from the datamodel's events allowlist for now.
            * TODO: Each of these events should be added to the allowlist once its controller is migrated to V2.
            */
-          // 'AccountTrackerController:stateChange', // StaticIntervalPollingControllerV1, no `messagingSystem`
           // 'AddressBookController:stateChange', // BaseControllerV1, no `messagingSystem`
           // 'SmartTransactionsController:stateChange', // StaticIntervalPollingControllerV1, no `messagingSystem`
           // 'SwapsController:stateChange', // BaseControllerV1, no `messagingSystem`
-          // 'TokenRatesController:stateChange', // StaticIntervalPollingControllerV1, no `messagingSystem`
 
           /**
            * Non-controllers that should always be excluded from the datamodel's events allowlist.
