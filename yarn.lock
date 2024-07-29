@@ -6549,7 +6549,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/notification-services-controller@npm:^0.1.1":
+"@metamask/notification-services-controller@npm:0.1.1":
   version: 0.1.1
   resolution: "@metamask/notification-services-controller@npm:0.1.1"
   dependencies:
@@ -6567,6 +6567,27 @@ __metadata:
     "@metamask/keyring-controller": ^17.0.0
     "@metamask/profile-sync-controller": ^0.1.1
   checksum: c09c415f1ecdf92475502b3a994ca43438da5f5aa4bf208e488f51938862cc05969d4e5f4af59843029d05bd512b99286df654a36a7a2663a92bdb0fdedaf3d1
+  languageName: node
+  linkType: hard
+
+"@metamask/notification-services-controller@patch:@metamask/notification-services-controller@npm%3A0.1.1#./.yarn/patches/@metamask-notification-services-controller-npm-0.1.1-6e91f27363.patch::locator=metamask%40workspace%3A.":
+  version: 0.1.1
+  resolution: "@metamask/notification-services-controller@patch:@metamask/notification-services-controller@npm%3A0.1.1#./.yarn/patches/@metamask-notification-services-controller-npm-0.1.1-6e91f27363.patch::version=0.1.1&hash=5b051c&locator=metamask%40workspace%3A."
+  dependencies:
+    "@contentful/rich-text-html-renderer": ^16.5.2
+    "@metamask/base-controller": ^6.0.0
+    "@metamask/controller-utils": ^11.0.0
+    "@metamask/keyring-controller": ^17.1.0
+    "@metamask/profile-sync-controller": ^0.1.1
+    bignumber.js: ^4.1.0
+    contentful: ^10.3.6
+    firebase: ^10.11.0
+    loglevel: ^1.8.1
+    uuid: ^8.3.2
+  peerDependencies:
+    "@metamask/keyring-controller": ^17.0.0
+    "@metamask/profile-sync-controller": ^0.1.1
+  checksum: 22f704ca567022e41312c9fa4fb5cdf65d6593cbc4a466adedb010e737612c01afeed9b02496e6d7f6493573714446e2693f1a46dda9c65ee323dce5b1e8a56f
   languageName: node
   linkType: hard
 

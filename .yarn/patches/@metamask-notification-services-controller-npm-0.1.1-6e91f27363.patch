@@ -1,0 +1,21 @@
+diff --git a/dist/types/NotificationServicesController/NotificationServicesController.d.ts b/dist/types/NotificationServicesController/NotificationServicesController.d.ts
+index 601da4f67dddf0da7d6fc00328d90ad29b6d92b3..965be3196681b666315a786dd16b46190e34950b 100644
+--- a/dist/types/NotificationServicesController/NotificationServicesController.d.ts
++++ b/dist/types/NotificationServicesController/NotificationServicesController.d.ts
+@@ -82,11 +82,13 @@ export type NotificationServicesControllerSelectIsNotificationServicesEnabled =
+     type: `${typeof controllerName}:selectIsNotificationServicesEnabled`;
+     handler: NotificationServicesController['selectIsNotificationServicesEnabled'];
+ };
+-export type Actions = NotificationServicesControllerUpdateMetamaskNotificationsList | NotificationServicesControllerDisableNotificationServices | NotificationServicesControllerSelectIsNotificationServicesEnabled | ControllerGetStateAction<'state', NotificationServicesControllerState>;
++export type NotificationServicesControllerGetStateAction = ControllerGetStateAction<typeof controllerName, NotificationServicesControllerState>;
++export type NotificationServicesControllerActions = NotificationServicesControllerGetStateAction | NotificationServicesControllerUpdateMetamaskNotificationsList | NotificationServicesControllerDisableNotificationServices | NotificationServicesControllerSelectIsNotificationServicesEnabled;
+ export type AllowedActions = KeyringControllerGetAccountsAction | AuthenticationController.AuthenticationControllerGetBearerToken | AuthenticationController.AuthenticationControllerIsSignedIn | UserStorageController.UserStorageControllerEnableProfileSyncing | UserStorageController.UserStorageControllerGetStorageKey | UserStorageController.UserStorageControllerPerformGetStorage | UserStorageController.UserStorageControllerPerformSetStorage | NotificationServicesPushControllerEnablePushNotifications | NotificationServicesPushControllerDisablePushNotifications | NotificationServicesPushControllerUpdateTriggerPushNotifications;
+-export type NotificationServicesControllerMessengerEvents = ControllerStateChangeEvent<typeof controllerName, NotificationServicesControllerState>;
++export type NotificationServicesControllerStateChangeEvent = ControllerStateChangeEvent<typeof controllerName, NotificationServicesControllerState>
++export type NotificationServicesControllerEvents = NotificationServicesControllerStateChangeEvent;
+ export type AllowedEvents = KeyringControllerStateChangeEvent | NotificationServicesPushControllerOnNewNotification;
+-export type NotificationServicesControllerMessenger = RestrictedControllerMessenger<typeof controllerName, Actions | AllowedActions, AllowedEvents, AllowedActions['type'], AllowedEvents['type']>;
++export type NotificationServicesControllerMessenger = RestrictedControllerMessenger<typeof controllerName, NotificationServicesControllerActions | AllowedActions, NotificationServicesControllerEvents | AllowedEvents, AllowedActions['type'], AllowedEvents['type']>;
+ type FeatureAnnouncementEnv = {
+     spaceId: string;
+     accessToken: string;

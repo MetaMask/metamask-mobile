@@ -318,6 +318,7 @@ type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalEvents
   | SnapsRegistryEvents
+  | NotificationServicesController.NotificationServicesControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | KeyringControllerEvents
@@ -1511,6 +1512,7 @@ class Engine {
           'KeyringController:stateChange',
           'NetworkController:stateChange',
           'NftController:stateChange',
+          'NotificationServicesController:stateChange',
           'PermissionController:stateChange',
           'PhishingController:stateChange',
           'PPOMController:stateChange',
@@ -1534,8 +1536,6 @@ class Engine {
           'AuthenticationController:stateChange',
           // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
           'LoggingController:stateChange',
-          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
-          'NotificationServicesController:stateChange',
           // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
           'UserStorageController:stateChange',
 
