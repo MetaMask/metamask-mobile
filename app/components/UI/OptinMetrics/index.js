@@ -25,7 +25,7 @@ import {
   MetaMetricsEvents,
   withMetricsAwareness,
 } from '../../hooks/useMetrics';
-import StorageWrapper from '../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import { ThemeContext } from '../../../util/theme';
 import { MetaMetricsOptInSelectorsIDs } from '../../../../e2e/selectors/Onboarding/MetaMetricsOptIn.selectors';
 import Checkbox from '../../../component-library/components/Checkbox';

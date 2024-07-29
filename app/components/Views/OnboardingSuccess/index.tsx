@@ -20,7 +20,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import HintModal from '../../UI/HintModal';
 import { useTheme } from '../../../util/theme';
-import AsyncStorage from '../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import { SEED_PHRASE_HINTS } from '../../../constants/storage';
 import Icon, {
   IconName,
@@ -65,12 +65,12 @@ const OnboardingSuccess = ({
   const saveHint = async () => {
     if (!hintText) return;
     setShowHint(false);
-    const currentSeedphraseHints = await AsyncStorage.getItem(
+    const currentSeedphraseHints = await StorageWrapper.getItem(
       SEED_PHRASE_HINTS,
     );
     if (currentSeedphraseHints) {
       const parsedHints = JSON.parse(currentSeedphraseHints);
-      await AsyncStorage.setItem(
+      await StorageWrapper.setItem(
         SEED_PHRASE_HINTS,
         JSON.stringify({ ...parsedHints, manualBackup: hintText }),
       );

@@ -6,7 +6,7 @@ import {
   UserTraits,
 } from '@segment/analytics-react-native';
 import axios, { AxiosHeaderValue } from 'axios';
-import StorageWrapper from '../../store/async-storage-wrapper';
+import StorageWrapper from '../../store/storage-wrapper';
 import Logger from '../../util/Logger';
 import {
   AGREED,

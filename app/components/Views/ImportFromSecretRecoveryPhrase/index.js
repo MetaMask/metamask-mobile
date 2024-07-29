@@ -11,11 +11,11 @@ import {
   Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
+import StorageWrapper from '../../../store/storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { OutlinedTextField } from 'react-native-material-textfield';
-import StorageWrapper from '../../../store/async-storage-wrapper';
 import Clipboard from '@react-native-clipboard/clipboard';
 import AppConstants from '../../../core/AppConstants';
 import Device from '../../../util/device';

@@ -1,5 +1,5 @@
 import { createMigrate, createTransform } from 'redux-persist';
-import AsyncStorage from './async-storage-wrapper';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import { RootState } from '../reducers';

@@ -27,7 +27,7 @@ import { connect } from 'react-redux';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
-import StorageWrapper from '../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import { useTheme } from '../../../util/theme';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
