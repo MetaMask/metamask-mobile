@@ -132,7 +132,6 @@ export const polyfillGasPrice = async (method: string, params: any[] = []) => {
 
   return data;
 };
-
 export default {
   polyfillGasPrice,
 };
