@@ -128,28 +128,9 @@ export const UnpopularNetworkList = [
       imageSource: require('../../images/base.png'),
     },
   },
-  {
-    chainId: toHex('14'),
-    nickname: 'Flare Mainnet',
-    rpcUrl: 'https://flare-api.flare.network/ext/bc/C/rpc',
-    ticker: 'FLR',
-    warning: true,
-    rpcPrefs: {
-      blockExplorerUrl: 'https://flare-explorer.flare.network/',
-      imageUrl: 'FLR',
-      imageSource: require('../../images/flare-mainnet.png'),
-    },
-  },
-  {
-    chainId: toHex('19'),
-    nickname: 'Songbird',
-    rpcUrl: 'https://songbird-api.flare.network/ext/bc/C/rpc',
-    ticker: 'SGB',
-    warning: true,
-    rpcPrefs: {
-      blockExplorerUrl: 'https://songbird-explorer.flare.network',
-      imageUrl: 'SGB',
-      imageSource: require('../../images/songbird.png'),
-    },
-  },
 ];
+
+export const CustomNetworkMapping = {
+  [toHex('14')]: require('../../images/flare-mainnet.png'), // Flare Mainnet
+  [toHex('19')]: require('../../images/songbird.png'), // Songbird Testnet
+};
