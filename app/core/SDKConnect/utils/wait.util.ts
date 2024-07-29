@@ -126,7 +126,7 @@ export const waitForUserLoggedIn = async ({
   }
 
   const state = store.getState();
-  let isLoggedIn = state.user.isLoggedIn ?? false;
+  let isLoggedIn = state.user.userLoggedIn ?? false;
 
   DevLogger.log(
     `wait:: waitForUserLoggedIn[${context}] isLoggedIn: ${isLoggedIn}`,
@@ -138,7 +138,7 @@ export const waitForUserLoggedIn = async ({
         `[wait.util] [${context}] Waiting for userLoggedIn... attempt ${i}`,
       );
     }
-    isLoggedIn = state.user.isLoggedIn ?? false;
+    isLoggedIn = state.user.userLoggedIn ?? false;
     i += 1;
   }
 
