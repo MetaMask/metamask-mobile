@@ -12,21 +12,21 @@ interface SelectedAsset {
   symbol: string;
 }
 
-export const validateEthOrTokenTransaction = (
+export const generateInsufficientBalanceMessage = (
   weiBalance: BN,
-  totalTransactionValue: BN,
+  transactionValue: BN,
   ticker: string,
 ) => {
-  if (!weiBalance.gte(totalTransactionValue)) {
-    const amount = renderFromWei(totalTransactionValue.sub(weiBalance));
-    const tokenSymbol = getTicker(ticker);
-    return strings('transaction.insufficient_amount', {
-      amount,
-      tokenSymbol,
-    });
-  }
-  return undefined;
+  const amount = renderFromWei(transactionValue.sub(weiBalance));
+  const tokenSymbol = getTicker(ticker);
+  return strings('transaction.insufficient_amount', {
+    amount,
+    tokenSymbol,
+  });
 };
+
+export const validateBalance = (weiBalance: BN, transactionValue: BN) =>
+  !weiBalance.gte(transactionValue);
 
 export const validateTokenTransaction = (
   transaction: {
@@ -38,13 +38,12 @@ export const validateTokenTransaction = (
   selectedAsset: SelectedAsset,
   ticker: string,
 ) => {
-  if (!weiBalance.gte(totalTransactionValue)) {
-    const amount = renderFromWei(totalTransactionValue.sub(weiBalance));
-    const tokenSymbol = getTicker(ticker);
-    return strings('transaction.insufficient_amount', {
-      amount,
-      tokenSymbol,
-    });
+  if (validateBalance(weiBalance, totalTransactionValue)) {
+    return generateInsufficientBalanceMessage(
+      weiBalance,
+      totalTransactionValue,
+      ticker,
+    );
   }
 
   const [, , amount] = decodeTransferData('transfer', transaction.data);

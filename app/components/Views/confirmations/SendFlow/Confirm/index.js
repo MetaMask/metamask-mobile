@@ -128,7 +128,8 @@ import { selectTransactionMetrics } from '../../../../../core/redux/slices/trans
 import SimulationDetails from '../../../../UI/SimulationDetails/SimulationDetails';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 import {
-  validateEthOrTokenTransaction,
+  generateInsufficientBalanceMessage,
+  validateBalance,
   validateTokenTransaction,
 } from './validation';
 
@@ -524,6 +525,21 @@ class Confirm extends PureComponent {
     const contractBalanceChanged =
       previousContractBalance !== newContractBalance;
     const recipientIsDefined = transactionTo !== undefined;
+    const haveEIP1559TotalMaxHexChanged =
+      EIP1559GasTransaction.totalMaxHex !==
+      prevState.EIP1559GasTransaction.totalMaxHex;
+
+    const haveGasPropertiesChanged =
+      (this.props.gasFeeEstimates &&
+        gas &&
+        (!prevProps.gasFeeEstimates ||
+          !shallowEqual(
+            prevProps.gasFeeEstimates,
+            this.props.gasFeeEstimates,
+          ) ||
+          gas !== prevProps?.transactionState?.transaction?.gas)) ||
+      haveEIP1559TotalMaxHexChanged;
+
     if (
       recipientIsDefined &&
       (valueChanged || fromAddressChanged || contractBalanceChanged)
@@ -534,18 +550,7 @@ class Confirm extends PureComponent {
       this.scrollView.scrollToEnd({ animated: true });
     }
 
-    if (
-      (this.props.gasFeeEstimates &&
-        gas &&
-        (!prevProps.gasFeeEstimates ||
-          !shallowEqual(
-            prevProps.gasFeeEstimates,
-            this.props.gasFeeEstimates,
-          ) ||
-          gas !== prevProps?.transactionState?.transaction?.gas)) ||
-      EIP1559GasTransaction.totalMaxHex !==
-        prevState.EIP1559GasTransaction.totalMaxHex
-    ) {
+    if (haveGasPropertiesChanged) {
       const gasEstimateTypeChanged =
         prevProps.gasEstimateType !== this.props.gasEstimateType;
       const gasSelected = gasEstimateTypeChanged
@@ -781,7 +786,10 @@ class Confirm extends PureComponent {
     }
 
     if (selectedAsset.isETH || selectedAsset.tokenId) {
-      return validateEthOrTokenTransaction(
+      if (!validateBalance(weiBalance, totalTransactionValue)) {
+        return undefined;
+      }
+      return generateInsufficientBalanceMessage(
         weiBalance,
         totalTransactionValue,
         ticker,

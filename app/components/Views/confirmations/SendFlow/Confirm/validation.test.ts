@@ -1,8 +1,5 @@
 import { BN } from 'ethereumjs-util';
-import {
-  validateEthOrTokenTransaction,
-  validateTokenTransaction,
-} from './validation';
+import { validateTokenTransaction } from './validation';
 import { renderFromWei, hexToBN } from '../../../../../util/number';
 import {
   getTicker,
@@ -23,48 +20,6 @@ jest.mock('../../../../../util/transactions', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn(),
 }));
-
-describe('validateEthOrTokenTransaction', () => {
-  it('return an error message if weiBalance is less than totalTransactionValue', () => {
-    const weiBalance = new BN('1000');
-    const totalTransactionValue = new BN('2000');
-    const ticker = 'ETH';
-
-    (renderFromWei as jest.Mock).mockReturnValue('1');
-    (getTicker as jest.Mock).mockReturnValue('ETH');
-    (strings as jest.Mock).mockReturnValue('Insufficient amount');
-
-    const result = validateEthOrTokenTransaction(
-      weiBalance,
-      totalTransactionValue,
-      ticker,
-    );
-
-    expect(result).toBe('Insufficient amount');
-    expect(renderFromWei).toHaveBeenCalledWith(
-      totalTransactionValue.sub(weiBalance),
-    );
-    expect(getTicker).toHaveBeenCalledWith(ticker);
-    expect(strings).toHaveBeenCalledWith('transaction.insufficient_amount', {
-      amount: '1',
-      tokenSymbol: 'ETH',
-    });
-  });
-
-  it('return undefined if weiBalance is greater than or equal to totalTransactionValue', () => {
-    const weiBalance = new BN('2000');
-    const totalTransactionValue = new BN('1000');
-    const ticker = 'ETH';
-
-    const result = validateEthOrTokenTransaction(
-      weiBalance,
-      totalTransactionValue,
-      ticker,
-    );
-
-    expect(result).toBeUndefined();
-  });
-});
 
 describe('validateTokenTransaction', () => {
   it('return an error message if weiBalance is less than totalTransactionValue', () => {
