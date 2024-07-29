@@ -4188,7 +4188,7 @@
     single-call-balance-checker-abi "^1.0.0"
     uuid "^8.3.2"
 
-"@metamask/base-controller@^3.0.0", "@metamask/base-controller@^3.2.3":
+"@metamask/base-controller@^3.0.0":
   version "3.2.3"
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-3.2.3.tgz#7436a14f6789acf0814952dabaa70ee4fb7d473c"
   integrity sha512-k66oZe7BOEx0D5N5X8feE/32QlrUTmiEHHAZU/yCac2+VHllJOCEQV/cTeaAtgepnEf8O7SskvYZN+eIjgS99w==
@@ -4220,6 +4220,14 @@
     "@metamask/utils" "^9.0.0"
     immer "^9.0.6"
 
+"@metamask/base-controller@^6.0.2":
+  version "6.0.2"
+  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-6.0.2.tgz#710d4a1686616cc66c572099f065ebbfb6dbfcf5"
+  integrity sha512-U6BWN/CLrXvDSsYOpx6QgavZO7XRi6n6zuz4Kqni2Sg2n6R9ixSS8JLZhYUbIBgosTf84tVURaSYsYavX3G5KQ==
+  dependencies:
+    "@metamask/utils" "^9.1.0"
+    immer "^9.0.6"
+
 "@metamask/browser-passworder@^4.3.0":
   version "4.3.0"
   resolved "https://registry.yarnpkg.com/@metamask/browser-passworder/-/browser-passworder-4.3.0.tgz#62c200750efcea864bd31d685120331859e1ab1e"
@@ -4242,12 +4250,12 @@
     "@metamask/utils" "^8.2.0"
     "@types/eslint" "^8.44.7"
 
-"@metamask/composable-controller@^3.0.0":
-  version "3.0.3"
-  resolved "https://registry.yarnpkg.com/@metamask/composable-controller/-/composable-controller-3.0.3.tgz#9644a65c482996ee033eae34e169eb9713e4a33e"
-  integrity sha512-dF8emJGwJi66Uhk+VoBaQpl5+DT3+cT/g/IBZ6pg4cbAu8L/kXuS3sw8JEKFskkaSVy/can8qgcBY5zU4LfeUA==
+"@metamask/composable-controller@npm:@metamask-previews/composable-controller@7.0.0-preview-ea7e75d5":
+  version "7.0.0-preview-ea7e75d5"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/composable-controller/-/composable-controller-7.0.0-preview-ea7e75d5.tgz#63870c604625c24b30f980e26a4eabd8e552a26f"
+  integrity sha512-oNRHhHqrucNrQZo9bEP/iEJ9atsxCNAWY6TDidv5+EXUEM8hOdBEKmJyGnTH+U9PUhxLTop3SY7BEmyWqsrDLQ==
   dependencies:
-    "@metamask/base-controller" "^3.2.3"
+    "@metamask/base-controller" "^6.0.2"
 
 "@metamask/contract-metadata@^2.1.0", "@metamask/contract-metadata@^2.4.0":
   version "2.2.0"
@@ -5539,7 +5547,7 @@
     superstruct "^1.0.3"
     uuid "^9.0.1"
 
-"@metamask/utils@^9.0.0":
+"@metamask/utils@^9.0.0", "@metamask/utils@^9.1.0":
   version "9.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-9.1.0.tgz#54e5afcec07e6032d4dd4171e862b36daa52d77e"
   integrity sha512-g2REf+xSt0OZfMoNNdC4+/Yy8eP3KUqvIArel54XRFKPoXbHI6+YjFfrLtfykWBjffOp7DTfIc3Kvk5TLfuiyg==
