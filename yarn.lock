@@ -4212,15 +4212,7 @@
     "@metamask/utils" "^8.3.0"
     immer "^9.0.6"
 
-"@metamask/base-controller@^6.0.0", "@metamask/base-controller@^6.0.1":
-  version "6.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-6.0.1.tgz#358c9f7f0e6a865bac242deeb4cb4e71769f962f"
-  integrity sha512-rU/q4D7NYlaKUks4x1K5QI4cKn9Gto/63vC47IkPiSD5ozTY/PrKU2BNpJy0ayo7b03Xgq9bbnredom/BKsytA==
-  dependencies:
-    "@metamask/utils" "^9.0.0"
-    immer "^9.0.6"
-
-"@metamask/base-controller@^6.0.2":
+"@metamask/base-controller@^6.0.0", "@metamask/base-controller@^6.0.1", "@metamask/base-controller@^6.0.2":
   version "6.0.2"
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-6.0.2.tgz#710d4a1686616cc66c572099f065ebbfb6dbfcf5"
   integrity sha512-U6BWN/CLrXvDSsYOpx6QgavZO7XRi6n6zuz4Kqni2Sg2n6R9ixSS8JLZhYUbIBgosTf84tVURaSYsYavX3G5KQ==
