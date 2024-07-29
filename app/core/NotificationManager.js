@@ -405,9 +405,13 @@ class NotificationManager {
     const {
       AccountTrackerController,
       TransactionController,
-      PreferencesController,
+      AccountsController,
     } = Engine.context;
-    const { selectedAddress } = PreferencesController.state;
+    const selectedInternalAccount = AccountsController.getSelectedAccount();
+    const selectedInternalAccountChecksummedAddress = safeToChecksumAddress(
+      selectedInternalAccount.address,
+    );
+
     const chainId = selectChainId(store.getState());
 
     /// Find the incoming TX
@@ -423,8 +427,10 @@ class NotificationManager {
         .reverse()
         .filter(
           (tx) =>
-            safeToChecksumAddress(tx.txParams?.to) === selectedAddress &&
-            safeToChecksumAddress(tx.txParams?.from) !== selectedAddress &&
+            safeToChecksumAddress(tx.txParams?.to) ===
+              selectedInternalAccountChecksummedAddress &&
+            safeToChecksumAddress(tx.txParams?.from) !==
+              selectedInternalAccountChecksummedAddress &&
             tx.chainId === chainId &&
             tx.status === 'confirmed' &&
             lastBlock <= parseInt(tx.blockNumber, 10) &&

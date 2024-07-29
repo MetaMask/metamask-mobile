@@ -461,3 +461,29 @@ export const getAmount = (
 
   return formatAmount(numericAmount, options);
 };
+
+/**
+ * Converts a token amount and its USD conversion rate to a formatted USD string.
+ *
+ * This function first converts the token amount from its smallest unit based on the provided decimals
+ * to a human-readable format. It then multiplies this amount by the USD conversion rate to get the
+ * equivalent amount in USD, and formats this USD amount into a readable string.
+ *
+ * @param amount - The token amount in its smallest unit as a string.
+ * @param decimals - The number of decimals the token uses.
+ * @param usd - The current USD conversion rate for the token.
+ * @returns The formatted USD amount as a string. If any input is invalid, returns an empty string.
+ */
+export const getUsdAmount = (amount: string, decimals: string, usd: string) => {
+  if (!amount || !decimals || !usd) {
+    return '';
+  }
+
+  const amountInEther = calcTokenAmount(
+    amount,
+    parseFloat(decimals),
+  ).toNumber();
+  const numericAmount = parseFloat(`${amountInEther}`) * parseFloat(usd);
+
+  return formatAmount(numericAmount);
+};

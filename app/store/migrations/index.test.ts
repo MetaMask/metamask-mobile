@@ -7,6 +7,11 @@ import {
 const defaultNodeEnv = process.env.NODE_ENV;
 jest.unmock('redux-persist');
 jest.mock('../../store', () => jest.fn());
+jest.mock('react-native-default-preference', () => ({
+  set: jest.fn(),
+  clear: jest.fn(),
+  getAll: jest.fn().mockReturnValue({}),
+}));
 
 // Only test migrations 25 and up
 const migrationNumberToTestFrom = 25;

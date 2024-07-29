@@ -519,7 +519,7 @@ export function getEther(ticker) {
  * @param {object} config.addressBook - Object of address book entries
  * @param {string} config.chainId - network id
  * @param {string} config.toAddress - hex address of tx recipient
- * @param {array} config.identities - array of accounts objects from AccountsController
+ * @param {array} config.internalAccounts - array of accounts objects from AccountsController
  * @param {string} config.ensRecipient - name of ens recipient
  * @returns {string} - recipient name
  */
