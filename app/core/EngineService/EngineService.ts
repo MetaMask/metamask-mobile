@@ -76,6 +76,9 @@ class EngineService {
       { name: 'TransactionController' },
       { name: 'SmartTransactionsController' },
       { name: 'SwapsController' },
+      { name: 'AuthenticationController' },
+      { name: 'UserStorageController' },
+      { name: 'NotificationServicesController' },
       {
         name: 'TokenListController',
         key: `${engine.context.TokenListController.name}:stateChange`,
