@@ -11,12 +11,11 @@ import {
   Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
-import AsyncStorage from '../../../store/async-storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { OutlinedTextField } from 'react-native-material-textfield';
-import DefaultPreference from 'react-native-default-preference';
+import StorageWrapper from '../../../store/async-storage-wrapper';
 import Clipboard from '@react-native-clipboard/clipboard';
 import AppConstants from '../../../core/AppConstants';
 import Device from '../../../util/device';
@@ -117,10 +116,10 @@ const ImportFromSecretRecoveryPhrase = ({
 
     const setBiometricsOption = async () => {
       const authData = await Authentication.getType();
-      const previouslyDisabled = await AsyncStorage.getItem(
+      const previouslyDisabled = await StorageWrapper.getItem(
         BIOMETRY_CHOICE_DISABLED,
       );
-      const passcodePreviouslyDisabled = await AsyncStorage.getItem(
+      const passcodePreviouslyDisabled = await StorageWrapper.getItem(
         PASSCODE_DISABLED,
       );
       if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
@@ -228,7 +227,9 @@ const ImportFromSecretRecoveryPhrase = ({
             await handleRejectedOsBiometricPrompt(parsedSeed);
         }
         // Get onboarding wizard state
-        const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
+        const onboardingWizard = await StorageWrapper.getItem(
+          ONBOARDING_WIZARD,
+        );
         setLoading(false);
         passwordSet();
         setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);

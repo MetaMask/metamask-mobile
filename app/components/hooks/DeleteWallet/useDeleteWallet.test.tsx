@@ -16,6 +16,11 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../store/async-storage-wrapper', () => ({
+  getItem: jest.fn(),
+  removeItem: jest.fn(),
+}));
+
 describe('useDeleteWallet', () => {
   test('it should provide two outputs of type function', () => {
     const { result } = renderHook(() => useDeleteWallet());
