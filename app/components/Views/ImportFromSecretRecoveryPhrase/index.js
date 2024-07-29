@@ -16,7 +16,6 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { OutlinedTextField } from 'react-native-material-textfield';
-import DefaultPreference from 'react-native-default-preference';
 import Clipboard from '@react-native-clipboard/clipboard';
 import AppConstants from '../../../core/AppConstants';
 import Device from '../../../util/device';
@@ -228,7 +227,9 @@ const ImportFromSecretRecoveryPhrase = ({
             await handleRejectedOsBiometricPrompt(parsedSeed);
         }
         // Get onboarding wizard state
-        const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
+        const onboardingWizard = await StorageWrapper.getItem(
+          ONBOARDING_WIZARD,
+        );
         setLoading(false);
         passwordSet();
         setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);

@@ -18,7 +18,6 @@ import {
   SEED_PHRASE_HINTS,
 } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import OnboardingSuccess from '../OnboardingSuccess';
@@ -177,7 +176,7 @@ class ManualBackupStep3 extends PureComponent {
   };
 
   done = async () => {
-    const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
+    const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
     if (onboardingWizard) {
       this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
     } else {

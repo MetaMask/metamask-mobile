@@ -44,7 +44,6 @@ import Routes from '../../../constants/navigation/Routes';
 import { passwordRequirementsMet } from '../../../util/password';
 import ErrorBoundary from '../ErrorBoundary';
 import { toLowerCaseEquals } from '../../../util/general';
-import DefaultPreference from 'react-native-default-preference';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -373,7 +372,7 @@ class Login extends PureComponent {
       Keyboard.dismiss();
 
       // Get onboarding wizard state
-      const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
+      const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
       if (onboardingWizard) {
         this.props.navigation.replace(Routes.ONBOARDING.HOME_NAV);
       } else {
@@ -434,7 +433,7 @@ class Login extends PureComponent {
     field?.blur();
     try {
       await Authentication.appTriggeredAuth();
-      const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
+      const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
       if (!onboardingWizard) this.props.setOnboardingWizardStep(1);
       this.props.navigation.replace(Routes.ONBOARDING.HOME_NAV);
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
