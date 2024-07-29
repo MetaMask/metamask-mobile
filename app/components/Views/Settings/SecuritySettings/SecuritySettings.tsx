@@ -105,7 +105,7 @@ import Networks, {
   toggleUseSafeChainsListValidation,
 } from '../../../../util/networks';
 import images from 'images/image-icons';
-import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller/dist/constants';
+import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 import Text, {
   TextVariant,

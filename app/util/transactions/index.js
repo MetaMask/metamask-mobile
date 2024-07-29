@@ -353,9 +353,11 @@ export async function isSmartContractAddress(address, chainId) {
   ) {
     return Promise.resolve(true);
   }
-  const { TransactionController } = Engine.context;
+
+  const ethQuery = Engine.getGlobalEthQuery();
+
   const code = address
-    ? await query(TransactionController.ethQuery, 'getCode', [address])
+    ? await query(ethQuery, 'getCode', [address])
     : undefined;
   const isSmartContract = isSmartContractCode(code);
   return isSmartContract;

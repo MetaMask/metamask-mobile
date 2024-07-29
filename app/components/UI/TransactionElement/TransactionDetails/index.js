@@ -138,12 +138,8 @@ class TransactionDetails extends PureComponent {
   };
 
   fetchTxReceipt = async (transactionHash) => {
-    const { TransactionController } = Engine.context;
-    return await query(
-      TransactionController.ethQuery,
-      'getTransactionReceipt',
-      [transactionHash],
-    );
+    const ethQuery = Engine.getGlobalEthQuery();
+    return await query(ethQuery, 'getTransactionReceipt', [transactionHash]);
   };
 
   /**
