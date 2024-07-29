@@ -12,10 +12,10 @@ export interface IUserReducer {
   isAuthChecked: boolean;
   initialScreen: string;
   appTheme: AppThemeKey;
-  ambiguousAddressEntries: Record<string, unknown>; // Adjust the type of values if known
+  ambiguousAddressEntries: Record<string, unknown>;
 }
 
-const initialState = {
+export const userInitialState = {
   loadingMsg: '',
   loadingSet: false,
   passwordSet: false,
@@ -49,7 +49,7 @@ type UserAction =
 
 const userReducer = (
   // eslint-disable-next-line @typescript-eslint/default-param-last
-  state: IUserReducer = initialState,
+  state: IUserReducer = userInitialState,
   action: UserAction,
 ) => {
   switch (action.type) {
