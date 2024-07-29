@@ -3,9 +3,9 @@ import { DEFAULT_SESSION_TIMEOUT_MS } from '../SDKConnectConstants';
 import { SDKConnect } from './../SDKConnect';
 import connectToChannel from './connectToChannel';
 
-jest.mock('react-native-default-preference', () => ({
-  set: jest.fn().mockResolvedValue(''),
-  get: jest.fn().mockResolvedValue(''),
+jest.mock('../../../store/storage-wrapper', () => ({
+  setItem: jest.fn().mockResolvedValue(''),
+  getItem: jest.fn().mockResolvedValue(''),
 }));
 jest.mock('../../AppConstants');
 jest.mock('../Connection');

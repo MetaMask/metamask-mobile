@@ -19,7 +19,7 @@ import ScrollableTabView, {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTabView = View as any;
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import AsyncStorage from '../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
 import Button, {
@@ -51,7 +51,6 @@ import { isHardwareAccount } from '../../../util/address';
 import AppConstants from '../../../core/AppConstants';
 import { createStyles } from './styles';
 import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
@@ -177,7 +176,7 @@ const RevealPrivateCredential = ({
       if (!passwordSet) {
         tryUnlockWithPassword('');
       } else if (availableBiometryType) {
-        const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
+        const biometryChoice = await StorageWrapper.getItem(BIOMETRY_CHOICE);
         if (biometryChoice !== '' && biometryChoice === availableBiometryType) {
           const credentials = await Authentication.getPassword();
           if (credentials) {
@@ -467,10 +466,9 @@ const RevealPrivateCredential = ({
                 : strings('reveal_credential.srp_abbreviation_text'),
             })}
             onLongPress={() => revealCredential(privCredentialName)}
-            {...generateTestId(
-              Platform,
-              RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_LONG_PRESS_BUTTON_ID,
-            )}
+            testID={
+              RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_LONG_PRESS_BUTTON_ID
+            }
           />
         </>
       }

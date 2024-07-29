@@ -22,14 +22,10 @@ const useAddressBalance = (
 ) => {
   const [addressBalance, setAddressBalance] = useState('0');
 
-  const { accounts, contractBalances, selectedAddress } = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => ({
-      accounts: selectAccounts(state),
-      contractBalances: selectContractBalances(state),
-      selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
-    }),
+  const accounts = useSelector(selectAccounts);
+  const contractBalances = useSelector(selectContractBalances);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountChecksummedAddress,
   );
   const ticker = useSelector(selectTicker);
 
