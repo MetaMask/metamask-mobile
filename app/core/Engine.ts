@@ -33,6 +33,8 @@ import {
   TokenRatesControllerEvents,
   AccountTrackerControllerActions,
   AccountTrackerControllerEvents,
+  NftControllerActions,
+  NftControllerEvents,
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { AppState } from 'react-native';
@@ -276,6 +278,7 @@ type GlobalActions =
   | GetTokenListState
   | KeyringControllerActions
   | NetworkControllerActions
+  | NftControllerActions
   | PermissionControllerActions
   | SignatureControllerActions
   | TransactionControllerActions
@@ -304,6 +307,7 @@ type GlobalEvents =
   | TokenListStateChange
   | TransactionControllerEvents
   | NetworkControllerEvents
+  | NftControllerEvents
   | PermissionControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalEvents
@@ -1499,6 +1503,7 @@ class Engine {
           'GasFeeController:stateChange',
           'KeyringController:stateChange',
           'NetworkController:stateChange',
+          'NftController:stateChange',
           'PermissionController:stateChange',
           'PPOMController:stateChange',
           'PreferencesController:stateChange',
@@ -1520,8 +1525,6 @@ class Engine {
           'AuthenticationController:stateChange',
           // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
           'LoggingController:stateChange',
-          // @ts-expect-error BaseControllerV1, has `messagingSystem` but as private field, messenger defined without `stateChange` event type
-          'NftController:stateChange',
           // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
           'NotificationServicesController:stateChange',
           // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
