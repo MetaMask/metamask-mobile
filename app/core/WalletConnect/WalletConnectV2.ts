@@ -4,7 +4,6 @@ import { Minimizer } from '../NativeModules';
 import getRpcMethodMiddleware from '../RPCMethods/RPCMethodMiddleware';
 
 import { KeyringController } from '@metamask/keyring-controller';
-import { PreferencesController } from '@metamask/preferences-controller';
 import Logger from '../../util/Logger';
 
 import { WalletDevice } from '@metamask/transaction-controller';
@@ -45,6 +44,8 @@ import parseWalletConnectUri, {
   showWCLoadingState,
 } from './wc-utils';
 import { getDefaultNetworkByChainId } from '../../util/networks';
+import { AccountsController } from '@metamask/accounts-controller';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
@@ -557,10 +558,15 @@ export class WC2Manager {
       },
     );
 
-    const preferencesController = (
-      Engine.context as { PreferencesController: PreferencesController }
-    ).PreferencesController;
-    const selectedAddress = preferencesController.state.selectedAddress;
+    const accountsController = (
+      Engine.context as {
+        AccountsController: AccountsController;
+      }
+    ).AccountsController;
+
+    const selectedInternalAccountChecksummedAddress = toChecksumHexAddress(
+      accountsController.getSelectedAccount().address,
+    );
 
     // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
     const chainId = selectChainId(store.getState());
@@ -640,7 +646,7 @@ export class WC2Manager {
 
           const nChainId = parseInt(chainId, 16);
           DevLogger.log(
-            `WC2::init updateSession session=${sessionKey} chainId=${chainId} nChainId=${nChainId} selectedAddress=${selectedAddress}`,
+            `WC2::init updateSession session=${sessionKey} chainId=${chainId} nChainId=${nChainId} selectedAddress=${selectedInternalAccountChecksummedAddress}`,
             approvedAccounts,
           );
           await this.sessions[sessionKey].updateSession({
