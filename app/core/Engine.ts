@@ -1117,20 +1117,43 @@ class Engine {
     this.transactionController = new TransactionController({
       // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
       blockTracker: networkController.getProviderAndBlockTracker().blockTracker,
-      disableSendFlowHistory: true,
       disableHistory: true,
+      disableSendFlowHistory: true,
       disableSwaps: true,
-      getGasFeeEstimates:
-        gasFeeController.fetchGasFeeEstimates.bind(gasFeeController),
       // @ts-expect-error TransactionController is missing networkClientId argument in type
       getCurrentNetworkEIP1559Compatibility:
         networkController.getEIP1559Compatibility.bind(networkController),
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      getExternalPendingTransactions: (address: string) =>
+        this.smartTransactionsController.getTransactions({
+          addressFrom: address,
+          status: SmartTransactionStatuses.PENDING,
+        }),
+      getGasFeeEstimates:
+        gasFeeController.fetchGasFeeEstimates.bind(gasFeeController),
       // @ts-expect-error NetworkController in TransactionController is later version
       // but only breaking change is Node version and bumped dependencies
       getNetworkClientRegistry:
         networkController.getNetworkClientRegistry.bind(networkController),
       getNetworkState: () => networkController.state,
       getPermittedAccounts: (origin) => getPermittedAccounts(origin as string),
+      hooks: {
+        publish: (transactionMeta) => {
+          const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
+            store.getState(),
+          );
+
+          return submitSmartTransactionHook({
+            transactionMeta,
+            transactionController: this.transactionController,
+            smartTransactionsController: this.smartTransactionsController,
+            shouldUseSmartTransaction,
+            approvalController,
+            featureFlags: selectSwapsChainFeatureFlags(store.getState()),
+          }) as Promise<{ transactionHash: string }>;
+        },
+      },
       incomingTransactions: {
         isEnabled: () => {
           const currentHexChainId =
@@ -1169,32 +1192,10 @@ class Engine {
       },
       // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
       provider: networkController.getProviderAndBlockTracker().provider,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      getExternalPendingTransactions: (address: string) =>
-        this.smartTransactionsController.getTransactions({
-          addressFrom: address,
-          status: SmartTransactionStatuses.PENDING,
-        }),
       sign: keyringController.signTransaction.bind(
         keyringController,
       ) as unknown as TransactionControllerOptions['sign'],
-      hooks: {
-        publish: (transactionMeta) => {
-          const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
-            store.getState(),
-          );
-
-          return submitSmartTransactionHook({
-            transactionMeta,
-            transactionController: this.transactionController,
-            smartTransactionsController: this.smartTransactionsController,
-            shouldUseSmartTransaction,
-            approvalController,
-            featureFlags: selectSwapsChainFeatureFlags(store.getState()),
-          }) as Promise<{ transactionHash: string }>;
-        },
-      },
+      state: initialState.TransactionController,
     });
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
