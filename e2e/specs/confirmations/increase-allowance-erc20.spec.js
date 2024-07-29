@@ -54,7 +54,7 @@ describe(SmokeConfirmations('ERC20 - Increase Allowance'), () => {
         await ContractApprovalModal.inputCustomAmount('2');
 
         // Assert that custom token amount is shown
-        await Assertions.checkIfHasText(
+        await Assertions.checkIfElementToHaveText(
           ContractApprovalModal.approveTokenAmount,
           '2',
         );

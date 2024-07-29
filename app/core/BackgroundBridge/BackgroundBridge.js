@@ -97,7 +97,7 @@ export class BackgroundBridge extends EventEmitter {
 
     // This will only be used for WalletConnect for now
     this.addressSent =
-      Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
+      Engine.context.AccountsController.getSelectedAccount().address.toLowerCase();
 
     const portStream = new MobilePortStream(this.port, url);
     // setup multiplexing

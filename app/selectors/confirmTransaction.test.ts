@@ -125,7 +125,6 @@ describe('Confirm Transaction Selectors', () => {
 
       expect(mergeGasFeeEstimatesMock).toHaveBeenCalledTimes(1);
       expect(mergeGasFeeEstimatesMock).toHaveBeenCalledWith({
-        gasFeeControllerEstimateType: GAS_ESTIMATE_TYPES.FEE_MARKET,
         gasFeeControllerEstimates: GAS_FEE_ESTIMATES_MOCK,
         transactionGasFeeEstimates: TRANSACTION_GAS_FEE_ESTIMATES_MOCK,
       });

@@ -1,16 +1,19 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
-import { ANDROID_PROGRESS_BAR, TOAST_ID } from './testIDs/Common.testIds';
-import { ToastSelectorsText } from '../../e2e/selectors/Modals/ToastModal.selectors';
+import {
+  ToastSelectorsIDs,
+  ToastSelectorsText,
+} from '../../e2e/selectors/Modals/ToastModal.selectors';
+import { CommonSelectorsIDs } from '../../e2e/selectors/Common.selectors';
 import { NOTIFICATION_TITLE } from './testIDs/Components/Notification.testIds';
 
 class CommonScreen {
   get toast() {
-    return Selectors.getXpathElementByResourceId(TOAST_ID);
+    return Selectors.getXpathElementByResourceId(ToastSelectorsIDs.CONTAINER);
   }
 
   get androidProgressBar() {
-    return Selectors.getElementByCss(ANDROID_PROGRESS_BAR);
+    return Selectors.getElementByCss(CommonSelectorsIDs.ANDROID_PROGRESS_BAR);
   }
 
   get TokenNotificationTitle() {

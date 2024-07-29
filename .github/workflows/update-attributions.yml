@@ -39,7 +39,7 @@ jobs:
             -f content='+1'
         env:
           COMMENT_ID: ${{ github.event.comment.id }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_WRITE_TOKEN }}
           REPO: ${{ github.repository }}
 
   prepare:
@@ -113,7 +113,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           # Use PAT to ensure that the commit later can trigger status check workflows
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.ACTIONS_WRITE_TOKEN }}
       - name: Checkout pull request
         run: gh pr checkout "${PR_NUMBER}"
         env:
@@ -154,7 +154,7 @@ jobs:
           fi
         env:
           HAS_CHANGES: ${{ steps.attributions-changes.outputs.HAS_CHANGES }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_WRITE_TOKEN }}
           PR_NUMBER: ${{ github.event.issue.number }}
 
   check-status:
@@ -190,6 +190,6 @@ jobs:
             gh pr comment "${PR_NUMBER}" --body "Attributions update failed. You can [review the logs or retry the attributions update here](${ACTION_RUN_URL})"
           fi
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_WRITE_TOKEN }}
           PR_NUMBER: ${{ github.event.issue.number }}
           ACTION_RUN_URL: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
