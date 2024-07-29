@@ -213,6 +213,7 @@ import { SmartTransactionStatuses } from '@metamask/smart-transactions-controlle
 import { submitSmartTransactionHook } from '../util/smart-transactions/smart-publish-hook';
 import { SmartTransactionsControllerState } from '@metamask/smart-transactions-controller/dist/SmartTransactionsController';
 import { zeroAddress } from 'ethereumjs-util';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1595,14 +1596,16 @@ class Engine {
   } => {
     const {
       CurrencyRateController,
-      PreferencesController,
+      AccountsController,
       AccountTrackerController,
       TokenBalancesController,
       TokenRatesController,
       TokensController,
       NetworkController,
     } = this.context;
-    const { selectedAddress } = PreferencesController.state;
+    const selectedInternalAccount = AccountsController.getSelectedAccount();
+    const selectSelectedInternalAccountChecksummedAddress =
+      toChecksumHexAddress(selectedInternalAccount.address);
     const { currentCurrency } = CurrencyRateController.state;
     const { chainId, ticker } = NetworkController.state.providerConfig;
     const {
@@ -1626,9 +1629,15 @@ class Engine {
     let tokenFiat = 0;
     let tokenFiat1dAgo = 0;
     const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
-    if (accountsByChainId?.[toHexadecimal(chainId)]?.[selectedAddress]) {
+    if (
+      accountsByChainId?.[toHexadecimal(chainId)]?.[
+        selectSelectedInternalAccountChecksummedAddress
+      ]
+    ) {
       ethFiat = weiToFiatNumber(
-        accountsByChainId[toHexadecimal(chainId)][selectedAddress].balance,
+        accountsByChainId[toHexadecimal(chainId)][
+          selectSelectedInternalAccountChecksummedAddress
+        ].balance,
         conversionRate,
         decimalsToShow,
       );
