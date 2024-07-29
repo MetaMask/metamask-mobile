@@ -13,7 +13,7 @@ import Icon, {
 
 import Button, {
   ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
+} from '../../../component-library/components/Buttons/Button';
 
 import Text, {
   TextVariant,
@@ -45,7 +45,7 @@ const NotificationsView = ({
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
-  const { markNotificationAsRead } = useMarkNotificationAsRead();
+  const { markNotificationAsRead, loading } = useMarkNotificationAsRead();
   const notifications = useSelector(getNotificationsList);
 
   const handleMarkAllAsRead = useCallback(() => {
@@ -102,6 +102,7 @@ const NotificationsView = ({
             label={strings('notifications.mark_all_as_read')}
             onPress={handleMarkAllAsRead}
             style={styles.stickyButton}
+            disabled={loading}
           />
         </>
       ) : (
