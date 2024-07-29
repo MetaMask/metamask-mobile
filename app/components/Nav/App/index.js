@@ -116,6 +116,7 @@ import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctional
 import SmartTransactionsOptInModal from '../../Views/SmartTransactionsOptInModal/SmartTranactionsOptInModal';
 import ProfileSyncingModal from '../../UI/ProfileSyncing/ProfileSyncingModal/ProfileSyncingModal';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
+import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
@@ -711,6 +712,10 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}
         component={NFTAutoDetectionModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.ORIGIN_SPAM_MODAL}
+        component={OriginSpamModal}
       />
     </Stack.Navigator>
   );
