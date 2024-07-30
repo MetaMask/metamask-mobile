@@ -35,6 +35,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
+import {
+  IMetaMetricsEvent,
+  MetaMetrics,
+  MetaMetricsEvents,
+} from '../../../../core/Analytics';
 
 const diameter = 40;
 const spacing = 8;
@@ -203,6 +208,14 @@ class Settings extends PureComponent {
 
   selectPrimaryCurrency = (primaryCurrency) => {
     this.props.setPrimaryCurrency(primaryCurrency);
+
+    const metrics = MetaMetrics.getInstance();
+    const traits = { primaryCurrency };
+    metrics.addTraitsToUser(traits);
+    metrics.trackEvent(MetaMetricsEvents.PRIMARY_CURRENCY_TOGGLE, {
+      ...traits,
+      location: 'app_settings',
+    });
   };
 
   toggleHideZeroBalanceTokens = (toggleHideZeroBalanceTokens) => {
