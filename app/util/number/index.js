@@ -680,7 +680,7 @@ export function renderPortfolioBalance(
   currencyCode,
   decimalsToShow = 5,
 ) {
-  if (currencySymbols[currencyCode]) {
+  if (currencySymbols[currencyCode.toLowerCase()]) {
     return new Intl.NumberFormat(I18n.locale, {
       style: 'currency',
       currency: currencyCode,

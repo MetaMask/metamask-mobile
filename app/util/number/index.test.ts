@@ -610,6 +610,7 @@ describe('Number utils :: renderPortfolioBalance', () => {
     expect(renderPortfolioBalance(12312312.987987, 'eur')).toEqual(
       '€12,312,312.99',
     );
+    expect(renderPortfolioBalance(0.0, 'USD')).toEqual('$0.00');
   });
   it('renderPortfolioBalance handles crypto and unsupported fiat with 5 fixed decimals, unless specified', () => {
     expect(renderPortfolioBalance(0.1, 'btc')).toEqual('0.10000 BTC');
