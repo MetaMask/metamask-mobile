@@ -14,6 +14,7 @@ import BigNumber from 'bignumber.js';
 import currencySymbols from '../currency-symbols.json';
 import { isZero } from '../lodash';
 import { regex } from '../regex';
+import I18n from '../../../locales/i18n';
 export { BNToHex };
 
 // Big Number Constants
@@ -679,38 +680,50 @@ export const fiatCurrencyFormatted = (currencyCode, fiatValue) =>
     : `${fiatValue} ${currencyCode.toUpperCase()}`;
 
 /**
- * Formats a fiat value into a string ready to be rendered.
- * 1.	Always shows at least two decimal places.
- * 2.	Removes any trailing zeros beyond the required decimal places.
- * This means that there should only ever be at max 2 trailing zeroes, and they should only ever be one or both the starting two decimal places
+ * Renders a formatted portfolio balance. This uses the I18n for all supported fiat currencies.
+ * If unsupported fiat, or crypto, fallback to custom implementation. decimalsToShow defaults to 5 decimals, unless provided.
+ *
+ * @param {number} value - The balance value to format.
+ * @param {string} currencyCode - The currency code (e.g., 'usd', 'btc').
+ * @param {number} [decimalsToShow=5] - The number of decimal places to show (default is 5).
+ * @returns {string} The formatted balance with the currency symbol or code.
+ */
+export function renderPortfolioBalance(
+  value,
+  currencyCode,
+  decimalsToShow = 5,
+) {
+  if (currencySymbols[currencyCode]) {
+    return new Intl.NumberFormat(I18n.locale, {
+      style: 'currency',
+      currency: currencyCode,
+    }).format(value);
+  }
+  // cryptocurrencies & unsupported fiat
+  const base = Math.pow(10, decimalsToShow);
+  let fixedBalance = parseFloat(Math.round(value * base) / base).toFixed(
+    decimalsToShow,
+  );
+  fixedBalance = isNaN(fixedBalance) ? 0.0 : fixedBalance; // no matter what, don't render NaN
+  return `${fixedBalance} ${currencyCode.toUpperCase()}`;
+}
+
+/**
+ * Formats a fiat value into a string ready to be rendered
  *
  * @param {number} value - number corresponding to a balance of an asset
  * @param {string} currencyCode - Current currency code to display
  * @param {number} decimalsToShow - Decimals to 5
- * @returns {string} - The converted balance, ie $125.75
+ * @returns {string} - The converted balance
  */
 export function renderFiat(value, currencyCode, decimalsToShow = 5) {
   const base = Math.pow(10, decimalsToShow);
-  let fiatFixed = parseFloat(`${Math.round(value * base) / base}`);
+  let fiatFixed = parseFloat(Math.round(value * base) / base);
   fiatFixed = isNaN(fiatFixed) ? 0.0 : fiatFixed;
-
-  // Always shows at least two decimal places.
-  let fiatFormatted = fiatFixed.toFixed(
-    decimalsToShow > 2 ? decimalsToShow : 2,
-  );
-
-  if (decimalsToShow <= 2) {
-    return fiatCurrencyFormatted(currencyCode, fiatFormatted);
+  if (currencySymbols[currencyCode]) {
+    return `${currencySymbols[currencyCode]}${fiatFixed}`;
   }
-  fiatFormatted = fiatFormatted.replace(/(\.\d*?[1-9])0+$/g, '$1'); // Remove trailing zeros after the last non-zero digit for things like 0.0010000
-  const decimals = fiatFormatted.split('.')[1];
-
-  // still a chance we have things like 0.1 or 15.7 if decimalsToShow is high and after stripping zeros
-  // add an extra zero in this case
-  if (decimals.length === 1) {
-    fiatFormatted += '0';
-  }
-  return fiatCurrencyFormatted(currencyCode, fiatFormatted);
+  return `${fiatFixed} ${currencyCode.toUpperCase()}`;
 }
 
 /**
