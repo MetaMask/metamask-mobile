@@ -3,18 +3,19 @@ import { StorageBackend, StorageKey } from '@metamask/ppom-validator';
 
 import { getArrayBufferForBlob } from 'react-native-blob-jsi-helper';
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 if (window.FileReader?.prototype.readAsArrayBuffer) {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
   window.FileReader.prototype.readAsArrayBuffer = function (blob) {
     if (this.readyState === this.LOADING) throw new Error('InvalidStateError');
-    this._setReadyState(this.LOADING);
-    this._result = null;
-    this._error = null;
-    this._result = getArrayBufferForBlob(blob);
-    this._setReadyState(this.DONE);
+    (
+      this as FileReader & { _setReadyState(state: number): void }
+    )._setReadyState(this.LOADING);
+    (this as FileReader & { _result: ArrayBuffer | null })._result = null;
+    (this as FileReader & { _error: DOMException | null })._error = null;
+    (this as FileReader & { _result: ArrayBuffer | null })._result =
+      getArrayBufferForBlob(blob);
+    (
+      this as FileReader & { _setReadyState(state: number): void }
+    )._setReadyState(this.DONE);
   };
 }
 
