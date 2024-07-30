@@ -531,7 +531,6 @@ class Asset extends PureComponent {
             headerHeight={280}
             onScrollThroughContent={this.onScrollThroughContent}
           />
-          /*         <Text>sqjkbdjksqdjsqn</Text> */
         )}
         {!asset.balanceError && (displayBuyButton || displaySwapsButton) && (
           <View style={{ ...styles.footer, ...styles.footerBorder }}>
