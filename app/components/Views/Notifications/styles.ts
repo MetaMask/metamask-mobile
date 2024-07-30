@@ -5,7 +5,7 @@ const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
   },
-  stickyButton: { alignSelf: 'center', width: '100%', zIndex: 1, bottom: 50 },
+  stickyButton: { width: '100%', position: 'absolute', bottom: 50 },
   icon: { marginHorizontal: 20 },
 });
 
