@@ -54,6 +54,7 @@ describe(SmokeCore('Connect account to Portfolio'), () => {
     await PortfolioHomePage.tapConnectMetaMask();
     await ConnectModal.tapConnectButton();
     await device.enableSynchronization();
+    await device.enableSynchronization();
   });
 
   it('should not open additional browser tabs to portfolio', async () => {
