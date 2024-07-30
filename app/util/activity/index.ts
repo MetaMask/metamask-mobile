@@ -41,9 +41,11 @@ export const isFromCurrentChain = (
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const sortTransactions = (transactions: any[]): any[] =>
-  [...transactions].sort((a, b) =>
-    a.time > b.time ? -1 : b.time > a.time ? 1 : 0,
-  );
+  [...transactions].sort((a, b) => {
+    if (a.time > b.time) return -1;
+    if (a.time < b.time) return 1;
+    return 0;
+  });
 
 /**
  * Filter based on the following conditions:
