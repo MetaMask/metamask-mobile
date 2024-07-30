@@ -1515,5 +1515,5 @@ trigger_map:
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline
-  - push_branch: try-running-detox-on-qa-build
-    pipeline: pr_regression_e2e_pipeline
+  # - push_branch: try-running-detox-on-qa-build
+  #   pipeline: pr_regression_e2e_pipeline
