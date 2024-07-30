@@ -646,13 +646,6 @@ class NetworkSettings extends PureComponent {
         }
       }
 
-      const analyticsParamsAdd = {
-        chain_id: this.getDecimalChainId(chainId),
-        source: 'Custom network form',
-        symbol: ticker,
-      };
-
-      metrics.trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
       this.props.showNetworkOnboardingAction({
         networkUrl,
         networkType,
