@@ -398,8 +398,10 @@ const App = ({ userLoggedIn }) => {
       SharedDeeplinkManager.init({
         navigation: {
           navigate: (routeName, opts) => {
-            const params = { name: routeName, params: opts };
-            navigator.dispatch?.(CommonActions.navigate(params));
+            if (navigator) {
+              const params = { name: routeName, params: opts };
+              navigator.dispatch?.(CommonActions.navigate(params));
+            }
           },
         },
         dispatch,
