@@ -15,7 +15,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import Engine from '../../../core/Engine';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
