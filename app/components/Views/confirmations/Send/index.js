@@ -37,7 +37,6 @@ import {
 } from '../../../../util/transactions';
 import Logger from '../../../../util/Logger';
 import { getAddress } from '../../../../util/address';
-import TransactionTypes from '../../../../core/TransactionTypes';
 import { MAINNET } from '../../../../constants/network';
 import BigNumber from 'bignumber.js';
 import { WalletDevice } from '@metamask/transaction-controller';
@@ -66,6 +65,7 @@ import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
 import { toLowerCaseEquals } from '../../../../util/general';
+import TransactionTypes from '../../../../core/TransactionTypes';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -365,7 +365,6 @@ class Send extends PureComponent {
           '0';
         newTxMeta = {
           assetType: 'ERC20',
-          type: 'INDIVIDUAL_TOKEN_TRANSACTION',
           paymentRequest: true,
           selectedAsset,
           ensRecipient,
