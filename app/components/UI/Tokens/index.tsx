@@ -15,7 +15,6 @@ import {
   renderFromTokenMinimalUnit,
   addCurrencySymbol,
   balanceToFiatNumber,
-  renderFiat,
   renderPortfolioBalance,
 } from '../../../util/number';
 import Engine from '../../../core/Engine';
