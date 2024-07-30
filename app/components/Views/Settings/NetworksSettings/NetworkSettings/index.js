@@ -32,7 +32,6 @@ import { jsonRpcRequest } from '../../../../../util/jsonRpcRequest';
 import Logger from '../../../../../util/Logger';
 import { isPrefixedFormattedHexString } from '../../../../../util/number';
 import AppConstants from '../../../../../core/AppConstants';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { PopularList } from '../../../../../util/networks/customNetworks';
@@ -553,10 +552,9 @@ class NetworkSettings extends PureComponent {
       blockExplorerUrl,
       editable,
       enableAction,
-      showPopularNetworkModal,
     } = this.state;
     const ticker = this.state.ticker && this.state.ticker.toUpperCase();
-    const { navigation, networkOnboardedState, route, metrics } = this.props;
+    const { navigation, networkOnboardedState, route } = this.props;
     const isCustomMainnet = route.params?.isCustomMainnet;
     // This must be defined before NetworkController.upsertNetworkConfiguration.
     const prevRPCURL = isCustomMainnet
