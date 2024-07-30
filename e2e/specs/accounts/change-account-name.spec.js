@@ -42,7 +42,9 @@ describe(Regression('Change Account Name'), () => {
   afterAll(async () => {
     await stopFixtureServer(fixtureServer);
   });
-  it('renames an account', async () => {
+
+  it('renames an account and verifies the new name persists after locking and unlocking the wallet', async () => {
+    // Open account actions and edit account name
     await WalletView.tapMainWalletAccountActions();
     await AccountActionsModal.tapEditAccount();
     await Gestures.clearField(EditAccountNameView.accountNameInput());
@@ -52,7 +54,7 @@ describe(Regression('Change Account Name'), () => {
     );
     await EditAccountNameView.tapSave();
 
-    // Conditionally execute for Android
+    // Verify updated name
     if (device.getPlatform() === 'android') {
       await WalletView.tapIdenticon();
       await Assertions.checkIfTextIsDisplayed(NEW_ACCOUNT_NAME);
@@ -62,20 +64,18 @@ describe(Regression('Change Account Name'), () => {
     }
 
     // Lock wallet
+    await Assertions.checkIfVisible(WalletView.container);
     await TabBarComponent.tapSettings();
     await SettingsView.scrollToLockButton();
     await SettingsView.tapLock();
     await SettingsView.tapYesAlertButton();
     await LoginView.isVisible();
 
-    // Unlock and confirm custom name persists
+    // Unlock wallet and verify updated name persists
     await loginToApp();
-
-    // Conditionally execute for Android
     if (device.getPlatform() === 'android') {
       await WalletView.tapIdenticon();
     }
-
     await Assertions.checkIfTextIsDisplayed(NEW_ACCOUNT_NAME);
   });
 });
