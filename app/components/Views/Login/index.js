@@ -193,6 +193,7 @@ const WRONG_PASSWORD_ERROR_ANDROID =
   'Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
 const VAULT_ERROR = 'Cannot unlock without a previous vault.';
 const DENY_PIN_ERROR_ANDROID = 'Error: Error: Cancel';
+const JSON_PARSE_ERROR_UNEXPECTED_TOKEN = 'Error: JSON Parse error';
 
 /**
  * View where returning users can authenticate
@@ -406,7 +407,10 @@ class Login extends PureComponent {
           strings('login.security_alert_desc'),
         );
         this.setState({ loading: false });
-      } else if (containsErrorMessage(error, VAULT_ERROR)) {
+      } else if (
+        containsErrorMessage(error, VAULT_ERROR) ||
+        containsErrorMessage(error, JSON_PARSE_ERROR_UNEXPECTED_TOKEN)
+      ) {
         try {
           await this.handleVaultCorruption();
         } catch (e) {
