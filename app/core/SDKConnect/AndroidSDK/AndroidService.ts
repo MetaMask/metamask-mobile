@@ -25,7 +25,6 @@ import { SDKConnect } from '../SDKConnect';
 import { KeyringController } from '@metamask/keyring-controller';
 
 import { PermissionController } from '@metamask/permission-controller';
-import { PreferencesController } from '@metamask/preferences-controller';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import BatchRPCManager from '../BatchRPCManager';
 import { DEFAULT_SESSION_TIMEOUT_MS } from '../SDKConnectConstants';
@@ -35,6 +34,8 @@ import AndroidSDKEventHandler from './AndroidNativeSDKEventHandler';
 import sendMessage from './AndroidService/sendMessage';
 import { DappClient, DappConnections } from './dapp-sdk-types';
 import getDefaultBridgeParams from './getDefaultBridgeParams';
+import { AccountsController } from '@metamask/accounts-controller';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 export default class AndroidService extends EventEmitter2 {
   public communicationClient = NativeModules.CommunicationClient;
@@ -355,13 +356,15 @@ export default class AndroidService extends EventEmitter2 {
           }
         }
 
-        const preferencesController = (
+        const accountsController = (
           Engine.context as {
-            PreferencesController: PreferencesController;
+            AccountsController: AccountsController;
           }
-        ).PreferencesController;
+        ).AccountsController;
 
-        const selectedAddress = preferencesController.state.selectedAddress;
+        const selectedInternalAccountChecksummedAddress = toChecksumHexAddress(
+          accountsController.getSelectedAccount().address,
+        );
 
         const networkController = (
           Engine.context as {
@@ -377,7 +380,7 @@ export default class AndroidService extends EventEmitter2 {
         const processedRpc = await handleCustomRpcCalls({
           batchRPCManager: this.batchRPCManager,
           selectedChainId: chainId,
-          selectedAddress,
+          selectedAddress: selectedInternalAccountChecksummedAddress,
           rpc: { id: data.id, method: data.method, params: data.params },
         });
 

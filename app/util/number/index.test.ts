@@ -27,6 +27,7 @@ import {
   renderFromTokenMinimalUnit,
   renderFromWei,
   renderPortfolioBalance,
+  safeBNToHex,
   safeNumberToBN,
   toBN,
   toHexadecimal,
@@ -1003,4 +1004,17 @@ describe('Number utils :: formatValueToMatchTokenDecimals', () => {
   it('should return a formatted value if the value decimal is greater than the submitted decimal', () => {
     expect(formatValueToMatchTokenDecimals('1.234567', 4)).toBe('1.2346');
   });
+});
+
+describe('Number utils :: safeBNToHex', () => {
+  it('returns hex string', () => {
+    expect(safeBNToHex(new BN('255'))).toBe('0xff');
+  });
+
+  it.each([undefined, null])(
+    'returns original value if input is %s',
+    (value) => {
+      expect(safeBNToHex(value)).toBe(value);
+    },
+  );
 });

@@ -889,3 +889,11 @@ export const formatValueToMatchTokenDecimals = (value, decimal) => {
   }
   return value;
 };
+
+export const safeBNToHex = (value) => {
+  if (value === null || value === undefined) {
+    return value;
+  }
+
+  return BNToHex(value);
+};
