@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useMemo } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { NotificationsViewSelectorsIDs } from '../../../../e2e/selectors/NotificationsView.selectors';
-import { createStyles } from './styles';
+import styles from './styles';
 import Notifications from '../../UI/Notification/List';
 import { TRIGGER_TYPES, sortNotifications } from '../../../util/notifications';
 import Icon, {
@@ -40,7 +40,6 @@ const NotificationsView = ({
 }: {
   navigation: NavigationProp<ParamListBase>;
 }) => {
-  const styles = createStyles();
   const { listNotifications, isLoading } = useListNotifications();
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
@@ -125,20 +124,12 @@ NotificationsView.navigationOptions = ({
     <TouchableOpacity
       onPress={() => navigation.navigate(Routes.SETTINGS.NOTIFICATIONS)}
     >
-      <Icon
-        name={IconName.Setting}
-        size={IconSize.Lg}
-        style={createStyles().icon}
-      />
+      <Icon name={IconName.Setting} size={IconSize.Lg} style={styles.icon} />
     </TouchableOpacity>
   ),
   headerLeft: () => (
     <TouchableOpacity onPress={() => navigation.navigate(Routes.WALLET.HOME)}>
-      <Icon
-        name={IconName.Close}
-        size={IconSize.Md}
-        style={createStyles().icon}
-      />
+      <Icon name={IconName.Close} size={IconSize.Md} style={styles.icon} />
     </TouchableOpacity>
   ),
   headerTitle: () => (
