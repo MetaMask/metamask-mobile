@@ -7,8 +7,11 @@ import {
   RefreshControl,
   Pressable,
 } from 'react-native';
+// @ts-expect-error TypeScript declaration for the module
+import { ViewPropTypes } from 'deprecated-react-native-prop-types';
 import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
+// @ts-expect-error Untyped module
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
 import {
@@ -42,13 +45,17 @@ import {
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import { createDetectedTokensNavDetails } from '../../Views/DetectedTokens';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
-import { BadgeVariant } from '../../../component-library/components/Badges/Badge/Badge.types';
+
+// Define MarketDataDetails type
+interface MarketDataDetails {
+  price: number;
+  pricePercentChange1d?: number;
+}
+
+// Remove incorrect type declaration
 
 import images from 'images/image-icons';
-import {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../component-library/components/Avatars/Avatar';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Text, {
   TextColor,
@@ -75,6 +82,7 @@ import { BrowserTab, TokenI, TokensI } from './types';
 import useRampNetwork from '../Ramp/hooks/useRampNetwork';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import Badge from '../../../component-library/components/Badges/Badge/Badge';
+import { BadgeVariant } from '../../../component-library/components/Badges/Badge/Badge.types';
 import useTokenBalancesController from '../../hooks/useTokenBalancesController/useTokenBalancesController';
 import {
   selectConversionRate,
@@ -168,7 +176,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     setShowScamWarningModal(false);
   };
 
-  const renderScamWarningIcon = (asset) => {
+  const renderScamWarningIcon = (asset: TokenI) => {
     if (!isOriginalNativeTokenSymbol && asset.isETH) {
       return (
         <ButtonIcon
@@ -313,8 +321,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     // When the exchange rate of a token is not found, the return is undefined
     // We fallback to the TOKEN_RATE_UNDEFINED to handle it properly
     const tokenMarketData = tokenExchangeRates
-      ? itemAddress in tokenExchangeRates
-        ? tokenExchangeRates[itemAddress] || TOKEN_RATE_UNDEFINED
+      ? itemAddress && itemAddress in tokenExchangeRates
+        ? tokenExchangeRates[itemAddress as `0x${string}`] ||
+          (TOKEN_RATE_UNDEFINED as unknown as MarketDataDetails)
         : undefined
       : undefined;
 
@@ -339,7 +348,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         balanceValueFormatted,
       };
 
-    if (!tokenMarketData || tokenMarketData === TOKEN_RATE_UNDEFINED)
+    if (
+      !tokenMarketData ||
+      tokenMarketData === (TOKEN_RATE_UNDEFINED as unknown as MarketDataDetails)
+    )
       return {
         balanceFiat: asset.isETH ? asset.balanceFiat : TOKEN_RATE_UNDEFINED,
         balanceValueFormatted,
@@ -365,11 +377,12 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     const pricePercentChange1d = itemAddress
       ? tokenExchangeRates?.[itemAddress as `0x${string}`]?.pricePercentChange1d
-      : tokenExchangeRates?.[zeroAddress()]?.pricePercentChange1d;
+      : tokenExchangeRates?.[zeroAddress() as `0x${string}`]
+          ?.pricePercentChange1d;
 
     // render balances according to primary currency
-    let mainBalance, secondaryBalance;
-    mainBalance = TOKEN_BALANCE_LOADING;
+    let mainBalance: string | null = TOKEN_BALANCE_LOADING;
+    let secondaryBalance: string | undefined;
 
     // Set main and secondary balances based on the primary currency and asset type.
     if (primaryCurrency === 'ETH') {
@@ -382,7 +395,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         // Main balance always shows the formatted balance value for ETH.
         mainBalance = balanceValueFormatted;
         // Display fiat value as secondary balance only for original native tokens on safe networks.
-        secondaryBalance = isOriginalNativeTokenSymbol ? balanceFiat : null;
+        secondaryBalance = isOriginalNativeTokenSymbol
+          ? balanceFiat
+          : undefined;
       }
     } else {
       // For non-ETH currencies, determine balances based on the presence of fiat value.
@@ -424,7 +439,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
       if (isLineaMainnet) return images['LINEA-MAINNET'];
 
-      return ticker ? images[ticker] : undefined;
+      // TODO: Replace 'unknown' with a more specific type when the structure of 'images' is fully determined
+      return ticker
+        ? (images as { [key: string]: unknown })[ticker]
+        : undefined;
     };
 
     return (
@@ -449,9 +467,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             <NetworkMainAssetLogo style={styles.ethLogo} />
           ) : (
             <AvatarToken
-              variant={AvatarVariant.Token}
-              name={asset.symbol}
-              imageSource={{ uri: asset.image }}
+              name={asset.name}
+              imageSource={asset.image ? { uri: asset.image } : undefined}
               size={AvatarSize.Md}
             />
           )}
