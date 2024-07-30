@@ -168,7 +168,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   const itemAddress = safeToChecksumAddress(asset.address);
   const exchangeRate =
-    itemAddress && itemAddress in tokenExchangeRates
+    itemAddress &&
+    tokenExchangeRates &&
+    typeof tokenExchangeRates === 'object' &&
+    itemAddress in tokenExchangeRates
       ? tokenExchangeRates?.[itemAddress]?.price
       : undefined;
 
@@ -186,7 +189,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     );
   } else {
     balance =
-      itemAddress && itemAddress in tokenBalances
+      itemAddress &&
+      tokenBalances &&
+      typeof tokenBalances === 'object' &&
+      itemAddress in tokenBalances
         ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], asset.decimals)
         : 0;
     balanceFiat = balanceToFiat(
