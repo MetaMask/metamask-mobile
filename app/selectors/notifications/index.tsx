@@ -1,21 +1,22 @@
 /* eslint-disable import/prefer-default-export */
 import { createSelector } from 'reselect';
-import Engine from '../../core/Engine';
-
-const {
+import {
   AuthenticationController,
   UserStorageController,
-  NotificationServicesController,
-} = Engine.context;
+} from '@metamask/profile-sync-controller';
+
+import { NotificationServicesController } from '@metamask/notification-services-controller';
 
 import { TRIGGER_TYPES } from '../../util/notifications';
 
 import { createDeepEqualSelector } from '../util';
 import { RootState } from '../../reducers';
 
-type NotificationServicesState = typeof NotificationServicesController.state;
-type AuthenticationState = typeof AuthenticationController.state;
-type UserStorageState = typeof UserStorageController.state;
+type NotificationServicesState =
+  NotificationServicesController.NotificationServicesControllerState;
+type AuthenticationState =
+  AuthenticationController.AuthenticationControllerState;
+type UserStorageState = UserStorageController.UserStorageControllerState;
 
 const selectAuthenticationControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.AuthenticationController;
