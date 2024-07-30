@@ -22,7 +22,7 @@ import {
 } from '../../../core/Analytics';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
-import StorageWrapper from '../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import { isTest } from '../../../util/test/utils';
 import { useMetrics } from '../../hooks/useMetrics';
 

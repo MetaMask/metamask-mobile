@@ -2,6 +2,7 @@ import { InteractionManager } from 'react-native';
 import { IMetaMetricsEvent, MetaMetrics } from '../../../core/Analytics';
 import { JsonMap } from '@segment/analytics-react-native';
 import { IUseMetricsHook } from './useMetrics.types';
+import { useCallback } from 'react';
 
 /**
  * Hook to use MetaMetrics
@@ -53,19 +54,22 @@ const useMetrics = (): IUseMetricsHook => {
    *
    * @see MetaMetrics.trackAnonymousEvent
    */
-  const trackAnonymousEvent = (
-    event: IMetaMetricsEvent,
-    properties: JsonMap = {},
-    saveDataRecording = true,
-  ) => {
-    InteractionManager.runAfterInteractions(async () => {
-      MetaMetrics.getInstance().trackAnonymousEvent(
-        event,
-        properties,
-        saveDataRecording,
-      );
-    });
-  };
+  const trackAnonymousEvent = useCallback(
+    (
+      event: IMetaMetricsEvent,
+      properties: JsonMap = {},
+      saveDataRecording = true,
+    ) => {
+      InteractionManager.runAfterInteractions(async () => {
+        MetaMetrics.getInstance().trackAnonymousEvent(
+          event,
+          properties,
+          saveDataRecording,
+        );
+      });
+    },
+    [],
+  );
   /**
    * Track an event - the regular way
    *
@@ -86,19 +90,22 @@ const useMetrics = (): IUseMetricsHook => {
    *
    * @see MetaMetrics.trackEvent
    */
-  const trackEvent = (
-    event: IMetaMetricsEvent,
-    properties: JsonMap = {},
-    saveDataRecording = true,
-  ) => {
-    InteractionManager.runAfterInteractions(async () => {
-      MetaMetrics.getInstance().trackEvent(
-        event,
-        properties,
-        saveDataRecording,
-      );
-    });
-  };
+  const trackEvent = useCallback(
+    (
+      event: IMetaMetricsEvent,
+      properties: JsonMap = {},
+      saveDataRecording = true,
+    ) => {
+      InteractionManager.runAfterInteractions(async () => {
+        MetaMetrics.getInstance().trackEvent(
+          event,
+          properties,
+          saveDataRecording,
+        );
+      });
+    },
+    [],
+  );
 
   return {
     trackEvent,
