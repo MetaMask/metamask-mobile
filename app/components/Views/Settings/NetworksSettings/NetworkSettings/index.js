@@ -553,6 +553,7 @@ class NetworkSettings extends PureComponent {
       blockExplorerUrl,
       editable,
       enableAction,
+      showPopularNetworkModal,
     } = this.state;
     const ticker = this.state.ticker && this.state.ticker.toUpperCase();
     const { navigation, networkOnboardedState, route, metrics } = this.props;
@@ -1112,6 +1113,7 @@ class NetworkSettings extends PureComponent {
 
     return this.state.showNetworkDetailsModal ? (
       <CustomNetwork
+        showPopularNetworkModal={this.state.showPopularNetworkModal}
         isNetworkModalVisible={this.state.showNetworkDetailsModal}
         closeNetworkModal={this.toggleNetworkDetailsModal}
         selectedNetwork={{ ...selectedNetwork, chainId: toHex(chainId) }}
@@ -1413,6 +1415,7 @@ class NetworkSettings extends PureComponent {
                 testID={NetworksViewSelectorsIDs.POPULAR_NETWORKS_CONTAINER}
               >
                 <CustomNetwork
+                  showPopularNetworkModal={this.state.showPopularNetworkModal}
                   isNetworkModalVisible={this.state.showPopularNetworkModal}
                   closeNetworkModal={this.onCancel}
                   selectedNetwork={this.state.popularNetwork}
@@ -1424,6 +1427,7 @@ class NetworkSettings extends PureComponent {
                   }
                 />
               </View>
+
               <View
                 tabLabel={strings('app_settings.custom_network_name')}
                 key={AppConstants.ADD_CUSTOM_NETWORK_CUSTOM_TAB_ID}

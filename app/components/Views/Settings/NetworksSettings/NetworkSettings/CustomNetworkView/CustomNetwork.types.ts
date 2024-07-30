@@ -23,6 +23,10 @@ export interface ExtendedNetwork extends Network {
 
 export interface CustomNetworkProps {
   /**
+   * Boolean check to track if Popular network or Custom network form is open
+   */
+  showPopularNetworkModal: boolean;
+  /**
    * is network modal open
    */
   isNetworkModalVisible: boolean;

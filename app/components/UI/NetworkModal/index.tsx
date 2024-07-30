@@ -47,6 +47,7 @@ interface NetworkProps {
   navigation: any;
   shouldNetworkSwitchPopToWallet: boolean;
   onNetworkSwitch?: () => void;
+  showPopularNetworkModal: boolean;
 }
 
 const NetworkModals = (props: NetworkProps) => {
@@ -62,6 +63,7 @@ const NetworkModals = (props: NetworkProps) => {
       formattedRpcUrl,
       rpcPrefs: { blockExplorerUrl, imageUrl },
     },
+    showPopularNetworkModal,
     shouldNetworkSwitchPopToWallet,
     onNetworkSwitch,
   } = props;
@@ -93,32 +95,21 @@ const NetworkModals = (props: NetworkProps) => {
 
   const addNetwork = async () => {
     const validUrl = validateRpcUrl(rpcUrl);
-    // how can I import these from app/util/networks/customNetworks.tsx
-    const popularNetworkIds = [
-      toHex('43114'),
-      toHex('42161'),
-      toHex('56'),
-      toHex('8453'),
-      toHex('10'),
-      toHex('11297108109'),
-      toHex('137'),
-      toHex('324'),
-    ];
 
-    if (!popularNetworkIds.includes(chainId)) {
+    if (showPopularNetworkModal) {
+      // emit popular network
+      trackEvent(MetaMetricsEvents.NETWORK_ADDED, {
+        chain_id: toHex(chainId),
+        source: 'Popular network list',
+        symbol: ticker,
+      });
+    } else {
       // emit custom network
       trackAnonymousEvent(MetaMetricsEvents.NETWORK_ADDED, {
         chain_id: toHex(chainId),
         source: 'Custom network form',
         symbol: ticker,
         rpcUrl: ethers.utils.sha256(ethers.utils.toUtf8Bytes(rpcUrl)),
-      });
-    } else {
-      // emit popular network
-      trackEvent(MetaMetricsEvents.NETWORK_ADDED, {
-        chain_id: toHex(chainId),
-        source: 'Popular network list',
-        symbol: ticker,
       });
     }
     setNetworkAdded(validUrl);
