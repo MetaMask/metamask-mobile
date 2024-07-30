@@ -55,7 +55,6 @@ import ScreenView from '../../Base/ScreenView';
 import Text from '../../Base/Text';
 import Alert, { AlertType } from '../../Base/Alert';
 import StyledButton from '../StyledButton';
-import SliderButton from '../SliderButton';
 
 import LoadingAnimation from './components/LoadingAnimation';
 import TokenIcon from './components/TokenIcon';
@@ -101,6 +100,11 @@ import { addTransaction } from '../../../util/transaction-controller';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -429,6 +433,7 @@ function SwapsQuotesView({
   const [trackedError, setTrackedError] = useState(false);
   const [animateOnGasChange, setAnimateOnGasChange] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isSwapping, setIsSwapping] = useState(false);
   const [multiLayerL1ApprovalFeeTotal, setMultiLayerL1ApprovalFeeTotal] =
     useState(null);
 
@@ -444,8 +449,6 @@ function SwapsQuotesView({
 
   const [customGasEstimate, setCustomGasEstimate] = useState(null);
   const [customGasLimit, setCustomGasLimit] = useState(null);
-
-  const [isSwiping, setIsSwiping] = useState(false);
 
   // TODO: use this variable in the future when calculating savings
   const [isSaving] = useState(false);
@@ -637,13 +640,15 @@ function SwapsQuotesView({
       isInFetch ||
       !selectedQuote ||
       !hasEnoughTokenBalance ||
-      !hasEnoughEthBalance,
+      !hasEnoughEthBalance ||
+      isSwapping,
     [
       isInPolling,
       isInFetch,
       selectedQuote,
       hasEnoughTokenBalance,
       hasEnoughEthBalance,
+      isSwapping,
     ],
   );
 
@@ -1037,6 +1042,8 @@ function SwapsQuotesView({
       return;
     }
 
+    setIsSwapping(true);
+
     const isHardwareAddress = isHardwareAccount(selectedAddress);
 
     startSwapAnalytics(selectedQuote, selectedAddress);
@@ -1072,6 +1079,7 @@ function SwapsQuotesView({
       );
     }
 
+    setIsSwapping(false);
     navigation.dangerouslyGetParent()?.pop();
   }, [
     selectedQuote,
@@ -1683,7 +1691,6 @@ function SwapsQuotesView({
       contentContainerStyle={styles.screen}
       style={styles.container}
       keyboardShouldPersistTaps="handled"
-      scrollEnabled={!isSwiping}
     >
       <View style={styles.topBar}>
         {(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (
@@ -2119,23 +2126,13 @@ function SwapsQuotesView({
             </QuotesSummary.Body>
           </QuotesSummary>
         )}
-        <SliderButton
-          incompleteText={
-            <Text style={styles.sliderButtonText}>
-              {`${strings('swaps.swipe_to')} `}
-              <Text reset bold>
-                {strings('swaps.swap')}
-              </Text>
-            </Text>
-          }
-          onSwipeChange={setIsSwiping}
-          completeText={
-            <Text style={styles.sliderButtonText}>
-              {strings('swaps.completed_swap')}
-            </Text>
-          }
-          disabled={unableToSwap || isAnimating}
-          onComplete={handleCompleteSwap}
+        <Button
+          label={strings('swaps.swap')}
+          variant={ButtonVariants.Primary}
+          onPress={handleCompleteSwap}
+          width={ButtonWidthTypes.Full}
+          size={ButtonSize.Lg}
+          isDisabled={unableToSwap || isAnimating}
         />
         <TouchableOpacity onPress={handleTermsPress} style={styles.termsButton}>
           <Text link centered>
