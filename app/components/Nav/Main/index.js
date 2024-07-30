@@ -151,8 +151,8 @@ const Main = (props) => {
   const checkInfuraAvailability = useCallback(async () => {
     if (props.providerType !== 'rpc') {
       try {
-        const { TransactionController } = Engine.context;
-        await query(TransactionController.ethQuery, 'blockNumber', []);
+        const ethQuery = Engine.getGlobalEthQuery();
+        await query(ethQuery, 'blockNumber', []);
         props.setInfuraAvailabilityNotBlocked();
       } catch (e) {
         if (e.message === AppConstants.ERRORS.INFURA_BLOCKED_MESSAGE) {
