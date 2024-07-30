@@ -3,6 +3,7 @@ import { Provider } from 'react-redux';
 import PercentageChange from './PercentageChange';
 import { createStore } from 'redux';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import { StoryObj, Meta } from '@storybook/react-native';
 
 const mockInitialState = {
   wizard: {
@@ -16,41 +17,56 @@ const mockInitialState = {
 const rootReducer = (state = mockInitialState) => state;
 const store = createStore(rootReducer);
 
-export default {
+interface TemplateArgs {
+  value: number | null;
+}
+
+const Template: StoryObj<TemplateArgs> = {
+  render: (args: TemplateArgs) => (
+    <Provider store={store}>
+      <PercentageChange {...args} />
+    </Provider>
+  ),
+};
+
+const meta: Meta<typeof PercentageChange> = {
   title: 'Component Library / PercentageChange',
   component: PercentageChange,
-  decorators: [
-    (Story) => (
-      <Provider store={store}>
-        <Story />
-      </Provider>
-    ),
-  ],
 };
 
-const Template = (args) => <PercentageChange {...args} />;
+export default meta;
 
-export const Default = Template.bind({});
-Default.args = {
-  value: 0,
+export const Default: StoryObj<TemplateArgs> = {
+  ...Template,
+  args: {
+    value: 0,
+  },
 };
 
-export const PositiveChange = Template.bind({});
-PositiveChange.args = {
-  value: 5.5,
+export const PositiveChange: StoryObj<TemplateArgs> = {
+  ...Template,
+  args: {
+    value: 5.5,
+  },
 };
 
-export const NegativeChange = Template.bind({});
-NegativeChange.args = {
-  value: -3.75,
+export const NegativeChange: StoryObj<TemplateArgs> = {
+  ...Template,
+  args: {
+    value: -3.75,
+  },
 };
 
-export const NoChange = Template.bind({});
-NoChange.args = {
-  value: 0,
+export const NoChange: StoryObj<TemplateArgs> = {
+  ...Template,
+  args: {
+    value: 0,
+  },
 };
 
-export const InvalidValue = Template.bind({});
-InvalidValue.args = {
-  value: null,
+export const InvalidValue: StoryObj<TemplateArgs> = {
+  ...Template,
+  args: {
+    value: null,
+  },
 };
