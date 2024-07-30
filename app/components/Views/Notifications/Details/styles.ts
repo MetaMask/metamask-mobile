@@ -1,4 +1,3 @@
-/* eslint-disable import/prefer-default-export */
 import { StyleSheet } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import Device from '../../../../util/device';
