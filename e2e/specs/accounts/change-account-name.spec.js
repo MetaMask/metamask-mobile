@@ -48,7 +48,7 @@ describe(Regression('Change Account Name'), () => {
     await WalletView.tapMainWalletAccountActions();
     await AccountActionsModal.tapEditAccount();
     await Gestures.clearField(EditAccountNameView.accountNameInput());
-    await TestHelpers.typeText(
+    await TestHelpers.typeTextAndHideKeyboard(
       EditAccountNameSelectorIDs.ACCOUNT_NAME_INPUT,
       NEW_ACCOUNT_NAME,
     );
