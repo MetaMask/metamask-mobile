@@ -8,7 +8,7 @@ export interface HeaderBaseProps extends ViewProps {
   /**
    * Title of the HeaderBase.
    */
-  children: React.ReactNode;
+  children?: React.ReactNode | string;
   /**
    * Optional prop to include content to be displayed before the title.
    */

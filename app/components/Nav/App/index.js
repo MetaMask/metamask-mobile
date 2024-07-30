@@ -98,7 +98,7 @@ import { DevLogger } from '../../../../app/core/SDKConnect/utils/DevLogger';
 import { PPOMView } from '../../../lib/ppom/PPOMView';
 import NavigationService from '../../../core/NavigationService';
 import LockScreen from '../../Views/LockScreen';
-import AsyncStorage from '../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
 import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
 import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
@@ -116,6 +116,7 @@ import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctional
 import SmartTransactionsOptInModal from '../../Views/SmartTransactionsOptInModal/SmartTranactionsOptInModal';
 import ProfileSyncingModal from '../../UI/ProfileSyncing/ProfileSyncingModal/ProfileSyncingModal';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
+import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
@@ -325,7 +326,7 @@ const App = ({ userLoggedIn }) => {
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
     const appTriggeredAuth = async () => {
-      const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+      const existingUser = await StorageWrapper.getItem(EXISTING_USER);
       try {
         if (existingUser) {
           await Authentication.appTriggeredAuth();
@@ -395,8 +396,10 @@ const App = ({ userLoggedIn }) => {
       SharedDeeplinkManager.init({
         navigation: {
           navigate: (routeName, opts) => {
-            const params = { name: routeName, params: opts };
-            navigator.dispatch?.(CommonActions.navigate(params));
+            if (navigator) {
+              const params = { name: routeName, params: opts };
+              navigator.dispatch?.(CommonActions.navigate(params));
+            }
           },
         },
         dispatch,
@@ -498,7 +501,7 @@ const App = ({ userLoggedIn }) => {
 
   useEffect(() => {
     async function checkExisting() {
-      const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+      const existingUser = await StorageWrapper.getItem(EXISTING_USER);
       setOnboarded(!!existingUser);
       const route = !existingUser
         ? Routes.ONBOARDING.ROOT_NAV
@@ -514,24 +517,24 @@ const App = ({ userLoggedIn }) => {
 
   useEffect(() => {
     async function startApp() {
-      const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+      const existingUser = await StorageWrapper.getItem(EXISTING_USER);
       try {
         const currentVersion = getVersion();
-        const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
+        const savedVersion = await StorageWrapper.getItem(CURRENT_APP_VERSION);
         if (currentVersion !== savedVersion) {
           if (savedVersion)
-            await AsyncStorage.setItem(LAST_APP_VERSION, savedVersion);
-          await AsyncStorage.setItem(CURRENT_APP_VERSION, currentVersion);
+            await StorageWrapper.setItem(LAST_APP_VERSION, savedVersion);
+          await StorageWrapper.setItem(CURRENT_APP_VERSION, currentVersion);
         }
 
-        const lastVersion = await AsyncStorage.getItem(LAST_APP_VERSION);
+        const lastVersion = await StorageWrapper.getItem(LAST_APP_VERSION);
         if (!lastVersion) {
           if (existingUser) {
             // Setting last version to first version if user exists and lastVersion does not, to simulate update
-            await AsyncStorage.setItem(LAST_APP_VERSION, '0.0.1');
+            await StorageWrapper.setItem(LAST_APP_VERSION, '0.0.1');
           } else {
             // Setting last version to current version so that it's not treated as an update
-            await AsyncStorage.setItem(LAST_APP_VERSION, currentVersion);
+            await StorageWrapper.setItem(LAST_APP_VERSION, currentVersion);
           }
         }
       } catch (error) {
@@ -711,6 +714,10 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}
         component={NFTAutoDetectionModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.ORIGIN_SPAM_MODAL}
+        component={OriginSpamModal}
       />
     </Stack.Navigator>
   );
