@@ -19,7 +19,8 @@ import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 
 import SwitchLoadingModal from '../../../UI/Notification/SwitchLoadingModal';
 import { Props } from './NotificationsSettings.types';
-import createStyles from './NotificationsSettings.styles';
+import { useStyles } from '../../../../component-library/hooks';
+
 import NotificationOptionToggle from './NotificationOptionToggle';
 import { NotificationsToggleTypes } from './NotificationsSettings.constants';
 
@@ -31,13 +32,14 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../component-library/components/Buttons/ButtonIcon';
-import { SessionHeader } from './sectionHeader';
+import SessionHeader from './sectionHeader';
 import {
   useDisableNotifications,
   useEnableNotifications,
 } from '../../../../util/notifications/hooks/useNotifications';
 import { CONSENSYS_PRIVACY_POLICY } from '../../../../constants/urls';
 import { useAccountSettingsProps } from '../../../../util/notifications/hooks/useSwitchNotifications';
+import styleSheet from './NotificationsSettings.styles';
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const { accounts } = useAccounts();
@@ -71,7 +73,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   const isFullScreenModal = route?.params?.isFullScreenModal;
   // Style
   const { colors } = theme;
-  const styles = createStyles(colors);
+  const { styles } = useStyles(styleSheet, {});
 
   const accountAvatarType = useSelector((state: RootState) =>
     state.settings.useBlockieIcon

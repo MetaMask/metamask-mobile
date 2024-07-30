@@ -1,4 +1,3 @@
-/* eslint-disable import/prefer-default-export */
 import React from 'react';
 import { View } from 'react-native';
 import Text, {
@@ -13,11 +12,7 @@ interface SessionHeaderProps {
   styles: ReturnType<typeof createStyles>;
 }
 
-export const SessionHeader = ({
-  title,
-  description,
-  styles,
-}: SessionHeaderProps) => (
+const SessionHeader = ({ title, description, styles }: SessionHeaderProps) => (
   <>
     <View style={styles.switchElement}>
       <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
@@ -31,3 +26,5 @@ export const SessionHeader = ({
     </View>
   </>
 );
+
+export default SessionHeader;
