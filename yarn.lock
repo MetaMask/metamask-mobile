@@ -5359,7 +5359,7 @@
     "@metamask/providers" "^16.0.0"
     "@metamask/rpc-errors" "^6.2.1"
     "@metamask/utils" "^8.3.0"
-    fast-xml-parser "^4.4.1"
+    fast-xml-parser "^4.3.4"
     superstruct "^1.0.3"
 
 "@metamask/snaps-sdk@^4.0.1", "@metamask/snaps-sdk@^4.2.0", "@metamask/snaps-sdk@^4.4.1":
@@ -5371,7 +5371,7 @@
     "@metamask/providers" "^17.0.0"
     "@metamask/rpc-errors" "^6.2.1"
     "@metamask/utils" "^8.3.0"
-    fast-xml-parser "^4.4.1"
+    fast-xml-parser "^4.3.4"
     superstruct "^1.0.3"
 
 "@metamask/snaps-sdk@^6.0.0":
@@ -5406,7 +5406,7 @@
     cron-parser "^4.5.0"
     fast-deep-equal "^3.1.3"
     fast-json-stable-stringify "^2.1.0"
-    fast-xml-parser "^4.4.1"
+    fast-xml-parser "^4.3.4"
     marked "^12.0.1"
     rfdc "^1.3.0"
     semver "^7.5.4"
@@ -6543,7 +6543,7 @@
     "@react-native-community/cli-tools" "11.4.1"
     chalk "^4.1.2"
     execa "^5.0.0"
-    fast-xml-parser "^4.4.1"
+    fast-xml-parser "^4.0.12"
     glob "^7.1.3"
     ora "^5.4.1"
 
@@ -17845,7 +17845,7 @@ fast-url-parser@1.1.3:
   dependencies:
     punycode "^1.3.2"
 
-fast-xml-parser@^4.4.1:
+fast-xml-parser@^4.0.12, fast-xml-parser@^4.3.4:
   version "4.4.1"
   resolved "https://registry.yarnpkg.com/fast-xml-parser/-/fast-xml-parser-4.4.1.tgz#86dbf3f18edf8739326447bcaac31b4ae7f6514f"
   integrity sha512-xkjOecfnKGkSsOwtZ5Pz7Us/T6mrbPQrq0nh+aCO5V9nk5NLWmasAHumTKjiPJPWANe+kAZ84Jc8ooJkzZ88Sw==
