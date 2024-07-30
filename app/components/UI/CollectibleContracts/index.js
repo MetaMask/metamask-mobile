@@ -42,6 +42,7 @@ import { selectSelectedInternalAccountChecksummedAddress } from '../../../select
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RefreshTestId, SpinnerTestId } from './constants';
+import { debounce } from 'lodash';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -89,6 +90,10 @@ const createStyles = (colors) =>
     },
   });
 
+const debouncedNavigation = debounce((navigation, collectible) => {
+  navigation.navigate('NftDetails', { collectible });
+}, 200);
+
 /**
  * View that renders a list of CollectibleContract
  * ERC-721 and ERC-1155
@@ -120,11 +125,8 @@ const CollectibleContracts = ({
     networkType === MAINNET && !useNftDetection;
 
   const onItemPress = useCallback(
-    (collectible, contractName) => {
-      // Navigate to new NFT details page
-      navigation.push('NftDetails', {
-        collectible,
-      });
+    (collectible) => {
+      debouncedNavigation(navigation, collectible);
     },
     [navigation],
   );
