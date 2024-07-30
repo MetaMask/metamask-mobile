@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
-import AsyncStorage from '../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import useDeleteWallet from './useDeleteWallet';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
@@ -14,6 +14,11 @@ jest.mock('../../../core/Engine', () => ({
       isUnlocked: () => jest.fn(),
     },
   },
+}));
+
+jest.mock('../../../store/storage-wrapper', () => ({
+  getItem: jest.fn(),
+  removeItem: jest.fn(),
 }));
 
 describe('useDeleteWallet', () => {
@@ -44,7 +49,7 @@ describe('useDeleteWallet', () => {
     const { result } = renderHook(() => useDeleteWallet());
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_, deleteUser] = result.current;
-    const removeItemSpy = jest.spyOn(AsyncStorage, 'removeItem');
+    const removeItemSpy = jest.spyOn(StorageWrapper, 'removeItem');
     await deleteUser();
     expect(removeItemSpy).toHaveBeenCalled();
   });

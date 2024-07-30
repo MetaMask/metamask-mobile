@@ -368,6 +368,9 @@ describe('NetworkSwitcher View', () => {
       [
         [
           "GetStarted",
+          {
+            "chainId": undefined,
+          },
         ],
       ]
     `);

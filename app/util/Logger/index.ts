@@ -3,7 +3,7 @@ import {
   captureException,
   withScope,
 } from '@sentry/react-native';
-import DefaultPreference from 'react-native-default-preference';
+import StorageWrapper from '../../store/storage-wrapper';
 import { METRICS_OPT_IN, AGREED, DEBUG } from '../../constants/storage';
 
 interface ExtraInfo {
@@ -39,7 +39,7 @@ export class AsyncLogger {
     }
 
     // Check if user passed accepted opt-in to metrics
-    const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
+    const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
     if (metricsOptIn === AGREED) {
       addBreadcrumb({
         message: JSON.stringify(args),
@@ -70,7 +70,7 @@ export class AsyncLogger {
     }
 
     // Check if user passed accepted opt-in to metrics
-    const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
+    const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
     if (metricsOptIn === AGREED) {
       let exception = error;
 
