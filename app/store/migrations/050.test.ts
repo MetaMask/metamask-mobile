@@ -1,6 +1,6 @@
 import migrate from './050';
 import DefaultPreference from 'react-native-default-preference';
-import StorageWrapper from '../async-storage-wrapper';
+import StorageWrapper from '../storage-wrapper';
 
 const defaultPreferenceItems: { [key: string]: string | null } = {
   valueA: 'a',
@@ -9,7 +9,7 @@ const defaultPreferenceItems: { [key: string]: string | null } = {
   valueD: null,
 };
 
-jest.mock('../async-storage-wrapper', () => ({
+jest.mock('../storage-wrapper', () => ({
   setItem: jest.fn().mockResolvedValue(''),
 }));
 jest.mock('react-native-default-preference', () => ({

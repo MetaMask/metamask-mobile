@@ -19,7 +19,6 @@ import {
   balanceToFiat,
   isDecimal,
   hexToBN,
-  BNToHex,
 } from '../../../../../util/number';
 import {
   getTicker,
@@ -61,7 +60,6 @@ import {
   getDecimalChainId,
 } from '../../../../../util/networks';
 import Text from '../../../../Base/Text';
-import { addHexPrefix } from 'ethereumjs-util';
 import { removeFavoriteCollectible } from '../../../../../actions/collectibles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AccountFromToInfoCard from '../../../../UI/AccountFromToInfoCard';
@@ -127,6 +125,7 @@ import { TransactionConfirmViewSelectorsIDs } from '../../../../../../e2e/select
 import { selectTransactionMetrics } from '../../../../../core/redux/slices/transactionMetrics';
 import SimulationDetails from '../../../../UI/SimulationDetails/SimulationDetails';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
+import { buildTransactionParams } from '../../../../../util/confirmation/transactions';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -458,8 +457,10 @@ class Confirm extends PureComponent {
     }
     // add transaction
     const { TransactionController } = Engine.context;
+    const transactionParams = this.prepareTransactionToSend();
+
     const { result, transactionMeta } =
-      await TransactionController.addTransaction(this.props.transaction, {
+      await TransactionController.addTransaction(transactionParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         origin: TransactionTypes.MMM,
       });
@@ -695,38 +696,29 @@ class Confirm extends PureComponent {
 
   prepareTransactionToSend = () => {
     const {
-      transactionState: { transaction },
-      showCustomNonce,
       gasEstimateType,
+      showCustomNonce,
+      transaction: rawTransaction,
     } = this.props;
-    const { fromSelectedAddress, legacyGasTransaction, EIP1559GasTransaction } =
-      this.state;
-    const { nonce } = this.props.transaction;
-    const transactionToSend = { ...transaction };
 
-    if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-      transactionToSend.gas = EIP1559GasTransaction.gasLimitHex;
-      transactionToSend.maxFeePerGas = addHexPrefix(
-        EIP1559GasTransaction.suggestedMaxFeePerGasHex,
-      ); //'0x2540be400'
-      transactionToSend.maxPriorityFeePerGas = addHexPrefix(
-        EIP1559GasTransaction.suggestedMaxPriorityFeePerGasHex,
-      ); //'0x3b9aca00';
-      transactionToSend.estimatedBaseFee = addHexPrefix(
-        EIP1559GasTransaction.estimatedBaseFeeHex,
-      );
-      delete transactionToSend.gasPrice;
-    } else {
-      transactionToSend.gas = legacyGasTransaction.suggestedGasLimitHex;
-      transactionToSend.gasPrice = addHexPrefix(
-        legacyGasTransaction.suggestedGasPriceHex,
-      );
-    }
+    const {
+      fromSelectedAddress: from,
+      legacyGasTransaction: gasDataLegacy,
+      EIP1559GasTransaction: gasDataEIP1559,
+    } = this.state;
 
-    transactionToSend.from = fromSelectedAddress;
-    if (showCustomNonce && nonce) transactionToSend.nonce = BNToHex(nonce);
+    const transaction = {
+      ...rawTransaction,
+      from,
+    };
 
-    return transactionToSend;
+    return buildTransactionParams({
+      gasDataEIP1559,
+      gasDataLegacy,
+      gasEstimateType,
+      showCustomNonce,
+      transaction,
+    });
   };
 
   /**
@@ -817,9 +809,6 @@ class Confirm extends PureComponent {
     // Manual cancel from UI or rejected from ledger device.
     try {
       if (!approve) {
-        TransactionController.hub.removeAllListeners(
-          `${transactionMeta.id}:finished`,
-        );
         TransactionController.cancelTransaction(transactionMeta.id);
       } else {
         await new Promise((resolve) => resolve(result));
