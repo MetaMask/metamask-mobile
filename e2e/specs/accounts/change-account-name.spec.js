@@ -59,12 +59,13 @@ describe(Regression('Change Account Name'), () => {
       await WalletView.tapIdenticon();
       await Assertions.checkIfTextIsDisplayed(NEW_ACCOUNT_NAME);
       await AccountListView.swipeToDimssAccountsModal();
+      await TestHelpers.delay(250);
     } else {
       await Assertions.checkIfTextIsDisplayed(NEW_ACCOUNT_NAME);
     }
 
     // Lock wallet
-    await Assertions.checkIfVisible(WalletView.container);
+    await Assertions.checkIfVisible(TabBarComponent.tabBarSettingButton);
     await TabBarComponent.tapSettings();
     await SettingsView.scrollToLockButton();
     await SettingsView.tapLock();
