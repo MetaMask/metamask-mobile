@@ -13,11 +13,9 @@ import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import StyledButton from '../../UI/StyledButton';
-import Logger from '../../../util/Logger';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Authentication } from '../../../core';
 import { useAppThemeFromContext } from '../../../util/theme';
@@ -25,7 +23,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
 export const createWalletRestoredNavDetails = createNavigationDetails(
@@ -37,8 +34,9 @@ const WalletRestored = () => {
   const { colors } = useAppThemeFromContext();
   const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<StackNavigationProp<any>>();
-  const selectedAddress = useSelector(selectSelectedAddress);
 
   const deviceMetaData = useMemo(() => generateDeviceAnalyticsMetaData(), []);
 
@@ -51,19 +49,13 @@ const WalletRestored = () => {
 
   const finishWalletRestore = useCallback(async (): Promise<void> => {
     try {
-      // Log to provide insights into bug research.
-      // Check https://github.com/MetaMask/mobile-planning/issues/1507
-      if (typeof selectedAddress !== 'string') {
-        const walletRestoreError = new Error('Wallet restore error');
-        Logger.error(walletRestoreError, 'selectedAddress is not a string');
-      }
-      await Authentication.appTriggeredAuth({ selectedAddress });
+      await Authentication.appTriggeredAuth();
       navigation.replace(Routes.ONBOARDING.HOME_NAV);
     } catch (e) {
       // we were not able to log in automatically so we will go back to login
       navigation.replace(Routes.ONBOARDING.LOGIN);
     }
-  }, [navigation, selectedAddress]);
+  }, [navigation]);
 
   const onPressBackupSRP = useCallback(async (): Promise<void> => {
     Linking.openURL(SRP_GUIDE_URL);

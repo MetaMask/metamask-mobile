@@ -4,7 +4,7 @@ exports[`WalletAccount renders correctly 1`] = `
 <View
   style={
     {
-      "borderColor": "#BBC0C5",
+      "borderColor": "#bbc0c5",
       "borderRadius": 8,
       "borderWidth": 1,
       "marginHorizontal": 16,
@@ -16,8 +16,8 @@ exports[`WalletAccount renders correctly 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#FFFFFF",
-        "borderColor": "#BBC0C5",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#bbc0c5",
         "borderRadius": 8,
         "borderWidth": 0,
         "flexDirection": "row",
@@ -38,7 +38,7 @@ exports[`WalletAccount renders correctly 1`] = `
       <View
         style={
           {
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "#ffffff",
             "borderRadius": 16,
             "height": 32,
             "marginRight": 16,
@@ -54,7 +54,7 @@ exports[`WalletAccount renders correctly 1`] = `
                 "overflow": "hidden",
               },
               {
-                "backgroundColor": "#C7144F",
+                "backgroundColor": "#FC4800",
                 "borderRadius": 16,
                 "height": 32,
                 "width": 32,
@@ -83,18 +83,30 @@ exports[`WalletAccount renders correctly 1`] = `
             }
             width={32}
           >
-            <RNSVGGroup>
+            <RNSVGGroup
+              fill={
+                {
+                  "payload": 4278190080,
+                  "type": 0,
+                }
+              }
+            >
               <RNSVGRect
-                fill={4294711651}
+                fill={
+                  {
+                    "payload": 4278291575,
+                    "type": 0,
+                  }
+                }
                 height={32}
                 matrix={
                   [
-                    0.46329603511986217,
-                    0.8862035792312145,
-                    -0.8862035792312145,
-                    0.46329603511986217,
-                    29.06767649409735,
-                    -8.290603334655817,
+                    -0.41310442982454204,
+                    -0.910683660806177,
+                    0.910683660806177,
+                    -0.41310442982454204,
+                    8.80960563430791,
+                    40.3361680482215,
                   ]
                 }
                 propList={
@@ -107,16 +119,21 @@ exports[`WalletAccount renders correctly 1`] = `
                 y={0}
               />
               <RNSVGRect
-                fill={4280576225}
+                fill={
+                  {
+                    "payload": 4278410587,
+                    "type": 0,
+                  }
+                }
                 height={32}
                 matrix={
                   [
-                    -0.5778576243835052,
-                    0.8161375900801603,
-                    -0.8161375900801603,
-                    -0.5778576243835052,
-                    51.62016714634118,
-                    17.239003094412087,
+                    0.903335292863301,
+                    -0.42893513340314526,
+                    0.42893513340314526,
+                    0.903335292863301,
+                    -18.594021578605165,
+                    6.725269324133852,
                   ]
                 }
                 propList={
@@ -129,16 +146,21 @@ exports[`WalletAccount renders correctly 1`] = `
                 y={0}
               />
               <RNSVGRect
-                fill={4278407261}
+                fill={
+                  {
+                    "payload": 4294382337,
+                    "type": 0,
+                  }
+                }
                 height={32}
                 matrix={
                   [
-                    0.7046342099635947,
-                    -0.7095707365365209,
-                    0.7095707365365209,
-                    0.7046342099635947,
-                    -25.225718686778755,
-                    -4.611026307883787,
+                    -0.6921431738704069,
+                    -0.7217602280983622,
+                    0.7217602280983622,
+                    -0.6921431738704069,
+                    -12.339279260280694,
+                    30.41598471866334,
                   ]
                 }
                 propList={
@@ -167,7 +189,7 @@ exports[`WalletAccount renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "Euclid Circular B",
               "fontSize": 16,
               "fontWeight": "400",
@@ -177,12 +199,12 @@ exports[`WalletAccount renders correctly 1`] = `
           }
           testID="account-label"
         >
-          Test account 1
+          Account 2
         </Text>
       </View>
     </View>
     <SvgMock
-      color="#6A737D"
+      color="#6a737d"
       height={20}
       name="ArrowDown"
       style={
@@ -198,7 +220,7 @@ exports[`WalletAccount renders correctly 1`] = `
   <View
     style={
       {
-        "borderColor": "#BBC0C5",
+        "borderColor": "#bbc0c5",
         "borderTopWidth": 1,
         "marginHorizontal": 16,
       }
@@ -208,8 +230,8 @@ exports[`WalletAccount renders correctly 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#FFFFFF",
-        "borderColor": "#BBC0C5",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#bbc0c5",
         "borderRadius": 8,
         "borderWidth": 0,
         "flexDirection": "row",
@@ -229,7 +251,7 @@ exports[`WalletAccount renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "Euclid Circular B",
             "fontSize": 12,
             "fontWeight": "700",
@@ -256,7 +278,7 @@ exports[`WalletAccount renders correctly 1`] = `
           style={
             {
               "alignItems": "center",
-              "backgroundColor": "#0376C919",
+              "backgroundColor": "#0376c91a",
               "borderRadius": 20,
               "flexDirection": "row",
               "marginLeft": 8,
@@ -269,7 +291,7 @@ exports[`WalletAccount renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#0376C9",
+                "color": "#0376c9",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 12,
                 "fontWeight": "400",
@@ -278,9 +300,11 @@ exports[`WalletAccount renders correctly 1`] = `
               }
             }
             testID="wallet-account-address"
-          />
+          >
+            0xC496...a756
+          </Text>
           <SvgMock
-            color="#0376C9"
+            color="#0376c9"
             height={16}
             name="Copy"
             style={
@@ -315,7 +339,7 @@ exports[`WalletAccount renders correctly 1`] = `
       testID="main-wallet-account-actions"
     >
       <SvgMock
-        color="#24272A"
+        color="#141618"
         height={16}
         name="MoreHorizontal"
         style={

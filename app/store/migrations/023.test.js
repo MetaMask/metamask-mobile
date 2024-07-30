@@ -1,8 +1,10 @@
 import migrate from './023';
 import { merge } from 'lodash';
-import initialRootState from '../../util/test/initial-root-state';
-import initialBackgroundState from '../../util/test/initial-background-state.json';
+import initialRootState, {
+  backgroundState,
+} from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
+import { userInitialState } from '../../reducers/user';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -210,9 +212,9 @@ describe('Migration #23', () => {
 
     const newState = migrate(state);
 
-    expect(newState.user).toStrictEqual({});
+    expect(newState.user).toStrictEqual(userInitialState);
     expect(newState.engine.backgroundState).toStrictEqual(
-      merge({}, initialBackgroundState, {
+      merge({}, backgroundState, {
         AddressBookController: {
           addressBook: {
             // This is unchanged because the only configured network with a network ID 1 also has
@@ -296,14 +298,16 @@ describe('Migration #23', () => {
 
     const newState = migrate(state);
 
-    expect(newState.user).toStrictEqual({
-      ambiguousAddressEntries: {
-        10: ['0x0000000000000000000000000000000000000002'],
-        2415: ['0x0000000000000000000000000000000000000002'],
-      },
-    });
+    expect(newState.user).toStrictEqual(
+      merge({}, userInitialState, {
+        ambiguousAddressEntries: {
+          10: ['0x0000000000000000000000000000000000000002'],
+          2415: ['0x0000000000000000000000000000000000000002'],
+        },
+      }),
+    );
     expect(newState.engine.backgroundState).toStrictEqual(
-      merge({}, initialBackgroundState, {
+      merge({}, backgroundState, {
         AddressBookController: {
           addressBook: {
             // This is unchanged because the only configured network with a network ID 1 also has
@@ -381,9 +385,9 @@ describe('Migration #23', () => {
 
     const newState = migrate(state);
 
-    expect(newState.user).toStrictEqual({});
+    expect(newState.user).toStrictEqual(userInitialState);
     expect(newState.engine.backgroundState).toStrictEqual(
-      merge({}, initialBackgroundState, {
+      merge({}, backgroundState, {
         AddressBookController: {
           addressBook: {
             // This is unchanged because the only configured network with a network ID 1 also has

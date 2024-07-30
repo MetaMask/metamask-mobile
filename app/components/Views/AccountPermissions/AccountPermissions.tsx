@@ -36,7 +36,6 @@ import { getActiveTabUrl } from '../../../util/transactions';
 import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { selectIdentities } from '../../../selectors/preferencesController';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
 
 // Internal dependencies.
@@ -50,16 +49,21 @@ import { USER_INTENT } from '../../../constants/permissions';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
 import URLParse from 'url-parse';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { selectInternalAccounts } from '../../../selectors/accountsController';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const navigation = useNavigation();
   const { trackEvent } = useMetrics();
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Engine = UntypedEngine as any;
   const {
     hostInfo: {
       metadata: { origin: hostname },
     },
   } = props.route.params;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -69,6 +73,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const accountsLength = useSelector(selectAccountsLength);
 
   const nonTestnetNetworks = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => Object.keys(selectNetworkConfigurations(state)).length + 1,
   );
 
@@ -89,6 +95,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const { toastRef } = useContext(ToastContext);
   const [isLoading, setIsLoading] = useState(false);
   const permittedAccountsList = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.engine.backgroundState.PermissionController,
   );
   const permittedAccountsByHostname = getPermittedAccountsByHostname(
@@ -104,7 +112,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   });
   const previousPermittedAccounts = useRef<string[]>();
   const previousIdentitiesListSize = useRef<number>();
-  const identitiesMap = useSelector(selectIdentities);
+  const internalAccounts = useSelector(selectInternalAccounts);
   const activeAddress: string = permittedAccountsByHostname[0];
 
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
@@ -134,16 +142,20 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   // Refreshes selected addresses based on the addition and removal of accounts.
   useEffect(() => {
-    const identitiesAddressList = Object.keys(identitiesMap);
-    if (previousIdentitiesListSize.current !== identitiesAddressList.length) {
-      // Clean up selected addresses that are no longer part of identities.
+    // Extract the address list from the internalAccounts array
+    const accountsAddressList = internalAccounts.map((account) =>
+      account.address.toLowerCase(),
+    );
+
+    if (previousIdentitiesListSize.current !== accountsAddressList.length) {
+      // Clean up selected addresses that are no longer part of accounts.
       const updatedSelectedAddresses = selectedAddresses.filter((address) =>
-        identitiesAddressList.includes(address),
+        accountsAddressList.includes(address.toLowerCase()),
       );
       setSelectedAddresses(updatedSelectedAddresses);
-      previousIdentitiesListSize.current = identitiesAddressList.length;
+      previousIdentitiesListSize.current = accountsAddressList.length;
     }
-  }, [identitiesMap, selectedAddresses]);
+  }, [internalAccounts, selectedAddresses]);
 
   const accountsFilteredByPermissions = useMemo(() => {
     const accountsByPermittedStatus: Record<
@@ -155,7 +167,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     };
 
     accounts.forEach((account) => {
-      if (permittedAccountsByHostname.includes(account.address)) {
+      const lowercasedAccount = account.address.toLowerCase();
+      if (permittedAccountsByHostname.includes(lowercasedAccount)) {
         accountsByPermittedStatus.permitted.push(account);
       } else {
         accountsByPermittedStatus.unpermitted.push(account);
@@ -176,6 +189,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           source: metricsSource,
           number_of_accounts: accounts?.length,
         });
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
         Logger.error(e, 'Error while trying to add a new account.');
       } finally {
@@ -229,6 +244,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         number_of_accounts_connected: connectedAccounts,
         number_of_networks: nonTestnetNetworks,
       });
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       Logger.error(e, 'Error while trying to connect to a dApp.');
     } finally {

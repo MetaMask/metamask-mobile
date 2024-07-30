@@ -18,7 +18,7 @@ import {
   WalletDevice,
   TransactionStatus,
 } from '@metamask/transaction-controller';
-import { query } from '@metamask/controller-utils';
+import { query, toHex } from '@metamask/controller-utils';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 
 import {
@@ -89,9 +89,9 @@ import {
 } from '../../../selectors/currencyRateController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { resetTransaction, setRecipient } from '../../../actions/transaction';
-import Routes from '../../../constants/navigation/Routes';
+import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import {
   SWAP_QUOTE_SUMMARY,
   SWAP_GAS_FEE,
@@ -100,6 +100,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { addTransaction } from '../../../util/transaction-controller';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
+import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -388,6 +389,7 @@ function SwapsQuotesView({
   usedCustomGas,
   setRecipient,
   resetTransaction,
+  shouldUseSmartTransaction,
 }) {
   const navigation = useNavigation();
   /* Get params from navigation */
@@ -782,16 +784,12 @@ function SwapsQuotesView({
       newSwapsTransactions,
     ) => {
       const { TransactionController } = Engine.context;
-      const blockNumber = await query(
-        TransactionController.ethQuery,
-        'blockNumber',
-        [],
-      );
-      const currentBlock = await query(
-        TransactionController.ethQuery,
-        'getBlockByNumber',
-        [blockNumber, false],
-      );
+      const ethQuery = Engine.getGlobalEthQuery();
+      const blockNumber = await query(ethQuery, 'blockNumber', []);
+      const currentBlock = await query(ethQuery, 'getBlockByNumber', [
+        blockNumber,
+        false,
+      ]);
       newSwapsTransactions[transactionMeta.id] = {
         action: 'swap',
         sourceToken: {
@@ -840,7 +838,9 @@ function SwapsQuotesView({
           approvalTransactionMetaId,
         },
       };
-      TransactionController.update({ swapsTransactions: newSwapsTransactions });
+      TransactionController.update((state) => {
+        state.swapsTransactions = newSwapsTransactions;
+      });
     },
     [
       chainId,
@@ -887,6 +887,7 @@ function SwapsQuotesView({
         ),
         network_fees_ETH: renderFromWei(toWei(selectedQuoteValue?.ethFee)),
         chain_id: getDecimalChainId(chainId),
+        is_smart_transaction: shouldUseSmartTransaction,
       };
       trackAnonymousEvent(MetaMetricsEvents.SWAP_STARTED, parameters);
     },
@@ -912,25 +913,29 @@ function SwapsQuotesView({
 
       try {
         resetTransaction();
-        const { transactionMeta } = await addTransaction(
+        const { transactionMeta, result } = await addTransaction(
           {
             ...selectedQuote.trade,
             ...getTransactionPropertiesFromGasEstimates(
               gasEstimateType,
               gasEstimates,
             ),
-            gas: new BigNumber(gasLimit).toString(16),
+            gas: toHex(gasLimit),
           },
           {
             deviceConfirmedOn: WalletDevice.MM_MOBILE,
             origin: process.env.MM_FOX_CODE,
           },
         );
+
+        await result;
+
         updateSwapsTransactions(
           transactionMeta,
           approvalTransactionMetaId,
           newSwapsTransactions,
         );
+
         setRecipient(selectedAddress);
         await addTokenToAssetsController(destinationToken);
         await addTokenToAssetsController(sourceToken);
@@ -961,7 +966,7 @@ function SwapsQuotesView({
     ) => {
       try {
         resetTransaction();
-        const { transactionMeta } = await addTransaction(
+        const { transactionMeta, result } = await addTransaction(
           {
             ...approvalTransaction,
             ...getTransactionPropertiesFromGasEstimates(
@@ -975,6 +980,7 @@ function SwapsQuotesView({
           },
         );
 
+        await result;
         setRecipient(selectedAddress);
 
         approvalTransactionMetaId = transactionMeta.id;
@@ -990,9 +996,11 @@ function SwapsQuotesView({
             16,
           ).toString(10),
         };
-        if (isHardwareAddress) {
-          TransactionController.hub.once(
-            `${transactionMeta.id}:confirmed`,
+        if (isHardwareAddress || shouldUseSmartTransaction) {
+          const { id: transactionId } = transactionMeta;
+
+          Engine.controllerMessenger.subscribeOnceIf(
+            'TransactionController:transactionConfirmed',
             (transactionMeta) => {
               if (transactionMeta.status === TransactionStatus.confirmed) {
                 handleSwapTransaction(
@@ -1003,6 +1011,7 @@ function SwapsQuotesView({
                 );
               }
             },
+            (transactionMeta) => transactionMeta.id === transactionId,
           );
         }
       } catch (e) {
@@ -1019,6 +1028,7 @@ function SwapsQuotesView({
       selectedAddress,
       setRecipient,
       resetTransaction,
+      shouldUseSmartTransaction,
     ],
   );
 
@@ -1032,12 +1042,12 @@ function SwapsQuotesView({
     startSwapAnalytics(selectedQuote, selectedAddress);
 
     const { TransactionController } = Engine.context;
+
     const newSwapsTransactions =
       TransactionController.state.swapsTransactions || {};
     let approvalTransactionMetaId;
-
     if (approvalTransaction) {
-      handleApprovaltransaction(
+      await handleApprovaltransaction(
         TransactionController,
         newSwapsTransactions,
         approvalTransactionMetaId,
@@ -1050,12 +1060,17 @@ function SwapsQuotesView({
       }
     }
 
-    handleSwapTransaction(
-      TransactionController,
-      newSwapsTransactions,
-      approvalTransactionMetaId,
-      isHardwareAddress,
-    );
+    if (
+      !shouldUseSmartTransaction ||
+      (shouldUseSmartTransaction && !approvalTransaction)
+    ) {
+      await handleSwapTransaction(
+        TransactionController,
+        newSwapsTransactions,
+        approvalTransactionMetaId,
+        isHardwareAddress,
+      );
+    }
 
     navigation.dangerouslyGetParent()?.pop();
   }, [
@@ -1066,6 +1081,7 @@ function SwapsQuotesView({
     handleApprovaltransaction,
     handleSwapTransaction,
     navigation,
+    shouldUseSmartTransaction,
   ]);
 
   const onEditQuoteTransactionsGas = useCallback(() => {
@@ -1280,7 +1296,7 @@ function SwapsQuotesView({
 
   const buyEth = useCallback(() => {
     try {
-      navigation.navigate(Routes.RAMP.BUY);
+      navigation.navigate(...createBuyNavigationDetails());
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
@@ -1410,7 +1426,7 @@ function SwapsQuotesView({
 
   /* errorKey effect: hide every modal */
   useEffect(() => {
-    if (error) {
+    if (error?.key) {
       hideFeeModal();
       hideQuotesModal();
       hideUpdateModal();
@@ -2299,6 +2315,7 @@ SwapsQuotesView.propTypes = {
   usedCustomGas: PropTypes.object,
   setRecipient: PropTypes.func,
   resetTransaction: PropTypes.func,
+  shouldUseSmartTransaction: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
@@ -2306,7 +2323,7 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   ticker: selectTicker(state),
   balances: selectContractBalances(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   isInPolling: state.engine.backgroundState.SwapsController.isInPolling,
@@ -2331,6 +2348,7 @@ const mapStateToProps = (state) => ({
   usedCustomGas: state.engine.backgroundState.SwapsController.usedCustomGas,
   primaryCurrency: state.settings.primaryCurrency,
   swapsTokens: swapsTokensSelector(state),
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -4,7 +4,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { BN } from 'ethereumjs-util';
 import { SellOrder } from '@consensys/on-ramp-sdk/dist/API';
-import { Transaction, WalletDevice } from '@metamask/transaction-controller';
+import {
+  TransactionParams,
+  WalletDevice,
+} from '@metamask/transaction-controller';
 
 import Row from '../../components/Row';
 import ScreenLayout from '../../components/ScreenLayout';
@@ -54,6 +57,7 @@ import { safeToChecksumAddress } from '../../../../../util/address';
 import { generateTransferData } from '../../../../../util/transactions';
 import useAnalytics from '../../hooks/useAnalytics';
 import { toHex } from '@metamask/controller-utils';
+import { RAMPS_SEND } from '../../constants';
 
 interface SendTransactionParams {
   orderId?: string;
@@ -112,7 +116,13 @@ function SendTransaction() {
   }, [trackEvent, transactionAnalyticsPayload]);
 
   const handleSend = useCallback(async () => {
-    let transactionParams: Transaction;
+    let chainIdAsHex: `0x${string}`;
+    try {
+      chainIdAsHex = toHex(orderData.cryptoCurrency.network.chainId);
+    } catch {
+      return;
+    }
+    let transactionParams: TransactionParams;
     const amount = addHexPrefix(
       new BN(
         toTokenMinimalUnit(
@@ -126,7 +136,7 @@ function SendTransaction() {
         from: safeToChecksumAddress(orderData.walletAddress) as string,
         to: safeToChecksumAddress(orderData.depositWallet),
         value: amount,
-        chainId: toHex(orderData.cryptoCurrency.network.chainId),
+        chainId: chainIdAsHex,
       };
     } else {
       transactionParams = {
@@ -147,6 +157,7 @@ function SendTransaction() {
       );
       const response = await addTransaction(transactionParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
+        origin: RAMPS_SEND,
       });
       const hash = await response.result;
 

@@ -10,7 +10,6 @@ import React, {
 import {
   Dimensions,
   LayoutChangeEvent,
-  Platform,
   StyleProp,
   View,
   ViewStyle,
@@ -39,8 +38,8 @@ import {
   ToastVariants,
 } from './Toast.types';
 import styles from './Toast.styles';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { TOAST_ID } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
+import { ToastSelectorsIDs } from '../../../../e2e/selectors/Modals/ToastModal.selectors';
+import { ButtonProps } from '../Buttons/Button/Button.types';
 
 const visibilityDuration = 2750;
 const animationDuration = 250;
@@ -63,11 +62,14 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       [],
     );
 
+  const resetState = () => setToastOptions(undefined);
+
   const showToast = (options: ToastOptions) => {
     let timeoutDuration = 0;
     if (toastOptions) {
-      // Reset animation.
-      cancelAnimation(translateYProgress);
+      if (!options.hasNoTimeout) {
+        cancelAnimation(translateYProgress);
+      }
       timeoutDuration = 100;
     }
     setTimeout(() => {
@@ -75,11 +77,20 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     }, timeoutDuration);
   };
 
+  const closeToast = () => {
+    translateYProgress.value = withTiming(
+      screenHeight,
+      { duration: animationDuration },
+      () => {
+        runOnJS(resetState)();
+      },
+    );
+  };
+
   useImperativeHandle(ref, () => ({
     showToast,
+    closeToast,
   }));
-
-  const resetState = () => setToastOptions(undefined);
 
   const onAnimatedViewLayout = (e: LayoutChangeEvent) => {
     if (toastOptions) {
@@ -87,20 +98,27 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       const translateYToValue = -(bottomPadding + bottomNotchSpacing);
 
       translateYProgress.value = height;
-      translateYProgress.value = withTiming(
-        translateYToValue,
-        { duration: animationDuration },
-        () => {
-          translateYProgress.value = withDelay(
-            visibilityDuration,
-            withTiming(
-              height,
-              { duration: animationDuration },
-              runOnJS(resetState),
-            ),
-          );
-        },
-      );
+
+      if (toastOptions.hasNoTimeout) {
+        translateYProgress.value = withTiming(translateYToValue, {
+          duration: animationDuration,
+        });
+      } else {
+        translateYProgress.value = withTiming(
+          translateYToValue,
+          { duration: animationDuration },
+          () => {
+            translateYProgress.value = withDelay(
+              visibilityDuration,
+              withTiming(
+                height,
+                { duration: animationDuration },
+                runOnJS(resetState),
+              ),
+            );
+          },
+        );
+      }
     }
   };
 
@@ -127,6 +145,14 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         label={linkButtonOptions.label}
       />
     );
+
+  const renderCloseButton = (closeButtonOptions?: ButtonProps) => (
+    <Button
+      variant={ButtonVariants.Primary}
+      onPress={() => closeButtonOptions?.onPress()}
+      label={closeButtonOptions?.label}
+    />
+  );
 
   const renderAvatar = () => {
     switch (toastOptions?.variant) {
@@ -159,22 +185,35 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           />
         );
       }
+      case ToastVariants.Icon: {
+        const { iconName, iconColor, backgroundColor } = toastOptions;
+        return (
+          <Avatar
+            variant={AvatarVariant.Icon}
+            name={iconName}
+            iconColor={iconColor}
+            backgroundColor={backgroundColor}
+            style={styles.avatar}
+          />
+        );
+      }
     }
   };
 
   const renderToastContent = (options: ToastOptions) => {
-    const { labelOptions, linkButtonOptions } = options;
+    const { labelOptions, linkButtonOptions, closeButtonOptions } = options;
 
     return (
       <>
         {renderAvatar()}
         <View
           style={styles.labelsContainer}
-          {...generateTestId(Platform, TOAST_ID)}
+          testID={ToastSelectorsIDs.CONTAINER}
         >
           {renderLabel(labelOptions)}
           {renderButtonLink(linkButtonOptions)}
         </View>
+        {closeButtonOptions ? renderCloseButton(closeButtonOptions) : null}
       </>
     );
   };

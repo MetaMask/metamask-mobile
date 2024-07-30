@@ -1,19 +1,11 @@
 // Third party dependencies.
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { SafeAreaView, StyleSheet, Switch, View } from 'react-native';
+import { Linking, SafeAreaView, StyleSheet, Switch, View } from 'react-native';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
-import {
-  getApplicationName,
-  getBuildNumber,
-  getVersion,
-} from 'react-native-device-info';
-import Share from 'react-native-share'; // eslint-disable-line  import/default
-import RNFS from 'react-native-fs';
-// eslint-disable-next-line import/no-nodejs-modules
-import { Buffer } from 'buffer';
+import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
+
 import { typography } from '@metamask/design-tokens';
 
 // External dependencies.
@@ -23,18 +15,19 @@ import { baseStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import {
   setShowCustomNonce,
+  setShowFiatOnTestnets,
   setShowHexData,
 } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
-import Logger from '../../../../util/Logger';
-import { generateStateLogs } from '../../../../util/logs';
 import Device from '../../../../util/device';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
 import { selectChainId } from '../../../../selectors/networkController';
 import {
   selectDisabledRpcMethodPreferences,
+  selectSmartTransactionsOptInStatus,
   selectUseTokenDetection,
 } from '../../../../selectors/preferencesController';
+import { selectSmartTransactionsEnabled } from '../../../../selectors/smartTransactionsController';
 import Routes from '../../../../constants/navigation/Routes';
 
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -54,6 +47,8 @@ import Banner, {
 } from '../../../../component-library/components/Banners/Banner';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import { wipeTransactions } from '../../../../util/transaction-controller';
+import AppConstants from '../../../../../app/core/AppConstants';
+import { downloadStateLogs } from '../../../../util/logs';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -172,6 +167,14 @@ class AdvancedSettings extends PureComponent {
      */
     showCustomNonce: PropTypes.bool,
     /**
+     * Indicates whether fiat conversions should be shown on testnets
+     */
+    showFiatOnTestnets: PropTypes.bool,
+    /**
+     * Called to toggle showing fiat conversions on testnets
+     */
+    setShowFiatOnTestnets: PropTypes.func,
+    /**
      * Entire redux state used to generate state logs
      */
     fullState: PropTypes.object,
@@ -191,6 +194,10 @@ class AdvancedSettings extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * Boolean that checks if smart transactions is enabled
+     */
+    smartTransactionsOptInStatus: PropTypes.bool,
   };
 
   scrollView = React.createRef();
@@ -220,7 +227,7 @@ class AdvancedSettings extends PureComponent {
     );
   };
 
-  componentDidMount = () => {
+  componentDidMount = async () => {
     this.updateNavBar();
     this.mounted = true;
     // Workaround https://github.com/facebook/react-native/issues/9958
@@ -257,38 +264,7 @@ class AdvancedSettings extends PureComponent {
 
   downloadStateLogs = async () => {
     const { fullState } = this.props;
-    const appName = await getApplicationName();
-    const appVersion = await getVersion();
-    const buildNumber = await getBuildNumber();
-    const path =
-      RNFS.DocumentDirectoryPath +
-      `/state-logs-v${appVersion}-(${buildNumber}).json`;
-    // A not so great way to copy objects by value
-
-    try {
-      const stateLogsWithReleaseDetails = generateStateLogs({
-        ...fullState,
-        appVersion,
-        buildNumber,
-      });
-
-      let url = `data:text/plain;base64,${new Buffer(
-        stateLogsWithReleaseDetails,
-      ).toString('base64')}`;
-      // // Android accepts attachements as BASE64
-      if (Device.isIos()) {
-        await RNFS.writeFile(path, stateLogsWithReleaseDetails, 'utf8');
-        url = path;
-      }
-
-      await Share.open({
-        subject: `${appName} State logs -  v${appVersion} (${buildNumber})`,
-        title: `${appName} State logs -  v${appVersion} (${buildNumber})`,
-        url,
-      });
-    } catch (err) {
-      Logger.error(err, 'State log error');
-    }
+    downloadStateLogs(fullState);
   };
 
   onEthSignSettingChangeAttempt = (enabled) => {
@@ -337,7 +313,7 @@ class AdvancedSettings extends PureComponent {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={theme.brandColors.white['000']}
+              thumbColor={theme.brandColors.white}
               ios_backgroundColor={colors.border.muted}
               style={styles.switch}
             />
@@ -354,13 +330,32 @@ class AdvancedSettings extends PureComponent {
     );
   };
 
+  toggleSmartTransactionsOptInStatus = (smartTransactionsOptInStatus) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setSmartTransactionsOptInStatus(
+      smartTransactionsOptInStatus,
+    );
+
+    this.props.metrics.trackEvent(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN, {
+      stx_opt_in: smartTransactionsOptInStatus,
+      location: 'Advanced Settings',
+    });
+  };
+
+  openLinkAboutStx = () => {
+    Linking.openURL(AppConstants.URLS.SMART_TXS);
+  };
+
   render = () => {
     const {
       showHexData,
       showCustomNonce,
+      showFiatOnTestnets,
       setShowHexData,
       setShowCustomNonce,
+      setShowFiatOnTestnets,
       enableEthSign,
+      smartTransactionsOptInStatus,
     } = this.props;
     const { resetModalVisible } = this.state;
     const { styles, colors } = this.getStyles();
@@ -371,6 +366,7 @@ class AdvancedSettings extends PureComponent {
         <KeyboardAwareScrollView
           style={styles.wrapper}
           resetScrollToCoords={{ x: 0, y: 0 }}
+          testID={AdvancedViewSelectorsIDs.ADVANCED_SETTINGS_SCROLLVIEW}
           ref={this.scrollView}
         >
           <View
@@ -414,6 +410,46 @@ class AdvancedSettings extends PureComponent {
                 style={styles.accessory}
               />
             </View>
+
+            <View style={styles.setting}>
+              <View style={styles.titleContainer}>
+                <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+                  {strings('app_settings.smart_transactions_opt_in_heading')}
+                </Text>
+                <View style={styles.toggle}>
+                  <Switch
+                    value={smartTransactionsOptInStatus}
+                    onValueChange={this.toggleSmartTransactionsOptInStatus}
+                    trackColor={{
+                      true: colors.primary.default,
+                      false: colors.border.muted,
+                    }}
+                    thumbColor={theme.brandColors.white}
+                    style={styles.switch}
+                    ios_backgroundColor={colors.border.muted}
+                    accessibilityLabel={strings(
+                      'app_settings.smart_transactions_opt_in_heading',
+                    )}
+                  />
+                </View>
+              </View>
+
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.desc}
+              >
+                {strings('app_settings.smart_transactions_opt_in_desc')}{' '}
+                <Text
+                  color={TextColor.Primary}
+                  link
+                  onPress={this.openLinkAboutStx}
+                >
+                  {strings('app_settings.smart_transactions_learn_more')}
+                </Text>
+              </Text>
+            </View>
+
             <View style={styles.setting}>
               <View style={styles.titleContainer}>
                 <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
@@ -427,7 +463,7 @@ class AdvancedSettings extends PureComponent {
                       true: colors.primary.default,
                       false: colors.border.muted,
                     }}
-                    thumbColor={theme.brandColors.white['000']}
+                    thumbColor={theme.brandColors.white}
                     style={styles.switch}
                     ios_backgroundColor={colors.border.muted}
                   />
@@ -467,7 +503,7 @@ class AdvancedSettings extends PureComponent {
                       true: colors.primary.default,
                       false: colors.border.muted,
                     }}
-                    thumbColor={theme.brandColors.white['000']}
+                    thumbColor={theme.brandColors.white}
                     style={styles.switch}
                     ios_backgroundColor={colors.border.muted}
                     accessibilityRole={'switch'}
@@ -506,7 +542,7 @@ class AdvancedSettings extends PureComponent {
                       true: colors.primary.default,
                       false: colors.border.muted,
                     }}
-                    thumbColor={theme.brandColors.white['000']}
+                    thumbColor={theme.brandColors.white}
                     style={styles.switch}
                     ios_backgroundColor={colors.border.muted}
                   />
@@ -521,6 +557,45 @@ class AdvancedSettings extends PureComponent {
               </Text>
             </View>
             {this.renderTokenDetectionSection()}
+            <View style={styles.setting}>
+              <View style={styles.titleContainer}>
+                <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+                  {strings('app_settings.show_fiat_on_testnets')}
+                </Text>
+                <View style={styles.toggle}>
+                  <Switch
+                    testID={AdvancedViewSelectorsIDs.SHOW_FIAT_ON_TESTNETS}
+                    value={showFiatOnTestnets}
+                    onValueChange={(showFiatOnTestnets) => {
+                      if (showFiatOnTestnets) {
+                        this.props.navigation.navigate(
+                          Routes.MODAL.ROOT_MODAL_FLOW,
+                          {
+                            screen: Routes.SHEET.FIAT_ON_TESTNETS_FRICTION,
+                          },
+                        );
+                      } else {
+                        setShowFiatOnTestnets(false);
+                      }
+                    }}
+                    trackColor={{
+                      true: colors.primary.default,
+                      false: colors.border.muted,
+                    }}
+                    thumbColor={theme.brandColors.white}
+                    style={styles.switch}
+                    ios_backgroundColor={colors.border.muted}
+                  />
+                </View>
+              </View>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.desc}
+              >
+                {strings('app_settings.show_fiat_on_testnets_desc')}
+              </Text>
+            </View>
             <View style={styles.setting}>
               <Text variant={TextVariant.BodyLGMedium}>
                 {strings('app_settings.state_logs')}
@@ -553,16 +628,21 @@ AdvancedSettings.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   showHexData: state.settings.showHexData,
   showCustomNonce: state.settings.showCustomNonce,
+  showFiatOnTestnets: state.settings.showFiatOnTestnets,
   enableEthSign: selectDisabledRpcMethodPreferences(state).eth_sign,
   fullState: state,
   isTokenDetectionEnabled: selectUseTokenDetection(state),
   chainId: selectChainId(state),
+  smartTransactionsOptInStatus: selectSmartTransactionsOptInStatus(state),
+  smartTransactionsEnabled: selectSmartTransactionsEnabled(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
   setShowHexData: (showHexData) => dispatch(setShowHexData(showHexData)),
   setShowCustomNonce: (showCustomNonce) =>
     dispatch(setShowCustomNonce(showCustomNonce)),
+  setShowFiatOnTestnets: (showFiatOnTestnets) =>
+    dispatch(setShowFiatOnTestnets(showFiatOnTestnets)),
 });
 
 export default connect(

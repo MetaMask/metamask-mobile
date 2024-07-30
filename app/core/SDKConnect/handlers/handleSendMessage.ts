@@ -14,6 +14,8 @@ export const handleSendMessage = async ({
   msg,
   connection,
 }: {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   msg: any;
   connection: Connection;
 }) => {
@@ -32,6 +34,8 @@ export const handleSendMessage = async ({
         msg,
         batchRPCManager: connection.batchRPCManager,
         backgroundBridge: connection.backgroundBridge,
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         sendMessage: ({ msg: newmsg }: { msg: any }) =>
           handleSendMessage({ msg: newmsg, connection }),
       });
@@ -77,41 +81,44 @@ export const handleSendMessage = async ({
         connection.rpcQueueManager,
       );
       connection.setLoading(false);
-      const currentRoute = connection.navigation?.getCurrentRoute()?.name;
-      if (!method && currentRoute === 'AccountConnect') {
-        DevLogger.log(`[handleSendMessage] remove modal`);
-        if (
-          Device.isIos() &&
-          parseInt(Platform.Version as string) >= 17 &&
-          connection.navigation?.canGoBack()
-        ) {
-          const isLastPendingRequest = connection.rpcQueueManager.isEmpty();
-          if (!isLastPendingRequest) {
-            DevLogger.log(
-              `[handleSendMessage] pending request --- skip goback`,
-            );
-            return;
-          }
-          try {
-            DevLogger.log(
-              `[handleSendMessage] goBack()`,
-              connection.navigation.getCurrentOptions(),
-            );
-            connection.navigation?.goBack();
-            await wait(200); // delay to allow modal to close
-            DevLogger.log(
-              `[handleSendMessage] navigate to ROOT_MODAL_FLOW from ${currentRoute}`,
-            );
-          } catch (_e) {
-            // Ignore temporarily until next stage of permissions system implementation
-            DevLogger.log(`[handleSendMessage] error goBack()`, _e);
-          }
-          connection.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-          });
-        }
-      }
       return;
+      // const currentRoute = connection.navigation?.getCurrentRoute()?.name;
+      // if (!method && currentRoute === 'AccountConnect') {
+      //   DevLogger.log(`[handleSendMessage] remove modal`);
+      //   if (
+      //     Device.isIos() &&
+      //     parseInt(Platform.Version as string) >= 17 &&
+      //     connection.navigation?.canGoBack()
+      //   ) {
+      //     const isLastPendingRequest = connection.rpcQueueManager.isEmpty();
+      //     if (!isLastPendingRequest) {
+      //       DevLogger.log(
+      //         `[handleSendMessage] pending request --- skip goback`,
+      //       );
+      //       return;
+      //     }
+      //     try {
+      //       DevLogger.log(
+      //         `[handleSendMessage] goBack()`,
+      //         connection.navigation.getCurrentRoute(),
+      //       );
+      //       connection.navigation?.goBack();
+      //       // Make sure there are no pending permissions requests before redirecting
+
+      //       await wait(200); // delay to allow modal to close
+      //       DevLogger.log(
+      //         `[handleSendMessage] navigate to ROOT_MODAL_FLOW from ${currentRoute}`,
+      //       );
+      //     } catch (_e) {
+      //       // Ignore temporarily until next stage of permissions system implementation
+      //       DevLogger.log(`[handleSendMessage] error goBack()`, _e);
+      //     }
+      //     connection.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      //       screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+      //     });
+      //   }
+      // }
+      // return;
     }
 
     if (

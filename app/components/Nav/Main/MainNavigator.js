@@ -51,14 +51,14 @@ import Drawer from '../../UI/Drawer';
 import RampRoutes from '../../UI/Ramp/routes';
 import { RampType } from '../../UI/Ramp/types';
 import RampSettings from '../../UI/Ramp/Views/Settings';
-import RampAddActivationKey from '../../UI/Ramp/Views/Settings/AddActivationKey';
+import RampActivationKeyForm from '../../UI/Ramp/Views/Settings/ActivationKeyForm';
 
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Views/OrderDetails';
 import SendTransaction from '../../UI/Ramp/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import { SnapSettings } from '../../Views/Snaps/SnapSettings';
 ///: END:ONLY_INCLUDE_IF
@@ -71,13 +71,15 @@ import { isEqual } from 'lodash';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import isUrl from 'is-url';
-import SDKSessionsManager from '../../Views/SDKSessionsManager/SDKSessionsManager';
+import SDKSessionsManager from '../../Views/SDK/SDKSessionsManager/SDKSessionsManager';
 import URL from 'url-parse';
 import Logger from '../../../util/Logger';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
 import ConfirmAddAsset from '../../UI/ConfirmAddAsset';
+import { AesCryptoTestForm } from '../../Views/AesCryptoTestForm';
+import { isTest } from '../../../util/test/utils';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -211,7 +213,7 @@ const BrowserFlow = () => (
 
 export const DrawerContext = React.createContext({ drawerRef: null });
 
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 const SnapsSettingsStack = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -269,9 +271,24 @@ const SettingsFlow = () => (
     />
     <Stack.Screen name={Routes.RAMP.SETTINGS} component={RampSettings} />
     <Stack.Screen
-      name={Routes.RAMP.ADD_ACTIVATION_KEY}
-      component={RampAddActivationKey}
+      name={Routes.RAMP.ACTIVATION_KEY_FORM}
+      component={RampActivationKeyForm}
     />
+    {
+      /**
+       * This screen should only accessed in test mode.
+       * It is used to test the AES crypto functions.
+       *
+       * If this is in production, it is a bug.
+       */
+      isTest && (
+        <Stack.Screen
+          name="AesCryptoTestForm"
+          component={AesCryptoTestForm}
+          options={AesCryptoTestForm.navigationOptions}
+        />
+      )
+    }
     <Stack.Screen
       name="ExperimentalSettings"
       component={ExperimentalSettings}
@@ -342,7 +359,7 @@ const SettingsFlow = () => (
       options={NotificationsSettings.navigationOptions}
     />
     {
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
     }
     <Stack.Screen
       name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
@@ -578,6 +595,7 @@ const PaymentRequestView = () => (
   </Stack.Navigator>
 );
 
+/* eslint-disable react/prop-types */
 const NotificationsModeView = (props) => (
   <Stack.Navigator>
     <Stack.Screen
@@ -700,9 +718,12 @@ const MainNavigator = () => (
     />
     <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
     <Stack.Screen name="OfflineModeView" component={OfflineModeView} />
+    <Stack.Screen
+      name={Routes.NOTIFICATIONS.VIEW}
+      component={NotificationsModeView}
+    />
     <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
-    <Stack.Screen name="NotificationsView" component={NotificationsModeView} />
     <Stack.Screen name={Routes.RAMP.BUY}>
       {() => <RampRoutes rampType={RampType.BUY} />}
     </Stack.Screen>

@@ -54,7 +54,7 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -137,7 +137,7 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
                 testID="back-arrow-button"
               >
                 <SvgMock
-                  color="#24272A"
+                  color="#141618"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -168,7 +168,7 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
                 onLayout={[Function]}
                 style={
                   {
-                    "color": "#0376C9",
+                    "color": "#0376c9",
                     "fontSize": 17,
                     "fontWeight": "600",
                   }
@@ -178,7 +178,7 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 18,
                       "fontWeight": "700",
@@ -206,7 +206,6 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -299,7 +298,6 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -433,7 +431,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -516,7 +514,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                 testID="back-arrow-button"
               >
                 <SvgMock
-                  color="#24272A"
+                  color="#141618"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -547,7 +545,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                 onLayout={[Function]}
                 style={
                   {
-                    "color": "#0376C9",
+                    "color": "#0376c9",
                     "fontSize": 17,
                     "fontWeight": "600",
                   }
@@ -557,7 +555,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 18,
                       "fontWeight": "700",
@@ -585,7 +583,6 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -678,7 +675,6 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -750,7 +746,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                     <RCTSafeAreaView
                       style={
                         {
-                          "backgroundColor": "#FFFFFF",
+                          "backgroundColor": "#ffffff",
                           "flex": 1,
                         }
                       }
@@ -764,7 +760,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                         }
                         style={
                           {
-                            "backgroundColor": "#FFFFFF",
+                            "backgroundColor": "#ffffff",
                             "flex": 1,
                           }
                         }
@@ -782,7 +778,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                             <Text
                               style={
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
@@ -861,7 +857,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -944,7 +940,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                 testID="back-arrow-button"
               >
                 <SvgMock
-                  color="#24272A"
+                  color="#141618"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -975,7 +971,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                 onLayout={[Function]}
                 style={
                   {
-                    "color": "#0376C9",
+                    "color": "#0376c9",
                     "fontSize": 17,
                     "fontWeight": "600",
                   }
@@ -985,7 +981,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 18,
                       "fontWeight": "700",
@@ -1013,7 +1009,6 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -1106,7 +1101,6 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1178,7 +1172,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                     <RCTSafeAreaView
                       style={
                         {
-                          "backgroundColor": "#FFFFFF",
+                          "backgroundColor": "#ffffff",
                           "flex": 1,
                         }
                       }
@@ -1192,7 +1186,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                         }
                         style={
                           {
-                            "backgroundColor": "#FFFFFF",
+                            "backgroundColor": "#ffffff",
                             "flex": 1,
                           }
                         }
@@ -1202,7 +1196,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                             onLongPress={[Function]}
                             style={
                               {
-                                "borderBottomColor": "#D6D9DC",
+                                "borderBottomColor": "#bbc0c566",
                                 "borderBottomWidth": 1,
                                 "flexDirection": "row",
                                 "paddingHorizontal": 20,
@@ -1214,7 +1208,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                               <View
                                 placeholderStyle={
                                   {
-                                    "backgroundColor": "#F2F4F6",
+                                    "backgroundColor": "#f2f4f6",
                                   }
                                 }
                                 useNativeDriver={true}
@@ -1258,7 +1252,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                           "backgroundColor": "#eee",
                                         },
                                         {
-                                          "backgroundColor": "#F2F4F6",
+                                          "backgroundColor": "#f2f4f6",
                                         },
                                       ]
                                     }
@@ -1277,7 +1271,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "fontFamily": "EuclidCircularB-Bold",
                                     "fontSize": 16,
                                     "fontWeight": "600",
@@ -1290,7 +1284,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#535A61",
+                                    "color": "#6a737d",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 12,
                                     "fontWeight": "400",
@@ -1303,7 +1297,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#535A61",
+                                    "color": "#6a737d",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 12,
                                     "fontWeight": "400",
@@ -1319,7 +1313,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                             onLongPress={[Function]}
                             style={
                               {
-                                "borderBottomColor": "#D6D9DC",
+                                "borderBottomColor": "#bbc0c566",
                                 "borderBottomWidth": 1,
                                 "flexDirection": "row",
                                 "paddingHorizontal": 20,
@@ -1331,7 +1325,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                               <View
                                 placeholderStyle={
                                   {
-                                    "backgroundColor": "#F2F4F6",
+                                    "backgroundColor": "#f2f4f6",
                                   }
                                 }
                                 useNativeDriver={true}
@@ -1375,7 +1369,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                           "backgroundColor": "#eee",
                                         },
                                         {
-                                          "backgroundColor": "#F2F4F6",
+                                          "backgroundColor": "#f2f4f6",
                                         },
                                       ]
                                     }
@@ -1394,7 +1388,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "fontFamily": "EuclidCircularB-Bold",
                                     "fontSize": 16,
                                     "fontWeight": "600",
@@ -1407,7 +1401,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#535A61",
+                                    "color": "#6a737d",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 12,
                                     "fontWeight": "400",
@@ -1420,7 +1414,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#535A61",
+                                    "color": "#6a737d",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 12,
                                     "fontWeight": "400",

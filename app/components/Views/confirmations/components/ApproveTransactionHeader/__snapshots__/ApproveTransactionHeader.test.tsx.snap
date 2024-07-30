@@ -14,8 +14,8 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "center",
-        "backgroundColor": "#FFFFFF",
-        "borderColor": "#BBC0C5",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#bbc0c5",
         "borderRadius": 99,
         "borderWidth": 1,
         "flexDirection": "row",
@@ -30,7 +30,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#ffffff",
           "borderRadius": 16,
           "height": 24,
           "marginRight": 8,
@@ -42,7 +42,11 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
       <Image
         onError={[Function]}
         resizeMode="contain"
-        source={{}}
+        source={
+          {
+            "uri": "",
+          }
+        }
         style={
           {
             "flex": 1,
@@ -57,7 +61,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#535A61",
+          "color": "#6a737d",
           "flexShrink": 1,
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
@@ -73,8 +77,8 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
   <TouchableOpacity
     style={
       {
-        "backgroundColor": "#FFFFFF",
-        "borderColor": "#BBC0C5",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#bbc0c5",
         "borderRadius": 4,
         "borderWidth": 1,
         "flexDirection": "row",
@@ -118,7 +122,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
             <View
               style={
                 {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#ffffff",
                   "borderRadius": 16,
                   "height": 32,
                   "overflow": "hidden",
@@ -163,9 +167,21 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                   }
                   width={32}
                 >
-                  <RNSVGGroup>
+                  <RNSVGGroup
+                    fill={
+                      {
+                        "payload": 4278190080,
+                        "type": 0,
+                      }
+                    }
+                  >
                     <RNSVGRect
-                      fill={4294711651}
+                      fill={
+                        {
+                          "payload": 4294711651,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -187,7 +203,12 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4280576225}
+                      fill={
+                        {
+                          "payload": 4280576225,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -209,7 +230,12 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4278407261}
+                      fill={
+                        {
+                          "payload": 4278407261,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -269,20 +295,20 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                   "opacity": 0,
                 }
               }
-              testID="badge-network"
+              testID="badgenetwork"
             >
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#FFFFFF",
-                    "borderColor": "#FFFFFF",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#ffffff",
                     "borderRadius": 16,
                     "borderWidth": 2,
                     "height": 32,
                     "justifyContent": "center",
                     "overflow": "hidden",
-                    "shadowColor": "#0000001A",
+                    "shadowColor": "#0000001a",
                     "shadowOffset": {
                       "height": 2,
                       "width": 0,
@@ -323,7 +349,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 12,
                 "fontWeight": "400",
@@ -347,7 +373,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#24272A",
+                  "color": "#141618",
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 14,
                   "fontWeight": "700",
@@ -366,7 +392,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "Euclid Circular B",
               "fontSize": 12,
               "fontWeight": "400",
@@ -382,7 +408,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "700",
@@ -411,8 +437,8 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
   <TouchableOpacity
     style={
       {
-        "backgroundColor": "#FFFFFF",
-        "borderColor": "#BBC0C5",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#bbc0c5",
         "borderRadius": 4,
         "borderWidth": 1,
         "flexDirection": "row",
@@ -456,7 +482,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
             <View
               style={
                 {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#ffffff",
                   "borderRadius": 16,
                   "height": 32,
                   "overflow": "hidden",
@@ -501,9 +527,21 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                   }
                   width={32}
                 >
-                  <RNSVGGroup>
+                  <RNSVGGroup
+                    fill={
+                      {
+                        "payload": 4278190080,
+                        "type": 0,
+                      }
+                    }
+                  >
                     <RNSVGRect
-                      fill={4294711651}
+                      fill={
+                        {
+                          "payload": 4294711651,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -525,7 +563,12 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4280576225}
+                      fill={
+                        {
+                          "payload": 4280576225,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -547,7 +590,12 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                       y={0}
                     />
                     <RNSVGRect
-                      fill={4278407261}
+                      fill={
+                        {
+                          "payload": 4278407261,
+                          "type": 0,
+                        }
+                      }
                       height={32}
                       matrix={
                         [
@@ -607,20 +655,20 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                   "opacity": 0,
                 }
               }
-              testID="badge-network"
+              testID="badgenetwork"
             >
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#FFFFFF",
-                    "borderColor": "#FFFFFF",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#ffffff",
                     "borderRadius": 16,
                     "borderWidth": 2,
                     "height": 32,
                     "justifyContent": "center",
                     "overflow": "hidden",
-                    "shadowColor": "#0000001A",
+                    "shadowColor": "#0000001a",
                     "shadowOffset": {
                       "height": 2,
                       "width": 0,
@@ -661,7 +709,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
             accessibilityRole="text"
             style={
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 12,
                 "fontWeight": "400",
@@ -685,7 +733,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
               accessibilityRole="text"
               style={
                 {
-                  "color": "#24272A",
+                  "color": "#141618",
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 14,
                   "fontWeight": "700",
@@ -704,7 +752,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
           accessibilityRole="text"
           style={
             {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "Euclid Circular B",
               "fontSize": 12,
               "fontWeight": "400",
@@ -720,7 +768,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
           accessibilityRole="text"
           style={
             {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "700",

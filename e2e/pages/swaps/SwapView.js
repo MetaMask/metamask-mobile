@@ -32,7 +32,7 @@ export default class SwapView {
     try {
       await TestHelpers.checkIfElementByTextIsVisible(
         `Swap complete (${sourceTokenSymbol} to ${destTokenSymbol})`,
-        60000,
+        100000,
       );
     } catch (e) {
       // eslint-disable-next-line no-console

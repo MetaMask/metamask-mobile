@@ -20,12 +20,23 @@ jest.mock('react-native', () => {
   return originalModule;
 });
 
-jest.mock('../../lib/snaps/preinstalled-snaps', () =>
-  // eslint-disable-next-line no-console
-  console.log("do nothing since we aren't testing the pre installed snaps"),
-);
+/*
+ * NOTE: react-native-webview requires a jest mock starting on v12.
+ * More info on https://github.com/react-native-webview/react-native-webview/issues/2934
+ */
+jest.mock('@metamask/react-native-webview', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const { View } = require('react-native');
+  const WebView = (props) => <View {...props} />;
 
-jest.mock('react-native-fs', () => ({
+  return {
+    WebView,
+  };
+});
+
+jest.mock('../../lib/snaps/preinstalled-snaps');
+
+const mockFs = {
   CachesDirectoryPath: jest.fn(),
   DocumentDirectoryPath: jest.fn(),
   ExternalDirectoryPath: jest.fn(),
@@ -41,12 +52,16 @@ jest.mock('react-native-fs', () => ({
   copyFileAssets: jest.fn(),
   copyFileAssetsIOS: jest.fn(),
   downloadFile: jest.fn(),
-  exists: jest.fn(),
+  exists: () =>
+    new Promise((resolve) => {
+      resolve('console.log()');
+    }),
   existsAssets: jest.fn(),
   getAllExternalFilesDirs: jest.fn(),
   getFSInfo: jest.fn(),
   hash: jest.fn(),
   isResumable: jest.fn(),
+  ls: jest.fn(),
   mkdir: jest.fn(),
   moveFile: jest.fn(),
   pathForBundle: jest.fn(),
@@ -70,6 +85,20 @@ jest.mock('react-native-fs', () => ({
   uploadFiles: jest.fn(),
   write: jest.fn(),
   writeFile: jest.fn(),
+};
+
+jest.mock('react-native-fs', () => mockFs);
+
+jest.mock('react-native-blob-util', () => ({
+  fs: {
+    dirs: {
+      DocumentDir: 'docs',
+    },
+    ...mockFs,
+  },
+  ios: {
+    excludeFromBackupKey: jest.fn(),
+  },
 }));
 
 Date.now = jest.fn(() => 123);
@@ -199,23 +228,19 @@ NativeModules.Aes = {
     const hashBase = '012345678987654';
     return Promise.resolve(hashBase + uniqueAddressChar);
   }),
-  pbkdf2: jest
-    .fn()
-    .mockImplementation((_password, _salt, _iterations, _keyLength) =>
-      Promise.resolve('mockedKey'),
-    ),
+  pbkdf2: jest.fn().mockResolvedValue('mockedKey'),
   randomKey: jest.fn().mockResolvedValue('mockedIV'),
   encrypt: jest.fn().mockResolvedValue('mockedCipher'),
   decrypt: jest.fn().mockResolvedValue('{"mockData": "mockedPlainText"}'),
 };
 
 NativeModules.AesForked = {
-  pbkdf2: jest
-    .fn()
-    .mockImplementation((_password, _salt) =>
-      Promise.resolve('mockedKeyForked'),
-    ),
+  pbkdf2: jest.fn().mockResolvedValue('mockedKeyForked'),
   decrypt: jest.fn().mockResolvedValue('{"mockData": "mockedPlainTextForked"}'),
+};
+
+NativeModules.RNTar = {
+  unTar: jest.fn().mockResolvedValue('/document-dir/archive'),
 };
 
 jest.mock(
@@ -288,9 +313,9 @@ jest.mock('redux-persist', () => ({
   createMigrate: jest.fn(),
 }));
 
-jest.mock('react-native-default-preference', () => ({
-  get: jest.fn(),
-  set: jest.fn(),
+jest.mock('../../store/storage-wrapper', () => ({
+  getItem: jest.fn(),
+  setItem: jest.fn(),
 }));
 
 // eslint-disable-next-line import/no-commonjs

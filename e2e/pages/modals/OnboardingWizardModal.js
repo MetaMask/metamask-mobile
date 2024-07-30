@@ -39,6 +39,12 @@ class OnboardingWizardModal {
     );
   }
 
+  get stepSevenContainer() {
+    return Matchers.getElementByID(
+      OnboardingWizardModalSelectorsIDs.STEP_SEVENTH_CONTAINER,
+    );
+  }
+
   get noThanksButton() {
     return Matchers.getElementByID(
       OnboardingWizardModalSelectorsIDs.NO_THANKS_BUTTON,

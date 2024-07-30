@@ -40,9 +40,11 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
     try {
       setIsLoading(true);
 
-      const { addedAccountAddress } = await KeyringController.addNewAccount();
+      const addedAccountAddress = await KeyringController.addNewAccount();
       Engine.setSelectedAddress(addedAccountAddress);
       trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT, {});
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       Logger.error(e, 'error while trying to add a new account');
     } finally {

@@ -4,7 +4,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import AddressElement from '.';
 import Engine from '../../../../../core/Engine';
 import { renderShortAddress } from '../../../../../util/address';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 const mockEngine = Engine;
 
@@ -30,10 +30,12 @@ jest.mock('../../../../../core/Engine', () => ({
 
 const initialState = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderComponent = (state: any) =>
   renderWithProvider(
     <AddressElement

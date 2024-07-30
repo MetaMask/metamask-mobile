@@ -1,7 +1,11 @@
 import React from 'react';
 import AccountInfoCard from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
+import {
+  MOCK_ACCOUNTS_CONTROLLER_STATE,
+  MOCK_ADDRESS_1,
+} from '../../../util/test/accountsControllerTestUtils';
 
 jest.mock('../../../core/Engine', () => ({
   resetState: jest.fn(),
@@ -23,21 +27,15 @@ const mockInitialState = {
   },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountTrackerController: {
         accounts: {
-          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
+          [MOCK_ADDRESS_1]: {
             balance: '0x2',
           },
         },
       },
-      PreferencesController: {
-        selectedAddress: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
-        identities: {
-          address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
-          name: 'Account 1',
-        },
-      },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       CurrencyRateController: {
         currentCurrency: 'inr',
         currencyRates: {
@@ -71,6 +69,20 @@ jest.mock('react-redux', () => ({
     .mockImplementation((callback) => callback(mockInitialState)),
 }));
 
+jest.mock('is-url', () => jest.fn());
+jest.mock('../../../core/SDKConnect/SDKConnect', () => ({
+  getInstance: () => ({
+    getConnections: jest.fn().mockReturnValue({
+      'https://metamask.io': {
+        originatorInfo: {
+          url: 'https://metamask.io',
+          icon: 'https://metamask.io/icon.png',
+        },
+      },
+    }),
+  }),
+}));
+
 describe('AccountInfoCard', () => {
   it('should match snapshot', async () => {
     const container = renderWithProvider(
@@ -96,6 +108,7 @@ describe('AccountInfoCard', () => {
       <AccountInfoCard
         fromAddress="0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
         operation="signing"
+        origin="https://metamask.io"
       />,
       { state: mockInitialState },
     );

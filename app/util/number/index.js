@@ -611,7 +611,7 @@ export function fastSplit(value, divider = '.') {
  * Calculates fiat balance of an asset
  *
  * @param {number|string} balance - Number corresponding to a balance of an asset
- * @param {number|null} conversionRate - ETH to current currency conversion rate
+ * @param {number|null|undefined} conversionRate - ETH to current currency conversion rate
  * @param {number|undefined} exchangeRate - Asset to ETH conversion rate
  * @param {string} currencyCode - Current currency code to display
  * @returns {string} - Currency-formatted string
@@ -626,6 +626,7 @@ export function balanceToFiat(
     balance === undefined ||
     balance === null ||
     exchangeRate === undefined ||
+    conversionRate === undefined ||
     exchangeRate === 0
   ) {
     return undefined;
@@ -857,4 +858,12 @@ export const formatValueToMatchTokenDecimals = (value, decimal) => {
     }
   }
   return value;
+};
+
+export const safeBNToHex = (value) => {
+  if (value === null || value === undefined) {
+    return value;
+  }
+
+  return BNToHex(value);
 };

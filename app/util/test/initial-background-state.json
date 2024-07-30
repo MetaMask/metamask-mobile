@@ -1,12 +1,7 @@
 {
   "KeyringController": {
     "isUnlocked": false,
-    "keyrings": [],
-    "vault": {
-      "cipher": "mock-cipher",
-      "iv": "mock-iv",
-      "lib": "original"
-    }
+    "keyrings": []
   },
   "LoggingController": {
     "logs": {}
@@ -18,10 +13,10 @@
     }
   },
   "AccountsController": {
-     "internalAccounts": {
-       "accounts": {},
-       "selectedAccount": ""
-     }
+    "internalAccounts": {
+      "accounts": {},
+      "selectedAccount": ""
+    }
   },
   "AddressBookController": {
     "addressBook": {}
@@ -49,15 +44,13 @@
   "NftDetectionController": {},
   "PPOMController": {
     "storageMetadata": [],
-    "versionFileETag": "",
     "versionInfo": []
   },
-
   "CurrencyRateController": {
     "currentCurrency": "usd",
     "currencyRates": {
-      "ETH":{
-        "conversionDate":0,
+      "ETH": {
+        "conversionDate": 0,
         "conversionRate": 0,
         "usdConversionRate": null
       }
@@ -71,7 +64,10 @@
       "ticker": "ETH"
     },
     "networksMetadata": {
-      "mainnet":{  "EIPS": {},"status": "unknown"}
+      "mainnet": {
+        "EIPS": {},
+        "status": "unknown"
+      }
     },
     "selectedNetworkClientId": "mainnet"
   },
@@ -88,7 +84,7 @@
     "lostIdentities": {},
     "selectedAddress": "",
     "useTokenDetection": true,
-    "useNftDetection": false,
+    "useNftDetection": true,
     "useSafeChainsListValidation": true,
     "displayNftMedia": true,
     "securityAlertsEnabled": true,
@@ -119,20 +115,47 @@
       "0x505": true,
       "0x64": true
     },
-    "isIpfsGatewayEnabled": true
+    "isIpfsGatewayEnabled": true,
+    "smartTransactionsOptInStatus": false,
+    "useTransactionSimulations": true
   },
   "TokenBalancesController": {
     "contractBalances": {}
   },
   "TokenRatesController": {
-    "contractExchangeRates": {},
-    "contractExchangeRatesByChainId": {}
+    "marketData": {}
   },
   "TransactionController": {
     "lastFetchedBlockNumbers": {},
     "methodData": {},
     "submitHistory": [],
     "transactions": []
+  },
+  "SmartTransactionsController": {
+    "smartTransactionsState": {
+      "smartTransactions": {},
+      "userOptIn": false,
+      "userOptInV2": false,
+      "fees": {
+        "approvalTxFees": false,
+        "tradeTxFees": false
+      },
+      "liveness": true,
+      "livenessByChainId": {
+        "mainnet": true,
+        "sepolia": true
+      },
+      "feesByChainId": {
+        "mainnet": {
+          "approvalTxFees": false,
+          "tradeTxFees": false
+        },
+        "sepolia": {
+          "approvalTxFees": false,
+          "tradeTxFees": false
+        }
+      }
+    }
   },
   "SnapController": {
     "snapStates": {},
@@ -198,7 +221,8 @@
     "gasFeeEstimates": {},
     "estimatedGasFeeTimeBounds": {},
     "gasEstimateType": "none",
-    "gasFeeEstimatesByChainId": {}
+    "gasFeeEstimatesByChainId": {},
+    "nonRPCGasFeeApisDisabled": false
   },
   "ApprovalController": {
     "pendingApprovals": {},
@@ -215,5 +239,24 @@
     "unapprovedMsgCount": 0,
     "unapprovedPersonalMsgCount": 0,
     "unapprovedTypedMessagesCount": 0
+  },
+  "AuthenticationController": {
+    "isSignedIn": false
+  },
+  "NotificationServicesController": {
+    "isCheckingAccountsPresence": false,
+    "isFeatureAnnouncementsEnabled": false,
+    "isFetchingMetamaskNotifications": false,
+    "isMetamaskNotificationsFeatureSeen": false,
+    "isNotificationServicesEnabled": false,
+    "isUpdatingMetamaskNotifications": false,
+    "isUpdatingMetamaskNotificationsAccount": [],
+    "metamaskNotificationsList": [],
+    "metamaskNotificationsReadList": [],
+    "subscriptionAccountsSeen": []
+  },
+  "UserStorageController": {
+    "isProfileSyncingEnabled": true,
+    "isProfileSyncingUpdateLoading": false
   }
 }

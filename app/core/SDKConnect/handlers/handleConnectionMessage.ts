@@ -1,6 +1,6 @@
 import { KeyringController } from '@metamask/keyring-controller';
 import { NetworkController } from '@metamask/network-controller';
-import { PreferencesController } from '@metamask/preferences-controller';
+import { AccountsController } from '@metamask/accounts-controller';
 import {
   CommunicationLayerMessage,
   MessageType,
@@ -18,6 +18,7 @@ import {
 import checkPermissions from './checkPermissions';
 import handleCustomRpcCalls from './handleCustomRpcCalls';
 import handleSendMessage from './handleSendMessage';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 // eslint-disable-next-line
 const { version } = require('../../../../package.json');
 
@@ -96,12 +97,15 @@ export const handleConnectionMessage = async ({
     context: 'connection::on_message',
   });
 
-  const preferencesController = (
-    engine.context as {
-      PreferencesController: PreferencesController;
+  const accountsController = (
+    Engine.context as {
+      AccountsController: AccountsController;
     }
-  ).PreferencesController;
-  const selectedAddress = preferencesController.state.selectedAddress;
+  ).AccountsController;
+
+  const selectedInternalAccountChecksummedAddress = toChecksumHexAddress(
+    accountsController.getSelectedAccount().address,
+  );
 
   const networkController = (
     engine.context as {
@@ -114,13 +118,15 @@ export const handleConnectionMessage = async ({
   // It will wait until user accept/reject the connection request.
   try {
     await checkPermissions({ message, connection, engine });
-    if (!connection.receivedDisconnect) {
-      await waitForConnectionReadiness({ connection });
-      connection.sendAuthorized();
-    } else {
-      // Reset state to continue communication after reconnection.
-      connection.isReady = true;
-      connection.receivedDisconnect = false;
+    if (!connection.remote.hasRelayPersistence()) {
+      if (!connection.receivedDisconnect) {
+        await waitForConnectionReadiness({ connection });
+        connection.sendAuthorized();
+      } else {
+        // Reset state to continue communication after reconnection.
+        connection.isReady = true;
+        connection.receivedDisconnect = false;
+      }
     }
   } catch (error) {
     // Approval failed - redirect to app with error.
@@ -144,13 +150,15 @@ export const handleConnectionMessage = async ({
 
   const processedRpc = await handleCustomRpcCalls({
     batchRPCManager: connection.batchRPCManager,
-    selectedAddress,
+    selectedAddress: selectedInternalAccountChecksummedAddress,
     selectedChainId: chainId,
     connection,
     navigation: connection.navigation,
     rpc: {
       id: message.id,
       method: message.method,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       params: message.params as any,
     },
   });

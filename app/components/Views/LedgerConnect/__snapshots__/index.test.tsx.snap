@@ -5,7 +5,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
   style={
     {
       "alignItems": "center",
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "flex": 1,
       "position": "relative",
     }
@@ -19,25 +19,71 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
       }
     }
   >
-    <Image
-      resizeMode="contain"
-      source={
-        {
-          "uri": "MockImage",
-        }
-      }
+    <View
       style={
         {
-          "height": 68,
-          "width": 68,
+          "alignItems": "center",
+          "flexDirection": "row",
+          "marginTop": 20,
+          "width": "100%",
         }
       }
-    />
+    >
+      <Image
+        resizeMode="contain"
+        source={
+          {
+            "uri": "MockImage",
+          }
+        }
+        style={
+          {
+            "height": 68,
+            "width": 68,
+          }
+        }
+      />
+      <TouchableOpacity
+        style={
+          {
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "flex-end",
+            "width": 48,
+          }
+        }
+      >
+        <Text
+          allowFontScaling={false}
+          style={
+            [
+              {
+                "color": undefined,
+                "fontSize": 15,
+              },
+              {
+                "color": "#141618",
+                "fontSize": 28,
+              },
+              {
+                "fontFamily": "Material Icons",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              {},
+            ]
+          }
+        >
+          
+        </Text>
+      </TouchableOpacity>
+    </View>
     <Text
       style={
         [
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -121,7 +167,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           style={
             [
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 30,
                 "fontWeight": "400",
@@ -166,7 +212,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
         style={
           [
             {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -207,7 +253,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
         style={
           [
             {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -248,7 +294,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
         style={
           [
             {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -289,7 +335,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
         style={
           [
             {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -330,7 +376,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
         style={
           [
             {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -371,7 +417,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
         style={
           [
             {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -413,7 +459,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
         style={
           [
             {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -444,7 +490,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             undefined,
             undefined,
             {
-              "color": "#0376C9",
+              "color": "#0376c9",
             },
             undefined,
             undefined,
@@ -477,7 +523,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
         <View
           style={
             {
-              "borderColor": "#BBC0C5",
+              "borderColor": "#bbc0c5",
               "borderRadius": 5,
               "borderWidth": 2,
               "height": 45,
@@ -514,7 +560,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
                     style={
                       {
                         "alignSelf": "flex-start",
-                        "color": "#24272A",
+                        "color": "#141618",
                         "flex": 1,
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 14,
@@ -532,7 +578,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
                     style={
                       [
                         {
-                          "color": "#24272A",
+                          "color": "#141618",
                           "fontSize": 24,
                         },
                         {
@@ -612,7 +658,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
                   "padding": 15,
                 },
                 {
-                  "backgroundColor": "#0376C9",
+                  "backgroundColor": "#0376c9",
                   "minHeight": 50,
                 },
                 undefined,
@@ -640,7 +686,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
                     "textAlign": "center",
                   },
                   {
-                    "color": "#FFFFFF",
+                    "color": "#ffffff",
                   },
                   undefined,
                 ],

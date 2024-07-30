@@ -3,12 +3,19 @@ import type { EngineState } from '../../core/Engine';
 import { initialState as initialFiatOrdersState } from '../../reducers/fiatOrders';
 import { initialState as initialSecurityState } from '../../reducers/security';
 import { initialState as initialInpageProvider } from '../../core/redux/slices/inpageProvider';
+import { initialState as initialSmartTransactions } from '../../core/redux/slices/smartTransactions';
+import { initialState as transactionMetrics } from '../../core/redux/slices/transactionMetrics';
+import { initialState as originThrottling } from '../../core/redux/slices/originThrottling';
 import initialBackgroundState from './initial-background-state.json';
+import { userInitialState } from '../../reducers/user';
 
-// Cast because TypeScript is incorrectly inferring the type of this JSON object
-const backgroundState: EngineState = initialBackgroundState as any;
+// A cast is needed here because we use enums in some controllers, and TypeScript doesn't consider
+// the string value of an enum as satisfying an enum type.
+export const backgroundState: EngineState =
+  initialBackgroundState as unknown as EngineState;
 
 const initialRootState: RootState = {
+  legalNotices: undefined,
   collectibles: undefined,
   engine: { backgroundState },
   privacy: undefined,
@@ -18,7 +25,8 @@ const initialRootState: RootState = {
   settings: undefined,
   alert: undefined,
   transaction: undefined,
-  user: {},
+  smartTransactions: initialSmartTransactions,
+  user: userInitialState,
   wizard: undefined,
   onboarding: undefined,
   notification: undefined,
@@ -38,6 +46,8 @@ const initialRootState: RootState = {
   rpcEvents: undefined,
   accounts: undefined,
   inpageProvider: initialInpageProvider,
+  transactionMetrics,
+  originThrottling,
 };
 
 export default initialRootState;

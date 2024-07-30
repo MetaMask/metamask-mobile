@@ -1,5 +1,10 @@
 import { renderScreen } from '../../../../util/test/renderWithProvider';
 import Send from '.';
+import {
+  MOCK_ACCOUNTS_CONTROLLER_STATE,
+  MOCK_ADDRESS_1,
+} from '../../../../util/test/accountsControllerTestUtils';
+import { MOCK_KEYRING_CONTROLLER } from '../../../../selectors/keyringController/testUtils';
 
 const initialState = {
   transaction: {
@@ -17,21 +22,20 @@ const initialState = {
   settings: {},
   engine: {
     backgroundState: {
-      // ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
-          '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
+          [MOCK_ADDRESS_1]: {
             balance: '0x0',
           },
         },
         accountsByChainId: {
           64: {
-            '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
+            [MOCK_ADDRESS_1]: {
               balance: '0x0',
             },
           },
           1: {
-            '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
+            [MOCK_ADDRESS_1]: {
               balance: '0x0',
             },
           },
@@ -46,18 +50,14 @@ const initialState = {
       TokenBalancesController: {
         contractBalances: {},
       },
+      TokenListController: {
+        tokenList: [],
+      },
       PreferencesController: {
         featureFlags: {},
-        identities: {
-          '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
-            address: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
-            name: 'Account 1',
-            importTime: 1684232000456,
-          },
-        },
         ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',
         lostIdentities: {},
-        selectedAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+        selectedAddress: MOCK_ADDRESS_1,
         useTokenDetection: true,
         useNftDetection: false,
         displayNftMedia: true,
@@ -72,16 +72,9 @@ const initialState = {
         _W: {
           featureFlags: {},
           frequentRpcList: [],
-          identities: {
-            '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
-              address: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
-              name: 'Account 1',
-              importTime: 1684232000456,
-            },
-          },
           ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',
           lostIdentities: {},
-          selectedAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+          selectedAddress: MOCK_ADDRESS_1,
           useTokenDetection: true,
           useNftDetection: false,
           displayNftMedia: true,
@@ -115,6 +108,8 @@ const initialState = {
         },
         _X: null,
       },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      KeyringController: MOCK_KEYRING_CONTROLLER,
       NetworkController: {
         network: '1',
         providerConfig: {
@@ -123,14 +118,22 @@ const initialState = {
           chainId: '0x1',
         },
       },
+      NftController: {
+        allNftContracts: {},
+      },
       TokenRatesController: {
-        contractExchangeRates: {},
+        marketData: {},
       },
       TransactionController: {
         methodData: {},
         transactions: [],
         internalTransactions: [],
         swapsTransactions: {},
+      },
+      SmartTransactionsController: {
+        smartTransactionsState: {
+          liveness: true,
+        },
       },
       GasFeeController: {
         gasFeeEstimates: {},

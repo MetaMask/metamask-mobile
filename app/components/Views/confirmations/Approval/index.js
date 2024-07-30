@@ -4,7 +4,7 @@ import Engine from '../../../../core/Engine';
 import PropTypes from 'prop-types';
 import TransactionEditor from './components/TransactionEditor';
 import Modal from 'react-native-modal';
-import { addHexPrefix, BNToHex } from '../../../../util/number';
+import { safeBNToHex } from '../../../../util/number';
 import { getTransactionOptionsTitle } from '../../../UI/Navbar';
 import { resetTransaction } from '../../../../actions/transaction';
 import { connect } from 'react-redux';
@@ -20,12 +20,10 @@ import { strings } from '../../../../../locales/i18n';
 import {
   getAddressAccountType,
   isQRHardwareAccount,
-  safeToChecksumAddress,
   isHardwareAccount,
 } from '../../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../../util/walletconnect';
 import Logger from '../../../../util/Logger';
-import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { createLedgerTransactionModalNavDetails } from '../../../UI/LedgerModals/LedgerTransactionModal';
@@ -40,15 +38,20 @@ import {
   selectChainId,
   selectProviderType,
 } from '../../../../selectors/networkController';
-import { selectSelectedAddress } from '../../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
 import { providerErrors } from '@metamask/rpc-errors';
-import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
+import { getDeviceId } from '../../../../core/Ledger/Ledger';
+import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import { getBlockaidMetricsParams } from '../../../../util/blockaid';
 import { getDecimalChainId } from '../../../../util/networks';
 
 import { updateTransaction } from '../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
+import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
+import { getSmartTransactionMetricsProperties } from '../../../../util/smart-transactions';
+import { selectTransactionMetrics } from '../../../../core/redux/slices/transactionMetrics';
+import { buildTransactionParams } from '../../../../util/confirmation/transactions';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -66,6 +69,8 @@ const styles = StyleSheet.create({
  */
 class Approval extends PureComponent {
   appStateListener;
+
+  #transactionFinishedListener;
 
   static propTypes = {
     /**
@@ -104,7 +109,6 @@ class Approval extends PureComponent {
      * Indicates whether custom nonce should be shown in transaction editor
      */
     showCustomNonce: PropTypes.bool,
-    nonce: PropTypes.number,
 
     /**
      * A string representing the network chainId
@@ -114,6 +118,16 @@ class Approval extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+
+    /**
+     * Boolean that indicates if smart transaction should be used
+     */
+    shouldUseSmartTransaction: PropTypes.bool,
+
+    /**
+     * Object containing transaction metrics by id
+     */
+    transactionMetricsById: PropTypes.object,
   };
 
   state = {
@@ -147,6 +161,7 @@ class Approval extends PureComponent {
       const { transactionHandled } = this.state;
       const { transaction, selectedAddress } = this.props;
       const { KeyringController } = Engine.context;
+
       if (!transactionHandled) {
         if (isQRHardwareAccount(selectedAddress)) {
           KeyringController.cancelQRSignRequest();
@@ -160,12 +175,16 @@ class Approval extends PureComponent {
             },
           );
         }
-        Engine.context.TransactionController.hub.removeAllListeners(
-          `${transaction.id}:finished`,
+
+        Engine.controllerMessenger.tryUnsubscribe(
+          'TransactionController:transactionFinished',
+          this.#transactionFinishedListener,
         );
+
         this.appStateListener?.remove();
-        this.clear();
       }
+
+      this.clear();
     } catch (e) {
       if (e) {
         throw e;
@@ -273,12 +292,14 @@ class Approval extends PureComponent {
     const {
       networkType,
       transaction: { selectedAsset, assetType },
+      shouldUseSmartTransaction,
     } = this.props;
     return {
       view: APPROVAL,
       network: networkType,
       activeCurrency: selectedAsset.symbol || selectedAsset.contractName,
       assetType,
+      is_smart_transaction: shouldUseSmartTransaction,
     };
   };
 
@@ -300,8 +321,25 @@ class Approval extends PureComponent {
 
   getAnalyticsParams = ({ gasEstimateType, gasSelected } = {}) => {
     try {
-      const { chainId, transaction, selectedAddress } = this.props;
+      const {
+        chainId,
+        transaction,
+        selectedAddress,
+        shouldUseSmartTransaction,
+      } = this.props;
       const { selectedAsset } = transaction;
+      const { TransactionController, SmartTransactionsController } =
+        Engine.context;
+
+      const transactionMeta = TransactionController.getTransactions({
+        searchCriteria: { id: transaction.id },
+      })?.[0];
+
+      const smartTransactionMetricsProperties =
+        getSmartTransactionMetricsProperties(
+          SmartTransactionsController,
+          transactionMeta,
+        );
 
       return {
         account_type: getAddressAccountType(selectedAddress),
@@ -317,6 +355,8 @@ class Approval extends PureComponent {
           : this.originIsWalletConnect
           ? AppConstants.REQUEST_SOURCES.WC
           : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+        is_smart_transaction: shouldUseSmartTransaction,
+        ...smartTransactionMetricsProperties,
       };
     } catch (error) {
       return {};
@@ -355,6 +395,7 @@ class Approval extends PureComponent {
       {
         ...this.getAnalyticsParams(),
         ...this.getBlockaidMetricsParams(),
+        ...this.getTransactionMetrics(),
       },
     );
   };
@@ -366,8 +407,9 @@ class Approval extends PureComponent {
       if (!approve) {
         //cancelTransaction will change transaction status to reject and throw error from event listener
         //component is being unmounted, error will be unhandled, hence remove listener before cancel
-        TransactionController.hub.removeAllListeners(
-          `${transactionId}:finished`,
+        Engine.controllerMessenger.tryUnsubscribe(
+          'TransactionController:transactionFinished',
+          this.#transactionFinishedListener,
         );
 
         TransactionController.cancelTransaction(transactionId);
@@ -393,25 +435,11 @@ class Approval extends PureComponent {
    * Callback on confirm transaction
    */
   onConfirm = async ({ gasEstimateType, EIP1559GasData, gasSelected }) => {
-    const { TransactionController, KeyringController, ApprovalController } =
-      Engine.context;
-    const {
-      transactions,
-      transaction: { assetType, selectedAsset },
-      showCustomNonce,
-      chainId,
-    } = this.props;
+    const { KeyringController, ApprovalController } = Engine.context;
+    const { transactions, chainId, shouldUseSmartTransaction } = this.props;
     let { transaction } = this.props;
-    const { nonce } = transaction;
     const { transactionConfirmed } = this.state;
     if (transactionConfirmed) return;
-
-    if (showCustomNonce && nonce) {
-      transaction.nonce = BNToHex(nonce);
-    } else {
-      // If nonce is not set in transaction, TransactionController will set it to the next nonce
-      transaction.nonce = undefined;
-    }
 
     const isLedgerAccount = isHardwareAccount(transaction.from, [
       ExtendedKeyringTypes.ledger,
@@ -420,38 +448,36 @@ class Approval extends PureComponent {
     this.setState({ transactionConfirmed: true });
 
     try {
-      if (assetType === 'ETH') {
-        transaction = this.prepareTransaction({
-          transaction,
-          gasEstimateType,
-          EIP1559GasData,
-        });
-      } else {
-        transaction = this.prepareAssetTransaction({
-          transaction,
-          selectedAsset,
-          gasEstimateType,
-          EIP1559GasData,
-        });
+      transaction = this.prepareTransaction({
+        gasEstimateType,
+        EIP1559GasData,
+      });
+
+      // For STX, don't wait for TxController to get finished event, since it will take some time to get hash for STX
+      if (shouldUseSmartTransaction) {
+        this.setState({ transactionHandled: true });
+        this.props.hideModal();
       }
 
-      TransactionController.hub.once(
-        `${transaction.id}:finished`,
-        (transactionMeta) => {
-          if (transactionMeta.status === 'submitted') {
-            if (!isLedgerAccount) {
-              this.setState({ transactionHandled: true });
-              this.props.hideModal();
+      this.#transactionFinishedListener =
+        Engine.controllerMessenger.subscribeOnceIf(
+          'TransactionController:transactionFinished',
+          (transactionMeta) => {
+            if (transactionMeta.status === 'submitted') {
+              if (!isLedgerAccount) {
+                this.setState({ transactionHandled: true });
+                this.props.hideModal();
+              }
+              NotificationManager.watchSubmittedTransaction({
+                ...transactionMeta,
+                assetType: transaction.assetType,
+              });
+            } else {
+              throw transactionMeta.error;
             }
-            NotificationManager.watchSubmittedTransaction({
-              ...transactionMeta,
-              assetType: transaction.assetType,
-            });
-          } else {
-            throw transactionMeta.error;
-          }
-        },
-      );
+          },
+          (transactionMeta) => transactionMeta.id === transaction.id,
+        );
 
       const fullTx = transactions.find(({ id }) => id === transaction.id);
 
@@ -469,32 +495,36 @@ class Approval extends PureComponent {
 
       // For Ledger Accounts we handover the signing to the confirmation flow
       if (isLedgerAccount) {
-        const ledgerKeyring = await getLedgerKeyring();
+        const deviceId = await getDeviceId();
         this.setState({ transactionHandled: true });
         this.setState({ transactionConfirmed: false });
 
         this.props.navigation.navigate(
           ...createLedgerTransactionModalNavDetails({
             transactionId: transaction.id,
-            deviceId: ledgerKeyring.deviceId,
+            deviceId,
             onConfirmationComplete: (approve) =>
-              this.onLedgerConfirmation(
-                approve,
-                transaction.id,
-                this.getAnalyticsParams({ gasEstimateType, gasSelected }),
-              ),
+              this.onLedgerConfirmation(approve, transaction.id, {
+                ...this.getAnalyticsParams({ gasEstimateType, gasSelected }),
+                ...this.getTransactionMetrics(),
+              }),
             type: 'signTransaction',
           }),
         );
         this.props.hideModal();
         return;
       }
+
       await ApprovalController.accept(transaction.id, undefined, {
         waitForResult: true,
       });
+
       this.showWalletConnectNotification(true);
     } catch (error) {
-      if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+      if (
+        !error?.message.startsWith(KEYSTONE_TX_CANCELED) &&
+        !error?.message.startsWith(STX_NO_HASH_ERROR)
+      ) {
         Alert.alert(
           strings('transactions.transaction_error'),
           error && error.message,
@@ -513,6 +543,7 @@ class Approval extends PureComponent {
       }
       this.setState({ transactionHandled: false });
     }
+
     this.props.metrics.trackEvent(
       MetaMetricsEvents.DAPP_TRANSACTION_COMPLETED,
       {
@@ -521,6 +552,7 @@ class Approval extends PureComponent {
           gasSelected,
         }),
         ...this.getBlockaidMetricsParams(),
+        ...this.getTransactionMetrics(),
       },
     );
     this.setState({ transactionConfirmed: false });
@@ -543,69 +575,45 @@ class Approval extends PureComponent {
   };
 
   /**
-   * Returns transaction object with gas, gasPrice and value in hex format
-   *
-   * @param {object} transaction - Transaction object
-   */
-  prepareTransaction = ({ transaction, gasEstimateType, EIP1559GasData }) => {
-    const transactionToSend = {
-      ...transaction,
-      value: BNToHex(transaction.value),
-      to: safeToChecksumAddress(transaction.to),
-    };
-
-    if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-      transactionToSend.gas = EIP1559GasData.gasLimitHex;
-      transactionToSend.maxFeePerGas = addHexPrefix(
-        EIP1559GasData.suggestedMaxFeePerGasHex,
-      ); //'0x2540be400'
-      transactionToSend.maxPriorityFeePerGas = addHexPrefix(
-        EIP1559GasData.suggestedMaxPriorityFeePerGasHex,
-      ); //'0x3b9aca00';
-      transactionToSend.to = safeToChecksumAddress(transaction.to);
-      delete transactionToSend.gasPrice;
-    } else {
-      transactionToSend.gas = BNToHex(transaction.gas);
-      transactionToSend.gasPrice = BNToHex(transaction.gasPrice);
-    }
-
-    return transactionToSend;
-  };
-
-  /**
    * Returns transaction object with gas and gasPrice in hex format, value set to 0 in hex format
    * and to set to selectedAsset address
    *
    * @param {object} transaction - Transaction object
    * @param {object} selectedAsset - Asset object
    */
-  prepareAssetTransaction = ({
-    transaction,
-    selectedAsset,
-    gasEstimateType,
-    EIP1559GasData,
-  }) => {
-    const transactionToSend = {
-      ...transaction,
-      value: '0x0',
-      to: selectedAsset.address,
+  prepareTransaction = ({ EIP1559GasData, gasEstimateType }) => {
+    const { transaction: rawTransaction, showCustomNonce } = this.props;
+    const { assetType, gas, gasPrice, selectedAsset } = rawTransaction;
+
+    const transaction = {
+      ...rawTransaction,
     };
 
-    if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-      transactionToSend.gas = EIP1559GasData.gasLimitHex;
-      transactionToSend.maxFeePerGas = addHexPrefix(
-        EIP1559GasData.suggestedMaxFeePerGasHex,
-      ); //'0x2540be400'
-      transactionToSend.maxPriorityFeePerGas = addHexPrefix(
-        EIP1559GasData.suggestedMaxPriorityFeePerGasHex,
-      ); //'0x3b9aca00';
-      delete transactionToSend.gasPrice;
-    } else {
-      transactionToSend.gas = BNToHex(transaction.gas);
-      transactionToSend.gasPrice = BNToHex(transaction.gasPrice);
+    if (assetType !== 'ETH') {
+      transaction.to = selectedAsset.address;
+      transaction.value = '0x0';
     }
 
-    return transactionToSend;
+    const gasDataLegacy = {
+      suggestedGasLimitHex: safeBNToHex(gas),
+      suggestedGasPriceHex: safeBNToHex(gasPrice),
+    };
+
+    return buildTransactionParams({
+      gasDataEIP1559: EIP1559GasData,
+      gasDataLegacy,
+      gasEstimateType,
+      showCustomNonce,
+      transaction,
+    });
+  };
+
+  getTransactionMetrics = () => {
+    const { transactionMetricsById, transaction } = this.props;
+    const { id: transactionId } = transaction;
+
+    // Skip sensitiveProperties for now as it's not supported by mobile Metametrics client
+    return transactionMetricsById[transactionId]?.properties || {};
   };
 
   render = () => {
@@ -646,11 +654,13 @@ class Approval extends PureComponent {
 const mapStateToProps = (state) => ({
   transaction: getNormalizedTxState(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   networkType: selectProviderType(state),
   showCustomNonce: state.settings.showCustomNonce,
   chainId: selectChainId(state),
   activeTabUrl: getActiveTabUrl(state),
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+  transactionMetricsById: selectTransactionMetrics(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

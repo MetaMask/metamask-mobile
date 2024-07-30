@@ -142,7 +142,6 @@ exports[`UpdateNeeded should render correctly 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -235,7 +234,6 @@ exports[`UpdateNeeded should render correctly 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -356,7 +354,7 @@ exports[`UpdateNeeded should render correctly 1`] = `
                             ],
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                               "justifyContent": "space-between",
                               "paddingHorizontal": 24,
@@ -412,7 +410,7 @@ exports[`UpdateNeeded should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                   "fontFamily": "Euclid Circular B",
                                   "fontSize": 32,
                                   "fontWeight": "700",
@@ -429,7 +427,7 @@ exports[`UpdateNeeded should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                   "fontFamily": "Euclid Circular B",
                                   "fontSize": 14,
                                   "fontWeight": "400",
@@ -462,7 +460,7 @@ exports[`UpdateNeeded should render correctly 1`] = `
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#0376C9",
+                                "backgroundColor": "#0376c9",
                                 "borderRadius": 20,
                                 "flexDirection": "row",
                                 "height": undefined,
@@ -478,7 +476,7 @@ exports[`UpdateNeeded should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#FFFFFF",
+                                  "color": "#ffffff",
                                   "fontFamily": "Euclid Circular B",
                                   "fontSize": 14,
                                   "fontWeight": "400",
@@ -515,7 +513,7 @@ exports[`UpdateNeeded should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#0376C9",
+                                  "color": "#0376c9",
                                   "fontFamily": "Euclid Circular B",
                                   "fontSize": 14,
                                   "fontWeight": "400",

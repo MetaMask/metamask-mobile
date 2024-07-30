@@ -1,9 +1,32 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Identicon should render correctly when provided address found in tokenList and iconUrl is available 1`] = `
+<Image
+  source={
+    {
+      "uri": "https://example.com/icon.png",
+    }
+  }
+  style={
+    [
+      {
+        "borderRadius": 23,
+        "height": 46,
+        "width": 46,
+      },
+      undefined,
+    ]
+  }
+/>
+`;
+
 exports[`Identicon should render correctly when useBlockieIcon is false 1`] = `
 <ContextProvider
   value={
     {
+      "getServerState": undefined,
+      "noopCheck": "once",
+      "stabilityCheck": "once",
       "store": {
         "clearActions": [Function],
         "dispatch": [Function],
@@ -12,22 +35,14 @@ exports[`Identicon should render correctly when useBlockieIcon is false 1`] = `
         "replaceReducer": [Function],
         "subscribe": [Function],
       },
-      "subscription": Subscription {
+      "subscription": {
+        "addNestedSub": [Function],
+        "getListeners": [Function],
         "handleChangeWrapper": [Function],
-        "listeners": {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
+        "isSubscribed": [Function],
+        "notifyNestedSubs": [Function],
+        "trySubscribe": [Function],
+        "tryUnsubscribe": [Function],
       },
     }
   }
@@ -40,6 +55,9 @@ exports[`Identicon should render correctly when useBlockieIcon is true 1`] = `
 <ContextProvider
   value={
     {
+      "getServerState": undefined,
+      "noopCheck": "once",
+      "stabilityCheck": "once",
       "store": {
         "clearActions": [Function],
         "dispatch": [Function],
@@ -48,22 +66,14 @@ exports[`Identicon should render correctly when useBlockieIcon is true 1`] = `
         "replaceReducer": [Function],
         "subscribe": [Function],
       },
-      "subscription": Subscription {
+      "subscription": {
+        "addNestedSub": [Function],
+        "getListeners": [Function],
         "handleChangeWrapper": [Function],
-        "listeners": {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
+        "isSubscribed": [Function],
+        "notifyNestedSubs": [Function],
+        "trySubscribe": [Function],
+        "tryUnsubscribe": [Function],
       },
     }
   }

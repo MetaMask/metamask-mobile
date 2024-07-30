@@ -16,14 +16,17 @@ import { useTheme } from '../../../../../util/theme';
 import Text from '../../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import { selectChainId } from '../../../../../selectors/networkController';
-import { selectIdentities } from '../../../../../selectors/preferencesController';
 import { regex } from '../../../../../util/regex';
 import { SendViewSelectorsIDs } from '../../../../../../e2e/selectors/SendView.selectors';
+import { selectInternalAccounts } from '../../../../../selectors/accountsController';
 
 // Internal dependencies
 import { AddressListProps, Contact } from './AddressList.types';
 import styleSheet from './AddressList.styles';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const LabelElement = (styles: any, label: string) => (
   <View key={label} style={styles.labelElementWrapper}>
     <Text variant={TextVariant.BodyMD} style={styles.contactLabel}>
@@ -43,14 +46,20 @@ const AddressList: React.FC<AddressListProps> = ({
   const { colors } = useTheme();
   const styles = styleSheet(colors);
   const [contactElements, setContactElements] = useState<Contact[]>([]);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [fuse, setFuse] = useState<any>(undefined);
   const chainId = useSelector(selectChainId);
-  const identities = useSelector(selectIdentities);
+  const internalAccounts = useSelector(selectInternalAccounts);
   const addressBook = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) =>
       state.engine.backgroundState.AddressBookController.addressBook,
   );
   const ambiguousAddressEntries = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.user.ambiguousAddressEntries,
   );
 
@@ -85,7 +94,11 @@ const AddressList: React.FC<AddressListProps> = ({
             .catch(() => contact),
         ),
       ).then((updatedContacts) => {
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const newContactElements: any[] = [];
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const addressBookTree: any = {};
 
         updatedContacts.forEach((contact: Contact) => {
@@ -139,7 +152,7 @@ const AddressList: React.FC<AddressListProps> = ({
   }, [networkAddressBook, parseAddressBook]);
 
   const getNetworkAddressBookList = useCallback(() => {
-    if (inputSearch) {
+    if (inputSearch && fuse) {
       return fuse.search(inputSearch);
     }
 
@@ -171,11 +184,11 @@ const AddressList: React.FC<AddressListProps> = ({
         >
           {strings('onboarding_wizard.step2.title')}
         </Text>
-        {Object.keys(identities).map((address) => (
+        {internalAccounts.map((account) => (
           <AddressElement
-            key={address}
-            address={address}
-            name={identities[address].name}
+            key={account.id}
+            address={toChecksumHexAddress(account.address)}
+            name={account.metadata.name}
             onAccountPress={onAccountPress}
             onIconPress={onIconPress}
             onAccountLongPress={onAccountLongPress}

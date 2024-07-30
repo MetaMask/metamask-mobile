@@ -60,8 +60,9 @@ import { selectContractExchangeRates } from '../../../../../../selectors/tokenRa
 import { createBrowserNavDetails } from '../../../../Browser';
 import { isNetworkRampNativeTokenSupported } from '../../../../../../components/UI/Ramp/utils';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
-import Routes from '../../../../../../constants/navigation/Routes';
+import { createBuyNavigationDetails } from '../../../../../UI/Ramp/routes/utils';
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
+import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -236,6 +237,10 @@ class TransactionReviewInformation extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * Boolean that indicates if smart transaction should be used
+     */
+    shouldUseSmartTransaction: PropTypes.bool,
   };
 
   state = {
@@ -298,7 +303,7 @@ class TransactionReviewInformation extends PureComponent {
     /* this is kinda weird, we have to reject the transaction to collapse the modal */
     this.onCancelPress();
     try {
-      navigation.navigate(Routes.RAMP.BUY);
+      navigation.navigate(...createBuyNavigationDetails());
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
@@ -652,6 +657,7 @@ class TransactionReviewInformation extends PureComponent {
       gasEstimateType,
       gasSelected,
       isNativeTokenBuySupported,
+      shouldUseSmartTransaction,
     } = this.props;
     const { nonce } = this.props.transaction;
     const colors = this.context.colors || mockTheme.colors;
@@ -680,7 +686,7 @@ class TransactionReviewInformation extends PureComponent {
             warningMessage={strings('edit_gas_fee_eip1559.low_fee_warning')}
           />
         )}
-        {showCustomNonce && (
+        {showCustomNonce && !shouldUseSmartTransaction && (
           <CustomNonce nonce={nonce} onNonceEdit={this.toggleNonceModal} />
         )}
         {!!amountError && (
@@ -746,6 +752,7 @@ const mapStateToProps = (state) => ({
     selectChainId(state),
     getRampNetworks(state),
   ),
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

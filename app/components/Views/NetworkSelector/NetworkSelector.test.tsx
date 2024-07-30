@@ -5,11 +5,11 @@ import { fireEvent } from '@testing-library/react-native';
 // External dependencies
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
 // Internal dependencies
 import NetworkSelector from './NetworkSelector';
-import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkListModal.selectors';
 
 const mockEngine = Engine;
@@ -25,10 +25,6 @@ jest.mock('../../../core/Engine', () => ({
   context: {
     NetworkController: { setActiveNetwork: jest.fn() },
     PreferencesController: {
-      selectedAddress: '0x',
-      identities: {
-        '0x': { name: 'Account 1', address: '0x' },
-      },
       setShowTestNetworks: jest.fn(),
     },
     CurrencyRateController: { updateExchangeRate: jest.fn() },
@@ -42,7 +38,7 @@ const initialState = {
   },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountTrackerController: {
         accounts: {
           '0x': {
@@ -71,16 +67,14 @@ const initialState = {
             chainId: '0x89',
             nickname: 'Polygon Mainnet',
             rpcPrefs: { blockExplorerUrl: 'https://polygonscan.com' },
-            rpcUrl:
-              'https://polygon-mainnet.infura.io/v3/cda392a134014865ad3c273dc7ddfff3',
+            rpcUrl: 'https://polygon-mainnet.infura.io/v3/12345',
             ticker: 'MATIC',
           },
           networkId3: {
             chainId: '0xa',
             nickname: 'Optimism',
             rpcPrefs: { blockExplorerUrl: 'https://optimistic.etherscan.io' },
-            rpcUrl:
-              'https://optimism-mainnet.infura.io/v3/cda392a134014865ad3c273dc7ddfff3',
+            rpcUrl: 'https://optimism-mainnet.infura.io/v3/12345',
             ticker: 'ETH',
           },
           networkId4: {
@@ -105,10 +99,6 @@ const initialState = {
       },
       PreferencesController: {
         showTestNetworks: false,
-        selectedAddress: '0x',
-        identities: {
-          '0x': { name: 'Account 1', address: '0x' },
-        },
       },
       NftController: {
         allNfts: { '0x': { '0x1': [] } },
@@ -120,6 +110,8 @@ const initialState = {
 
 const Stack = createStackNavigator();
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderComponent = (state: any = {}) =>
   renderWithProvider(
     <Stack.Navigator>

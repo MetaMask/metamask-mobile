@@ -142,7 +142,6 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -235,7 +234,6 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -372,15 +370,15 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
                           style={
                             [
                               {
-                                "backgroundColor": "#FFFFFF",
-                                "borderColor": "#D6D9DC",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#bbc0c566",
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
                                 "maxHeight": 1314,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
-                                "shadowColor": "#0000001A",
+                                "shadowColor": "#0000001a",
                                 "shadowOffset": {
                                   "height": 2,
                                   "width": 0,
@@ -410,7 +408,7 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#D6D9DC",
+                                  "backgroundColor": "#bbc0c566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -432,7 +430,7 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 30,
                                     "fontWeight": "400",
@@ -462,7 +460,7 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
                                   undefined,
                                   undefined,
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 18,
                                     "fontWeight": "700",
@@ -478,7 +476,7 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 30,
                                     "fontWeight": "400",
@@ -508,7 +506,7 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
                                   undefined,
                                   undefined,
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -522,7 +520,7 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 30,
                                       "fontWeight": "400",
@@ -577,7 +575,7 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#0376C9",
+                                    "backgroundColor": "#0376c9",
                                     "borderRadius": 24,
                                     "flex": 1,
                                     "flexDirection": "row",
@@ -592,7 +590,7 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#FFFFFF",
+                                      "color": "#ffffff",
                                       "fontFamily": "Euclid Circular B",
                                       "fontSize": 14,
                                       "fontWeight": "400",

@@ -9,26 +9,27 @@ pipelines:
   create_qa_builds_pipeline:
     stages:
       - create_build_qa: {}
-      - notify: {}
+  #Builds MetaMask, MetaMask-QA apps and stores apk/ipa in Bitrise
+  build_all_targets_pipeline:
+    stages:
+      - create_build_release: {}
+      - create_build_qa: {} #Generate QA builds for E2E app upgrade tests
   #Releases MetaMask apps and stores apk/ipa into Play(Internal Testing)/App(TestFlight) Store
   release_builds_to_store_pipeline:
     stages:
       - create_build_release: {}
       - deploy_build_release: {}
       - create_build_qa: {} #Generate QA builds for E2E app upgrade tests
-      - release_notify: {}
   #Releases MetaMask apps and stores ipa into App(TestFlight) Store
   release_ios_to_store_pipeline:
     stages:
       - create_ios_release: {}
       - deploy_ios_release: {}
-      - notify: {}
   #Releases MetaMask apps and stores apk Play(Internal Testing) Store
   release_android_to_store_pipeline:
     stages:
       - create_android_release: {}
       - deploy_android_release: {}
-      - notify: {}
   #Run E2E test suite for iOS only
   run_e2e_ios_pipeline:
     stages:
@@ -63,7 +64,6 @@ pipelines:
       - create_build_flask_release: {}
       - deploy_flask_build_release: {}
       - release_notify: {}
-
   #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
   pr_regression_e2e_pipeline:
     stages:
@@ -115,6 +115,11 @@ stages:
       - android_e2e_build: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
+      - run_ios_api_specs: {}
+      - run_tag_smoke_accounts_ios: {}
+      - run_tag_smoke_accounts_android: {}
+      - run_tag_smoke_assets_ios: {}
+      - run_tag_smoke_assets_android: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_swaps_ios: {}
@@ -135,6 +140,10 @@ stages:
       - android_run_regression_tests: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_accounts_ios: {}
+      - run_tag_smoke_accounts_android: {}
+      - run_tag_smoke_assets_ios: {}
+      - run_tag_smoke_assets_android: {}
       - run_tag_smoke_swaps_ios: {}
       - run_tag_smoke_swaps_android: {}
       - run_tag_smoke_core_ios: {}
@@ -178,6 +187,24 @@ workflows:
       - activate-ssh-key@4:
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
       - git-clone@6: {}
+  set_commit_hash:
+    steps:
+      - script@1:
+          title: Set commit hash env variable
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                BRANCH_COMMIT_HASH="$(git rev-parse HEAD)"
+
+                # Log the value of BRANCH_COMMIT_HASH
+                echo "BRANCH_COMMIT_HASH is set to: $BRANCH_COMMIT_HASH"
+
+                envman add --key BRANCH_COMMIT_HASH --value "$BRANCH_COMMIT_HASH"
+      - share-pipeline-variable@1:
+          title: Persist commit hash across all stages
+          inputs:
+            - variables: |-
+                BRANCH_COMMIT_HASH
   code_setup:
     before_run:
       - setup
@@ -202,10 +229,24 @@ workflows:
                 #!/usr/bin/env bash
                 echo "Gems being installed with bundler gem"
                 bundle install
-                echo "Node $NODE_VERSION being installed with asdf"
-                asdf list all nodejs
-                asdf install nodejs "$NODE_VERSION"
-                asdf global nodejs "$NODE_VERSION"
+                echo "Node $NODE_VERSION being installed"
+
+                set -e
+
+                # Install and enable NVM
+                wget -O install-nvm.sh "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh"
+                echo "${NVM_SHA256SUM} install-nvm.sh" > install-nvm.sh.SHA256SUM
+                sha256sum -c install-nvm.sh.SHA256SUM
+                chmod +x install-nvm.sh && ./install-nvm.sh && rm ./install-nvm.sh
+                source "${HOME}/.nvm/nvm.sh"
+                echo 'source "${HOME}/.nvm/nvm.sh"' | tee -a ${HOME}/.{bashrc,profile}
+
+                nvm install ${NODE_VERSION}
+
+                envman add --key PATH --value $PATH
+
+                node --version
+
                 echo "Corepack being installed with npm"
                 npm i -g "corepack@$COREPACK_VERSION"
                 echo "Corepack enabling $YARN_VERSION"
@@ -291,25 +332,6 @@ workflows:
             - issue_number: '$GITHUB_PR_NUMBER'
             - api_base_url: 'https://api.github.com'
             - update_comment_tag: '$GITHUB_PR_HASH'
-      - slack@3:
-          inputs:
-            - text: '${BITRISE_APP_TITLE} ${BITRISEIO_PIPELINE_TITLE} workflow notification'
-            - pretext: ':large_green_circle: *${BITRISEIO_PIPELINE_TITLE} succeeded!*'
-            - title: 'Commit #$COMMIT_SHORT_HASH $BRANCH_HEIGHT'
-            - title_link: https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
-            - message: ${BITRISE_GIT_MESSAGE}
-            - fields: |
-                Branch|${BITRISE_GIT_BRANCH}
-                Workflow|${BITRISEIO_PIPELINE_TITLE}
-                Trigger|${WORKFLOW_TRIGGER}
-                Build|${BITRISE_BUILD_NUMBER}
-            - buttons: |
-                View app|${BITRISE_APP_URL}
-                View build|${BITRISEIO_PIPELINE_BUILD_URL}
-                View commit|https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
-            - footer: 'Bitrise ${BITRISEIO_PIPELINE_TITLE} workflow notification'
-            - webhook_url: https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}
-
   # Send a Slack message when workflow fails
   notify_failure:
     before_run:
@@ -349,27 +371,6 @@ workflows:
             - issue_number: '$GITHUB_PR_NUMBER'
             - api_base_url: 'https://api.github.com'
             - update_comment_tag: '$GITHUB_PR_HASH'
-      - slack@3:
-          is_always_run: true
-          run_if: .IsBuildFailed
-          inputs:
-            - text: '${BITRISE_APP_TITLE} ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification'
-            - pretext_on_error: ':red_circle: *${BITRISE_TRIGGERED_WORKFLOW_TITLE} failed!*'
-            - title: 'Commit #$COMMIT_SHORT_HASH $BRANCH_HEIGHT'
-            - title_link: https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
-            - message: ${BITRISE_GIT_MESSAGE}
-            - fields: |
-                Branch|${BITRISE_GIT_BRANCH}
-                Workflow|${BITRISE_TRIGGERED_WORKFLOW_TITLE}
-                Trigger|${WORKFLOW_TRIGGER}
-                Build|${BITRISE_BUILD_NUMBER}
-            - buttons: |
-                View app|${BITRISE_APP_URL}
-                View build|${BITRISE_BUILD_URL}
-                View commit|https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
-            - footer: 'Bitrise ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification'
-            - webhook_url: https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}
-
   # CI Steps
   ci_test:
     before_run:
@@ -426,16 +427,48 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
     envs:
-      - PRODUCTION_APP_URL: 'bs://3f81fdb66cba8140909d1ff0a05bc2ace97b307f' # Last production's QA build
-      - PRODUCTION_BUILD_VERSION_NAME: 7.20.0
-      - PRODUCTION_BUILD_VERSION_NUMBER: 1308
+      - PRODUCTION_APP_URL: 'bs://f0eefdd04dd0b913eb8b6494e4990e3e9f1c2bd3' # Last production's QA build
+      - PRODUCTION_BUILD_NAME: 7.26.1
+      - PRODUCTION_BUILD_NUMBER: 1360
       - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
-      - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_VERSION_NAME ($PRODUCTION_BUILD_VERSION_NUMBER)'
+      - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_NAME ($PRODUCTION_BUILD_NUMBER)'
       - NEW_BUILD_STRING: 'MetaMask-QA v$VERSION_NAME ($VERSION_NUMBER)'
     after_run:
       - run_android_appium_test
 
-  ### Seperating workflows so they run concurrently during smoke runs
+  ### Separating workflows so they run concurrently during smoke runs
+  run_tag_smoke_accounts_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/accounts/*'
+      - TEST_SUITE_TAG: '.*SmokeAccounts.*'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_accounts_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/accounts/*'
+      - TEST_SUITE_TAG: '.*SmokeAccounts.*'
+    after_run:
+      - android_e2e_test
+  run_tag_smoke_assets_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/assets/*'
+      - TEST_SUITE_TAG: '.*SmokeAssets.*'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_assets_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/assets/*'
+      - TEST_SUITE_TAG: '.*SmokeAssets.*'
+    after_run:
+      - android_e2e_test
   run_tag_smoke_confirmations_ios:
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/confirmations/*'
@@ -468,6 +501,9 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeSwaps.*'
     after_run:
       - android_e2e_test
+  run_ios_api_specs:
+    after_run:
+      - ios_api_specs
   run_tag_smoke_core_ios:
     envs:
       - TEST_SUITE_FOLDER: './e2e/spec/*/**/*'
@@ -487,6 +523,7 @@ workflows:
   android_e2e_build:
     before_run:
       - code_setup
+      - set_commit_hash
     after_run:
       - notify_failure
     steps:
@@ -526,15 +563,10 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 envman add --key SKIP_CCACHE_UPLOAD --value "true"
-      - restore-cache@2:
-          title: Restore build from cache
-          inputs:
-            - key: apk-cache-{{ .CommitHash }}
       - script@1:
           title: Run detox build
           timeout: 1200
-          run_if: '{{ not (enveq "BITRISE_CACHE_HIT" "exact") }}'
-          is_always_run: false
+          is_always_run: true
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -556,15 +588,14 @@ workflows:
             - key: '{{ getenv "CCACHE_KEY" }}'
             - paths: |-
                 ccache
-      - save-cache@1:
-          title: Save build
+      - deploy-to-bitrise-io@2.2.3:
           inputs:
-            - key: apk-cache-{{ .CommitHash }}
-            - paths: android/app/build/outputs
+            - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
+          title: Save Android build
       - save-cache@1:
           title: Save node_modules
           inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
             - paths: node_modules
     meta:
       bitrise.io:
@@ -578,14 +609,27 @@ workflows:
       - notify_failure
     steps:
       - restore-gradle-cache@2: {}
-      - restore-cache@2:
-          title: Restore cache build
+      - pull-intermediate-files@1:
           inputs:
-            - key: apk-cache-{{ .CommitHash }}
+            - artifact_sources: .*
+          title: Pull Android build
+      - script@1:
+          title: Copy Android build for Detox
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+
+                # Create directories for Detox
+                mkdir -p "$BITRISE_SOURCE_DIR/android/app/build/outputs"
+
+                # Copy saved files for Detox usage
+                # INTERMEDIATE_ANDROID_BUILD_DIR is the cached directory from android_e2e_build's "Save Android build" step
+                cp -r "$INTERMEDIATE_ANDROID_BUILD_DIR" "$BITRISE_SOURCE_DIR/android/app/build"
       - restore-cache@2:
           title: Restore cache node_modules
           inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
       - script@1:
           title: Download cmake 3.22.1 with sdkmanager
           is_always_run: false
@@ -655,9 +699,76 @@ workflows:
       bitrise.io:
         machine_type_id: elite-xl
         stack: linux-docker-android-20.04
+  ios_api_specs:
+    before_run:
+      - setup
+      - prep_environment
+    after_run:
+      - notify_failure
+    steps:
+      - pull-intermediate-files@1:
+          inputs:
+            - artifact_sources: .*
+          title: Pull iOS build
+      - script@1:
+          title: Copy iOS build for Detox
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+
+                # Create directories for Detox
+                mkdir -p "$BITRISE_SOURCE_DIR/ios/build/Build"
+                mkdir -p "$BITRISE_SOURCE_DIR/../Library/Detox/ios"
+
+                # Copy saved files for Detox usage
+                # INTERMEDIATE_IOS_BUILD_DIR & INTERMEDIATE_IOS_DETOX_DIR are the cached directories by ios_e2e_build's "Save iOS build" step
+                cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build"
+                cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
+      - restore-cocoapods-cache@2: {}
+      - restore-cache@2:
+          title: Restore cache node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - certificate-and-profile-installer@1: {}
+      - set-xcode-build-number@1:
+          inputs:
+            - build_short_version_string: $VERSION_NAME
+            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
+      - script:
+          inputs:
+            - content: |-
+                # Add cache directory to environment variable
+                envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
+                envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
+                brew tap wix/brew
+          title: Set Env Path for caching deps
+      - script@1:
+          title: Run detox test
+          timeout: 1200
+          is_always_run: false
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                yarn test:api-specs
+      - script@1:
+          is_always_run: true
+          is_skippable: false
+          title: Add tests reports to Bitrise
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                cp -r $BITRISE_SOURCE_DIR/html-report/index.html $BITRISE_HTML_REPORT_DIR/
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: true
+          is_skippable: false
+          inputs:
+            - deploy_path: $BITRISE_HTML_REPORT_DIR
+          title: Deploy test report files
   ios_e2e_build:
     before_run:
       - code_setup
+      - set_commit_hash
     after_run:
       - notify_failure
     steps:
@@ -685,7 +796,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                brew install ccache
+                brew install ccache with HOMEBREW_NO_DEPENDENTS_CHECK=1
                 ln -s $(which ccache) /usr/local/bin/gcc
                 ln -s $(which ccache) /usr/local/bin/g++
                 ln -s $(which ccache) /usr/local/bin/cc
@@ -703,15 +814,10 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 envman add --key SKIP_CCACHE_UPLOAD --value "true"
-      - restore-cache@2:
-          title: Restore build from cache
-          inputs:
-            - key: ipa-cache-{{ .CommitHash }}
       - script@1:
           title: Run detox build
           timeout: 1200
-          run_if: '{{ not (enveq "BITRISE_CACHE_HIT" "exact") }}'
-          is_always_run: false
+          is_always_run: true
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -733,17 +839,16 @@ workflows:
             - key: '{{ getenv "CCACHE_KEY" }}'
             - paths: |-
                 ccache
-      - save-cache@1:
-          title: Save build
+      - deploy-to-bitrise-io@2.2.3:
           inputs:
-            - key: ipa-cache-{{ .CommitHash }}
-            - paths: |-
-                ios/build/Build
-                ../Library/Detox/ios
+            - pipeline_intermediate_files: |-
+                ios/build/Build:INTERMEDIATE_IOS_BUILD_DIR
+                ../Library/Detox/ios:INTERMEDIATE_IOS_DETOX_DIR
+          title: Save iOS build
       - save-cache@1:
           title: Save node_modules
           inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
             - paths: node_modules
   ios_e2e_test:
     before_run:
@@ -752,15 +857,30 @@ workflows:
     after_run:
       - notify_failure
     steps:
-      - restore-cache@2:
-          title: Restore cache build
+      - pull-intermediate-files@1:
           inputs:
-            - key: ipa-cache-{{ .CommitHash }}
+            - artifact_sources: .*
+          title: Pull iOS build
+      - script@1:
+          title: Copy iOS build for Detox
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+
+                # Create directories for Detox
+                mkdir -p "$BITRISE_SOURCE_DIR/ios/build/Build"
+                mkdir -p "$BITRISE_SOURCE_DIR/../Library/Detox/ios"
+
+                # Copy saved files for Detox usage
+                # INTERMEDIATE_IOS_BUILD_DIR & INTERMEDIATE_IOS_DETOX_DIR are the cached directories by ios_e2e_build's "Save iOS build" step
+                cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build"
+                cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
       - restore-cocoapods-cache@2: {}
       - restore-cache@2:
           title: Restore cache node_modules
           inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
@@ -775,7 +895,9 @@ workflows:
                 brew tap wix/brew
           title: Set Env Path for caching deps
       - script@1:
+          title: Run detox test
           timeout: 1200
+          is_always_run: false
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -795,8 +917,6 @@ workflows:
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
-          title: Run detox test
-          is_always_run: false
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: false
@@ -1298,6 +1418,9 @@ app:
       MM_NOTIFICATIONS_UI_ENABLED: false
     - opts:
         is_expand: false
+      MM_NETWORK_UI_REDESIGN_ENABLED: false
+    - opts:
+        is_expand: false
       PROJECT_LOCATION: android
     - opts:
         is_expand: false
@@ -1328,16 +1451,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.21.0
+      VERSION_NAME: 7.27.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1317
+      VERSION_NUMBER: 1364
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.21.0
+      FLASK_VERSION_NAME: 7.27.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1317
+      FLASK_VERSION_NUMBER: 1364
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -1347,6 +1470,12 @@ app:
     - opts:
         is_expand: false
       IOS_APP_LINK: ''
+    - opts:
+        is_expand: false
+      NVM_VERSION: 0.39.7
+    - opts:
+        is_expand: false
+      NVM_SHA256SUM: '8e45fa547f428e9196a5613efad3bfa4d4608b74ca870f930090598f5af5f643'
     - opts:
         is_expand: false
       NODE_VERSION: 20.12.2

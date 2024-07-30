@@ -9,8 +9,7 @@ Feature: Upgrade previous app build with current release while being connected t
     Given the app displayed the splash animation
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
-    And I tap No thanks on the onboarding welcome tutorial
-    And I close the Whats New modal
+    And I close all the onboarding modals
     And I am on the wallet view
     When I tap on the Identicon
     Then select account component is displayed
@@ -33,6 +32,9 @@ Feature: Upgrade previous app build with current release while being connected t
     And the splash animation completes
     And I fill my password in the Login screen
     And I log into my wallet
+    And I close the Whats New modal
+    And I use the back button on Android
+    And I am on the wallet view
     Then I am on the "<AccountName>" account
     And I tap on the Settings tab option
     And I scroll up

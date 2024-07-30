@@ -30,6 +30,8 @@ export default function useInAppBrowser() {
 
   const dispatch = useDispatch();
   const trackEvent = useAnalytics();
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const lockTime = useSelector((state: any) => state.settings.lockTime);
   const handleSuccessfulOrder = useHandleSuccessfulOrder();
 

@@ -34,13 +34,13 @@ import GlobalAlert from '../GlobalAlert';
 import StyledButton from '../StyledButton';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import Routes from '../../../constants/navigation/Routes';
 import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
 import { isNetworkRampSupported } from '../Ramp/utils';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { createBuyNavigationDetails } from '../Ramp/routes/utils';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Modals/RequestPaymentModal.selectors';
 import { getDecimalChainId } from '../../../util/networks';
@@ -60,7 +60,7 @@ const createStyles = (theme) =>
     qrWrapper: {
       margin: 8,
       padding: 8,
-      backgroundColor: theme.brandColors.white['000'],
+      backgroundColor: theme.brandColors.white,
     },
     addressWrapper: {
       flexDirection: 'row',
@@ -197,7 +197,7 @@ class ReceiveRequest extends PureComponent {
       );
     } else {
       toggleReceiveModal();
-      navigation.navigate(Routes.RAMP.BUY);
+      navigation.navigate(...createBuyNavigationDetails());
 
       this.props.metrics.trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy Native Token',
@@ -364,7 +364,7 @@ ReceiveRequest.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   ticker: selectTicker(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   receiveAsset: state.modals.receiveAsset,
   seedphraseBackedUp: state.user.seedphraseBackedUp,
   isNetworkBuySupported: isNetworkRampSupported(

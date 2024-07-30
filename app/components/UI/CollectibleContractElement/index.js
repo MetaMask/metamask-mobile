@@ -13,12 +13,17 @@ import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import { useTheme } from '../../../util/theme';
 import { selectChainId } from '../../../selectors/networkController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import Icon, {
   IconName,
   IconColor,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+import {
+  MetaMetricsEvents,
+  useMetrics,
+} from '../../../components/hooks/useMetrics';
+import { getDecimalChainId } from '../../../util/networks';
 
 const DEVICE_WIDTH = Device.getDeviceWidth();
 const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
@@ -68,7 +73,7 @@ const createStyles = (colors, brandColors) =>
       width: 32,
       height: 32,
       borderRadius: 16,
-      backgroundColor: brandColors.yellow['500'],
+      backgroundColor: brandColors.yellow500,
     },
   });
 
@@ -101,6 +106,7 @@ function CollectibleContractElement({
   const longPressedCollectible = useRef(null);
   const { colors, themeAppearance, brandColors } = useTheme();
   const styles = createStyles(colors, brandColors);
+  const { trackEvent } = useMetrics();
 
   const toggleCollectibles = useCallback(() => {
     setCollectiblesVisible(!collectiblesVisible);
@@ -132,6 +138,9 @@ function CollectibleContractElement({
       longPressedCollectible.current.address,
       longPressedCollectible.current.tokenId,
     );
+    trackEvent(MetaMetricsEvents.COLLECTIBLE_REMOVED, {
+      chain_id: getDecimalChainId(chainId),
+    });
     Alert.alert(
       strings('wallet.collectible_removed_title'),
       strings('wallet.collectible_removed_desc'),
@@ -306,7 +315,7 @@ CollectibleContractElement.propTypes = {
 const mapStateToProps = (state) => ({
   collectibleContracts: collectibleContractsSelector(state),
   chainId: selectChainId(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

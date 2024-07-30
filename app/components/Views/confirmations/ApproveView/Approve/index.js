@@ -21,13 +21,7 @@ import {
   setProposedNonce,
 } from '../../../../../actions/transaction';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import { BNToHex } from '@metamask/controller-utils';
-import {
-  addHexPrefix,
-  fromWei,
-  renderFromWei,
-  hexToBN,
-} from '../../../../../util/number';
+import { fromWei, renderFromWei, hexToBN } from '../../../../../util/number';
 import {
   getNormalizedTxState,
   getTicker,
@@ -69,12 +63,15 @@ import {
 import ShowBlockExplorer from '../../components/ApproveTransactionReview/ShowBlockExplorer';
 import createStyles from './styles';
 import { providerErrors } from '@metamask/rpc-errors';
-import { getLedgerKeyring } from '../../../../../core/Ledger/Ledger';
+import { getDeviceId } from '../../../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import { updateTransaction } from '../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
+import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
+import { buildTransactionParams } from '../../../../../util/confirmation/transactions';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -84,6 +81,8 @@ const REVIEW = 'review';
  */
 class Approve extends PureComponent {
   appStateListener;
+
+  #transactionFinishedSubscription;
 
   static navigationOptions = ({ navigation }) =>
     getApproveNavbar('approve.title', navigation);
@@ -171,6 +170,10 @@ class Approve extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * Boolean that indicates if smart transaction should be used
+     */
+    shouldUseSmartTransaction: PropTypes.bool,
   };
 
   state = {
@@ -310,7 +313,8 @@ class Approve extends PureComponent {
         this.props.gasFeeEstimates &&
         transaction.gas &&
         (!shallowEqual(prevProps.gasFeeEstimates, this.props.gasFeeEstimates) ||
-          !transaction.gas.eq(prevProps?.transaction?.gas))
+          !transaction.gas.eq(prevProps?.transaction?.gas) ||
+          !this.state.ready)
       ) {
         this.computeGasEstimates(null, null, gasEstimateTypeChanged);
       }
@@ -318,7 +322,6 @@ class Approve extends PureComponent {
   };
 
   componentWillUnmount = async () => {
-    const { TransactionController } = Engine.context;
     const { approved } = this.state;
     const { transaction } = this.props;
 
@@ -330,9 +333,11 @@ class Approve extends PureComponent {
 
     this.appStateListener?.remove();
     if (!isLedgerAccount) {
-      TransactionController.hub.removeAllListeners(
-        `${transaction.id}:finished`,
+      Engine.controllerMessenger.tryUnsubscribe(
+        'TransactionController:transactionFinished',
+        this.#transactionFinishedSubscription,
       );
+
       if (!approved)
         Engine.rejectPendingApproval(
           transaction.id,
@@ -421,37 +426,21 @@ class Approve extends PureComponent {
     return error;
   };
 
-  prepareTransaction = (transaction) => {
-    const { gasEstimateType, showCustomNonce } = this.props;
-    const { legacyGasTransaction, eip1559GasTransaction } = this.state;
-    const transactionToSend = {
-      ...transaction,
-      value: BNToHex(transaction.value),
-      to: safeToChecksumAddress(transaction.to),
-      from: safeToChecksumAddress(transaction.from),
-    };
+  prepareTransaction = () => {
+    const { gasEstimateType, showCustomNonce, transaction } = this.props;
 
-    if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-      transactionToSend.gas = eip1559GasTransaction.gasLimitHex;
-      transactionToSend.maxFeePerGas = addHexPrefix(
-        eip1559GasTransaction.suggestedMaxFeePerGasHex,
-      ); //'0x2540be400'
-      transactionToSend.maxPriorityFeePerGas = addHexPrefix(
-        eip1559GasTransaction.suggestedMaxPriorityFeePerGasHex,
-      ); //'0x3b9aca00';
-      delete transactionToSend.gasPrice;
-    } else {
-      transactionToSend.gas = legacyGasTransaction.suggestedGasLimitHex;
-      transactionToSend.gasPrice = addHexPrefix(
-        legacyGasTransaction.suggestedGasPriceHex,
-      );
-    }
+    const {
+      legacyGasTransaction: gasDataLegacy,
+      eip1559GasTransaction: gasDataEIP1559,
+    } = this.state;
 
-    if (showCustomNonce && transactionToSend.nonce) {
-      transactionToSend.nonce = BNToHex(transactionToSend.nonce);
-    }
-
-    return transactionToSend;
+    return buildTransactionParams({
+      gasDataEIP1559,
+      gasDataLegacy,
+      gasEstimateType,
+      showCustomNonce,
+      transaction,
+    });
   };
 
   getAnalyticsParams = () => {
@@ -477,8 +466,9 @@ class Approve extends PureComponent {
       if (!approve) {
         //cancelTransaction will change transaction status to reject and throw error from event listener
         //component is being unmounted, error will be unhandled, hence remove listener before cancel
-        TransactionController.hub.removeAllListeners(
-          `${transactionId}:finished`,
+        Engine.controllerMessenger.tryUnsubscribe(
+          'TransactionController:transactionFinished',
+          this.#transactionFinishedSubscription,
         );
 
         TransactionController.cancelTransaction(transactionId);
@@ -498,9 +488,14 @@ class Approve extends PureComponent {
   };
 
   onConfirm = async () => {
-    const { TransactionController, KeyringController, ApprovalController } =
-      Engine.context;
-    const { transactions, gasEstimateType, metrics, chainId } = this.props;
+    const { KeyringController, ApprovalController } = Engine.context;
+    const {
+      transactions,
+      gasEstimateType,
+      metrics,
+      chainId,
+      shouldUseSmartTransaction,
+    } = this.props;
     const {
       legacyGasTransaction,
       transactionConfirmed,
@@ -515,28 +510,30 @@ class Approve extends PureComponent {
     this.setState({ transactionConfirmed: true });
 
     try {
-      const transaction = this.prepareTransaction(this.props.transaction);
+      const transaction = this.prepareTransaction();
       const isLedgerAccount = isHardwareAccount(transaction.from, [
         ExtendedKeyringTypes.ledger,
       ]);
 
-      TransactionController.hub.once(
-        `${transaction.id}:finished`,
-        (transactionMeta) => {
-          if (transactionMeta.status === 'submitted') {
-            if (!isLedgerAccount) {
-              this.setState({ approved: true });
-              this.props.hideModal();
+      this.#transactionFinishedSubscription =
+        Engine.controllerMessenger.subscribeOnceIf(
+          'TransactionController:transactionFinished',
+          (transactionMeta) => {
+            if (transactionMeta.status === 'submitted') {
+              if (!isLedgerAccount) {
+                this.setState({ approved: true });
+                this.props.hideModal();
+              }
+              NotificationManager.watchSubmittedTransaction({
+                ...transactionMeta,
+                assetType: 'ETH',
+              });
+            } else {
+              throw transactionMeta.error;
             }
-            NotificationManager.watchSubmittedTransaction({
-              ...transactionMeta,
-              assetType: 'ETH',
-            });
-          } else {
-            throw transactionMeta.error;
-          }
-        },
-      );
+          },
+          (transactionMeta) => transactionMeta.id === transaction.id,
+        );
 
       const fullTx = transactions.find(({ id }) => id === transaction.id);
 
@@ -553,14 +550,14 @@ class Approve extends PureComponent {
 
       // For Ledger Accounts we handover the signing to the confirmation flow
       if (isLedgerAccount) {
-        const ledgerKeyring = await getLedgerKeyring();
+        const deviceId = await getDeviceId();
         this.setState({ transactionHandled: true });
         this.setState({ transactionConfirmed: false });
 
         this.props.navigation.navigate(
           ...createLedgerTransactionModalNavDetails({
             transactionId: transaction.id,
-            deviceId: ledgerKeyring.deviceId,
+            deviceId,
             onConfirmationComplete: (approve) =>
               this.onLedgerConfirmation(
                 approve,
@@ -573,16 +570,23 @@ class Approve extends PureComponent {
         this.props.hideModal();
         return;
       }
+
       await ApprovalController.accept(transaction.id, undefined, {
-        waitForResult: true,
+        waitForResult: !shouldUseSmartTransaction,
       });
+      if (shouldUseSmartTransaction) {
+        this.props.hideModal();
+      }
 
       metrics.trackEvent(
         MetaMetricsEvents.APPROVAL_COMPLETED,
         this.getAnalyticsParams(),
       );
     } catch (error) {
-      if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+      if (
+        !error?.message.startsWith(KEYSTONE_TX_CANCELED) &&
+        !error?.message.startsWith(STX_NO_HASH_ERROR)
+      ) {
         Alert.alert(
           strings('transactions.transaction_error'),
           error && error.message,
@@ -763,6 +767,7 @@ class Approve extends PureComponent {
     }
 
     if (!transaction.id) return null;
+
     return (
       <Modal
         isVisible={this.props.modalVisible}
@@ -911,6 +916,7 @@ const mapStateToProps = (state) => ({
   providerType: selectProviderType(state),
   providerRpcTarget: selectRpcUrl(state),
   networkConfigurations: selectNetworkConfigurations(state),
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

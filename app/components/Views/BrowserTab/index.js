@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { isEqual } from 'lodash';
 import { withNavigation } from '@react-navigation/compat';
-import { WebView } from 'react-native-webview';
+import { WebView } from '@metamask/react-native-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
@@ -83,8 +83,8 @@ import {
 import {
   selectIpfsGateway,
   selectIsIpfsGatewayEnabled,
-  selectSelectedAddress,
 } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
 import { IPFS_GATEWAY_DISABLED_ERROR } from './constants';
 import Banner from '../../../component-library/components/Banners/Banner/Banner';
@@ -873,7 +873,7 @@ export const BrowserTab = (props) => {
     // Continue request loading it the protocol is whitelisted
     const { protocol } = new URL(url);
     if (protocolAllowList.includes(protocol)) return true;
-    Logger.message(`Protocol not allowed ${protocol}`);
+    Logger.log(`Protocol not allowed ${protocol}`);
 
     // If it is a trusted deeplink protocol, do not show the
     // warning alert. Allow the OS to deeplink the URL
@@ -1424,7 +1424,7 @@ export const BrowserTab = (props) => {
    */
   const renderOnboardingWizard = () => {
     const { wizardStep } = props;
-    if ([6].includes(wizardStep)) {
+    if ([7].includes(wizardStep)) {
       if (!wizardScrollAdjusted.current) {
         setTimeout(() => {
           reload();
@@ -1504,7 +1504,15 @@ export const BrowserTab = (props) => {
           {!!entryScriptWeb3 && firstUrlLoaded && (
             <>
               <WebView
-                originWhitelist={['*']}
+                originWhitelist={[
+                  'https://',
+                  'http://',
+                  'metamask://',
+                  'dapp://',
+                  'wc://',
+                  'ethereum://',
+                  'file://',
+                ]}
                 decelerationRate={'normal'}
                 ref={webviewRef}
                 renderError={() => (
@@ -1647,7 +1655,8 @@ BrowserTab.defaultProps = {
 const mapStateToProps = (state) => ({
   bookmarks: state.bookmarks,
   ipfsGateway: selectIpfsGateway(state),
-  selectedAddress: selectSelectedAddress(state)?.toLowerCase(),
+  selectedAddress:
+    selectSelectedInternalAccountChecksummedAddress(state)?.toLowerCase(),
   isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
   searchEngine: state.settings.searchEngine,
   whitelist: state.browser.whitelist,

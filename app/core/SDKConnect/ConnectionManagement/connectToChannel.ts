@@ -9,6 +9,7 @@ async function connectToChannel({
   id,
   trigger,
   otherPublicKey,
+  protocolVersion,
   origin,
   validUntil = Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
   instance,
@@ -37,6 +38,7 @@ async function connectToChannel({
     await instance.reconnect({
       channelId: id,
       initialConnection: false,
+      protocolVersion,
       trigger,
       otherPublicKey:
         instance.state.connected[id].remote.getKeyInfo()?.ecies.otherPubKey ??
@@ -71,6 +73,7 @@ async function connectToChannel({
   instance.state.connected[id] = new Connection({
     ...instance.state.connections[id],
     socketServerUrl: instance.state.socketServerUrl,
+    protocolVersion,
     initialConnection,
     trigger,
     rpcQueueManager: instance.state.rpcqueueManager,
@@ -91,6 +94,13 @@ async function connectToChannel({
       instance.removeChannel({ channelId, sendTerminate });
     },
   });
+
+  // Update state with local privateKey info, stored for relayPersistence
+  const privateKey =
+    instance.state.connected[id].remote.getKeyInfo()?.ecies.private;
+  instance.state.connections[id].privateKey = privateKey;
+  instance.state.connections[id].protocolVersion = protocolVersion ?? 1;
+
   // Make sure to watch event before you connect
   instance.watchConnection(instance.state.connected[id]);
 

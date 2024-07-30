@@ -14,7 +14,7 @@ import {
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import AsyncStorage from '../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import StyledButton from '../../UI/StyledButton';
 import {
   fontStyles,
@@ -34,6 +34,7 @@ import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
+import { storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction } from '../../../reducers/legalNotices';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
@@ -42,7 +43,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
 import { Authentication } from '../../../core';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import AnimatedFox from '@metamask/react-native-animated-fox';
+import AnimatedFox from '../../Base/AnimatedFox';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
 
 import Routes from '../../../constants/navigation/Routes';
@@ -129,6 +130,7 @@ const createStyles = (colors) =>
  */
 class Onboarding extends PureComponent {
   static propTypes = {
+    disableNewPrivacyPolicyToast: PropTypes.func,
     /**
      * The navigator object
      */
@@ -222,6 +224,7 @@ class Onboarding extends PureComponent {
     this.updateNavBar();
     this.mounted = true;
     this.checkIfExistingUser();
+    this.props.disableNewPrivacyPolicyToast();
 
     InteractionManager.runAfterInteractions(() => {
       PreventScreenshot.forbid();
@@ -246,7 +249,7 @@ class Onboarding extends PureComponent {
   };
 
   async checkIfExistingUser() {
-    const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+    const existingUser = await StorageWrapper.getItem(EXISTING_USER);
     if (existingUser !== null) {
       this.setState({ existingUser: true });
     }
@@ -485,6 +488,8 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   setLoading: (msg) => dispatch(loadingSet(msg)),
   unsetLoading: () => dispatch(loadingUnset()),
+  disableNewPrivacyPolicyToast: () =>
+    dispatch(storePrivacyPolicyClickedOrClosedAction()),
 });
 
 export default connect(

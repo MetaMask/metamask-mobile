@@ -28,13 +28,12 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectTokens } from '../../../selectors/tokensController';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { store } from '../../../store';
 import { NETWORK_ID_LOADING } from '../../../core/redux/slices/inpageProvider';
+import { selectPendingSmartTransactionsBySender } from '../../../selectors/smartTransactionsController';
+import { selectNonReplacedTransactions } from '../../../selectors/transactionController';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -45,8 +44,7 @@ const styles = StyleSheet.create({
 const TransactionsView = ({
   navigation,
   conversionRate,
-  selectedAddress,
-  identities,
+  selectedInternalAccount,
   networkType,
   currentCurrency,
   transactions,
@@ -58,15 +56,18 @@ const TransactionsView = ({
   const [confirmedTxs, setConfirmedTxs] = useState([]);
   const [loading, setLoading] = useState();
 
+  const selectedAddress = toChecksumHexAddress(
+    selectedInternalAccount?.address,
+  );
+
   const filterTransactions = useCallback(
     (networkId) => {
       if (networkId === NETWORK_ID_LOADING) return;
 
       let accountAddedTimeInsertPointFound = false;
-      const addedAccountTime = identities[selectedAddress]?.importTime;
+      const addedAccountTime = selectedInternalAccount?.metadata.importTime;
 
       const submittedTxs = [];
-      const newPendingTxs = [];
       const confirmedTxs = [];
       const submittedNonces = [];
 
@@ -97,11 +98,9 @@ const TransactionsView = ({
           case TX_SUBMITTED:
           case TX_SIGNED:
           case TX_UNAPPROVED:
+          case TX_PENDING:
             submittedTxs.push(tx);
             return false;
-          case TX_PENDING:
-            newPendingTxs.push(tx);
-            break;
           case TX_CONFIRMED:
             confirmedTxs.push(tx);
             break;
@@ -144,7 +143,7 @@ const TransactionsView = ({
       setConfirmedTxs(confirmedTxs);
       setLoading(false);
     },
-    [transactions, identities, selectedAddress, tokens, chainId],
+    [transactions, selectedInternalAccount, selectedAddress, tokens, chainId],
   );
 
   useEffect(() => {
@@ -162,10 +161,7 @@ const TransactionsView = ({
   }, [filterTransactions]);
 
   return (
-    <View
-      style={styles.wrapper}
-      testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
-    >
+    <View style={styles.wrapper}>
       <Transactions
         navigation={navigation}
         transactions={allTransactions}
@@ -191,17 +187,13 @@ TransactionsView.propTypes = {
    */
   currentCurrency: PropTypes.string,
   /**
-  /* Identities object required to get account name
+  /* InternalAccount object required to get account name, address and import time
   */
-  identities: PropTypes.object,
+  selectedInternalAccount: PropTypes.object,
   /**
   /* navigation object required to push new views
   */
   navigation: PropTypes.object,
-  /**
-   * A string that represents the selected address
-   */
-  selectedAddress: PropTypes.string,
   /**
    * An array that represents the user transactions
    */
@@ -220,16 +212,29 @@ TransactionsView.propTypes = {
   chainId: PropTypes.string,
 };
 
-const mapStateToProps = (state) => ({
-  conversionRate: selectConversionRate(state),
-  currentCurrency: selectCurrentCurrency(state),
-  tokens: selectTokens(state),
-  selectedAddress: selectSelectedAddress(state),
-  identities: selectIdentities(state),
-  transactions: state.engine.backgroundState.TransactionController.transactions,
-  networkType: selectProviderType(state),
-  chainId: selectChainId(state),
-});
+const mapStateToProps = (state) => {
+  const chainId = selectChainId(state);
+
+  // Remove duplicate confirmed STX
+  // for replaced txs, only hide the ones that are confirmed
+  const nonReplacedTransactions = selectNonReplacedTransactions(state);
+
+  const pendingSmartTransactions =
+    selectPendingSmartTransactionsBySender(state);
+
+  return {
+    conversionRate: selectConversionRate(state),
+    currentCurrency: selectCurrentCurrency(state),
+    tokens: selectTokens(state),
+    selectedInternalAccount: selectSelectedInternalAccount(state),
+    transactions: [
+      ...nonReplacedTransactions,
+      ...pendingSmartTransactions,
+    ].sort((a, b) => b.time - a.time),
+    networkType: selectProviderType(state),
+    chainId,
+  };
+};
 
 const mapDispatchToProps = (dispatch) => ({
   showAlert: (config) => dispatch(showAlert(config)),

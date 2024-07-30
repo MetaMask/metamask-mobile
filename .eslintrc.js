@@ -11,7 +11,7 @@ module.exports = {
     'plugin:import/warnings',
     'plugin:react/recommended',
   ],
-
+  plugins: ['@metamask/design-tokens'],
   overrides: [
     {
       files: ['*.{ts,tsx}'],
@@ -19,6 +19,10 @@ module.exports = {
       rules: {
         // TODO: re-enable
         'jsdoc/no-types': 'off',
+        'react/display-name': 'off',
+        'react/no-unused-prop-types': 'off',
+        'react/prop-types': 'off',
+        'react/self-closing-comp': 'off',
         // This change is included in `@metamask/eslint-config-typescript@10.0.0
         '@typescript-eslint/no-unused-vars': [
           'error',
@@ -29,6 +33,7 @@ module.exports = {
             ignoreRestSiblings: true, // this line is what has changed
           },
         ],
+        '@typescript-eslint/no-explicit-any': 'error',
       },
     },
     {
@@ -37,6 +42,12 @@ module.exports = {
         'no-console': 0,
         'import/no-commonjs': 0,
         'import/no-nodejs-modules': 0,
+      },
+    },
+    {
+      files: ['**/*.test.{js,ts,tsx}', '**/*.stories.{js,ts,tsx}'],
+      rules: {
+        '@metamask/design-tokens/color-no-hex': 'off',
       },
     },
   ],
@@ -175,6 +186,7 @@ module.exports = {
     'react/no-string-refs': 2,
     'react/no-unused-prop-types': 2,
     'react/prefer-es6-class': 2,
+    '@metamask/design-tokens/color-no-hex': 'warn',
     radix: 0,
   },
 

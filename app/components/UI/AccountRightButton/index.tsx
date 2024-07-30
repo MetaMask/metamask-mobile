@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   TouchableOpacity,
@@ -24,16 +18,16 @@ import Avatar, {
   AvatarVariant,
   AvatarSize,
 } from '../../../component-library/components/Avatars/Avatar';
-import {
-  getDecimalChainId,
-  getNetworkImageSource,
-  getNetworkNameFromProviderConfig,
-} from '../../../util/networks';
+import { getDecimalChainId } from '../../../util/networks';
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import { selectProviderConfig } from '../../../selectors/networkController';
+import {
+  selectNetworkName,
+  selectNetworkImageSource,
+} from '../../../selectors/networkInfos';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/AccountOverview.selectors';
@@ -70,6 +64,8 @@ const AccountRightButton = ({
   const { trackEvent } = useMetrics();
   const [isKeyboardVisible, setIsKeyboardVisible] = useState<boolean>(false);
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -140,19 +136,8 @@ const AccountRightButton = ({
     trackEvent,
   ]);
 
-  const networkName = useMemo(
-    () => getNetworkNameFromProviderConfig(providerConfig),
-    [providerConfig],
-  );
-
-  const networkImageSource = useMemo(
-    () =>
-      getNetworkImageSource({
-        networkType: providerConfig.type,
-        chainId: providerConfig.chainId,
-      }),
-    [providerConfig],
-  );
+  const networkName = useSelector(selectNetworkName);
+  const networkImageSource = useSelector(selectNetworkImageSource);
 
   const renderAvatarAccount = () => (
     <AvatarAccount type={accountAvatarType} accountAddress={selectedAddress} />

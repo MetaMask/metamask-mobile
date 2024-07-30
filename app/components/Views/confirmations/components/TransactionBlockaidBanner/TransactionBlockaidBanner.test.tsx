@@ -7,12 +7,19 @@ import { TESTID_ACCORDIONHEADER } from '../../../../../component-library/compone
 import { ResultType, Reason } from '../BlockaidBanner/BlockaidBanner.types';
 import TransactionBlockaidBanner from './TransactionBlockaidBanner';
 
-jest.mock('../../../../../util/blockaid', () => ({
-  isBlockaidFeatureEnabled: jest.fn().mockReturnValue(true),
-  isBlockaidSupportedOnCurrentChain: jest.fn().mockReturnValue(true),
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PreferencesController: {
+      state: {
+        securityAlertsEnabled: true,
+      },
+    },
+  },
 }));
 
 jest.mock('react-native-gzip', () => ({
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   deflate: (val: any) => val,
 }));
 

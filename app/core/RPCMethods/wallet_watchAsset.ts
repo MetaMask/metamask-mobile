@@ -12,6 +12,7 @@ import {
 import { selectChainId } from '../../selectors/networkController';
 import { isValidAddress } from 'ethereumjs-util';
 import { JsonRpcRequest, PendingJsonRpcResponse } from 'json-rpc-engine';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const wallet_watchAsset = async ({
   req,
@@ -28,6 +29,8 @@ const wallet_watchAsset = async ({
     };
     type: string;
   }>;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   res: PendingJsonRpcResponse<any>;
   hostname: string;
   checkTabActive: () => true | undefined;
@@ -62,11 +65,13 @@ const wallet_watchAsset = async ({
 
   const permittedAccounts = await getPermittedAccounts(hostname);
   // This should return the current active account on the Dapp.
-  const selectedAddress =
-    Engine.context.PreferencesController.state.selectedAddress;
+  const selectedInternalAccountChecksummedAddress = toChecksumHexAddress(
+    Engine.context.AccountsController.getSelectedAccount().address,
+  );
 
   // Fallback to wallet address if there is no connected account to Dapp.
-  const interactingAddress = permittedAccounts?.[0] || selectedAddress;
+  const interactingAddress =
+    permittedAccounts?.[0] || selectedInternalAccountChecksummedAddress;
   // This variables are to override the value of decimals and symbol from the dapp
   // if they are wrong accordingly to the token address
   // *This is an hotfix this logic should live on whatchAsset method on TokensController*
@@ -87,6 +92,7 @@ const wallet_watchAsset = async ({
     asset: {
       address,
       symbol: finalTokenSymbol,
+      // @ts-expect-error TODO: Fix decimal type
       decimals: finalTokenDecimals,
       image,
     },

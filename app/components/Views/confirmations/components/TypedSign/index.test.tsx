@@ -9,10 +9,12 @@ import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
 import { InteractionManager } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import AppConstants from '../../../../../core/AppConstants';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { MetaMetrics } from '../../../../../core/Analytics';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
+import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals/SigningModal.selectors';
 
 jest.mock('../../../../../core/Analytics/MetaMetrics');
 
@@ -31,9 +33,7 @@ jest.mock('../../../../../core/Engine', () => ({
         keyrings: [],
       },
       getAccountKeyringType: jest.fn(() => Promise.resolve({ data: {} })),
-      getQRKeyringState: jest.fn(() =>
-        Promise.resolve({ subscribe: jest.fn(), unsubscribe: jest.fn() }),
-      ),
+      getOrAddQRKeyring: jest.fn(),
     },
     SignatureController: {
       hub: {
@@ -41,6 +41,14 @@ jest.mock('../../../../../core/Engine', () => ({
         removeListener: jest.fn(),
       },
     },
+    PreferencesController: {
+      state: {
+        securityAlertsEnabled: true,
+      },
+    },
+  },
+  controllerMessenger: {
+    subscribe: jest.fn(),
   },
 }));
 
@@ -63,7 +71,8 @@ const mockStore = configureMockStore();
 const initialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
   signatureRequest: {
@@ -127,7 +136,7 @@ describe('TypedSign', () => {
       expect(container).toMatchSnapshot();
 
       const signButton = await container.findByTestId(
-        'request-signature-confirm-button',
+        SigningModalSelectorsIDs.SIGN_BUTTON,
       );
       fireEvent.press(signButton);
       expect(mockConfirm).toHaveBeenCalledTimes(1);
@@ -141,8 +150,12 @@ describe('TypedSign', () => {
       async (_title, origin) => {
         jest
           .spyOn(InteractionManager, 'runAfterInteractions')
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           .mockImplementation((callback: any) => callback());
 
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (NotificationManager.showSimpleNotification as any).mockReset();
 
         const container = renderWithProvider(
@@ -159,7 +172,7 @@ describe('TypedSign', () => {
         );
 
         const signButton = await container.findByTestId(
-          'request-signature-confirm-button',
+          SigningModalSelectorsIDs.SIGN_BUTTON,
         );
         fireEvent.press(signButton);
 
@@ -187,10 +200,18 @@ describe('TypedSign', () => {
       async (_title, origin) => {
         jest
           .spyOn(InteractionManager, 'runAfterInteractions')
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           .mockImplementation((callback: any) => callback());
 
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (NotificationManager.showSimpleNotification as any).mockReset();
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (Engine.context.SignatureController.hub.on as any).mockImplementation(
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (_eventName: string, callback: (params: any) => void) => {
             callback({ error: new Error('error') });
           },
@@ -210,7 +231,7 @@ describe('TypedSign', () => {
         );
 
         const rejectButton = await container.findByTestId(
-          'request-signature-cancel-button',
+          SigningModalSelectorsIDs.CANCEL_BUTTON,
         );
         fireEvent.press(rejectButton);
 
@@ -251,7 +272,7 @@ describe('TypedSign', () => {
       expect(container).toMatchSnapshot();
 
       const rejectButton = await container.findByTestId(
-        'request-signature-cancel-button',
+        SigningModalSelectorsIDs.CANCEL_BUTTON,
       );
       fireEvent.press(rejectButton);
       expect(mockReject).toHaveBeenCalledTimes(1);
@@ -263,10 +284,18 @@ describe('TypedSign', () => {
     ])('shows notification if origin is %s', async (_title, origin) => {
       jest
         .spyOn(InteractionManager, 'runAfterInteractions')
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .mockImplementation((callback: any) => callback());
 
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (NotificationManager.showSimpleNotification as any).mockReset();
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (Engine.context.SignatureController.hub.on as any).mockImplementation(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (_eventName: string, callback: (params: any) => void) => {
           callback({ error: new Error('error') });
         },
@@ -286,7 +315,7 @@ describe('TypedSign', () => {
       );
 
       const rejectButton = await container.findByTestId(
-        'request-signature-cancel-button',
+        SigningModalSelectorsIDs.CANCEL_BUTTON,
       );
       fireEvent.press(rejectButton);
 
@@ -324,7 +353,7 @@ describe('TypedSign', () => {
       );
 
       const rejectButton = await container.findByTestId(
-        'request-signature-cancel-button',
+        SigningModalSelectorsIDs.CANCEL_BUTTON,
       );
       fireEvent.press(rejectButton);
 
@@ -366,7 +395,7 @@ describe('TypedSign', () => {
       );
 
       const signButton = await container.findByTestId(
-        'request-signature-confirm-button',
+        SigningModalSelectorsIDs.SIGN_BUTTON,
       );
       fireEvent.press(signButton);
 

@@ -112,7 +112,7 @@ exports[`CollectibleModal should render correctly 1`] = `
               [
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#F2F4F6",
+                  "backgroundColor": "#f2f4f6",
                   "borderRadius": 8,
                   "justifyContent": "flex-start",
                 },
@@ -144,7 +144,7 @@ exports[`CollectibleModal should render correctly 1`] = `
               style={
                 [
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 30,
                     "fontWeight": "400",
@@ -216,7 +216,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376C9",
+                    "color": "#0376c9",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
                     "fontWeight": "400",
@@ -247,13 +247,12 @@ exports[`CollectibleModal should render correctly 1`] = `
     >
       <View
         collapsable={false}
-        forwardedRef={[Function]}
         onGestureHandlerEvent={[Function]}
         onGestureHandlerStateChange={[Function]}
         onLayout={[Function]}
         style={
           {
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "#ffffff",
             "borderTopEndRadius": 8,
             "borderTopStartRadius": 8,
             "flex": 0,
@@ -278,7 +277,7 @@ exports[`CollectibleModal should render correctly 1`] = `
           <View
             style={
               {
-                "backgroundColor": "#BBC0C5",
+                "backgroundColor": "#bbc0c5",
                 "borderRadius": 4,
                 "height": 5,
                 "width": 48,
@@ -302,7 +301,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -322,7 +321,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                     undefined,
                     undefined,
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                     },
                     undefined,
                     undefined,
@@ -351,7 +350,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -368,7 +367,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                     undefined,
                     undefined,
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                     },
                     undefined,
                     undefined,
@@ -421,8 +420,8 @@ exports[`CollectibleModal should render correctly 1`] = `
                         "padding": 15,
                       },
                       {
-                        "backgroundColor": "#FFFFFF",
-                        "borderColor": "#0376C9",
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "#0376c9",
                         "borderWidth": 1,
                         "padding": 8,
                       },
@@ -446,7 +445,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                   style={
                     [
                       {
-                        "color": "#24272A",
+                        "color": "#141618",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 30,
                         "fontWeight": "400",
@@ -472,7 +471,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                       undefined,
                       undefined,
                       {
-                        "color": "#0376C9",
+                        "color": "#0376c9",
                       },
                       undefined,
                       undefined,
@@ -528,7 +527,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -542,14 +541,14 @@ exports[`CollectibleModal should render correctly 1`] = `
                     },
                     undefined,
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                     },
                     undefined,
                     undefined,
                     undefined,
                     undefined,
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                     },
                     undefined,
                     undefined,
@@ -583,7 +582,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -613,7 +612,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                     undefined,
                     undefined,
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                     },
                     undefined,
                     undefined,
