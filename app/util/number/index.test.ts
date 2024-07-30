@@ -9,7 +9,6 @@ import {
   calculateEthFeeForMultiLayer,
   dotAndCommaDecimalFormatter,
   fastSplit,
-  fiatCurrencyFormatted,
   fiatNumberToTokenMinimalUnit,
   fiatNumberToWei,
   formatValueToMatchTokenDecimals,
@@ -599,20 +598,6 @@ describe('Number utils :: balanceToFiatNumber', () => {
   it('balanceToFiatNumber', () => {
     expect(balanceToFiatNumber(0.1, 0.1, 0.1)).toEqual(0.001);
     expect(balanceToFiatNumber(0.0001, 0.1, 0.1)).toEqual(0);
-  });
-});
-
-describe('Number utils :: fiatCurrencyFormatted', () => {
-  it('formats currency with symbol for known currency code', () => {
-    expect(fiatCurrencyFormatted('usd', '123.45')).toEqual('$123.45');
-  });
-
-  it('formats currency with code in uppercase if symbol is not known', () => {
-    expect(fiatCurrencyFormatted('abc', '123.45')).toEqual('123.45 ABC');
-  });
-
-  it('handles lowercase currency codes correctly', () => {
-    expect(fiatCurrencyFormatted('eur', '67.89')).toEqual('€67.89');
   });
 });
 

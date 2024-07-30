@@ -667,19 +667,6 @@ export function getCurrencySymbol(currencyCode) {
 }
 
 /**
- * Formats a fiat currency value with its respective currency symbol or code.
- *
- * @param {string} currencyCode - The code of the currency (e.g., 'usd', 'eur').
- * @param {string} fiatValue - The numerical value of the fiat currency.
- * @returns {string} The formatted currency string, including the currency symbol if available,
- *                   otherwise the currency code in uppercase.
- */
-export const fiatCurrencyFormatted = (currencyCode, fiatValue) =>
-  currencySymbols[currencyCode]
-    ? `${currencySymbols[currencyCode]}${fiatValue}`
-    : `${fiatValue} ${currencyCode.toUpperCase()}`;
-
-/**
  * Renders a formatted portfolio balance. This uses the I18n for all supported fiat currencies.
  * If unsupported fiat, or crypto, fallback to custom implementation. decimalsToShow defaults to 5 decimals, unless provided.
  *
