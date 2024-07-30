@@ -13,7 +13,6 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 import { Regression } from '../../tags.js';
 import WalletView from '../../pages/wallet/WalletView';
 import AccountActionsModal from '../../pages/modals/AccountActionsModal';
-import AccountListView from '../../pages/AccountListView';
 import EditAccountNameView from '../../pages/EditAccountNameView';
 import EditAccountNameSelectorIDs from '../../selectors/EditAccountName.selectors';
 import Gestures from '../../utils/Gestures';
@@ -55,14 +54,10 @@ describe(Regression('Change Account Name'), () => {
     await EditAccountNameView.tapSave();
 
     // Verify updated name
-    if (device.getPlatform() === 'android') {
-      await WalletView.tapIdenticon();
-      await Assertions.checkIfTextIsDisplayed(NEW_ACCOUNT_NAME);
-      await AccountListView.swipeToDimssAccountsModal();
-      await TestHelpers.delay(250);
-    } else {
-      await Assertions.checkIfTextIsDisplayed(NEW_ACCOUNT_NAME);
-    }
+    await Assertions.checkIfElementToHaveText(
+      WalletView.accountName,
+      NEW_ACCOUNT_NAME,
+    );
 
     // Lock wallet
     await Assertions.checkIfVisible(TabBarComponent.tabBarSettingButton);
@@ -74,9 +69,9 @@ describe(Regression('Change Account Name'), () => {
 
     // Unlock wallet and verify updated name persists
     await loginToApp();
-    if (device.getPlatform() === 'android') {
-      await WalletView.tapIdenticon();
-    }
-    await Assertions.checkIfTextIsDisplayed(NEW_ACCOUNT_NAME);
+    await Assertions.checkIfElementToHaveText(
+      WalletView.accountName,
+      NEW_ACCOUNT_NAME,
+    );
   });
 });
