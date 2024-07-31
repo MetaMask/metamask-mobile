@@ -98,13 +98,19 @@ describe('Engine', () => {
     let engine;
     afterEach(() => engine?.destroyEngineInstance());
 
-    const selectedAddress = '0x123';
+    const selectedAddress = '0x9DeE4BF1dE9E3b930E511Db5cEBEbC8d6F855Db0';
     const chainId = '0x1';
     const ticker = 'ETH';
     const ethConversionRate = 4000; // $4,000 / ETH
 
     const state = {
       PreferencesController: { selectedAddress },
+      AccountsController: {
+        internalAccounts: {
+          selectedAccount: selectedAddress,
+          accounts: { [selectedAddress]: { address: selectedAddress } },
+        },
+      },
       NetworkController: {
         state: { providerConfig: { chainId, ticker } },
       },
