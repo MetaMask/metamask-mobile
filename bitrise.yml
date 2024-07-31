@@ -50,7 +50,6 @@ pipelines:
       - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   pr_smoke_e2e_pipeline:
-    abort_on_fail: true
     stages:
       - build_smoke_e2e_ios_android_stage: {}
       - run_smoke_e2e_ios_android_stage: {}
@@ -116,7 +115,6 @@ stages:
       - ios_e2e_build: {}
       - android_e2e_build: {}
   run_smoke_e2e_ios_android_stage:
-    abort_on_fail: true
     workflows:
       - run_ios_api_specs: {}
       - run_tag_smoke_accounts_ios: {}
