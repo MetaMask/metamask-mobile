@@ -122,6 +122,8 @@ import {
   SnapControllerActions,
   PersistedSnapControllerState,
   SnapsRegistryMessenger,
+  SnapsRegistryActions,
+  SnapsRegistryEvents,
 } from '@metamask/snaps-controllers';
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
@@ -285,6 +287,7 @@ type GlobalActions =
   | LoggingControllerActions
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalActions
+  | SnapsRegistryActions
   | AuthenticationControllerActions
   | UserStorageControllerActions
   | NotificationsServicesControllerActions
@@ -311,6 +314,7 @@ type GlobalEvents =
   | PermissionControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalEvents
+  | SnapsRegistryEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | KeyringControllerEvents
@@ -1509,6 +1513,7 @@ class Engine {
           'PreferencesController:stateChange',
           'SignatureController:stateChange',
           'SnapController:stateChange',
+          'SnapsRegistry:stateChange',
           'SubjectMetadataController:stateChange',
           'TokenBalancesController:stateChange',
           'TokenRatesController:stateChange',
@@ -1529,8 +1534,6 @@ class Engine {
           'NotificationServicesController:stateChange',
           // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
           'PhishingController:stateChange',
-          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
-          'SnapsRegistry:stateChange',
           // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
           'UserStorageController:stateChange',
 
