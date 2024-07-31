@@ -20,3 +20,10 @@ export const selectNonReplacedTransactions = createDeepEqualSelector(
   (transactions) =>
     transactions.filter((tx) => !(tx.replacedBy && tx.replacedById && tx.hash)),
 );
+
+export const selectSwapsTransactions = createDeepEqualSelector(
+  selectTransactionControllerState,
+  //@ts-expect-error - This is populated at the app level, the TransactionController is not aware of this property
+  (transactionControllerState) =>
+    transactionControllerState.swapsTransactions ?? {},
+);
