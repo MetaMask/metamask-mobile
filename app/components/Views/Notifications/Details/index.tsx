@@ -70,7 +70,6 @@ const NotificationsDetails = ({ route }: Props) => {
     [navigation, styles.backIcon],
   );
 
-  // Only use useCallback here if the state.title is most likely always the same, if not, it is unnecessary to memoize it
   const HeaderTitle = useCallback(
     () => (
       <Header
