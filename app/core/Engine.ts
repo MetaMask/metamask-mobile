@@ -1225,7 +1225,7 @@ class Engine {
           this.transactionController.confirmExternalTransaction.bind(
             this.transactionController,
           ),
-        // @ts-expect-error
+        // @ts-expect-error Need to make sure types match.
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
         getNonceLock: this.transactionController.getNonceLock.bind(
