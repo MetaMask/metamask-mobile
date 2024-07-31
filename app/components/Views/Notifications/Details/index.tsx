@@ -6,8 +6,8 @@ import { useTheme } from '../../../../util/theme';
 
 import {
   NavigationProp,
-  ParamListBase,
   RouteProp,
+  useNavigation,
 } from '@react-navigation/native';
 import Icon, {
   IconName,
@@ -24,7 +24,6 @@ import { NotificationModalDetails } from '../../../../util/notifications/notific
 import { toLocaleDate } from '../../../../util/date';
 
 interface Props {
-  navigation: NavigationProp<ParamListBase>;
   route: {
     params: {
       notification: Notification;
@@ -32,7 +31,8 @@ interface Props {
   };
 }
 
-const NotificationsDetails = ({ route, navigation }: Props) => {
+const NotificationsDetails = ({ route }: Props) => {
+  const navigation = useNavigation();
   const { notification } = route.params;
   const { markNotificationAsRead } = useMarkNotificationAsRead();
   const [isCollapsed, setIsCollapsed] = useState<boolean>(true);
