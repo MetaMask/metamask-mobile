@@ -116,6 +116,7 @@
     "**/xml2js": ">=0.5.0",
     "react-native-level-fs/**/bl": "^1.2.3",
     "react-native-level-fs/levelup/semver": "^5.7.2",
+    "@metamask/base-controller": "6.0.2",
     "@metamask/contract-metadata": "^2.1.0",
     "@metamask/react-native-payments/validator": "^13.7.0",
     "**/minimist": "1.2.6",
