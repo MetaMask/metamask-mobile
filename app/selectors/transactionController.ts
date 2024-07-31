@@ -23,7 +23,7 @@ export const selectNonReplacedTransactions = createDeepEqualSelector(
 
 export const selectSwapsTransactions = createDeepEqualSelector(
   selectTransactionControllerState,
-  //@ts-expect-error - This is populated at the app level, the TransactionController is not aware of this property
   (transactionControllerState) =>
+    //@ts-expect-error - This is populated at the app level, the TransactionController is not aware of this property
     transactionControllerState.swapsTransactions ?? {},
 );
