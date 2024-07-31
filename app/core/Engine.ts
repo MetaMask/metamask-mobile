@@ -74,6 +74,7 @@ import {
 } from '@metamask/preferences-controller';
 import {
   TransactionController,
+  TransactionControllerActions,
   TransactionControllerEvents,
   TransactionControllerState,
 } from '@metamask/transaction-controller';
@@ -277,6 +278,7 @@ type GlobalActions =
   | NetworkControllerActions
   | PermissionControllerActions
   | SignatureControllerActions
+  | TransactionControllerActions
   | LoggingControllerActions
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalActions
@@ -300,6 +302,7 @@ type GlobalEvents =
   | GasFeeStateChange
   | KeyringControllerEvents
   | TokenListStateChange
+  | TransactionControllerEvents
   | NetworkControllerEvents
   | PermissionControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
