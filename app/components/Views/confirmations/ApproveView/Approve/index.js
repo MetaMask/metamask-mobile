@@ -71,6 +71,12 @@ import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransacti
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
+import { selectTransactions } from '../../../../../selectors/transactionController';
+import {
+  selectPrimaryCurrency,
+  selectShowCustomNonce,
+} from '../../../../../selectors/settings';
+import { selectAddressBook } from '../../../../../selectors/addressBookController';
 import { buildTransactionParams } from '../../../../../util/confirmation/transactions';
 
 const EDIT = 'edit';
@@ -902,17 +908,17 @@ const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
   ticker: selectTicker(state),
   transaction: getNormalizedTxState(state),
-  transactions: state.engine.backgroundState.TransactionController.transactions,
+  transactions: selectTransactions(state),
   tokensLength: selectTokensLength(state),
   accountsLength: selectAccountsLength(state),
-  primaryCurrency: state.settings.primaryCurrency,
+  primaryCurrency: selectPrimaryCurrency(state),
   chainId: selectChainId(state),
   gasFeeEstimates: selectGasFeeEstimates(state),
   gasEstimateType: selectGasFeeControllerEstimateType(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  showCustomNonce: state.settings.showCustomNonce,
-  addressBook: state.engine.backgroundState.AddressBookController.addressBook,
+  showCustomNonce: selectShowCustomNonce(state),
+  addressBook: selectAddressBook(state),
   providerType: selectProviderType(state),
   providerRpcTarget: selectRpcUrl(state),
   networkConfigurations: selectNetworkConfigurations(state),
