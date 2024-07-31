@@ -1,17 +1,23 @@
-import TestHelpers from '../helpers';
+import Gestures from '../utils/Gestures';
+import Matchers from '../utils/Matchers';
 import { ActivitiesViewSelectorsText } from '../selectors/ActivitiesView.selectors';
 
-export default class ActivitiesView {
-  static async isVisible() {
-    await TestHelpers.checkIfElementWithTextIsVisible(
-      ActivitiesViewSelectorsText.TITLE,
-    );
+class ActivitiesView {
+  get title() {
+    return Matchers.getElementByText(ActivitiesViewSelectorsText.TITLE);
   }
 
-  static async tapOnSwapActivity(sourceToken, destinationToken) {
+  async isVisible() {
+    await Matchers.checkIfVisible(this.title);
+  }
+
+  async tapOnSwapActivity(sourceToken, destinationToken) {
     let title = ActivitiesViewSelectorsText.SWAP;
     title = title.replace('{{sourceToken}}', sourceToken);
     title = title.replace('{{destinationToken}}', destinationToken);
-    await TestHelpers.waitAndTapText(title);
+    const selector = Matchers.getElementByText(title);
+    await Gestures.waitAndTap(selector);
   }
 }
+
+export default new ActivitiesView();

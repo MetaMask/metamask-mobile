@@ -1,4 +1,5 @@
-import TestHelpers from '../helpers';
+import Gestures from '../utils/Gestures';
+import Matchers from '../utils/Matchers';
 
 import {
   ACCOUNT_LIST_ID,
@@ -10,68 +11,72 @@ import {
   AccountListViewSelectorsText,
 } from '../selectors/AccountListView.selectors';
 import { ConnectAccountModalSelectorsIDs } from '../selectors/Modals/ConnectAccountModal.selectors';
-import Matchers from '../utils/Matchers';
 
 export default class AccountListView {
-  static async accountTypeLabel() {
-    return await Matchers.getElementByID(
+  get accountTypeLabel() {
+    return Matchers.getElementByID(
       AccountListViewSelectorsIDs.ACCOUNT_TYPE_LABEL,
     );
   }
 
-  static async tapAccountIndex(index) {
-    await TestHelpers.tapItemAtIndex(CellModalSelectorsIDs.MULTISELECT, index);
+  get addAccountButton() {
+    return Matchers.getElementByID(ACCOUNT_LIST_ADD_BUTTON_ID);
   }
 
-  static async tapAddAccountButton() {
-    await TestHelpers.waitAndTap(ACCOUNT_LIST_ADD_BUTTON_ID);
+  getAccountElementAtIndex(index) {
+    return element(by.id(CellModalSelectorsIDs.BASE_TITLE)).atIndex(index);
   }
 
-  static async tapImportAccountButton() {
-    await TestHelpers.tapByText(AccountListViewSelectorsText.IMPORT_ACCOUNT);
+  async tapAccountIndex(index) {
+    await Gestures.tapItemAtIndex(CellModalSelectorsIDs.MULTISELECT, index);
   }
 
-  static async tapCreateAccountButton() {
-    await TestHelpers.tapByText(AccountListViewSelectorsText.CREATE_ACCOUNT);
+  async tapAddAccountButton() {
+    await Gestures.waitAndTap(this.addAccountButton);
   }
 
-  static async longPressImportedAccount() {
-    await TestHelpers.tapAndLongPressAtIndex(CellModalSelectorsIDs.SELECT, 1);
+  async tapImportAccountButton() {
+    await Gestures.tapByText(AccountListViewSelectorsText.IMPORT_ACCOUNT);
   }
 
-  static async swipeToDimssAccountsModal() {
+  async tapCreateAccountButton() {
+    await Gestures.tapByText(AccountListViewSelectorsText.CREATE_ACCOUNT);
+  }
+
+  async longPressImportedAccount() {
+    await Gestures.tapAndLongPressAtIndex(CellModalSelectorsIDs.SELECT, 1);
+  }
+
+  async swipeToDismissAccountsModal() {
     if (device.getPlatform() === 'android') {
-      await TestHelpers.swipe(ACCOUNT_LIST_ID, 'down', 'fast', 0.6);
+      await Gestures.swipe(ACCOUNT_LIST_ID, 'down', 'fast', 0.6);
     } else {
-      await TestHelpers.swipeByText('Accounts', 'down', 'fast', 0.6);
+      await Gestures.swipeByText('Accounts', 'down', 'fast', 0.6);
     }
   }
 
-  static async tapYesToRemoveImportedAccountAlertButton() {
-    await TestHelpers.tapAlertWithButton(
+  async tapYesToRemoveImportedAccountAlertButton() {
+    await Gestures.tapAlertWithButton(
       AccountListViewSelectorsText.REMOVE_IMPORTED_ACCOUNT,
     );
   }
 
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(ACCOUNT_LIST_ID);
+  async isVisible() {
+    await Matchers.checkIfVisible(ACCOUNT_LIST_ID);
   }
 
-  static async isAccount2VisibleAtIndex(index) {
-    await expect(
-      element(by.id(CellModalSelectorsIDs.BASE_TITLE)).atIndex(index),
-    ).not.toHaveText('Account 1');
+  async isAccount2VisibleAtIndex(index) {
+    await expect(this.getAccountElementAtIndex(index)).not.toHaveText(
+      'Account 1',
+    );
   }
 
-  static async accountNameNotVisible() {
-    await TestHelpers.checkIfElementWithTextIsNotVisible('Account 2');
+  async accountNameNotVisible() {
+    await Matchers.checkIfElementWithTextIsNotVisible('Account 2');
   }
 
-  static async checkAccountVisibilityAtIndex(index, shouldBeVisible) {
-    const expectedAccountElement = element(
-      by.id(CellModalSelectorsIDs.BASE_TITLE),
-    ).atIndex(index);
-
+  async checkAccountVisibilityAtIndex(index, shouldBeVisible) {
+    const expectedAccountElement = this.getAccountElementAtIndex(index);
     const expectedAccountNameText = `Account ${index + 1}`;
 
     try {
@@ -85,19 +90,20 @@ export default class AccountListView {
         );
       }
     } catch (error) {
-      if (shouldBeVisible) {
-        throw new Error(
-          `Expected element at index ${index} to be visible, but it does not exist.`,
-        );
-      } else {
-        // If the element should not be visible and it doesn't exist, the test passes.
-        return;
-      }
+      this.handleVisibilityError(shouldBeVisible, index);
     }
   }
 
-  static async connectAccountsButton() {
-    await TestHelpers.waitAndTap(
+  handleVisibilityError(shouldBeVisible, index) {
+    if (shouldBeVisible) {
+      throw new Error(
+        `Expected element at index ${index} to be visible, but it does not exist.`,
+      );
+    }
+  }
+
+  async connectAccountsButton() {
+    await Gestures.waitAndTap(
       ConnectAccountModalSelectorsIDs.SELECT_MULTI_BUTTON,
     );
   }
