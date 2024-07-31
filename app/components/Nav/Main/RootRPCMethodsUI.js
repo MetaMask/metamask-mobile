@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 
 import { Alert } from 'react-native';
 import PropTypes from 'prop-types';
@@ -66,7 +66,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../util/smart-transactions';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, isEqual } from 'lodash';
 import { selectSwapsTransactions } from '../../../selectors/transactionController';
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -74,6 +74,13 @@ import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
 ///: END:ONLY_INCLUDE_IF
 
 const hstInterface = new ethers.utils.Interface(abi);
+
+function useSwapsTransactions() {
+  const swapTransactions = useSelector(selectSwapsTransactions, isEqual);
+
+  // Memo prevents fresh fallback empty object on every render.
+  return useMemo(() => swapTransactions ?? {}, [swapTransactions]);
+}
 
 export const useSwapConfirmedEvent = ({ trackSwaps }) => {
   const [transactionMetaIdsForListening, setTransactionMetaIdsForListening] =
@@ -88,8 +95,7 @@ export const useSwapConfirmedEvent = ({ trackSwaps }) => {
     },
     [transactionMetaIdsForListening],
   );
-
-  const swapsTransactions = useSelector(selectSwapsTransactions);
+  const swapsTransactions = useSwapsTransactions();
 
   useEffect(() => {
     // Cannot directly call trackSwaps from the event listener in autoSign due to stale closure of swapsTransactions
@@ -250,8 +256,7 @@ const RootRPCMethodsUI = (props) => {
   const { addTransactionMetaIdForListening } = useSwapConfirmedEvent({
     trackSwaps,
   });
-
-  const swapsTransactions = useSelector(selectSwapsTransactions);
+  const swapsTransactions = useSwapsTransactions();
 
   const autoSign = useCallback(
     async (transactionMeta) => {
