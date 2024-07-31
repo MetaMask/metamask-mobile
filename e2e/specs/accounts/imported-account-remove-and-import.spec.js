@@ -12,7 +12,7 @@ import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { loginToApp } from '../../viewHelper.js';
 import WalletView from '../../pages/wallet/WalletView.js';
-import AccountListView from '../../pages/AccountListView';
+import AccountListView from '../../pages/AccountListView.js';
 import ImportAccountView from '../../pages/ImportAccountView.js';
 import Assertions from '../../utils/Assertions.js';
 import { AccountListViewSelectorsText } from '../../selectors/AccountListView.selectors.js';
