@@ -1521,6 +1521,7 @@ class Engine {
           'SubjectMetadataController:stateChange',
           'TokenListController:stateChange',
           'TokensController:stateChange',
+          'TransactionController:stateChange',
 
           /**
            * V1/V2 controllers incorrectly defined with a `messagingSystem` that is missing its `stateChange` event.
@@ -1543,8 +1544,6 @@ class Engine {
           'SnapsRegistry:stateChange',
           // @ts-expect-error BaseControllerV2, `TokenBalancesControllerState` import error
           'TokenBalancesController:stateChange',
-          // @ts-expect-error BaseControllerV1, has `messagingSystem` but as private field, messenger defined without `stateChange` event type
-          'TransactionController:stateChange',
           // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
           'UserStorageController:stateChange',
 
