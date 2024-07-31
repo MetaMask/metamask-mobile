@@ -6851,7 +6851,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/profile-sync-controller@npm:^0.1.1, @metamask/profile-sync-controller@npm:^0.1.3":
+"@metamask/profile-sync-controller@npm:0.1.3":
   version: 0.1.3
   resolution: "@metamask/profile-sync-controller@npm:0.1.3"
   dependencies:
@@ -6867,6 +6867,25 @@ __metadata:
   peerDependencies:
     "@metamask/snaps-controllers": ^8.1.1
   checksum: 6fbd5c1a623f35e9464d42299039845ec74133c15c6854624e1a319eed02fcd43586e2c46a5116d17650f095ffe7216e293a0aa7c1bec153c5a7b1f9b8b3c142
+  languageName: node
+  linkType: hard
+
+"@metamask/profile-sync-controller@patch:@metamask/profile-sync-controller@npm%3A0.1.3#./.yarn/patches/@metamask-profile-sync-controller-npm-0.1.3-111e75acee.patch::locator=metamask%40workspace%3A.":
+  version: 0.1.3
+  resolution: "@metamask/profile-sync-controller@patch:@metamask/profile-sync-controller@npm%3A0.1.3#./.yarn/patches/@metamask-profile-sync-controller-npm-0.1.3-111e75acee.patch::version=0.1.3&hash=2dba9a&locator=metamask%40workspace%3A."
+  dependencies:
+    "@metamask/base-controller": ^6.0.1
+    "@metamask/snaps-controllers": ^8.1.1
+    "@metamask/snaps-sdk": ^4.2.0
+    "@metamask/snaps-utils": ^7.4.0
+    "@noble/ciphers": ^0.5.2
+    "@noble/hashes": ^1.4.0
+    immer: ^9.0.6
+    loglevel: ^1.8.1
+    siwe: ^2.3.2
+  peerDependencies:
+    "@metamask/snaps-controllers": ^8.1.1
+  checksum: f12ab86fadfcd293d6d783aebb8c1965f80bdf96c99e08aef647ef3b966a6d5c4ad55710976069b94ca5df1642706117d2f5a81b35c11286e0bfd4d9a6c9d71f
   languageName: node
   linkType: hard
 

@@ -233,6 +233,8 @@ import { getPermittedAccounts } from './Permissions';
 import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
 import EthQuery from '@metamask/eth-query';
 import { TransactionControllerOptions } from '@metamask/transaction-controller/dist/types/TransactionController';
+import { AuthenticationControllerEvents } from '@metamask/profile-sync-controller/dist/types/controllers/authentication';
+import { UserStorageControllerEvents } from '@metamask/profile-sync-controller/dist/types/controllers/user-storage';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -318,7 +320,9 @@ type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalEvents
   | SnapsRegistryEvents
+  | AuthenticationControllerEvents
   | NotificationServicesController.NotificationServicesControllerEvents
+  | UserStorageControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | KeyringControllerEvents
@@ -1507,6 +1511,7 @@ class Engine {
           'AccountTrackerController:stateChange',
           'AddressBookController:stateChange',
           'ApprovalController:stateChange',
+          'AuthenticationController:stateChange',
           'CurrencyRateController:stateChange',
           'GasFeeController:stateChange',
           'KeyringController:stateChange',
@@ -1526,6 +1531,7 @@ class Engine {
           'TokenListController:stateChange',
           'TokensController:stateChange',
           'TransactionController:stateChange',
+          'UserStorageController:stateChange',
 
           /**
            * V1/V2 controllers incorrectly defined with a `messagingSystem` that is missing its `stateChange` event.
@@ -1533,11 +1539,7 @@ class Engine {
            * TODO: Upstream fixes in the source packages are required for the following controllers.
            */
           // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
-          'AuthenticationController:stateChange',
-          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
           'LoggingController:stateChange',
-          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
-          'UserStorageController:stateChange',
 
           /**
            * V1 controllers that should be excluded from the datamodel's events allowlist for now.

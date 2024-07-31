@@ -1,0 +1,60 @@
+diff --git a/dist/types/controllers/authentication/AuthenticationController.d.ts b/dist/types/controllers/authentication/AuthenticationController.d.ts
+index 03de3c60c5ce203ba45d316d42fe28827cca435c..e8634e9cc9faabec8c1190bce3980dcf46a7287f 100644
+--- a/dist/types/controllers/authentication/AuthenticationController.d.ts
++++ b/dist/types/controllers/authentication/AuthenticationController.d.ts
+@@ -1,4 +1,4 @@
+-import type { RestrictedControllerMessenger } from '@metamask/base-controller';
++import type { RestrictedControllerMessenger, ControllerGetStateAction, ControllerStateChangeEvent } from '@metamask/base-controller';
+ import { BaseController } from '@metamask/base-controller';
+ import type { HandleSnapRequest } from '@metamask/snaps-controllers';
+ import type { UserStorageControllerDisableProfileSyncing } from '../user-storage/UserStorageController';
+@@ -35,14 +35,17 @@ type CreateActionsObj<Controller extends keyof AuthenticationController> = {
+     };
+ };
+ type ActionsObj = CreateActionsObj<'performSignIn' | 'performSignOut' | 'getBearerToken' | 'getSessionProfile' | 'isSignedIn'>;
+-export type Actions = ActionsObj[keyof ActionsObj];
++export type AuthenticationControllerGetStateAction = ControllerGetStateAction<typeof controllerName, AuthenticationControllerState>;
++export type AuthenticationControllerActions = ActionsObj[keyof ActionsObj];
+ export type AuthenticationControllerPerformSignIn = ActionsObj['performSignIn'];
+ export type AuthenticationControllerPerformSignOut = ActionsObj['performSignOut'];
+ export type AuthenticationControllerGetBearerToken = ActionsObj['getBearerToken'];
+ export type AuthenticationControllerGetSessionProfile = ActionsObj['getSessionProfile'];
+ export type AuthenticationControllerIsSignedIn = ActionsObj['isSignedIn'];
+ export type AllowedActions = HandleSnapRequest | UserStorageControllerDisableProfileSyncing;
+-export type AuthenticationControllerMessenger = RestrictedControllerMessenger<typeof controllerName, Actions | AllowedActions, never, AllowedActions['type'], never>;
++export type AuthenticationControllerStateChangeEvent = ControllerStateChangeEvent<typeof controllerName, AuthenticationControllerState>
++export type AuthenticationControllerEvents = AuthenticationControllerStateChangeEvent;
++export type AuthenticationControllerMessenger = RestrictedControllerMessenger<typeof controllerName, AuthenticationControllerGetStateAction | AllowedActions, AuthenticationControllerEvents, AllowedActions['type'], never>;
+ /**
+  * Controller that enables authentication for restricted endpoints.
+  * Used for Global Profile Syncing and Notifications
+diff --git a/dist/types/controllers/user-storage/UserStorageController.d.ts b/dist/types/controllers/user-storage/UserStorageController.d.ts
+index b0e10b67c70a9e9c4ea7a5412c922b9d67cd01aa..74fb153105d798987a9cf3ec851e4cc362614da7 100644
+--- a/dist/types/controllers/user-storage/UserStorageController.d.ts
++++ b/dist/types/controllers/user-storage/UserStorageController.d.ts
+@@ -1,4 +1,4 @@
+-import type { RestrictedControllerMessenger } from '@metamask/base-controller';
++import type { RestrictedControllerMessenger, ControllerGetStateAction, ControllerStateChangeEvent } from '@metamask/base-controller';
+ import { BaseController } from '@metamask/base-controller';
+ import type { HandleSnapRequest } from '@metamask/snaps-controllers';
+ import type { AuthenticationControllerGetBearerToken, AuthenticationControllerGetSessionProfile, AuthenticationControllerIsSignedIn, AuthenticationControllerPerformSignIn, AuthenticationControllerPerformSignOut } from '../authentication/AuthenticationController';
+@@ -30,14 +30,17 @@ type CreateActionsObj<Controller extends keyof UserStorageController> = {
+     };
+ };
+ type ActionsObj = CreateActionsObj<'performGetStorage' | 'performSetStorage' | 'getStorageKey' | 'enableProfileSyncing' | 'disableProfileSyncing'>;
+-export type Actions = ActionsObj[keyof ActionsObj];
++export type UserStorageControllerGetStateAction = ControllerGetStateAction<typeof controllerName, UserStorageControllerState>;
++export type UserStorageControllerActions = ActionsObj[keyof ActionsObj];
+ export type UserStorageControllerPerformGetStorage = ActionsObj['performGetStorage'];
+ export type UserStorageControllerPerformSetStorage = ActionsObj['performSetStorage'];
+ export type UserStorageControllerGetStorageKey = ActionsObj['getStorageKey'];
+ export type UserStorageControllerEnableProfileSyncing = ActionsObj['enableProfileSyncing'];
+ export type UserStorageControllerDisableProfileSyncing = ActionsObj['disableProfileSyncing'];
+ export type AllowedActions = HandleSnapRequest | AuthenticationControllerGetBearerToken | AuthenticationControllerGetSessionProfile | AuthenticationControllerPerformSignIn | AuthenticationControllerIsSignedIn | AuthenticationControllerPerformSignOut | NotificationServicesControllerDisableNotificationServices | NotificationServicesControllerSelectIsNotificationServicesEnabled;
+-export type UserStorageControllerMessenger = RestrictedControllerMessenger<typeof controllerName, Actions | AllowedActions, never, AllowedActions['type'], never>;
++export type UserStorageControllerStateChangeEvent = ControllerStateChangeEvent<typeof controllerName, UserStorageControllerState>;
++export type UserStorageControllerEvents = UserStorageControllerStateChangeEvent;
++export type UserStorageControllerMessenger = RestrictedControllerMessenger<typeof controllerName, UserStorageControllerActions | AllowedActions, UserStorageControllerEvents, AllowedActions['type'], never>;
+ /**
+  * Reusable controller that allows any team to store synchronized data for a given user.
+  * These can be settings shared cross MetaMask clients, or data we want to persist when uninstalling/reinstalling.
