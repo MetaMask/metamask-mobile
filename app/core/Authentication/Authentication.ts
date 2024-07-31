@@ -399,8 +399,6 @@ class AuthenticationService {
     authData: AuthData,
   ): Promise<void> => {
     try {
-      throw new Error('JSON Parse error');
-
       await this.loginVaultCreation(password);
       await this.storePassword(password, authData.currentAuthType);
       this.dispatchLogin();
