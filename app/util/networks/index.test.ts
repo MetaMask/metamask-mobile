@@ -378,8 +378,7 @@ describe('network-utils', () => {
       // Reset mocks before each test
       jest.clearAllMocks();
       // Setup default behavior for mocked functions
-      const mockReturnValue = jest.fn();
-      mockReturnValue.mockReturnValue({
+      (Engine.controllerMessenger.call as jest.Mock).mockReturnValue({
         sendAsync: mockSendAsync,
       });
     });
