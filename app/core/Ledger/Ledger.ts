@@ -7,7 +7,7 @@ import {
   LedgerMobileBridge,
 } from '@metamask/eth-ledger-bridge-keyring';
 import LEDGER_HD_PATH from './constants';
-import OperationTypes from './types';
+import PAGINATION_OPERATIONS from '../../constants/pagination';
 
 /**
  * Perform an operation with the Ledger keyring.
@@ -110,9 +110,9 @@ export const getLedgerAccountsByOperation = async (
   try {
     const accounts = await withLedgerKeyring(async (keyring: LedgerKeyring) => {
       switch (operation) {
-        case OperationTypes.GET_PREVIOUS_PAGE:
+        case PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE:
           return await keyring.getPreviousPage();
-        case OperationTypes.GET_NEXT_PAGE:
+        case PAGINATION_OPERATIONS.GET_NEXT_PAGE:
           return await keyring.getNextPage();
         default:
           return await keyring.getFirstPage();
