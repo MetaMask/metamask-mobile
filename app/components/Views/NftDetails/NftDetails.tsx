@@ -40,15 +40,13 @@ import { newAssetTransaction } from '../../../actions/transaction';
 import CollectibleMedia from '../../../components/UI/CollectibleMedia';
 import ContentDisplay from '../../../components/UI/AssetOverview/AboutAsset/ContentDisplay';
 import BigNumber from 'bignumber.js';
-import { addUrlProtocolPrefix } from '../../../util/url';
-import {
-  formatTimestampToYYYYMMDD,
-  MAX_TOKEN_ID_LENGTH,
-} from './nftDetails.utils';
 import { getDecimalChainId } from '../../../util/networks';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { renderShortText } from '../../../util/general';
+import { prefixUrlWithProtocol } from '../../../util/browser';
+import { formatTimestampToYYYYMMDD } from '../../../util/date';
+import MAX_TOKEN_ID_LENGTH from './nftDetails.utils';
 
 const NftDetails = () => {
   const navigation = useNavigation();
@@ -121,7 +119,7 @@ const NftDetails = () => {
   const viewLastSalePriceSource = () => {
     const source = collectible?.lastSale?.orderSource;
     if (source) {
-      const url = addUrlProtocolPrefix(source);
+      const url = prefixUrlWithProtocol(source);
       navigation.navigate('Webview', {
         screen: 'SimpleWebview',
         params: { url },
