@@ -7,8 +7,8 @@ import {
 
 import { BN } from 'ethereumjs-util';
 import Engine from '../../../../core/Engine';
-import { RootState } from '../../../../reducers';
 import { decGWEIToHexWEI } from '../../../../util/conversions';
+import { selectGasFeeControllerState } from '../../../../selectors/gasFeeController';
 
 const defaultGasLimit = 21000;
 
@@ -33,9 +33,7 @@ function useGasPriceEstimation({
 }: Options) {
   const pollTokenRef = useRef<string>();
 
-  const gasFeeControllerState = useSelector(
-    (state: RootState) => state.engine.backgroundState.GasFeeController,
-  );
+  const gasFeeControllerState = useSelector(selectGasFeeControllerState);
 
   useEffect(() => {
     if (gasLimit === 0) return;

@@ -1990,6 +1990,7 @@
     "staked": "Staked",
     "received": "Received",
     "unstaked": "Unstaked",
+    "mark_all_as_read": "Mark all as read",
     "to": "To",
     "rate": "Rate (fees included)",
     "unstaking_requested": "Unstaking requested",

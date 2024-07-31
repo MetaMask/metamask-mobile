@@ -51,6 +51,8 @@ import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../../util/smart-transactions';
 import { selectTransactionMetrics } from '../../../../core/redux/slices/transactionMetrics';
+import { selectTransactions } from '../../../../selectors/transactionController';
+import { selectShowCustomNonce } from '../../../../selectors/settings';
 import { buildTransactionParams } from '../../../../util/confirmation/transactions';
 
 const REVIEW = 'review';
@@ -653,10 +655,10 @@ class Approval extends PureComponent {
 
 const mapStateToProps = (state) => ({
   transaction: getNormalizedTxState(state),
-  transactions: state.engine.backgroundState.TransactionController.transactions,
+  transactions: selectTransactions(state),
   selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   networkType: selectProviderType(state),
-  showCustomNonce: state.settings.showCustomNonce,
+  showCustomNonce: selectShowCustomNonce(state),
   chainId: selectChainId(state),
   activeTabUrl: getActiveTabUrl(state),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
