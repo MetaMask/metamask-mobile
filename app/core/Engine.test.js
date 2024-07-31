@@ -104,7 +104,6 @@ describe('Engine', () => {
     const ethConversionRate = 4000; // $4,000 / ETH
 
     const state = {
-      PreferencesController: { selectedAddress },
       AccountsController: {
         internalAccounts: {
           selectedAccount: selectedAddress,
