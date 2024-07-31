@@ -241,3 +241,44 @@ index 0000000..e69de29
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/rncore/States.h b/node_modules/react-native/ReactCommon/react/renderer/components/rncore/States.h
 new file mode 100644
 index 0000000..e69de29
+diff --git a/node_modules/react-native/scripts/cocoapods/utils.rb b/node_modules/react-native/scripts/cocoapods/utils.rb
+index 6507f8b..924edd3 100644
+--- a/node_modules/react-native/scripts/cocoapods/utils.rb
++++ b/node_modules/react-native/scripts/cocoapods/utils.rb
+@@ -354,20 +354,23 @@ class ReactNativePodsUtils
+     end
+ 
+     def self.is_using_xcode15_0(xcodebuild_manager: Xcodebuild)
+-        xcodebuild_version = xcodebuild_manager.version
+-
+-        # The output of xcodebuild -version is something like
+-        # Xcode 15.0
+-        # or
+-        # Xcode 14.3.1
+-        # We want to capture the version digits
+-        regex = /(\d+)\.(\d+)(?:\.(\d+))?/
+-        if match_data = xcodebuild_version.match(regex)
+-            major = match_data[1].to_i
+-            minor = match_data[2].to_i
+-            return major == 15 && minor == 0
++        # Catch exception on Linux (fixed in RN 0.74+)
++        begin
++            xcodebuild_version = xcodebuild_manager.version
++
++            # The output of xcodebuild -version is something like
++            # Xcode 15.0
++            # or
++            # Xcode 14.3.1
++            # We want to capture the version digits
++            regex = /(\d+)\.(\d+)(?:\.(\d+))?/
++            if match_data = xcodebuild_version.match(regex)
++                major = match_data[1].to_i
++                minor = match_data[2].to_i
++                return major == 15 && minor == 0
++            end
++        rescue => e
+         end
+-
+         return false
+     end
+ 
