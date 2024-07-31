@@ -1225,12 +1225,12 @@ class Engine {
           this.transactionController.confirmExternalTransaction.bind(
             this.transactionController,
           ),
+        // @ts-expect-error
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
         getNonceLock: this.transactionController.getNonceLock.bind(
           this.transactionController,
         ),
-        // @ts-expect-error Older TransactionController version in SmartTransactionsController means TransactionMeta types don't match.
         getTransactions: this.transactionController.getTransactions.bind(
           this.transactionController,
         ),
