@@ -116,23 +116,26 @@ NotificationsDetails.navigationOptions = ({
     },
   });
 
-  return {
-    // eslint-disable-next-line react/display-name
-    headerLeft: () => (
-      <TouchableOpacity onPress={() => navigation.goBack()}>
-        <Icon
-          name={IconName.ArrowLeft}
-          size={IconSize.Md}
-          style={styles.backIcon}
-        />
-      </TouchableOpacity>
-    ),
-    // eslint-disable-next-line react/display-name
-    headerTitle: () => (
-      <Header
-        title={state.title}
-        subtitle={formatIsoDateString(state.createdAt)}
+const HeaderLeft = useCallback(() => (
+    <TouchableOpacity onPress={() => navigation.goBack()}>
+      <Icon
+        name={IconName.ArrowLeft}
+        size={IconSize.Md}
+        style={styles.backIcon}
       />
-    ),
+    </TouchableOpacity>
+  ), [navigation]);
+
+// Only use useCallback here if the state.title is most likely always the same, if not, it is unnecessary to memoize it
+  const HeaderTitle = useCallback(() => (
+    <Header
+      title={state.title}
+      subtitle={formatIsoDateString(state.createdAt)}
+    />
+  ), [state.title, state.createdAt]);
+  
+    return {
+    headerLeft: HeaderLeft,
+    headerTitle: HeaderTitle,
   };
 };
