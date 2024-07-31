@@ -110,6 +110,7 @@
     ]
   },
   "resolutions": {
+    "@metamask/base-controller": "6.0.2",
     "@metamask/contract-metadata": "^2.1.0",
     "@metamask/react-native-payments/validator": "^13.7.0",
     "d3-color": "3.1.0",
