@@ -133,6 +133,18 @@ class EngineService {
         name: 'PPOMController',
         key: `${engine.context.PPOMController.name}:stateChange`,
       },
+      {
+        name: 'AuthenticationController',
+        key: `AuthenticationController:stateChange`,
+      },
+      {
+        name: 'UserStorageController',
+        key: `UserStorageController:stateChange`,
+      },
+      {
+        name: 'NotificationServicesController',
+        key: `NotificationServicesController:stateChange`,
+      },
     ];
 
     engine?.datamodel?.subscribe?.(() => {

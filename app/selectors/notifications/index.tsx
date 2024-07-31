@@ -1,16 +1,14 @@
-/* eslint-disable import/prefer-default-export */
 import { createSelector } from 'reselect';
-import {
-  AuthenticationController,
-  UserStorageController,
-} from '@metamask/profile-sync-controller';
-
-import { NotificationServicesController } from '@metamask/notification-services-controller';
 
 import { TRIGGER_TYPES } from '../../util/notifications';
 
 import { createDeepEqualSelector } from '../util';
 import { RootState } from '../../reducers';
+import { NotificationServicesController } from '@metamask/notification-services-controller';
+import {
+  AuthenticationController,
+  UserStorageController,
+} from '@metamask/profile-sync-controller';
 
 type NotificationServicesState =
   NotificationServicesController.NotificationServicesControllerState;
