@@ -151,7 +151,7 @@
     "@metamask/approval-controller": "^7.0.1",
     "@metamask/assets-controllers": "^30.0.0",
     "@metamask/base-controller": "^5.0.0",
-    "@metamask/composable-controller": "npm:@metamask-previews/composable-controller@7.0.0-preview-ea7e75d5",
+    "@metamask/composable-controller": "npm:@metamask-previews/composable-controller@7.0.0-preview-2ca9038",
     "@metamask/contract-metadata": "^2.1.0",
     "@metamask/controller-utils": "^10.0.0",
     "@metamask/design-tokens": "^4.0.0",
