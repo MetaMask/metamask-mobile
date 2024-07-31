@@ -65,6 +65,7 @@ import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
 import { toLowerCaseEquals } from '../../../../util/general';
+import { selectAddressBook } from '../../../../selectors/addressBookController';
 import TransactionTypes from '../../../../core/TransactionTypes';
 
 const REVIEW = 'review';
@@ -780,7 +781,7 @@ class Send extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  addressBook: state.engine.backgroundState.AddressBookController.addressBook,
+  addressBook: selectAddressBook(state),
   accounts: selectAccounts(state),
   contractBalances: selectContractBalances(state),
   transaction: state.transaction,
