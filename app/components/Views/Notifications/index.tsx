@@ -1,4 +1,3 @@
-/* eslint-disable react/display-name */
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
