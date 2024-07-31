@@ -64,7 +64,7 @@ import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { store } from '../../../store';
 import { createBuyNavigationDetails } from '../../UI/Ramp/routes/utils';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
-import { selectSwapsTransactions } from 'app/selectors/transactionController';
+import { selectSwapsTransactions } from '../../../selectors/transactionController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
