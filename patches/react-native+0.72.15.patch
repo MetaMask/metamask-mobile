@@ -211,6 +211,24 @@ index ced37be..a158541 100644
      }
      return inputConnection;
    }
+diff --git a/node_modules/react-native/ReactCommon/jsc/JSCRuntime.cpp b/node_modules/react-native/ReactCommon/jsc/JSCRuntime.cpp
+index 8448d02..18e2179 100644
+--- a/node_modules/react-native/ReactCommon/jsc/JSCRuntime.cpp
++++ b/node_modules/react-native/ReactCommon/jsc/JSCRuntime.cpp
+@@ -421,12 +421,7 @@ JSCRuntime::~JSCRuntime() {
+   // has started.
+   ctxInvalid_ = true;
+   JSGlobalContextRelease(ctx_);
+-#ifndef NDEBUG
+-  assert(
+-      objectCounter_ == 0 && "JSCRuntime destroyed with a dangling API object");
+-  assert(
+-      stringCounter_ == 0 && "JSCRuntime destroyed with a dangling API string");
+-#endif
++  // This patch was genereted to address a crash when reloading on IOS, more details here: https://github.com/MetaMask/metamask-mobile/pull/10511
+ }
+ 
+ std::shared_ptr<const jsi::PreparedJavaScript> JSCRuntime::prepareJavaScript(
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/rncore/ComponentDescriptors.h b/node_modules/react-native/ReactCommon/react/renderer/components/rncore/ComponentDescriptors.h
 new file mode 100644
 index 0000000..e69de29
