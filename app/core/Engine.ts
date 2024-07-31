@@ -40,7 +40,9 @@ import PREINSTALLED_SNAPS from '../lib/snaps/preinstalled-snaps';
 ///: END:ONLY_INCLUDE_IF
 import {
   AddressBookController,
-  AddressBookState,
+  AddressBookControllerActions,
+  AddressBookControllerEvents,
+  AddressBookControllerState,
 } from '@metamask/address-book-controller';
 import { BaseState } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
@@ -266,6 +268,7 @@ type SnapsGlobalEvents =
 ///: END:ONLY_INCLUDE_IF
 
 type GlobalActions =
+  | AddressBookControllerActions
   | ApprovalControllerActions
   | GetCurrencyRateState
   | GetGasFeeState
@@ -291,6 +294,7 @@ type GlobalActions =
   | TokenListControllerActions;
 
 type GlobalEvents =
+  | AddressBookControllerEvents
   | ApprovalControllerEvents
   | CurrencyRateStateChange
   | GasFeeStateChange
@@ -321,7 +325,7 @@ type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type EngineState = {
   AccountTrackerController: AccountTrackerControllerState;
-  AddressBookController: AddressBookState;
+  AddressBookController: AddressBookControllerState;
   AssetsContractController: BaseState;
   NftController: NftControllerState;
   TokenListController: TokenListState;
@@ -1486,6 +1490,7 @@ class Engine {
            */
           'AccountsController:stateChange',
           'AccountTrackerController:stateChange',
+          'AddressBookController:stateChange',
           'ApprovalController:stateChange',
           'CurrencyRateController:stateChange',
           'GasFeeController:stateChange',
@@ -1527,7 +1532,6 @@ class Engine {
            * V1 controllers that should be excluded from the datamodel's events allowlist for now.
            * TODO: Each of these events should be added to the allowlist once its controller is migrated to V2.
            */
-          // 'AddressBookController:stateChange', // BaseControllerV1, no `messagingSystem`
           // 'SmartTransactionsController:stateChange', // StaticIntervalPollingControllerV1, no `messagingSystem`
           // 'SwapsController:stateChange', // BaseControllerV1, no `messagingSystem`
 

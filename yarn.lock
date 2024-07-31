@@ -5562,14 +5562,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/address-book-controller@npm:^4.0.1":
-  version: 4.0.1
-  resolution: "@metamask/address-book-controller@npm:4.0.1"
+"@metamask/address-book-controller@npm:@metamask-previews/address-book-controller@5.0.0-preview-aaea6b5":
+  version: 5.0.0-preview-aaea6b5
+  resolution: "@metamask-previews/address-book-controller@npm:5.0.0-preview-aaea6b5"
   dependencies:
-    "@metamask/base-controller": ^5.0.1
-    "@metamask/controller-utils": ^9.0.1
-    "@metamask/utils": ^8.3.0
-  checksum: f35b77232f3e1c41f86cc4355ba389af1db8cafd6b3a112f9679a09f5d54c375bbcea98a97dfbfd4a826e57a8c44284ea639d43f94e2d1dd6da2ce78acfeb612
+    "@metamask/base-controller": ^6.0.2
+    "@metamask/controller-utils": ^11.0.2
+    "@metamask/utils": ^9.1.0
+  checksum: 0493ee28c74161bb5f4e3faa4bb811300ede92e7d9d9deee9eae40cde64b61d3b78d2f6cda1bd55afa08191c590c5861d1034b84f5acb0635dc2b05439a3e261
   languageName: node
   linkType: hard
 
@@ -29564,7 +29564,7 @@ __metadata:
     "@lavamoat/allow-scripts": ^3.0.4
     "@ledgerhq/react-native-hw-transport-ble": ^6.32.3
     "@metamask/accounts-controller": ^14.0.0
-    "@metamask/address-book-controller": ^4.0.1
+    "@metamask/address-book-controller": "npm:@metamask-previews/address-book-controller@5.0.0-preview-aaea6b5"
     "@metamask/approval-controller": ^7.0.1
     "@metamask/assets-controllers": "npm:@metamask-previews/assets-controllers@37.0.0-preview-aaea6b5"
     "@metamask/base-controller": ^5.0.0

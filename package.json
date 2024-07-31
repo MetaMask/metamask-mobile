@@ -133,7 +133,7 @@
     "@keystonehq/ur-decoder": "^0.12.2",
     "@ledgerhq/react-native-hw-transport-ble": "^6.32.3",
     "@metamask/accounts-controller": "^14.0.0",
-    "@metamask/address-book-controller": "^4.0.1",
+    "@metamask/address-book-controller": "npm:@metamask-previews/address-book-controller@5.0.0-preview-aaea6b5",
     "@metamask/approval-controller": "^7.0.1",
     "@metamask/assets-controllers": "npm:@metamask-previews/assets-controllers@37.0.0-preview-aaea6b5",
     "@metamask/base-controller": "^5.0.0",
