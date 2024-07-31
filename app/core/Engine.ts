@@ -461,7 +461,6 @@ class Engine {
     };
 
     const approvalController = new ApprovalController({
-      // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted({
         name: 'ApprovalController',
         allowedEvents: [],
@@ -655,7 +654,6 @@ class Engine {
       networkController.state.selectedNetworkClientId,
     );
     const gasFeeController = new GasFeeController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'GasFeeController',
         allowedActions: [
@@ -895,8 +893,6 @@ class Engine {
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     const subjectMetadataController = new SubjectMetadataController({
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted({
         name: 'SubjectMetadataController',
         allowedActions: [`${permissionController.name}:hasPermissions`],
@@ -946,8 +942,6 @@ class Engine {
     const requireAllowlist = process.env.METAMASK_BUILD_TYPE === 'main';
     const disableSnapInstallation = process.env.METAMASK_BUILD_TYPE === 'main';
     const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore TODO: Resolve/patch mismatch between base-controller versions.
     const snapsRegistryMessenger: SnapsRegistryMessenger =
       this.controllerMessenger.getRestricted({
         name: 'SnapsRegistry',
@@ -967,8 +961,6 @@ class Engine {
     });
 
     this.snapExecutionService = new WebViewExecutionService({
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore TODO: Resolve/patch mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'ExecutionService',
         allowedActions: [],
@@ -1050,8 +1042,6 @@ class Engine {
 
     const authenticationController = new AuthenticationController.Controller({
       state: initialState.AuthenticationController,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore TODO: Resolve/patch mismatch between messenger types
       messenger: this.controllerMessenger.getRestricted({
         name: 'AuthenticationController',
         allowedActions: [
@@ -1070,8 +1060,6 @@ class Engine {
     const userStorageController = new UserStorageController.Controller({
       getMetaMetricsState: () => MetaMetrics.getInstance().isEnabled(),
       state: initialState.UserStorageController,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore TODO: Resolve/patch mismatch between messenger types
       messenger: this.controllerMessenger.getRestricted({
         name: 'UserStorageController',
         allowedActions: [
@@ -1090,8 +1078,6 @@ class Engine {
 
     const notificationServicesController =
       new NotificationServicesController.Controller({
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore TODO: Resolve/patch mismatch between messenger types
         messenger: this.controllerMessenger.getRestricted({
           name: 'NotificationServicesController',
           allowedActions: [
@@ -1175,8 +1161,6 @@ class Engine {
       },
       isSimulationEnabled: () =>
         preferencesController.state.useTransactionSimulations,
-      // @ts-expect-error TransactionController is using later BaseController version
-      // but only breaking change is Node version
       messenger: this.controllerMessenger.getRestricted({
         name: 'TransactionController',
         allowedActions: [
@@ -1426,7 +1410,6 @@ class Engine {
         chainId: networkController.state.providerConfig.chainId,
         blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
         cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
-        // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
         messenger: this.controllerMessenger.getRestricted({
           name: 'PPOMController',
           allowedActions: [],
@@ -1482,8 +1465,6 @@ class Engine {
       Controllers[keyof Controllers]
     >({
       controllers,
-      // @ts-expect-error Resolve/patch mismatch between base-controller versions
-      // ts(2322) - Property '#private' in type 'RestrictedControllerMessenger' refers to a different member that cannot be accessed from within type 'RestrictedControllerMessenger'
       messenger: this.controllerMessenger.getRestricted({
         name: 'ComposableController',
         allowedActions: [],
