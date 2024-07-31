@@ -3,7 +3,11 @@ import { StorageBackend, StorageKey } from '@metamask/ppom-validator';
 
 import { getArrayBufferForBlob } from 'react-native-blob-jsi-helper';
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 if (window.FileReader?.prototype.readAsArrayBuffer) {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   window.FileReader.prototype.readAsArrayBuffer = function (blob) {
     if (this.readyState === this.LOADING) throw new Error('InvalidStateError');
     (
