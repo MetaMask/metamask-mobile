@@ -756,9 +756,9 @@ PODS:
     - React-RCTImage
   - RNSensors (5.3.0):
     - React
-  - RNSentry (5.19.3):
+  - RNSentry (5.24.1):
     - React-Core
-    - Sentry/HybridSDK (= 8.21.0)
+    - Sentry/HybridSDK (= 8.29.1)
   - RNShare (7.3.7):
     - React-Core
   - RNSVG (15.3.0):
@@ -768,9 +768,7 @@ PODS:
   - segment-analytics-react-native (2.17.0):
     - React-Core
     - sovran-react-native
-  - Sentry/HybridSDK (8.21.0):
-    - SentryPrivate (= 8.21.0)
-  - SentryPrivate (8.21.0)
+  - Sentry/HybridSDK (8.29.1)
   - SocketRocket (0.6.1)
   - sovran-react-native (1.0.4):
     - React-Core
@@ -943,7 +941,6 @@ SPEC REPOS:
     - OpenSSL-Universal
     - PromisesObjC
     - Sentry
-    - SentryPrivate
     - SocketRocket
     - YogaKit
 
@@ -1262,13 +1259,12 @@ SPEC CHECKSUMS:
   RNReanimated: f8379347f71248607d530a21e31e4140c5910c25
   RNScreens: ea4cd3a853063cda19a4e3c28d2e52180c80f4eb
   RNSensors: c363d486c879e181905dea84a2535e49af1c2d25
-  RNSentry: 98e170b6eedc5c54e3ac88b6140fffb8b496deb4
+  RNSentry: 0aefd4f23b45e3c00577c3a18af79b8f8193bcdb
   RNShare: f116bbb04f310c665ca483d0bd1e88cf59b3b334
   RNSVG: a48668fd382115bc89761ce291a81c4ca5f2fd2e
   RNVectorIcons: 6607bd3a30291d0edb56f9bbe7ae411ee2b928b0
   segment-analytics-react-native: dbdd08d96fec78132e96bda092562e41c2ce0ce0
-  Sentry: ebc12276bd17613a114ab359074096b6b3725203
-  SentryPrivate: d651efb234cf385ec9a1cdd3eff94b5e78a0e0fe
+  Sentry: c446963245407030e17f1b926a83c6337dc99f4e
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   sovran-react-native: 791f2f726b4d57ece59676eda58d6da9dc95ad4e
   TcpSockets: a8eb6b5867fe643e6cfed5db2e4de62f4d1e8fd0

@@ -2,7 +2,7 @@
 /* eslint @typescript-eslint/no-require-imports: "off" */
 
 import React from 'react';
-import { View, Text, Image, ScrollView } from 'react-native';
+import { View, Text, Image, ScrollView, Platform } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import {
   KEYSTONE_LEARN_MORE,
@@ -12,6 +12,8 @@ import {
 import { useTheme } from '../../../../util/theme';
 import { createStyles } from './styles';
 import StyledButton from '../../../UI/StyledButton';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { QR_CONTINUE_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Components/ConnectQRHardware.testIds';
 
 interface IConnectQRInstructionProps {
   // TODO: Replace "any" with type
@@ -109,6 +111,7 @@ const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
           type={'confirm'}
           onPress={onConnect}
           style={styles.button}
+          {...generateTestId(Platform, QR_CONTINUE_BUTTON)}
         >
           {strings('connect_qr_hardware.button_continue')}
         </StyledButton>
