@@ -146,7 +146,7 @@ export const validateTokenAmount = async (
     }
     // If user trying to send a token that doesn't own, validate balance querying contract
     // If it fails, skip validation
-    let contractBalanceForAddress;
+    let contractBalanceForAddress: BN | undefined | number;
     if (selectedAddress === from && contractBalances[selectedAsset.address]) {
       contractBalanceForAddress = hexToBN(
         contractBalances[selectedAsset.address].toString(),
@@ -166,7 +166,10 @@ export const validateTokenAmount = async (
     if (value && !isBN(value)) return strings('transaction.invalid_amount');
     const validateAssetAmount =
       contractBalanceForAddress &&
-      lt(contractBalanceForAddress.toNumber(), value as unknown as number);
+      lt(
+        contractBalanceForAddress as unknown as number,
+        value as unknown as number,
+      );
     if (validateAssetAmount) return strings('transaction.insufficient');
   }
 };
