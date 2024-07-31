@@ -36,6 +36,7 @@ import Text, {
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
+import { UserProfileProperty } from 'app/util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 const diameter = 40;
 const spacing = 8;
@@ -206,7 +207,7 @@ class Settings extends PureComponent {
     this.props.setPrimaryCurrency(primaryCurrency);
 
     const metrics = MetaMetrics.getInstance();
-    const traits = { primaryCurrency };
+    const traits = { [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency };
     metrics.addTraitsToUser(traits);
     metrics.trackEvent(MetaMetricsEvents.PRIMARY_CURRENCY_TOGGLE, {
       ...traits,
