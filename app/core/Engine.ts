@@ -1479,6 +1479,7 @@ class Engine {
           'KeyringController:stateChange',
           'NetworkController:stateChange',
           'PermissionController:stateChange',
+          'PPOMController:stateChange',
           'PreferencesController:stateChange',
           'SignatureController:stateChange',
           'SnapController:stateChange',
@@ -1502,8 +1503,6 @@ class Engine {
           'NotificationServicesController:stateChange',
           // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
           'PhishingController:stateChange',
-          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
-          'PPOMController:stateChange',
           // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
           'SnapsRegistry:stateChange',
           // @ts-expect-error BaseControllerV2, `TokenBalancesControllerState` import error
