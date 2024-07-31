@@ -19,5 +19,5 @@ export interface UserProfileMetaData {
   [UserProfileProperty.TOKEN_DETECTION]: string;
   [UserProfileProperty.MULTI_ACCOUNT_BALANCE]: string;
   [UserProfileProperty.SECURITY_PROVIDERS]: string;
-  [UserProfileProperty.PRIMARY_CURRENCY]: string;
+  [UserProfileProperty.PRIMARY_CURRENCY]?: string;
 }
