@@ -1,10 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { TouchableOpacity, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import {
-  formatIsoDateString,
-  Notification,
-} from '../../../../util/notifications';
+import { Notification } from '../../../../util/notifications';
 import { useTheme } from '../../../../util/theme';
 
 import {
@@ -23,6 +20,8 @@ import { createStyles } from './styles';
 import ModalField from './Fields';
 import ModalHeader from './Headers';
 import ModalFooter from './Footers';
+import { NotificationModalDetails } from '../../../../util/notifications/notification-states/types/NotificationModalDetails';
+import { toLocaleDate } from '../../../../util/date';
 
 interface Props {
   navigation: NavigationProp<ParamListBase>;
@@ -33,11 +32,10 @@ interface Props {
   };
 }
 
-const NotificationsDetails = ({ route }: Props) => {
+const NotificationsDetails = ({ route, navigation }: Props) => {
   const { notification } = route.params;
   const { markNotificationAsRead } = useMarkNotificationAsRead();
   const [isCollapsed, setIsCollapsed] = useState<boolean>(true);
-
   const theme = useTheme();
   const styles = createStyles(theme);
 
@@ -58,6 +56,37 @@ const NotificationsDetails = ({ route }: Props) => {
     NotificationComponentState[notification?.type]?.createModalDetails?.(
       notification,
     );
+
+  const HeaderLeft = useCallback(
+    () => (
+      <TouchableOpacity onPress={() => navigation.goBack()}>
+        <Icon
+          name={IconName.ArrowLeft}
+          size={IconSize.Md}
+          style={styles.backIcon}
+        />
+      </TouchableOpacity>
+    ),
+    [navigation, styles.backIcon],
+  );
+
+  // Only use useCallback here if the state.title is most likely always the same, if not, it is unnecessary to memoize it
+  const HeaderTitle = useCallback(
+    () => (
+      <Header
+        title={state?.title || ''}
+        subtitle={toLocaleDate(state?.createdAt)}
+      />
+    ),
+    [state?.title, state?.createdAt],
+  );
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerLeft: HeaderLeft,
+      headerTitle: HeaderTitle,
+    });
+  });
 
   if (!state) {
     return null;
@@ -91,9 +120,11 @@ export default NotificationsDetails;
 NotificationsDetails.navigationOptions = ({
   route,
   navigation,
+  state,
 }: {
   route: RouteProp<{ params: { notification: Notification } }, 'params'>;
   navigation: NavigationProp<Record<string, undefined>>;
+  state: NotificationModalDetails;
 }) => {
   const notification = route?.params?.notification;
   if (!notification) {
@@ -101,41 +132,8 @@ NotificationsDetails.navigationOptions = ({
     return {};
   }
 
-  const state =
-    NotificationComponentState[notification?.type]?.createModalDetails?.(
-      notification,
-    );
   if (!state) {
     navigation.goBack();
     return {};
   }
-
-  const styles = StyleSheet.create({
-    backIcon: {
-      marginHorizontal: 16,
-    },
-  });
-
-const HeaderLeft = useCallback(() => (
-    <TouchableOpacity onPress={() => navigation.goBack()}>
-      <Icon
-        name={IconName.ArrowLeft}
-        size={IconSize.Md}
-        style={styles.backIcon}
-      />
-    </TouchableOpacity>
-  ), [navigation]);
-
-// Only use useCallback here if the state.title is most likely always the same, if not, it is unnecessary to memoize it
-  const HeaderTitle = useCallback(() => (
-    <Header
-      title={state.title}
-      subtitle={formatIsoDateString(state.createdAt)}
-    />
-  ), [state.title, state.createdAt]);
-  
-    return {
-    headerLeft: HeaderLeft,
-    headerTitle: HeaderTitle,
-  };
 };

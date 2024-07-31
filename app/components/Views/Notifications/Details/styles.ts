@@ -220,4 +220,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
       // Announcement Description has some underlying padding that we want to remove.
       marginTop: -16,
     },
+    backIcon: {
+      marginHorizontal: 16,
+    },
   });
