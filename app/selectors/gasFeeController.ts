@@ -3,7 +3,7 @@ import { GasFeeState } from '@metamask/gas-fee-controller';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 
-const selectGasFeeControllerState = (state: RootState) =>
+export const selectGasFeeControllerState = (state: RootState) =>
   state.engine.backgroundState.GasFeeController;
 
 const selectGasFeeControllerEstimatesStrict = createSelector(
