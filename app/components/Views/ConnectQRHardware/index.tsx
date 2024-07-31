@@ -29,15 +29,17 @@ import { safeToChecksumAddress } from '../../../util/address';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import type { MetaMaskKeyring as QRKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
+import { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
+import PAGINATION_OPERATIONS from '../../../constants/pagination';
 
 interface IConnectQRHardwareProps {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
 }
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createStyles = (colors: any) =>
+
+const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -70,7 +72,7 @@ const createStyles = (colors: any) =>
     error: {
       ...fontStyles.normal,
       fontSize: 14,
-      color: colors.red,
+      color: colors.error,
     },
     text: {
       color: colors.text.default,
@@ -214,11 +216,11 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 
   const onConnectHardware = useCallback(async () => {
     trackEvent(MetaMetricsEvents.CONTINUE_QR_HARDWARE_WALLET, {
-      device_type: 'QR Hardware',
+      device_type: HardwareDeviceTypes.QR,
     });
     resetError();
     const [qrInteractions, connectQRHardwarePromise] =
-      await initiateQRHardwareConnection(0);
+      await initiateQRHardwareConnection(PAGINATION_OPERATIONS.GET_FIRST_PAGE);
 
     qrInteractionsRef.current = qrInteractions;
     const firstPageAccounts = await connectQRHardwarePromise;
@@ -231,7 +233,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     (ur: UR) => {
       hideScanner();
       trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET_SUCCESS, {
-        device_type: 'QR Hardware',
+        device_type: HardwareDeviceTypes.QR,
       });
       if (!qrInteractionsRef.current) {
         const errorMessage = 'Missing QR keyring interactions';
@@ -262,7 +264,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   const nextPage = useCallback(async () => {
     resetError();
     const [qrInteractions, connectQRHardwarePromise] =
-      await initiateQRHardwareConnection(1);
+      await initiateQRHardwareConnection(PAGINATION_OPERATIONS.GET_NEXT_PAGE);
 
     qrInteractionsRef.current = qrInteractions;
     const nextPageAccounts = await connectQRHardwarePromise;
@@ -274,7 +276,9 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   const prevPage = useCallback(async () => {
     resetError();
     const [qrInteractions, connectQRHardwarePromise] =
-      await initiateQRHardwareConnection(1);
+      await initiateQRHardwareConnection(
+        PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE,
+      );
 
     qrInteractionsRef.current = qrInteractions;
     const previousPageAccounts = await connectQRHardwarePromise;
@@ -283,7 +287,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     setAccounts(previousPageAccounts);
   }, [resetError]);
 
-  const onToggle = useCallback(() => {
+  const onCheck = useCallback(() => {
     resetError();
   }, [resetError]);
 
@@ -353,7 +357,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
             selectedAccounts={existingAccounts}
             nextPage={nextPage}
             prevPage={prevPage}
-            toggleAccount={onToggle}
+            onCheck={onCheck}
             onUnlock={onUnlock}
             onForget={onForget}
             title={strings('connect_qr_hardware.select_accounts')}
@@ -368,9 +372,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
         hideModal={hideScanner}
       />
       <BlockingActionModal modalVisible={blockingModalVisible} isLoadingAction>
-        <Text style={styles.text}>
-          {strings('connect_qr_hardware.please_wait')}
-        </Text>
+        <Text style={styles.text}>{strings('common.please_wait')}</Text>
       </BlockingActionModal>
     </Fragment>
   );

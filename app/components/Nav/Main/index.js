@@ -81,9 +81,6 @@ import {
   startIncomingTransactionPolling,
   stopIncomingTransactionPolling,
 } from '../../../util/transaction-controller';
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import { SnapsExecutionWebView } from '../../../lib/snaps';
-///: END:ONLY_INCLUDE_IF
 
 const Stack = createStackNavigator();
 
@@ -158,8 +155,8 @@ const Main = (props) => {
   const checkInfuraAvailability = useCallback(async () => {
     if (props.providerType !== 'rpc') {
       try {
-        const { TransactionController } = Engine.context;
-        await query(TransactionController.ethQuery, 'blockNumber', []);
+        const ethQuery = Engine.getGlobalEthQuery();
+        await query(ethQuery, 'blockNumber', []);
         props.setInfuraAvailabilityNotBlocked();
       } catch (e) {
         if (e.message === AppConstants.ERRORS.INFURA_BLOCKED_MESSAGE) {
