@@ -24,6 +24,8 @@ import { selectInternalAccounts } from '../../../../../selectors/accountsControl
 import { AddressListProps, Contact } from './AddressList.types';
 import styleSheet from './AddressList.styles';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { selectAddressBook } from '../../../../../selectors/addressBookController';
+import { RootState } from '../../../../../reducers';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -51,16 +53,9 @@ const AddressList: React.FC<AddressListProps> = ({
   const [fuse, setFuse] = useState<any>(undefined);
   const chainId = useSelector(selectChainId);
   const internalAccounts = useSelector(selectInternalAccounts);
-  const addressBook = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) =>
-      state.engine.backgroundState.AddressBookController.addressBook,
-  );
+  const addressBook = useSelector(selectAddressBook);
   const ambiguousAddressEntries = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.user.ambiguousAddressEntries,
+    (state: RootState) => state.user.ambiguousAddressEntries,
   );
 
   const networkAddressBook: { [address: string]: AddressBookEntry } = useMemo(

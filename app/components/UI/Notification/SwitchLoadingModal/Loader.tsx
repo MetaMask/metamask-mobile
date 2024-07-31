@@ -39,7 +39,7 @@ const createStyles = (colors) =>
       lineHeight: 20,
       paddingHorizontal: 24,
       marginVertical: 12,
-      width: '100%',
+      alignSelf: 'center',
     },
     button: {
       alignSelf: 'center',
@@ -57,6 +57,8 @@ const Loader = ({
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const errorContent =
+    errorText?.replace(/"/g, '') || loadingText.replace(/"/g, '');
 
   return (
     <View style={styles.root}>
@@ -72,7 +74,7 @@ const Loader = ({
         )}
       </View>
       <Text variant={TextVariant.HeadingSMRegular} style={styles.text}>
-        {errorText || loadingText}
+        {errorContent}
       </Text>
       {!!errorText && (
         <Button
