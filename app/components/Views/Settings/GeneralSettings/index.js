@@ -35,11 +35,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import {
-  IMetaMetricsEvent,
-  MetaMetrics,
-  MetaMetricsEvents,
-} from '../../../../core/Analytics';
+import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 
 const diameter = 40;
 const spacing = 8;
