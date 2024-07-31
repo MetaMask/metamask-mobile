@@ -5507,6 +5507,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/abi-utils@npm:^2.0.3":
+  version: 2.0.4
+  resolution: "@metamask/abi-utils@npm:2.0.4"
+  dependencies:
+    "@metamask/superstruct": ^3.1.0
+    "@metamask/utils": ^9.0.0
+  checksum: 85b15419248ddec1ab59ec5f3e41276f7509dadd9ced871658fa3cc04805ad35ace96986416aaecd24e3630e92b0ed078328966c92383ffa9b1cc3f0f357ad6c
+  languageName: node
+  linkType: hard
+
 "@metamask/accounts-controller@npm:^14.0.0":
   version: 14.0.0
   resolution: "@metamask/accounts-controller@npm:14.0.0"
@@ -5587,45 +5597,41 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controllers@npm:^30.0.0":
-  version: 30.0.0
-  resolution: "@metamask/assets-controllers@npm:30.0.0"
+"@metamask/assets-controllers@npm:^37.0.0":
+  version: 37.0.0
+  resolution: "@metamask/assets-controllers@npm:37.0.0"
   dependencies:
     "@ethereumjs/util": ^8.1.0
     "@ethersproject/address": ^5.7.0
     "@ethersproject/bignumber": ^5.7.0
     "@ethersproject/contracts": ^5.7.0
     "@ethersproject/providers": ^5.7.0
-    "@metamask/abi-utils": ^2.0.2
-    "@metamask/accounts-controller": ^14.0.0
-    "@metamask/approval-controller": ^6.0.2
-    "@metamask/base-controller": ^5.0.2
+    "@metamask/abi-utils": ^2.0.3
+    "@metamask/base-controller": ^6.0.2
     "@metamask/contract-metadata": ^2.4.0
-    "@metamask/controller-utils": ^10.0.0
+    "@metamask/controller-utils": ^11.0.2
     "@metamask/eth-query": ^4.0.0
-    "@metamask/keyring-controller": ^16.0.0
     "@metamask/metamask-eth-abis": ^3.1.1
-    "@metamask/network-controller": ^18.1.2
-    "@metamask/polling-controller": ^6.0.2
-    "@metamask/preferences-controller": ^11.0.0
-    "@metamask/rpc-errors": ^6.2.1
-    "@metamask/utils": ^8.3.0
+    "@metamask/polling-controller": ^9.0.1
+    "@metamask/rpc-errors": ^6.3.1
+    "@metamask/utils": ^9.1.0
     "@types/bn.js": ^5.1.5
     "@types/uuid": ^8.3.0
-    async-mutex: ^0.2.6
+    async-mutex: ^0.5.0
     bn.js: ^5.2.1
     cockatiel: ^3.1.2
+    immer: ^9.0.6
     lodash: ^4.17.21
-    multiformats: ^9.5.2
+    multiformats: ^13.1.0
     single-call-balance-checker-abi: ^1.0.0
     uuid: ^8.3.2
   peerDependencies:
-    "@metamask/accounts-controller": ^14.0.0
-    "@metamask/approval-controller": ^6.0.0
-    "@metamask/keyring-controller": ^16.0.0
-    "@metamask/network-controller": ^18.1.2
-    "@metamask/preferences-controller": ^11.0.0
-  checksum: 23cbbd9761c051d16841de636450d22c0f5fd6c1d5bbe9771ba70257576311d5c7b2a91ddd2ff376f74743d3cb8fa136859a3b2c59d469ce244cc2795e588ece
+    "@metamask/accounts-controller": ^18.0.0
+    "@metamask/approval-controller": ^7.0.0
+    "@metamask/keyring-controller": ^17.0.0
+    "@metamask/network-controller": ^20.0.0
+    "@metamask/preferences-controller": ^13.0.0
+  checksum: ec56e87fc5eb1de12332cb19eeb3871382d8ebc3d08570b55d0d42a23c338beb6fe64d2c1bb2c63b4fde2d90dc06037640ad38f1bab4c115c70c554f1ed18810
   languageName: node
   linkType: hard
 
@@ -6706,6 +6712,22 @@ __metadata:
   peerDependencies:
     "@metamask/network-controller": ^20.0.0
   checksum: b08312fb106dc3d452a714ac5844b3facb57df002f3f423908e4fe2dc9fc42a74bef4200855ea230955eb6de1a598f6ce67a76fbeacd4c9a8f735061d01910f7
+  languageName: node
+  linkType: hard
+
+"@metamask/polling-controller@npm:^9.0.1":
+  version: 9.0.1
+  resolution: "@metamask/polling-controller@npm:9.0.1"
+  dependencies:
+    "@metamask/base-controller": ^6.0.2
+    "@metamask/controller-utils": ^11.0.2
+    "@metamask/utils": ^9.1.0
+    "@types/uuid": ^8.3.0
+    fast-json-stable-stringify: ^2.1.0
+    uuid: ^8.3.2
+  peerDependencies:
+    "@metamask/network-controller": ^20.0.0
+  checksum: 12a294901fb8cde333353741e483110b8627b9ba872ef6f0197df8654bed0cb2e8bba23ad69e36a93b322ebf43c312fe071b8fc496e1708fd364532e9650265a
   languageName: node
   linkType: hard
 
@@ -29544,7 +29566,7 @@ __metadata:
     "@metamask/accounts-controller": ^14.0.0
     "@metamask/address-book-controller": ^4.0.1
     "@metamask/approval-controller": ^7.0.1
-    "@metamask/assets-controllers": ^30.0.0
+    "@metamask/assets-controllers": ^37.0.0
     "@metamask/base-controller": ^5.0.0
     "@metamask/browser-passworder": ^5.0.0
     "@metamask/build-utils": ^1.0.0
@@ -30713,7 +30735,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"multiformats@npm:^9.4.2, multiformats@npm:^9.5.2":
+"multiformats@npm:^13.1.0":
+  version: 13.2.1
+  resolution: "multiformats@npm:13.2.1"
+  checksum: 922b4231391219140330f199b3bc99bd93fc99c22f6882a318511968b594d09380c5b82e23c695397715a9f15f98f70836fde8905c872adfbb4ee0d4c0675caa
+  languageName: node
+  linkType: hard
+
+"multiformats@npm:^9.4.2":
   version: 9.9.0
   resolution: "multiformats@npm:9.9.0"
   checksum: d3e8c1be400c09a014f557ea02251a2710dbc9fca5aa32cc702ff29f636c5471e17979f30bdcb0a9cbb556f162a8591dc2e1219c24fc21394a56115b820bb84e
