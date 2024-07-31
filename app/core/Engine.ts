@@ -27,6 +27,8 @@ import {
   TokenListControllerActions,
   TokenListControllerEvents,
   TokenBalancesControllerState,
+  TokenBalancesControllerActions,
+  TokenBalancesControllerEvents,
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { AppState } from 'react-native';
@@ -278,6 +280,7 @@ type GlobalActions =
   | KeyringControllerActions
   | AccountsControllerActions
   | PreferencesControllerActions
+  | TokenBalancesControllerActions
   | TokensControllerActions
   | TokenListControllerActions;
 
@@ -297,6 +300,7 @@ type GlobalEvents =
   | PPOMControllerEvents
   | AccountsControllerEvents
   | PreferencesControllerEvents
+  | TokenBalancesControllerEvents
   | TokensControllerEvents
   | TokenListControllerEvents
   | TransactionControllerEvents;
@@ -1484,6 +1488,7 @@ class Engine {
           'SignatureController:stateChange',
           'SnapController:stateChange',
           'SubjectMetadataController:stateChange',
+          'TokenBalancesController:stateChange',
           'TokenListController:stateChange',
           'TokensController:stateChange',
           'TransactionController:stateChange',
@@ -1505,8 +1510,6 @@ class Engine {
           'PhishingController:stateChange',
           // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
           'SnapsRegistry:stateChange',
-          // @ts-expect-error BaseControllerV2, `TokenBalancesControllerState` import error
-          'TokenBalancesController:stateChange',
           // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
           'UserStorageController:stateChange',
 
