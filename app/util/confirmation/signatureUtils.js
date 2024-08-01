@@ -18,7 +18,7 @@ export const typedSign = {
   V4: 'eth_signTypedData_v4',
 };
 
-export const getAnalyticsParams = (
+export const getAnalyticsParams = async (
   messageParams,
   signType,
   securityAlertResponse,
@@ -33,7 +33,7 @@ export const getAnalyticsParams = (
 
     let blockaidParams = {};
     if (securityAlertResponse) {
-      blockaidParams = getBlockaidMetricsParams(securityAlertResponse);
+      blockaidParams = await getBlockaidMetricsParams(securityAlertResponse);
     }
 
     return {

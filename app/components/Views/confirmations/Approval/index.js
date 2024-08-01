@@ -43,7 +43,7 @@ import { providerErrors } from '@metamask/rpc-errors';
 import { getDeviceId } from '../../../../core/Ledger/Ledger';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
-import { getBlockaidMetricsParams } from '../../../../util/blockaid';
+import { getBlockaidTransactionMetricsParams } from '../../../../util/blockaid';
 import { getDecimalChainId } from '../../../../util/networks';
 
 import { updateTransaction } from '../../../../util/transaction-controller';
@@ -305,22 +305,6 @@ class Approval extends PureComponent {
     };
   };
 
-  getBlockaidMetricsParams = () => {
-    const { transaction } = this.props;
-
-    let blockaidParams = {};
-
-    if (
-      transaction.id === transaction.currentTransactionSecurityAlertResponse?.id
-    ) {
-      blockaidParams = getBlockaidMetricsParams(
-        transaction.currentTransactionSecurityAlertResponse?.response,
-      );
-    }
-
-    return blockaidParams;
-  };
-
   getAnalyticsParams = ({ gasEstimateType, gasSelected } = {}) => {
     try {
       const {
@@ -388,7 +372,8 @@ class Approval extends PureComponent {
     });
   };
 
-  onCancel = () => {
+  onCancel = async () => {
+    const { transaction } = this.props;
     this.props.hideModal();
     this.state.mode === REVIEW && this.trackOnCancel();
     this.showWalletConnectNotification();
@@ -396,7 +381,7 @@ class Approval extends PureComponent {
       MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED,
       {
         ...this.getAnalyticsParams(),
-        ...this.getBlockaidMetricsParams(),
+        ...(await getBlockaidTransactionMetricsParams(transaction)),
         ...this.getTransactionMetrics(),
       },
     );
@@ -553,7 +538,7 @@ class Approval extends PureComponent {
           gasEstimateType,
           gasSelected,
         }),
-        ...this.getBlockaidMetricsParams(),
+        ...(await getBlockaidTransactionMetricsParams(transaction)),
         ...this.getTransactionMetrics(),
       },
     );

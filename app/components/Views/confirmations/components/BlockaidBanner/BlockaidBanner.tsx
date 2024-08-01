@@ -60,6 +60,18 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   } = bannerProps;
   const { styles, theme } = useStyles(styleSheet, { style });
   const [reportUrl, setReportUrl] = useState<string>('');
+  const [isFeatureEnabled, setIsFeatureEnabled] = useState<boolean | null>(
+    null,
+  );
+
+  useEffect(() => {
+    const checkFeatureEnabled = async () => {
+      const enabled = await isBlockaidFeatureEnabled();
+      setIsFeatureEnabled(enabled);
+    };
+
+    checkFeatureEnabled();
+  }, []);
 
   useEffect(() => {
     if (!securityAlertResponse) {
@@ -94,7 +106,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
     })();
   }, [securityAlertResponse]);
 
-  if (!securityAlertResponse || !isBlockaidFeatureEnabled()) {
+  if (!securityAlertResponse || !isFeatureEnabled) {
     return null;
   }
 

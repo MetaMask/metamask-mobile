@@ -68,10 +68,11 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
   const chainId = NetworkController.state.providerConfig.chainId;
   const isConfirmationMethod = CONFIRMATION_METHODS.includes(req.method);
   const isSupportedChain = await isChainSupported(chainId);
+  const isBlockaidFeatEnabled = await isBlockaidFeatureEnabled();
 
   if (
     !ppomController ||
-    !isBlockaidFeatureEnabled() ||
+    !isBlockaidFeatEnabled ||
     !isConfirmationMethod ||
     !isSupportedChain
   ) {
@@ -223,4 +224,4 @@ function normalizeRequest(request: PPOMRequest): PPOMRequest {
   };
 }
 
-export default { validateRequest };
+export default { validateRequest, isChainSupported };

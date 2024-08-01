@@ -82,19 +82,15 @@ const PersonalSign = ({
     [key: string]: string | undefined;
   }
 
+  const [blockaidParams, setBlockaidParams] = useState<Record<string, unknown>>(
+    {},
+  );
+
   const getAnalyticsParams = useCallback((): AnalyticsParams => {
     try {
       const chainId = selectChainId(store.getState());
       const pageInfo = currentPageInformation || messageParams.meta;
       const url = new URL(pageInfo.url);
-
-      let blockaidParams = {};
-
-      if (securityAlertResponse) {
-        blockaidParams = getBlockaidMetricsParams(
-          securityAlertResponse as SecurityAlertResponse,
-        );
-      }
 
       return {
         account_type: getAddressAccountType(messageParams.from),
@@ -107,7 +103,20 @@ const PersonalSign = ({
     } catch (error) {
       return {};
     }
-  }, [currentPageInformation, messageParams, securityAlertResponse]);
+  }, [currentPageInformation, messageParams, blockaidParams]);
+
+  useEffect(() => {
+    const fetchBlockaidParams = async () => {
+      if (securityAlertResponse) {
+        const params = await getBlockaidMetricsParams(
+          securityAlertResponse as SecurityAlertResponse,
+        );
+        setBlockaidParams(params);
+      }
+    };
+
+    fetchBlockaidParams();
+  }, [securityAlertResponse]);
 
   useEffect(() => {
     const onSignatureError = ({ error }: { error: Error }) => {

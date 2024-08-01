@@ -100,36 +100,41 @@ class TypedSign extends PureComponent {
     truncateMessage: false,
   };
 
-  componentDidMount = () => {
+  async componentDidMount() {
     const {
       messageParams: { metamaskId },
       messageParams,
       metrics,
     } = this.props;
 
-    metrics.trackEvent(
-      MetaMetricsEvents.SIGNATURE_REQUESTED,
-      getAnalyticsParams(messageParams, 'typed_sign'),
+    const analyticsParams = await getAnalyticsParams(
+      messageParams,
+      'typed_sign',
     );
+    metrics.trackEvent(MetaMetricsEvents.SIGNATURE_REQUESTED, analyticsParams);
     addSignatureErrorListener(metamaskId, this.onSignatureError);
-  };
+  }
 
-  componentWillUnmount = () => {
+  componentWillUnmount() {
     const {
       messageParams: { metamaskId },
     } = this.props;
     removeSignatureErrorListener(metamaskId, this.onSignatureError);
-  };
+  }
 
-  onSignatureError = ({ error }) => {
-    const { metrics } = this.props;
+  onSignatureError = async ({ error }) => {
+    const { metrics, messageParams } = this.props;
     if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+      const analyticsParams = await getAnalyticsParams(
+        messageParams,
+        'typed_sign',
+      );
       metrics.trackEvent(
         MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-        getAnalyticsParams(),
+        analyticsParams,
       );
     }
-    showWalletConnectNotification(this.props.messageParams, false, true);
+    showWalletConnectNotification(messageParams, false, true);
   };
 
   rejectSignature = async () => {

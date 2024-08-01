@@ -532,10 +532,10 @@ export function getSendFlowTitle(
       elevation: 0,
     },
   });
-  const rightAction = () => {
+  const rightAction = async () => {
     const providerType = route?.params?.providerType ?? '';
     const additionalTransactionMetricsParams =
-      getBlockaidTransactionMetricsParams(transaction);
+      await getBlockaidTransactionMetricsParams(transaction);
     trackEvent(MetaMetricsEvents.SEND_FLOW_CANCEL, {
       view: title.split('.')[1],
       network: providerType,

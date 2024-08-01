@@ -317,15 +317,15 @@ class SignatureRequest extends PureComponent {
     );
   };
 
-  onContactUsClicked = () => {
+  onContactUsClicked = async () => {
     const { fromAddress, type } = this.props;
     const analyticsParams = {
-      ...getAnalyticsParams(
+      ...(await getAnalyticsParams(
         {
           from: fromAddress,
         },
         type,
-      ),
+      )),
       external_link_clicked: 'security_alert_support_link',
     };
     this.props.metrics.trackEvent(

@@ -357,12 +357,12 @@ class TransactionReview extends PureComponent {
     }
   };
 
-  onContactUsClicked = () => {
+  onContactUsClicked = async () => {
     const { transaction, metrics } = this.props;
     const additionalParams = {
-      ...getBlockaidMetricsParams(
+      ...(await getBlockaidMetricsParams(
         transaction?.currentTransactionSecurityAlertResponse,
-      ),
+      )),
       external_link_clicked: 'security_alert_support_link',
     };
     metrics.trackEvent(
