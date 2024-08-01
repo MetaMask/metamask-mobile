@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-shadow */
 import Crypto from 'react-native-quick-crypto';
 import {
@@ -68,6 +70,8 @@ import {
   TransactionController,
   TransactionControllerEvents,
   TransactionControllerState,
+  TransactionStatus,
+  TransactionType,
 } from '@metamask/transaction-controller';
 import {
   GasFeeController,
@@ -219,6 +223,14 @@ import { getPermittedAccounts } from './Permissions';
 import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
 import EthQuery from '@metamask/eth-query';
 import { TransactionControllerOptions } from '@metamask/transaction-controller/dist/types/TransactionController';
+import {
+  ExtendedTransactionMeta,
+  getTokenIdParam,
+  TRANSFER_SINFLE_LOG_TOPIC_HASH,
+} from './Transaction/Transaction.utils';
+import { TOKEN_TRANSFER_LOG_TOPIC_HASH } from '@metamask/swaps-controller/dist/constants';
+import { Interface } from '@ethersproject/abi';
+import { abiERC721, abiERC1155 } from '@metamask/metamask-eth-abis';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1500,6 +1512,15 @@ class Engine {
     );
 
     this.controllerMessenger.subscribe(
+      'TransactionController:transactionStatusUpdated',
+      ({ transactionMeta }) => {
+        // eslint-disable-next-line no-console
+        console.log('############################');
+        this.onFinishedTransaction(transactionMeta);
+      },
+    );
+
+    this.controllerMessenger.subscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
       (state: NetworkState) => {
         if (
@@ -1543,6 +1564,135 @@ class Engine {
     this.handleVaultBackup();
 
     Engine.instance = this;
+  }
+
+  async onFinishedTransaction(transactionMeta: ExtendedTransactionMeta) {
+    // eslint-disable-next-line no-console
+    console.log(
+      '🚀 ~ Engine ~ onFinishedTransaction ~ transactionMeta:',
+      transactionMeta,
+    );
+
+    if (
+      ![TransactionStatus.confirmed, TransactionStatus.failed].includes(
+        transactionMeta.status,
+      )
+    ) {
+      return;
+    }
+
+    await this.updateNFTOwnership(transactionMeta);
+  }
+
+  async updateNFTOwnership(transactionMeta: ExtendedTransactionMeta) {
+    const { type, chainId, txReceipt } = transactionMeta;
+    const { NftController, AccountsController } = this.context;
+    const selectedAddress = AccountsController.getSelectedAccount().address;
+    console.log(
+      '🚀 ~ Engine ~ updateNFTOwnership ~ selectedAddress:',
+      selectedAddress,
+    );
+
+    const { allNfts } = NftController.state;
+    const txReceiptLogs = txReceipt?.logs;
+
+    const isContractInteractionTx =
+      type === TransactionType.contractInteraction && txReceiptLogs;
+
+    if (!isContractInteractionTx) {
+      return;
+    }
+
+    console.log('============== proceeed');
+    const allNftTransferLog: any[] = txReceiptLogs.map((txReceiptLog) => {
+      console.log('================== txReceiptLog', txReceiptLog);
+      console.log('================== txReceiptLog');
+      const isERC1155NftTransfer =
+        txReceiptLog?.topics?.[0] === TRANSFER_SINFLE_LOG_TOPIC_HASH;
+      const isERC721NftTransfer =
+        txReceiptLog?.topics?.[0] === TOKEN_TRANSFER_LOG_TOPIC_HASH;
+      let isTransferToSelectedAddress;
+
+      if (isERC1155NftTransfer) {
+        isTransferToSelectedAddress = txReceiptLog?.topics?.[3].includes(
+          selectedAddress?.slice(2),
+        );
+      }
+
+      if (isERC721NftTransfer) {
+        isTransferToSelectedAddress = txReceiptLog?.topics?.[2].includes(
+          selectedAddress?.slice(2),
+        );
+      }
+
+      return {
+        isERC1155NftTransfer,
+        isERC721NftTransfer,
+        isTransferToSelectedAddress,
+        ...txReceiptLog,
+      };
+    });
+    if (allNftTransferLog.length !== 0) {
+      const allNftParsedLog: any[] = []; //TODO fix this any type
+      allNftTransferLog.forEach((singleLog) => {
+        console.log(
+          '🚀 ~ Engine ~ allNftTransferLog.forEach ~ singleLog:',
+          singleLog,
+        );
+        if (
+          singleLog.isTransferToSelectedAddress &&
+          (singleLog.isERC1155NftTransfer || singleLog.isERC721NftTransfer)
+        ) {
+          let iface;
+          if (singleLog.isERC1155NftTransfer) {
+            iface = new Interface(abiERC1155);
+          } else {
+            iface = new Interface(abiERC721);
+          }
+          try {
+            const parsedLog = iface.parseLog({
+              data: singleLog.data,
+              topics: singleLog.topics,
+            });
+            allNftParsedLog.push({
+              contract: singleLog.address,
+              ...parsedLog,
+            });
+          } catch (err) {
+            // ignore
+          }
+        }
+      });
+      // Filter known nfts and new Nfts
+      // const knownNFTs: Nft[] = [];
+      const newNFTs: any[] = [];
+      allNftParsedLog.forEach((single) => {
+        const tokenIdFromLog = getTokenIdParam(single);
+        const existingNft = allNfts?.[selectedAddress]?.[chainId]?.find(
+          ({ address, tokenId }) =>
+            address.toLocaleLowerCase() === single.contract.toLowerCase() &&
+            tokenId === tokenIdFromLog,
+        );
+        if (existingNft) {
+          //knownNFTs.push(existingNft);
+        } else {
+          newNFTs.push({
+            tokenId: tokenIdFromLog,
+            ...single,
+          });
+        }
+      });
+      // For known nfts only refresh ownership
+      /*       const refreshOwnershipNFts = knownNFTs.map(async (singleNft) =>
+        NftController.checkAndUpdateSingleNftOwnershipStatus(singleNft, false),
+      );
+      await Promise.allSettled(refreshOwnershipNFts); */
+      // For new nfts, add them to state
+      const addNftPromises = newNFTs.map(async (singleNft) =>
+        NftController.addNft(singleNft.contract, singleNft.tokenId),
+      );
+      await Promise.allSettled(addNftPromises);
+    }
   }
 
   handleVaultBackup() {
