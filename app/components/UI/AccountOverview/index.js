@@ -12,7 +12,6 @@ import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { showAlert } from '../../../actions/alert';
-import { toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { protectWalletModalVisible } from '../../../actions/user';
 import Routes from '../../../constants/navigation/Routes';
@@ -456,7 +455,6 @@ const mapDispatchToProps = (dispatch) => ({
   protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
   newAssetTransaction: (selectedAsset) =>
     dispatch(newAssetTransaction(selectedAsset)),
-  toggleReceiveModal: (asset) => dispatch(toggleReceiveModal(asset)),
 });
 
 AccountOverview.contextType = ThemeContext;

@@ -54,7 +54,7 @@ exports[`SliderButton should render correctly 1`] = `
         ]
       }
     />
-    <ForwardRef
+    <ForwardRef(AnimatedComponentWrapper)
       resizeMode="contain"
       source={
         {
@@ -81,7 +81,7 @@ exports[`SliderButton should render correctly 1`] = `
         ]
       }
     />
-    <ForwardRef
+    <ForwardRef(AnimatedComponentWrapper)
       style={
         {
           "opacity": 1,
@@ -100,9 +100,9 @@ exports[`SliderButton should render correctly 1`] = `
       >
         Incomplete Text
       </Text>
-    </ForwardRef>
+    </ForwardRef(AnimatedComponentWrapper)>
   </View>
-  <ForwardRef
+  <ForwardRef(AnimatedComponentWrapper)
     style={
       [
         {
@@ -147,8 +147,8 @@ exports[`SliderButton should render correctly 1`] = `
         Complete Text
       </Text>
     </View>
-  </ForwardRef>
-  <ForwardRef
+  </ForwardRef(AnimatedComponentWrapper)>
+  <ForwardRef(AnimatedComponentWrapper)
     onMoveShouldSetResponder={[Function]}
     onMoveShouldSetResponderCapture={[Function]}
     onResponderEnd={[Function]}

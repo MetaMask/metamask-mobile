@@ -105,7 +105,7 @@ exports[`SlippageSlider should render correctly 1`] = `
       />
     </View>
   </View>
-  <ForwardRef
+  <ForwardRef(AnimatedComponentWrapper)
     style={
       [
         {
@@ -137,8 +137,8 @@ exports[`SlippageSlider should render correctly 1`] = `
         }
       }
     />
-  </ForwardRef>
-  <ForwardRef
+  </ForwardRef(AnimatedComponentWrapper)>
+  <ForwardRef(AnimatedComponentWrapper)
     style={
       [
         {
@@ -185,8 +185,8 @@ exports[`SlippageSlider should render correctly 1`] = `
     >
       undefined%
     </Text>
-  </ForwardRef>
-  <ForwardRef
+  </ForwardRef(AnimatedComponentWrapper)>
+  <ForwardRef(AnimatedComponentWrapper)
     onMoveShouldSetResponder={[Function]}
     onMoveShouldSetResponderCapture={[Function]}
     onResponderEnd={[Function]}

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Accounts should render correctly 1`] = `
+exports[`QRAccountDisplay renders correctly 1`] = `
 <View
   style={
     {
@@ -54,11 +54,10 @@ exports[`Accounts should render correctly 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "rgb(255, 255, 255)",
                 "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
+                "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
@@ -106,158 +105,27 @@ exports[`Accounts should render correctly 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
-            >
-              <TouchableOpacity
-                disabled={false}
-                onPress={[Function]}
-                style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
-                }
-                testID="confirm-txn-edit-button"
-              >
-                <Text
-                  style={
-                    {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                    }
-                  }
-                >
-                  Edit
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
+                  "marginHorizontal": 16,
                   "opacity": 1,
                 }
               }
             >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
+              <Text
+                accessibilityRole="header"
+                aria-level="1"
+                collapsable={false}
+                numberOfLines={1}
+                onLayout={[Function]}
                 style={
                   {
-                    "alignItems": "center",
-                    "flex": 1,
-                    "justifyContent": "center",
+                    "color": "rgb(28, 28, 30)",
+                    "fontSize": 17,
+                    "fontWeight": "600",
                   }
                 }
               >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                    }
-                  }
-                >
-                  Confirm
-                </Text>
-                <View
-                  style={
-                    {
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "marginTop": 4,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#6a737d",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <TouchableOpacity
-                onPress={[Function]}
-                style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
-                }
-                testID="send-back-button"
-              >
-                <Text
-                  style={
-                    {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                    }
-                  }
-                >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                QRAccountDisplay
+              </Text>
             </View>
           </View>
         </View>
@@ -436,29 +304,115 @@ exports[`Accounts should render correctly 1`] = `
                       }
                     }
                   >
-                    <View
+                    <RCTSafeAreaView
                       style={
                         {
                           "backgroundColor": "#ffffff",
-                          "flex": 1,
+                          "marginVertical": 32,
                         }
                       }
                     >
-                      <View
+                      <Text
+                        accessibilityRole="text"
                         style={
                           {
-                            "alignItems": "center",
-                            "backgroundColor": "#ffffff",
-                            "flex": 1,
-                            "justifyContent": "center",
+                            "alignSelf": "center",
+                            "color": "#141618",
+                            "fontFamily": "Euclid Circular B",
+                            "fontSize": 16,
+                            "fontWeight": "500",
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                            "marginBottom": 16,
                           }
                         }
                       >
-                        <ActivityIndicator
-                          size="small"
+                        0xd8dA...6045
+                      </Text>
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#141618",
+                            "fontFamily": "Euclid Circular B",
+                            "fontSize": 14,
+                            "fontWeight": "400",
+                            "letterSpacing": 0,
+                            "lineHeight": 22,
+                            "textAlign": "center",
+                            "width": 185,
+                          }
+                        }
+                      >
+                        0xd8dA
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "color": "#9fa6ae",
+                              "fontFamily": "Euclid Circular B",
+                              "fontSize": 14,
+                              "fontWeight": "400",
+                              "letterSpacing": 0,
+                              "lineHeight": 22,
+                            }
+                          }
+                        >
+                          6BF26964aF9D7eEd9e03E53415D37aA
+                        </Text>
+                        96045
+                      </Text>
+                      <TouchableOpacity
+                        accessibilityRole="button"
+                        accessible={true}
+                        activeOpacity={1}
+                        onPress={[Function]}
+                        onPressIn={[Function]}
+                        onPressOut={[Function]}
+                        style={
+                          {
+                            "alignItems": "center",
+                            "alignSelf": "center",
+                            "backgroundColor": "transparent",
+                            "borderRadius": 24,
+                            "flexDirection": "row",
+                            "height": 48,
+                            "justifyContent": "center",
+                            "paddingHorizontal": 16,
+                          }
+                        }
+                        variant="Link"
+                      >
+                        <SvgMock
+                          color="#0376c9"
+                          height={16}
+                          name="Copy"
+                          style={
+                            {
+                              "height": 16,
+                              "marginRight": 8,
+                              "width": 16,
+                            }
+                          }
+                          width={16}
                         />
-                      </View>
-                    </View>
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "color": "#0376c9",
+                              "fontFamily": "Euclid Circular B",
+                              "fontSize": 14,
+                              "fontWeight": "400",
+                              "letterSpacing": 0,
+                              "lineHeight": 22,
+                            }
+                          }
+                        >
+                          Copy address
+                        </Text>
+                      </TouchableOpacity>
+                    </RCTSafeAreaView>
                   </View>
                 </View>
               </View>

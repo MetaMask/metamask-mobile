@@ -10,7 +10,7 @@ import { NetworkSwitchErrorType } from '../../../../../constants/error';
 import Routes from '../../../../../constants/navigation/Routes';
 import { handleNetworkSwitch } from '../../../../../util/networks';
 import { AddressTo } from '../../../../UI/AddressInputs';
-import { createQRScannerNavDetails } from '../../../QRScanner';
+import { createQRScannerNavDetails } from '../../../QRTabSwitcher';
 import { SFAddressToProps } from './AddressTo.types';
 
 const SendFlowAddressTo = ({

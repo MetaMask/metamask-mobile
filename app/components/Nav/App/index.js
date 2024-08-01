@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
-import QRScanner from '../../Views/QRScanner';
+import QRTabSwitcher from '../../Views/QRTabSwitcher';
 import DataCollectionModal from '../../Views/DataCollectionModal';
 import Onboarding from '../../Views/Onboarding';
 import OnboardingCarousel from '../../Views/OnboardingCarousel';
@@ -268,8 +268,8 @@ const OnboardingRootNav = () => (
   >
     <Stack.Screen name="OnboardingNav" component={OnboardingNav} />
     <Stack.Screen
-      name={Routes.QR_SCANNER}
-      component={QRScanner}
+      name={Routes.QR_TAB_SWITCHER}
+      component={QRTabSwitcher}
       header={null}
     />
     <Stack.Screen
@@ -734,8 +734,8 @@ const App = ({ userLoggedIn }) => {
         component={ImportPrivateKeySuccess}
       />
       <Stack.Screen
-        name={Routes.QR_SCANNER}
-        component={QRScanner}
+        name={Routes.QR_TAB_SWITCHER}
+        component={QRTabSwitcher}
         screenOptions={{
           headerShown: false,
         }}

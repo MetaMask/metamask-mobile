@@ -12,6 +12,7 @@ exports[`EditAccountName should render correctly 1`] = `
 >
   <View
     collapsable={false}
+    forwardedRef={[Function]}
     style={
       {
         "flex": 1,
@@ -21,6 +22,7 @@ exports[`EditAccountName should render correctly 1`] = `
   >
     <View
       collapsable={false}
+      forwardedRef={[Function]}
       style={
         {
           "marginTop": 24,
@@ -94,6 +96,7 @@ exports[`EditAccountName should render correctly 1`] = `
     </View>
     <View
       collapsable={false}
+      forwardedRef={[Function]}
       style={
         {
           "marginTop": 24,
@@ -167,6 +170,7 @@ exports[`EditAccountName should render correctly 1`] = `
   </View>
   <View
     collapsable={false}
+    forwardedRef={[Function]}
     style={
       {
         "flexDirection": "row",

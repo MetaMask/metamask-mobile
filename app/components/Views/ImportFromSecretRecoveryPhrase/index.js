@@ -36,6 +36,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import { useTheme } from '../../../util/theme';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
+import { Screens } from '../../../components/Views/QRTabSwitcher';
 import { setLockTime } from '../../../actions/settings';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { strings } from '../../../../locales/i18n';
@@ -345,7 +346,9 @@ const ImportFromSecretRecoveryPhrase = ({
     }
 
     setHideSeedPhraseInput(false);
-    navigation.navigate(Routes.QR_SCANNER, {
+    navigation.navigate(Routes.QR_TAB_SWITCHER, {
+      initialScreen: Screens.Scanner,
+      disableTabber: true,
       onScanSuccess: ({ seed = undefined }) => {
         if (seed) {
           setSeed(seed);
