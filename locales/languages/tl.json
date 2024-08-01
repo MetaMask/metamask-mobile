@@ -5,6 +5,8 @@
     "deceptive_request_title": "Isa itong mapanlinlang na kahilingan",
     "failed_title": "Baka hindi ligtas ang kahilingan",
     "failed_description": "Dahil sa pagkakamali, ang kahilingang ito ay hindi na-verify ng tagapaglaan ng seguridad. Magpatuloy nang may pag-iingat.",
+    "loading_title": "Sinusuri ang mga alertong pangseguridad...",
+    "loading_complete_title": "Walang alerto na natanggap. Palaging gumawa ng sarili mong pagsusuri bago aprubahan ang mga kahilingan.",
     "malicious_domain_description": "Nakikipag-ugnayan ka sa isang mapaminsalang domain. Kung aaprubahan mo ang kahilingang ito, posibleng mawala sa iyo ang mga asset mo.",
     "other_description": "Kung aaprubahan mo ang kahilingang ito, posibleng mawala sa iyo ang mga asset mo.",
     "raw_signature_farming_description": "Kung aaprubahan mo ang kahilingang ito, posibleng mawala sa iyo ang mga asset mo.",
