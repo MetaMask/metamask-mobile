@@ -64,6 +64,7 @@ import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { store } from '../../../store';
 import { createBuyNavigationDetails } from '../../UI/Ramp/routes/utils';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { selectSwapsTransactions } from '../../../selectors/transactionController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -577,8 +578,7 @@ Asset.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   swapsIsLive: swapsLivenessSelector(state),
   swapsTokens: swapsTokensObjectSelector(state),
-  swapsTransactions:
-    state.engine.backgroundState.TransactionController.swapsTransactions || {},
+  swapsTransactions: selectSwapsTransactions(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   selectedInternalAccount: selectSelectedInternalAccount(state),

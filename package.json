@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.27.0",
+  "version": "7.27.1",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -319,6 +319,7 @@
     "react-native-randombytes": "^3.5.3",
     "react-native-reanimated": "3.4.2",
     "react-native-redash": "16.2.2",
+    "react-native-render-html": "^6.3.4",
     "react-native-safe-area-context": "^3.1.9",
     "react-native-screens": "3.19.0",
     "react-native-scrollable-tab-view": "^1.0.0",

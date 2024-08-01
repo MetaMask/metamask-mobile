@@ -5,16 +5,15 @@ import { selectChainId } from '../../selectors/networkController';
 import { selectInternalAccounts } from '../../selectors/accountsController';
 import { toLowerCaseEquals } from '../../util/general';
 import { AddressBookEntry } from '@metamask/address-book-controller';
-import { RootState } from '../../reducers';
+import { selectAddressBook } from '../../selectors/addressBookController';
 
 type AccountInfo = Pick<AddressBookEntry, 'name' | 'address'>;
 
 const useExistingAddress = (address?: string): AccountInfo | undefined => {
   const chainId = useSelector(selectChainId);
-  const { addressBook, internalAccounts } = useSelector((state: RootState) => ({
-    addressBook: state.engine.backgroundState.AddressBookController.addressBook,
-    internalAccounts: selectInternalAccounts(state),
-  }));
+
+  const addressBook = useSelector(selectAddressBook);
+  const internalAccounts = useSelector(selectInternalAccounts);
 
   if (!address) return;
 
