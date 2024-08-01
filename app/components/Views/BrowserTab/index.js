@@ -102,6 +102,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { trackDappViewedEvent } from '../../../util/metrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
+import { isTest } from '../../../util/test/utils.js';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -1491,8 +1492,6 @@ export const BrowserTab = (props) => {
     </View>
   );
 
-  const isNotProd = process.env.NODE_ENV !== 'production';
-
   /**
    * Main render
    */
@@ -1537,7 +1536,7 @@ export const BrowserTab = (props) => {
                 testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
                 applicationNameForUserAgent={'WebView MetaMaskMobile'}
                 onFileDownload={handleOnFileDownload}
-                webviewDebuggingEnabled={isNotProd}
+                webviewDebuggingEnabled={isTest}
               />
               {ipfsBannerVisible && renderIpfsBanner()}
             </>
