@@ -319,7 +319,7 @@ jest.mock('../../store/storage-wrapper', () => ({
 }));
 
 // eslint-disable-next-line import/no-commonjs
-require('react-native-reanimated/lib/module/jestUtils').setUpTests();
+require('react-native-reanimated/lib/module/reanimated2/jestUtils').setUpTests();
 global.__reanimatedWorkletInit = jest.fn();
 global.__DEV__ = false;
 
