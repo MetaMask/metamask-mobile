@@ -375,6 +375,29 @@
     "accept": "I agree",
     "cancel": "No thanks"
   },
+  "nft_details": {
+    "bought_for": "Bought for",
+    "highest_floor_price": "Highest floor price",
+    "data_unavailable": "data unavailable",
+    "price_unavailable": "price unavailable",
+    "rank": "Rank",
+    "contract_address": "Contract address",
+    "token_id": "Token ID",
+    "token_symbol": "Token symbol",
+    "token_standard": "Token standard",
+    "date_created": "Date created",
+    "unique_token_holders": "Unique token holders",
+    "tokens_in_collection": "Tokens in collection",
+    "creator_address": "Creator address",
+    "last_sold": "Last sold",
+    "highest_current_bid": "Highest current bid",
+    "options" :{
+      "view_on_os": "View on OpenSea",
+      "remove_nft": "Remove NFT"
+    },
+    "attributes": "Attributes",
+    "disclaimer": "Disclaimer: MetaMask pulls the media file from the source URL. This URL is sometimes changed by the marketplace the NFT was minted on."
+  },
   "qr_tab_switcher": {
     "scanner_tab": "Scan QR code",
     "receive_tab": "Your QR code"
