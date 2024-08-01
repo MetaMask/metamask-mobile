@@ -4154,10 +4154,10 @@
     "@metamask/utils" "^9.0.0"
     nanoid "^3.1.31"
 
-"@metamask/assets-controllers@^30.0.0":
-  version "30.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-30.0.0.tgz#f8c4094692f184a57f2587e0e71e06c349583e74"
-  integrity sha512-tHG/1UowHznr2vU6QzvSGGoPvlDi3OLFYSUXiMO789yFr57UoFkuoq/Joq2SNShYQzKFCrlqGxlqXJ90hWrOsA==
+"@metamask/assets-controllers@^35.0.0":
+  version "35.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-35.0.0.tgz#564b1b91f199863090221cad256af1c6061d4ea8"
+  integrity sha512-OAkh89NZKMPihBSCB4MsMXzavvQ01myWHvLsDtfhRMrV5cXqNL5NynCm5Q2hz2X4JjUyW/Kdqc69nBBjVj++oA==
   dependencies:
     "@ethereumjs/util" "^8.1.0"
     "@ethersproject/address" "^5.7.0"
@@ -4165,22 +4165,22 @@
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
     "@metamask/abi-utils" "^2.0.2"
-    "@metamask/accounts-controller" "^14.0.0"
-    "@metamask/approval-controller" "^6.0.2"
-    "@metamask/base-controller" "^5.0.2"
+    "@metamask/accounts-controller" "^17.2.0"
+    "@metamask/approval-controller" "^7.0.0"
+    "@metamask/base-controller" "^6.0.0"
     "@metamask/contract-metadata" "^2.4.0"
-    "@metamask/controller-utils" "^10.0.0"
+    "@metamask/controller-utils" "^11.0.0"
     "@metamask/eth-query" "^4.0.0"
-    "@metamask/keyring-controller" "^16.0.0"
+    "@metamask/keyring-controller" "^17.1.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
-    "@metamask/network-controller" "^18.1.2"
-    "@metamask/polling-controller" "^6.0.2"
-    "@metamask/preferences-controller" "^11.0.0"
+    "@metamask/network-controller" "^20.0.0"
+    "@metamask/polling-controller" "^9.0.0"
+    "@metamask/preferences-controller" "^13.0.0"
     "@metamask/rpc-errors" "^6.2.1"
     "@metamask/utils" "^8.3.0"
     "@types/bn.js" "^5.1.5"
     "@types/uuid" "^8.3.0"
-    async-mutex "^0.2.6"
+    async-mutex "^0.5.0"
     bn.js "^5.2.1"
     cockatiel "^3.1.2"
     lodash "^4.17.21"
@@ -4204,7 +4204,7 @@
     "@metamask/utils" "^8.3.0"
     immer "^9.0.6"
 
-"@metamask/base-controller@^5.0.0", "@metamask/base-controller@^5.0.1", "@metamask/base-controller@^5.0.2":
+"@metamask/base-controller@^5.0.1", "@metamask/base-controller@^5.0.2":
   version "5.0.2"
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-5.0.2.tgz#ab3584f67d9f2ff80958df21558e61650074e565"
   integrity sha512-izOaXXnLz9OXbdika0ZvIDf24pgsWNPI02Lm0E4eMU61ICpV78bzQB7YyIbMtF6MWnItw1RnX9jN6zNEmp5pdA==
@@ -5068,13 +5068,13 @@
     eslint-plugin-n "^16.6.2"
     json-rpc-random-id "^1.0.1"
 
-"@metamask/preferences-controller@^11.0.0":
-  version "11.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-11.0.0.tgz#56a74c932d4577fe7c97eb3ace4d8bc3219b6b1b"
-  integrity sha512-ntHdjUuEB5cRoCc3GaQb5pzStvmi3BuvgIhwgEwLiogiBAQlbRJR6wczbp0qpGDyIkdWB2DDl/xi/s4bBtKDxw==
+"@metamask/preferences-controller@^13.0.0":
+  version "13.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-13.0.0.tgz#d82c51f08863229ba302c8ceb2646f583103b962"
+  integrity sha512-mgWs7wIJl3LCxftyrEA0fQzZZ1Ezt3gedQZrzxjXRO0rGohR8U6Sjfk4Wly/N000Jl3/j5ofcHv0uswvMf7dWw==
   dependencies:
-    "@metamask/base-controller" "^5.0.2"
-    "@metamask/controller-utils" "^9.1.0"
+    "@metamask/base-controller" "^6.0.0"
+    "@metamask/controller-utils" "^11.0.0"
 
 "@metamask/profile-sync-controller@^0.1.1", "@metamask/profile-sync-controller@^0.1.3":
   version "0.1.3"
