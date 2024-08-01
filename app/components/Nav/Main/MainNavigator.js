@@ -14,6 +14,7 @@ import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NetworksSettings from '../../Views/Settings/NetworksSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
+import NotificationsView from '../../Views/Notifications';
 import OptIn from '../../Views/Notifications/OptIn';
 import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
@@ -80,6 +81,7 @@ import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
 import ConfirmAddAsset from '../../UI/ConfirmAddAsset';
 import { AesCryptoTestForm } from '../../Views/AesCryptoTestForm';
 import { isTest } from '../../../util/test/utils';
+import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -394,8 +396,7 @@ const HomeTabs = () => {
     const activeTabUrl = getActiveTabUrl(state);
     if (!isUrl(activeTabUrl)) return [];
     try {
-      const permissionsControllerState =
-        state.engine.backgroundState.PermissionController;
+      const permissionsControllerState = selectPermissionControllerState(state);
       const hostname = new URL(activeTabUrl).hostname;
       const permittedAcc = getPermittedAccountsByHostname(
         permissionsControllerState,
@@ -599,13 +600,18 @@ const PaymentRequestView = () => (
 const NotificationsModeView = (props) => (
   <Stack.Navigator>
     <Stack.Screen
+      name={Routes.NOTIFICATIONS.VIEW}
+      component={NotificationsView}
+      options={NotificationsView.navigationOptions}
+    />
+    <Stack.Screen
       name={Routes.SETTINGS.NOTIFICATIONS}
       component={NotificationsSettings}
       options={NotificationsSettings.navigationOptions}
     />
     <Stack.Screen
       mode={'modal'}
-      name="NotificationsOptIn"
+      name={Routes.NOTIFICATIONS.OPT_IN}
       component={OptIn}
       options={OptIn.navigationOptions}
     />
