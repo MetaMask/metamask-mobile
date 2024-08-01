@@ -50,6 +50,7 @@ import useFavicon from '../../hooks/useFavicon/useFavicon';
 import URLParse from 'url-parse';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
+import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const navigation = useNavigation();
@@ -94,11 +95,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   const { toastRef } = useContext(ToastContext);
   const [isLoading, setIsLoading] = useState(false);
-  const permittedAccountsList = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.engine.backgroundState.PermissionController,
-  );
+  const permittedAccountsList = useSelector(selectPermissionControllerState);
   const permittedAccountsByHostname = getPermittedAccountsByHostname(
     permittedAccountsList,
     hostname,

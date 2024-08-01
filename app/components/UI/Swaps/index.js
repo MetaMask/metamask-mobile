@@ -270,10 +270,7 @@ function SwapsAmountView({
           // Triggered when a user enters the MetaMask Swap feature
           InteractionManager.runAfterInteractions(() => {
             const parameters = {
-              source:
-                initialSource === SWAPS_NATIVE_ADDRESS
-                  ? 'MainView'
-                  : 'TokenView',
+              source: route.params?.sourcePage,
               activeCurrency: swapsTokens?.find((token) =>
                 toLowerCaseEquals(token.address, initialSource),
               )?.symbol,
