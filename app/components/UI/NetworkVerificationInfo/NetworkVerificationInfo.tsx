@@ -261,10 +261,25 @@ const NetworkVerificationInfo = ({
         {renderAlerts()}
         {renderBanner()}
         <Text style={styles.textCentred}>
-          {strings('add_custom_network.warning_subtext_new.1')}{' '}
-          <Text onPress={openHowToUseCustomNetworks}>
-            {strings('add_custom_network.warning_subtext_new.2')}
-          </Text>
+          {isMutichainVersion1Enabled ? (
+            <Text>
+              {strings(
+                'switch_custom_network.add_network_and_give_dapp_permission_warning',
+                {
+                  // @ts-ignore
+                  dapp_origin: new URL(customNetworkInformation.pageMeta.url)
+                    ?.hostname,
+                },
+              )}
+            </Text>
+          ) : (
+            <>
+              {strings('add_custom_network.warning_subtext_new.1')}{' '}
+              <Text onPress={openHowToUseCustomNetworks}>
+                {strings('add_custom_network.warning_subtext_new.2')}
+              </Text>
+            </>
+          )}
         </Text>
         {renderNetworkInfo()}
       </ScrollView>
