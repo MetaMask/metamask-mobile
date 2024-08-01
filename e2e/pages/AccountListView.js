@@ -23,12 +23,28 @@ export default class AccountListView {
     return Matchers.getElementByID(ACCOUNT_LIST_ADD_BUTTON_ID);
   }
 
+  get importAccountText() {
+    return Matchers.getElementByText(
+      AccountListViewSelectorsText.IMPORT_ACCOUNT,
+    );
+  }
+
+  get createAccountText() {
+    return Matchers.getElementByText(
+      AccountListViewSelectorsText.CREATE_ACCOUNT,
+    );
+  }
+
+  get multiSelectElement() {
+    return Matchers.getElementByID(CellModalSelectorsIDs.MULTISELECT);
+  }
+
   getAccountElementAtIndex(index) {
     return element(by.id(CellModalSelectorsIDs.BASE_TITLE)).atIndex(index);
   }
 
   async tapAccountIndex(index) {
-    await Gestures.tapItemAtIndex(CellModalSelectorsIDs.MULTISELECT, index);
+    await Gestures.tap(this.multiSelectElement, index);
   }
 
   async tapAddAccountButton() {
@@ -36,11 +52,11 @@ export default class AccountListView {
   }
 
   async tapImportAccountButton() {
-    await Gestures.tapByText(AccountListViewSelectorsText.IMPORT_ACCOUNT);
+    await Gestures.tap(this.importAccountText);
   }
 
   async tapCreateAccountButton() {
-    await Gestures.tapByText(AccountListViewSelectorsText.CREATE_ACCOUNT);
+    await Gestures.tap(this.createAccountText);
   }
 
   async longPressImportedAccount() {
@@ -51,7 +67,8 @@ export default class AccountListView {
     if (device.getPlatform() === 'android') {
       await Gestures.swipe(ACCOUNT_LIST_ID, 'down', 'fast', 0.6);
     } else {
-      await Gestures.swipeByText('Accounts', 'down', 'fast', 0.6);
+      const accountsElement = await Matchers.getElementByText('Accounts');
+      await Gestures.swipe(accountsElement, 'down', 'fast', 0.6);
     }
   }
 
