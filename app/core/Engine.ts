@@ -2036,10 +2036,12 @@ export default {
     // TODO: handle `null` currencyRate by hiding fiat values instead
     const modifiedCurrencyRateControllerState = {
       ...CurrencyRateController,
-      conversionRate:
-        CurrencyRateController.conversionRate === null
-          ? 0
-          : CurrencyRateController.conversionRate,
+      currencyRates: Object.fromEntries(
+        Object.entries(CurrencyRateController.currencyRates).map(([k, v]) => [
+          k,
+          { ...v, conversionRate: v.conversionRate ?? 0 },
+        ]),
+      ),
     };
 
     return {
