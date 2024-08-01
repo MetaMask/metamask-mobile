@@ -2,7 +2,7 @@
 /* eslint @typescript-eslint/no-require-imports: "off" */
 
 import React from 'react';
-import { View, Text, Image, ScrollView, Platform } from 'react-native';
+import { View, Text, ScrollView, Platform } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import {
   KEYSTONE_LEARN_MORE,
