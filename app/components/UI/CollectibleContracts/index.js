@@ -16,7 +16,7 @@ import Engine from '../../../core/Engine';
 import CollectibleContractElement from '../CollectibleContractElement';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
-  collectibleContractsSelector,
+  collectibleContractsOwnedSelector,
   collectiblesSelector,
   favoritesCollectiblesSelector,
   isNftFetchingProgressSelector,
@@ -441,7 +441,7 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   useNftDetection: selectUseNftDetection(state),
-  collectibleContracts: collectibleContractsSelector(state),
+  collectibleContracts: collectibleContractsOwnedSelector(state),
   collectibles: collectiblesSelector(state),
   isNftFetchingProgress: isNftFetchingProgressSelector(state),
   favoriteCollectibles: favoritesCollectiblesSelector(state),

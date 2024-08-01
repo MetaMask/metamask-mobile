@@ -226,11 +226,14 @@ import { TransactionControllerOptions } from '@metamask/transaction-controller/d
 import {
   ExtendedTransactionMeta,
   getTokenIdParam,
+  NftTransferLog,
+  parsedNftLog,
   TRANSFER_SINFLE_LOG_TOPIC_HASH,
 } from './Transaction/Transaction.utils';
 import { TOKEN_TRANSFER_LOG_TOPIC_HASH } from '@metamask/swaps-controller/dist/constants';
 import { Interface } from '@ethersproject/abi';
 import { abiERC721, abiERC1155 } from '@metamask/metamask-eth-abis';
+import { toLowerCaseEquals } from '../util/general';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1514,8 +1517,6 @@ class Engine {
     this.controllerMessenger.subscribe(
       'TransactionController:transactionStatusUpdated',
       ({ transactionMeta }) => {
-        // eslint-disable-next-line no-console
-        console.log('############################');
         this.onFinishedTransaction(transactionMeta);
       },
     );
@@ -1567,12 +1568,6 @@ class Engine {
   }
 
   async onFinishedTransaction(transactionMeta: ExtendedTransactionMeta) {
-    // eslint-disable-next-line no-console
-    console.log(
-      '🚀 ~ Engine ~ onFinishedTransaction ~ transactionMeta:',
-      transactionMeta,
-    );
-
     if (
       ![TransactionStatus.confirmed, TransactionStatus.failed].includes(
         transactionMeta.status,
@@ -1588,10 +1583,6 @@ class Engine {
     const { type, chainId, txReceipt } = transactionMeta;
     const { NftController, AccountsController } = this.context;
     const selectedAddress = AccountsController.getSelectedAccount().address;
-    console.log(
-      '🚀 ~ Engine ~ updateNFTOwnership ~ selectedAddress:',
-      selectedAddress,
-    );
 
     const { allNfts } = NftController.state;
     const txReceiptLogs = txReceipt?.logs;
@@ -1603,42 +1594,38 @@ class Engine {
       return;
     }
 
-    console.log('============== proceeed');
-    const allNftTransferLog: any[] = txReceiptLogs.map((txReceiptLog) => {
-      console.log('================== txReceiptLog', txReceiptLog);
-      console.log('================== txReceiptLog');
-      const isERC1155NftTransfer =
-        txReceiptLog?.topics?.[0] === TRANSFER_SINFLE_LOG_TOPIC_HASH;
-      const isERC721NftTransfer =
-        txReceiptLog?.topics?.[0] === TOKEN_TRANSFER_LOG_TOPIC_HASH;
-      let isTransferToSelectedAddress;
+    const allNftTransferLog: NftTransferLog[] = txReceiptLogs.map(
+      (txReceiptLog) => {
+        const isERC1155NftTransfer =
+          txReceiptLog?.topics?.[0] === TRANSFER_SINFLE_LOG_TOPIC_HASH;
+        const isERC721NftTransfer =
+          txReceiptLog?.topics?.[0] === TOKEN_TRANSFER_LOG_TOPIC_HASH;
+        let isTransferToSelectedAddress;
 
-      if (isERC1155NftTransfer) {
-        isTransferToSelectedAddress = txReceiptLog?.topics?.[3].includes(
-          selectedAddress?.slice(2),
-        );
-      }
+        if (isERC1155NftTransfer) {
+          isTransferToSelectedAddress = txReceiptLog?.topics?.[3].includes(
+            selectedAddress?.slice(2),
+          );
+        }
 
-      if (isERC721NftTransfer) {
-        isTransferToSelectedAddress = txReceiptLog?.topics?.[2].includes(
-          selectedAddress?.slice(2),
-        );
-      }
+        if (isERC721NftTransfer) {
+          isTransferToSelectedAddress = txReceiptLog?.topics?.[2].includes(
+            selectedAddress?.slice(2),
+          );
+        }
 
-      return {
-        isERC1155NftTransfer,
-        isERC721NftTransfer,
-        isTransferToSelectedAddress,
-        ...txReceiptLog,
-      };
-    });
+        return {
+          isERC1155NftTransfer,
+          isERC721NftTransfer,
+          isTransferToSelectedAddress,
+          ...txReceiptLog,
+        };
+      },
+    );
+
     if (allNftTransferLog.length !== 0) {
-      const allNftParsedLog: any[] = []; //TODO fix this any type
+      const allNftParsedLog: parsedNftLog[] = [];
       allNftTransferLog.forEach((singleLog) => {
-        console.log(
-          '🚀 ~ Engine ~ allNftTransferLog.forEach ~ singleLog:',
-          singleLog,
-        );
         if (
           singleLog.isTransferToSelectedAddress &&
           (singleLog.isERC1155NftTransfer || singleLog.isERC721NftTransfer)
@@ -1651,8 +1638,8 @@ class Engine {
           }
           try {
             const parsedLog = iface.parseLog({
-              data: singleLog.data,
-              topics: singleLog.topics,
+              data: singleLog.data as string,
+              topics: singleLog.topics as unknown as string[],
             });
             allNftParsedLog.push({
               contract: singleLog.address,
@@ -1663,33 +1650,31 @@ class Engine {
           }
         }
       });
-      // Filter known nfts and new Nfts
-      // const knownNFTs: Nft[] = [];
-      const newNFTs: any[] = [];
+
+      const newNFTs: ({ tokenId: string | undefined } & parsedNftLog)[] = [];
       allNftParsedLog.forEach((single) => {
         const tokenIdFromLog = getTokenIdParam(single);
         const existingNft = allNfts?.[selectedAddress]?.[chainId]?.find(
           ({ address, tokenId }) =>
-            address.toLocaleLowerCase() === single.contract.toLowerCase() &&
+            toLowerCaseEquals(address, single.contract) &&
             tokenId === tokenIdFromLog,
         );
-        if (existingNft) {
-          //knownNFTs.push(existingNft);
-        } else {
-          newNFTs.push({
-            tokenId: tokenIdFromLog,
-            ...single,
-          });
+        if (!existingNft) {
+          if (tokenIdFromLog && single?.contract) {
+            newNFTs.push({
+              tokenId: tokenIdFromLog,
+              ...single,
+            });
+          }
         }
       });
-      // For known nfts only refresh ownership
-      /*       const refreshOwnershipNFts = knownNFTs.map(async (singleNft) =>
-        NftController.checkAndUpdateSingleNftOwnershipStatus(singleNft, false),
-      );
-      await Promise.allSettled(refreshOwnershipNFts); */
+
       // For new nfts, add them to state
       const addNftPromises = newNFTs.map(async (singleNft) =>
-        NftController.addNft(singleNft.contract, singleNft.tokenId),
+        NftController.addNft(
+          singleNft.contract as string,
+          singleNft.tokenId as string, // casting here because i already made the check before pushing into newNFTs
+        ),
       );
       await Promise.allSettled(addNftPromises);
     }

@@ -1,3 +1,4 @@
+import { LogDescription } from '@ethersproject/abi';
 import {
   Log,
   TransactionMeta,
@@ -18,16 +19,20 @@ export const TRANSFER_SINFLE_LOG_TOPIC_HASH =
 export const TOKEN_TRANSFER_LOG_TOPIC_HASH =
   '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
 
-type ExtendedLog = Log & { data?: string };
+export type ExtendedLog = Log & { data?: string };
 
-type ExtendedTxReceipt = TransactionReceipt & { logs?: ExtendedLog[] };
+export type ExtendedTxReceipt = TransactionReceipt & { logs?: ExtendedLog[] };
 
 export type ExtendedTransactionMeta = TransactionMeta & {
   txReceipt?: ExtendedTxReceipt;
 };
 
-export type NftTransferLog = ExtendedTxReceipt & {
+export type NftTransferLog = ExtendedLog & {
   isERC1155NftTransfer: boolean;
   isERC721NftTransfer: boolean;
-  isTransferToSelectedAddress: boolean;
+  isTransferToSelectedAddress: boolean | undefined;
+};
+
+export type parsedNftLog = LogDescription & {
+  contract: string | undefined;
 };
