@@ -47,12 +47,13 @@ class WalletConnect2Session {
   // timeoutRef is used on android to prevent automatic redirect on switchChain and wait for wallet_addEthereumChain.
   // If addEthereumChain is not received after 3 seconds, it will redirect.
   private timeoutRef: NodeJS.Timeout | null = null;
-  private session: SessionTypes.Struct;
   private requestsToRedirect: { [request: string]: boolean } = {};
   private topicByRequestId: { [requestId: string]: string } = {};
   private requestByRequestId: {
     [requestId: string]: SingleEthereumTypes.SessionRequest;
   } = {};
+
+  public session: SessionTypes.Struct;
 
   constructor({
     web3Wallet,
@@ -482,6 +483,10 @@ class WalletConnect2Session {
       },
       origin,
     });
+  };
+
+  removeListeners = async () => {
+    this.backgroundBridge.onDisconnect();
   };
 
   private async handleSendTransaction(
