@@ -31,6 +31,7 @@ import BottomSheetHeader from '../../../component-library/components/BottomSheet
 import {
   getNetworkImageSource,
   toggleUseSafeChainsListValidation,
+  isMutichainVersion1Enabled,
 } from '../../../util/networks';
 import { NetworkApprovalModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkApprovalModal.selectors';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
@@ -243,6 +244,10 @@ const NetworkVerificationInfo = ({
         <Text variant={TextVariant.HeadingMD}>
           {isCustomNetwork
             ? strings('networks.add_custom_network')
+            : isMutichainVersion1Enabled
+            ? strings('networks.add_specific_network', {
+                network_name: customNetworkInformation.chainName,
+              })
             : strings('app_settings.network_add_network')}
         </Text>
       </BottomSheetHeader>
