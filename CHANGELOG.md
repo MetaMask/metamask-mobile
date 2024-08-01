@@ -2,6 +2,48 @@
 
 ## Current Main Branch
 
+## 7.28.0 - Jul 19, 2024
+### Added
+- [#10252](https://github.com/MetaMask/metamask-mobile/pull/10252): feat: regression label (#10252)
+- [#10214](https://github.com/MetaMask/metamask-mobile/pull/10214): feat: Partially local WebView for Snaps (#10214)
+- [#10103](https://github.com/MetaMask/metamask-mobile/pull/10103): feat: update walletconnect se-sdk (#10103)
+- [#10319](https://github.com/MetaMask/metamask-mobile/pull/10319): feat: add support for linea mainnet for nft detection (#10319)
+- [#10338](https://github.com/MetaMask/metamask-mobile/pull/10338): feat: add notifications actions selectors - 4/7 (#10338)
+- [#10332](https://github.com/MetaMask/metamask-mobile/pull/10332): feat: add notifications controllers v2 - 3/7 (#10332)
+- [#10109](https://github.com/MetaMask/metamask-mobile/pull/10109): feat: multiple accounts support in ledger (#10109)
+
+### Changed
+- [#10278](https://github.com/MetaMask/metamask-mobile/pull/10278): chore: disable snaps feat from main temporarily (#10278)
+- [#10329](https://github.com/MetaMask/metamask-mobile/pull/10329): test: Disable bitrise slack notification step (#10329)
+- [#10172](https://github.com/MetaMask/metamask-mobile/pull/10172): chore: changelog release automation (#10172)
+- [#10282](https://github.com/MetaMask/metamask-mobile/pull/10282): chore: update Android SDK to API Level 34  (#10282)
+- [#10241](https://github.com/MetaMask/metamask-mobile/pull/10241): chore: add Sentry snapshot with masked data (#10241)
+- [#10305](https://github.com/MetaMask/metamask-mobile/pull/10305): chore: 7.27.0 RC 2 (#10305)
+- [#10292](https://github.com/MetaMask/metamask-mobile/pull/10292): chore: cleanup (#10292)
+- [#10289](https://github.com/MetaMask/metamask-mobile/pull/10289): chore: Download state logs on login screen (#10289)
+- [#10291](https://github.com/MetaMask/metamask-mobile/pull/10291): chore: Update webview to v 14.0.2 (#10291)
+- [#10253](https://github.com/MetaMask/metamask-mobile/pull/10253): chore: typescript hooks and base folder coverage (#10253)
+- [#10272](https://github.com/MetaMask/metamask-mobile/pull/10272): chore: Add deep partial single source of truth (#10272)
+- [#10225](https://github.com/MetaMask/metamask-mobile/pull/10225): test: Refactor WalletView file (#10225)
+- [#10273](https://github.com/MetaMask/metamask-mobile/pull/10273): test: e2e Reveal Secret Recovery Phrase Quiz answer confirmation (#10273)
+- [#9956](https://github.com/MetaMask/metamask-mobile/pull/9956): refactor: change vault backup option from `WHEN_UNLOCKED` to `WHEN_UNLOCKED_THIS_DEVICE_ONLY` (#9956)
+- [#10283](https://github.com/MetaMask/metamask-mobile/pull/10283): chore: add code fence to avoid ts issue (#10283)
+- [#10299](https://github.com/MetaMask/metamask-mobile/pull/10299): chore: add translations for notification feature - 1/7 (#10299)
+- [#10268](https://github.com/MetaMask/metamask-mobile/pull/10268): chore: move SnapsExecutionWebView out of Main navigation stack (#10268)
+- [#10304](https://github.com/MetaMask/metamask-mobile/pull/10304): chore: update the 'sendMessage' method in the 'DeeplinkProtocolService' class (#10304)
+- [#10321](https://github.com/MetaMask/metamask-mobile/pull/10321): chore: added isScaled option to BadgeNetwork to allow nonscaled usage (#10321)
+- [#10301](https://github.com/MetaMask/metamask-mobile/pull/10301): chore: remove details and list references - 2/7 (#10301)
+- [#10215](https://github.com/MetaMask/metamask-mobile/pull/10215): chore: Remove blockaid env variable (#10215)
+- [#10184](https://github.com/MetaMask/metamask-mobile/pull/10184): chore: implementing Firebase messaging on iOS/Android (#10184)
+- [#10274](https://github.com/MetaMask/metamask-mobile/pull/10274): chore: New Crowdin translations by Github Action (#10274)
+
+### Fixed
+- [#10308](https://github.com/MetaMask/metamask-mobile/pull/10308): fix: correctly get current PR number in bitrise e2e workflow (#10308)
+- [#10232](https://github.com/MetaMask/metamask-mobile/pull/10232): fix: fixes missing analytics data for non-web dapps that don't have a url (no… (#10232)
+- [#10264](https://github.com/MetaMask/metamask-mobile/pull/10264): fix: skip blockaid validations for users internal accounts (#10264)
+- [#10266](https://github.com/MetaMask/metamask-mobile/pull/10266): fix: blockaid loader on confirmation pages (#10266)
+- [#10279](https://github.com/MetaMask/metamask-mobile/pull/10279): fix: use ACTIONS_WRITE_TOKEN in attributions workflow (#10279)
+
 ## 7.27.1 - Jul 25, 2024
 ### Fixed
 - [#10438](https://github.com/MetaMask/metamask-mobile/pull/10438): cherry-pick: update @blockaid/ppom_release package to version 1.5.1 (#10435) #10438
