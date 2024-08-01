@@ -81,6 +81,7 @@ import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
 import ConfirmAddAsset from '../../UI/ConfirmAddAsset';
 import { AesCryptoTestForm } from '../../Views/AesCryptoTestForm';
 import { isTest } from '../../../util/test/utils';
+import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 
 import NftDetails from '../../Views/NftDetails';
 import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
@@ -398,8 +399,7 @@ const HomeTabs = () => {
     const activeTabUrl = getActiveTabUrl(state);
     if (!isUrl(activeTabUrl)) return [];
     try {
-      const permissionsControllerState =
-        state.engine.backgroundState.PermissionController;
+      const permissionsControllerState = selectPermissionControllerState(state);
       const hostname = new URL(activeTabUrl).hostname;
       const permittedAcc = getPermittedAccountsByHostname(
         permissionsControllerState,

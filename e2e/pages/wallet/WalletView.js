@@ -75,6 +75,14 @@ class WalletView {
     return Matchers.getElementByText(WalletViewSelectorsText.HIDE_TOKENS);
   }
 
+  get mainWalletAccountActions() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS);
+  }
+
+  async tapMainWalletAccountActions() {
+    await Gestures.waitAndTap(this.mainWalletAccountActions);
+  }
+
   async tapOKAlertButton() {
     await Gestures.waitAndTap(this.okAlertButton);
   }
