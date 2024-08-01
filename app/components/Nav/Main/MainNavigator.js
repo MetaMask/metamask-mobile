@@ -14,13 +14,12 @@ import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NetworksSettings from '../../Views/Settings/NetworksSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
-import NotificationsDetails from '../../Views/Notifications/Details';
+import NotificationsView from '../../Views/Notifications';
 import OptIn from '../../Views/Notifications/OptIn';
 import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
 import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
-import NotificationsView from '../../Views/Notifications';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
@@ -82,6 +81,7 @@ import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
 import ConfirmAddAsset from '../../UI/ConfirmAddAsset';
 import { AesCryptoTestForm } from '../../Views/AesCryptoTestForm';
 import { isTest } from '../../../util/test/utils';
+import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -396,8 +396,7 @@ const HomeTabs = () => {
     const activeTabUrl = getActiveTabUrl(state);
     if (!isUrl(activeTabUrl)) return [];
     try {
-      const permissionsControllerState =
-        state.engine.backgroundState.PermissionController;
+      const permissionsControllerState = selectPermissionControllerState(state);
       const hostname = new URL(activeTabUrl).hostname;
       const permittedAcc = getPermittedAccountsByHostname(
         permissionsControllerState,
@@ -611,14 +610,8 @@ const NotificationsModeView = (props) => (
       options={NotificationsSettings.navigationOptions}
     />
     <Stack.Screen
-      name={Routes.NOTIFICATIONS.DETAILS}
-      component={NotificationsDetails}
-      options={NotificationsDetails.navigationOptions}
-      initialParams={{ notification: props.route.params?.notification }}
-    />
-    <Stack.Screen
       mode={'modal'}
-      name="NotificationsOptIn"
+      name={Routes.NOTIFICATIONS.OPT_IN}
       component={OptIn}
       options={OptIn.navigationOptions}
     />

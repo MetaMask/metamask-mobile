@@ -354,12 +354,16 @@ const Wallet = ({
     // Fired on the first load of the wallet and also on network switch
     const checkSmartTransactionsOptInModal = async () => {
       try {
-        const showShowStxOptInModal =
+        const accountHasZeroBalance = hexToBN(
+          accountBalanceByChainId?.balance || '0x0',
+        ).isZero();
+        const shouldShowStxOptInModal =
           await shouldShowSmartTransactionsOptInModal(
             providerConfig.chainId,
             providerConfig.rpcUrl,
+            accountHasZeroBalance,
           );
-        if (showShowStxOptInModal) {
+        if (shouldShowStxOptInModal) {
           navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
             screen: Routes.MODAL.SMART_TRANSACTIONS_OPT_IN,
           });
@@ -385,6 +389,7 @@ const Wallet = ({
     networkOnboardingState,
     prevChainId,
     checkNftAutoDetectionModal,
+    accountBalanceByChainId?.balance,
   ]);
 
   useEffect(

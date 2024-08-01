@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import SmartTransactionsOptInModal from './SmartTranactionsOptInModal';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -8,7 +8,6 @@ import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { shouldShowWhatsNewModal } from '../../../util/onboarding';
 import { updateOptInModalAppVersionSeen } from '../../../core/redux/slices/smartTransactions';
-import Routes from '../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
@@ -31,7 +30,7 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 const VERSION = '1.0.0';
-jest.mock('../../../store/async-storage-wrapper', () => ({
+jest.mock('../../../store/storage-wrapper', () => ({
   getItem: jest.fn(() => VERSION),
   setItem: jest.fn(),
   removeItem: jest.fn(),
@@ -79,11 +78,10 @@ describe('SmartTransactionsOptInModal', () => {
     const primaryButton = getByText(strings('whats_new.stx.primary_button'));
     expect(primaryButton).toBeDefined();
 
-    const secondaryButton = getByText(
-      strings('whats_new.stx.secondary_button'),
-    );
+    const secondaryButton = getByText(strings('whats_new.stx.no_thanks'));
     expect(secondaryButton).toBeDefined();
   });
+
   it('should opt user in when primary button is pressed', () => {
     const { getByText } = renderWithProvider(<SmartTransactionsOptInModal />, {
       state: initialState,
@@ -96,26 +94,20 @@ describe('SmartTransactionsOptInModal', () => {
       Engine.context.PreferencesController.setSmartTransactionsOptInStatus,
     ).toHaveBeenCalledWith(true);
   });
-  it('opts user out when secondary button is pressed and navigate to Advanced Settings', async () => {
+
+  it('opts user out when secondary button is pressed', async () => {
     const { getByText } = renderWithProvider(<SmartTransactionsOptInModal />, {
       state: initialState,
     });
 
-    const secondaryButton = getByText(
-      strings('whats_new.stx.secondary_button'),
-    );
+    const secondaryButton = getByText(strings('whats_new.stx.no_thanks'));
     fireEvent.press(secondaryButton);
 
     expect(
       Engine.context.PreferencesController.setSmartTransactionsOptInStatus,
     ).toHaveBeenCalledWith(false);
-    expect(updateOptInModalAppVersionSeen).toHaveBeenCalledWith(VERSION);
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
-        screen: Routes.SETTINGS.ADVANCED_SETTINGS,
-      });
-    });
   });
+
   it('should update last app version seen on primary button press', () => {
     const { getByText } = renderWithProvider(<SmartTransactionsOptInModal />, {
       state: initialState,
@@ -126,14 +118,13 @@ describe('SmartTransactionsOptInModal', () => {
 
     expect(updateOptInModalAppVersionSeen).toHaveBeenCalledWith(VERSION);
   });
+
   it('should update last app version seen on secondary button press', () => {
     const { getByText } = renderWithProvider(<SmartTransactionsOptInModal />, {
       state: initialState,
     });
 
-    const secondaryButton = getByText(
-      strings('whats_new.stx.secondary_button'),
-    );
+    const secondaryButton = getByText(strings('whats_new.stx.no_thanks'));
     fireEvent.press(secondaryButton);
 
     expect(updateOptInModalAppVersionSeen).toHaveBeenCalledWith(VERSION);

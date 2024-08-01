@@ -1,4 +1,3 @@
-/* eslint-disable import/prefer-default-export */
 import { StyleSheet } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import Device from '../../../../util/device';
@@ -9,7 +8,9 @@ const HEIGHT = scaling.scale(240);
 const DEVICE_WIDTH = Device.getDeviceWidth();
 const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
 
-export const createStyles = ({ colors }: Theme) =>
+export type NotificationDetailStyles = ReturnType<typeof createStyles>;
+
+export const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
     contentContainerWrapper: {
       flex: 1,
@@ -17,34 +18,47 @@ export const createStyles = ({ colors }: Theme) =>
       backgroundColor: colors.background.default,
       paddingTop: 16,
     },
-    headerTitle: { alignItems: 'center', top: 4 },
-    row: {
-      flexDirection: 'row',
-      justifyContent: 'flex-start',
-      minWidth: '100%',
-      paddingVertical: 8,
-      paddingHorizontal: 16,
-    },
-    badgeWrapper: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      alignSelf: 'flex-start',
-      position: 'absolute',
-    },
-    nftBadgeWrapper: {
-      position: 'absolute',
-      top: 0,
-      right: 0,
-      width: 12,
-      height: 12,
-      borderRadius: 6,
+    headerImageContainer: {
+      paddingBottom: 16,
       alignSelf: 'center',
     },
-    copyIconDefault: {
-      color: colors.text.alternative,
-      marginHorizontal: 8,
+    headerImageFull: {
+      width: '100%',
+      aspectRatio: '4/3', // Landscape aspect ratio
+      borderRadius: 8,
     },
-    boxLeft: { alignSelf: 'flex-start' },
+    headerImageFullPlaceholder: {
+      width: '100%',
+      backgroundColor: colors.background.alternative,
+    },
+    fieldsContainer: {
+      gap: 4,
+    },
+    row: {
+      flexDirection: 'row',
+      minWidth: '100%',
+      paddingVertical: 5,
+      gap: 16,
+    },
+    badgeWrapper: {
+      alignSelf: 'center',
+    },
+    customBadgePosition: {
+      top: '-25%',
+      right: '-25%',
+    },
+    copyContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 2,
+    },
+    copyIconDefault: {
+      color: colors.icon.alternative,
+    },
+    boxLeft: {
+      flex: 1,
+      flexDirection: 'column',
+    },
     boxRight: { marginLeft: 'auto' },
     text: {
       marginBottom: 8,
@@ -56,9 +70,7 @@ export const createStyles = ({ colors }: Theme) =>
       alignItems: 'center',
     },
     addressLinkLabel: {
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ...(fontStyles.normal as any),
+      ...fontStyles.normal,
       color: colors.text.alternative,
     },
     icon: { marginHorizontal: 20 },
@@ -75,6 +87,9 @@ export const createStyles = ({ colors }: Theme) =>
     renderContainer: {
       alignItems: 'flex-start',
       flex: 1,
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      width: '100%',
     },
     renderFCMText: {
       textAlign: 'left',
@@ -86,6 +101,7 @@ export const createStyles = ({ colors }: Theme) =>
       borderRadius: 12,
       overflow: 'hidden',
       marginBottom: 16,
+      backgroundColor: colors.background.alternative,
     },
     FCMImage: {
       resizeMode: 'cover',
@@ -112,16 +128,13 @@ export const createStyles = ({ colors }: Theme) =>
       backgroundColor: colors.background.default,
     },
     rightSection: {
+      flex: 1,
       alignSelf: 'flex-start',
-      flexDirection: 'row',
-      marginLeft: 'auto',
+      alignItems: 'flex-end',
+      flexDirection: 'column',
     },
     copyTextBtn: {
       color: colors.primary.default,
-      alignSelf: 'flex-start',
-    },
-    copyIconRight: {
-      marginLeft: 8,
     },
     ethLogo: {
       width: 32,
@@ -130,8 +143,25 @@ export const createStyles = ({ colors }: Theme) =>
     },
     gasDetails: {
       marginBottom: 80,
+      paddingHorizontal: 16,
     },
-    nftLogo: {
+    squareLogoLarge: {
+      width: 96,
+      height: 96,
+      borderRadius: 8,
+      overflow: 'hidden',
+      borderWidth: 0.5,
+      borderColor: colors.background.alternative,
+    },
+    squareLogoLargePlaceholder: {
+      backgroundColor: colors.background.alternative,
+      width: 96,
+      height: 96,
+      borderRadius: 8,
+      borderWidth: 0.5,
+      borderColor: colors.background.alternative,
+    },
+    squareLogo: {
       width: 32,
       height: 32,
       borderRadius: 8,
@@ -139,7 +169,7 @@ export const createStyles = ({ colors }: Theme) =>
       borderWidth: 0.5,
       borderColor: colors.background.alternative,
     },
-    nftPlaceholder: {
+    squareLogoPlaceholder: {
       backgroundColor: colors.background.alternative,
       width: 32,
       height: 32,
@@ -147,7 +177,7 @@ export const createStyles = ({ colors }: Theme) =>
       borderWidth: 0.5,
       borderColor: colors.background.alternative,
     },
-    assetLogo: {
+    circleLogo: {
       width: 32,
       height: 32,
       borderRadius: 16,
@@ -155,7 +185,7 @@ export const createStyles = ({ colors }: Theme) =>
       borderWidth: 0.5,
       borderColor: colors.background.alternative,
     },
-    assetPlaceholder: {
+    circleLogoPlaceholder: {
       backgroundColor: colors.background.alternative,
       width: 32,
       height: 32,
@@ -174,5 +204,23 @@ export const createStyles = ({ colors }: Theme) =>
       position: 'absolute',
       top: '25%',
     },
-    header: { alignItems: 'center', marginTop: 4 },
+    header: {
+      flexDirection: 'row',
+      marginTop: 4,
+      flexWrap: 'wrap',
+    },
+    headerText: {
+      width: '100%',
+      textAlign: 'center',
+    },
+    announcementDescriptionText: {
+      ...typography.lBodyMD,
+      color: colors.text.default,
+      marginHorizontal: 1,
+      // Announcement Description has some underlying padding that we want to remove.
+      marginTop: -16,
+    },
+    backIcon: {
+      marginHorizontal: 16,
+    },
   });

@@ -611,6 +611,10 @@
     "remove_account_message": "Tem certeza de que deseja remover esta conta?",
     "no": "Não",
     "yes_remove_it": "Sim, remover",
+    "remove_hardware_account": "Remove hardware account",
+    "remove_hw_account_alert_description": "Are you sure you want to remove this hardware wallet account? You’ll have to resync your hardware wallet if you want to use this account again with MetaMask Mobile.",
+    "remove_account_alert_remove_btn": "Remove",
+    "remove_account_alert_cancel_btn": "Nevermind",
     "accounts_title": "Contas",
     "connect_account_title": "Conectar conta",
     "connect_accounts_title": "Conectar contas",
@@ -668,8 +672,7 @@
     "hint_text": "Leia sua carteira de hardware para ",
     "purpose_connect": "conectar",
     "purpose_sign": "confirmar a transação",
-    "select_accounts": "Selecione uma conta",
-    "please_wait": "Aguarde"
+    "select_accounts": "Selecione uma conta"
   },
   "data_collection_modal": {
     "accept": "OK",
@@ -682,6 +685,11 @@
     "forget": "Esquecer este dispositivo"
   },
   "app_settings": {
+    "enabling_notifications": "Enabling notifications...",
+    "disabling_notifications": "Disabling notifications...",
+    "enabling_profile_sync": "Enabling profile syncing...",
+    "disabling_profile_sync": "Disabling profile syncing...",
+    "notifications_dismiss_modal": "Dismiss",
     "title": "Configurações",
     "current_conversion": "Moeda base",
     "current_language": "Idioma atual",
@@ -805,7 +813,7 @@
     "security_desc": "Configurações de privacidade, MetaMetrics, chave privada e Frase de Recuperação Secreta da carteira",
     "networks_title": "Redes",
     "networks_default_title": "Rede padrão",
-    "network_delete": "If you delete this network, you will need to add it again to view your assets in this network",
+    "network_delete": "Se você excluir esta rede, precisará adicioná-la de novo para visualizar seus ativos nela",
     "networks_default_cta": "Usar essa rede",
     "networks_desc": "Adicione e edite redes RPC personalizadas",
     "network_name_label": "Nome da rede",
@@ -821,7 +829,7 @@
     "network_other_networks": "Outras redes",
     "network_rpc_networks": "Redes RPC",
     "network_add_network": "Adicionar rede",
-    "network_add_custom_network": "Add a custom network",
+    "network_add_custom_network": "Adicionar uma rede personalizada",
     "network_add": "Adicionar",
     "network_save": "Salvar",
     "remove_network_title": "Deseja remover essa rede?",
@@ -996,7 +1004,7 @@
     "token_nft_ens_subheading": "Detecção automática de tokens, NFTs e ENS",
     "security_check_subheading": "Verificações de segurança",
     "symbol_required": "O símbolo é obrigatório.",
-    "blockaid_desc": "This feature alerts you to malicious activity by actively reviewing transaction and signature requests.",
+    "blockaid_desc": "Esse recurso alerta você sobre atividades mal-intencionadas analisando ativamente as solicitações de transações e assinaturas.",
     "security_alerts": "Alertas de segurança",
     "security_alerts_desc": "Esse recurso alerta sobre atividades mal-intencionadas por meio da análise local de solicitações de transações e assinaturas. Sempre realize sua própria devida diligência antes de aprovar solicitações. Não há garantia de que esse recurso detectará toda e qualquer atividade mal-intencionada. Ao ativar esse recurso, você concorda com os termos de uso do provedor.",
     "smart_transactions_opt_in_heading": "Transações inteligentes",
@@ -1033,7 +1041,7 @@
     "cancel": "Cancelar",
     "loading": "Conectando à MetaMask...",
     "unkown_dapp": "Nome do dapp indisponível",
-    "unknown": "Unknown",
+    "unknown": "Desconhecido",
     "no_connections": "Nenhuma conexão",
     "no_connections_desc": "Se conectar uma conta a um site ou app, você os verá aqui."
   },
@@ -1657,7 +1665,7 @@
     "network_currency_symbol": "Símbolo da moeda",
     "network_block_explorer_url": "URL do explorador de blocos",
     "search": "Pesquisar rede adicionada anteriormente",
-    "search-short": "Search",
+    "search-short": "Pesquisar",
     "add": "Adicionar",
     "cancel": "Cancelar",
     "approve": "Aprovar",
@@ -1665,9 +1673,9 @@
     "malicious_network_warning": "Um provedor de rede mal-intencionado pode mentir sobre o estado da blockchain e registrar sua atividade na rede. Adicione apenas redes personalizadas em que você confia.",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
     "network_warning_title": "Informações da rede",
-    "additional_network_information_title": "Additional Networks Information",
+    "additional_network_information_title": "Informações sobre redes adicionais",
     "network_warning_desc": "Essa conexão de rede depende de terceiros. Ela pode ser menos confiável ou permitir que eles rastreiem as atividades.",
-    "additonial_network_information_desc": "Some of these networks rely on third parties. The connections may be less reliable or enable third-parties to track activity.",
+    "additonial_network_information_desc": "Algumas dessas redes dependem de terceiros. As conexões podem ser menos confiáveis ​​ou permitir que terceiros rastreiem atividades.",
     "learn_more": "Saiba mais",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "Alternar para rede",
@@ -1956,7 +1964,7 @@
     "received": "Recebido",
     "unstaked": "Retirado de staking",
     "to": "Para",
-    "rate": "Cotação (taxas incluídas)",
+    "rate": "Rate (fees included)",
     "unstaking_requested": "Retirada de staking solicitada",
     "stake_completed": "Staking concluído",
     "withdrawal_completed": "Saque concluído",
@@ -1966,6 +1974,49 @@
     "swap_completed": "{{from}} trocado por {{to}}",
     "swap": "Trocado",
     "sent": "Enviou para {{address}}",
+    "menu_item_title": {
+      "metamask_swap_completed": "Swapped {{symbol1}} for {{symbol2}}",
+      "erc20_sent": "Sent to {{address}}",
+      "erc20_received": "Received from {{address}}",
+      "eth_sent": "Sent to {{address}}",
+      "eth_received": "Received from {{address}}",
+      "erc721_sent": "Sent NFT to {{address}}",
+      "erc1155_sent": "Sent NFT to {{address}}",
+      "erc721_received": "Received NFT from {{address}}",
+      "erc1155_received": "Received NFT from {{address}}",
+      "rocketpool_stake_completed": "Staked",
+      "rocketpool_unstake_completed": "Unstaking complete",
+      "lido_stake_completed": "Staked",
+      "lido_withdrawal_requested": "Unstaking requested",
+      "lido_withdrawal_completed": "Unstaking complete",
+      "lido_stake_ready_to_be_withdrawn": "Withdrawal requested"
+    },
+    "menu_item_description": {
+      "lido_withdrawal_requested": "Your request to unstake {{amount}} {{symbol}} has been sent",
+      "lido_stake_ready_to_be_withdrawn": "You can now withdraw your unstaked {{symbol}}"
+    },
+    "modal": {
+      "title_sent": "Sent {{symbol}}",
+      "title_received": "Received {{symbol}}",
+      "title_unstake_requested": "Unstaking requested",
+      "title_untake_ready": "Withdrawl ready",
+      "title_stake": "Staked {{symbol}}",
+      "title_unstake_completed": "Unstaking completed",
+      "title_swapped": "Swapped {{symbol1}} to {{symbol2}}",
+      "label_address_to": "To",
+      "label_address_from": "From",
+      "label_address_to_you": "To (You)",
+      "label_address_from_you": "From (You)",
+      "label_asset": "Asset",
+      "label_account": "Account",
+      "label_unstaking_requested": "Unstaking Requested",
+      "label_unstake_ready": "Withdrawl ready",
+      "label_staked": "Staked",
+      "label_received": "Received",
+      "label_unstaking_confirmed": "Unstaking Confirmed",
+      "label_swapped": "Swapped",
+      "label_to": "To"
+    },
     "received_from": "Recebido de {{address}}",
     "nft_sent": "Enviou NFT para {{address}}",
     "erc721_sent": "Enviou NFT para {{address}}",
@@ -1999,6 +2050,8 @@
     "received_message": "Toque para ver essa transação",
     "received_payment_message": "Você recebeu {{amount}} DAI",
     "prompt_title": "Ativar notificações push",
+    "notifications_enabled_error_title": "Something went wrong",
+    "notifications_enabled_error_desc": "We couldn't enable notifications. Please try again later.",
     "prompt_desc": "Ative as notificações para que a MetaMask informe quando você tiver recebido ETH ou quando suas transações forem confirmadas.",
     "prompt_ok": "Sim",
     "prompt_cancel": "Não, obrigado",
@@ -2023,6 +2076,7 @@
       "1": "Carteira",
       "2": "Comunicados"
     },
+    "copied_to_clipboard": "Copied to clipboard",
     "address_copied_to_clipboard": "Endereço copiado para a área de transferência",
     "transaction_id_copied_to_clipboard": "ID da transação copiado para a área de transferência",
     "activation_card": {
@@ -2654,7 +2708,7 @@
       "header": "Proteção de transações aprimorada",
       "description_1": "Desbloqueie taxas de sucesso maiores, proteção contra front running e melhor visibilidade com as transações inteligentes.",
       "description_2": "Disponível somente na Ethereum. Ative ou desative a qualquer momento nas configurações.",
-      "secondary_button": "Gerenciar nas configurações",
+      "no_thanks": "No thanks",
       "primary_button": "Ativar",
       "learn_more": "Saiba mais.",
       "benefit_1_1": "99,5% de taxa de",
@@ -2852,6 +2906,15 @@
   "remember_me": {
     "enable_remember_me": "Ativar \"Lembrar de mim\"",
     "enable_remember_me_description": "Quando \"Lembrar de mim\" estiver ativado, qualquer pessoa com acesso ao seu telefone poderá acessar sua conta da MetaMask."
+  },
+  "profile_sync": {
+    "title": "Profile Sync",
+    "disable_warning": "If you turn off profile sync, you won’t be able to receive notifications.",
+    "enable_description": "Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. ",
+    "enable_description2": " to learn more.",
+    "enable_privacy_link": "Learn how we protect your privacy",
+    "bottomSheetTurnOn": "Turning on Profile Sync",
+    "bottomSheetTurnOff": "Turning off Profile Sync"
   },
   "turn_off_remember_me": {
     "title": "Insira sua senha para desativar \"Lembrar de mim\"",
@@ -3075,7 +3138,7 @@
   },
   "install_snap": {
     "title": "Solicitação de conexão",
-    "description": "{{origin}} wants to use {{snap}}.",
+    "description": "{{origin}} quer usar {{snap}}.",
     "permissions_request_title": "Solicitação de permissões",
     "permissions_request_description": "{{origin}} deseja instalar {{snap}}, que está solicitando as permissões a seguir.",
     "approve_permissions": "Aprovar",
@@ -3124,5 +3187,8 @@
     "title": "Alterações estimadas",
     "tooltip_description": "As alterações estimadas podem acontecer se você prosseguir com essa transação. Isso é apenas uma previsão, não uma garantia.",
     "total_fiat": "Total = {{currency}}"
+  },
+  "common": {
+    "please_wait": "Please wait"
   }
 }

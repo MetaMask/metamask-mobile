@@ -36,7 +36,7 @@ import {
   AddressBookController,
   AddressBookState,
 } from '@metamask/address-book-controller';
-import { BaseState, ControllerMessenger } from '@metamask/base-controller';
+import { BaseState } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
@@ -66,7 +66,8 @@ import {
 } from '@metamask/preferences-controller';
 import {
   TransactionController,
-  TransactionState,
+  TransactionControllerEvents,
+  TransactionControllerState,
 } from '@metamask/transaction-controller';
 import {
   GasFeeController,
@@ -129,7 +130,11 @@ import {
   LoggingControllerState,
   LoggingControllerActions,
 } from '@metamask/logging-controller';
-import LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
+import {
+  LedgerKeyring,
+  LedgerMobileBridge,
+  LedgerTransportMiddleware,
+} from '@metamask/eth-ledger-bridge-keyring';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from './Encryptor';
 import {
   isMainnetByChainId,
@@ -163,6 +168,12 @@ import {
   DetectSnapLocationOptions,
 } from './Snaps';
 import { getRpcMethodMiddleware } from './RPCMethods/RPCMethodMiddleware';
+
+import {
+  AuthenticationController,
+  UserStorageController,
+} from '@metamask/profile-sync-controller';
+import { NotificationServicesController } from '@metamask/notification-services-controller';
 ///: END:ONLY_INCLUDE_IF
 import {
   getCaveatSpecifications,
@@ -203,6 +214,11 @@ import { SmartTransactionStatuses } from '@metamask/smart-transactions-controlle
 import { submitSmartTransactionHook } from '../util/smart-transactions/smart-publish-hook';
 import { SmartTransactionsControllerState } from '@metamask/smart-transactions-controller/dist/SmartTransactionsController';
 import { zeroAddress } from 'ethereumjs-util';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { getPermittedAccounts } from './Permissions';
+import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
+import EthQuery from '@metamask/eth-query';
+import { TransactionControllerOptions } from '@metamask/transaction-controller/dist/types/TransactionController';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -226,6 +242,10 @@ interface TestOrigin {
 }
 
 type PhishingControllerActions = MaybeUpdateState | TestOrigin;
+type AuthenticationControllerActions = AuthenticationController.AllowedActions;
+type UserStorageControllerActions = UserStorageController.AllowedActions;
+type NotificationsServicesControllerActions =
+  NotificationServicesController.AllowedActions;
 
 type SnapsGlobalActions =
   | SnapControllerActions
@@ -251,12 +271,16 @@ type GlobalActions =
   | LoggingControllerActions
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalActions
+  | AuthenticationControllerActions
+  | UserStorageControllerActions
+  | NotificationsServicesControllerActions
   ///: END:ONLY_INCLUDE_IF
   | KeyringControllerActions
   | AccountsControllerActions
   | PreferencesControllerActions
   | TokensControllerActions
   | TokenListControllerActions;
+
 type GlobalEvents =
   | ApprovalControllerEvents
   | CurrencyRateStateChange
@@ -274,7 +298,8 @@ type GlobalEvents =
   | AccountsControllerEvents
   | PreferencesControllerEvents
   | TokensControllerEvents
-  | TokenListControllerEvents;
+  | TokenListControllerEvents
+  | TransactionControllerEvents;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
@@ -292,7 +317,7 @@ export interface EngineState {
   PhishingController: PhishingControllerState;
   TokenBalancesController: TokenBalancesControllerState;
   TokenRatesController: TokenRatesState;
-  TransactionController: TransactionState;
+  TransactionController: TransactionControllerState;
   SmartTransactionsController: SmartTransactionsControllerState;
   SwapsController: SwapsState;
   GasFeeController: GasFeeState;
@@ -303,6 +328,9 @@ export interface EngineState {
   SnapController: PersistedSnapControllerState;
   SnapsRegistry: SnapsRegistryState;
   SubjectMetadataController: SubjectMetadataControllerState;
+  AuthenticationController: AuthenticationController.AuthenticationControllerState;
+  UserStorageController: UserStorageController.UserStorageControllerState;
+  NotificationServicesController: NotificationServicesController.NotificationServicesControllerState;
   ///: END:ONLY_INCLUDE_IF
   PermissionController: PermissionControllerState<Permissions>;
   ApprovalController: ApprovalControllerState;
@@ -345,6 +373,9 @@ interface Controllers {
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   SnapController: SnapController;
   SubjectMetadataController: SubjectMetadataController;
+  AuthenticationController: AuthenticationController.Controller;
+  UserStorageController: UserStorageController.Controller;
+  NotificationServicesController: NotificationServicesController.Controller;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
 }
@@ -375,7 +406,7 @@ class Engine {
   /**
    * The global controller messenger.
    */
-  controllerMessenger: ControllerMessenger<GlobalActions, GlobalEvents>;
+  controllerMessenger: ExtendedControllerMessenger<GlobalActions, GlobalEvents>;
   /**
    * ComposableController reference containing all child controllers
    */
@@ -410,7 +441,7 @@ class Engine {
     initialState: Partial<EngineState> = {},
     initialKeyringState?: KeyringControllerState | null,
   ) {
-    this.controllerMessenger = new ControllerMessenger();
+    this.controllerMessenger = new ExtendedControllerMessenger();
 
     /**
      * Subscribes a listener to the state change events of Preferences Controller.
@@ -667,7 +698,8 @@ class Engine {
     };
     qrKeyringBuilder.type = QRHardwareKeyring.type;
 
-    const ledgerKeyringBuilder = () => new LedgerKeyring();
+    const bridge = new LedgerMobileBridge(new LedgerTransportMiddleware());
+    const ledgerKeyringBuilder = () => new LedgerKeyring({ bridge });
     ledgerKeyringBuilder.type = LedgerKeyring.type;
 
     const keyringController = new KeyringController({
@@ -909,7 +941,6 @@ class Engine {
 
     const requireAllowlist = process.env.METAMASK_BUILD_TYPE === 'main';
     const disableSnapInstallation = process.env.METAMASK_BUILD_TYPE === 'main';
-
     const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore TODO: Resolve/patch mismatch between base-controller versions.
@@ -1012,20 +1043,117 @@ class Engine {
           store.getState().settings.basicFunctionalityEnabled === false,
       }),
     });
+
+    const authenticationController = new AuthenticationController.Controller({
+      state: initialState.AuthenticationController,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TODO: Resolve/patch mismatch between messenger types
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'AuthenticationController',
+        allowedActions: [
+          'SnapController:handleRequest',
+          'UserStorageController:disableProfileSyncing',
+        ],
+        allowedEvents: [],
+      }),
+      // TODO: Fix this by (await MetaMetrics.getInstance().getMetaMetricsId()) before go live
+      metametrics: {
+        agent: 'mobile',
+        getMetaMetricsId: async () => Promise.resolve(''),
+      },
+    });
+
+    const userStorageController = new UserStorageController.Controller({
+      getMetaMetricsState: () => MetaMetrics.getInstance().isEnabled(),
+      state: initialState.UserStorageController,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TODO: Resolve/patch mismatch between messenger types
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'UserStorageController',
+        allowedActions: [
+          'SnapController:handleRequest',
+          'AuthenticationController:getBearerToken',
+          'AuthenticationController:getSessionProfile',
+          'AuthenticationController:isSignedIn',
+          'AuthenticationController:performSignOut',
+          'AuthenticationController:performSignIn',
+          'NotificationServicesController:disableNotificationServices',
+          'NotificationServicesController:selectIsNotificationServicesEnabled',
+        ],
+        allowedEvents: [],
+      }),
+    });
+
+    const notificationServicesController =
+      new NotificationServicesController.Controller({
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore TODO: Resolve/patch mismatch between messenger types
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'NotificationServicesController',
+          allowedActions: [
+            'KeyringController:getAccounts',
+            'AuthenticationController:getBearerToken',
+            'AuthenticationController:isSignedIn',
+            'UserStorageController:enableProfileSyncing',
+            'UserStorageController:getStorageKey',
+            'UserStorageController:performGetStorage',
+            'UserStorageController:performSetStorage',
+          ],
+          allowedEvents: ['KeyringController:stateChange'],
+        }),
+        state: initialState.NotificationServicesController,
+        env: {
+          isPushIntegrated: false,
+          featureAnnouncements: {
+            platform: 'mobile',
+            accessToken: process.env
+              .FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN as string,
+            spaceId: process.env.FEATURES_ANNOUNCEMENTS_SPACE_ID as string,
+          },
+        },
+      });
     ///: END:ONLY_INCLUDE_IF
 
     this.transactionController = new TransactionController({
       // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
       blockTracker: networkController.getProviderAndBlockTracker().blockTracker,
-      disableSendFlowHistory: true,
       disableHistory: true,
-      getGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
+      disableSendFlowHistory: true,
+      disableSwaps: true,
+      // @ts-expect-error TransactionController is missing networkClientId argument in type
       getCurrentNetworkEIP1559Compatibility:
         networkController.getEIP1559Compatibility.bind(networkController),
-      //@ts-expect-error Expected due to Transaction Controller do not have controller utils containing linea-sepolia data
-      // This can be removed when controller-utils be updated to v^9
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      getExternalPendingTransactions: (address: string) =>
+        this.smartTransactionsController.getTransactions({
+          addressFrom: address,
+          status: SmartTransactionStatuses.PENDING,
+        }),
+      getGasFeeEstimates:
+        gasFeeController.fetchGasFeeEstimates.bind(gasFeeController),
+      // @ts-expect-error NetworkController in TransactionController is later version
+      // but only breaking change is Node version and bumped dependencies
+      getNetworkClientRegistry:
+        networkController.getNetworkClientRegistry.bind(networkController),
       getNetworkState: () => networkController.state,
-      getSelectedAddress: () => accountsController.getSelectedAccount().address,
+      getPermittedAccounts: (origin) => getPermittedAccounts(origin as string),
+      hooks: {
+        publish: (transactionMeta) => {
+          const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
+            store.getState(),
+          );
+
+          return submitSmartTransactionHook({
+            transactionMeta,
+            transactionController: this.transactionController,
+            smartTransactionsController: this.smartTransactionsController,
+            shouldUseSmartTransaction,
+            approvalController,
+            featureFlags: selectSwapsChainFeatureFlags(store.getState()),
+          }) as Promise<{ transactionHash: string }>;
+        },
+      },
       incomingTransactions: {
         isEnabled: () => {
           const currentHexChainId =
@@ -1043,43 +1171,31 @@ class Engine {
       },
       isSimulationEnabled: () =>
         preferencesController.state.useTransactionSimulations,
-      // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
+      // @ts-expect-error TransactionController is using later BaseController version
+      // but only breaking change is Node version
       messenger: this.controllerMessenger.getRestricted({
         name: 'TransactionController',
-        allowedActions: [`${approvalController.name}:addRequest`],
+        allowedActions: [
+          `${accountsController.name}:getSelectedAccount`,
+          `${approvalController.name}:addRequest`,
+          `${networkController.name}:getNetworkClientById`,
+        ],
+        allowedEvents: [`NetworkController:stateChange`],
       }),
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
           listener,
         ),
+      pendingTransactions: {
+        isResubmitEnabled: () => false,
+      },
       // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
       provider: networkController.getProviderAndBlockTracker().provider,
-
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      getExternalPendingTransactions: (address: string) =>
-        this.smartTransactionsController.getTransactions({
-          addressFrom: address,
-          status: SmartTransactionStatuses.PENDING,
-        }),
-
-      hooks: {
-        publish: (transactionMeta) => {
-          const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
-            store.getState(),
-          );
-
-          return submitSmartTransactionHook({
-            transactionMeta,
-            transactionController: this.transactionController,
-            smartTransactionsController: this.smartTransactionsController,
-            shouldUseSmartTransaction,
-            approvalController,
-            featureFlags: selectSwapsChainFeatureFlags(store.getState()),
-          });
-        },
-      },
+      sign: keyringController.signTransaction.bind(
+        keyringController,
+      ) as unknown as TransactionControllerOptions['sign'],
+      state: initialState.TransactionController,
     });
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
@@ -1114,7 +1230,7 @@ class Engine {
         getNonceLock: this.transactionController.getNonceLock.bind(
           this.transactionController,
         ),
-        // @ts-expect-error txController.getTransactions only uses txMeta.status and txMeta.hash, which v13 TxController has
+        // @ts-expect-error Older TransactionController version in SmartTransactionsController means TransactionMeta types don't match.
         getTransactions: this.transactionController.getTransactions.bind(
           this.transactionController,
         ),
@@ -1297,6 +1413,9 @@ class Engine {
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       snapController,
       subjectMetadataController,
+      authenticationController,
+      userStorageController,
+      notificationServicesController,
       ///: END:ONLY_INCLUDE_IF
       accountsController,
       new PPOMController({
@@ -1367,22 +1486,18 @@ class Engine {
       {},
     ) as typeof this.context;
 
-    const {
-      NftController: nfts,
-      KeyringController: keyring,
-      TransactionController: transaction,
-    } = this.context;
+    const { NftController: nfts } = this.context;
 
     if (process.env.MM_OPENSEA_KEY) {
       nfts.setApiKey(process.env.MM_OPENSEA_KEY);
     }
 
-    // @ts-expect-error TODO: Align transaction types between keyring and TransactionController
-    transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
-
-    transaction.hub.on('incomingTransactionBlock', (blockNumber: number) => {
-      NotificationManager.gotIncomingTransaction(blockNumber);
-    });
+    this.controllerMessenger.subscribe(
+      'TransactionController:incomingTransactionBlockReceived',
+      (blockNumber: number) => {
+        NotificationManager.gotIncomingTransaction(blockNumber);
+      },
+    );
 
     this.controllerMessenger.subscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
@@ -1469,7 +1584,6 @@ class Engine {
       AssetsContractController,
       TokenDetectionController,
       NetworkController,
-      TransactionController,
       SwapsController,
     } = this.context;
     const { provider } = NetworkController.getProviderAndBlockTracker();
@@ -1487,7 +1601,6 @@ class Engine {
       chainId: NetworkController.state?.providerConfig?.chainId,
       pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
     });
-    TransactionController.hub.emit('networkChange');
     TokenDetectionController.detectTokens();
     AccountTrackerController.refresh();
   }
@@ -1500,14 +1613,16 @@ class Engine {
   } => {
     const {
       CurrencyRateController,
-      PreferencesController,
+      AccountsController,
       AccountTrackerController,
       TokenBalancesController,
       TokenRatesController,
       TokensController,
       NetworkController,
     } = this.context;
-    const { selectedAddress } = PreferencesController.state;
+    const selectedInternalAccount = AccountsController.getSelectedAccount();
+    const selectSelectedInternalAccountChecksummedAddress =
+      toChecksumHexAddress(selectedInternalAccount.address);
     const { currentCurrency } = CurrencyRateController.state;
     const { chainId, ticker } = NetworkController.state.providerConfig;
     const {
@@ -1531,9 +1646,15 @@ class Engine {
     let tokenFiat = 0;
     let tokenFiat1dAgo = 0;
     const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
-    if (accountsByChainId?.[toHexadecimal(chainId)]?.[selectedAddress]) {
+    if (
+      accountsByChainId?.[toHexadecimal(chainId)]?.[
+        selectSelectedInternalAccountChecksummedAddress
+      ]
+    ) {
       ethFiat = weiToFiatNumber(
-        accountsByChainId[toHexadecimal(chainId)][selectedAddress].balance,
+        accountsByChainId[toHexadecimal(chainId)][
+          selectSelectedInternalAccountChecksummedAddress
+        ].balance,
         conversionRate,
         decimalsToShow,
       );
@@ -1663,11 +1784,13 @@ class Engine {
     TokenBalancesController.reset();
     TokenRatesController.update({ marketData: {} });
 
-    TransactionController.update({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (TransactionController as any).update(() => ({
       methodData: {},
       transactions: [],
       lastFetchedBlockNumbers: {},
-    });
+      submitHistory: [],
+    }));
 
     LoggingController.clear();
   };
@@ -1763,6 +1886,17 @@ class Engine {
     AccountsController.setAccountName(accountToBeNamed.id, label);
     PreferencesController.setAccountLabel(address, label);
   }
+
+  getGlobalEthQuery(): EthQuery {
+    const { NetworkController } = this.context;
+    const { provider } = NetworkController.getSelectedNetworkClient() ?? {};
+
+    if (!provider) {
+      throw new Error('No selected network client');
+    }
+
+    return new EthQuery(provider);
+  }
 }
 
 /**
@@ -1785,10 +1919,12 @@ export default {
     assertEngineExists(instance);
     return instance.context;
   },
+
   get controllerMessenger() {
     assertEngineExists(instance);
     return instance.controllerMessenger;
   },
+
   get state() {
     assertEngineExists(instance);
     const {
@@ -1815,6 +1951,9 @@ export default {
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController,
       SubjectMetadataController,
+      AuthenticationController,
+      UserStorageController,
+      NotificationServicesController,
       ///: END:ONLY_INCLUDE_IF
       PermissionController,
       ApprovalController,
@@ -1856,6 +1995,9 @@ export default {
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController,
       SubjectMetadataController,
+      AuthenticationController,
+      UserStorageController,
+      NotificationServicesController,
       ///: END:ONLY_INCLUDE_IF
       PermissionController,
       ApprovalController,
@@ -1863,36 +2005,44 @@ export default {
       AccountsController,
     };
   },
+
   get datamodel() {
     assertEngineExists(instance);
     return instance.datamodel;
   },
+
   getTotalFiatAccountBalance() {
     assertEngineExists(instance);
     return instance.getTotalFiatAccountBalance();
   },
+
   hasFunds() {
     assertEngineExists(instance);
     return instance.hasFunds();
   },
+
   resetState() {
     assertEngineExists(instance);
     return instance.resetState();
   },
+
   destroyEngine() {
     instance?.destroyEngineInstance();
     instance = null;
   },
+
   init(state: Record<string, never> | undefined, keyringState = null) {
     instance = Engine.instance || new Engine(state, keyringState);
     Object.freeze(instance);
     return instance;
   },
+
   acceptPendingApproval: async (
     id: string,
     requestData?: Record<string, Json>,
     opts?: AcceptOptions & { handleErrors?: boolean },
   ) => instance?.acceptPendingApproval(id, requestData, opts),
+
   rejectPendingApproval: (
     id: string,
     reason: Error,
@@ -1901,12 +2051,19 @@ export default {
       logErrors?: boolean;
     } = {},
   ) => instance?.rejectPendingApproval(id, reason, opts),
+
   setSelectedAddress: (address: string) => {
     assertEngineExists(instance);
     instance.setSelectedAccount(address);
   },
+
   setAccountLabel: (address: string, label: string) => {
     assertEngineExists(instance);
     instance.setAccountLabel(address, label);
+  },
+
+  getGlobalEthQuery: (): EthQuery => {
+    assertEngineExists(instance);
+    return instance.getGlobalEthQuery();
   },
 };

@@ -611,6 +611,10 @@
     "remove_account_message": "Θέλετε σίγουρα να αφαιρέσετε αυτόν τον λογαριασμό;",
     "no": "Όχι",
     "yes_remove_it": "Ναι, αφαιρέστε τον",
+    "remove_hardware_account": "Remove hardware account",
+    "remove_hw_account_alert_description": "Are you sure you want to remove this hardware wallet account? You’ll have to resync your hardware wallet if you want to use this account again with MetaMask Mobile.",
+    "remove_account_alert_remove_btn": "Remove",
+    "remove_account_alert_cancel_btn": "Nevermind",
     "accounts_title": "Λογαριασμοί",
     "connect_account_title": "Σύνδεση λογαριασμού",
     "connect_accounts_title": "Σύνδεση λογαριασμών",
@@ -668,8 +672,7 @@
     "hint_text": "Σαρώστε το πορτοφόλι υλικού σας για να ",
     "purpose_connect": "συνδεθείτε",
     "purpose_sign": "επιβεβαιώσετε τη συναλλαγή",
-    "select_accounts": "Επιλέξτε Λογαριασμό",
-    "please_wait": "Παρακαλούμε περιμένετε"
+    "select_accounts": "Επιλέξτε Λογαριασμό"
   },
   "data_collection_modal": {
     "accept": "Εντάξει",
@@ -682,6 +685,11 @@
     "forget": "Αγνοήστε αυτή τη συσκευή"
   },
   "app_settings": {
+    "enabling_notifications": "Enabling notifications...",
+    "disabling_notifications": "Disabling notifications...",
+    "enabling_profile_sync": "Enabling profile syncing...",
+    "disabling_profile_sync": "Disabling profile syncing...",
+    "notifications_dismiss_modal": "Dismiss",
     "title": "Ρυθμίσεις",
     "current_conversion": "Βασικό Νόμισμα",
     "current_language": "Τρέχουσα Γλώσσα",
@@ -805,7 +813,7 @@
     "security_desc": "Ρυθμίσεις απορρήτου, MetaMetrics, ιδιωτικό κλειδί και Μυστική Φράση Ανάκτησης πορτοφολιού",
     "networks_title": "Δίκτυα",
     "networks_default_title": "Προεπιλεγμένο Δίκτυο",
-    "network_delete": "If you delete this network, you will need to add it again to view your assets in this network",
+    "network_delete": "Εάν διαγράψετε αυτό το δίκτυο, θα πρέπει να το προσθέσετε ξανά για να δείτε τα περιουσιακά σας στοιχεία σε αυτό το δίκτυο",
     "networks_default_cta": "Χρήση αυτού του δικτύου",
     "networks_desc": "Προσθέστε και επεξεργαστείτε προσαρμοσμένα δίκτυα RPC",
     "network_name_label": "Όνομα Δικτύου",
@@ -821,7 +829,7 @@
     "network_other_networks": "Άλλα Δίκτυα",
     "network_rpc_networks": "Δίκτυα RPC",
     "network_add_network": "Προσθήκη Δικτύου",
-    "network_add_custom_network": "Add a custom network",
+    "network_add_custom_network": "Προσθήκη προσαρμοσμένου δικτύου",
     "network_add": "Προσθήκη",
     "network_save": "Αποθήκευση",
     "remove_network_title": "Θέλετε να αφαιρέσετε αυτό το δίκτυο;",
@@ -996,7 +1004,7 @@
     "token_nft_ens_subheading": "Αυτόματος εντοπισμός Tokens, NFS και ENS",
     "security_check_subheading": "Έλεγχοι ασφαλείας",
     "symbol_required": "Απαιτείται το σύμβολο.",
-    "blockaid_desc": "This feature alerts you to malicious activity by actively reviewing transaction and signature requests.",
+    "blockaid_desc": "Αυτή η λειτουργία σας προειδοποιεί για κακόβουλη δραστηριότητα, καθώς ελέγχει ενεργά τα αιτήματα συναλλαγών και υπογραφών.",
     "security_alerts": "Ειδοποιήσεις ασφαλείας",
     "security_alerts_desc": "Αυτή η λειτουργία σας προειδοποιεί για κακόβουλη δραστηριότητα, καθώς ελέγχει τοπικά τα αιτήματα συναλλαγών και υπογραφών σας. Πάντα να κάνετε τη δική σας επιμελή έρευνα προτού εγκρίνετε οποιαδήποτε αιτήματα. Δεν υπάρχει καμία εγγύηση ότι αυτή η λειτουργία θα εντοπίσει όλες τις κακόβουλες δραστηριότητες. Ενεργοποιώντας αυτή τη λειτουργία, συμφωνείτε με τους όρους χρήσης του παρόχου.",
     "smart_transactions_opt_in_heading": "Έξυπνες Συναλλαγές",
@@ -1033,7 +1041,7 @@
     "cancel": "Άκυρο",
     "loading": "Σύνδεση στο MetaMask...",
     "unkown_dapp": "Το όνομα DAPP δεν είναι διαθέσιμο",
-    "unknown": "Unknown",
+    "unknown": "Άγνωστο",
     "no_connections": "Χωρίς συνδέσεις",
     "no_connections_desc": "Εάν συνδέσετε έναν λογαριασμό σε έναν ιστότοπο ή μια εφαρμογή, θα τον δείτε εδώ."
   },
@@ -1657,7 +1665,7 @@
     "network_currency_symbol": "Σύμβολο Νομίσματος",
     "network_block_explorer_url": "Διεύθυνση URL του Block Explorer",
     "search": "Αναζήτηση για δίκτυο που έχει ήδη προστεθεί",
-    "search-short": "Search",
+    "search-short": "Αναζήτηση",
     "add": "Προσθήκη",
     "cancel": "Άκυρο",
     "approve": "Έγκριση",
@@ -1665,9 +1673,9 @@
     "malicious_network_warning": "Ένας κακόβουλος πάροχος δικτύου μπορεί να πει ψέματα για την κατάσταση του blockchain και να καταγράψει τη δραστηριότητα του δικτύου σας. Να προσθέτετε μόνο προσαρμοσμένα δίκτυα που εμπιστεύεστε.",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
     "network_warning_title": "Πληροφορίες Δικτύου",
-    "additional_network_information_title": "Additional Networks Information",
+    "additional_network_information_title": "Πρόσθετες πληροφορίες δικτύων",
     "network_warning_desc": "Αυτή η σύνδεση δικτύου βασίζεται σε τρίτους. H σύνδεση ενδέχεται να είναι λιγότερο αξιόπιστη ή να επιτρέπει σε τρίτους να παρακολουθούν τη δραστηριότητα.",
-    "additonial_network_information_desc": "Some of these networks rely on third parties. The connections may be less reliable or enable third-parties to track activity.",
+    "additonial_network_information_desc": "Ορισμένα από αυτά τα δίκτυα βασίζονται σε τρίτους. Οι συνδέσεις μπορεί να είναι λιγότερο αξιόπιστες ή να επιτρέπουν σε τρίτους να παρακολουθούν τη δραστηριότητα.",
     "learn_more": "Μάθετε περισσότερα",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "Εναλλαγή σε δίκτυο",
@@ -1956,7 +1964,7 @@
     "received": "Ελήφθη",
     "unstaked": "Ακύρωση πονταρίσματος",
     "to": "Προς",
-    "rate": "Ποσό (περιλαμβάνονται οι χρεώσεις)",
+    "rate": "Rate (fees included)",
     "unstaking_requested": "Αίτημα ακύρωσης πονταρίσματος",
     "stake_completed": "Ολοκλήρωση του πονταρίσματος",
     "withdrawal_completed": "Η ανάληψη ολοκληρώθηκε",
@@ -1966,6 +1974,49 @@
     "swap_completed": "Ανταλλαγή {{from}} για {{to}}",
     "swap": "Ανταλλαγή",
     "sent": "Στάλθηκε σε {{address}}",
+    "menu_item_title": {
+      "metamask_swap_completed": "Swapped {{symbol1}} for {{symbol2}}",
+      "erc20_sent": "Sent to {{address}}",
+      "erc20_received": "Received from {{address}}",
+      "eth_sent": "Sent to {{address}}",
+      "eth_received": "Received from {{address}}",
+      "erc721_sent": "Sent NFT to {{address}}",
+      "erc1155_sent": "Sent NFT to {{address}}",
+      "erc721_received": "Received NFT from {{address}}",
+      "erc1155_received": "Received NFT from {{address}}",
+      "rocketpool_stake_completed": "Staked",
+      "rocketpool_unstake_completed": "Unstaking complete",
+      "lido_stake_completed": "Staked",
+      "lido_withdrawal_requested": "Unstaking requested",
+      "lido_withdrawal_completed": "Unstaking complete",
+      "lido_stake_ready_to_be_withdrawn": "Withdrawal requested"
+    },
+    "menu_item_description": {
+      "lido_withdrawal_requested": "Your request to unstake {{amount}} {{symbol}} has been sent",
+      "lido_stake_ready_to_be_withdrawn": "You can now withdraw your unstaked {{symbol}}"
+    },
+    "modal": {
+      "title_sent": "Sent {{symbol}}",
+      "title_received": "Received {{symbol}}",
+      "title_unstake_requested": "Unstaking requested",
+      "title_untake_ready": "Withdrawl ready",
+      "title_stake": "Staked {{symbol}}",
+      "title_unstake_completed": "Unstaking completed",
+      "title_swapped": "Swapped {{symbol1}} to {{symbol2}}",
+      "label_address_to": "To",
+      "label_address_from": "From",
+      "label_address_to_you": "To (You)",
+      "label_address_from_you": "From (You)",
+      "label_asset": "Asset",
+      "label_account": "Account",
+      "label_unstaking_requested": "Unstaking Requested",
+      "label_unstake_ready": "Withdrawl ready",
+      "label_staked": "Staked",
+      "label_received": "Received",
+      "label_unstaking_confirmed": "Unstaking Confirmed",
+      "label_swapped": "Swapped",
+      "label_to": "To"
+    },
     "received_from": "Ελήφθη από {{address}}",
     "nft_sent": "Αποστολή NFT σε {{address}}",
     "erc721_sent": "Αποστολή NFT σε {{address}}",
@@ -1999,6 +2050,8 @@
     "received_message": "Πατήστε για να δείτε τη συναλλαγή",
     "received_payment_message": "Λάβατε {{amount}} DAI",
     "prompt_title": "Ενεργοποίηση των Ειδοποιήσεων Ώθησης",
+    "notifications_enabled_error_title": "Something went wrong",
+    "notifications_enabled_error_desc": "We couldn't enable notifications. Please try again later.",
     "prompt_desc": "Ενεργοποιήστε τις ειδοποιήσεις, ώστε το MetaMask να σας ενημερώνει όταν έχετε λάβει ETH ή όταν οι συναλλαγές σας έχουν επιβεβαιωθεί.",
     "prompt_ok": "Ναι",
     "prompt_cancel": "Όχι, ευχαριστώ",
@@ -2023,6 +2076,7 @@
       "1": "Πορτοφόλι",
       "2": "Ανακοινώσεις"
     },
+    "copied_to_clipboard": "Copied to clipboard",
     "address_copied_to_clipboard": "Αντιγραφή διεύθυνσης στο πρόχειρο",
     "transaction_id_copied_to_clipboard": "Αντιγραφή του αναγνωριστικού συναλλαγής στο πρόχειρο",
     "activation_card": {
@@ -2654,7 +2708,7 @@
       "header": "Ενισχυμένη Προστασία Συναλλαγών",
       "description_1": "Ξεκλειδώστε υψηλότερα ποσοστά επιτυχίας, προστασία εκ των προτέρων και καλύτερη ορατότητα με τις Έξυπνες Συναλλαγές.",
       "description_2": "Διατίθεται μόνο στο Ethereum. Ενεργοποίηση ή απενεργοποίηση ανά πάσα στιγμή στις ρυθμίσεις.",
-      "secondary_button": "Διαχείριση στις ρυθμίσεις",
+      "no_thanks": "No thanks",
       "primary_button": "Ενεργοποίηση",
       "learn_more": "Μάθετε περισσότερα.",
       "benefit_1_1": "99,5% ποσοστό",
@@ -2852,6 +2906,15 @@
   "remember_me": {
     "enable_remember_me": "Ενεργοποιήστε την λειτουργία «Να με θυμάστε»",
     "enable_remember_me_description": "Όταν η λειτουργία «Να με θυμάστε» είναι ενεργοποιημένη, οποιοσδήποτε έχει πρόσβαση στο τηλέφωνό σας μπορεί να αποκτήσει πρόσβαση στον λογαριασμό σας στο MetaMask."
+  },
+  "profile_sync": {
+    "title": "Profile Sync",
+    "disable_warning": "If you turn off profile sync, you won’t be able to receive notifications.",
+    "enable_description": "Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. ",
+    "enable_description2": " to learn more.",
+    "enable_privacy_link": "Learn how we protect your privacy",
+    "bottomSheetTurnOn": "Turning on Profile Sync",
+    "bottomSheetTurnOff": "Turning off Profile Sync"
   },
   "turn_off_remember_me": {
     "title": "Εισαγάγετε τον κωδικό πρόσβασής σας για να απενεργοποιήσετε την λειτουργία «Να με θυμάστε»",
@@ -3075,7 +3138,7 @@
   },
   "install_snap": {
     "title": "Αίτημα σύνδεσης",
-    "description": "{{origin}} wants to use {{snap}}.",
+    "description": "Το {{origin}} θέλει να χρησιμοποιήσει το {{snap}}.",
     "permissions_request_title": "Αίτημα αδειών",
     "permissions_request_description": "Το {{origin}} θέλει να εγκαταστήσει το {{snap}}, το οποίο ζητά τις ακόλουθες άδειες.",
     "approve_permissions": "Έγκριση",
@@ -3124,5 +3187,8 @@
     "title": "Εκτιμώμενες αλλαγές",
     "tooltip_description": "Οι εκτιμώμενες αλλαγές είναι αυτές που μπορεί να συμβούν αν προχωρήσετε σε αυτή τη συναλλαγή. Πρόκειται απλώς για μια πρόβλεψη, δεν αποτελεί εγγύηση.",
     "total_fiat": "Σύνολο = {{currency}}"
+  },
+  "common": {
+    "please_wait": "Please wait"
   }
 }
