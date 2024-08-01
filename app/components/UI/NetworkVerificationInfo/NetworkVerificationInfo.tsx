@@ -82,6 +82,55 @@ const NetworkVerificationInfo = ({
     [customNetworkInformation],
   );
 
+  const renderCurrencySymbol = () => (
+    <>
+      <Text
+        variant={
+          !isMutichainVersion1Enabled
+            ? TextVariant.BodyMDBold
+            : TextVariant.BodyMDMedium
+        }
+      >
+        {strings('add_custom_network.currency_symbol')}
+      </Text>
+      <Text style={styles.textSection}>{customNetworkInformation.ticker}</Text>
+    </>
+  );
+
+  const renderChainId = () => (
+    <>
+      <Text
+        variant={
+          !isMutichainVersion1Enabled
+            ? TextVariant.BodyMDBold
+            : TextVariant.BodyMDMedium
+        }
+      >
+        {strings('add_custom_network.chain_id')}
+      </Text>
+      <Text style={styles.textSection}>
+        {convertHexToDecimal(customNetworkInformation.chainId)}
+      </Text>
+    </>
+  );
+
+  const renderNetworkDisplayName = () => (
+    <>
+      <Text
+        variant={
+          !isMutichainVersion1Enabled
+            ? TextVariant.BodyMDBold
+            : TextVariant.BodyMDMedium
+        }
+      >
+        {strings('add_custom_network.display_name')}
+      </Text>
+      <Text style={styles.textSection}>
+        {customNetworkInformation.chainName}
+      </Text>
+    </>
+  );
+
   const renderNetworkInfo = () => (
     <ScrollView
       nestedScrollEnabled
@@ -98,22 +147,22 @@ const NetworkVerificationInfo = ({
         networkDetailsExpanded ? styles.nestedScrollContent : undefined
       }
     >
-      <Text variant={TextVariant.BodyMDBold}>
-        {strings('add_custom_network.display_name')}
-      </Text>
-      <Text style={styles.textSection}>
-        {customNetworkInformation.chainName}
-      </Text>
+      {!isMutichainVersion1Enabled && renderNetworkDisplayName()}
 
-      <Text variant={TextVariant.BodyMDBold}>
-        {strings('add_custom_network.chain_id')}
-      </Text>
-      <Text style={styles.textSection}>
-        {convertHexToDecimal(customNetworkInformation.chainId)}
-      </Text>
+      {isMutichainVersion1Enabled && renderCurrencySymbol()}
 
-      <Text variant={TextVariant.BodyMDBold}>
-        {strings('add_custom_network.network_url')}
+      {!isMutichainVersion1Enabled && renderChainId()}
+
+      <Text
+        variant={
+          !isMutichainVersion1Enabled
+            ? TextVariant.BodyMDBold
+            : TextVariant.BodyMDMedium
+        }
+      >
+        {isMutichainVersion1Enabled
+          ? strings('networks.network_rpc_url_label')
+          : strings('add_custom_network.network_url')}
       </Text>
       <Text style={styles.textSection}>
         {hideKeyFromUrl(customNetworkInformation.rpcUrl)}
@@ -123,14 +172,19 @@ const NetworkVerificationInfo = ({
         title={strings('spend_limit_edition.view_details')}
         onPress={() => setNetworkDetailsExpanded(!networkDetailsExpanded)}
       >
-        <Text variant={TextVariant.BodyMDBold}>
-          {strings('add_custom_network.currency_symbol')}
-        </Text>
-        <Text style={styles.textSection}>
-          {customNetworkInformation.ticker}
-        </Text>
+        {isMutichainVersion1Enabled && renderChainId()}
 
-        <Text variant={TextVariant.BodyMDBold}>
+        {isMutichainVersion1Enabled && renderNetworkDisplayName()}
+
+        {!isMutichainVersion1Enabled && renderCurrencySymbol()}
+
+        <Text
+          variant={
+            !isMutichainVersion1Enabled
+              ? TextVariant.BodyMDBold
+              : TextVariant.BodyMDMedium
+          }
+        >
           {strings('add_custom_network.block_explorer_url')}
         </Text>
         <Text>{customNetworkInformation.blockExplorerUrl}</Text>
