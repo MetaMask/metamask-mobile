@@ -266,6 +266,7 @@ const NetworkVerificationInfo = ({
               {strings(
                 'switch_custom_network.add_network_and_give_dapp_permission_warning',
                 {
+                  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                   // @ts-ignore
                   dapp_origin: new URL(customNetworkInformation.pageMeta.url)
                     ?.hostname,
