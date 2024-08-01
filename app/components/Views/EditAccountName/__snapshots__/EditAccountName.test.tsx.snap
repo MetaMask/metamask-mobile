@@ -237,7 +237,7 @@ exports[`EditAccountName should render correctly 1`] = `
           "paddingHorizontal": 16,
         }
       }
-      testID="save-button"
+      testID="edit-account-name-save-button"
       variant="Primary"
     >
       <Text

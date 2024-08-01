@@ -110,6 +110,7 @@ stages:
     workflows:
       - ios_e2e_test: {}
   build_smoke_e2e_ios_android_stage:
+    abort_on_fail: true
     workflows:
       - ios_e2e_build: {}
       - android_e2e_build: {}
@@ -1419,6 +1420,9 @@ app:
     - opts:
         is_expand: false
       MM_NETWORK_UI_REDESIGN_ENABLED: false
+    - opts:
+        is_expand: false
+      MM_MULTICHAIN_V1_ENABLED: false
     - opts:
         is_expand: false
       PROJECT_LOCATION: android
