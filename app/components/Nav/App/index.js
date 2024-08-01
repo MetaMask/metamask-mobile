@@ -1,9 +1,12 @@
+// tslint:disable:no-console
 import React, {
   useCallback,
   useContext,
   useEffect,
   useRef,
   useState,
+  Profiler,
+  // ProfilerOnRenderCallback
 } from 'react';
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
 import {
@@ -26,7 +29,7 @@ import ManualBackupStep1 from '../../Views/ManualBackupStep1';
 import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportFromSecretRecoveryPhrase from '../../Views/ImportFromSecretRecoveryPhrase';
-import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
+import DeleteWalletModal from '../../UI/DeleteWalletModal';
 import WhatsNewModal from '../../UI/WhatsNewModal/WhatsNewModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
@@ -49,7 +52,7 @@ import {
   setCurrentRoute,
 } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
-import { Authentication } from '../../../core/';
+import { Authentication } from '../../../core';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
@@ -59,11 +62,11 @@ import ModalConfirmation from '../../../component-library/components/Modals/Moda
 import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
-import AccountSelector from '../../../components/Views/AccountSelector';
-import AccountConnect from '../../../components/Views/AccountConnect';
-import AccountPermissions from '../../../components/Views/AccountPermissions';
+import AccountSelector from '../../Views/AccountSelector';
+import AccountConnect from '../../Views/AccountConnect';
+import AccountPermissions from '../../Views/AccountPermissions';
 import { SRPQuiz } from '../../Views/Quiz';
-import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
+import { TurnOffRememberMeModal } from '../../UI/TurnOffRememberMeModal';
 import AssetHideConfirmation from '../../Views/AssetHideConfirmation';
 import DetectedTokens from '../../Views/DetectedTokens';
 import DetectedTokensConfirmation from '../../Views/DetectedTokensConfirmation';
@@ -73,8 +76,8 @@ import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
 import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../constants/error';
-import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
-import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
+import { UpdateNeeded } from '../../UI/UpdateNeeded';
+import { EnableAutomaticSecurityChecksModal } from '../../UI/EnableAutomaticSecurityChecksModal';
 import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 import ModalMandatory from '../../../component-library/components/Modals/ModalMandatory';
 import { RestoreWallet } from '../../Views/RestoreWallet';
@@ -84,27 +87,27 @@ import SDKLoadingModal from '../../Views/SDK/SDKLoadingModal/SDKLoadingModal';
 import SDKFeedbackModal from '../../Views/SDK/SDKFeedbackModal/SDKFeedbackModal';
 import LedgerMessageSignModal from '../../UI/LedgerModals/LedgerMessageSignModal';
 import LedgerTransactionModal from '../../UI/LedgerModals/LedgerTransactionModal';
-import AccountActions from '../../../components/Views/AccountActions';
-import EthSignFriction from '../../../components/Views/Settings/AdvancedSettings/EthSignFriction';
-import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedSettings/FiatOnTestnetsFriction';
+import AccountActions from '../../Views/AccountActions';
+import EthSignFriction from '../../Views/Settings/AdvancedSettings/EthSignFriction';
+import FiatOnTestnetsFriction from '../../Views/Settings/AdvancedSettings/FiatOnTestnetsFriction';
 import WalletActions from '../../Views/WalletActions';
-import NetworkSelector from '../../../components/Views/NetworkSelector';
+import NetworkSelector from '../../Views/NetworkSelector';
 import ReturnToAppModal from '../../Views/ReturnToAppModal';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import WC2Manager, {
   isWC2Enabled,
-} from '../../../../app/core/WalletConnect/WalletConnectV2';
-import { DevLogger } from '../../../../app/core/SDKConnect/utils/DevLogger';
+} from '../../../core/WalletConnect/WalletConnectV2';
+import { DevLogger } from '../../../core/SDKConnect/utils/DevLogger';
 import { PPOMView } from '../../../lib/ppom/PPOMView';
 import NavigationService from '../../../core/NavigationService';
 import LockScreen from '../../Views/LockScreen';
 import StorageWrapper from '../../../store/storage-wrapper';
 import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
 import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
-import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
+import AmbiguousAddressSheet from '../../Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
 import SDKDisconnectModal from '../../Views/SDK/SDKDisconnectModal/SDKDisconnectModal';
 import SDKSessionModal from '../../Views/SDK/SDKSessionModal/SDKSessionModal';
-import ExperienceEnhancerModal from '../../../../app/components/Views/ExperienceEnhancerModal';
+import ExperienceEnhancerModal from '../../Views/ExperienceEnhancerModal';
 import { MetaMetrics } from '../../../core/Analytics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
@@ -115,11 +118,37 @@ import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
 import SmartTransactionsOptInModal from '../../Views/SmartTransactionsOptInModal/SmartTranactionsOptInModal';
 import ProfileSyncingModal from '../../UI/ProfileSyncing/ProfileSyncingModal/ProfileSyncingModal';
-import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
+import NFTAutoDetectionModal from '../../Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
 import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
+import performance, {
+  setResourceLoggingEnabled,
+  // PerformanceObserver,
+} from 'react-native-performance';
+import setupPerformanceObservers from './setupPerformanceObservers';
+// import type {
+//   PerformanceMetric,
+//   PerformanceResourceTiming,
+//   PerformanceReactNativeMark,
+// } from 'react-native-performance';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
+
+setResourceLoggingEnabled(true);
+
+const traceRender = (
+  id,
+  phase,
+  actualDuration,
+  baseDuration,
+  startTime,
+  _commitTime,
+  _interactions,
+) =>
+  performance.measure(id, {
+    start: startTime,
+    duration: actualDuration,
+  });
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -135,6 +164,7 @@ const clearStackNavigatorOptions = {
 };
 
 const Stack = createStackNavigator();
+
 
 const OnboardingSuccessComponent = () => (
   <OnboardingSuccess
@@ -315,6 +345,12 @@ const App = ({ userLoggedIn }) => {
   const dispatch = useDispatch();
   const sdkInit = useRef();
   const [onboarded, setOnboarded] = useState(false);
+  //state variables store the performance metrics, native marks, and resource timings
+  // const [resources, setResources] = useState([]);
+  const [nativeLaunch, setNativeLaunch] = useState([]);
+  const [runJsBundle, setRunJsBundle] = useState([]);
+  // const [contentAppeared, setContentAppeared] = useState([]);
+
   const triggerSetCurrentRoute = (route) => {
     dispatch(setCurrentRoute(route));
     if (route === 'Wallet' || route === 'BrowserView') {
@@ -323,6 +359,13 @@ const App = ({ userLoggedIn }) => {
     }
   };
 
+  React.useEffect(() => {
+    setupPerformanceObservers(setNativeLaunch, setRunJsBundle);
+  }, []);
+
+  /* eslint-disable no-console */ console.log('nativeLaunch:', nativeLaunch);
+  /* eslint-disable no-console */ console.log('runJsBundle:', runJsBundle);
+  // /* eslint-disable no-console */ console.log('contentAppeared:', contentAppeared);
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
     const appTriggeredAuth = async () => {
@@ -796,7 +839,7 @@ const App = ({ userLoggedIn }) => {
   return (
     // do not render unless a route is defined
     (route && (
-      <>
+      <Profiler id="App.render()" onRender={traceRender}>
         {
           ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         }
@@ -923,7 +966,7 @@ const App = ({ userLoggedIn }) => {
         </NavigationContainer>
         {renderSplash()}
         <Toast ref={toastRef} />
-      </>
+      </Profiler>
     )) ||
     null
   );
