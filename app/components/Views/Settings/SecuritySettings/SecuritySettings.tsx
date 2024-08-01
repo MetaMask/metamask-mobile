@@ -126,6 +126,7 @@ import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyt
 import { selectIsProfileSyncingEnabled } from '../../../../selectors/notifications';
 import { useProfileSyncing } from '../../../../util/notifications/hooks/useProfileSyncing';
 import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
+import { RootState } from '../../../../reducers';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -156,8 +157,12 @@ const Settings: React.FC = () => {
   const [onlineIpfsGateways, setOnlineIpfsGateways] = useState<Gateway[]>([]);
   const [gotAvailableGateways, setGotAvailableGateways] = useState(false);
   const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+  const isBasicFunctionalityEnabled = useSelector(
+    (state: RootState) => state?.settings?.basicFunctionalityEnabled,
+  );
   const {
     enableProfileSyncing,
+    disableProfileSyncing,
     loading: profileSyncLoading,
     error: profileSyncError,
   } = useProfileSyncing();
@@ -264,6 +269,10 @@ const Settings: React.FC = () => {
     isEnabled,
     trackEvent,
   ]);
+
+  useEffect(() => {
+    !isBasicFunctionalityEnabled && disableProfileSyncing();
+  }, [disableProfileSyncing, isBasicFunctionalityEnabled]);
 
   const scrollToDetectNFTs = useCallback(() => {
     if (detectNftComponentRef.current) {
@@ -1007,6 +1016,10 @@ const Settings: React.FC = () => {
     );
   }
 
+  const profileSyncModalMessage = !isProfileSyncingEnabled
+    ? strings('app_settings.enabling_profile_sync')
+    : strings('app_settings.disabling_profile_sync');
+
   return (
     <ScrollView
       style={styles.wrapper}
@@ -1110,7 +1123,7 @@ const Settings: React.FC = () => {
       </View>
       <SwitchLoadingModal
         loading={profileSyncLoading}
-        loadingText={strings('app_settings.enabling_profile_sync')}
+        loadingText={profileSyncModalMessage}
         error={profileSyncError}
       />
     </ScrollView>
