@@ -67,6 +67,7 @@ import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransac
 import { STX_NO_HASH_ERROR } from '../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../util/smart-transactions';
 import { cloneDeep, isEqual } from 'lodash';
+import { selectSwapsTransactions } from '../../../selectors/transactionController';
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
@@ -75,11 +76,7 @@ import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
 const hstInterface = new ethers.utils.Interface(abi);
 
 function useSwapsTransactions() {
-  const swapTransactions = useSelector(
-    (state) =>
-      state.engine.backgroundState.TransactionController.swapsTransactions,
-    isEqual,
-  );
+  const swapTransactions = useSelector(selectSwapsTransactions, isEqual);
 
   // Memo prevents fresh fallback empty object on every render.
   return useMemo(() => swapTransactions ?? {}, [swapTransactions]);
@@ -98,7 +95,6 @@ export const useSwapConfirmedEvent = ({ trackSwaps }) => {
     },
     [transactionMetaIdsForListening],
   );
-
   const swapsTransactions = useSwapsTransactions();
 
   useEffect(() => {
@@ -260,7 +256,6 @@ const RootRPCMethodsUI = (props) => {
   const { addTransactionMetaIdForListening } = useSwapConfirmedEvent({
     trackSwaps,
   });
-
   const swapsTransactions = useSwapsTransactions();
 
   const autoSign = useCallback(
