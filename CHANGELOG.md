@@ -2,7 +2,11 @@
 
 ## Current Main Branch
 
-## 7.27.0 - Jul 5, 2024
+## 7.27.1 - Jul 25, 2024
+### Fixed
+- [#10438](https://github.com/MetaMask/metamask-mobile/pull/10438): cherry-pick: update @blockaid/ppom_release package to version 1.5.1 (#10435) #10438
+
+## 7.27.0 - Jul 19, 2024
 ### Added
 - [#7759](https://github.com/MetaMask/metamask-mobile/pull/7759): feat: upgrade react-native-webview (#7759)
 - [#10000](https://github.com/MetaMask/metamask-mobile/pull/10000): feat: support security alerts API (#10000)
