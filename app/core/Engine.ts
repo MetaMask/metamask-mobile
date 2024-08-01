@@ -433,6 +433,13 @@ type RequiredControllers = Omit<Controllers, 'PPOMController'>;
  */
 type OptionalControllers = Pick<Controllers, 'PPOMController'>;
 
+type NonControllers = Pick<
+  Controllers,
+  | 'AssetsContractController'
+  | 'NftDetectionController'
+  | 'TokenDetectionController'
+>;
+
 /**
  * Core controller responsible for composing other metamask controllers together
  * and exposing convenience methods for common wallet operations.
@@ -453,7 +460,10 @@ class Engine {
   /**
    * ComposableController reference containing all child controllers
    */
-  datamodel: ComposableController<EngineState, Controllers[keyof Controllers]>;
+  datamodel: ComposableController<
+    EngineState,
+    Controllers[Exclude<keyof Controllers, keyof NonControllers>]
+  >;
 
   /**
    * Object containing the info for the latest incoming tx block
@@ -1499,9 +1509,19 @@ class Engine {
 
     this.datamodel = new ComposableController<
       EngineState,
-      Controllers[keyof Controllers]
+      Controllers[Exclude<keyof Controllers, keyof NonControllers>]
     >({
-      controllers,
+      controllers: controllers.filter(
+        (
+          controller,
+        ): controller is Controllers[Exclude<
+          keyof Controllers,
+          keyof NonControllers
+        >] =>
+          'state' in controller &&
+          controller.state !== undefined &&
+          Object.keys(controller.state).length > 0,
+      ),
       messenger: this.controllerMessenger.getRestricted({
         name: 'ComposableController',
         allowedActions: [],
