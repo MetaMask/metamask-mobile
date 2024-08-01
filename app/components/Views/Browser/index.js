@@ -39,6 +39,7 @@ import URL from 'url-parse';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import { getBrowserViewNavbarOptions } from '../../UI/Navbar';
+import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
@@ -82,8 +83,7 @@ export const Browser = (props) => {
   const permittedAccountsList = useSelector((state) => {
     if (!activeTab) return [];
 
-    const permissionsControllerState =
-      state.engine.backgroundState.PermissionController;
+    const permissionsControllerState = selectPermissionControllerState(state);
     const hostname = new URL(activeTab.url).hostname;
     const permittedAcc = getPermittedAccountsByHostname(
       permissionsControllerState,
