@@ -48,6 +48,14 @@ yarn-error.log
 .yalc
 yalc.lock
 
+# Yarn
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+development/generate-attributions/.yarn/*
+
 # buck
 buck-out/
 \.buckd/

@@ -110,32 +110,17 @@
     ]
   },
   "resolutions": {
-    "**/json-schema": "^0.4.0",
-    "react-native-svg/**/nth-check": "^2.0.1",
-    "**/node-fetch": "^2.6.7",
-    "**/xml2js": ">=0.5.0",
-    "react-native-level-fs/**/bl": "^1.2.3",
-    "react-native-level-fs/levelup/semver": "^5.7.2",
     "@metamask/contract-metadata": "^2.1.0",
     "@metamask/react-native-payments/validator": "^13.7.0",
-    "**/minimist": "1.2.6",
     "d3-color": "3.1.0",
     "tough-cookie": "4.1.3",
     "crypto-js": "4.2.0",
     "axios": "^1.6.8",
     "react-native-ble-plx": "3.1.2",
-    "**/babel-runtime/regenerator-runtime": "^0.13.8",
     "redux-persist-filesystem-storage/react-native-blob-util": "^0.19.9",
     "xmldom": "npm:@xmldom/xmldom@0.7.13",
-    "@storybook/react-native/chokidar/braces": "^3.0.3",
-    "lint-staged/micromatch/braces": "^3.0.3",
     "@metamask/metamask-eth-abis": "3.1.1",
-    "**/@walletconnect/socket-transport/ws": "^7.5.10",
-    "**/@ethersproject/providers/ws": "^7.5.10",
-    "**/appium-base-driver/webdriverio/puppeteer-core/ws": "^7.5.10",
-    "**/puppeteer-core/ws": "^8.17.1",
-    "react-native/ws": "^6.2.3",
-    "socket.io-client/engine.io-client/ws": "^8.17.1"
+    "react-native/ws": "^6.2.3"
   },
   "dependencies": {
     "@consensys/on-ramp-sdk": "1.28.1",
@@ -263,6 +248,8 @@
     "lottie-ios": "3.4.1",
     "lottie-react-native": "5.1.5",
     "multihashes": "0.4.14",
+    "node-fetch": "^2.6.7",
+    "nth-check": "^2.0.1",
     "number-to-bn": "1.7.0",
     "obs-store": "4.0.3",
     "path": "0.12.7",
@@ -355,7 +342,10 @@
     "url-parse": "1.5.9",
     "uuid": "^8.3.2",
     "valid-url": "1.0.9",
+    "validator": "^13.7.0",
     "vm-browserify": "1.1.2",
+    "ws": "^8.17.1",
+    "xmldom": "npm:@xmldom/xmldom@0.7.13",
     "zxcvbn": "4.4.2"
   },
   "devDependencies": {
@@ -491,7 +481,7 @@
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
     "xhr2": "^0.2.1",
-    "xml2js": "^0.5.0",
+    "xml2js": ">=0.5.0",
     "yarn-deduplicate": "^6.0.2"
   },
   "config": {
@@ -521,19 +511,19 @@
     "fs": "react-native-level-fs"
   },
   "browser": {
-    "crypto": "react-native-crypto",
-    "_stream_transform": "readable-stream/transform",
-    "_stream_readable": "readable-stream/readable",
-    "_stream_writable": "readable-stream/writable",
     "_stream_duplex": "readable-stream/duplex",
     "_stream_passthrough": "readable-stream/passthrough",
-    "stream": "stream-browserify",
+    "_stream_readable": "readable-stream/readable",
+    "_stream_transform": "readable-stream/transform",
+    "_stream_writable": "readable-stream/writable",
+    "crypto": "react-native-crypto",
+    "fs": "react-native-level-fs",
     "http": "@tradle/react-native-http",
     "https": "https-browserify",
-    "vm": "vm-browserify",
-    "os": "react-native-os",
     "net": "react-native-tcp",
-    "fs": "react-native-level-fs"
+    "os": "react-native-os",
+    "stream": "stream-browserify",
+    "vm": "vm-browserify"
   },
   "engines": {
     "node": "^20.12.2",
@@ -582,5 +572,5 @@
       "@metamask/notification-services-controller>firebase>@firebase/firestore>@grpc/proto-loader>protobufjs": false
     }
   },
-  "packageManager": "yarn@1.22.22"
+  "packageManager": "yarn@3.8.3"
 }
