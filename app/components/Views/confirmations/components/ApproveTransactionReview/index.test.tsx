@@ -68,6 +68,7 @@ const initialState = {
 describe('ApproveTransactionModal', () => {
   it('render matches snapshot', () => {
     const { toJSON } = renderScreen(
+      // @ts-expect-error Component has complex prop types that are difficult to resolve in the test environment
       ApproveTransactionModal,
       { name: 'Approve' },
       { state: initialState },
