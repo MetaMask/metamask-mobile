@@ -1508,7 +1508,7 @@ class Engine {
     }
 
     this.datamodel = new ComposableController<
-      EngineState,
+      Exclude<EngineState, keyof NonControllers>,
       Controllers[Exclude<keyof Controllers, keyof NonControllers>]
     >({
       controllers: controllers.filter(
@@ -2010,7 +2010,6 @@ export default {
     const {
       AccountTrackerController,
       AddressBookController,
-      AssetsContractController,
       NftController,
       TokenListController,
       CurrencyRateController,
@@ -2026,8 +2025,6 @@ export default {
       SwapsController,
       GasFeeController,
       TokensController,
-      TokenDetectionController,
-      NftDetectionController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController,
       SubjectMetadataController,
