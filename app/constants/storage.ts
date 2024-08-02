@@ -61,3 +61,5 @@ export const REVIEW_SHOWN_TIME = 'reviewShownTime';
 export const themeAppearanceLight = 'light';
 
 export const USE_TERMS = `${prefix}UserTermsAccepted${USE_TERMS_VERSION}`;
+
+export const TERMS_OF_USE_CONTENT = 'termsOfUseContent';

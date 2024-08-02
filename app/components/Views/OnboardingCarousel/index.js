@@ -25,6 +25,10 @@ import { WELCOME_SCREEN_CAROUSEL_TITLE_ID } from '../../../../wdio/screen-object
 import { OnboardingCarouselSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingCarousel.selectors';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import Logger from '../../../util/Logger';
+import storageWrapper from '../../../store/storage-wrapper';
+import AppConstants from '../../../core/AppConstants';
+import { TERMS_OF_USE_CONTENT } from '../../../constants/storage';
 
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;
@@ -168,9 +172,22 @@ class OnboardingCarousel extends PureComponent {
     );
   };
 
+  fetchTermsOfUse = async () => {
+    try {
+      const response = await fetch(
+        AppConstants.TERMS_OF_USE.TERMS_OF_USE_URL_WITHOUT_COOKIES,
+      );
+      const content = await response.text();
+      await storageWrapper.setItem(TERMS_OF_USE_CONTENT, content);
+    } catch (error) {
+      Logger.error('Failed to fetch Terms of Use:', error);
+    }
+  };
+
   componentDidMount = () => {
     this.updateNavBar();
     this.track(MetaMetricsEvents.ONBOARDING_WELCOME_MESSAGE_VIEWED);
+    this.fetchTermsOfUse();
   };
 
   componentDidUpdate = () => {

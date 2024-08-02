@@ -1,6 +1,6 @@
 import AppConstants from '../../core/AppConstants';
 import { MetaMetrics, MetaMetricsEvents } from '../../core/Analytics';
-import { TRUE, USE_TERMS } from '../../constants/storage';
+import { TERMS_OF_USE_CONTENT, TRUE, USE_TERMS } from '../../constants/storage';
 import Routes from '../../constants/navigation/Routes';
 import { strings } from '../../../locales/i18n';
 import { TermsOfUseModalSelectorsIDs } from '../../../e2e/selectors/Modals/TermsOfUseModal.selectors';
@@ -21,6 +21,7 @@ export default async function navigateTermsOfUse(
   navigate: (key: string, params: any) => void,
 ) {
   const isUseTermsAccepted = await StorageWrapper.getItem(USE_TERMS);
+  const termsOfUseContent = await StorageWrapper.getItem(TERMS_OF_USE_CONTENT);
   if (!isUseTermsAccepted) {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.MODAL_MANDATORY,
@@ -36,10 +37,10 @@ export default async function navigateTermsOfUse(
         footerHelpText: strings('terms_of_use_modal.accept_helper_description'),
         body: {
           source: 'WebView',
-          uri: AppConstants.TERMS_OF_USE.TERMS_OF_USE_URL_WITHOUT_COOKIES,
+          html: termsOfUseContent,
         },
         onRender: useTermsDisplayed,
-        isScrollToEndNeeded: true,
+        isScrollToEndNeeded: false,
         scrollEndBottomMargin: 50,
       },
     });

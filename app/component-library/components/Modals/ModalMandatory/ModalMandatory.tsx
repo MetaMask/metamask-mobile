@@ -27,7 +27,11 @@ import {
   WEBVIEW_SCROLL_END_EVENT,
   WEBVIEW_SCROLL_NOT_END_EVENT,
 } from './ModalMandatory.constants';
-import { MandatoryModalProps } from './ModalMandatory.types';
+import {
+  BodyWebView,
+  BodyWebViewUri,
+  MandatoryModalProps,
+} from './ModalMandatory.types';
 import stylesheet from './ModalMandatory.styles';
 import { TermsOfUseModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/TermsOfUseModal.selectors';
 
@@ -144,17 +148,29 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
     </View>
   );
 
-  const renderWebView = (uri: string) => (
-    <WebView
-      ref={webViewRef}
-      nestedScrollEnabled
-      source={{ uri }}
-      injectedJavaScript={isScrollEndedJS}
-      onLoad={() => setIsWebViewLoaded(true)}
-      onMessage={onMessage}
-      onShouldStartLoadWithRequest={(req) => uri === req.url}
-    />
-  );
+  const isBodyWebViewUri = (body: BodyWebView): body is BodyWebViewUri => {
+    return (body as BodyWebViewUri).uri !== undefined;
+  };
+
+  const renderWebView = (body: BodyWebView) => {
+    const source = isBodyWebViewUri(body)
+      ? { uri: body.uri }
+      : { html: body.html };
+
+    return (
+      <WebView
+        ref={webViewRef}
+        nestedScrollEnabled
+        source={source}
+        injectedJavaScript={isScrollEndedJS}
+        onLoad={() => setIsWebViewLoaded(true)}
+        onMessage={onMessage}
+        {...(body.uri && {
+          onShouldStartLoadWithRequest: (req) => body.uri === req.url,
+        })}
+      />
+    );
+  };
 
   const isCloseToBottom = ({
     layoutMeasurement,
@@ -215,7 +231,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
           style={styles.bodyContainer}
           testID={TermsOfUseModalSelectorsIDs.WEBVIEW}
         >
-          {body.source === 'WebView' ? renderWebView(body.uri) : renderBody()}
+          {body.source === 'WebView' ? renderWebView(body) : renderBody()}
         </View>
         <TouchableOpacity
           style={styles.checkboxContainer}
