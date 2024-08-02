@@ -12,8 +12,7 @@ pipelines:
   #Builds MetaMask, MetaMask-QA apps and stores apk/ipa in Bitrise
   build_all_targets_pipeline:
     stages:
-      - create_build_release: {}
-      - create_build_qa: {} #Generate QA builds for E2E app upgrade tests
+      - create_build_all_targets: {}
   #Releases MetaMask apps and stores apk/ipa into Play(Internal Testing)/App(TestFlight) Store
   release_builds_to_store_pipeline:
     stages:
@@ -73,6 +72,12 @@ pipelines:
 
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
+  create_build_all_targets:
+    workflows:
+      - build_android_release: {}
+      - build_ios_release: {}
+      - build_android_qa: {}
+      - build_ios_qa: {}
   create_build_release:
     workflows:
       - build_android_release: {}
@@ -1498,8 +1503,6 @@ trigger_map:
     pipeline: release_e2e_pipeline
   - push_branch: main
     pipeline: pr_smoke_e2e_pipeline
-  - tag: 'v*.*.*-RC-*'
-    pipeline: release_builds_to_store_pipeline
   - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
