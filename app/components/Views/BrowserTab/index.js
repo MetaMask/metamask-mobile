@@ -102,6 +102,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { trackDappViewedEvent } from '../../../util/metrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
+import { useIsFocused } from '@react-navigation/native';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -269,6 +270,7 @@ export const BrowserTab = (props) => {
   const webviewRef = useRef(null);
   const blockListType = useRef('');
   const allowList = useRef([]);
+  const isFocused = useIsFocused();
 
   const url = useRef('');
   const title = useRef('');
@@ -705,6 +707,14 @@ export const BrowserTab = (props) => {
       );
     };
   }, [goBack, isTabActive, props.navigation]);
+
+  useEffect(() => {
+    if (webviewRef.current) {
+      webviewRef.current.injectJavaScript(`
+        window.isTabActive = ${isFocused};
+      `);
+    }
+  }, [isFocused]);
 
   /**
    * Inject home page scripts to get the favourites and set analytics key
