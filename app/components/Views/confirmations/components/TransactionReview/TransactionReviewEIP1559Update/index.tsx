@@ -127,9 +127,7 @@ const TransactionReviewEIP1559Update = ({
             >
               {!origin
                 ? strings('transaction_review_eip1559.estimated_gas_fee')
-                : strings('transaction_review_eip1559.suggested_gas_fee', {
-                    origin,
-                  })}
+                : strings('transaction_review_eip1559.estimated_fee')}
               <TouchableOpacity
                 style={styles.gasInfoContainer}
                 onPress={() =>
