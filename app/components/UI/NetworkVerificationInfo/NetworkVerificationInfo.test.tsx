@@ -35,8 +35,8 @@ describe('NetworkVerificationInfo', () => {
     const { toJSON } = render(
       <NetworkVerificationInfo
         customNetworkInformation={mockNetworkInfo}
-        onReject={() => {}}
-        onConfirm={() => {}}
+        onReject={() => undefined}
+        onConfirm={() => undefined}
       />,
     );
 
@@ -47,8 +47,8 @@ describe('NetworkVerificationInfo', () => {
     const { getByText } = render(
       <NetworkVerificationInfo
         customNetworkInformation={mockNetworkInfo}
-        onReject={() => {}}
-        onConfirm={() => {}}
+        onReject={() => undefined}
+        onConfirm={() => undefined}
       />,
     );
     expect(
@@ -61,8 +61,8 @@ describe('NetworkVerificationInfo', () => {
     const { getByText } = render(
       <NetworkVerificationInfo
         customNetworkInformation={mockNetworkInfo}
-        onReject={() => {}}
-        onConfirm={() => {}}
+        onReject={() => undefined}
+        onConfirm={() => undefined}
       />,
     );
     expect(
@@ -75,8 +75,8 @@ describe('NetworkVerificationInfo', () => {
     const { getByText } = render(
       <NetworkVerificationInfo
         customNetworkInformation={mockNetworkInfo}
-        onReject={() => {}}
-        onConfirm={() => {}}
+        onReject={() => undefined}
+        onConfirm={() => undefined}
       />,
     );
 
@@ -90,8 +90,8 @@ describe('NetworkVerificationInfo', () => {
     const { getByText } = render(
       <NetworkVerificationInfo
         customNetworkInformation={mockNetworkInfo}
-        onReject={() => {}}
-        onConfirm={() => {}}
+        onReject={() => undefined}
+        onConfirm={() => undefined}
       />,
     );
 

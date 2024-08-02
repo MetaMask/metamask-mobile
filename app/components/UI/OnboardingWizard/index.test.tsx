@@ -7,6 +7,7 @@ const navigationMock = {
   navigate: jest.fn(),
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const coachmarkRef: React.RefObject<any> = {
   current: {
     yourAccountRef: {
