@@ -1,0 +1,28 @@
+diff --git a/dist/types/LoggingController.d.ts b/dist/types/LoggingController.d.ts
+index 4f00c2991dfd20a47944944eacae96c636a2accf..a8a70110d6db24dfa24324369e7f11a96f77e790 100644
+--- a/dist/types/LoggingController.d.ts
++++ b/dist/types/LoggingController.d.ts
+@@ -1,4 +1,4 @@
+-import type { RestrictedControllerMessenger } from '@metamask/base-controller';
++import type { RestrictedControllerMessenger, ControllerGetStateAction, ControllerStateChangeEvent } from '@metamask/base-controller';
+ import { BaseController } from '@metamask/base-controller';
+ import type { Log } from './logTypes';
+ /**
+@@ -29,12 +29,15 @@ export declare type AddLog = {
+     type: `${typeof name}:add`;
+     handler: LoggingController['add'];
+ };
++export declare type LoggingControllerGetStateAction = ControllerGetStateAction<typeof name, LoggingControllerState>;
+ /**
+  * Currently only an alias, but the idea here is if future actions are needed
+  * this can transition easily into a union type.
+  */
+-export declare type LoggingControllerActions = AddLog;
+-export declare type LoggingControllerMessenger = RestrictedControllerMessenger<typeof name, LoggingControllerActions, never, never, never>;
++export declare type LoggingControllerActions = LoggingControllerGetStateAction | AddLog;
++export declare type LoggingControllerStateChangeEvent = ControllerStateChangeEvent<typeof name, LoggingControllerState>;
++export declare type LoggingControllerEvents = LoggingControllerStateChangeEvent;
++export declare type LoggingControllerMessenger = RestrictedControllerMessenger<typeof name, LoggingControllerActions, LoggingControllerEvents, never, never>;
+ /**
+  * Controller that manages a list of logs for signature requests.
+  */

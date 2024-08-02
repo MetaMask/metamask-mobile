@@ -1,0 +1,23 @@
+diff --git a/dist/types/snaps/registry/json.d.ts b/dist/types/snaps/registry/json.d.ts
+index 4d36ce09af223f423de71b1ffff5afc285ca6c99..27a00b395ef7d1d0f13ebe6424086a07fce314ba 100644
+--- a/dist/types/snaps/registry/json.d.ts
++++ b/dist/types/snaps/registry/json.d.ts
+@@ -1,4 +1,4 @@
+-import type { RestrictedControllerMessenger } from '@metamask/base-controller';
++import type { RestrictedControllerMessenger, ControllerGetStateAction, ControllerStateChangeEvent } from '@metamask/base-controller';
+ import { BaseController } from '@metamask/base-controller';
+ import type { SnapsRegistryDatabase } from '@metamask/snaps-registry';
+ import type { Hex } from '@metamask/utils';
+@@ -32,8 +32,11 @@ export declare type Update = {
+     type: `${typeof controllerName}:update`;
+     handler: SnapsRegistry['update'];
+ };
++
++export declare type SnapsRegistryGetStateAction = ControllerGetStateAction<typeof controllerName, SnapsRegistryState>;
+ export declare type SnapsRegistryActions = GetResult | GetMetadata | Update | ResolveVersion;
+-export declare type SnapsRegistryEvents = never;
++export declare type SnapsRegistryStateChangeEvent = ControllerStateChangeEvent<typeof controllerName, SnapsRegistryState>;
++export declare type SnapsRegistryEvents = SnapsRegistryStateChangeEvent;
+ export declare type SnapsRegistryMessenger = RestrictedControllerMessenger<'SnapsRegistry', SnapsRegistryActions, SnapsRegistryEvents, SnapsRegistryActions['type'], SnapsRegistryEvents['type']>;
+ export declare type SnapsRegistryState = {
+     database: SnapsRegistryDatabase | null;

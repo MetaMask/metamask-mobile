@@ -1,0 +1,22 @@
+diff --git a/dist/types/PhishingController.d.ts b/dist/types/PhishingController.d.ts
+index 866e53b5b7bc447b2434b73a2b5a7b14dbb21145..e2624b79f8428152251196db1fd36d002f646e98 100644
+--- a/dist/types/PhishingController.d.ts
++++ b/dist/types/PhishingController.d.ts
+@@ -1,4 +1,4 @@
+-import type { RestrictedControllerMessenger } from '@metamask/base-controller';
++import type { RestrictedControllerMessenger, ControllerGetStateAction, ControllerStateChangeEvent } from '@metamask/base-controller';
+ import { BaseController } from '@metamask/base-controller';
+ export declare const PHISHING_CONFIG_BASE_URL = "https://phishing-detection.api.cx.metamask.io";
+ export declare const METAMASK_STALELIST_FILE = "/v1/stalelist";
+@@ -172,7 +172,10 @@ export type TestOrigin = {
+     type: `${typeof controllerName}:testOrigin`;
+     handler: PhishingController['test'];
+ };
+-export type PhishingControllerActions = MaybeUpdateState | TestOrigin;
++export type PhishingControllerGetStateAction = ControllerGetStateAction<typeof controllerName, PhishingControllerState>;
++export type PhishingControllerActions = PhishingControllerGetStateAction | MaybeUpdateState | TestOrigin;
++export type PhishingControllerStateChangeEvent = ControllerStateChangeEvent<typeof controllerName, PhishingControllerState>;
++export type PhishingControllerEvents = PhishingControllerStateChangeEvent;
+ export type PhishingControllerMessenger = RestrictedControllerMessenger<typeof controllerName, PhishingControllerActions, never, never, never>;
+ /**
+  * Controller that manages community-maintained lists of approved and unapproved website origins.
