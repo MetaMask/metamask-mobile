@@ -38,6 +38,17 @@ import {
 } from '../../../../../util/gasUtils';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 
+// Add this import to resolve TS2339 errors
+import { GasPollingResult } from '../../../../../core/GasPolling/types';
+
+// Define GasTransaction type if it's not exported from GasPolling/types
+type GasTransaction = {
+  suggestedMaxFeePerGas?: string;
+  suggestedMaxPriorityFeePerGas?: string;
+  suggestedGasLimit?: string;
+  [key: string]: any;
+};
+
 const EditGasFee1559Update = ({
   selectedGasValue,
   gasOptions,
@@ -97,21 +108,21 @@ const EditGasFee1559Update = ({
   });
 
   const {
-    renderableGasFeeMinNative,
-    renderableGasFeeMaxNative,
-    renderableGasFeeMaxConversion,
-    renderableMaxFeePerGasNative,
-    renderableGasFeeMinConversion,
-    renderableMaxPriorityFeeNative,
-    renderableMaxFeePerGasConversion,
-    renderableMaxPriorityFeeConversion,
-    timeEstimateColor,
-    timeEstimate,
-    timeEstimateId,
-    suggestedMaxFeePerGas,
-    suggestedMaxPriorityFeePerGas,
-    suggestedGasLimit,
-  } = gasTransaction;
+    renderableGasFeeMinNative = '',
+    renderableGasFeeMaxNative = '',
+    renderableGasFeeMaxConversion = '',
+    renderableMaxFeePerGasNative = '',
+    renderableGasFeeMinConversion = '',
+    renderableMaxPriorityFeeNative = '',
+    renderableMaxFeePerGasConversion = '',
+    renderableMaxPriorityFeeConversion = '',
+    timeEstimateColor = '',
+    timeEstimate = '',
+    timeEstimateId = '',
+    suggestedMaxFeePerGas = '',
+    suggestedMaxPriorityFeePerGas = '',
+    suggestedGasLimit = '',
+  } = (gasTransaction as GasPollingResult) || {};
 
   const getAnalyticsParams = useCallback(() => {
     try {
@@ -161,13 +172,13 @@ const EditGasFee1559Update = ({
   }, [getAnalyticsParams, onSave, gasTransaction, gasObject, trackEvent]);
 
   const changeGas = useCallback(
-    (gas, option) => {
-      setSelectedOption(option);
+    (gas: Partial<GasPollingResult>, option: string | null) => {
+      setSelectedOption(option || '');
       updateGasObject({
         ...gasObject,
-        suggestedMaxFeePerGas: gas.suggestedMaxFeePerGas,
-        suggestedMaxPriorityFeePerGas: gas.suggestedMaxPriorityFeePerGas,
-        suggestedGasLimit: gas.suggestedGasLimit || gasObject.suggestedGasLimit,
+        suggestedMaxFeePerGas: gas.suggestedMaxFeePerGas ?? gasObject.suggestedMaxFeePerGas,
+        suggestedMaxPriorityFeePerGas: gas.suggestedMaxPriorityFeePerGas ?? gasObject.suggestedMaxPriorityFeePerGas,
+        suggestedGasLimit: gas.suggestedGasLimit ?? gasObject.suggestedGasLimit,
       });
       onChange(option);
     },
@@ -175,52 +186,55 @@ const EditGasFee1559Update = ({
   );
 
   const changedGasLimit = useCallback(
-    (value) => {
-      const newGas = { ...gasTransaction, suggestedGasLimit: value };
+    (value: string) => {
+      const newGas: Partial<GasPollingResult> = {
+        suggestedMaxFeePerGas: (gasTransaction as GasPollingResult)?.suggestedMaxFeePerGas,
+        suggestedMaxPriorityFeePerGas: (gasTransaction as GasPollingResult)?.suggestedMaxPriorityFeePerGas,
+        suggestedGasLimit: value,
+      };
       changeGas(newGas, null);
     },
     [changeGas, gasTransaction],
   );
 
   const changedMaxPriorityFee = useCallback(
-    (value) => {
+    (value: string) => {
       const lowerValue = new BigNumber(
         gasOptions?.[
-          warningMinimumEstimateOption
-        ]?.suggestedMaxPriorityFeePerGas,
+          warningMinimumEstimateOption as keyof typeof gasOptions
+        ]?.suggestedMaxPriorityFeePerGas ?? '0'
       );
 
       const higherValue = new BigNumber(
-        gasOptions?.high?.suggestedMaxPriorityFeePerGas,
+        (gasOptions as any)?.high?.suggestedMaxPriorityFeePerGas ?? '0'
       ).multipliedBy(new BigNumber(1.5));
-      const updateFloor = new BigNumber(updateOption?.maxPriortyFeeThreshold);
+      const updateFloor = new BigNumber((updateOption as any)?.maxPriorityFeeThreshold ?? '0');
 
       const valueBN = new BigNumber(value);
 
-      if (updateFloor && !updateFloor.isNaN() && valueBN.lt(updateFloor)) {
+      if (updateFloor.isGreaterThan(0) && !updateFloor.isNaN() && valueBN.lt(updateFloor)) {
         setMaxPriorityFeeError(
-          updateOption?.isCancel
+          (updateOption as any)?.isCancel
             ? strings('edit_gas_fee_eip1559.max_priority_fee_cancel_low', {
-                cancel_value: updateFloor,
+                cancel_value: updateFloor.toString(),
               })
             : strings('edit_gas_fee_eip1559.max_priority_fee_speed_up_low', {
-                speed_up_floor_value: updateFloor,
-              }),
+                speed_up_floor_value: updateFloor.toString(),
+              })
         );
       } else if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
         setMaxPriorityFeeError(
-          strings('edit_gas_fee_eip1559.max_priority_fee_low'),
+          strings('edit_gas_fee_eip1559.max_priority_fee_low')
         );
       } else if (!higherValue.isNaN() && valueBN.gt(higherValue)) {
         setMaxPriorityFeeError(
-          strings('edit_gas_fee_eip1559.max_priority_fee_high'),
+          strings('edit_gas_fee_eip1559.max_priority_fee_high')
         );
       } else {
-        setMaxPriorityFeeError(null);
+        setMaxPriorityFeeError('');
       }
 
-      const newGas = {
-        ...gasTransaction,
+      const newGas: Partial<GasPollingResult> = {
         suggestedMaxPriorityFeePerGas: value,
       };
 
@@ -228,34 +242,34 @@ const EditGasFee1559Update = ({
     },
     [
       changeGas,
-      gasTransaction,
       gasOptions,
       updateOption,
       warningMinimumEstimateOption,
+      strings,
     ],
   );
 
   const changedMaxFeePerGas = useCallback(
-    (value) => {
+    (value: string) => {
       const lowerValue = new BigNumber(
-        gasOptions?.[warningMinimumEstimateOption]?.suggestedMaxFeePerGas,
+        gasOptions?.[warningMinimumEstimateOption as keyof typeof gasOptions]?.suggestedMaxFeePerGas ?? '0'
       );
       const higherValue = new BigNumber(
-        gasOptions?.high?.suggestedMaxFeePerGas,
+        (gasOptions as any)?.high?.suggestedMaxFeePerGas ?? '0'
       ).multipliedBy(new BigNumber(1.5));
-      const updateFloor = new BigNumber(updateOption?.maxFeeThreshold);
+      const updateFloor = new BigNumber((updateOption as any)?.maxFeeThreshold ?? '0');
 
       const valueBN = new BigNumber(value);
 
-      if (updateFloor && !updateFloor.isNaN() && valueBN.lt(updateFloor)) {
+      if (!updateFloor.isNaN() && valueBN.lt(updateFloor)) {
         setMaxFeeError(
-          updateOption?.isCancel
+          (updateOption as any)?.isCancel
             ? strings('edit_gas_fee_eip1559.max_fee_cancel_low', {
-                cancel_value: updateFloor,
+                cancel_value: updateFloor.toString(),
               })
             : strings('edit_gas_fee_eip1559.max_fee_speed_up_low', {
-                speed_up_floor_value: updateFloor,
-              }),
+                speed_up_floor_value: updateFloor.toString(),
+              })
         );
       } else if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
         setMaxFeeError(strings('edit_gas_fee_eip1559.max_fee_low'));
@@ -265,8 +279,7 @@ const EditGasFee1559Update = ({
         setMaxFeeError('');
       }
 
-      const newGas = {
-        ...gasTransaction,
+      const newGas: Partial<GasPollingResult> = {
         suggestedMaxFeePerGas: value,
       };
 
@@ -274,11 +287,11 @@ const EditGasFee1559Update = ({
     },
     [
       changeGas,
-      gasTransaction,
       gasOptions,
       updateOption,
       warningMinimumEstimateOption,
-    ],
+      strings,
+    ]
   );
 
   const selectOption = useCallback(
@@ -315,9 +328,7 @@ const EditGasFee1559Update = ({
         .filter(({ name }) => !shouldIgnore(name))
         .map(({ name, label, ...option }) => ({
           name,
-          // TODO: Replace "any" with type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          label: function LabelComponent(selected: any, disabled: any) {
+          label: function LabelComponent(selected: boolean, disabled: boolean) {
             return (
               <Text bold primary={selected && !disabled}>
                 {label}
@@ -326,7 +337,7 @@ const EditGasFee1559Update = ({
           },
           topLabel: recommended?.name === name && recommended.render,
           ...option,
-          ...extendOptions[name],
+          ...extendOptions[name as keyof typeof extendOptions],
         })),
     [recommended, extendOptions, shouldIgnore],
   );
@@ -342,7 +353,7 @@ const EditGasFee1559Update = ({
     return fiatValue;
   };
 
-  const valueToWatch = `${renderableGasFeeMinNative}${renderableGasFeeMaxNative}`;
+  const valueToWatch = `${renderableGasFeeMinNative ?? ''}${renderableGasFeeMaxNative ?? ''}`;
 
   const LeftLabelComponent = ({
     value,
@@ -648,8 +659,8 @@ const EditGasFee1559Update = ({
                 >
                   ~
                   {switchNativeCurrencyDisplayOptions(
-                    renderableGasFeeMinNative,
-                    renderableGasFeeMinConversion,
+                    renderableGasFeeMinNative ?? '',
+                    renderableGasFeeMinConversion ?? '',
                   )}
                 </Text>
               </View>
@@ -658,13 +669,13 @@ const EditGasFee1559Update = ({
                   {strings('edit_gas_fee_eip1559.max_fee')}:{' '}
                 </Text>
                 {switchNativeCurrencyDisplayOptions(
-                  renderableGasFeeMaxNative,
-                  renderableGasFeeMaxConversion,
+                  renderableGasFeeMaxNative ?? '',
+                  renderableGasFeeMaxConversion ?? '',
                 )}{' '}
                 (
                 {switchNativeCurrencyDisplayOptions(
-                  renderableGasFeeMaxConversion,
-                  renderableGasFeeMaxNative,
+                  renderableGasFeeMaxConversion ?? '',
+                  renderableGasFeeMaxNative ?? '',
                 )}
                 )
               </Text>
