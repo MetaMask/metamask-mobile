@@ -59,6 +59,11 @@ jest.mock('../../../../../util/address', () => ({
   getAddressAccountType: jest.fn().mockReturnValue('Metamask'),
 }));
 
+jest.mock('../../../../../lib/ppom/ppom-util', () => ({
+  ...jest.requireActual('../../../../../lib/ppom/ppom-util'),
+  isChainSupported: jest.fn().mockResolvedValue(true),
+}));
+
 const messageParamsMock = {
   data: { type: 'string', name: 'Message', value: 'Hi, Alice!' },
   origin: 'example.com',
@@ -368,7 +373,7 @@ describe('TypedSign', () => {
       const lastMockCall = rejectedMocks[mockCallsLength - 1];
 
       expect(lastMockCall[0]).toEqual({ category: 'Signature Rejected' });
-      expect(lastMockCall[1]).toEqual({
+      expect(await lastMockCall[1]).toEqual({
         account_type: 'Metamask',
         dapp_host_name: undefined,
         chain_id: undefined,
@@ -408,7 +413,7 @@ describe('TypedSign', () => {
       const lastMockCall = signedMocks[mockCallsLength - 1];
 
       expect(lastMockCall[0]).toEqual({ category: 'Signature Approved' });
-      expect(lastMockCall[1]).toEqual({
+      expect(await lastMockCall[1]).toEqual({
         account_type: 'Metamask',
         dapp_host_name: undefined,
         chain_id: undefined,

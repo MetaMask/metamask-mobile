@@ -34,6 +34,7 @@ export const getAnalyticsParams = async (
     let blockaidParams = {};
     if (securityAlertResponse) {
       blockaidParams = await getBlockaidMetricsParams(securityAlertResponse);
+      // console.log('getAnalyticsParams 2 >>>>>', blockaidParams);
     }
 
     return {
@@ -94,11 +95,16 @@ export const handleSignatureAction = async (
 ) => {
   await onAction();
   showWalletConnectNotification(messageParams, confirmation);
+  const analyticsParams = await getAnalyticsParams(
+    messageParams,
+    signType,
+    securityAlertResponse,
+  );
   MetaMetrics.getInstance().trackEvent(
     confirmation
       ? MetaMetricsEvents.SIGNATURE_APPROVED
       : MetaMetricsEvents.SIGNATURE_REJECTED,
-    getAnalyticsParams(messageParams, signType, securityAlertResponse),
+    analyticsParams,
   );
 };
 

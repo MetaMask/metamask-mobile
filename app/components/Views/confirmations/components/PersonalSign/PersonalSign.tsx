@@ -82,15 +82,19 @@ const PersonalSign = ({
     [key: string]: string | undefined;
   }
 
-  const [blockaidParams, setBlockaidParams] = useState<Record<string, unknown>>(
-    {},
-  );
-
-  const getAnalyticsParams = useCallback((): AnalyticsParams => {
+  const getAnalyticsParams = useCallback(async (): Promise<AnalyticsParams> => {
     try {
       const chainId = selectChainId(store.getState());
       const pageInfo = currentPageInformation || messageParams.meta;
       const url = new URL(pageInfo.url);
+
+      let blockaidParams = {};
+
+      if (securityAlertResponse) {
+        blockaidParams = await getBlockaidMetricsParams(
+          securityAlertResponse as SecurityAlertResponse,
+        );
+      }
 
       return {
         account_type: getAddressAccountType(messageParams.from),
@@ -103,27 +107,14 @@ const PersonalSign = ({
     } catch (error) {
       return {};
     }
-  }, [currentPageInformation, messageParams, blockaidParams]);
+  }, [currentPageInformation, messageParams, securityAlertResponse]);
 
   useEffect(() => {
-    const fetchBlockaidParams = async () => {
-      if (securityAlertResponse) {
-        const params = await getBlockaidMetricsParams(
-          securityAlertResponse as SecurityAlertResponse,
-        );
-        setBlockaidParams(params);
-      }
-    };
-
-    fetchBlockaidParams();
-  }, [securityAlertResponse]);
-
-  useEffect(() => {
-    const onSignatureError = ({ error }: { error: Error }) => {
+    const onSignatureError = async ({ error }: { error: Error }) => {
       if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
         trackEvent(
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-          getAnalyticsParams(),
+          await getAnalyticsParams(),
         );
       }
     };
@@ -160,14 +151,20 @@ const PersonalSign = ({
   const rejectSignature = async () => {
     await onReject();
     showWalletConnectNotification(false);
-    trackEvent(MetaMetricsEvents.SIGNATURE_REJECTED, getAnalyticsParams());
+    trackEvent(
+      MetaMetricsEvents.SIGNATURE_REJECTED,
+      await getAnalyticsParams(),
+    );
   };
 
   const confirmSignature = async () => {
     if (!isExternalHardwareAccount(messageParams.from)) {
       await onConfirm();
       showWalletConnectNotification(true);
-      trackEvent(MetaMetricsEvents.SIGNATURE_APPROVED, getAnalyticsParams());
+      trackEvent(
+        MetaMetricsEvents.SIGNATURE_APPROVED,
+        await getAnalyticsParams(),
+      );
     } else {
       navigation.navigate(
         ...(await createExternalSignModelNav(
