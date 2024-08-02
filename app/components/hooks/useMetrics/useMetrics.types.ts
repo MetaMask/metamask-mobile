@@ -6,12 +6,12 @@ import {
   IMetaMetricsEvent,
 } from '../../../core/Analytics/MetaMetrics.types';
 
-export enum SourceType {
-  SDK = 'sdk',
-  WALLET_CONNECT = 'walletconnect',
-  IN_APP_BROWSER = 'in-app browser',
-  PERMISSION_SYSTEM = 'permission system',
-}
+export const SourceType = {
+  SDK: 'sdk',
+  WALLET_CONNECT: 'walletconnect',
+  IN_APP_BROWSER: 'in-app browser',
+  PERMISSION_SYSTEM: 'permission system',
+};
 
 export interface IUseMetricsHook {
   isEnabled(): boolean;

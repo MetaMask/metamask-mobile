@@ -40,6 +40,7 @@ import { getDecimalChainId } from '../../../util/networks';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import ShowWarningBanner from './showWarningBanner';
 import createStyles from './styles';
+import { SourceType } from '../../../components/hooks/useMetrics/useMetrics.types';
 
 /**
  * Account access approval component
@@ -137,7 +138,9 @@ class AccountApproval extends PureComponent {
         return 'dappDeepLinkUrl';
       }
 
-      return this.props.walletConnectRequest ? 'walletconnect' : 'sdk';
+      return this.props.walletConnectRequest
+        ? SourceType.WALLET_CONNECT
+        : SourceType.SDK;
     };
 
     const extraAnalyticsParams = {
