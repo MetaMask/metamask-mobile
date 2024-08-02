@@ -33,10 +33,23 @@ Prerequisites for running tests
 
     - To ensure that the detox-cli is properly installed, please verify its presence by running the command `detox` in your terminal. The detox-cli serves as a convenient script that facilitates running commands through a local Detox executable located at node_modules/.bin/detox. Its purpose is to simplify the operation of Detox from the command line. For example, you can execute commands like `detox test -c ios.sim.debug` with ease using detox-cli. In case the detox-cli is not installed, please refer to the instructions provided [here](https://wix.github.io/Detox/docs/introduction/environment-setup/#1-command-line-tools-detox-cli) for detailed guidance. 
 - The default device for iOS is the iPhone 13 Pro and Android the Pixel 5. Ensure you have these set up. You can change the default devices at anytime by updating the `device.type` in the detox config `e2e/.detoxrc.js`
-- Make sure that Metro is running. Use this command to launch the metro server:
+
+- If you haven't already done so for the current branch you are on, run `yarn setup`.
+
+- Ensure `IS_TEST` is set to `"true"` in your `.js.env` file and source it.
 
 ```bash
-yarn watch
+export IS_TEST="true"
+```
+
+```bash
+source .js.env
+```
+
+- After sourcing `.js.env`, run this command to launch the metro server (note: use of `clean` is important)
+
+```bash
+yarn watch:clean
 ```
 
 You can trigger the tests against a `release` or `debug` build. It recommended that you trigger the tests against a debug build.
