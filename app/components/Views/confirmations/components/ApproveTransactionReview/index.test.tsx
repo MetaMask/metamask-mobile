@@ -1,4 +1,4 @@
-import ApproveTransactionModal from '.';
+import ApproveTransactionModal, { ApproveTransactionModalProps } from '.';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
@@ -67,7 +67,7 @@ const initialState = {
 
 describe('ApproveTransactionModal', () => {
   it('render matches snapshot', () => {
-    const { toJSON } = renderScreen(
+    const { toJSON } = renderScreen<ApproveTransactionModalProps>(
       ApproveTransactionModal,
       { name: 'Approve' },
       { state: initialState },
