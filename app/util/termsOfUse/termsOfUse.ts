@@ -1,9 +1,32 @@
 import { MetaMetrics, MetaMetricsEvents } from '../../core/Analytics';
-import { TERMS_OF_USE_CONTENT, TRUE, USE_TERMS } from '../../constants/storage';
+import { TRUE, USE_TERMS } from '../../constants/storage';
 import Routes from '../../constants/navigation/Routes';
 import { strings } from '../../../locales/i18n';
 import { TermsOfUseModalSelectorsIDs } from '../../../e2e/selectors/Modals/TermsOfUseModal.selectors';
 import StorageWrapper from '../../store/storage-wrapper';
+//@ts-expect-error this file is generated at the setup script level and ignored by git
+import { termsOfUse } from './termsOfUseContent';
+
+interface TermsOfUseParamsI {
+  screen: string;
+  params: {
+    containerTestId: string;
+    buttonTestId: string;
+    buttonText: string;
+    checkboxText: string;
+    headerTitle: string;
+    onAccept: () => Promise<void>;
+    footerHelpText: string;
+    body: {
+      source: 'WebView';
+      html: string;
+    };
+    onRender: () => void;
+    isScrollToEndNeeded: boolean;
+    scrollEndBottomMargin: number;
+    isCheckboxNeeded: boolean;
+  };
+}
 
 const onConfirmUseTerms = async () => {
   await StorageWrapper.setItem(USE_TERMS, TRUE);
@@ -15,12 +38,9 @@ const useTermsDisplayed = () => {
 };
 
 export default async function navigateTermsOfUse(
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigate: (key: string, params: any) => void,
+  navigate: (key: string, params: TermsOfUseParamsI) => void,
 ) {
   const isUseTermsAccepted = await StorageWrapper.getItem(USE_TERMS);
-  const termsOfUseContent = await StorageWrapper.getItem(TERMS_OF_USE_CONTENT);
   if (!isUseTermsAccepted) {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.MODAL_MANDATORY,
@@ -36,11 +56,12 @@ export default async function navigateTermsOfUse(
         footerHelpText: strings('terms_of_use_modal.accept_helper_description'),
         body: {
           source: 'WebView',
-          html: termsOfUseContent,
+          html: termsOfUse,
         },
         onRender: useTermsDisplayed,
         isScrollToEndNeeded: false,
         scrollEndBottomMargin: 50,
+        isCheckboxNeeded: true,
       },
     });
   }
