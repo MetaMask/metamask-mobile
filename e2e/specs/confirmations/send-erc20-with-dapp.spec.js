@@ -19,7 +19,7 @@ import Assertions from '../../utils/Assertions';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
-describe(SmokeConfirmations('ERC20 tokens'), () => {
+describe(SmokeConfirmations('Send ERC20 tokens'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();

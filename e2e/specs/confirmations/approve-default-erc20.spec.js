@@ -20,7 +20,7 @@ import TestDApp from '../../pages/Browser/TestDApp';
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const EXPECTED_TOKEN_AMOUNT = '7';
 
-describe(SmokeConfirmations('ERC20 tokens'), () => {
+describe(SmokeConfirmations('Approve ERC20 tokens'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     if (device.getPlatform() === 'android') {

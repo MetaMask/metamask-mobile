@@ -1,14 +1,12 @@
 'use strict';
 
 import { SmokeConfirmations } from '../../tags';
-
 import AmountView from '../../pages/Send/AmountView';
 import SendView from '../../pages/Send/SendView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
-import enContent from '../../../locales/languages/en.json';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   loadFixture,
@@ -23,27 +21,13 @@ import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
 
-describe(SmokeConfirmations('Send ETH to Contact'), () => {
-  const TOKEN_NAME = enContent.unit.eth;
-  const AMOUNT = '2';
+describe(SmokeConfirmations('Send ETH to Contract'), () => {
+  const AMOUNT = '1';
 
   beforeEach(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
       .withNetworkController(CustomNetworks.Tenderly)
-      .withAddressBookController({
-        addressBook: {
-          '0x1': {
-            '0x2f318C334780961FB129D2a6c30D0763d9a5C970': {
-              address: '0x2f318C334780961FB129D2a6c30D0763d9a5C970',
-              chainId: '0x1',
-              isEns: false,
-              memo: '',
-              name: 'Test Name 1',
-            },
-          },
-        },
-      })
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
@@ -58,21 +42,21 @@ describe(SmokeConfirmations('Send ETH to Contact'), () => {
     await stopFixtureServer(fixtureServer);
   });
 
-  it('should send ETH to a contact from inside the wallet', async () => {
+  it('should send ETH to a contract from inside the wallet', async () => {
+    const DAI = '0x6B175474E89094C44Da98b954EedeAC495271d0F';
+
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
-    await SendView.scrollToSavedAccount();
 
-    await SendView.tapAccountName('Test Name 1');
-
-    await SendView.tapNextButton();
-
+    await SendView.inputAddress(DAI);
+    await Assertions.checkIfVisible(await SendView.iUnderstandWarningButton);
+    await SendView.tapIUnderstandButton();
     await Assertions.checkIfVisible(await AmountView.container);
+
     await AmountView.typeInTransactionAmount(AMOUNT);
     await AmountView.tapNextButton();
-    await Assertions.checkIfTextIsDisplayed('Test Name 1');
+
     await TransactionConfirmationView.tapConfirmButton();
     await TabBarComponent.tapActivity();
-    await Assertions.checkIfTextIsDisplayed(`${AMOUNT} ${TOKEN_NAME}`);
   });
 });

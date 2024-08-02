@@ -6,6 +6,9 @@ class AmountView {
   get currencySwitch() {
     return Matchers.getElementByID(AmountViewSelectorsIDs.CURRENCY_SWITCH);
   }
+  get container() {
+    return Matchers.getElementByID(AmountViewSelectorsIDs.CONTAINER);
+  }
 
   get nextButton() {
     return device.getPlatform() === 'ios'
