@@ -320,8 +320,7 @@ const NetworkVerificationInfo = ({
               {strings(
                 'switch_custom_network.add_network_and_give_dapp_permission_warning',
                 {
-                  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                  // @ts-ignore
+                  // @ts-expect-error let's adjust the CustomNetworkInformation after multichain controllers have been updated by the api team
                   dapp_origin: new URL(customNetworkInformation.pageMeta.url)
                     ?.hostname,
                 },
