@@ -30,7 +30,6 @@
     "start:android:qa": "./scripts/build.sh android qaDebug",
     "start:android:e2e": "./scripts/build.sh android debugE2E",
     "start:android:flask": "export METAMASK_BUILD_TYPE='flask' && ./scripts/build.sh android flaskDebug",
-    "build:static-logos": "node ./scripts/metamask-bot-build-generate-static-assets",
     "build:announce": "node ./scripts/metamask-bot-build-announce-bitrise.js",
     "build:android:release": "./scripts/build.sh android release",
     "build:android:release:e2e": "./scripts/build.sh android releaseE2E",
