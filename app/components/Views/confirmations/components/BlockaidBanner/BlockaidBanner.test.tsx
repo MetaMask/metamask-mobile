@@ -201,19 +201,16 @@ describe('BlockaidBanner', () => {
   });
 
   it('should render loader if reason is requestInProgress', async () => {
-    const wrapper = renderWithProvider(
-      <BlockaidBanner
-        securityAlertResponse={{
-          result_type: ResultType.RequestInProgress,
-          reason: Reason.requestInProgress,
-        }}
-      />,
-      {
-        state: mockState,
-      },
-    );
+    const wrapper = renderWithProvider(<BlockaidBanner />, {
+      state: mockState,
+    });
 
     expect(wrapper).toMatchSnapshot();
+    expect(
+      await wrapper.queryByText(
+        'We’re still evaluating the safety of this request. Wait or proceed with caution.',
+      ),
+    ).toBeDefined();
   });
 
   it('should not render if resultType is benign', async () => {
