@@ -12,6 +12,7 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import { useSelector } from 'react-redux';
 
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
+import { EthGasPriceEstimate, GasFeeEstimates, LegacyGasPriceEstimate } from '@metamask/gas-fee-controller';
 
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
@@ -43,6 +44,12 @@ import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectPrimaryCurrency } from '../../../../../selectors/settings';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
+
+// Import correct types for Icon and MaterialCommunityIcon
+import Icon from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+
+// No need for type assertions, use the correct types directly
 
 const EditGasFeeLegacy = ({
   onCancel,
@@ -127,13 +134,13 @@ const EditGasFeeLegacy = ({
 
       const lowerValue = new BigNumber(
         gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-          ? gasFeeEstimate?.low
-          : gasFeeEstimate?.gasPrice,
+          ? 'low' in gasFeeEstimate ? gasFeeEstimate.low : '0'
+          : 'gasPrice' in gasFeeEstimate ? gasFeeEstimate.gasPrice : '0'
       );
       const higherValue = new BigNumber(
         gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-          ? gasFeeEstimate?.high
-          : gasFeeEstimate?.gasPrice,
+          ? 'high' in gasFeeEstimate ? gasFeeEstimate.high : '0'
+          : 'gasPrice' in gasFeeEstimate ? gasFeeEstimate.gasPrice : '0'
       ).multipliedBy(new BigNumber(1.5));
 
       const valueBN = new BigNumber(value);
@@ -177,7 +184,7 @@ const EditGasFeeLegacy = ({
           small
           type={AlertType.Warning}
           renderIcon={() => (
-            <MaterialCommunityIcon
+            <MaterialCommunityIconComponent
               name="information"
               size={20}
               color={colors.warning.default}
@@ -205,7 +212,7 @@ const EditGasFeeLegacy = ({
           small
           type={AlertType.Error}
           renderIcon={() => (
-            <MaterialCommunityIcon
+            <MaterialCommunityIconComponent
               name="information"
               size={20}
               color={colors.error.default}
