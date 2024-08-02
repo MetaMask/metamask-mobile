@@ -5,7 +5,7 @@ import Button, {
 import { zeroAddress } from 'ethereumjs-util';
 import React, { useCallback, useEffect } from 'react';
 import { Platform, TouchableOpacity, View } from 'react-native';
-import { RootStateOrAny, useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import {
   TOKEN_ASSET_OVERVIEW,
@@ -51,6 +51,7 @@ import ChartNavigationButton from './ChartNavigationButton';
 import Price from './Price';
 import styleSheet from './AssetOverview.styles';
 import { useStyles } from '../../../component-library/hooks';
+import { RootState } from '../../../reducers'; // Import the RootState type
 
 interface AssetOverviewProps {
   navigation: {
@@ -70,19 +71,19 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const conversionRate = useSelector(selectConversionRate);
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const primaryCurrency = useSelector(
-    (state: RootStateOrAny) => state.settings.primaryCurrency,
+    (state: RootState) => state.settings.primaryCurrency,
   );
   const selectedAddress = useSelector(
     selectSelectedInternalAccountChecksummedAddress,
   );
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const tokenBalances = useSelector(selectContractBalances);
-  const chainId = useSelector((state: RootStateOrAny) => selectChainId(state));
-  const ticker = useSelector((state: RootStateOrAny) => selectTicker(state));
+  const chainId = useSelector((state: RootState) => selectChainId(state));
+  const ticker = useSelector((state: RootState) => selectTicker(state));
 
   const { data: prices = [], isLoading } = useTokenHistoricalPrices({
     address: asset.isETH ? zeroAddress() : asset.address,
-    chainId: chainId as string,
+    chainId: `0x${chainId}`,
     timePeriod,
     vsCurrency: currentCurrency,
   });
@@ -174,16 +175,15 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   let balance, balanceFiat;
   if (asset.isETH) {
-    balance = renderFromWei(
-      accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
-    );
-    balanceFiat = weiToFiat(
-      hexToBN(
-        accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
-      ),
-      conversionRate,
-      currentCurrency,
-    );
+    const accountBalance = accountsByChainId[toHexadecimal(chainId)]?.[selectedAddress]?.balance;
+    balance = accountBalance ? renderFromWei(accountBalance) : '0';
+    balanceFiat = accountBalance
+      ? weiToFiat(
+          hexToBN(accountBalance),
+          conversionRate,
+          currentCurrency,
+        )
+      : '0';
   } else {
     balance =
       itemAddress && itemAddress in tokenBalances
