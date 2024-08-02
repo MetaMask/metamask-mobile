@@ -135,7 +135,7 @@ class AccountApproval extends PureComponent {
       }
 
       if (hasNoSource) {
-        return 'dappDeepLinkUrl';
+        return SourceType.DAPP_DEEPLINK_URL;
       }
 
       return this.props.walletConnectRequest
