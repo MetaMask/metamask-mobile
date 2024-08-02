@@ -19,6 +19,16 @@ import {
 import { ChainId } from '@metamask/controller-utils';
 import { ApprovalController } from '@metamask/approval-controller';
 
+interface PendingApprovalsData {
+  id: string;
+  origin: string;
+  type: string;
+  requestState: {
+    isInSwapFlow: boolean;
+    isSwapApproveTx: boolean;
+  };
+}
+
 jest.mock('uuid', () => ({
   ...jest.requireActual('uuid'),
   v1: jest.fn(() => 'approvalId'),
@@ -52,9 +62,7 @@ const createApprovalControllerMock = ({
   pendingApprovals,
 }: {
   addAndShowApprovalRequest: () => void;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  pendingApprovals?: any[];
+  pendingApprovals?: PendingApprovalsData[];
 }) =>
   ({
     state: {
@@ -112,9 +120,7 @@ const defaultTransactionMeta: TransactionMeta = {
 
 const createRequest = ({
   addAndShowApprovalRequest = getDefaultAddAndShowApprovalRequest(),
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  pendingApprovals = [] as any[],
+  pendingApprovals = [] as PendingApprovalsData[],
   transactionMeta = defaultTransactionMeta,
 } = {}) => ({
   transactionMeta: {
@@ -137,6 +143,10 @@ const createRequest = ({
       maxDeadline: 150,
       returnTxHashAsap: false,
     },
+    mobile_active: true,
+    extension_active: true,
+    fallback_to_v1: false,
+    fallbackToV1: false,
   },
 });
 

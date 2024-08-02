@@ -17,6 +17,7 @@ import {
   isBlockaidFeatureEnabled,
   TransactionType,
 } from '.';
+import { TransactionStatus } from '@metamask/transaction-controller';
 
 jest.mock('../../core/Engine', () => ({
   resetState: jest.fn(),
@@ -48,8 +49,15 @@ describe('Blockaid util', () => {
     });
 
     it('returns empty object when transaction id does not match security response id', async () => {
-      const transaction = {
+      const transaction: TransactionType = {
+        status: TransactionStatus.failed,
+        error: new Error('Simulated transaction error'),
         id: '1',
+        chainId: '0x1',
+        time: Date.now(),
+        txParams: {
+          from: '0x1',
+        },
         currentTransactionSecurityAlertResponse: {
           id: '2',
           response: {
@@ -70,8 +78,15 @@ describe('Blockaid util', () => {
     });
 
     it('returns metrics params object when transaction id matches security response id', async () => {
-      const transaction = {
+      const transaction: TransactionType = {
+        status: TransactionStatus.failed,
+        error: new Error('Simulated transaction error'),
         id: '1',
+        chainId: '0x1',
+        time: Date.now(),
+        txParams: {
+          from: '0x1',
+        },
         currentTransactionSecurityAlertResponse: {
           id: '1',
           response: {
