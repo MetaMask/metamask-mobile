@@ -264,7 +264,7 @@ workflows:
         inputs:
           - content: |-
               #!/usr/bin/env bash
-              ./scripts/setup-detox.sh
+              scripts/detox-setup.sh
         title: Install Detox Dependencies
 
   # Notifications utility workflows
