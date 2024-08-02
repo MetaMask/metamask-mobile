@@ -93,26 +93,13 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
             >
               Edit priority
             </Text>
-            <Text
-              allowFontScaling={false}
+            <View
               style={
-                [
-                  {
-                    "color": "#ffffff",
-                    "fontSize": 24,
-                  },
-                  undefined,
-                  {
-                    "fontFamily": "Ionicons",
-                    "fontStyle": "normal",
-                    "fontWeight": "normal",
-                  },
-                  {},
-                ]
+                {
+                  "width": 24,
+                }
               }
-            >
-              
-            </Text>
+            />
           </View>
         </View>
         <View

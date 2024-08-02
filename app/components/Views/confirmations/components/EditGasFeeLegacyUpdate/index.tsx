@@ -12,6 +12,7 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import { useSelector } from 'react-redux';
 
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
+import { EthGasPriceEstimate, GasFeeEstimates } from '@metamask/controllers';
 
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
@@ -127,13 +128,13 @@ const EditGasFeeLegacy = ({
 
       const lowerValue = new BigNumber(
         gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-          ? gasFeeEstimate?.low
-          : gasFeeEstimate?.gasPrice,
+          ? (gasFeeEstimate as EthGasPriceEstimate)?.low ?? '0'
+          : (gasFeeEstimate as GasFeeEstimates)?.gasPrice ?? '0'
       );
       const higherValue = new BigNumber(
         gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-          ? gasFeeEstimate?.high
-          : gasFeeEstimate?.gasPrice,
+          ? (gasFeeEstimate as EthGasPriceEstimate)?.high ?? '0'
+          : (gasFeeEstimate as GasFeeEstimates)?.gasPrice ?? '0'
       ).multipliedBy(new BigNumber(1.5));
 
       const valueBN = new BigNumber(value);
@@ -181,6 +182,7 @@ const EditGasFeeLegacy = ({
               name="information"
               size={20}
               color={colors.warning.default}
+              // @ts-expect-error Deprecated component
             />
           )}
         >
@@ -209,6 +211,7 @@ const EditGasFeeLegacy = ({
               name="information"
               size={20}
               color={colors.error.default}
+              // @ts-expect-error Deprecated component
             />
           )}
         >
@@ -260,7 +263,7 @@ const EditGasFeeLegacy = ({
               <View style={styles.customGasHeader}>
                 <TouchableOpacity onPress={onCancel}>
                   <Icon
-                    name={'ios-arrow-back'}
+                    name="ios-arrow-back"
                     size={24}
                     color={colors.text.default}
                   />
@@ -268,11 +271,7 @@ const EditGasFeeLegacy = ({
                 <Text variant={TextVariant.HeadingSM}>
                   {strings('transaction.edit_priority')}
                 </Text>
-                <Icon
-                  name={'ios-arrow-back'}
-                  size={24}
-                  color={colors.background.default}
-                />
+                <View style={{ width: 24 }} />
               </View>
             </View>
             {showTransactionWarning}
