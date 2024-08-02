@@ -145,7 +145,7 @@
     "@keystonehq/bc-ur-registry-eth": "^0.19.1",
     "@keystonehq/metamask-airgapped-keyring": "^0.13.1",
     "@keystonehq/ur-decoder": "^0.12.2",
-    "@ledgerhq/react-native-hw-transport-ble": "^6.32.3",
+    "@ledgerhq/react-native-hw-transport-ble": "^6.33.2",
     "@metamask/accounts-controller": "^14.0.0",
     "@metamask/address-book-controller": "^4.0.1",
     "@metamask/approval-controller": "^7.0.1",
