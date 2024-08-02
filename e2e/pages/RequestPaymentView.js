@@ -19,6 +19,10 @@ class RequestPaymentView {
     );
   }
 
+  get requestPaymentContainer() {
+    return Matchers.getElementByID(RequestPaymentViewSelectorsIDs.REQUEST_PAYMENT_CONTAINER);
+  }
+
   async tapBackButton() {
     await Gestures.tap(this.backButton);
   }
