@@ -1,42 +1,40 @@
-import TestHelpers from '../helpers';
-import { RequestPaymentViewSelectors } from '../selectors/RequestPaymentView.selectors';
+import { RequestPaymentViewSelectorsIDs } from './RequestPaymentView.selectors';
+import Matchers from '../utils/Matchers';
+import Gestures from '../utils/Gestures';
 
-export default class RequestPaymentView {
-  static async tapBackButton() {
-    await TestHelpers.tapItemAtIndex(
-      RequestPaymentViewSelectors.BACK_BUTTON_ID,
+class RequestPaymentView {
+  get backButton() {
+    return Matchers.getElementByID(RequestPaymentViewSelectorsIDs.BACK_BUTTON);
+  }
+
+  get tokenSearchInput() {
+    return Matchers.getElementByID(
+      RequestPaymentViewSelectorsIDs.TOKEN_SEARCH_INPUT_BOX,
     );
   }
 
-  static async searchForToken(token) {
-    await TestHelpers.replaceTextInField(
-      RequestPaymentViewSelectors.TOKEN_SEARCH_INPUT_BOX,
-      token,
-    );
-    await TestHelpers.delay(1000);
-  }
-
-  static async tapOnToken(token) {
-    await TestHelpers.tapByText(token, 1);
-  }
-
-  static async typeInTokenAmount(amount) {
-    await TestHelpers.typeTextAndHideKeyboard(
-      RequestPaymentViewSelectors.REQUEST_AMOUNT_INPUT_BOX_ID,
-      amount,
+  get requestAmountInput() {
+    return Matchers.getElementByID(
+      RequestPaymentViewSelectorsIDs.REQUEST_AMOUNT_INPUT_BOX,
     );
   }
 
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(
-      RequestPaymentViewSelectors.REQUEST_PAYMENT_CONTAINER_ID,
-    );
+  async tapBackButton() {
+    await Gestures.tap(this.backButton);
   }
 
-  static async isTokenVisibleInSearchResults(token) {
-    await TestHelpers.checkIfElementHasString(
-      RequestPaymentViewSelectors.REQUEST_ASSET_LIST_ID,
-      token,
-    );
+  async searchForToken(token) {
+    await Gestures.typeTextAndHideKeyboard(this.tokenSearchInput, token);
+  }
+
+  async tapOnToken(token) {
+    const tokenElement = Matchers.getElementByText(token);
+    await Gestures.tap(tokenElement);
+  }
+
+  async typeInTokenAmount(amount) {
+    await Gestures.typeTextAndHideKeyboard(this.requestAmountInput, amount);
   }
 }
+
+export default new RequestPaymentView();
