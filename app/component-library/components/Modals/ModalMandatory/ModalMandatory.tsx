@@ -148,14 +148,15 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
     </View>
   );
 
-  const isBodyWebViewUri = (body: BodyWebView): body is BodyWebViewUri => {
-    return (body as BodyWebViewUri).uri !== undefined;
-  };
+  const isBodyWebViewUri = (
+    webviewBody: BodyWebView,
+  ): webviewBody is BodyWebViewUri =>
+    (webviewBody as BodyWebViewUri).uri !== undefined;
 
-  const renderWebView = (body: BodyWebView) => {
-    const source = isBodyWebViewUri(body)
-      ? { uri: body.uri }
-      : { html: body.html };
+  const renderWebView = (webviewBody: BodyWebView) => {
+    const source = isBodyWebViewUri(webviewBody)
+      ? { uri: webviewBody.uri }
+      : { html: webviewBody.html };
 
     return (
       <WebView
@@ -165,8 +166,8 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
         injectedJavaScript={isScrollEndedJS}
         onLoad={() => setIsWebViewLoaded(true)}
         onMessage={onMessage}
-        {...(body.uri && {
-          onShouldStartLoadWithRequest: (req) => body.uri === req.url,
+        {...(webviewBody.uri && {
+          onShouldStartLoadWithRequest: (req) => webviewBody.uri === req.url,
         })}
       />
     );

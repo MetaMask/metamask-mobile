@@ -1,4 +1,3 @@
-import AppConstants from '../../core/AppConstants';
 import { MetaMetrics, MetaMetricsEvents } from '../../core/Analytics';
 import { TERMS_OF_USE_CONTENT, TRUE, USE_TERMS } from '../../constants/storage';
 import Routes from '../../constants/navigation/Routes';
