@@ -190,5 +190,5 @@ module.exports = {
     radix: 0,
   },
 
-  ignorePatterns: ['wdio.conf.js'],
+  ignorePatterns: ['wdio.conf.js', 'app/util/termsOfUse/termsOfUseContent.js'],
 };
