@@ -1,11 +1,9 @@
-export const RequestPaymentViewSelectorsIDs = {
-  BACK_BUTTON: 'button-back',
-  TOKEN_SEARCH_INPUT_BOX: 'token-search-input',
-  REQUEST_AMOUNT_INPUT_BOX: 'request-amount-input',
-  REQUEST_PAYMENT_CONTAINER: 'request-payment-container',
-  REQUEST_ASSET_LIST: 'request-asset-list',
-};
-
-export const RequestPaymentViewSelectorsText = {
-  // Add text selectors if needed
+// eslint-disable-next-line import/prefer-default-export
+export const RequestPaymentViewSelectors = {
+  BACK_BUTTON_ID: 'request-search-asset-back-button',
+  REQUEST_PAYMENT_CONTAINER_ID: 'request-screen',
+  REQUEST_ASSET_LIST_ID: 'searched-asset-results',
+  REQUEST_AMOUNT_INPUT_BOX_ID: 'request-amount-input',
+  TOKEN_SEARCH_INPUT_BOX: 'request-search-asset-input',
+  PAYMENT_REQUEST_CLOSE_BUTTON: 'send-link-close-button',
 };

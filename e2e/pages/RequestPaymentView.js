@@ -1,26 +1,34 @@
-import { RequestPaymentViewSelectorsIDs } from './RequestPaymentView.selectors';
+import { RequestPaymentViewSelectors } from './RequestPaymentView.selectors';
 import Matchers from '../utils/Matchers';
 import Gestures from '../utils/Gestures';
 
 class RequestPaymentView {
   get backButton() {
-    return Matchers.getElementByID(RequestPaymentViewSelectorsIDs.BACK_BUTTON);
+    return Matchers.getElementByID(RequestPaymentViewSelectors.BACK_BUTTON_ID);
   }
 
   get tokenSearchInput() {
     return Matchers.getElementByID(
-      RequestPaymentViewSelectorsIDs.TOKEN_SEARCH_INPUT_BOX,
+      RequestPaymentViewSelectors.TOKEN_SEARCH_INPUT_BOX,
     );
   }
 
   get requestAmountInput() {
     return Matchers.getElementByID(
-      RequestPaymentViewSelectorsIDs.REQUEST_AMOUNT_INPUT_BOX,
+      RequestPaymentViewSelectors.REQUEST_AMOUNT_INPUT_BOX_ID,
     );
   }
 
   get requestPaymentContainer() {
-    return Matchers.getElementByID(RequestPaymentViewSelectorsIDs.REQUEST_PAYMENT_CONTAINER);
+    return Matchers.getElementByID(
+      RequestPaymentViewSelectors.REQUEST_PAYMENT_CONTAINER_ID,
+    );
+  }
+
+  get requestAssetList() {
+    return Matchers.getElementByID(
+      RequestPaymentViewSelectors.REQUEST_ASSET_LIST_ID,
+    );
   }
 
   async tapBackButton() {
