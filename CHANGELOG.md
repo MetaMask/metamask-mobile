@@ -18,8 +18,6 @@
 - [#10172](https://github.com/MetaMask/metamask-mobile/pull/10172): chore: changelog release automation (#10172)
 - [#10282](https://github.com/MetaMask/metamask-mobile/pull/10282): chore: update Android SDK to API Level 34  (#10282)
 - [#10241](https://github.com/MetaMask/metamask-mobile/pull/10241): chore: add Sentry snapshot with masked data (#10241)
-- [#10305](https://github.com/MetaMask/metamask-mobile/pull/10305): chore: 7.27.0 RC 2 (#10305)
-- [#10292](https://github.com/MetaMask/metamask-mobile/pull/10292): chore: cleanup (#10292)
 - [#10289](https://github.com/MetaMask/metamask-mobile/pull/10289): chore: Download state logs on login screen (#10289)
 - [#10291](https://github.com/MetaMask/metamask-mobile/pull/10291): chore: Update webview to v 14.0.2 (#10291)
 - [#10253](https://github.com/MetaMask/metamask-mobile/pull/10253): chore: typescript hooks and base folder coverage (#10253)

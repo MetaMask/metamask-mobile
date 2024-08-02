@@ -1,0 +1,13 @@
+diff --git a/node_modules/ethjs-query/package.json b/node_modules/ethjs-query/package.json
+index fb82d51..503159c 100644
+--- a/node_modules/ethjs-query/package.json
++++ b/node_modules/ethjs-query/package.json
+@@ -2,7 +2,7 @@
+   "name": "ethjs-query",
+   "version": "0.3.8",
+   "description": "A simple query layer for the Ethereum RPC.",
+-  "main": "lib/index.js",
++  "main": "src/index.js",
+   "files": [
+     "dist",
+     "internals",
