@@ -214,6 +214,7 @@ workflows:
   code_setup:
     before_run:
       - setup
+      - install_detox
       - prep_environment
     steps:
       - restore-cocoapods-cache@2: {}
@@ -258,6 +259,12 @@ workflows:
                 echo "Corepack enabling $YARN_VERSION"
                 corepack enable
           title: Install node, yarn and corepack
+  install_detox:
+    steps:
+    - yarn@0:
+        inputs:
+           - args: ''
+           - command: setup:detox-e2e
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
@@ -610,6 +617,7 @@ workflows:
   android_e2e_test:
     before_run:
       - setup
+      - install_detox
       - prep_environment
     after_run:
       - notify_failure
@@ -708,6 +716,7 @@ workflows:
   ios_api_specs:
     before_run:
       - setup
+      - install_detox
       - prep_environment
     after_run:
       - notify_failure
@@ -859,6 +868,7 @@ workflows:
   ios_e2e_test:
     before_run:
       - setup
+      - install_detox
       - prep_environment
     after_run:
       - notify_failure
