@@ -3,6 +3,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import { SET_APPROVAL_FOR_ALL_SIGNATURE } from '../../../../../util/transactions';
+import { ComponentType } from 'react';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -68,7 +69,7 @@ const initialState = {
 describe('ApproveTransactionModal', () => {
   it('render matches snapshot', () => {
     const { toJSON } = renderScreen(
-      ApproveTransactionModal,
+      ApproveTransactionModal as ComponentType,
       { name: 'Approve' },
       { state: initialState },
     );
