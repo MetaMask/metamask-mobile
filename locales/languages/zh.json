@@ -375,6 +375,33 @@
     "accept": "我同意",
     "cancel": "不，谢谢"
   },
+  "nft_details": {
+    "bought_for": "购买用于",
+    "highest_floor_price": "最高底价",
+    "data_unavailable": "数据不可用",
+    "price_unavailable": "价格不可用",
+    "rank": "排名",
+    "contract_address": "合约地址",
+    "token_id": "代币 ID",
+    "token_symbol": "代币符号",
+    "token_standard": "代币标准",
+    "date_created": "创建日期",
+    "unique_token_holders": "唯一代币持有者",
+    "tokens_in_collection": "收藏品中的代币",
+    "creator_address": "创建者地址",
+    "last_sold": "最后售出",
+    "highest_current_bid": "当前最高出价",
+    "options": {
+      "view_on_os": "在 OpenSea 上查看",
+      "remove_nft": "去除 NFT"
+    },
+    "attributes": "属性",
+    "disclaimer": "免责声明：MetaMask 从源 URL 中提取媒体文件。该 URL 有时会因铸造 NFT 的市场而改变。"
+  },
+  "qr_tab_switcher": {
+    "scanner_tab": "扫描二维码",
+    "receive_tab": "您的二维码"
+  },
   "wallet": {
     "title": "钱包",
     "tokens": "代币",
@@ -423,6 +450,7 @@
     "use_correct_symbol": "确保您使用正确的符号才能继续",
     "chain_id_currently_used": "此链 ID 目前的使用者是",
     "network_check_validation_desc": "减少您连接到恶意或错误网络的机会。",
+    "cant_verify_custom_network_warning": "We can’t verify custom networks. To avoid malicious providers from recording your network activity, only add networks you trust.",
     "nfts_autodetection_cta": "在设置中打开 NFT 检测",
     "learn_more": "了解更多",
     "add_collectibles": "添加收藏品",
@@ -611,10 +639,10 @@
     "remove_account_message": "是否确实想要删除此账户？",
     "no": "否",
     "yes_remove_it": "是，删除它",
-    "remove_hardware_account": "Remove hardware account",
-    "remove_hw_account_alert_description": "Are you sure you want to remove this hardware wallet account? You’ll have to resync your hardware wallet if you want to use this account again with MetaMask Mobile.",
-    "remove_account_alert_remove_btn": "Remove",
-    "remove_account_alert_cancel_btn": "Nevermind",
+    "remove_hardware_account": "去除硬件账户",
+    "remove_hw_account_alert_description": "您确定要去除此硬件钱包账户吗？如果您想在 MetaMask Mobile 中再次使用此账户，则必须重新同步您的硬件钱包。",
+    "remove_account_alert_remove_btn": "去除",
+    "remove_account_alert_cancel_btn": "没关系",
     "accounts_title": "账户",
     "connect_account_title": "连接账户",
     "connect_accounts_title": "连接账户",
@@ -683,11 +711,11 @@
     "forget": "忽略此设备"
   },
   "app_settings": {
-    "enabling_notifications": "Enabling notifications...",
-    "disabling_notifications": "Disabling notifications...",
-    "enabling_profile_sync": "Enabling profile syncing...",
-    "disabling_profile_sync": "Disabling profile syncing...",
-    "notifications_dismiss_modal": "Dismiss",
+    "enabling_notifications": "正在启用通知...",
+    "disabling_notifications": "正在禁用通知...",
+    "enabling_profile_sync": "正在启用配置文件同步...",
+    "disabling_profile_sync": "正在禁用配置文件同步...",
+    "notifications_dismiss_modal": "关闭",
     "title": "设置",
     "current_conversion": "基础货币",
     "current_language": "当前语言",
@@ -734,7 +762,7 @@
     "protect_cta": "保护",
     "protect_title": "保护您的钱包",
     "video_failed": "视频加载失败。",
-    "protect_desc": "为了保护您的钱包，请将助记词保存在不同的地点，如纸上、密码管理器中和/或云端。",
+    "protect_desc": "将您的私钥助记词保存在只有您可以访问且不会忘记的地方，以保护您的钱包。请务必离线保存，以获得最佳安全性。",
     "protect_desc_no_backup": "这是您钱包的12单词助记词。此助记词可以用来控制您当前和未来的所有账户，包括发送您钱包中资金的能力。请确保安全存储此助记词，不要与任何人分享。MetaMask 不能帮助您恢复这个密钥。",
     "learn_more": "了解更多。",
     "seedphrase_not_backed_up": "重要！私钥助记词未备份",
@@ -1256,7 +1284,8 @@
     "unrecognized_address_qr_code_title": "二维码无法识别",
     "unrecognized_address_qr_code_desc": "对不起，此二维码没有关联的账户地址或合约地址。",
     "url_redirection_alert_title": "您即将访问外部链接",
-    "url_redirection_alert_desc": "链接可能会被用于诈骗或网络钓鱼，因此请确保您只访问您信任的网站。"
+    "url_redirection_alert_desc": "链接可能会被用于诈骗或网络钓鱼，因此请确保您只访问您信任的网站。",
+    "label": "扫描二维码"
   },
   "action_view": {
     "cancel": "取消",
@@ -1656,6 +1685,7 @@
     "network_display_name": "显示名称",
     "network_chain_id": "链 ID",
     "network_rpc_url": "网络URL",
+    "network_rpc_url_label": "Network RPC URL",
     "view_details": "查看详情",
     "network_details": "网络详情",
     "network_select_confirm_use_safe_check": "选择“确认”即开启网络详情检查。您可以在下方关闭网络详情检查：",
@@ -1665,6 +1695,7 @@
     "search": "搜索以前添加的网络",
     "search-short": "搜索",
     "add": "添加",
+    "continue": "继续",
     "cancel": "取消",
     "approve": "批准",
     "edit_network_details": "编辑网络详情",
@@ -1687,6 +1718,7 @@
     "add_other_network_here": "这里。",
     "you_can": "或者您可以",
     "add_network": "手动添加更多网络。",
+    "add_specific_network": "Add {{network_name}}",
     "select_network": "选择网络",
     "enabled_networks": "启用的网络",
     "additional_networks": "其他网络",
@@ -1961,8 +1993,9 @@
     "staked": "已质押",
     "received": "已收到",
     "unstaked": "已解除质押",
+    "mark_all_as_read": "Mark all as read",
     "to": "至",
-    "rate": "Rate (fees included)",
+    "rate": "价格（包括费用）",
     "unstaking_requested": "已请求解除质押",
     "stake_completed": "质押已完成",
     "withdrawal_completed": "提取已完成",
@@ -1973,47 +2006,47 @@
     "swap": "已兑换",
     "sent": "已发送至 {{address}}",
     "menu_item_title": {
-      "metamask_swap_completed": "Swapped {{symbol1}} for {{symbol2}}",
-      "erc20_sent": "Sent to {{address}}",
-      "erc20_received": "Received from {{address}}",
-      "eth_sent": "Sent to {{address}}",
-      "eth_received": "Received from {{address}}",
-      "erc721_sent": "Sent NFT to {{address}}",
-      "erc1155_sent": "Sent NFT to {{address}}",
-      "erc721_received": "Received NFT from {{address}}",
-      "erc1155_received": "Received NFT from {{address}}",
-      "rocketpool_stake_completed": "Staked",
-      "rocketpool_unstake_completed": "Unstaking complete",
-      "lido_stake_completed": "Staked",
-      "lido_withdrawal_requested": "Unstaking requested",
-      "lido_withdrawal_completed": "Unstaking complete",
-      "lido_stake_ready_to_be_withdrawn": "Withdrawal requested"
+      "metamask_swap_completed": "已用 {{symbol1}} 兑换 {{symbol2}}",
+      "erc20_sent": "已发送至 {{address}}",
+      "erc20_received": "已从 {{address}} 收到",
+      "eth_sent": "已发送至 {{address}}",
+      "eth_received": "已从 {{address}} 收到",
+      "erc721_sent": "已发送 NFT 至 {{address}}",
+      "erc1155_sent": "已发送 NFT 至 {{address}}",
+      "erc721_received": "已从 {{address}} 收到 NFT",
+      "erc1155_received": "已从 {{address}} 收到 NFT",
+      "rocketpool_stake_completed": "已质押",
+      "rocketpool_unstake_completed": "解除质押完成",
+      "lido_stake_completed": "已质押",
+      "lido_withdrawal_requested": "已请求解除质押",
+      "lido_withdrawal_completed": "解除质押完成",
+      "lido_stake_ready_to_be_withdrawn": "已请求提取"
     },
     "menu_item_description": {
-      "lido_withdrawal_requested": "Your request to unstake {{amount}} {{symbol}} has been sent",
-      "lido_stake_ready_to_be_withdrawn": "You can now withdraw your unstaked {{symbol}}"
+      "lido_withdrawal_requested": "您解除质押 {{amount}} {{symbol}} 的请求已发送",
+      "lido_stake_ready_to_be_withdrawn": "您现在可以提取已解除质押的 {{symbol}}"
     },
     "modal": {
-      "title_sent": "Sent {{symbol}}",
-      "title_received": "Received {{symbol}}",
-      "title_unstake_requested": "Unstaking requested",
-      "title_untake_ready": "Withdrawl ready",
-      "title_stake": "Staked {{symbol}}",
-      "title_unstake_completed": "Unstaking completed",
-      "title_swapped": "Swapped {{symbol1}} to {{symbol2}}",
-      "label_address_to": "To",
-      "label_address_from": "From",
-      "label_address_to_you": "To (You)",
-      "label_address_from_you": "From (You)",
-      "label_asset": "Asset",
-      "label_account": "Account",
-      "label_unstaking_requested": "Unstaking Requested",
-      "label_unstake_ready": "Withdrawl ready",
-      "label_staked": "Staked",
-      "label_received": "Received",
-      "label_unstaking_confirmed": "Unstaking Confirmed",
-      "label_swapped": "Swapped",
-      "label_to": "To"
+      "title_sent": "已发送 {{symbol}}",
+      "title_received": "已收到 {{symbol}}",
+      "title_unstake_requested": "已请求解除质押",
+      "title_untake_ready": "提取已就绪",
+      "title_stake": "已质押 {{symbol}}",
+      "title_unstake_completed": "解除质押完成",
+      "title_swapped": "已将 {{symbol1}} 兑换为 {{symbol2}}",
+      "label_address_to": "至",
+      "label_address_from": "从",
+      "label_address_to_you": "至（您）",
+      "label_address_from_you": "从（您）",
+      "label_asset": "资产",
+      "label_account": "账户",
+      "label_unstaking_requested": "已请求解除质押",
+      "label_unstake_ready": "提取已就绪",
+      "label_staked": "已质押",
+      "label_received": "已收到",
+      "label_unstaking_confirmed": "解除质押已确认",
+      "label_swapped": "已兑换",
+      "label_to": "至"
     },
     "received_from": "已从 {{address}} 收到",
     "nft_sent": "已发送 NFT 至 {{address}}",
@@ -2048,8 +2081,8 @@
     "received_message": "点按以查看此交易",
     "received_payment_message": "您已收到 {{amount}} DAI",
     "prompt_title": "启用推送通知",
-    "notifications_enabled_error_title": "Something went wrong",
-    "notifications_enabled_error_desc": "We couldn't enable notifications. Please try again later.",
+    "notifications_enabled_error_title": "出错了",
+    "notifications_enabled_error_desc": "我们无法启用通知。请稍后再试。",
     "prompt_desc": "启用通知，以便在您收到 ETH 或您的交易被确认时，MetaMask 能够让您知道。",
     "prompt_ok": "是",
     "prompt_cancel": "不，谢谢",
@@ -2074,7 +2107,7 @@
       "1": "钱包",
       "2": "公告"
     },
-    "copied_to_clipboard": "Copied to clipboard",
+    "copied_to_clipboard": "已复制到剪贴板",
     "address_copied_to_clipboard": "地址已复制到剪贴板",
     "transaction_id_copied_to_clipboard": "交易 ID 已复制到剪贴板",
     "activation_card": {
@@ -2138,7 +2171,8 @@
     "coming_soon": "即将推出...",
     "request_payment": "请求付款",
     "copy": "复制",
-    "scan_address": "扫描地址以接收付款"
+    "scan_address": "扫描地址以接收付款",
+    "copy_address": "复制地址"
   },
   "experimental_settings": {
     "wallet_connect_dapps": "WalletConnect 会话",
@@ -2706,7 +2740,7 @@
       "header": "增强型交易保护",
       "description_1": "通过智能交易解锁更高的成功率、抢先交易保护和更高的透明度。",
       "description_2": "仅适用于以太坊。可随时在设置中启用或禁用。",
-      "no_thanks": "No thanks",
+      "no_thanks": "不，谢谢",
       "primary_button": "启用",
       "learn_more": "了解更多。",
       "benefit_1_1": "99.5% 的成功",
@@ -2733,6 +2767,7 @@
     "title_existing_network": "本站点希望切换网络",
     "title_new_network": "已增加新网络",
     "switch_warning": "这将把 MetaMask 中选择的网络切换到先前添加的网络：",
+    "add_network_and_give_dapp_permission_warning": "You're adding this network to MetaMask and giving {{dapp_origin}} permission to use it.",
     "available": "现在可以在网络选择工具中使用。",
     "cancel": "取消",
     "switch": "切换网络"
@@ -2906,13 +2941,13 @@
     "enable_remember_me_description": "在“记住我”功能打开时，任何有访问您手机权限的人都可以访问您的 MetaMask 账户。"
   },
   "profile_sync": {
-    "title": "Profile Sync",
-    "disable_warning": "If you turn off profile sync, you won’t be able to receive notifications.",
-    "enable_description": "Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. ",
-    "enable_description2": " to learn more.",
-    "enable_privacy_link": "Learn how we protect your privacy",
-    "bottomSheetTurnOn": "Turning on Profile Sync",
-    "bottomSheetTurnOff": "Turning off Profile Sync"
+    "title": "配置文件同步",
+    "disable_warning": "如果您关闭配置文件同步，您将无法收到通知。",
+    "enable_description": "创建配置文件，MetaMask 用以在您的不同设备之间同步某些设置。这是获取通知的必需条件。 ",
+    "enable_description2": " 以了解详情。",
+    "enable_privacy_link": "了解我们如何保护您的隐私",
+    "bottomSheetTurnOn": "开启配置文件同步",
+    "bottomSheetTurnOff": "关闭配置文件同步"
   },
   "turn_off_remember_me": {
     "title": "输入密码以关闭“记住我”",
@@ -3186,7 +3221,16 @@
     "tooltip_description": "预计变化是指您完成该交易可能发生的变化。这只是一个预测，而不是保证。",
     "total_fiat": "总计 = {{currency}}"
   },
+  "spam_filter": {
+    "block_origin_requests_for_1_minute": "暂时阻止此网站",
+    "cancel": "取消",
+    "description": "如果您收到多个垃圾信息请求，您可以暂时阻止此网站。",
+    "got_it": "知道了",
+    "site_blocked_description": "该网站将被阻止 1 分钟。",
+    "site_blocked_title": "您已暂时阻止此网站",
+    "title": "我们注意到有多个请求"
+  },
   "common": {
-    "please_wait": "Please wait"
+    "please_wait": "请稍候"
   }
 }

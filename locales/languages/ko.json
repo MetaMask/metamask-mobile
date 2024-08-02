@@ -375,6 +375,33 @@
     "accept": "동의합니다",
     "cancel": "아니요, 괜찮습니다"
   },
+  "nft_details": {
+    "bought_for": "매수:",
+    "highest_floor_price": "최고 바닥 가격",
+    "data_unavailable": "데이터 사용 불가",
+    "price_unavailable": "가격 사용 불가",
+    "rank": "순위",
+    "contract_address": "계약 주소",
+    "token_id": "토큰 ID",
+    "token_symbol": "토큰 심볼",
+    "token_standard": "토큰 표준",
+    "date_created": "생성일",
+    "unique_token_holders": "고유 토큰 보유자",
+    "tokens_in_collection": "컬렉션에 보유 중인 토큰",
+    "creator_address": "크리에이터 주소",
+    "last_sold": "최근 매도",
+    "highest_current_bid": "현재 최고 입찰",
+    "options": {
+      "view_on_os": "OpenSea에서 보기",
+      "remove_nft": "NFT 제거"
+    },
+    "attributes": "속성",
+    "disclaimer": "면책 조항: MetaMask는 소스 URL에서 미디어 파일을 가져옵니다. 이러한 URL은 때때로 NFT가 민팅된 마켓플레이스에서 변경되기도 합니다."
+  },
+  "qr_tab_switcher": {
+    "scanner_tab": "QR 코드 스캔",
+    "receive_tab": "내 QR 코드"
+  },
   "wallet": {
     "title": "지갑",
     "tokens": "토큰",
@@ -423,6 +450,7 @@
     "use_correct_symbol": "계속하기 전에 올바른 심볼을 사용하고 있는지 확인하세요",
     "chain_id_currently_used": "이 체인 ID는 현재 다음에서 사용됩니다:",
     "network_check_validation_desc": "악성 또는 잘못된 네트워크에 연결될 가능성이 줄어듭니다.",
+    "cant_verify_custom_network_warning": "We can’t verify custom networks. To avoid malicious providers from recording your network activity, only add networks you trust.",
     "nfts_autodetection_cta": "설정에서 NFT 감지를 켜세요",
     "learn_more": "더 알아보기",
     "add_collectibles": "NFT 가져오기",
@@ -611,10 +639,10 @@
     "remove_account_message": "해당 계정을 정말로 제거하시겠습니까?",
     "no": "아니오",
     "yes_remove_it": "네. 제거하겠습니다",
-    "remove_hardware_account": "Remove hardware account",
-    "remove_hw_account_alert_description": "Are you sure you want to remove this hardware wallet account? You’ll have to resync your hardware wallet if you want to use this account again with MetaMask Mobile.",
-    "remove_account_alert_remove_btn": "Remove",
-    "remove_account_alert_cancel_btn": "Nevermind",
+    "remove_hardware_account": "하드웨어 계정 제거",
+    "remove_hw_account_alert_description": "이 하드웨어 지갑 계정을 제거하시겠습니까? 이 계정을 MetaMask 모바일에서 다시 사용하려면 하드웨어 지갑에 다시 동기화해야 합니다.",
+    "remove_account_alert_remove_btn": "제거",
+    "remove_account_alert_cancel_btn": "취소",
     "accounts_title": "계정",
     "connect_account_title": "계정 연결",
     "connect_accounts_title": "계정 연결",
@@ -683,11 +711,11 @@
     "forget": "이 기기 제거"
   },
   "app_settings": {
-    "enabling_notifications": "Enabling notifications...",
-    "disabling_notifications": "Disabling notifications...",
-    "enabling_profile_sync": "Enabling profile syncing...",
-    "disabling_profile_sync": "Disabling profile syncing...",
-    "notifications_dismiss_modal": "Dismiss",
+    "enabling_notifications": "알림 활성화 중...",
+    "disabling_notifications": "알림 비활성화 중...",
+    "enabling_profile_sync": "프로필 동기화 활성화 중...",
+    "disabling_profile_sync": "프로필 동기화 비활성화 중...",
+    "notifications_dismiss_modal": "해지",
     "title": "설정",
     "current_conversion": "기준 통화",
     "current_language": "현재 언어",
@@ -734,7 +762,7 @@
     "protect_cta": "보호",
     "protect_title": "지갑 보호하기",
     "video_failed": "영상을 가져올 수 없습니다.",
-    "protect_desc": "비밀복구구문을 종이, 패스워드 매니저 및/또는 클라우드 등 다양한 장소에 저장해 자신의 지갑을 보호하세요.",
+    "protect_desc": "회원님만 접근할 수 있고 잊지 않을 곳에 비밀복구구문을 저장하여 지갑을 보호하세요. 오프라인 공간에 보관하는 것이 가장 안전합니다.",
     "protect_desc_no_backup": "이것은 지갑의 12단어 구문입니다. 이 구문은 지갑에 있는 자금을 보내는 기능을 포함하여 현재와 미래의 모든 계정을 통제하기 위해 사용할 수 있습니다. 이 구문은 안전하게 보관하고 다른 사람과 공유하지 마세요. MetaMask는 이 키를 복구해 드릴 수 없습니다.",
     "learn_more": "더 알아보기.",
     "seedphrase_not_backed_up": "중요! 비밀복구구문이 백업되지 않았습니다",
@@ -1256,7 +1284,8 @@
     "unrecognized_address_qr_code_title": "읽을 수 없는 QR 코드",
     "unrecognized_address_qr_code_desc": "죄송합니다. 이 QR 코드는 계정 주소나 연락처 주소와 연계되어 있지 않습니다.",
     "url_redirection_alert_title": "이제 외부 링크로 이동합니다.",
-    "url_redirection_alert_desc": "링크는 피싱이나 사기에 도용될 수 있습니다. 신뢰할 수 있는 웹사이트만 방문하시기 바랍니다."
+    "url_redirection_alert_desc": "링크는 피싱이나 사기에 도용될 수 있습니다. 신뢰할 수 있는 웹사이트만 방문하시기 바랍니다.",
+    "label": "QR 코드 스캔"
   },
   "action_view": {
     "cancel": "취소",
@@ -1656,6 +1685,7 @@
     "network_display_name": "이름 표시",
     "network_chain_id": "체인 ID",
     "network_rpc_url": "네트워크 URL",
+    "network_rpc_url_label": "Network RPC URL",
     "view_details": "세부 정보 보기",
     "network_details": "네트워크 세부 정보",
     "network_select_confirm_use_safe_check": "확인을 선택하면 네트워크 세부 정보 확인이 켜집니다. 다음에서 네트워크 세부 정보 확인을 끌 수 있습니다 : ",
@@ -1665,6 +1695,7 @@
     "search": "이전에 추가된 네트워크 검색",
     "search-short": "검색",
     "add": "추가",
+    "continue": "계속",
     "cancel": "취소",
     "approve": "승인",
     "edit_network_details": "네트워크 세부 정보 편집",
@@ -1687,6 +1718,7 @@
     "add_other_network_here": "여기에서 확인하세요.",
     "you_can": "또는 다음을 확인하세요:",
     "add_network": "네트워크를 직접 추가할 수도 있습니다.",
+    "add_specific_network": "Add {{network_name}}",
     "select_network": "네트워크 선택",
     "enabled_networks": "활성화된 네트워크",
     "additional_networks": "추가 네트워크",
@@ -1961,8 +1993,9 @@
     "staked": "스테이킹됨",
     "received": "받음",
     "unstaked": "언스테이킹됨",
+    "mark_all_as_read": "Mark all as read",
     "to": "수신:",
-    "rate": "Rate (fees included)",
+    "rate": "환율(수수료 포함)",
     "unstaking_requested": "언스테이킹 요청 완료",
     "stake_completed": "스테이킹 완료",
     "withdrawal_completed": "인출 완료",
@@ -1973,47 +2006,47 @@
     "swap": "스왑됨",
     "sent": "{{address}}(으)로 보냄",
     "menu_item_title": {
-      "metamask_swap_completed": "Swapped {{symbol1}} for {{symbol2}}",
-      "erc20_sent": "Sent to {{address}}",
-      "erc20_received": "Received from {{address}}",
-      "eth_sent": "Sent to {{address}}",
-      "eth_received": "Received from {{address}}",
-      "erc721_sent": "Sent NFT to {{address}}",
-      "erc1155_sent": "Sent NFT to {{address}}",
-      "erc721_received": "Received NFT from {{address}}",
-      "erc1155_received": "Received NFT from {{address}}",
-      "rocketpool_stake_completed": "Staked",
-      "rocketpool_unstake_completed": "Unstaking complete",
-      "lido_stake_completed": "Staked",
-      "lido_withdrawal_requested": "Unstaking requested",
-      "lido_withdrawal_completed": "Unstaking complete",
-      "lido_stake_ready_to_be_withdrawn": "Withdrawal requested"
+      "metamask_swap_completed": "{{symbol1}}을(를) {{symbol2}}(으)로 스왑함",
+      "erc20_sent": "{{address}}(으)로 보냄",
+      "erc20_received": "{{address}}에서 받음",
+      "eth_sent": "{{address}}(으)로 보냄",
+      "eth_received": "{{address}}에서 받음",
+      "erc721_sent": "{{address}}(으)로 NFT를 전송함",
+      "erc1155_sent": "{{address}}(으)로 NFT를 전송함",
+      "erc721_received": "{{address}}에서 NFT를 받음",
+      "erc1155_received": "{{address}}에서 NFT를 받음",
+      "rocketpool_stake_completed": "스테이킹 완료",
+      "rocketpool_unstake_completed": "언스테이킹 완료",
+      "lido_stake_completed": "스테이킹 완료",
+      "lido_withdrawal_requested": "언스테이킹 요청 완료",
+      "lido_withdrawal_completed": "언스테이킹 완료",
+      "lido_stake_ready_to_be_withdrawn": "인출 요청 완료"
     },
     "menu_item_description": {
-      "lido_withdrawal_requested": "Your request to unstake {{amount}} {{symbol}} has been sent",
-      "lido_stake_ready_to_be_withdrawn": "You can now withdraw your unstaked {{symbol}}"
+      "lido_withdrawal_requested": "{{amount}} {{symbol}} 언스테이킹 요청이 전송되었습니다",
+      "lido_stake_ready_to_be_withdrawn": "이제 언스테이킹한 {{symbol}}을(를) 인출할 수 있습니다"
     },
     "modal": {
-      "title_sent": "Sent {{symbol}}",
-      "title_received": "Received {{symbol}}",
-      "title_unstake_requested": "Unstaking requested",
-      "title_untake_ready": "Withdrawl ready",
-      "title_stake": "Staked {{symbol}}",
-      "title_unstake_completed": "Unstaking completed",
-      "title_swapped": "Swapped {{symbol1}} to {{symbol2}}",
-      "label_address_to": "To",
-      "label_address_from": "From",
-      "label_address_to_you": "To (You)",
-      "label_address_from_you": "From (You)",
-      "label_asset": "Asset",
-      "label_account": "Account",
-      "label_unstaking_requested": "Unstaking Requested",
-      "label_unstake_ready": "Withdrawl ready",
-      "label_staked": "Staked",
-      "label_received": "Received",
-      "label_unstaking_confirmed": "Unstaking Confirmed",
-      "label_swapped": "Swapped",
-      "label_to": "To"
+      "title_sent": "{{symbol}} 보냄",
+      "title_received": "{{symbol}} 받음",
+      "title_unstake_requested": "언스테이킹 요청 완료",
+      "title_untake_ready": "인출 준비 완료",
+      "title_stake": "{{symbol}} 스테이킹 완료",
+      "title_unstake_completed": "언스테이킹 완료됨",
+      "title_swapped": "{{symbol1}}을(를) {{symbol2}}(으)로 스왑함",
+      "label_address_to": "수신:",
+      "label_address_from": "발신:",
+      "label_address_to_you": "받음(나)",
+      "label_address_from_you": "보냄(나)",
+      "label_asset": "자산",
+      "label_account": "계정",
+      "label_unstaking_requested": "언스테이킹 요청 완료",
+      "label_unstake_ready": "인출 준비 완료",
+      "label_staked": "스테이킹 완료",
+      "label_received": "받음",
+      "label_unstaking_confirmed": "언스테이킹 확인됨",
+      "label_swapped": "스왑됨",
+      "label_to": "수신:"
     },
     "received_from": "{{address}}에서 받음",
     "nft_sent": "{{address}}(으)로 NFT 전송함",
@@ -2048,8 +2081,8 @@
     "received_message": "눌러서 이 트랜잭션을 확인하세요",
     "received_payment_message": "{{amount}} DAI를 받았습니다",
     "prompt_title": "공지 알림 활성화",
-    "notifications_enabled_error_title": "Something went wrong",
-    "notifications_enabled_error_desc": "We couldn't enable notifications. Please try again later.",
+    "notifications_enabled_error_title": "문제가 발생했습니다",
+    "notifications_enabled_error_desc": "알림을 활성화할 수 없습니다. 나중에 다시 시도하세요.",
     "prompt_desc": "공지 알림을 활성화해서 MetaMask가 언제 ETH를 받았는지 혹은 언제 트랜잭션이 컨펌되었는지 등의 알림을 받으세요.",
     "prompt_ok": "예",
     "prompt_cancel": "아니요, 괜찮습니다",
@@ -2074,7 +2107,7 @@
       "1": "지갑",
       "2": "공지"
     },
-    "copied_to_clipboard": "Copied to clipboard",
+    "copied_to_clipboard": "클립보드에 복사되었습니다",
     "address_copied_to_clipboard": "주소가 클립보드에 복사되었습니다",
     "transaction_id_copied_to_clipboard": "트랜잭션 ID를 클립보드에 복사했습니다",
     "activation_card": {
@@ -2138,7 +2171,8 @@
     "coming_soon": "곧 추가 예정...",
     "request_payment": "결제 요청",
     "copy": "복사",
-    "scan_address": "결제 받은 주소를 스캔하세요"
+    "scan_address": "결제 받은 주소를 스캔하세요",
+    "copy_address": "주소 복사"
   },
   "experimental_settings": {
     "wallet_connect_dapps": "지갑 연결 세션",
@@ -2706,7 +2740,7 @@
       "header": "트랜잭션 보호 강화",
       "description_1": "스마트 트랜잭션으로 선행거래를 방지하고 더 높은 성공률과 가시성을 확보하세요.",
       "description_2": "이더리움에서만 사용할 수 있습니다. 설정에서 언제든지 활성화하거나 비활성화할 수 있습니다.",
-      "no_thanks": "No thanks",
+      "no_thanks": "아니요, 괜찮습니다",
       "primary_button": "활성화",
       "learn_more": "자세히 알아보세요.",
       "benefit_1_1": "99.5% 성공",
@@ -2733,6 +2767,7 @@
     "title_existing_network": "이 사이트는 네트워크 전환을 원합니다",
     "title_new_network": "신규 네트워크 추가됨",
     "switch_warning": "이는 MetaMask에서 선택한 네트워크를 이전에 추가한 다음 네트워크로 전환하게 됩니다:",
+    "add_network_and_give_dapp_permission_warning": "You're adding this network to MetaMask and giving {{dapp_origin}} permission to use it.",
     "available": "이것은 이제 네트워크 선택자 내에서 이용 가능합니다.",
     "cancel": "취소",
     "switch": "네트워크 변경"
@@ -2906,13 +2941,13 @@
     "enable_remember_me_description": "로그인 정보를 저장하면 회원님의 휴대폰을 이용하는 모든 사람이 회원님의 MetaMask 계정에 액세스할 수 있습니다."
   },
   "profile_sync": {
-    "title": "Profile Sync",
-    "disable_warning": "If you turn off profile sync, you won’t be able to receive notifications.",
-    "enable_description": "Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. ",
-    "enable_description2": " to learn more.",
-    "enable_privacy_link": "Learn how we protect your privacy",
-    "bottomSheetTurnOn": "Turning on Profile Sync",
-    "bottomSheetTurnOff": "Turning off Profile Sync"
+    "title": "프로필 동기화",
+    "disable_warning": "프로필 동기화를 끄면 알림을 받을 수 없게 됩니다.",
+    "enable_description": "MetaMask가 기기 간에 일부 설정을 동기화하는 데 사용할 프로필을 생성합니다. 알림을 받으려면 프로필이 필요합니다. ",
+    "enable_description2": " 을(를) 참고하세요.",
+    "enable_privacy_link": "개인 정보 보호 방법 알아보기",
+    "bottomSheetTurnOn": "프로필 동기화 켜기",
+    "bottomSheetTurnOff": "프로필 동기화 끄기"
   },
   "turn_off_remember_me": {
     "title": "로그인 정보 저장 기능을 끄려면 비밀번호를 입력하세요",
@@ -3186,7 +3221,16 @@
     "tooltip_description": "예상 변동 사항은 이 트랜잭션을 진행할 경우 발생하는 결과를 예측한 것입니다. 이는 예측일 뿐 결과를 보장하지는 않습니다.",
     "total_fiat": "합계 = {{currency}}"
   },
+  "spam_filter": {
+    "block_origin_requests_for_1_minute": "이 사이트 일시 차단",
+    "cancel": "취소",
+    "description": "어떤 사이트로부터 여러 건의 스팸 요청을 받는다면 해당 사이트를 일시적으로 차단할 수 있습니다.",
+    "got_it": "확인",
+    "site_blocked_description": "해당 사이트가 1분 동안 차단됩니다.",
+    "site_blocked_title": "이 사이트를 일시적으로 차단했습니다",
+    "title": "여러 건의 요청을 확인했습니다"
+  },
   "common": {
-    "please_wait": "Please wait"
+    "please_wait": "잠시만 기다려주세요"
   }
 }
