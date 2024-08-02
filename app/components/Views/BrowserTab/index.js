@@ -710,9 +710,16 @@ export const BrowserTab = (props) => {
 
   useEffect(() => {
     if (webviewRef.current) {
-      webviewRef.current.injectJavaScript(`
-        window.isTabActive = ${isFocused};
-      `);
+      if (isFocused) {
+        webviewRef.current.injectJavaScript(`
+          window.isTabActive = true;
+        `);
+      } else {
+        webviewRef.current.injectJavaScript(`
+          window.isTabActive = false;
+        `);
+        webviewRef.current.stopLoading(); // Stop loading the page
+      }
     }
   }, [isFocused]);
 
