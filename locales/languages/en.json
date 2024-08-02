@@ -450,6 +450,7 @@
     "use_correct_symbol": "Make sure you’re using the correct symbol before continuing",
     "chain_id_currently_used": "This Chain ID is currently used by the",
     "network_check_validation_desc": "reduces your chances of connecting to a malicious or incorrect network.",
+    "cant_verify_custom_network_warning": "We can’t verify custom networks. To avoid malicious providers from recording your network activity, only add networks you trust.",
     "nfts_autodetection_cta": "Turn on NFT detection in Settings",
     "learn_more": "Learn more",
     "add_collectibles": "Import NFTs",
