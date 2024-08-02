@@ -304,7 +304,10 @@ type GlobalEvents =
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 
-export interface EngineState {
+// Interfaces are incompatible with our controllers and data types by default.
+// Adding an index signature fixes this, but at the cost of widening the type unnecessarily.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type EngineState = {
   AccountTrackerController: AccountTrackerState;
   AddressBookController: AddressBookState;
   AssetsContractController: BaseState;
@@ -337,12 +340,15 @@ export interface EngineState {
   LoggingController: LoggingControllerState;
   PPOMController: PPOMState;
   AccountsController: AccountsControllerState;
-}
+};
 
 /**
  * All mobile controllers, keyed by name
  */
-interface Controllers {
+// Interfaces are incompatible with our controllers and state types by default.
+// Adding an index signature fixes this, but at the cost of widening the type unnecessarily.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+type Controllers = {
   AccountsController: AccountsController;
   AccountTrackerController: AccountTrackerController;
   AddressBookController: AddressBookController;
@@ -378,7 +384,7 @@ interface Controllers {
   NotificationServicesController: NotificationServicesController.Controller;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
-}
+};
 
 /**
  * Controllers that area always instantiated
@@ -410,9 +416,7 @@ class Engine {
   /**
    * ComposableController reference containing all child controllers
    */
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  datamodel: any;
+  datamodel: ComposableController<EngineState, Controllers[keyof Controllers]>;
 
   /**
    * Object containing the info for the latest incoming tx block
@@ -1473,11 +1477,78 @@ class Engine {
       }
     }
 
-    this.datamodel = new ComposableController(
-      // @ts-expect-error The ComposableController needs to be updated to support BaseControllerV2
+    this.datamodel = new ComposableController<
+      EngineState,
+      Controllers[keyof Controllers]
+    >({
       controllers,
-      this.controllerMessenger,
-    );
+      // @ts-expect-error Resolve/patch mismatch between base-controller versions
+      // ts(2322) - Property '#private' in type 'RestrictedControllerMessenger' refers to a different member that cannot be accessed from within type 'RestrictedControllerMessenger'
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'ComposableController',
+        allowedActions: [],
+        allowedEvents: [
+          /**
+           * V1/V2 controllers with correctly defined messengers and `stateChange` events.
+           */
+          'AccountsController:stateChange',
+          'ApprovalController:stateChange',
+          'CurrencyRateController:stateChange',
+          'GasFeeController:stateChange',
+          'KeyringController:stateChange',
+          'NetworkController:stateChange',
+          'PermissionController:stateChange',
+          'PreferencesController:stateChange',
+          'SignatureController:stateChange',
+          'SnapController:stateChange',
+          'SubjectMetadataController:stateChange',
+          'TokenListController:stateChange',
+          'TokensController:stateChange',
+          'TransactionController:stateChange',
+
+          /**
+           * V1/V2 controllers incorrectly defined with a `messagingSystem` that is missing its `stateChange` event.
+           * ! These `stateChange` events must be included in the datamodel's events allowlist.
+           * TODO: Upstream fixes in the source packages are required for the following controllers.
+           */
+          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
+          'AuthenticationController:stateChange',
+          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
+          'LoggingController:stateChange',
+          // @ts-expect-error BaseControllerV1, has `messagingSystem` but as private field, messenger defined without `stateChange` event type
+          'NftController:stateChange',
+          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
+          'NotificationServicesController:stateChange',
+          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
+          'PhishingController:stateChange',
+          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
+          'PPOMController:stateChange',
+          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
+          'SnapsRegistry:stateChange',
+          // @ts-expect-error BaseControllerV2, `TokenBalancesControllerState` import error
+          'TokenBalancesController:stateChange',
+          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
+          'UserStorageController:stateChange',
+
+          /**
+           * V1 controllers that should be excluded from the datamodel's events allowlist for now.
+           * TODO: Each of these events should be added to the allowlist once its controller is migrated to V2.
+           */
+          // 'AccountTrackerController:stateChange', // StaticIntervalPollingControllerV1, no `messagingSystem`
+          // 'AddressBookController:stateChange', // BaseControllerV1, no `messagingSystem`
+          // 'SmartTransactionsController:stateChange', // StaticIntervalPollingControllerV1, no `messagingSystem`
+          // 'SwapsController:stateChange', // BaseControllerV1, no `messagingSystem`
+          // 'TokenRatesController:stateChange', // StaticIntervalPollingControllerV1, no `messagingSystem`
+
+          /**
+           * Non-controllers that should always be excluded from the datamodel's events allowlist.
+           */
+          // 'AssetsContractController:stateChange', // BaseControllerV1, no `messagingSystem`
+          // 'NftDetectionController:stateChange', // StaticIntervalPollingControllerV1, no `messagingSystem`
+          // 'TokenDetectionController:stateChange', // StaticIntervalPollingController, empty state
+        ],
+      }),
+    });
     this.context = controllers.reduce<Partial<typeof this.context>>(
       (context, controller) => ({
         ...context,
@@ -1965,10 +2036,12 @@ export default {
     // TODO: handle `null` currencyRate by hiding fiat values instead
     const modifiedCurrencyRateControllerState = {
       ...CurrencyRateController,
-      conversionRate:
-        CurrencyRateController.conversionRate === null
-          ? 0
-          : CurrencyRateController.conversionRate,
+      currencyRates: Object.fromEntries(
+        Object.entries(CurrencyRateController.currencyRates).map(([k, v]) => [
+          k,
+          { ...v, conversionRate: v.conversionRate ?? 0 },
+        ]),
+      ),
     };
 
     return {
