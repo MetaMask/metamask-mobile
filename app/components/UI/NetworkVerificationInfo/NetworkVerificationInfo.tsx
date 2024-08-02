@@ -71,6 +71,12 @@ const NetworkVerificationInfo = ({
 
   const showCheckNetworkModal = () => setShowCheckNetwork(!showCheckNetwork);
 
+  const goToLearnMore = () => {
+    Linking.openURL(
+      'https://support.metamask.io/networks-and-sidechains/managing-networks/verifying-custom-network-information/',
+    );
+  };
+
   useEffect(() => setAlerts(alertsFromProps), [alertsFromProps]);
 
   const networkImageSource = useMemo(
@@ -219,6 +225,21 @@ const NetworkVerificationInfo = ({
     return null;
   };
 
+  const renderCustomNetworkBanner = () => (
+    <View style={styles.alertBar}>
+      <Banner
+        severity={BannerAlertSeverity.Warning}
+        variant={BannerVariant.Alert}
+        description={strings('wallet.cant_verify_custom_network_warning')}
+        actionButtonProps={{
+          variant: ButtonVariants.Link,
+          label: strings('wallet.learn_more'),
+          onPress: goToLearnMore,
+        }}
+      />
+    </View>
+  );
+
   const renderAlerts = useCallback(() => {
     if (!safeChainsListValidationEnabled) return null;
     if (!alerts.length) return null;
@@ -314,6 +335,9 @@ const NetworkVerificationInfo = ({
         />
         {renderAlerts()}
         {renderBanner()}
+        {isMutichainVersion1Enabled &&
+          isCustomNetwork &&
+          renderCustomNetworkBanner()}
         <Text style={styles.textCentred}>
           {isMutichainVersion1Enabled ? (
             <Text>
