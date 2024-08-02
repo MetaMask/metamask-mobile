@@ -12,8 +12,7 @@ pipelines:
   #Builds MetaMask, MetaMask-QA apps and stores apk/ipa in Bitrise
   build_all_targets_pipeline:
     stages:
-      - create_build_release: {}
-      - create_build_qa: {} #Generate QA builds for E2E app upgrade tests
+      - create_build_all_targets: {}
   #Releases MetaMask apps and stores apk/ipa into Play(Internal Testing)/App(TestFlight) Store
   release_builds_to_store_pipeline:
     stages:
@@ -73,6 +72,12 @@ pipelines:
 
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
+  create_build_all_targets:
+    workflows:
+      - build_android_release: {}
+      - build_ios_release: {}
+      - build_android_qa: {}
+      - build_ios_qa: {}
   create_build_release:
     workflows:
       - build_android_release: {}
@@ -110,6 +115,7 @@ stages:
     workflows:
       - ios_e2e_test: {}
   build_smoke_e2e_ios_android_stage:
+    abort_on_fail: true
     workflows:
       - ios_e2e_build: {}
       - android_e2e_build: {}
@@ -1421,6 +1427,9 @@ app:
       MM_NETWORK_UI_REDESIGN_ENABLED: false
     - opts:
         is_expand: false
+      MM_MULTICHAIN_V1_ENABLED: false
+    - opts:
+        is_expand: false
       PROJECT_LOCATION: android
     - opts:
         is_expand: false
@@ -1451,16 +1460,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.27.0
+      VERSION_NAME: 7.27.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1364
+      VERSION_NUMBER: 1369
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.27.0
+      FLASK_VERSION_NAME: 7.27.1
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1364
+      FLASK_VERSION_NUMBER: 1369
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -1494,8 +1503,6 @@ trigger_map:
     pipeline: release_e2e_pipeline
   - push_branch: main
     pipeline: pr_smoke_e2e_pipeline
-  - tag: 'v*.*.*-RC-*'
-    pipeline: release_builds_to_store_pipeline
   - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'

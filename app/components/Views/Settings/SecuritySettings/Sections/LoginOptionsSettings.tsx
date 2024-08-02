@@ -5,7 +5,8 @@ import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { Authentication } from '../../../../../core';
 import AUTHENTICATION_TYPE from '../../../../../constants/userProperties';
 import Device from '../../../../../util/device';
-import AsyncStorage from '../../../../../store/async-storage-wrapper';
+import { useTheme } from '../../../../../util/theme';
+import StorageWrapper from '../../../../../store/storage-wrapper';
 import {
   BIOMETRY_CHOICE_DISABLED,
   PASSCODE_DISABLED,
@@ -13,6 +14,7 @@ import {
 } from '../../../../../constants/storage';
 import { View } from 'react-native';
 import { LOGIN_OPTIONS } from '../SecuritySettings.constants';
+import createStyles from '../SecuritySettings.styles';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 
 interface BiometricOptionSectionProps {
@@ -29,14 +31,16 @@ const LoginOptionsSettings = ({
   >(undefined);
   const [biometryChoice, setBiometryChoice] = useState<boolean>(false);
   const [passcodeChoice, setPasscodeChoice] = useState<boolean>(false);
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   useEffect(() => {
     const getOptions = async () => {
       const authType = await Authentication.getType();
-      const previouslyDisabled = await AsyncStorage.getItem(
+      const previouslyDisabled = await StorageWrapper.getItem(
         BIOMETRY_CHOICE_DISABLED,
       );
-      const passcodePreviouslyDisabled = await AsyncStorage.getItem(
+      const passcodePreviouslyDisabled = await StorageWrapper.getItem(
         PASSCODE_DISABLED,
       );
       if (
@@ -79,26 +83,30 @@ const LoginOptionsSettings = ({
 
   return (
     <View testID={LOGIN_OPTIONS}>
-      {biometryType ? (
-        <SecurityOptionToggle
-          title={strings(`biometrics.enable_${biometryType.toLowerCase()}`)}
-          value={biometryChoice}
-          onOptionUpdated={onBiometricsOptionUpdated}
-          testId={SecurityPrivacyViewSelectorsIDs.BIOMETRICS_TOGGLE}
-        />
-      ) : null}
-      {biometryType && !biometryChoice ? (
-        <SecurityOptionToggle
-          title={
-            Device.isIos()
-              ? strings(`biometrics.enable_device_passcode_ios`)
-              : strings(`biometrics.enable_device_passcode_android`)
-          }
-          value={passcodeChoice}
-          onOptionUpdated={onPasscodeOptionUpdated}
-          testId={SecurityPrivacyViewSelectorsIDs.DEVICE_PASSCODE_TOGGLE}
-        />
-      ) : null}
+      <View style={styles.setting}>
+        {biometryType ? (
+          <SecurityOptionToggle
+            title={strings(`biometrics.enable_${biometryType.toLowerCase()}`)}
+            value={biometryChoice}
+            onOptionUpdated={onBiometricsOptionUpdated}
+            testId={SecurityPrivacyViewSelectorsIDs.BIOMETRICS_TOGGLE}
+          />
+        ) : null}
+      </View>
+      <View style={styles.setting}>
+        {biometryType && !biometryChoice ? (
+          <SecurityOptionToggle
+            title={
+              Device.isIos()
+                ? strings(`biometrics.enable_device_passcode_ios`)
+                : strings(`biometrics.enable_device_passcode_android`)
+            }
+            value={passcodeChoice}
+            onOptionUpdated={onPasscodeOptionUpdated}
+            testId={SecurityPrivacyViewSelectorsIDs.DEVICE_PASSCODE_TOGGLE}
+          />
+        ) : null}
+      </View>
     </View>
   );
 };
