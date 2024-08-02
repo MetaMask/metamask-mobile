@@ -2,10 +2,8 @@
 
 ## Current Main Branch
 
-## release/7.29.0 - <Date>
-
+## 7.29.0 - Aug 2, 2024
 ### Added
-- [#10430](https://github.com/MetaMask/metamask-mobile/pull/10430): feat: v7.27.1 (#10430)
 - [#9578](https://github.com/MetaMask/metamask-mobile/pull/9578): feat: type `renderHookWithProvider` (#9578)
 - [#10277](https://github.com/MetaMask/metamask-mobile/pull/10277): feat: New nft details page (#10277)
 - [#9469](https://github.com/MetaMask/metamask-mobile/pull/9469): feat: nft + swap metrics (#9469)
@@ -16,6 +14,8 @@
 - [#10378](https://github.com/MetaMask/metamask-mobile/pull/10378): feat: add copy for new receive flow (#10378)
 - [#10350](https://github.com/MetaMask/metamask-mobile/pull/10350): feat: make add-team-label use the reusable workflow (#10350)
 - [#9390](https://github.com/MetaMask/metamask-mobile/pull/9390): feat(ramp): add ramp intent (#9390)
+- [#10451](https://github.com/MetaMask/metamask-mobile/pull/10451): feat: add notifications' details screen (#10451)
+- [#10456](https://github.com/MetaMask/metamask-mobile/pull/10456): feat: add notifications list screen (#10456)
 - [#10363](https://github.com/MetaMask/metamask-mobile/pull/10363): feat: add notifications UI components to be used by Views (#10363)
 
 ### Changed
@@ -34,11 +34,7 @@
 - [#10389](https://github.com/MetaMask/metamask-mobile/pull/10389): chore: Cherry-picking commits from main to release/7.28.0 for PR #10376 (#10389)
 - [#10387](https://github.com/MetaMask/metamask-mobile/pull/10387): test: Add step to close onboarding modals (#10387)
 - [#10376](https://github.com/MetaMask/metamask-mobile/pull/10376): test: Update env variables for appium upgrading on bitrise.yml (#10376)
-- [#10369](https://github.com/MetaMask/metamask-mobile/pull/10369): chore: Cherry-picking commits from main to release/7.28.0 for PR #10356 (#10369)
-- [#9744](https://github.com/MetaMask/metamask-mobile/pull/9744): fix: fix/9350 Use consistent commit hash on Bitrise e2e smoke tests (#9744)
-- [#10356](https://github.com/MetaMask/metamask-mobile/pull/10356): "chore: Revert ""chore: update Android SDK to API Level 34 "" (#10356)"
 - [#10412](https://github.com/MetaMask/metamask-mobile/pull/10412): chore: Update BNB logos (#10412)
-- [#10525](https://github.com/MetaMask/metamask-mobile/pull/10525): chore: revert 10266 (#10525)
 - [#10263](https://github.com/MetaMask/metamask-mobile/pull/10263): chore: upgrade transaction controller to 35.0.0 (#10263)
 - [#10450](https://github.com/MetaMask/metamask-mobile/pull/10450): test: add e2e to edit account name (#10450)
 - [#10251](https://github.com/MetaMask/metamask-mobile/pull/10251): chore: remove remaining use of Preferences Controller for account information (#10251)
@@ -54,6 +50,7 @@
 - [#9589](https://github.com/MetaMask/metamask-mobile/pull/9589): test(ramp): add `useApplePay` tests (#9589)
 
 ### Fixed
+- [#9744](https://github.com/MetaMask/metamask-mobile/pull/9744): fix: fix/9350 Use consistent commit hash on Bitrise e2e smoke tests (#9744)
 - [#10511](https://github.com/MetaMask/metamask-mobile/pull/10511): fix: crash on reload fix by patch (#10511)
 - [#10481](https://github.com/MetaMask/metamask-mobile/pull/10481): fix: Added parse errors to be caught on vault corruption flow (#10481)
 - [#10467](https://github.com/MetaMask/metamask-mobile/pull/10467): fix: Audit issue xml parser (#10467)
@@ -68,27 +65,7 @@
 - [#10381](https://github.com/MetaMask/metamask-mobile/pull/10381): fix: check navigator availability before initializing the 'DeeplinkManager' (#10381)
 - [#10383](https://github.com/MetaMask/metamask-mobile/pull/10383): fix: race condition issues when doing batch-rpc calls in the DeeplinkProtocolService (#10383)
 - [#10365](https://github.com/MetaMask/metamask-mobile/pull/10365): fix: attribution link (#10365)
-
-### Other
-- [#10526](https://github.com/MetaMask/metamask-mobile/pull/10526): chore: bump version 1372 (#10526)
-- [#10509](https://github.com/MetaMask/metamask-mobile/pull/10509): chore: cherry-pick 7.27.1 release (#10509)
-- [#10483](https://github.com/MetaMask/metamask-mobile/pull/10483): chore(runway): cherry-pick fix: check navigator availability before initializing the 'DeeplinkManager' (#10483)
-- [#10485](https://github.com/MetaMask/metamask-mobile/pull/10485): chore: cherry-pick #10461 (#10485)
-- [#10466](https://github.com/MetaMask/metamask-mobile/pull/10466): chore: Fix long press login on samsung devices (cherry-pick) (#10436) (#10466)
-- [#tommasini](tommasini): "fix: Transform of redux persist
-- [#10460](https://github.com/MetaMask/metamask-mobile/pull/10460): chore: cherry-pick #10428 (#10460)
-- [#10459](https://github.com/MetaMask/metamask-mobile/pull/10459): chore: bump RC3 version to 1370 (#10459)
-- [#10440](https://github.com/MetaMask/metamask-mobile/pull/10440): chore: bump @sentry/react-native (#10440)
-- [#sethkfman](sethkfman): "chore: create a pipeline that builds all apps (prod
-- [#10370](https://github.com/MetaMask/metamask-mobile/pull/10370): chore: bump version 1367 7.28.0 (#10370)
-- [#10355](https://github.com/MetaMask/metamask-mobile/pull/10355): Cherry-picking commits from main to release/7.28.0 for PR #10346 (#10355)
-- [#10451](https://github.com/MetaMask/metamask-mobile/pull/10451): feat: add notifications' details screen (#10451)
-- [#10456](https://github.com/MetaMask/metamask-mobile/pull/10456): feat: add notifications list screen (#10456)
-- [#10340](https://github.com/MetaMask/metamask-mobile/pull/10340): chore: refactor notifications utils - 5 of 7 (#10340)
-- [#9280](https://github.com/MetaMask/metamask-mobile/pull/9280): chore(devDeps): bump metro and react-native (#9280)
 - [#10303](https://github.com/MetaMask/metamask-mobile/pull/10303): fix: page navigation during QR accounts selection (#10303)
-- [#10388](https://github.com/MetaMask/metamask-mobile/pull/10388): chore: cherry-pick #10383 (#10388)
-
 
 ## 7.27.1 - Jul 25, 2024
 ### Fixed
