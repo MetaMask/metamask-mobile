@@ -1,7 +1,7 @@
 'use strict';
 import TestHelpers from '../../helpers';
 import Browser from '../../pages/Browser/BrowserView';
-import AccountListView from '../../pages/AccountListView';
+import AccountListView from '../../pages/AccountListView.js';
 import TabBarComponent from '../../pages/TabBarComponent';
 import ToastModal from '../../pages/modals/ToastModal';
 import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';

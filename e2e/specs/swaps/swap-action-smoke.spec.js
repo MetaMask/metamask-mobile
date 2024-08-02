@@ -4,7 +4,7 @@ import Onboarding from '../../pages/swaps/OnBoarding';
 import QuoteView from '../../pages/swaps/QuoteView';
 import SwapView from '../../pages/swaps/SwapView';
 import TabBarComponent from '../../pages/TabBarComponent';
-import ActivitiesView from '../../pages/ActivitiesView';
+import ActivitiesView from '../../pages/ActivitiesView.js';
 import DetailsModal from '../../pages/modals/DetailsModal';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import FixtureBuilder from '../../fixtures/fixture-builder';

@@ -1,4 +1,5 @@
-import TestHelpers from '../helpers';
+import Gestures from '../utils/Gestures';
+import Matchers from '../utils/Matchers';
 import {
   CUSTOM_TOKEN_BACK_BUTTON_ID,
   CUSTOM_TOKEN_CONTAINER_ID,
@@ -14,90 +15,136 @@ import {
 } from '../../wdio/screen-objects/testIDs/Screens/NFTImportScreen.testIds';
 import { AddCustomTokenViewSelectorsText } from '../selectors/AddCustomTokenView.selectors';
 
-export default class AddCustomTokenView {
-  static async tapImportButton() {
-    //await TestHelpers.swipe(TOKEN_ADDRESS_SYMBOL_ID, 'up', 'slow', 0.6);
-    await TestHelpers.waitAndTapText(
+class AddCustomTokenView {
+  get importButton() {
+    return Matchers.getElementByText(
       AddCustomTokenViewSelectorsText.IMPORT_BUTTON,
     );
   }
 
-  static async tapCustomTokenImportButton() {
-    await TestHelpers.delay(1500);
+  get customTokenImportButton() {
+    return device.getPlatform() === 'android'
+      ? Matchers.getElementByLabel(TOKEN_IMPORT_BUTTON_ID)
+      : Matchers.getElementByID(TOKEN_IMPORT_BUTTON_ID);
+  }
+
+  get backButton() {
+    return Matchers.getElementByID(CUSTOM_TOKEN_BACK_BUTTON_ID);
+  }
+
+  get nextButton() {
+    return Matchers.getElementByID(NEXT_BUTTON_CUSTOM_IMPORT);
+  }
+
+  get tokenSymbolInputBox() {
+    return Matchers.getElementByID(TOKEN_ADDRESS_SYMBOL_ID);
+  }
+
+  get tokenSymbolText() {
+    return Matchers.getElementByText(
+      AddCustomTokenViewSelectorsText.TOKEN_SYMBOL,
+    );
+  }
+
+  get tokenAddressInputBox() {
+    return Matchers.getElementByID(TOKEN_ADDRESS_INPUT_BOX_ID);
+  }
+
+  get nftAddressInputBox() {
+    return Matchers.getElementByID(NFT_ADDRESS_INPUT_BOX_ID);
+  }
+
+  get nftIdentifierInputBox() {
+    return Matchers.getElementByID(NFT_IDENTIFIER_INPUT_BOX_ID);
+  }
+
+  get customTokenContainer() {
+    return Matchers.getElementByID(CUSTOM_TOKEN_CONTAINER_ID);
+  }
+
+  get nftAddressWarningMessage() {
+    return Matchers.getElementByID(NFT_ADDRESS_WARNING_MESSAGE_ID);
+  }
+
+  get customTokenTab() {
+    return Matchers.getElementByText(
+      AddCustomTokenViewSelectorsText.CUSTOM_TOKEN_TAB,
+    );
+  }
+
+  async tapImportButton() {
+    await Gestures.waitAndTap(this.importButton);
+  }
+
+  async tapCustomTokenImportButton() {
+    await Gestures.delay(1500);
+    await Gestures.waitAndTap(this.customTokenImportButton);
+  }
+
+  async tapBackButton() {
+    await Gestures.tap(this.backButton);
+  }
+
+  async tapNextButton() {
+    await Gestures.tap(this.nextButton);
+  }
+
+  async tapTokenSymbolInputBox() {
+    await Gestures.waitAndTap(this.tokenSymbolInputBox);
+  }
+
+  async tapTokenSymbolText() {
+    await Gestures.tap(this.tokenSymbolText);
+  }
+
+  async scrollDownOnImportCustomTokens() {
+    await Gestures.swipe(this.tokenSymbolInputBox, 'up', 'slow', 0.6);
+  }
+
+  async typeTokenAddress(address) {
     if (device.getPlatform() === 'android') {
-      await TestHelpers.waitAndTapByLabel(TOKEN_IMPORT_BUTTON_ID);
+      await Gestures.replaceTextInField(this.tokenAddressInputBox, address);
+      await this.tokenAddressInputBox.tapReturnKey();
     } else {
-      await TestHelpers.tap(TOKEN_IMPORT_BUTTON_ID);
-    }
-  }
-
-  static async tapBackButton() {
-    await TestHelpers.tap(CUSTOM_TOKEN_BACK_BUTTON_ID);
-  }
-
-  static async tapNextButton() {
-    await TestHelpers.tap(NEXT_BUTTON_CUSTOM_IMPORT);
-  }
-
-  static async tapTokenSymbolInputBox() {
-    await TestHelpers.waitAndTap(TOKEN_ADDRESS_SYMBOL_ID);
-  }
-
-  static async tapTokenSymbolText() {
-    await TestHelpers.tapByText(AddCustomTokenViewSelectorsText.TOKEN_SYMBOL);
-  }
-
-  static async scrollDownOnImportCustomTokens() {
-    await TestHelpers.swipe(TOKEN_ADDRESS_SYMBOL_ID, 'up', 'slow', 0.6);
-  }
-
-  static async typeTokenAddress(address) {
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.replaceTextInField(TOKEN_ADDRESS_INPUT_BOX_ID, address);
-      await element(by.id(TOKEN_ADDRESS_INPUT_BOX_ID)).tapReturnKey();
-    } else {
-      await TestHelpers.typeText(TOKEN_ADDRESS_INPUT_BOX_ID, address + '\n');
-    }
-  }
-
-  static async typeInNFTAddress(address) {
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.replaceTextInField(NFT_ADDRESS_INPUT_BOX_ID, address);
-      await element(by.id(NFT_ADDRESS_INPUT_BOX_ID)).tapReturnKey();
-    } else {
-      await TestHelpers.typeTextAndHideKeyboard(
-        NFT_ADDRESS_INPUT_BOX_ID,
+      await Gestures.typeTextAndHideKeyboard(
+        this.tokenAddressInputBox,
         address,
       );
     }
   }
 
-  static async typeInNFTIdentifier(identifier) {
+  async typeInNFTAddress(address) {
     if (device.getPlatform() === 'android') {
-      await TestHelpers.replaceTextInField(
-        NFT_IDENTIFIER_INPUT_BOX_ID,
-        identifier,
-      );
-      await element(by.id(NFT_IDENTIFIER_INPUT_BOX_ID)).tapReturnKey();
+      await Gestures.replaceTextInField(this.nftAddressInputBox, address);
+      await this.nftAddressInputBox.tapReturnKey();
     } else {
-      await TestHelpers.typeTextAndHideKeyboard(
-        NFT_IDENTIFIER_INPUT_BOX_ID,
+      await Gestures.typeTextAndHideKeyboard(this.nftAddressInputBox, address);
+    }
+  }
+
+  async typeInNFTIdentifier(identifier) {
+    if (device.getPlatform() === 'android') {
+      await Gestures.replaceTextInField(this.nftIdentifierInputBox, identifier);
+      await this.nftIdentifierInputBox.tapReturnKey();
+    } else {
+      await Gestures.typeTextAndHideKeyboard(
+        this.nftIdentifierInputBox,
         identifier,
       );
     }
   }
 
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(CUSTOM_TOKEN_CONTAINER_ID);
+  async isVisible() {
+    await Matchers.checkIfVisible(this.customTokenContainer);
   }
 
-  static async isNFTAddressWarningVisible() {
-    await TestHelpers.checkIfVisible(NFT_ADDRESS_WARNING_MESSAGE_ID);
+  async isNFTAddressWarningVisible() {
+    await Matchers.checkIfVisible(this.nftAddressWarningMessage);
   }
 
-  static async switchToCustomTab() {
-    await TestHelpers.tapByText(
-      AddCustomTokenViewSelectorsText.CUSTOM_TOKEN_TAB,
-    );
+  async switchToCustomTab() {
+    await Gestures.tap(this.customTokenTab);
   }
 }
+
+export default new AddCustomTokenView();

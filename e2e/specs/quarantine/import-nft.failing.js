@@ -2,7 +2,7 @@
 import { SmokeAssets } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
-import AddCustomTokenView from '../../pages/AddCustomTokenView';
+import AddCustomTokenView from '../../pages/AddCustomTokenView.js';
 import { loginToApp } from '../../viewHelper';
 import {
   withFixtures,

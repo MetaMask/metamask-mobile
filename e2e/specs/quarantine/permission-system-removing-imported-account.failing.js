@@ -6,7 +6,7 @@ import ImportAccountView from '../../pages/ImportAccountView';
 import TabBarComponent from '../../pages/TabBarComponent';
 
 import Browser from '../../pages/Browser/BrowserView';
-import AccountListView from '../../pages/AccountListView';
+import AccountListView from '../../pages/AccountListView.js';
 
 import ConnectModal from '../../pages/modals/ConnectModal';
 import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';

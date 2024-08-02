@@ -3,7 +3,7 @@ import { SmokeCore } from '../../tags';
 import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
-import AddCustomTokenView from '../../pages/AddCustomTokenView';
+import AddCustomTokenView from '../../pages/AddCustomTokenView.js';
 import AmountView from '../../pages/Send/AmountView';
 import SendView from '../../pages/Send/SendView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
