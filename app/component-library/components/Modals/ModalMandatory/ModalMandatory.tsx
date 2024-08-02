@@ -166,8 +166,8 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
         injectedJavaScript={isScrollEndedJS}
         onLoad={() => setIsWebViewLoaded(true)}
         onMessage={onMessage}
-        {...(webviewBody.uri && {
-          onShouldStartLoadWithRequest: (req) => webviewBody.uri === req.url,
+        {...(source.uri && {
+          onShouldStartLoadWithRequest: (req) => source.uri === req.url,
         })}
       />
     );
