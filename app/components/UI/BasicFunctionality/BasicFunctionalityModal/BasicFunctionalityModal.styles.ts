@@ -1,6 +1,7 @@
 // Third party dependencies.
 import { StyleSheet, TextStyle } from 'react-native';
 import { typography } from '@metamask/design-tokens';
+// @ts-expect-error Missing declaration file
 import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
 /**
  * Style sheet function for AmbiguousAddressSheet component.
