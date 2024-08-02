@@ -63,7 +63,7 @@ import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-
+import { enableProfileSyncing } from '../../../actions/notification/helpers';
 const createStyles = (colors) =>
   StyleSheet.create({
     mainWrapper: {
@@ -371,6 +371,7 @@ class ChoosePassword extends PureComponent {
         wallet_setup_type: 'new',
         new_wallet: true,
       });
+      await enableProfileSyncing();
     } catch (error) {
       try {
         await this.recreateVault('');
@@ -662,11 +663,11 @@ class ChoosePassword extends PureComponent {
                       </Text>
                     </Text>
                   )) || (
-                    <Text
-                      variant={TextVariant.BodySM}
-                      style={styles.passwordStrengthLabel}
-                    />
-                  )}
+                      <Text
+                        variant={TextVariant.BodySM}
+                        style={styles.passwordStrengthLabel}
+                      />
+                    )}
                 </View>
                 <View style={styles.field}>
                   <Text variant={TextVariant.BodySM}>
