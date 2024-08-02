@@ -33,6 +33,7 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
+import { selectPermissionControllerState } from '../../../../selectors/snaps/permissionController';
 
 const createStyles = (
   _colors: ThemeColors,
@@ -91,11 +92,7 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography, safeAreaInsets);
   const { navigate } = useNavigation();
-  const permittedAccountsList = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.engine.backgroundState.PermissionController,
-  );
+  const permittedAccountsList = useSelector(selectPermissionControllerState);
 
   const [permittedAccountsAddresses, setPermittedAccountsAddresses] = useState<
     string[]
