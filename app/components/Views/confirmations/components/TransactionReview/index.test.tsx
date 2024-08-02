@@ -179,11 +179,7 @@ describe('TransactionReview', () => {
     const wrapper = shallow(
       <Provider store={store}>
         <TransactionReview
-          generateTransform={
-            // TODO: Replace "any" with type
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            generateTransform as any
-          }
+          generateTransform={generateTransform}
         />
       </Provider>,
     );
@@ -193,8 +189,8 @@ describe('TransactionReview', () => {
   it('should match snapshot', () => {
     const container = renderWithProvider(
       <TransactionReview
-        EIP1559GasData={{}}
-        generateTransform={generateTransform}
+        EIP1559GasData={{} as any}
+        generateTransform={generateTransform as any}
       />,
       { state: mockState },
     );
@@ -214,9 +210,11 @@ describe('TransactionReview', () => {
     const blockaidMetricsParamsSpy = jest
       .spyOn(BlockaidUtils, 'getBlockaidMetricsParams')
       .mockImplementation(
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ({ result_type, reason, providerRequestsCount }: any) => ({
+        ({ result_type, reason, providerRequestsCount }: {
+          result_type: string;
+          reason: string;
+          providerRequestsCount: Record<string, number>;
+        }) => ({
           security_alert_response: result_type,
           security_alert_reason: reason,
           security_alert_provider_requests_count: providerRequestsCount,
@@ -280,7 +278,9 @@ describe('TransactionReview', () => {
       .mockReturnValue(Promise.resolve(undefined));
     const { queryByRole } = renderWithProvider(
       <TransactionReview
+        // @ts-expect-error Deprecated component
         EIP1559GasData={{}}
+        // @ts-expect-error Deprecated component
         generateTransform={generateTransform}
       />,
       { state: mockState },
@@ -309,14 +309,12 @@ describe('TransactionReview', () => {
     };
     jest.mock('react-redux', () => ({
       ...jest.requireActual('react-redux'),
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      useSelector: (fn: any) => fn(mockNewState),
+      useSelector: (fn: (state: typeof mockNewState) => unknown) => fn(mockNewState),
     }));
     const { getByRole } = renderWithProvider(
       <TransactionReview
-        EIP1559GasData={{}}
-        generateTransform={generateTransform}
+        EIP1559GasData={{} as any}
+        generateTransform={generateTransform as any}
       />,
       { state: mockState },
     );
@@ -333,8 +331,8 @@ describe('TransactionReview', () => {
     }));
     const { getByRole } = renderWithProvider(
       <TransactionReview
-        EIP1559GasData={{}}
-        generateTransform={generateTransform}
+        EIP1559GasData={{} as any}
+        generateTransform={generateTransform as any}
         error="You need 1 more ETH to complete the transaction"
       />,
       { state: mockState },
