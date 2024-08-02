@@ -22,6 +22,13 @@ import BigNumber from 'bignumber.js';
 import FadeAnimationView from '../../../../UI/FadeAnimationView';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
+// Add type definition for Icon component
+type IconProps = {
+  name: string;
+  size: number;
+  color?: string;
+};
+
 import TimeEstimateInfoModal from '../../../../UI/TimeEstimateInfoModal';
 import useModalHandler from '../../../../Base/hooks/useModalHandler';
 import AppConstants from '../../../../../core/AppConstants';
@@ -38,7 +45,7 @@ import {
 } from '../../../../../util/gasUtils';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 
-const EditGasFee1559Update = ({
+const EditGasFee1559Update: React.FC<EditGasFee1559UpdateProps> = ({
   selectedGasValue,
   gasOptions,
   primaryCurrency,
@@ -60,20 +67,27 @@ const EditGasFee1559Update = ({
   warning,
   selectedGasObject,
   onlyGas,
-}: EditGasFee1559UpdateProps) => {
-  const [modalInfo, updateModalInfo] = useState({
+}) => {
+  const [modalInfo, updateModalInfo] = useState<{
+    isVisible: boolean;
+    value: string;
+  }>({
     isVisible: false,
     value: '',
   });
-  const [showAdvancedOptions, setShowAdvancedOptions] = useState(
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState<boolean>(
     !selectedGasValue,
   );
-  const [maxPriorityFeeError, setMaxPriorityFeeError] = useState('');
-  const [maxFeeError, setMaxFeeError] = useState('');
-  const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
-  const [selectedOption, setSelectedOption] = useState(selectedGasValue);
-  const [showInputs, setShowInputs] = useState(!dappSuggestedGas);
-  const [gasObject, updateGasObject] = useState({
+  const [maxPriorityFeeError, setMaxPriorityFeeError] = useState<string>('');
+  const [maxFeeError, setMaxFeeError] = useState<string>('');
+  const [showLearnMoreModal, setShowLearnMoreModal] = useState<boolean>(false);
+  const [selectedOption, setSelectedOption] = useState<string | null>(selectedGasValue);
+  const [showInputs, setShowInputs] = useState<boolean>(!dappSuggestedGas);
+  const [gasObject, updateGasObject] = useState<{
+    suggestedMaxFeePerGas: string;
+    suggestedMaxPriorityFeePerGas: string;
+    suggestedGasLimit: string;
+  }>({
     suggestedMaxFeePerGas: selectedGasObject.suggestedMaxFeePerGas,
     suggestedMaxPriorityFeePerGas:
       selectedGasObject.suggestedMaxPriorityFeePerGas,
@@ -97,21 +111,31 @@ const EditGasFee1559Update = ({
   });
 
   const {
-    renderableGasFeeMinNative,
-    renderableGasFeeMaxNative,
-    renderableGasFeeMaxConversion,
-    renderableMaxFeePerGasNative,
-    renderableGasFeeMinConversion,
-    renderableMaxPriorityFeeNative,
-    renderableMaxFeePerGasConversion,
-    renderableMaxPriorityFeeConversion,
-    timeEstimateColor,
-    timeEstimate,
-    timeEstimateId,
-    suggestedMaxFeePerGas,
-    suggestedMaxPriorityFeePerGas,
-    suggestedGasLimit,
-  } = gasTransaction;
+    transactionFee = '',
+    transactionFeeFiat = '',
+    suggestedMaxFeePerGas = '',
+    suggestedMaxPriorityFeePerGas = '',
+    suggestedGasLimit = '',
+  } = gasTransaction as {
+    transactionFee?: string;
+    transactionFeeFiat?: string;
+    suggestedMaxFeePerGas?: string;
+    suggestedMaxPriorityFeePerGas?: string;
+    suggestedGasLimit?: string;
+  };
+
+  // Add type assertions for properties that might not exist
+  const renderableGasFeeMinNative = (gasTransaction as any).renderableGasFeeMinNative;
+  const renderableGasFeeMaxNative = (gasTransaction as any).renderableGasFeeMaxNative;
+  const renderableGasFeeMaxConversion = (gasTransaction as any).renderableGasFeeMaxConversion;
+  const renderableMaxFeePerGasNative = (gasTransaction as any).renderableMaxFeePerGasNative;
+  const renderableGasFeeMinConversion = (gasTransaction as any).renderableGasFeeMinConversion;
+  const renderableMaxPriorityFeeNative = (gasTransaction as any).renderableMaxPriorityFeeNative;
+  const renderableMaxFeePerGasConversion = (gasTransaction as any).renderableMaxFeePerGasConversion;
+  const renderableMaxPriorityFeeConversion = (gasTransaction as any).renderableMaxPriorityFeeConversion;
+  const timeEstimateColor = (gasTransaction as any).timeEstimateColor;
+  const timeEstimate = (gasTransaction as any).timeEstimate;
+  const timeEstimateId = (gasTransaction as any).timeEstimateId;
 
   const getAnalyticsParams = useCallback(() => {
     try {
@@ -175,8 +199,8 @@ const EditGasFee1559Update = ({
   );
 
   const changedGasLimit = useCallback(
-    (value) => {
-      const newGas = { ...gasTransaction, suggestedGasLimit: value };
+    (value: string) => {
+      const newGas = { ...(gasTransaction as any), suggestedGasLimit: value };
       changeGas(newGas, null);
     },
     [changeGas, gasTransaction],
@@ -185,21 +209,21 @@ const EditGasFee1559Update = ({
   const changedMaxPriorityFee = useCallback(
     (value) => {
       const lowerValue = new BigNumber(
-        gasOptions?.[
+        (gasOptions as any)?.[
           warningMinimumEstimateOption
-        ]?.suggestedMaxPriorityFeePerGas,
+        ]?.suggestedMaxPriorityFeePerGas ?? '0'
       );
 
       const higherValue = new BigNumber(
-        gasOptions?.high?.suggestedMaxPriorityFeePerGas,
+        (gasOptions as any)?.high?.suggestedMaxPriorityFeePerGas ?? '0'
       ).multipliedBy(new BigNumber(1.5));
-      const updateFloor = new BigNumber(updateOption?.maxPriortyFeeThreshold);
+      const updateFloor = new BigNumber((updateOption as any)?.maxPriorityFeeThreshold ?? '0');
 
       const valueBN = new BigNumber(value);
 
       if (updateFloor && !updateFloor.isNaN() && valueBN.lt(updateFloor)) {
         setMaxPriorityFeeError(
-          updateOption?.isCancel
+          (updateOption as any)?.isCancel
             ? strings('edit_gas_fee_eip1559.max_priority_fee_cancel_low', {
                 cancel_value: updateFloor,
               })
@@ -216,11 +240,11 @@ const EditGasFee1559Update = ({
           strings('edit_gas_fee_eip1559.max_priority_fee_high'),
         );
       } else {
-        setMaxPriorityFeeError(null);
+        setMaxPriorityFeeError('');
       }
 
       const newGas = {
-        ...gasTransaction,
+        ...(gasTransaction as Record<string, unknown>),
         suggestedMaxPriorityFeePerGas: value,
       };
 
@@ -238,18 +262,18 @@ const EditGasFee1559Update = ({
   const changedMaxFeePerGas = useCallback(
     (value) => {
       const lowerValue = new BigNumber(
-        gasOptions?.[warningMinimumEstimateOption]?.suggestedMaxFeePerGas,
+        (gasOptions as any)?.[warningMinimumEstimateOption]?.suggestedMaxFeePerGas ?? '0'
       );
       const higherValue = new BigNumber(
-        gasOptions?.high?.suggestedMaxFeePerGas,
+        (gasOptions as any)?.high?.suggestedMaxFeePerGas ?? '0'
       ).multipliedBy(new BigNumber(1.5));
-      const updateFloor = new BigNumber(updateOption?.maxFeeThreshold);
+      const updateFloor = new BigNumber((updateOption as any)?.maxFeeThreshold ?? '0');
 
       const valueBN = new BigNumber(value);
 
       if (updateFloor && !updateFloor.isNaN() && valueBN.lt(updateFloor)) {
         setMaxFeeError(
-          updateOption?.isCancel
+          (updateOption as RenderInputProps & { isCancel?: boolean })?.isCancel
             ? strings('edit_gas_fee_eip1559.max_fee_cancel_low', {
                 cancel_value: updateFloor,
               })
@@ -266,7 +290,7 @@ const EditGasFee1559Update = ({
       }
 
       const newGas = {
-        ...gasTransaction,
+        ...(gasTransaction as Record<string, unknown>),
         suggestedMaxFeePerGas: value,
       };
 
@@ -282,11 +306,11 @@ const EditGasFee1559Update = ({
   );
 
   const selectOption = useCallback(
-    (option) => {
+    (option: string) => {
       setSelectedOption(option);
       setMaxFeeError('');
       setMaxPriorityFeeError('');
-      changeGas({ ...gasOptions?.[option] }, option);
+      changeGas({ ...(gasOptions as any)?.[option] }, option);
     },
     [changeGas, gasOptions],
   );
@@ -315,9 +339,7 @@ const EditGasFee1559Update = ({
         .filter(({ name }) => !shouldIgnore(name))
         .map(({ name, label, ...option }) => ({
           name,
-          // TODO: Replace "any" with type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          label: function LabelComponent(selected: any, disabled: any) {
+          label: function LabelComponent(selected: boolean, disabled: boolean) {
             return (
               <Text bold primary={selected && !disabled}>
                 {label}
@@ -359,6 +381,7 @@ const EditGasFee1559Update = ({
         hitSlop={styles.hitSlop}
         onPress={() => toggleInfoModal(infoValue)}
       >
+        {/* @ts-expect-error MaterialCommunityIcon is a valid component */}
         <MaterialCommunityIcon
           name="information"
           size={14}
@@ -373,7 +396,7 @@ const EditGasFee1559Update = ({
       <Text bold reset>
         {strings(value)}:
       </Text>{' '}
-      {gasOptions?.[suggestedEstimateOption]?.suggestedMaxFeePerGas} GWEI
+      {(gasOptions as any)?.[suggestedEstimateOption]?.suggestedMaxFeePerGas} GWEI
     </Text>
   );
 
@@ -405,11 +428,12 @@ const EditGasFee1559Update = ({
             selected={selectedOption}
             onPress={selectOption}
             options={renderOptions}
+            circleSize={24}
+            disabled={false}
           />
         </View>
         <View style={styles.advancedOptionsContainer}>
           <TouchableOpacity
-            disabled={option?.showAdvanced}
             onPress={toggleAdvancedOptions}
             style={styles.advancedOptionsButton}
           >
@@ -417,10 +441,14 @@ const EditGasFee1559Update = ({
               {strings('edit_gas_fee_eip1559.advanced_options')}
             </Text>
             <Text noMargin link bold style={styles.advancedOptionsIcon}>
-              <Icon name={`ios-arrow-${showAdvancedOptions ? 'up' : 'down'}`} />
+              {showAdvancedOptions ? (
+                <Icon name="ios-arrow-up" size={24} color={colors.text.default} />
+              ) : (
+                <Icon name="ios-arrow-down" size={24} color={colors.text.default} />
+              )}
             </Text>
           </TouchableOpacity>
-          {(showAdvancedOptions || option?.maxFeeThreshold) && (
+          {showAdvancedOptions && (
             <View style={styles.advancedOptionsInputsContainer}>
               <View style={styles.rangeInputContainer}>
                 <RangeInput
@@ -528,6 +556,7 @@ const EditGasFee1559Update = ({
           small
           type={AlertType.Warning}
           renderIcon={() => (
+            // @ts-expect-error MaterialCommunityIcon is a valid component
             <MaterialCommunityIcon
               name="information"
               size={20}
@@ -557,6 +586,7 @@ const EditGasFee1559Update = ({
           small
           type={AlertType.Error}
           renderIcon={() => (
+            // @ts-expect-error MaterialCommunityIcon is a valid component
             <MaterialCommunityIcon
               name="information"
               size={20}
@@ -579,7 +609,7 @@ const EditGasFee1559Update = ({
   }, [error, styles, colors]);
 
   const renderDisplayTitle = useMemo(() => {
-    if (updateOption)
+    if (updateOption && 'isCancel' in updateOption)
       return updateOption.isCancel
         ? strings('edit_gas_fee_eip1559.cancel_transaction')
         : strings('edit_gas_fee_eip1559.speed_up_transaction');
@@ -598,7 +628,7 @@ const EditGasFee1559Update = ({
               <View style={styles.customGasHeader}>
                 <TouchableOpacity onPress={onCancel}>
                   <Icon
-                    name={'ios-arrow-back'}
+                    name="ios-arrow-back"
                     size={24}
                     color={colors.text.default}
                   />
@@ -606,11 +636,7 @@ const EditGasFee1559Update = ({
                 <Text bold black>
                   {renderDisplayTitle}
                 </Text>
-                <Icon
-                  name={'ios-arrow-back'}
-                  size={24}
-                  color={colors.background.default}
-                />
+                <View style={{ width: 24 }} />
               </View>
               {updateOption && (
                 <View style={styles.newGasFeeHeader}>
@@ -622,6 +648,7 @@ const EditGasFee1559Update = ({
                     hitSlop={styles.hitSlop}
                     onPress={() => toggleInfoModal('new_gas_fee')}
                   >
+                    {/* @ts-expect-error MaterialCommunityIcon is a valid component */}
                     <MaterialCommunityIcon
                       name="information"
                       size={14}
@@ -686,6 +713,7 @@ const EditGasFee1559Update = ({
                     hitSlop={styles.hitSlop}
                     onPress={() => showTimeEstimateInfoModal()}
                   >
+                    {/* @ts-expect-error MaterialCommunityIcon is a valid component */}
                     <MaterialCommunityIcon
                       name="information"
                       size={14}
@@ -737,6 +765,7 @@ const EditGasFee1559Update = ({
                       strings('edit_gas_fee_eip1559.learn_more_max_fee')}
                     {modalInfo.value === 'new_gas_fee' &&
                     updateOption &&
+                    'isCancel' in updateOption &&
                     updateOption.isCancel
                       ? strings(
                           'edit_gas_fee_eip1559.learn_more_cancel_gas_fee',
