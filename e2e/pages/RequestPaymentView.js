@@ -1,42 +1,101 @@
 import TestHelpers from '../helpers';
 import { RequestPaymentViewSelectors } from '../selectors/RequestPaymentView.selectors';
+import { strings } from '../../locales/i18n';
 
-export default class RequestPaymentView {
-  static async tapBackButton() {
-    await TestHelpers.tapItemAtIndex(
-      RequestPaymentViewSelectors.BACK_BUTTON_ID,
-    );
+export default class RequestPaymentViewPage {
+  static get backButton() {
+    return RequestPaymentViewSelectors.BACK_BUTTON_ID;
   }
 
+  static get tokenSearchInput() {
+    return RequestPaymentViewSelectors.TOKEN_SEARCH_INPUT_BOX;
+  }
+
+  static get requestAmountInput() {
+    return RequestPaymentViewSelectors.REQUEST_AMOUNT_INPUT_BOX_ID;
+  }
+
+  static get requestPaymentContainer() {
+    return RequestPaymentViewSelectors.REQUEST_PAYMENT_CONTAINER_ID;
+  }
+
+  static get requestAssetList() {
+    return RequestPaymentViewSelectors.REQUEST_ASSET_LIST_ID;
+  }
+
+  static async tap(element) {
+    await TestHelpers.tap(element);
+  }
+
+  static async typeText(element, text) {
+    await TestHelpers.typeTextAndHideKeyboard(element, text);
+  }
+
+  static async checkVisibility(element) {
+    await TestHelpers.checkIfVisible(element);
+  }
+
+  /**
+   * Taps the back button in the Request Payment view.
+   *
+   * @returns {Promise<void>}
+   */
+  static async tapBackButton() {
+    await this.tap(this.backButton);
+  }
+
+  /**
+   * Searches for a specific token in the Request Payment view.
+   *
+   * @param {string} token - The name or symbol of the token to search for.
+   * @returns {Promise<void>}
+   */
   static async searchForToken(token) {
-    await TestHelpers.replaceTextInField(
-      RequestPaymentViewSelectors.TOKEN_SEARCH_INPUT_BOX,
-      token,
-    );
+    await TestHelpers.replaceTextInField(this.tokenSearchInput, token);
     await TestHelpers.delay(1000);
   }
 
+  /**
+   * Taps on a specific token in the Request Payment view.
+   *
+   * @param {string} token - The name or symbol of the token to tap on.
+   * @returns {Promise<void>}
+   */
   static async tapOnToken(token) {
-    await TestHelpers.tapByText(token, 1);
+    await TestHelpers.tapByText(
+      strings('request_payment.token_name', { token }),
+    );
   }
 
+  /**
+   * Types in the token amount in the Request Payment view.
+   *
+   * @param {string} amount - The amount of tokens to request.
+   * @returns {Promise<void>}
+   */
   static async typeInTokenAmount(amount) {
-    await TestHelpers.typeTextAndHideKeyboard(
-      RequestPaymentViewSelectors.REQUEST_AMOUNT_INPUT_BOX_ID,
-      amount,
-    );
+    await this.typeText(this.requestAmountInput, amount);
   }
 
+  /**
+   * Checks if the Request Payment view is visible.
+   *
+   * @returns {Promise<void>}
+   */
   static async isVisible() {
-    await TestHelpers.checkIfVisible(
-      RequestPaymentViewSelectors.REQUEST_PAYMENT_CONTAINER_ID,
-    );
+    await this.checkVisibility(this.requestPaymentContainer);
   }
 
+  /**
+   * Checks if a specific token is visible in the search results.
+   *
+   * @param {string} token - The name or symbol of the token to check for.
+   * @returns {Promise<void>}
+   */
   static async isTokenVisibleInSearchResults(token) {
     await TestHelpers.checkIfElementHasString(
-      RequestPaymentViewSelectors.REQUEST_ASSET_LIST_ID,
-      token,
+      this.requestAssetList,
+      strings('request_payment.token_name', { token }),
     );
   }
 }
