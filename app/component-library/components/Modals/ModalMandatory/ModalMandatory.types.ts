@@ -1,7 +1,6 @@
 export interface BodyWebViewUri {
   source: 'WebView';
   uri: string;
-  html?: never;
 }
 
 export interface BodyWebViewHtml {
