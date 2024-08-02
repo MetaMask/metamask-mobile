@@ -5,7 +5,7 @@ import { strings } from '../../../locales/i18n';
 import { TermsOfUseModalSelectorsIDs } from '../../../e2e/selectors/Modals/TermsOfUseModal.selectors';
 import StorageWrapper from '../../store/storage-wrapper';
 //@ts-expect-error this file is generated at the setup script level and ignored by git
-import { termsOfUse } from './termsOfUseContent';
+import termsOfUse from './termsOfUseContent';
 
 interface TermsOfUseParamsI {
   screen: string;

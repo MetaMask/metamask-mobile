@@ -251,7 +251,7 @@ const generateTermsOfUseContentTask = {
       throw new Error('Failed to read Terms of Use file');
     }
 
-    const outputContent = `export const termsOfUse = ${JSON.stringify(termsOfUse)};`;
+    const outputContent = `export default ${JSON.stringify(termsOfUse)};`;
 
     try {
       fs.mkdirSync(outputDir, { recursive: true });
