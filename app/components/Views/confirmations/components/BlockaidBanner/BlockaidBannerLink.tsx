@@ -18,20 +18,24 @@ const BlockaidBannerLink = ({
 }: {
   text: string;
   link: string;
-  onContactUsClicked?: () => void | undefined;
+  onContactUsClicked?: () => Promise<void> | void;
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+
+  const handlePress = async () => {
+    if (onContactUsClicked) {
+      await onContactUsClicked();
+    }
+    Linking.openURL(link);
+  };
 
   return (
     <Text
       suppressHighlighting
       style={styles.attributionLink}
       variant={DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT}
-      onPress={() => {
-        onContactUsClicked?.();
-        Linking.openURL(link);
-      }}
+      onPress={handlePress}
     >
       {text}
     </Text>

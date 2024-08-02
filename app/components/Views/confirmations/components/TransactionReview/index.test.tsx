@@ -9,7 +9,7 @@ import * as TransactionUtils from '../../../../../util/transactions';
 import * as BlockaidUtils from '../../../../../util/blockaid';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import { TESTID_ACCORDION_CONTENT } from '../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
 import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../BlockaidBanner/BlockaidBanner.constants';
 import { AccountsControllerState } from '@metamask/accounts-controller';
@@ -35,6 +35,12 @@ jest.mock('react-native-keyboard-aware-scroll-view', () => {
   const KeyboardAwareScrollView = jest.requireActual('react-native').ScrollView;
   return { KeyboardAwareScrollView };
 });
+
+jest.mock('../../../../../lib/ppom/ppom-util', () => ({
+  ...jest.requireActual('../../../../../lib/ppom/ppom-util'),
+  isChainSupported: jest.fn().mockResolvedValue(true),
+  validateRequest: jest.fn(),
+}));
 
 jest.mock(
   '../../../../../components/UI/QRHardware/withQRHardwareAwareness',
@@ -216,12 +222,14 @@ describe('TransactionReview', () => {
       .mockImplementation(
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ({ result_type, reason, providerRequestsCount }: any) => ({
-          security_alert_response: result_type,
-          security_alert_reason: reason,
-          security_alert_provider_requests_count: providerRequestsCount,
-        }),
+        ({ result_type, reason, providerRequestsCount }: any) =>
+          Promise.resolve({
+            security_alert_response: result_type,
+            security_alert_reason: reason,
+            security_alert_provider_requests_count: providerRequestsCount,
+          }),
       );
+
     const { queryByText, queryByTestId, getByText } = renderWithProvider(
       <TransactionReview
         EIP1559GasData={{}}
@@ -242,7 +250,8 @@ describe('TransactionReview', () => {
         },
       },
     );
-    expect(await queryByText('See details')).toBeDefined();
+
+    await waitFor(() => expect(queryByText('See details')).toBeDefined());
     expect(
       await queryByText(
         'If you approve this request, someone can steal your assets listed on Blur.',

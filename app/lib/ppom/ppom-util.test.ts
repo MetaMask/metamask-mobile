@@ -6,10 +6,12 @@ import Engine from '../../core/Engine';
 import PPOMUtil from './ppom-util';
 // eslint-disable-next-line import/no-namespace
 import * as securityAlertAPI from './security-alerts-api';
+import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 
 const CHAIN_ID_MOCK = '0x1';
 
 jest.mock('./security-alerts-api');
+jest.mock('../../util/blockaid');
 
 jest.mock('../../util/transaction-controller', () => ({
   __esModule: true,
@@ -95,6 +97,8 @@ describe('PPOM Utils', () => {
     securityAlertAPI.isSecurityAlertsAPIEnabled,
   );
 
+  const mockIsBlockaidFeatureEnabled = jest.mocked(isBlockaidFeatureEnabled);
+
   const getSupportedChainIdsMock = jest.spyOn(
     securityAlertAPI,
     'getSecurityAlertsAPISupportedChainIds',
@@ -110,6 +114,7 @@ describe('PPOM Utils', () => {
       CHAIN_ID_MOCK;
 
     normalizeTransactionParamsMock.mockImplementation((params) => params);
+    mockIsBlockaidFeatureEnabled.mockResolvedValue(true);
   });
 
   afterEach(() => {
@@ -118,6 +123,7 @@ describe('PPOM Utils', () => {
 
   describe('validateRequest', () => {
     it('should not validate if preference securityAlertsEnabled is false', async () => {
+      mockIsBlockaidFeatureEnabled.mockResolvedValue(false);
       const spyTransactionAction = jest.spyOn(
         TransactionActions,
         'setTransactionSecurityAlertResponse',
@@ -152,6 +158,7 @@ describe('PPOM Utils', () => {
     });
 
     it('should not validate user if on a non supporting blockaid network', async () => {
+      mockIsBlockaidFeatureEnabled.mockResolvedValue(false);
       const spyTransactionAction = jest.spyOn(
         TransactionActions,
         'setTransactionSecurityAlertResponse',
@@ -160,8 +167,10 @@ describe('PPOM Utils', () => {
         .spyOn(NetworkControllerSelectors, 'selectChainId')
         .mockReturnValue('0xfa');
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
-      expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(0);
-      expect(spyTransactionAction).toBeCalledTimes(0);
+      expect(MockEngine.context.PPOMController?.usePPOM).toHaveBeenCalledTimes(
+        0,
+      );
+      expect(spyTransactionAction).toHaveBeenCalledTimes(0);
     });
 
     it('should not validate if requested method is not allowed', async () => {
@@ -178,8 +187,10 @@ describe('PPOM Utils', () => {
         },
         CHAIN_ID_MOCK,
       );
-      expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(0);
-      expect(spyTransactionAction).toBeCalledTimes(0);
+      expect(MockEngine.context.PPOMController?.usePPOM).toHaveBeenCalledTimes(
+        0,
+      );
+      expect(spyTransactionAction).toHaveBeenCalledTimes(0);
     });
 
     it('should not validate transaction and update response as failed if method type is eth_sendTransaction and transactionid is not defined', async () => {
@@ -188,13 +199,17 @@ describe('PPOM Utils', () => {
         'setTransactionSecurityAlertResponse',
       );
       await PPOMUtil.validateRequest(mockRequest);
-      expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(0);
-      expect(spyTransactionAction).toBeCalledTimes(1);
+      expect(MockEngine.context.PPOMController?.usePPOM).toHaveBeenCalledTimes(
+        0,
+      );
+      expect(spyTransactionAction).toHaveBeenCalledTimes(1);
     });
 
     it('should invoke PPOMController usePPOM if securityAlertsEnabled is true', async () => {
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
-      expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(1);
+      expect(MockEngine.context.PPOMController?.usePPOM).toHaveBeenCalledTimes(
+        1,
+      );
     });
 
     it('should update transaction with validation result', async () => {
@@ -203,13 +218,13 @@ describe('PPOM Utils', () => {
         'setTransactionSecurityAlertResponse',
       );
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
-      expect(spy).toBeCalledTimes(2);
+      expect(spy).toHaveBeenCalledTimes(2);
     });
 
     it('should update signature requests with validation result', async () => {
       const spy = jest.spyOn(SignatureRequestActions, 'default');
       await PPOMUtil.validateRequest(mockSignatureRequest);
-      expect(spy).toBeCalledTimes(2);
+      expect(spy).toHaveBeenCalledTimes(2);
     });
 
     it('normalizes transaction requests before validation', async () => {
@@ -235,13 +250,13 @@ describe('PPOM Utils', () => {
 
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
 
-      expect(normalizeTransactionParamsMock).toBeCalledTimes(1);
-      expect(normalizeTransactionParamsMock).toBeCalledWith(
+      expect(normalizeTransactionParamsMock).toHaveBeenCalledTimes(1);
+      expect(normalizeTransactionParamsMock).toHaveBeenCalledWith(
         mockRequest.params[0],
       );
 
-      expect(validateMock).toBeCalledTimes(1);
-      expect(validateMock).toBeCalledWith({
+      expect(validateMock).toHaveBeenCalledTimes(1);
+      expect(validateMock).toHaveBeenCalledWith({
         ...mockRequest,
         params: [normalizedTransactionParamsMock],
       });
@@ -267,13 +282,13 @@ describe('PPOM Utils', () => {
         CHAIN_ID_MOCK,
       );
 
-      expect(normalizeTransactionParamsMock).toBeCalledTimes(1);
-      expect(normalizeTransactionParamsMock).toBeCalledWith(
+      expect(normalizeTransactionParamsMock).toHaveBeenCalledTimes(1);
+      expect(normalizeTransactionParamsMock).toHaveBeenCalledWith(
         mockRequest.params[0],
       );
 
-      expect(validateMock).toBeCalledTimes(1);
-      expect(validateMock).toBeCalledWith({
+      expect(validateMock).toHaveBeenCalledTimes(1);
+      expect(validateMock).toHaveBeenCalledWith({
         ...mockRequest,
       });
     });
@@ -323,7 +338,7 @@ describe('PPOM Utils', () => {
         .spyOn(securityAlertAPI, 'getSecurityAlertsAPISupportedChainIds')
         .mockRejectedValue(new Error('Test Error'));
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
-      expect(spy).toBeCalledTimes(2);
+      expect(spy).toHaveBeenCalledTimes(2);
     });
   });
 });

@@ -469,7 +469,10 @@ class Confirm extends PureComponent {
 
     this.setState({ result, transactionMeta });
 
-    if (isBlockaidFeatureEnabled()) {
+    const isBlockaidEnabled = await isBlockaidFeatureEnabled();
+    this.setState({ isBlockaidFeatureEnabled: isBlockaidEnabled });
+
+    if (isBlockaidEnabled) {
       // start validate ppom
       const id = transactionMeta.id;
       const reqObject = {
@@ -899,7 +902,7 @@ class Confirm extends PureComponent {
                 assetType,
                 {
                   ...this.getAnalyticsParams(),
-                  ...getBlockaidTransactionMetricsParams(transaction),
+                  ...(await getBlockaidTransactionMetricsParams(transaction)),
                   ...this.getTransactionMetrics(),
                 },
               ),
@@ -928,7 +931,7 @@ class Confirm extends PureComponent {
         throw transactionMeta.error;
       }
 
-      InteractionManager.runAfterInteractions(() => {
+      InteractionManager.runAfterInteractions(async () => {
         NotificationManager.watchSubmittedTransaction({
           ...transactionMeta,
           assetType,
@@ -938,7 +941,7 @@ class Confirm extends PureComponent {
           MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
           {
             ...this.getAnalyticsParams(transactionMeta),
-            ...getBlockaidTransactionMetricsParams(transaction),
+            ...(await getBlockaidTransactionMetricsParams(transaction)),
             ...this.getTransactionMetrics(),
           },
         );
@@ -1158,11 +1161,11 @@ class Confirm extends PureComponent {
     });
   };
 
-  onContactUsClicked = () => {
+  onContactUsClicked = async () => {
     const { transaction } = this.props;
     const analyticsParams = {
       ...this.getAnalyticsParams(),
-      ...getBlockaidTransactionMetricsParams(transaction),
+      ...(await getBlockaidTransactionMetricsParams(transaction)),
       external_link_clicked: 'security_alert_support_link',
     };
     this.props.metrics.trackEvent(
@@ -1259,6 +1262,7 @@ class Confirm extends PureComponent {
       EIP1559GasObject,
       EIP1559GasTransaction,
       legacyGasObject,
+      isBlockaidFeatureEnabled,
     } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -1292,7 +1296,7 @@ class Confirm extends PureComponent {
           layout="vertical"
         />
         <ScrollView style={baseStyles.flexGrow} ref={this.setScrollViewRef}>
-          {isBlockaidFeatureEnabled() && this.state.transactionMeta?.id && (
+          {isBlockaidFeatureEnabled && this.state.transactionMeta?.id && (
             <TransactionBlockaidBanner
               transactionId={this.state.transactionMeta.id}
               style={styles.blockaidBanner}
