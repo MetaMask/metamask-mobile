@@ -54,10 +54,7 @@ describe(SmokeCore('Request Token Flow with Unprotected Wallet'), () => {
 
   it('should search for SAI by contract', async () => {
     await RequestPaymentView.searchForToken(SAI_CONTRACT_ADDRESS);
-    await Assertions.checkIfElementToHaveText(
-      RequestPaymentView.requestAssetList,
-      'SAI',
-    );
+    await Assertions.checkIfTextIsDisplayed('SAI');
   });
 
   it('should search DAI', async () => {

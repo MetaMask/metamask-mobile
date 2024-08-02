@@ -1,4 +1,4 @@
-import { RequestPaymentViewSelectors } from './RequestPaymentView.selectors';
+import { RequestPaymentViewSelectors } from '../selectors/RequestPaymentView.selectors';
 import Matchers from '../utils/Matchers';
 import Gestures from '../utils/Gestures';
 
@@ -41,7 +41,7 @@ class RequestPaymentView {
 
   async tapOnToken(token) {
     const tokenElement = Matchers.getElementByText(token);
-    await Gestures.tap(tokenElement);
+    await Gestures.waitAndTap(tokenElement, 1);
   }
 
   async typeInTokenAmount(amount) {
