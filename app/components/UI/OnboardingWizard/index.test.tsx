@@ -7,9 +7,9 @@ const navigationMock = {
   navigate: jest.fn(),
 };
 
-const coachmarkRef = {
-  yourAccountRef: {
-    current: {
+const coachmarkRef: React.RefObject<any> = {
+  current: {
+    yourAccountRef: {
       measure: jest.fn(),
     },
   },
