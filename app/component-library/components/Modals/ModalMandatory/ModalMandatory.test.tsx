@@ -1,5 +1,4 @@
 import React from 'react';
-import { SafeAreaView } from 'react-native';
 import ModalMandatory from './ModalMandatory';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 const mockedNavigate = jest.fn();
