@@ -1709,6 +1709,7 @@
     "network_display_name": "Display name",
     "network_chain_id": "Chain ID",
     "network_rpc_url": "Network URL",
+    "network_rpc_url_label": "Network RPC URL",
     "view_details": "View details",
     "network_details": "Network details",
     "network_select_confirm_use_safe_check": "Selecting Confirm turns on Network details check. You can turn off Network details check in ",
@@ -1741,6 +1742,7 @@
     "add_other_network_here": "here.",
     "you_can": "Or you can",
     "add_network": "add more networks manually.",
+    "add_specific_network": "Add {{network_name}}",
     "select_network": "Select a network",
     "enabled_networks": "Enabled networks",
     "additional_networks": "Additional networks",
@@ -2789,6 +2791,7 @@
     "title_existing_network": "This site would like to switch the network",
     "title_new_network": "New network added",
     "switch_warning": "This will switch the selected network within MetaMask to a previously added network:",
+    "add_network_and_give_dapp_permission_warning": "You're adding this network to MetaMask and giving {{dapp_origin}} permission to use it.",
     "available": "is now available in the network selector.",
     "cancel": "Cancel",
     "switch": "Switch Network"
