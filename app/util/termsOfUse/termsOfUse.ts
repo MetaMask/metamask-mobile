@@ -24,7 +24,6 @@ interface TermsOfUseParamsI {
     onRender: () => void;
     isScrollToEndNeeded: boolean;
     scrollEndBottomMargin: number;
-    isCheckboxNeeded: boolean;
   };
 }
 
@@ -61,7 +60,6 @@ export default async function navigateTermsOfUse(
         onRender: useTermsDisplayed,
         isScrollToEndNeeded: false,
         scrollEndBottomMargin: 50,
-        isCheckboxNeeded: true,
       },
     });
   }
