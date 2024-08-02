@@ -123,18 +123,17 @@ class AccountApproval extends PureComponent {
     }
 
     const getSource = () => {
-      const hasNoSource =
-        currentPageInformation?.analytics &&
-        'source' in currentPageInformation.analytics &&
-        currentPageInformation.analytics.source === undefined;
+      const source = currentPageInformation?.analytics?.source;
 
-      const hasSource = currentPageInformation?.analytics?.source !== undefined;
-
-      if (hasSource) {
-        return currentPageInformation.analytics.source;
+      if (source) {
+        return source;
       }
 
-      if (hasNoSource) {
+      if (
+        currentPageInformation?.analytics &&
+        'source' in currentPageInformation.analytics &&
+        !source
+      ) {
         return SourceType.DAPP_DEEPLINK_URL;
       }
 
