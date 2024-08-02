@@ -3,6 +3,7 @@
 exports[`ApprovalResult renders approval result with error type 1`] = `
 <View
   collapsable={false}
+  forwardedRef={[Function]}
   style={
     {
       "backgroundColor": "#ffffff",
@@ -147,6 +148,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
   </View>
   <View
     collapsable={false}
+    forwardedRef={[Function]}
     style={
       {
         "flex": 0,
@@ -213,6 +215,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
 exports[`ApprovalResult renders approval result with success type 1`] = `
 <View
   collapsable={false}
+  forwardedRef={[Function]}
   style={
     {
       "backgroundColor": "#ffffff",
@@ -357,6 +360,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
   </View>
   <View
     collapsable={false}
+    forwardedRef={[Function]}
     style={
       {
         "flex": 0,
