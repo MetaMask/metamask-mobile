@@ -12,6 +12,8 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import { useSelector } from 'react-redux';
 
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
+import { EthGasPriceEstimate, LegacyGasPriceEstimate } from '@metamask/gas-fee-controller';
+import { GasFeeEstimates } from '@metamask/controllers';
 
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
@@ -127,13 +129,13 @@ const EditGasFeeLegacy = ({
 
       const lowerValue = new BigNumber(
         gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-          ? gasFeeEstimate?.low
-          : gasFeeEstimate?.gasPrice,
+          ? (gasFeeEstimate as EthGasPriceEstimate)?.low?.toString() || '0'
+          : (gasFeeEstimate as LegacyGasPriceEstimate)?.gasPrice?.toString() || '0',
       );
       const higherValue = new BigNumber(
         gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-          ? gasFeeEstimate?.high
-          : gasFeeEstimate?.gasPrice,
+          ? (gasFeeEstimate as EthGasPriceEstimate)?.high?.toString() || '0'
+          : (gasFeeEstimate as LegacyGasPriceEstimate)?.gasPrice?.toString() || '0',
       ).multipliedBy(new BigNumber(1.5));
 
       const valueBN = new BigNumber(value);
