@@ -21,6 +21,7 @@ const initialRootState: RootState = {
   privacy: undefined,
   bookmarks: undefined,
   browser: undefined,
+  featureFlags: undefined,
   modals: undefined,
   settings: undefined,
   alert: undefined,

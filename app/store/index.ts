@@ -66,6 +66,9 @@ const createStoreAndPersistor = async () => {
       basicFunctionalityEnabled:
         store.getState().settings.basicFunctionalityEnabled,
     });
+    store.dispatch({
+      type: 'FETCH_FEATURE_FLAGS',
+    });
     EngineService.initalizeEngine(store);
     Authentication.init(store);
     LockManagerService.init(store);
