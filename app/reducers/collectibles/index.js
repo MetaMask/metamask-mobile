@@ -21,6 +21,25 @@ export const collectibleContractsSelector = createSelector(
     allNftContracts[address]?.[chainId] || [],
 );
 
+export const collectibleContractsOwnedSelector = createSelector(
+  selectSelectedInternalAccountChecksummedAddress,
+  selectChainId,
+  selectAllNftContracts,
+  selectAllNfts,
+  (address, chainId, allNftContracts, allNfts) => {
+    const allCollectibleContracts = allNftContracts[address]?.[chainId] || [];
+    const allNftsInState = allNfts[address]?.[chainId] || [];
+    const allNftsOwned = allNftsInState.filter(
+      (singleNft) => singleNft.isCurrentlyOwned === true,
+    );
+    const collectiblesWithOwnedNfts = allCollectibleContracts.filter(
+      (element1) =>
+        allNftsOwned.some((element2) => element2.address === element1.address),
+    );
+    return collectiblesWithOwnedNfts;
+  },
+);
+
 export const collectiblesSelector = createDeepEqualSelector(
   selectSelectedInternalAccountChecksummedAddress,
   selectChainId,
