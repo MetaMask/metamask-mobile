@@ -188,6 +188,7 @@ interface RampPurchaseCompleted extends RampPurchase {
   exchange_rate: number;
   gas_fee?: number;
   processing_fee?: number;
+  amount_in_usd: number;
 }
 
 interface OnRampPurchaseCompleted extends RampPurchaseCompleted {

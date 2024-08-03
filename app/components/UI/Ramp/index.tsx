@@ -92,12 +92,14 @@ export const getAggregatorAnalyticsPayload = (
   }
 
   const sharedCompletedPayload: Partial<
-    AnalyticsEvents['OFFRAMP_PURCHASE_COMPLETED']
+    | AnalyticsEvents['OFFRAMP_PURCHASE_COMPLETED']
+    | AnalyticsEvents['ONRAMP_PURCHASE_COMPLETED']
   > = {
     total_fee: Number(fiatOrder.fee),
     exchange_rate:
       (Number(fiatOrder.amount) - Number(fiatOrder.fee)) /
       Number(fiatOrder.cryptoAmount),
+    amount_in_usd: (fiatOrder.data as Order)?.fiatAmountInUsd,
   };
 
   const sellCompletePayload: AnalyticsEvents['OFFRAMP_PURCHASE_COMPLETED'] = {
