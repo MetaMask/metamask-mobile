@@ -547,6 +547,12 @@ describe('Quotes', () => {
               "Banxa (Staging)",
               "MoonPay (Staging)",
             ],
+            "quotes_amount_first": 0.017142,
+            "quotes_amount_last": 0.0162,
+            "quotes_amount_list": [
+              0.017142,
+              0.0162,
+            ],
             "refresh_count": 1,
             "results_count": 2,
           },
@@ -599,6 +605,12 @@ describe('Quotes', () => {
             "provider_offramp_list": [
               "Banxa (Staging)",
               "MoonPay (Staging)",
+            ],
+            "quotes_amount_first": 0.017142,
+            "quotes_amount_last": 0.0162,
+            "quotes_amount_list": [
+              0.017142,
+              0.0162,
             ],
             "refresh_count": 1,
             "results_count": 2,

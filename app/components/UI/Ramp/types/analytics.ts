@@ -92,6 +92,9 @@ interface RampQuotesReceived {
   average_gas_fee: number;
   average_processing_fee: number;
   average_total_fee_of_amount: number;
+  quotes_amount_list: number[];
+  quotes_amount_first: number;
+  quotes_amount_last?: number;
 }
 
 interface OnRampQuotesReceived extends RampQuotesReceived {
