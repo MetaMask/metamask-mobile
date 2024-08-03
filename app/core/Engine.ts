@@ -2,7 +2,7 @@
 import Crypto from 'react-native-quick-crypto';
 import {
   AccountTrackerController,
-  AccountTrackerState,
+  AccountTrackerControllerState,
   AssetsContractController,
   CurrencyRateController,
   CurrencyRateState,
@@ -11,16 +11,16 @@ import {
   GetTokenListState,
   NftController,
   NftDetectionController,
-  NftState,
+  NftControllerState,
   TokenBalancesController,
   TokenDetectionController,
   TokenListController,
   TokenListState,
   TokenListStateChange,
   TokenRatesController,
-  TokenRatesState,
+  TokenRatesControllerState,
   TokensController,
-  TokensState,
+  TokensControllerState,
   CodefiTokenPricesServiceV2,
   TokensControllerActions,
   TokensControllerEvents,
@@ -305,10 +305,10 @@ type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 
 export interface EngineState {
-  AccountTrackerController: AccountTrackerState;
+  AccountTrackerController: AccountTrackerControllerState;
   AddressBookController: AddressBookState;
   AssetsContractController: BaseState;
-  NftController: NftState;
+  NftController: NftControllerState;
   TokenListController: TokenListState;
   CurrencyRateController: CurrencyRateState;
   KeyringController: KeyringControllerState;
@@ -316,12 +316,12 @@ export interface EngineState {
   PreferencesController: PreferencesState;
   PhishingController: PhishingControllerState;
   TokenBalancesController: TokenBalancesControllerState;
-  TokenRatesController: TokenRatesState;
+  TokenRatesController: TokenRatesControllerState;
   TransactionController: TransactionControllerState;
   SmartTransactionsController: SmartTransactionsControllerState;
   SwapsController: SwapsState;
   GasFeeController: GasFeeState;
-  TokensController: TokensState;
+  TokensController: TokensControllerState;
   TokenDetectionController: BaseState;
   NftDetectionController: BaseState;
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -510,61 +510,52 @@ class Engine {
     networkController.initializeProvider();
 
     const assetsContractController = new AssetsContractController({
+      chainId:
+        networkController.state.networkConfigurations[
+          networkController.state.selectedNetworkClientId
+        ].chainId,
       onPreferencesStateChange,
       onNetworkDidChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_DID_CHANGE_EVENT,
           listener,
         ),
-      chainId: networkController.state.providerConfig.chainId,
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
-    const nftController = new NftController(
-      {
-        onPreferencesStateChange,
-        onNetworkStateChange: (listener) =>
-          this.controllerMessenger.subscribe(
-            AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            listener,
-          ),
-        getNetworkClientById:
-          networkController.getNetworkClientById.bind(networkController),
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'NftController',
-          allowedActions: [
-            `${approvalController.name}:addRequest`,
-            `${networkController.name}:getNetworkClientById`,
-          ],
-          allowedEvents: [],
-        }),
-        chainId: networkController.state.providerConfig.chainId,
-
-        getERC721AssetName: assetsContractController.getERC721AssetName.bind(
-          assetsContractController,
-        ),
-        getERC721AssetSymbol:
-          assetsContractController.getERC721AssetSymbol.bind(
-            assetsContractController,
-          ),
-        getERC721TokenURI: assetsContractController.getERC721TokenURI.bind(
-          assetsContractController,
-        ),
-        getERC721OwnerOf: assetsContractController.getERC721OwnerOf.bind(
-          assetsContractController,
-        ),
-        getERC1155BalanceOf: assetsContractController.getERC1155BalanceOf.bind(
-          assetsContractController,
-        ),
-        getERC1155TokenURI: assetsContractController.getERC1155TokenURI.bind(
-          assetsContractController,
-        ),
-      },
-      {
-        useIPFSSubdomains: false,
-        chainId: networkController.state.providerConfig.chainId,
-      },
-    );
+    const nftController = new NftController({
+      useIPFSSubdomains: false,
+      chainId:
+        networkController.state.networkConfigurations[
+          networkController.state.selectedNetworkClientId
+        ].chainId,
+      getERC721AssetName: assetsContractController.getERC721AssetName.bind(
+        assetsContractController,
+      ),
+      getERC721AssetSymbol: assetsContractController.getERC721AssetSymbol.bind(
+        assetsContractController,
+      ),
+      getERC721TokenURI: assetsContractController.getERC721TokenURI.bind(
+        assetsContractController,
+      ),
+      getERC721OwnerOf: assetsContractController.getERC721OwnerOf.bind(
+        assetsContractController,
+      ),
+      getERC1155BalanceOf: assetsContractController.getERC1155BalanceOf.bind(
+        assetsContractController,
+      ),
+      getERC1155TokenURI: assetsContractController.getERC1155TokenURI.bind(
+        assetsContractController,
+      ),
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'NftController',
+        allowedActions: [
+          `${approvalController.name}:addRequest`,
+          `${networkController.name}:getNetworkClientById`,
+        ],
+        allowedEvents: [],
+      }),
+    });
 
     const loggingController = new LoggingController({
       messenger: this.controllerMessenger.getRestricted<
@@ -606,10 +597,16 @@ class Engine {
       state: initialState.AccountsController ?? defaultAccountsControllerState,
     });
     const tokensController = new TokensController({
-      chainId: networkController.state.providerConfig.chainId,
+      chainId:
+        networkController.state.networkConfigurations[
+          networkController.state.selectedNetworkClientId
+        ].chainId,
       config: {
         provider: networkController.getProviderAndBlockTracker().provider,
-        chainId: networkController.state.providerConfig.chainId,
+        chainId:
+          networkController.state.networkConfigurations[
+            networkController.state.selectedNetworkClientId
+          ].chainId,
         selectedAddress: preferencesController.state.selectedAddress,
       },
       state: initialState.TokensController,
@@ -627,7 +624,10 @@ class Engine {
       }),
     });
     const tokenListController = new TokenListController({
-      chainId: networkController.state.providerConfig.chainId,
+      chainId:
+        networkController.state.networkConfigurations[
+          networkController.state.selectedNetworkClientId
+        ].chainId,
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
@@ -667,7 +667,10 @@ class Engine {
       getCurrentNetworkEIP1559Compatibility: async () =>
         (await networkController.getEIP1559Compatibility()) ?? false,
       getCurrentNetworkLegacyGasAPICompatibility: () => {
-        const chainId = networkController.state.providerConfig.chainId;
+        const chainId =
+          networkController.state.networkConfigurations[
+            networkController.state.selectedNetworkClientId
+          ].chainId;
         return (
           isMainnetByChainId(chainId) ||
           chainId === addHexPrefix(swapsUtils.BSC_CHAIN_ID) ||
@@ -823,7 +826,11 @@ class Engine {
       getMultiAccountBalancesEnabled: () =>
         preferencesController.state.isMultiAccountBalancesEnabled,
       getCurrentChainId: () =>
-        toHexadecimal(networkController.state.providerConfig.chainId),
+        toHexadecimal(
+          networkController.state.networkConfigurations[
+            networkController.state.selectedNetworkClientId
+          ].chainId,
+        ),
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
@@ -1157,7 +1164,9 @@ class Engine {
       incomingTransactions: {
         isEnabled: () => {
           const currentHexChainId =
-            networkController.state.providerConfig.chainId;
+            networkController.state.networkConfigurations[
+              networkController.state.selectedNetworkClientId
+            ].chainId;
 
           const showIncomingTransactions =
             preferencesController?.state?.showIncomingTransactions;
@@ -1296,12 +1305,14 @@ class Engine {
               token_standard: 'ERC20',
               asset_type: 'token',
               chain_id: getDecimalChainId(
-                networkController.state.providerConfig.chainId,
+                networkController.state.networkConfigurations[
+                  networkController.state.selectedNetworkClientId
+                ].chainId,
               ),
             },
           ),
         // Remove this when TokensController is extending Base Controller v2
-        getTokensState: () => tokensController.state,
+        getTokensControllerState: () => tokensController.state,
         getBalancesInSingleCall:
           assetsContractController.getBalancesInSingleCall.bind(
             assetsContractController,
@@ -1315,11 +1326,14 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
-        chainId: networkController.state.providerConfig.chainId,
+        chainId:
+          networkController.state.networkConfigurations[
+            networkController.state.selectedNetworkClientId
+          ].chainId,
         getOpenSeaApiKey: () => nftController.openSeaApiKey,
         addNft: nftController.addNft.bind(nftController),
         getNftApi: nftController.getNftApi.bind(nftController),
-        getNftState: () => nftController.state,
+        getNftControllerState: () => nftController.state,
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
         disabled: false,
@@ -1335,23 +1349,31 @@ class Engine {
           allowedActions: ['PreferencesController:getState'],
           allowedEvents: ['TokensController:stateChange'],
         }),
-        //@ts-expect-error onTokensStateChange will be removed when Tokens Controller extends Base Controller v2
-        onTokensStateChange: (listener) => tokensController.subscribe(listener),
+        //@ts-expect-error onTokensControllerStateChange will be removed when Tokens Controller extends Base Controller v2
+        onTokensControllerStateChange: (listener) =>
+          tokensController.subscribe(listener),
         getERC20BalanceOf: assetsContractController.getERC20BalanceOf.bind(
           assetsContractController,
         ),
         interval: 180000,
       }),
       new TokenRatesController({
-        onTokensStateChange: (listener) => tokensController.subscribe(listener),
+        onTokensControllerStateChange: (listener) =>
+          tokensController.subscribe(listener),
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
         onPreferencesStateChange,
-        chainId: networkController.state.providerConfig.chainId,
-        ticker: networkController.state.providerConfig.ticker,
+        chainId:
+          networkController.state.networkConfigurations[
+            networkController.state.selectedNetworkClientId
+          ].chainId,
+        ticker:
+          networkController.state.networkConfigurations[
+            networkController.state.selectedNetworkClientId
+          ].ticker,
         selectedAddress: preferencesController.state.selectedAddress,
         tokenPricesService: codefiTokenApiV2,
         interval: 30 * 60 * 1000,
@@ -1407,7 +1429,10 @@ class Engine {
             preferencesController.state?.disabledRpcMethodPreferences?.eth_sign,
           ),
         getAllState: () => store.getState(),
-        getCurrentChainId: () => networkController.state.providerConfig.chainId,
+        getCurrentChainId: () =>
+          networkController.state.networkConfigurations[
+            networkController.state.selectedNetworkClientId
+          ].chainId,
       }),
       loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -1419,7 +1444,10 @@ class Engine {
       ///: END:ONLY_INCLUDE_IF
       accountsController,
       new PPOMController({
-        chainId: networkController.state.providerConfig.chainId,
+        chainId:
+          networkController.state.networkConfigurations[
+            networkController.state.selectedNetworkClientId
+          ].chainId,
         blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
         cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
         // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
@@ -1505,12 +1533,15 @@ class Engine {
         if (
           state.networksMetadata[state.selectedNetworkClientId].status ===
             NetworkStatus.Available &&
-          state.providerConfig.chainId !== currentChainId
+          state.networkConfigurations[state.selectedNetworkClientId].chainId !==
+            currentChainId
         ) {
           // We should add a state or event emitter saying the provider changed
           setTimeout(() => {
             this.configureControllersOnNetworkChange();
-            currentChainId = state.providerConfig.chainId;
+            currentChainId =
+              state.networkConfigurations[state.selectedNetworkClientId]
+                .chainId;
           }, 500);
         }
       },
@@ -1525,7 +1556,11 @@ class Engine {
         } catch (error) {
           console.error(
             error,
-            `Network ID not changed, current chainId: ${networkController.state.providerConfig.chainId}`,
+            `Network ID not changed, current chainId: ${
+              networkController.state.networkConfigurations[
+                networkController.state.selectedNetworkClientId
+              ].chainId
+            }`,
           );
         }
       },
@@ -1592,13 +1627,16 @@ class Engine {
     if (!provider) {
       return;
     }
-    provider.sendAsync = provider.sendAsync.bind(provider);
+    provider.request = provider.request.bind(provider);
     AccountTrackerController.configure({ provider });
     AssetsContractController.configure({ provider });
 
     SwapsController.configure({
       provider,
-      chainId: NetworkController.state?.providerConfig?.chainId,
+      chainId:
+        NetworkController.state?.networkConfigurations?.[
+          NetworkController.state?.selectedNetworkClientId
+        ]?.chainId,
       pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
     });
     TokenDetectionController.detectTokens();
@@ -1624,7 +1662,10 @@ class Engine {
     const selectSelectedInternalAccountChecksummedAddress =
       toChecksumHexAddress(selectedInternalAccount.address);
     const { currentCurrency } = CurrencyRateController.state;
-    const { chainId, ticker } = NetworkController.state.providerConfig;
+    const { chainId, ticker } =
+      NetworkController.state.networkConfigurations[
+        NetworkController.state.selectedNetworkClientId
+      ];
     const {
       settings: { showFiatOnTestnets },
     } = store.getState();
