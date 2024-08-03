@@ -339,6 +339,7 @@ describe('Quotes', () => {
       [
         "ONRAMP_PROVIDER_SELECTED",
         {
+          "amount": 50,
           "chain_id_destination": "1",
           "crypto_out": 0.0162,
           "currency_destination": "ETH",
@@ -368,6 +369,7 @@ describe('Quotes', () => {
       [
         "OFFRAMP_PROVIDER_SELECTED",
         {
+          "amount": 50,
           "chain_id_source": "1",
           "currency_destination": "USD",
           "currency_source": "ETH",
@@ -402,6 +404,7 @@ describe('Quotes', () => {
       [
         "ONRAMP_PROVIDER_SELECTED",
         {
+          "amount": 50,
           "chain_id_destination": "1",
           "crypto_out": 0.0162,
           "currency_destination": "ETH",
@@ -431,6 +434,7 @@ describe('Quotes', () => {
       [
         "OFFRAMP_PROVIDER_SELECTED",
         {
+          "amount": 50,
           "chain_id_source": "1",
           "currency_destination": "USD",
           "currency_source": "ETH",

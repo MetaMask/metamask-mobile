@@ -324,6 +324,7 @@ function Quotes() {
           processing_fee: quote.providerFee ?? 0,
           exchange_rate:
             ((quote.amountIn ?? 0) - totalFee) / (quote.amountOut ?? 0),
+          amount: params.amount,
         };
 
         if (isBuy) {
