@@ -21,7 +21,17 @@ exports[`SheetHeader should render correctly 1`] = `
     }
   />
   <Text
-    variant="sHeadingMD"
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#141618",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 18,
+        "fontWeight": "700",
+        "letterSpacing": 0,
+        "lineHeight": 24,
+      }
+    }
   >
     Title
   </Text>
