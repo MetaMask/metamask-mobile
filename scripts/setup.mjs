@@ -121,7 +121,7 @@ const mainSetupTask = {
     copyEnvVarsTask,
   ],
     {
-      exitOnError: false,
+      exitOnError: true,
       concurrent: true,
       rendererOptions
     })
