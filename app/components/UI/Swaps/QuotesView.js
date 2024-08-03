@@ -20,6 +20,10 @@ import {
 } from '@metamask/transaction-controller';
 import { query, toHex } from '@metamask/controller-utils';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
+import {
+  getEstimatedSafeGasLimit,
+  isValidDestinationAmount,
+} from './QuotesView/utils';
 
 import {
   addHexPrefix,
@@ -109,8 +113,8 @@ import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import {
   SWAP_QUOTE_SUMMARY,
   SWAP_GAS_FEE,
-} from '../../../../wdio/screen-objects/testIDs/Screens/SwapView.js';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+} from '../../../../wdio/screen-objects/testIDs/Screens/SwapView';
+import { useMetrics } from '../../hooks/useMetrics';
 import { addTransaction } from '../../../util/transaction-controller';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
@@ -321,16 +325,6 @@ async function resetAndStartPolling({
   );
 }
 
-/**
- * Multiplies gasLimit by multiplier if both defined
- * @param {string} gasLimit
- * @param {number} multiplier
- */
-const gasLimitWithMultiplier = (gasLimit, multiplier) => {
-  if (!gasLimit || !multiplier) return;
-  return new BigNumber(gasLimit).times(multiplier).integerValue();
-};
-
 function getTransactionPropertiesFromGasEstimates(gasEstimateType, estimates) {
   if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
     return {
@@ -495,20 +489,22 @@ function SwapsQuotesView({
           (a, b) =>
             Number(b.overallValueOfQuote) - Number(a.overallValueOfQuote),
         )
-      : Object.values(quotes).sort((a, b) => {
-          const comparison = new BigNumber(b.destinationAmount).comparedTo(
-            a.destinationAmount,
-          );
-          if (comparison === 0) {
-            // If the  destination amount is the same, we sort by fees ascending
-            return (
-              Number(quoteValues[a.aggregator]?.ethFee) -
-                Number(quoteValues[b.aggregator]?.ethFee) || 0
+      : Object.values(quotes)
+          .filter(isValidDestinationAmount)
+          .sort((a, b) => {
+            const comparison = new BigNumber(b.destinationAmount).comparedTo(
+              a.destinationAmount,
             );
-          }
-          return comparison;
-          // eslint-disable-next-line no-mixed-spaces-and-tabs
-        });
+            if (comparison === 0) {
+              // If the  destination amount is the same, we sort by fees ascending
+              return (
+                Number(quoteValues[a.aggregator]?.ethFee) -
+                  Number(quoteValues[b.aggregator]?.ethFee) || 0
+              );
+            }
+            return comparison;
+            // eslint-disable-next-line no-mixed-spaces-and-tabs
+          });
 
     return orderedAggregators.map(
       (quoteValue) => quotes[quoteValue.aggregator],
@@ -556,7 +552,7 @@ function SwapsQuotesView({
     }
     return (
       selectedQuoteValue?.tradeMaxGasLimit ||
-      gasLimitWithMultiplier(
+      getEstimatedSafeGasLimit(
         selectedQuote?.gasEstimate,
         selectedQuote?.gasMultiplier,
       )?.toString(10) ||
@@ -570,13 +566,17 @@ function SwapsQuotesView({
   /* Balance */
   const checkEnoughEthBalance = useCallback(
     (gasAmountHex) => {
-      const gasBN = new BigNumber(gasAmountHex || '0', 16);
-      const ethAmountBN = isSwapsNativeAsset(sourceToken)
-        ? new BigNumber(sourceAmount)
-        : new BigNumber(0);
-      const ethBalanceBN = new BigNumber(accounts[selectedAddress].balance);
-      const hasEnoughEthBalance = ethBalanceBN.gte(ethAmountBN.plus(gasBN));
-      return hasEnoughEthBalance;
+      try {
+        const gasBN = new BigNumber(gasAmountHex || '0', 16);
+        const ethAmountBN = isSwapsNativeAsset(sourceToken)
+          ? new BigNumber(sourceAmount)
+          : new BigNumber(0);
+        const ethBalanceBN = new BigNumber(accounts[selectedAddress].balance);
+        const hasEnoughEthBalance = ethBalanceBN.gte(ethAmountBN.plus(gasBN));
+        return hasEnoughEthBalance;
+      } catch (e) {
+        return undefined;
+      }
     },
     [accounts, selectedAddress, sourceAmount, sourceToken],
   );
@@ -590,30 +590,34 @@ function SwapsQuotesView({
     hasEnoughEthBalance,
     missingEthBalance,
   ] = useMemo(() => {
-    // Token
-    const sourceBN = new BigNumber(sourceAmount);
-    const tokenBalanceBN = new BigNumber(balance.toString(10));
-    const hasEnoughTokenBalance = tokenBalanceBN.gte(sourceBN);
-    const missingTokenBalance = hasEnoughTokenBalance
-      ? null
-      : sourceBN.minus(tokenBalanceBN);
+    try {
+      // Token
+      const sourceBN = new BigNumber(sourceAmount);
+      const tokenBalanceBN = new BigNumber(balance.toString(10));
+      const hasEnoughTokenBalance = tokenBalanceBN.gte(sourceBN);
+      const missingTokenBalance = hasEnoughTokenBalance
+        ? null
+        : sourceBN.minus(tokenBalanceBN);
 
-    const ethAmountBN = isSwapsNativeAsset(sourceToken)
-      ? sourceBN
-      : new BigNumber(0);
-    const ethBalanceBN = new BigNumber(accounts[selectedAddress].balance);
-    const gasBN = toWei(selectedQuoteValue?.maxEthFee || '0');
-    const hasEnoughEthBalance = ethBalanceBN.gte(ethAmountBN.plus(gasBN));
-    const missingEthBalance = hasEnoughEthBalance
-      ? null
-      : ethAmountBN.plus(gasBN).minus(ethBalanceBN);
+      const ethAmountBN = isSwapsNativeAsset(sourceToken)
+        ? sourceBN
+        : new BigNumber(0);
+      const ethBalanceBN = new BigNumber(accounts[selectedAddress].balance);
+      const gasBN = toWei(selectedQuoteValue?.maxEthFee || '0');
+      const hasEnoughEthBalance = ethBalanceBN.gte(ethAmountBN.plus(gasBN));
+      const missingEthBalance = hasEnoughEthBalance
+        ? null
+        : ethAmountBN.plus(gasBN).minus(ethBalanceBN);
 
-    return [
-      hasEnoughTokenBalance,
-      missingTokenBalance,
-      hasEnoughEthBalance,
-      missingEthBalance,
-    ];
+      return [
+        hasEnoughTokenBalance,
+        missingTokenBalance,
+        hasEnoughEthBalance,
+        missingEthBalance,
+      ];
+    } catch (e) {
+      return [undefined, undefined, undefined, undefined];
+    }
   }, [
     accounts,
     balance,
@@ -634,17 +638,19 @@ function SwapsQuotesView({
     [selectedQuote],
   );
 
-  const slippageRatio = useMemo(
-    () =>
-      parseFloat(
+  const slippageRatio = useMemo(() => {
+    try {
+      return parseFloat(
         new BigNumber(selectedQuote?.priceSlippage?.ratio || 0, 10)
           .minus(1, 10)
           .times(100, 10)
           .toFixed(2),
         10,
-      ),
-    [selectedQuote],
-  );
+      );
+    } catch (e) {
+      return undefined;
+    }
+  }, [selectedQuote]);
 
   const unableToSwap = useMemo(
     () =>
@@ -711,40 +717,45 @@ function SwapsQuotesView({
       const { SwapsController } = Engine.context;
       setCustomGasEstimate(changedGasEstimate);
       SwapsController.updateQuotesWithGasPrice(changedGasEstimate);
-      if (changedGasLimit && changedGasLimit !== gasLimit) {
-        setCustomGasLimit(changedGasLimit);
-        SwapsController.updateSelectedQuoteWithGasLimit(
-          addHexPrefix(new BigNumber(changedGasLimit).toString(16)),
-        );
-      }
 
-      const parameters = {
-        speed_set: changedGasEstimate?.selected,
-        gas_mode: changedGasEstimate?.selected ? 'Basic' : 'Advanced',
-        // TODO: how should we track EIP1559 values?
-        gas_fees: [
-          GAS_ESTIMATE_TYPES.LEGACY,
-          GAS_ESTIMATE_TYPES.ETH_GASPRICE,
-        ].includes(gasEstimateType)
-          ? weiToFiat(
-              toWei(
-                swapsUtils.calcTokenAmount(
-                  new BigNumber(changedGasLimit, 10).times(
-                    decGWEIToHexWEI(changedGasEstimate.gasPrice),
-                    16,
+      try {
+        if (changedGasLimit && changedGasLimit !== gasLimit) {
+          setCustomGasLimit(changedGasLimit);
+          SwapsController.updateSelectedQuoteWithGasLimit(
+            addHexPrefix(new BigNumber(changedGasLimit).toString(16)),
+          );
+        }
+
+        const parameters = {
+          speed_set: changedGasEstimate?.selected,
+          gas_mode: changedGasEstimate?.selected ? 'Basic' : 'Advanced',
+          // TODO: how should we track EIP1559 values?
+          gas_fees: [
+            GAS_ESTIMATE_TYPES.LEGACY,
+            GAS_ESTIMATE_TYPES.ETH_GASPRICE,
+          ].includes(gasEstimateType)
+            ? weiToFiat(
+                toWei(
+                  swapsUtils.calcTokenAmount(
+                    new BigNumber(changedGasLimit, 10).times(
+                      decGWEIToHexWEI(changedGasEstimate.gasPrice),
+                      16,
+                    ),
+                    18,
                   ),
-                  18,
                 ),
-              ),
-              conversionRate,
-              currentCurrency,
-              // eslint-disable-next-line no-mixed-spaces-and-tabs
-            )
-          : '',
-        chain_id: getDecimalChainId(chainId),
-      };
+                conversionRate,
+                currentCurrency,
+                // eslint-disable-next-line no-mixed-spaces-and-tabs
+              )
+            : '',
+          chain_id: getDecimalChainId(chainId),
+        };
 
-      trackAnonymousEvent(MetaMetricsEvents.GAS_FEES_CHANGED, parameters);
+        trackAnonymousEvent(MetaMetricsEvents.GAS_FEES_CHANGED, parameters);
+      } catch (e) {
+        Logger.log(e, 'Error while updating gas fee');
+      }
     },
     [
       chainId,
