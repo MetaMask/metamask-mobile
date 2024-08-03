@@ -15,7 +15,7 @@ import {
   renderFromTokenMinimalUnit,
   addCurrencySymbol,
   balanceToFiatNumber,
-  renderFiat,
+  renderPortfolioBalance,
 } from '../../../util/number';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
@@ -588,7 +588,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       total = balance?.tokenFiat ?? 0;
     }
 
-    const fiatBalance = `${renderFiat(total, currentCurrency)}`;
+    const fiatBalance = `${renderPortfolioBalance(total, currentCurrency)}`;
 
     const onOpenPortfolio = () => {
       const existingPortfolioTab = browserTabs.find(({ url }: BrowserTab) =>

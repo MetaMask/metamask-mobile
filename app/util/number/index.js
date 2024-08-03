@@ -14,6 +14,7 @@ import BigNumber from 'bignumber.js';
 import currencySymbols from '../currency-symbols.json';
 import { isZero } from '../lodash';
 import { regex } from '../regex';
+import I18n from '../../../locales/i18n';
 export { BNToHex };
 
 // Big Number Constants
@@ -663,6 +664,35 @@ export function getCurrencySymbol(currencyCode) {
     return `${currencySymbols[currencyCode]}`;
   }
   return currencyCode;
+}
+
+/**
+ * Renders a formatted portfolio balance. This uses the I18n for all supported fiat currencies.
+ * If unsupported fiat, or crypto, fallback to custom implementation. decimalsToShow defaults to 5 decimals, unless provided.
+ *
+ * @param {number} value - The balance value to format.
+ * @param {string} currencyCode - The currency code (e.g., 'usd', 'btc').
+ * @param {number} [decimalsToShow=5] - The number of decimal places to show (default is 5).
+ * @returns {string} The formatted balance with the currency symbol or code.
+ */
+export function renderPortfolioBalance(
+  value,
+  currencyCode,
+  decimalsToShow = 5,
+) {
+  if (currencySymbols[currencyCode.toLowerCase()]) {
+    return new Intl.NumberFormat(I18n.locale, {
+      style: 'currency',
+      currency: currencyCode,
+    }).format(value);
+  }
+  // cryptocurrencies & unsupported fiat
+  const base = Math.pow(10, decimalsToShow);
+  let fixedBalance = parseFloat(Math.round(value * base) / base).toFixed(
+    decimalsToShow,
+  );
+  fixedBalance = isNaN(fixedBalance) ? 0.0 : fixedBalance; // no matter what, don't render NaN
+  return `${fixedBalance} ${currencyCode.toUpperCase()}`;
 }
 
 /**

@@ -26,6 +26,7 @@ import {
   renderFiat,
   renderFromTokenMinimalUnit,
   renderFromWei,
+  renderPortfolioBalance,
   safeBNToHex,
   safeNumberToBN,
   toBN,
@@ -598,6 +599,22 @@ describe('Number utils :: balanceToFiatNumber', () => {
   it('balanceToFiatNumber', () => {
     expect(balanceToFiatNumber(0.1, 0.1, 0.1)).toEqual(0.001);
     expect(balanceToFiatNumber(0.0001, 0.1, 0.1)).toEqual(0);
+  });
+});
+
+describe('Number utils :: renderPortfolioBalance', () => {
+  it('renderPortfolioBalance handles supported fiat currencies', () => {
+    expect(renderPortfolioBalance(0.1, 'usd')).toEqual('$0.10');
+    expect(renderPortfolioBalance(64.72546, 'hkd')).toEqual('HK$64.73');
+    expect(renderPortfolioBalance(7242.199978, 'jpy')).toEqual('¥7,242');
+    expect(renderPortfolioBalance(12312312.987987, 'eur')).toEqual(
+      '€12,312,312.99',
+    );
+    expect(renderPortfolioBalance(0.0, 'USD')).toEqual('$0.00');
+  });
+  it('renderPortfolioBalance handles crypto and unsupported fiat with 5 fixed decimals, unless specified', () => {
+    expect(renderPortfolioBalance(0.1, 'btc')).toEqual('0.10000 BTC');
+    expect(renderPortfolioBalance(50022.33, 'rmb')).toEqual('50022.33000 RMB');
   });
 });
 
