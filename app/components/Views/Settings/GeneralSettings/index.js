@@ -35,6 +35,8 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
+import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
+import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 const diameter = 40;
 const spacing = 8;
@@ -203,6 +205,14 @@ class Settings extends PureComponent {
 
   selectPrimaryCurrency = (primaryCurrency) => {
     this.props.setPrimaryCurrency(primaryCurrency);
+
+    const metrics = MetaMetrics.getInstance();
+    const traits = { [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency };
+    metrics.addTraitsToUser(traits);
+    metrics.trackEvent(MetaMetricsEvents.PRIMARY_CURRENCY_TOGGLE, {
+      ...traits,
+      location: 'app_settings',
+    });
   };
 
   toggleHideZeroBalanceTokens = (toggleHideZeroBalanceTokens) => {
