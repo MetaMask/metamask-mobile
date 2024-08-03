@@ -14,7 +14,9 @@ export const prefixUrlWithProtocol = (
   url: string,
   defaultProtocol = 'https://',
 ) => {
+  console.log('---- prefixUrlWithProtocol', url);
   const sanitizedURL = hasProtocol(url) ? url : `${defaultProtocol}${url}`;
+  console.log('---- sanitizedURL', sanitizedURL);
   return sanitizedURL;
 };
 
