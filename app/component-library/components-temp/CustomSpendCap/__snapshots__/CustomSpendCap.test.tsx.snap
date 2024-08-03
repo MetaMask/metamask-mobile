@@ -91,6 +91,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
     <Text
       accessibilityRole="link"
       accessible={true}
+      labelTextVariant="sBodyMD"
       onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
@@ -101,7 +102,6 @@ exports[`CustomSpendCap should match snapshot 1`] = `
         }
       }
       suppressHighlighting={true}
-      textVariant="sBodyMD"
     >
       <Text
         accessibilityRole="text"
