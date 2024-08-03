@@ -1,5 +1,6 @@
 import React, { useLayoutEffect, useState } from 'react';
 import {
+  ScrollView,
   View,
   Linking,
   Keyboard,
@@ -193,7 +194,7 @@ const OnboardingSuccess = ({
   };
 
   return (
-    <View
+    <ScrollView
       style={styles.root}
       testID={OnboardingSuccessSelectorIDs.CONTAINER_ID}
     >
@@ -213,7 +214,7 @@ const OnboardingSuccess = ({
         />
       </View>
       {renderHint()}
-    </View>
+    </ScrollView>
   );
 };
 
