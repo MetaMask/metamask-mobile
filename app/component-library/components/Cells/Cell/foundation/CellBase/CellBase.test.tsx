@@ -1,83 +1,69 @@
 // Third party dependencies.
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { View } from 'react-native';
 
 // Internal dependencies.
 import CellBase from './CellBase';
-import {
-  SAMPLE_CELLBASE_AVATARPROPS,
-  SAMPLE_CELLBASE_TITLE,
-  SAMPLE_CELLBASE_SECONDARYTEXT,
-  SAMPLE_CELLBASE_TERTIARY_TEXT,
-  SAMPLE_CELLBASE_TAGLABEL,
-} from './CellBase.constants';
+import { SAMPLE_CELLBASE_PROPS } from './CellBase.constants';
 import { CellModalSelectorsIDs } from '../../../../../../../e2e/selectors/Modals/CellModal.selectors';
 
 describe('CellBase', () => {
-  it('should render default settings correctly', () => {
-    const wrapper = render(
-      <CellBase
-        avatarProps={SAMPLE_CELLBASE_AVATARPROPS}
-        title={SAMPLE_CELLBASE_TITLE}
-        secondaryText={SAMPLE_CELLBASE_SECONDARYTEXT}
-        tertiaryText={SAMPLE_CELLBASE_TERTIARY_TEXT}
-        tagLabel={SAMPLE_CELLBASE_TAGLABEL}
-      />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-  it('should render Avatar', () => {
-    const { queryByTestId } = render(
-      <CellBase
-        avatarProps={SAMPLE_CELLBASE_AVATARPROPS}
-        title={SAMPLE_CELLBASE_TITLE}
-      />,
-    );
-    expect(queryByTestId(CellModalSelectorsIDs.BASE_AVATAR)).not.toBe(null);
-  });
+  describe('CellBase Component', () => {
+    const renderComponent = (props = {}) =>
+      render(<CellBase {...SAMPLE_CELLBASE_PROPS} {...props} />);
+    const SAMPLEVIEW_TESTID = 'sampleview';
+    const SampleView = <View testID={SAMPLEVIEW_TESTID} />;
 
-  it('should render the given title', async () => {
-    const wrapper = render(
-      <CellBase
-        avatarProps={SAMPLE_CELLBASE_AVATARPROPS}
-        title={SAMPLE_CELLBASE_TITLE}
-      />,
-    );
-    expect(await wrapper.findByText(SAMPLE_CELLBASE_TITLE)).toBeDefined();
-  });
+    it('should render CellBase component', () => {
+      const { toJSON, queryByTestId } = renderComponent();
+      expect(toJSON()).toMatchSnapshot();
+      expect(queryByTestId(CellModalSelectorsIDs.BASE_AVATAR)).not.toBe(null);
+      expect(queryByTestId(CellModalSelectorsIDs.BASE_TITLE)).not.toBe(null);
+    });
 
-  it('should render the given secondaryText', async () => {
-    const wrapper = render(
-      <CellBase
-        avatarProps={SAMPLE_CELLBASE_AVATARPROPS}
-        title={SAMPLE_CELLBASE_TITLE}
-        secondaryText={SAMPLE_CELLBASE_SECONDARYTEXT}
-      />,
-    );
-    expect(
-      await wrapper.findByText(SAMPLE_CELLBASE_SECONDARYTEXT),
-    ).toBeDefined();
-  });
-  it('should render the given tertiaryText', async () => {
-    const wrapper = render(
-      <CellBase
-        avatarProps={SAMPLE_CELLBASE_AVATARPROPS}
-        title={SAMPLE_CELLBASE_TITLE}
-        tertiaryText={SAMPLE_CELLBASE_TERTIARY_TEXT}
-      />,
-    );
-    expect(
-      await wrapper.findByText(SAMPLE_CELLBASE_TERTIARY_TEXT),
-    ).toBeDefined();
-  });
-  it('should render tag with given label', async () => {
-    const wrapper = render(
-      <CellBase
-        avatarProps={SAMPLE_CELLBASE_AVATARPROPS}
-        title={SAMPLE_CELLBASE_TITLE}
-        tagLabel={SAMPLE_CELLBASE_TAGLABEL}
-      />,
-    );
-    expect(await wrapper.findByText(SAMPLE_CELLBASE_TAGLABEL)).toBeDefined();
+    it('should render with correct title', () => {
+      const { getByText } = renderComponent();
+      expect(getByText(SAMPLE_CELLBASE_PROPS.title as string)).toBeDefined();
+    });
+
+    it('should render with correct title node', () => {
+      const { getByTestId } = renderComponent({ title: SampleView });
+      expect(getByTestId(SAMPLEVIEW_TESTID)).toBeDefined();
+    });
+
+    it('should render with correct secondaryText', () => {
+      const { getByText } = renderComponent();
+      expect(
+        getByText(SAMPLE_CELLBASE_PROPS.secondaryText as string),
+      ).toBeDefined();
+    });
+
+    it('should render with correct secondaryText node', () => {
+      const { getByTestId } = renderComponent({ secondaryText: SampleView });
+      expect(getByTestId(SAMPLEVIEW_TESTID)).toBeDefined();
+    });
+
+    it('should render with correct tertiaryText', () => {
+      const { getByText } = renderComponent();
+      expect(
+        getByText(SAMPLE_CELLBASE_PROPS.tertiaryText as string),
+      ).toBeDefined();
+    });
+
+    it('should render with correct tertiaryText node', () => {
+      const { getByTestId } = renderComponent({ tertiaryText: SampleView });
+      expect(getByTestId(SAMPLEVIEW_TESTID)).toBeDefined();
+    });
+
+    it('should render with correct tagLabel', () => {
+      const { getByText } = renderComponent();
+      expect(getByText(SAMPLE_CELLBASE_PROPS.tagLabel as string)).toBeDefined();
+    });
+
+    it('should render children correctly', () => {
+      const { getByTestId } = renderComponent({ children: SampleView });
+      expect(getByTestId(SAMPLEVIEW_TESTID)).toBeDefined();
+    });
   });
 });

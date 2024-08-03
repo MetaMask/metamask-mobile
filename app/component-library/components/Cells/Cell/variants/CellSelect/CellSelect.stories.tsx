@@ -1,41 +1,28 @@
-// Internal dependencies.
-import { default as CellSelectComponent } from './CellSelect';
+// Third party dependencies
+import React from 'react';
+import { Meta, Story } from '@storybook/react-native';
+
+// Internal dependencies
+import CellSelect from './CellSelect';
+import { CellSelectProps } from './CellSelect.types';
 import { SAMPLE_CELLSELECT_PROPS } from './CellSelect.constants';
 
-const CellSelectMeta = {
-  title: 'Component Library / Cells',
-  component: CellSelectComponent,
+export default {
+  title: 'Component Library / Cells / CellSelect',
+  component: CellSelect,
   argTypes: {
-    title: {
-      control: { type: 'text' },
-      defaultValue: SAMPLE_CELLSELECT_PROPS.title,
-    },
-    secondaryText: {
-      control: { type: 'text' },
-      defaultValue: SAMPLE_CELLSELECT_PROPS.secondaryText,
-    },
-    tertiaryText: {
-      control: { type: 'text' },
-      defaultValue: SAMPLE_CELLSELECT_PROPS.tertiaryText,
-    },
-    tagLabel: {
-      control: { type: 'text' },
-      defaultValue: SAMPLE_CELLSELECT_PROPS.tagLabel,
-    },
-    isSelected: {
-      control: { type: 'boolean' },
-      defaultValue: SAMPLE_CELLSELECT_PROPS.isSelected,
-    },
-    isDisabled: {
-      control: { type: 'boolean' },
-      defaultValue: SAMPLE_CELLSELECT_PROPS.isDisabled,
-    },
+    title: { control: 'text' },
+    secondaryText: { control: 'text' },
+    tertiaryText: { control: 'text' },
+    tagLabel: { control: 'text' },
+    isSelected: { control: 'boolean' },
+    isDisabled: { control: 'boolean' },
   },
-};
-export default CellSelectMeta;
+} as Meta;
 
-export const CellSelect = {
-  args: {
-    avatarProps: SAMPLE_CELLSELECT_PROPS.avatarProps,
-  },
+const Template: Story<CellSelectProps> = (args) => <CellSelect {...args} />;
+
+export const Default = Template.bind({});
+Default.args = {
+  ...SAMPLE_CELLSELECT_PROPS,
 };

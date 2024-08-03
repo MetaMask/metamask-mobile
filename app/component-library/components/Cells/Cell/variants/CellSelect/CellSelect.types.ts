@@ -6,7 +6,7 @@ import { ListItemSelectProps } from '../../../../List/ListItemSelect/ListItemSel
  * Cell Account Select  component props.
  */
 export interface CellSelectProps
-  extends CellBaseProps,
+  extends Omit<CellBaseProps, 'hitSlop' | 'style'>,
     Omit<ListItemSelectProps, 'children'> {}
 
 /**

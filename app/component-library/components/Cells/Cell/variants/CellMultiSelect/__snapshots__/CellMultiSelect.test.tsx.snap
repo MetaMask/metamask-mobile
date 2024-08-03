@@ -63,162 +63,183 @@ exports[`CellMultiSelect should render default settings correctly 1`] = `
       testID="listitem-gap"
     />
     <View
+      accessibilityRole="none"
+      accessible={true}
       style={
         {
+          "alignItems": "center",
           "flex": 1,
           "flexDirection": "row",
+          "padding": 0,
         }
       }
     >
       <View
         style={
           {
-            "backgroundColor": "#ffffff",
-            "borderRadius": 16,
-            "height": 32,
-            "marginRight": 16,
-            "overflow": "hidden",
-            "width": 32,
+            "flex": -1,
           }
         }
-        testID="cellbase-avatar"
+        testID="listitemcolumn"
       >
         <View
           style={
-            [
-              {
-                "overflow": "hidden",
-              },
-              {
-                "backgroundColor": "#03415D",
-                "borderRadius": 16,
-                "height": 32,
-                "width": 32,
-              },
-              undefined,
-            ]
+            {
+              "backgroundColor": "#ffffff",
+              "borderRadius": 16,
+              "height": 32,
+              "overflow": "hidden",
+              "width": 32,
+            }
           }
+          testID="cellbase-avatar"
         >
-          <RNSVGSvgView
-            bbHeight={32}
-            bbWidth={32}
-            focusable={false}
-            height={32}
+          <View
             style={
               [
                 {
-                  "backgroundColor": "transparent",
-                  "borderWidth": 0,
+                  "overflow": "hidden",
                 },
                 {
-                  "flex": 0,
+                  "backgroundColor": "#F1D702",
+                  "borderRadius": 16,
                   "height": 32,
                   "width": 32,
                 },
+                undefined,
               ]
             }
-            width={32}
           >
-            <RNSVGGroup
-              fill={
-                {
-                  "payload": 4278190080,
-                  "type": 0,
-                }
+            <RNSVGSvgView
+              bbHeight={32}
+              bbWidth={32}
+              focusable={false}
+              height={32}
+              style={
+                [
+                  {
+                    "backgroundColor": "transparent",
+                    "borderWidth": 0,
+                  },
+                  {
+                    "flex": 0,
+                    "height": 32,
+                    "width": 32,
+                  },
+                ]
               }
+              width={32}
             >
-              <RNSVGRect
+              <RNSVGGroup
                 fill={
                   {
-                    "payload": 4294034178,
+                    "payload": 4278190080,
                     "type": 0,
                   }
                 }
-                height={32}
-                matrix={
-                  [
-                    0.969445349895139,
-                    0.24530738587880202,
-                    -0.24530738587880202,
-                    0.969445349895139,
-                    5.859157984305513,
-                    -4.030755338091121,
-                  ]
-                }
-                propList={
-                  [
-                    "fill",
-                  ]
-                }
-                width={32}
-                x={0}
-                y={0}
-              />
-              <RNSVGRect
-                fill={
-                  {
-                    "payload": 4294711613,
-                    "type": 0,
+              >
+                <RNSVGRect
+                  fill={
+                    {
+                      "payload": 4278401629,
+                      "type": 0,
+                    }
                   }
-                }
-                height={32}
-                matrix={
-                  [
-                    0.6320293026648508,
-                    -0.7749444887041796,
-                    0.7749444887041796,
-                    0.6320293026648508,
-                    -13.273357615151873,
-                    5.849890884095565,
-                  ]
-                }
-                propList={
-                  [
-                    "fill",
-                  ]
-                }
-                width={32}
-                x={0}
-                y={0}
-              />
-              <RNSVGRect
-                fill={
-                  {
-                    "payload": 4294745088,
-                    "type": 0,
+                  height={32}
+                  matrix={
+                    [
+                      0.9865721616069695,
+                      0.16332596224162158,
+                      -0.16332596224162158,
+                      0.9865721616069695,
+                      4.46613167496758,
+                      -5.783427567500757,
+                    ]
                   }
-                }
-                height={32}
-                matrix={
-                  [
-                    0.33873792024529126,
-                    0.9408807689542256,
-                    -0.9408807689542256,
-                    0.33873792024529126,
-                    50.8847515111068,
-                    5.120153954341607,
-                  ]
-                }
-                propList={
-                  [
-                    "fill",
-                  ]
-                }
-                width={32}
-                x={0}
-                y={0}
-              />
-            </RNSVGGroup>
-          </RNSVGSvgView>
+                  propList={
+                    [
+                      "fill",
+                    ]
+                  }
+                  width={32}
+                  x={0}
+                  y={0}
+                />
+                <RNSVGRect
+                  fill={
+                    {
+                      "payload": 4293653248,
+                      "type": 0,
+                    }
+                  }
+                  height={32}
+                  matrix={
+                    [
+                      -0.9510565162951535,
+                      0.3090169943749475,
+                      -0.3090169943749475,
+                      -0.9510565162951535,
+                      56.99785298993899,
+                      28.83420484922151,
+                    ]
+                  }
+                  propList={
+                    [
+                      "fill",
+                    ]
+                  }
+                  width={32}
+                  x={0}
+                  y={0}
+                />
+                <RNSVGRect
+                  fill={
+                    {
+                      "payload": 4291236897,
+                      "type": 0,
+                    }
+                  }
+                  height={32}
+                  matrix={
+                    [
+                      -0.9438009515832294,
+                      0.3305143927132231,
+                      -0.3305143927132231,
+                      -0.9438009515832294,
+                      58.82830600098727,
+                      40.20612936020905,
+                    ]
+                  }
+                  propList={
+                    [
+                      "fill",
+                    ]
+                  }
+                  width={32}
+                  x={0}
+                  y={0}
+                />
+              </RNSVGGroup>
+            </RNSVGSvgView>
+          </View>
         </View>
       </View>
       <View
+        accessible={false}
         style={
           {
-            "alignItems": "flex-start",
+            "width": 16,
+          }
+        }
+        testID="listitem-gap"
+      />
+      <View
+        style={
+          {
             "flex": 1,
           }
         }
+        testID="listitemcolumn"
       >
         <Text
           accessibilityRole="text"
@@ -272,6 +293,7 @@ exports[`CellMultiSelect should render default settings correctly 1`] = `
         <View
           style={
             {
+              "alignSelf": "flex-start",
               "backgroundColor": "#ffffff",
               "borderColor": "#bbc0c5",
               "borderRadius": 10,
