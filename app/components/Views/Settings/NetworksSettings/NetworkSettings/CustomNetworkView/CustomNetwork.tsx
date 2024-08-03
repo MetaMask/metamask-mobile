@@ -20,6 +20,7 @@ import { AvatarSize } from '../../../../../../component-library/components/Avata
 import { isNetworkUiRedesignEnabled } from '../../../../../../util/networks';
 
 const CustomNetwork = ({
+  showPopularNetworkModal,
   isNetworkModalVisible,
   closeNetworkModal,
   selectedNetwork,
@@ -69,6 +70,7 @@ const CustomNetwork = ({
     <>
       {isNetworkModalVisible && (
         <NetworkModals
+          showPopularNetworkModal={showPopularNetworkModal}
           isVisible={isNetworkModalVisible}
           onClose={closeNetworkModal}
           networkConfiguration={selectedNetwork}

@@ -33,6 +33,8 @@ import checkSafeNetwork from '../../../core/RPCMethods/networkChecker.util';
 import NetworkVerificationInfo from '../NetworkVerificationInfo';
 import createNetworkModalStyles from './index.styles';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { toHex } from '@metamask/controller-utils';
+import { ethers } from 'ethers';
 
 interface NetworkProps {
   isVisible: boolean;
@@ -45,6 +47,7 @@ interface NetworkProps {
   navigation: any;
   shouldNetworkSwitchPopToWallet: boolean;
   onNetworkSwitch?: () => void;
+  showPopularNetworkModal: boolean;
 }
 
 const NetworkModals = (props: NetworkProps) => {
@@ -60,10 +63,11 @@ const NetworkModals = (props: NetworkProps) => {
       formattedRpcUrl,
       rpcPrefs: { blockExplorerUrl, imageUrl },
     },
+    showPopularNetworkModal,
     shouldNetworkSwitchPopToWallet,
     onNetworkSwitch,
   } = props;
-  const { trackEvent } = useMetrics();
+  const { trackEvent, trackAnonymousEvent } = useMetrics();
   const [showDetails, setShowDetails] = React.useState(false);
   const [networkAdded, setNetworkAdded] = React.useState(false);
   const [showCheckNetwork, setShowCheckNetwork] = React.useState(false);
@@ -92,6 +96,22 @@ const NetworkModals = (props: NetworkProps) => {
   const addNetwork = async () => {
     const validUrl = validateRpcUrl(rpcUrl);
 
+    if (showPopularNetworkModal) {
+      // emit popular network
+      trackEvent(MetaMetricsEvents.NETWORK_ADDED, {
+        chain_id: toHex(chainId),
+        source: 'Popular network list',
+        symbol: ticker,
+      });
+    } else {
+      // emit custom network
+      trackAnonymousEvent(MetaMetricsEvents.NETWORK_ADDED, {
+        chain_id: toHex(chainId),
+        source: 'Custom network form',
+        symbol: ticker,
+        rpcUrl: ethers.utils.sha256(ethers.utils.toUtf8Bytes(rpcUrl)),
+      });
+    }
     setNetworkAdded(validUrl);
   };
 
@@ -188,15 +208,6 @@ const NetworkModals = (props: NetworkProps) => {
         source: 'ignored',
       },
     );
-
-    const analyticsParamsAdd = {
-      chain_id: getDecimalChainId(chainId),
-      source: 'Popular network list',
-      symbol: ticker,
-    };
-
-    trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
-
     closeModal();
     if (onNetworkSwitch) {
       onNetworkSwitch();

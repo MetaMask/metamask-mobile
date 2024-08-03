@@ -32,7 +32,6 @@ import { jsonRpcRequest } from '../../../../../util/jsonRpcRequest';
 import Logger from '../../../../../util/Logger';
 import { isPrefixedFormattedHexString } from '../../../../../util/number';
 import AppConstants from '../../../../../core/AppConstants';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { PopularList } from '../../../../../util/networks/customNetworks';
@@ -555,7 +554,7 @@ class NetworkSettings extends PureComponent {
       enableAction,
     } = this.state;
     const ticker = this.state.ticker && this.state.ticker.toUpperCase();
-    const { navigation, networkOnboardedState, route, metrics } = this.props;
+    const { navigation, networkOnboardedState, route } = this.props;
     const isCustomMainnet = route.params?.isCustomMainnet;
     // This must be defined before NetworkController.upsertNetworkConfiguration.
     const prevRPCURL = isCustomMainnet
@@ -646,13 +645,6 @@ class NetworkSettings extends PureComponent {
         }
       }
 
-      const analyticsParamsAdd = {
-        chain_id: this.getDecimalChainId(chainId),
-        source: 'Custom network form',
-        symbol: ticker,
-      };
-
-      metrics.trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
       this.props.showNetworkOnboardingAction({
         networkUrl,
         networkType,
@@ -1119,6 +1111,7 @@ class NetworkSettings extends PureComponent {
 
     return this.state.showNetworkDetailsModal ? (
       <CustomNetwork
+        showPopularNetworkModal={this.state.showPopularNetworkModal}
         isNetworkModalVisible={this.state.showNetworkDetailsModal}
         closeNetworkModal={this.toggleNetworkDetailsModal}
         selectedNetwork={{ ...selectedNetwork, chainId: toHex(chainId) }}
@@ -1420,6 +1413,7 @@ class NetworkSettings extends PureComponent {
                 testID={NetworksViewSelectorsIDs.POPULAR_NETWORKS_CONTAINER}
               >
                 <CustomNetwork
+                  showPopularNetworkModal={this.state.showPopularNetworkModal}
                   isNetworkModalVisible={this.state.showPopularNetworkModal}
                   closeNetworkModal={this.onCancel}
                   selectedNetwork={this.state.popularNetwork}
@@ -1431,6 +1425,7 @@ class NetworkSettings extends PureComponent {
                   }
                 />
               </View>
+
               <View
                 tabLabel={strings('app_settings.custom_network_name')}
                 key={AppConstants.ADD_CUSTOM_NETWORK_CUSTOM_TAB_ID}
