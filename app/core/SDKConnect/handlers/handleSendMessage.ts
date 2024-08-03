@@ -29,11 +29,13 @@ export const handleSendMessage = async ({
     const chainRPCs = connection.batchRPCManager.getById(msgId);
     DevLogger.log(`[handleSendMessage] chainRPCs`, chainRPCs);
     if (chainRPCs) {
+      const backgroundBridge = await connection.waitForBackgroundBridge();
+
       const isLastRpcOrError = await handleBatchRpcResponse({
         chainRpcs: chainRPCs,
         msg,
         batchRPCManager: connection.batchRPCManager,
-        backgroundBridge: connection.backgroundBridge,
+        backgroundBridge,
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         sendMessage: ({ msg: newmsg }: { msg: any }) =>

@@ -117,7 +117,7 @@ export const checkPermissions = async ({
         allowed,
       );
       // Add delay for backgroundBridge to complete setup
-      await wait(300);
+      await connection.waitForBackgroundBridge();
       return allowed;
     }
 
