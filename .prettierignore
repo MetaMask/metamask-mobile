@@ -15,7 +15,7 @@ scripts
 .detoxrc.js
 .prettierignore
 locales
-.storybook
+.storybook/storybook.requires.js
 /ppom
 app/lib/ppom/ppom.html.js
 /app/lib/ppom/blockaid-version.js
