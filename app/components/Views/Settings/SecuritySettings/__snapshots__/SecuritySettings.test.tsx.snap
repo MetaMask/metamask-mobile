@@ -468,22 +468,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       </View>
       <View
         testID="login-options"
-      >
-        <View
-          style={
-            {
-              "marginTop": 32,
-            }
-          }
-        />
-        <View
-          style={
-            {
-              "marginTop": 32,
-            }
-          }
-        />
-      </View>
+      />
       <View
         style={
           {
