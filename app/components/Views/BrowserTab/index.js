@@ -106,6 +106,7 @@ import { selectPermissionControllerState } from '../../../selectors/snaps/permis
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
 const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
+const MAX_MESSAGE_LENGTH = 1000000;
 
 const createStyles = (colors, shadows) =>
   StyleSheet.create({
@@ -941,6 +942,15 @@ export const BrowserTab = (props) => {
   const onMessage = ({ nativeEvent }) => {
     let data = nativeEvent.data;
     try {
+      if (data.length > MAX_MESSAGE_LENGTH) {
+        console.warn(
+          `message exceeded size limit and will be dropped: ${data.slice(
+            0,
+            1000,
+          )}...`,
+        );
+        return;
+      }
       data = typeof data === 'string' ? JSON.parse(data) : data;
       if (!data || (!data.type && !data.name)) {
         return;
