@@ -1,15 +1,23 @@
-import React from 'react';
-import { shallow } from 'enzyme';
+import { renderScreen } from '../../../util/test/renderWithProvider';
 import WhatsNewModal from './';
-import { NavigationContainer } from '@react-navigation/native';
+import { backgroundState } from '../../../util/test/initial-root-state';
+
+const mockInitialState = {
+  settings: {},
+  engine: {
+    backgroundState,
+  },
+};
 
 describe('WhatsNewModal', () => {
-  it('should render correctly', () => {
-    const wrapper = shallow(
-      <NavigationContainer>
-        <WhatsNewModal />
-      </NavigationContainer>,
+  it('render matches snapshot', () => {
+    const { toJSON } = renderScreen(
+      WhatsNewModal,
+      {
+        name: 'WhatsNewModal',
+      },
+      { state: mockInitialState },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
