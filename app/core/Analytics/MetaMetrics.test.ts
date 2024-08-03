@@ -161,7 +161,7 @@ describe('MetaMetrics', () => {
       });
     });
 
-    it('does not track event when diabled', async () => {
+    it('does not track event when disabled', async () => {
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
       const event: IMetaMetricsEvent = { category: 'event1' };
@@ -170,62 +170,6 @@ describe('MetaMetrics', () => {
       metaMetrics.trackEvent(event, properties);
 
       expect(StorageWrapper.getItem).toHaveBeenCalledWith(METRICS_OPT_IN);
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { segmentMockClient } = global as any;
-      expect(segmentMockClient.track).not.toHaveBeenCalled();
-    });
-
-    it('tracks anonymous event', async () => {
-      const metaMetrics = TestMetaMetrics.getInstance();
-      await metaMetrics.enable();
-      const event: IMetaMetricsEvent = { category: 'event1' };
-      const properties = { prop1: 'value1' };
-
-      metaMetrics.trackAnonymousEvent(event, properties);
-
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { segmentMockClient } = global as any;
-      // the anonymous part should not have a user id
-      expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
-        anonymous: true,
-        ...properties,
-      });
-      // non anonymous part should not have properties
-      expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
-        anonymous: true,
-      });
-    });
-
-    it('tracks anonymous event without param', async () => {
-      const metaMetrics = TestMetaMetrics.getInstance();
-      await metaMetrics.enable();
-      const event: IMetaMetricsEvent = { category: 'event1' };
-
-      metaMetrics.trackAnonymousEvent(event);
-
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { segmentMockClient } = global as any;
-      // the anonymous part should not have a user id
-      expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
-        anonymous: true,
-        ...{},
-      });
-      // non anonymous part should not have properties
-      expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
-        anonymous: true,
-      });
-    });
-
-    it('does not track anonymous event if disabled', async () => {
-      const metaMetrics = TestMetaMetrics.getInstance();
-      const event: IMetaMetricsEvent = { category: 'event1' };
-      const properties = { prop1: 'value1' };
-
-      metaMetrics.trackAnonymousEvent(event, properties);
-
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { segmentMockClient } = global as any;
@@ -250,6 +194,130 @@ describe('MetaMetrics', () => {
         ...properties,
       });
       expect(metaMetrics.isDataRecorded()).toBeFalsy();
+    });
+
+    it('tracks non-anonymous event when some props are anonymous', async () => {
+      const metaMetrics = TestMetaMetrics.getInstance();
+      await metaMetrics.enable();
+      const event: IMetaMetricsEvent = { category: 'event1' };
+      const nonAnonProp = { non_anon_prop: 'value1' };
+      const someAnonProps = {
+        anon_prop: { anonymous: true, value: 'anonValue2' },
+      };
+      const properties = { ...nonAnonProp, ...someAnonProps };
+
+      metaMetrics.trackEvent(event, properties);
+
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { segmentMockClient } = global as any;
+
+      // Only one non-anonymous event should be tracked
+      expect(segmentMockClient.track).toHaveBeenCalledTimes(1);
+
+      // When tracking is not anonymous, event should have both non-anonymous and anonymous properties.
+      // This makes no sense and should be fixed in the code as I believe no one should send anonymous properties
+      // in a non-anonymous event. But in case it happens, we should track it this way.
+      expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+        anonymous: false,
+        ...someAnonProps,
+        ...nonAnonProp,
+      });
+    });
+
+    describe('anonymous event', () => {
+      it('tracks two events when all props are non anonymous', async () => {
+        const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.enable();
+        const event: IMetaMetricsEvent = { category: 'event1' };
+        const properties = { prop1: 'value1' };
+
+        metaMetrics.trackAnonymousEvent(event, properties);
+
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { segmentMockClient } = global as any;
+
+        // anonymous event has all the properties
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: true,
+          ...properties,
+        });
+
+        // non-anonymous event has no properties
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: false,
+        });
+      });
+
+      it('tracks two empty events when no props', async () => {
+        const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.enable();
+        const event: IMetaMetricsEvent = { category: 'event1' };
+
+        metaMetrics.trackAnonymousEvent(event);
+
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { segmentMockClient } = global as any;
+
+        // anonymous event has no properties
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: true,
+        });
+
+        // non-anonymous event has no properties
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: false,
+        });
+      });
+
+      it('tracks two events when some props are anonymous', async () => {
+        const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.enable();
+        const event: IMetaMetricsEvent = { category: 'event1' };
+        const nonAnonProp = { non_anon_prop: 'value1' };
+        const anonProp = {
+          anon_prop: { anonymous: true, value: 'anonValue2' },
+        };
+        const properties = { ...nonAnonProp, ...anonProp };
+
+        metaMetrics.trackAnonymousEvent(event, properties);
+
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { segmentMockClient } = global as any;
+
+        // non-anonymous event only has the non-anonymous properties.
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: false,
+          ...nonAnonProp,
+        });
+
+        // anonymous event has all properties
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: true,
+          ...anonProp,
+          ...nonAnonProp,
+        });
+
+        // Only two events should be tracked, one anonymous and one non-anonymous
+        expect(segmentMockClient.track).toHaveBeenCalledTimes(2);
+      });
+
+      it('does not track any event if disabled', async () => {
+        const metaMetrics = TestMetaMetrics.getInstance();
+        const event: IMetaMetricsEvent = { category: 'event1' };
+        const properties = { prop1: 'value1' };
+
+        metaMetrics.trackAnonymousEvent(event, properties);
+
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { segmentMockClient } = global as any;
+
+        expect(segmentMockClient.track).not.toHaveBeenCalled();
+      });
     });
 
     describe('Legacy events', () => {
