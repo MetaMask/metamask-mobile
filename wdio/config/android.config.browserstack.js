@@ -10,13 +10,30 @@ const browserstack = require('browserstack-local');
 config.user = process.env.BROWSERSTACK_USERNAME;
 config.key = process.env.BROWSERSTACK_ACCESS_KEY;
 
-config.capabilities = [
+// Define capabilities for regular tests
+const defaultCapabilities = [
   {
     platformName: 'Android',
     noReset: false,
     fullReset: false,
     maxInstances: 1,
-    build: 'Android QA E2E Smoke Tests',
+    build: 'Android App Launch Times Tests',
+    device: process.env.BROWSERSTACK_DEVICE || 'Google Pixel 6',
+    os_version: process.env.BROWSERSTACK_OS_VERSION || '12.0',
+    app: process.env.BROWSERSTACK_APP_URL,
+    'browserstack.debug': true,
+    'browserstack.local': true,
+  }
+];
+
+// Define capabilities for app upgrade tests
+const upgradeCapabilities = [
+  {
+    platformName: 'Android',
+    noReset: false,
+    fullReset: false,
+    maxInstances: 1,
+    build: 'Android App Upgrade Tests',
     device: process.env.BROWSERSTACK_DEVICE || 'Google Pixel 6',
     os_version: process.env.BROWSERSTACK_OS_VERSION || '12.0',
     app: process.env.PRODUCTION_APP_URL || process.env.BROWSERSTACK_APP_URL,
@@ -26,11 +43,25 @@ config.capabilities = [
   },
 ];
 
+// Determine test type based on command-line arguments
+const isAppUpgrade = process.argv.includes('--upgrade') || false;
+const isPerformance = process.argv.includes('--performance') || false;
+
+// Select capabilities based on the test type
+const selectedCapabilities = isAppUpgrade ? upgradeCapabilities : defaultCapabilities;
+config.capabilities = selectedCapabilities;
+
 config.waitforTimeout = 10000;
 config.connectionRetryTimeout = 90000;
 config.connectionRetryCount = 3;
-config.cucumberOpts.tagExpression =
-  process.env.CUCUMBER_TAG_EXPRESSION || '@performance and @androidApp'; // pass tag to run tests specific to android
+
+// Set tag expression based on the test type
+const defaultTagExpression = isAppUpgrade
+  ? '@upgrade and @androidApp'
+  : isPerformance
+    ? '@performance and @androidApp'
+    : '@smoke and @androidApp'; // defaults to running smoke if the performance or appUpgrade flag is nto set
+config.cucumberOpts.tagExpression = process.env.CUCUMBER_TAG_EXPRESSION || defaultTagExpression;
 
 config.onPrepare = function (config, capabilities) {
   removeSync('./wdio/reports');

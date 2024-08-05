@@ -53,6 +53,20 @@ pipelines:
       - build_smoke_e2e_ios_android_stage: {}
       - run_smoke_e2e_ios_android_stage: {}
       - notify: {}
+
+  #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
+  pr_regression_e2e_pipeline:
+    stages:
+      - build_regression_e2e_ios_android_stage: {}
+      - run_regression_e2e_ios_android_stage: {}
+      - notify: {}
+  #App launch times pipeline. Runs on browserstack
+  app_launch_times_pipeline:
+    stages:
+      - create_build_qa_android: {}
+      - app_launch_times_test: {}
+      - notify: {}
+
   # Pipeline for Flask
   create_flask_release_builds_pipeline:
     stages:
@@ -63,13 +77,6 @@ pipelines:
       - create_build_flask_release: {}
       - deploy_flask_build_release: {}
       - release_notify: {}
-  #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
-  pr_regression_e2e_pipeline:
-    stages:
-      - build_regression_e2e_ios_android_stage: {}
-      - run_regression_e2e_ios_android_stage: {}
-      - notify: {}
-
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   create_build_all_targets:
@@ -172,6 +179,9 @@ stages:
   notify:
     workflows:
       - notify_success: {}
+  app_launch_times_test:
+    workflows:
+      - run_android_app_launch_times_appium_test: {}
   release_notify:
     workflows:
       - release_announcing_stores: {}
@@ -447,8 +457,18 @@ workflows:
       - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
       - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_NAME ($PRODUCTION_BUILD_NUMBER)'
       - NEW_BUILD_STRING: 'MetaMask-QA v$VERSION_NAME ($VERSION_NUMBER)'
+      - TEST_TYPE: '--upgrade'
     after_run:
       - run_android_appium_test
+  run_android_app_launch_times_appium_test:
+    envs:
+      - TEST_TYPE: '--performance'
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    after_run:
+      - wdio_android_e2e_test
 
   ### Separating workflows so they run concurrently during smoke runs
   run_tag_smoke_accounts_ios:
@@ -1168,7 +1188,11 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                yarn test:wdio:android:browserstack
+                if [ "$TEST_TYPE" = "upgrade" ]; then
+                  TEST_TYPE="upgrade"
+                if [ "$TEST_TYPE" = "performance" ]; then
+                  TEST_TYPE="performance"
+                yarn test:wdio:android:browserstack -- $TEST_TYPE
       - script@1:
           is_always_run: true
           is_skippable: false
@@ -1520,3 +1544,6 @@ trigger_map:
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline
+  - push_branch: reate-app-launch-times-pipeline
+    pipeline: app_launch_times_pipeline
+  
