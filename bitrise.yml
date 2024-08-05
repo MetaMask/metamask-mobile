@@ -1544,6 +1544,6 @@ trigger_map:
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline
-  - push_branch: reate-app-launch-times-pipeline
+  - push_branch: create-app-launch-times-pipeline
     pipeline: app_launch_times_pipeline
   
