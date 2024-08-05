@@ -10,23 +10,18 @@ class DeleteContactModal {
   }
 
   get deleteButton() {
-    return Matchers.getElementByText(
-      DeleteContactModalSelectorsText.DELETE_BUTTON,
-    );
-  }
-
-  get labelDeleteButton() {
-    return Matchers.getElementByLabel(
-      DeleteContactModalSelectorsText.DELETE_BUTTON,
-    );
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByText(
+          DeleteContactModalSelectorsText.DELETE_BUTTON,
+          1,
+        )
+      : Matchers.getElementByLabel(
+          DeleteContactModalSelectorsText.DELETE_BUTTON,
+        );
   }
 
   async tapDeleteButton() {
-    if (device.getPlatform() === 'ios') {
-      await Gestures.waitAndTap(this.deleteButton, 1);
-    } else {
-      await Gestures.waitAndTap(this.labelDeleteButton);
-    }
+    await Gestures.waitAndTap(this.deleteButton);
   }
 }
 

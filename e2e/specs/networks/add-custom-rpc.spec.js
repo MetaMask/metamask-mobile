@@ -156,12 +156,14 @@ describe(Regression('Custom RPC Tests'), () => {
     await TabBarComponent.tapSettings();
     await SettingsView.tapNetworks();
     await Assertions.checkIfVisible(NetworkView.networkContainer);
+
+    await NetworkView.longPressToRemoveNetwork(
+      CustomNetworks.Gnosis.providerConfig.nickname,
+    );
     if (device.getPlatform() === 'android') {
       await device.disableSynchronization();
     }
-    await NetworkView.longPressToRemoveNetwork(
-      CustomNetworks.Gnosis.providerConfig.nickname,
-    ); // Tap on Gnosis to remove network
+    // Tap on Gnosis to remove network
     await NetworkEducationModal.tapGotItButton();
 
     try {
