@@ -35,9 +35,9 @@ class Gestures {
    * @param {number} index - Index of the element (default: 0)
 
    */
-  static async tap(elementID, index = 0) {
+  static async tap(elementID) {
     const element = await elementID;
-    await element.atIndex(index).tap();
+    await element.tap();
   }
 
   /**

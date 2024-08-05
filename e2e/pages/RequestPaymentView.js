@@ -40,8 +40,8 @@ class RequestPaymentView {
   }
 
   async tapOnToken(token) {
-    const tokenElement = Matchers.getElementByText(token, 1);
-    await Gestures.waitAndTap(tokenElement);
+    const tokenElement = await Matchers.getElementByText(token, 1);
+    await Gestures.tap(tokenElement);
   }
 
   async typeInTokenAmount(amount) {
