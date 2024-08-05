@@ -457,12 +457,12 @@ workflows:
       - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
       - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_NAME ($PRODUCTION_BUILD_NUMBER)'
       - NEW_BUILD_STRING: 'MetaMask-QA v$VERSION_NAME ($VERSION_NUMBER)'
-      - TEST_TYPE: 'upgrade'
+      - TEST_TYPE: '--upgrade'
     after_run:
       - run_android_appium_test
   run_android_app_launch_times_appium_test:
     envs:
-      - TEST_TYPE: 'performance'
+      - TEST_TYPE: '--performance'
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
@@ -1196,7 +1196,7 @@ workflows:
                 elif [ "$TEST_TYPE" = "performance" ]; then
                   TEST_TYPE="performance"
                 fi
-                yarn test:wdio:android:browserstack -- $TEST_TYPE
+                yarn test:wdio:android:browserstack $TEST_TYPE
       - script@1:
           is_always_run: true
           is_skippable: false
