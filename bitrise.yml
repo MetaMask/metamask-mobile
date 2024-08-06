@@ -63,7 +63,7 @@ pipelines:
   #App launch times pipeline. Runs on browserstack
   app_launch_times_pipeline:
     stages:
-      - create_build_qa_android: {}
+      # - create_build_qa_android: {}
       - app_launch_times_test: {}
       - notify: {}
 
@@ -467,6 +467,8 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
+    before_run:
+      - build_android_qa
     after_run:
       - wdio_android_e2e_test
 
