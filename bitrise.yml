@@ -1204,7 +1204,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                
+                echo "Extracted $BROWSERSTACK_UPLOADED_APPS_LIST"
                 # Extract the app_url from the first entry
                 export BROWSERSTACK_APP_URL=$(jq -r '.[0].app_url' $BROWSERSTACK_UPLOADED_APPS_LIST)
 
