@@ -1181,20 +1181,19 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
-            - deploy_path: browserstack_uploaded_apps.json
+            - deploy_path: $BITRISE_DEPLOY_DIR/browserstack_uploaded_apps.json
+            - pipeline_intermediate_files: $BITRISE_DEPLOY_DIR/browserstack_uploaded_apps.json
           title: Bitrise Deploy Browserstack Uploaded Apps
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - deploy_path: $BITRISE_DEPLOY_DIR/bitrise_url.txt
-          title: Browserstack URL link
   wdio_android_e2e_test:
     before_run:
       - code_setup
     after_run:
       - notify_failure
     steps:
+      - pull-intermediate-files@1:
+          inputs:
+            - artifact_sources: $BITRISE_DEPLOY_DIR/browserstack_uploaded_apps.json 
+          title: Pull Android build
       - script@1:
           title: Run Android E2E tests on Browserstack
           inputs:
@@ -1202,7 +1201,7 @@ workflows:
                 #!/usr/bin/env bash
                 
                 # Extract the app_url from the first entry
-                export BROWSERSTACK_APP_URL=$(jq -r '.[0].app_url' browserstack_uploaded_apps.json)
+                export BROWSERSTACK_APP_URL=$(jq -r '.[0].app_url' $BITRISE_DEPLOY_DIR/browserstack_uploaded_apps.json)
 
                 # Check the extracted URL
                 echo "Extracted BROWSERSTACK_APP_URL: $BROWSERSTACK_APP_URL"
