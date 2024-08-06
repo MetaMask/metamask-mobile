@@ -1168,14 +1168,14 @@ workflows:
                 APK_PATH=$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
                 CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 CUSTOM_ID=${CUSTOM_ID////-}
-                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key APP_URL
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_APP_URL
                 APK_PATH_FOR_APP_LIVE=$PROJECT_LOCATION/app/build/outputs/apk/qa/release/"$CUSTOM_ID".apk
                 mv "$APK_PATH" "$APK_PATH_FOR_APP_LIVE"
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$APK_PATH_FOR_APP_LIVE" -F 'data={"custom_id": "'$CUSTOM_ID'"}'
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_apps.json
-                echo $APP_URL
-                export BROWSERSTACK_APP_URL=$APP_URL
-                echo $BROWSERSTACK_APP_URL
+                # echo $APP_URL
+                # export $BROWSERSTACK_APP_URL=$APP_URL
+                # echo $BROWSERSTACK_APP_URL
                 echo $BROWSERSTACK_APP_URL > $BITRISE_DEPLOY_DIR/bitrise_url.txt
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
@@ -1201,9 +1201,12 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 
-                # Read the environment variable from the file and export it
-                export BROWSERSTACK_APP_URL=$(cat $BITRISE_DEPLOY_DIR/browserstack_app_url.txt)
-                echo "HERE IS THE ENV: $BROWSERSTACK_APP_URL"
+                # Extract the app_url from the first entry
+                export BROWSERSTACK_APP_URL=$(jq -r '.[0].app_url' $BITRISE_DEPLOY_DIR/browserstack_uploaded_apps.json)
+
+                # Check the extracted URL
+                echo "Extracted BROWSERSTACK_APP_URL: $BROWSERSTACK_APP_URL"
+                
                 # Check if TEST_TYPE is set to upgrade
                 if [ "$TEST_TYPE" = "upgrade" ]; then
                   TEST_TYPE="--upgrade"
