@@ -1187,7 +1187,7 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: /bitrise/src/browserstack_uploaded_apps.json
+            - pipeline_intermediate_files: /bitrise/src/browserstack_uploaded_apps.json:BROWSERSTACK_UPLOADED_APPS_LIST
           title: Save Browserstack uploaded apps json
   wdio_android_e2e_test:
     before_run:
@@ -1206,7 +1206,7 @@ workflows:
                 #!/usr/bin/env bash
                 cat /bitrise/src/browserstack_uploaded_apps.json
                 # Extract the app_url from the first entry
-                export BROWSERSTACK_APP_URL=$(jq -r '.[0].app_url' /bitrise/src/browserstack_uploaded_apps.json)
+                export BROWSERSTACK_APP_URL=$(jq -r '.[0].app_url' $BROWSERSTACK_UPLOADED_APPS_LIST)
 
                 # Check the extracted URL
                 echo "Extracted BROWSERSTACK_APP_URL: $BROWSERSTACK_APP_URL"
