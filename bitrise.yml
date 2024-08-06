@@ -63,7 +63,7 @@ pipelines:
   #App launch times pipeline. Runs on browserstack
   app_launch_times_pipeline:
     stages:
-      # - create_build_qa_android: {}
+      - create_build_qa_android: {}
       - app_launch_times_test: {}
       - notify: {}
 
@@ -467,8 +467,8 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
-    before_run:
-      - build_android_qa
+    # before_run:
+    #   - build_android_qa
     after_run:
       - wdio_android_e2e_test
 
@@ -1173,6 +1173,7 @@ workflows:
                 mv "$APK_PATH" "$APK_PATH_FOR_APP_LIVE"
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$APK_PATH_FOR_APP_LIVE" -F 'data={"custom_id": "'$CUSTOM_ID'"}'
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_apps.json
+                echo $BROWSERSTACK_APP_URL > $BITRISE_DEPLOY_DIR/bitrise_url.txt
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
@@ -1190,6 +1191,10 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                
+                # Read the environment variable from the file and export it
+                export BROWSERSTACK_APP_URL=$(cat $BITRISE_DEPLOY_DIR/browserstack_app_url.txt)
+
                 # Check if TEST_TYPE is set to upgrade
                 if [ "$TEST_TYPE" = "upgrade" ]; then
                   TEST_TYPE="--upgrade"
