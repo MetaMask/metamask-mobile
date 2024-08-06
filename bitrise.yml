@@ -1190,11 +1190,11 @@ workflows:
                 #!/usr/bin/env bash
                 # Check if TEST_TYPE is set to upgrade
                 if [ "$TEST_TYPE" = "upgrade" ]; then
-                  TEST_TYPE="upgrade"
+                  TEST_TYPE="--upgrade"
 
                 # Check if TEST_TYPE is set to performance  
                 elif [ "$TEST_TYPE" = "performance" ]; then
-                  TEST_TYPE="performance"
+                  TEST_TYPE="--performance"
                 fi
                 yarn test:wdio:android:browserstack $TEST_TYPE
       - script@1:

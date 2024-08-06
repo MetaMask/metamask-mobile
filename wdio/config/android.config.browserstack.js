@@ -61,7 +61,7 @@ const defaultTagExpression = isAppUpgrade
   : isPerformance
     ? '@performance and @androidApp'
     : '@smoke and @androidApp'; // defaults to running smoke if the performance or appUpgrade flag is nto set
-config.cucumberOpts.tagExpression = process.env.CUCUMBER_TAG_EXPRESSION || defaultTagExpression;
+config.cucumberOpts.tagExpression = process.env.BROWSERSTACK_TAG_EXPRESSION || defaultTagExpression;
 
 config.onPrepare = function (config, capabilities) {
   removeSync('./wdio/reports');
