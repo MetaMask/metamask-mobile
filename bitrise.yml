@@ -1202,11 +1202,11 @@ workflows:
                 #!/usr/bin/env bash
                 
                 # Extract the app_url from the first entry
-                export BROWSERSTACK_APP_URL=$(jq -r '.[0].app_url' $BITRISE_DEPLOY_DIR/browserstack_uploaded_apps.json)
+                export BROWSERSTACK_APP_URL=$(jq -r '.[0].app_url' browserstack_uploaded_apps.json)
 
                 # Check the extracted URL
                 echo "Extracted BROWSERSTACK_APP_URL: $BROWSERSTACK_APP_URL"
-                
+
                 # Check if TEST_TYPE is set to upgrade
                 if [ "$TEST_TYPE" = "upgrade" ]; then
                   TEST_TYPE="--upgrade"
