@@ -1173,7 +1173,9 @@ workflows:
                 mv "$APK_PATH" "$APK_PATH_FOR_APP_LIVE"
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$APK_PATH_FOR_APP_LIVE" -F 'data={"custom_id": "'$CUSTOM_ID'"}'
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_apps.json
+                echo $APP_URL
                 export BROWSERSTACK_APP_URL=$APP_URL
+                echo $BROWSERSTACK_APP_URL
                 echo $BROWSERSTACK_APP_URL > $BITRISE_DEPLOY_DIR/bitrise_url.txt
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
@@ -1181,6 +1183,12 @@ workflows:
           inputs:
             - deploy_path: browserstack_uploaded_apps.json
           title: Bitrise Deploy Browserstack Uploaded Apps
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR/bitrise_url.txt
+          title: Browserstack URL link
   wdio_android_e2e_test:
     before_run:
       - code_setup
