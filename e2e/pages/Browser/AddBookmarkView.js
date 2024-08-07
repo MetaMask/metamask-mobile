@@ -6,6 +6,9 @@ class AddFavoritesView {
   get container() {
     return Matchers.getElementByID(AddBookmarkViewSelectorsIDs.CONTAINER);
   }
+  get container() {
+    return Matchers.getElementByID('id');
+  }
 
   get addBookmarkButton() {
     return device.getPlatform() === 'ios'
