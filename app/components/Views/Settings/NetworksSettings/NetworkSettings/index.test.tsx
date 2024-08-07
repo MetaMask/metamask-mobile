@@ -7,10 +7,6 @@ import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { ThemeContext, mockTheme } from '../../../../../../app/util/theme';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { NETWORKS_CHAIN_ID } from '../../../../../constants/network';
-import { getEtherscanBaseUrl } from '../../../../../util/etherscan';
-import Networks, { getAllNetworks } from '../../../../../util/networks';
-import { strings } from '../../../../../../locales/i18n';
 
 jest.useFakeTimers();
 const mockStore = configureMockStore();
@@ -27,7 +23,18 @@ const initialState = {
 const store = mockStore(initialState);
 
 const SAMPLE_NETWORKSETTINGS_PROPS = {
-  route: { params: {} },
+  route: {
+    params: { network: 'mainnet' },
+  },
+  networkConfigurations: {
+    chainId: '0x1',
+    rpcUrl: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+    nickname: 'Ethereum mainnet',
+    rpcPrefs: {
+      blockExplorerUrl: 'https://etherscan.io',
+    },
+    ticker: 'ETH',
+  },
   navigation: { setOptions: jest.fn(), navigate: jest.fn(), goBack: jest.fn() },
 };
 
@@ -98,11 +105,24 @@ describe('NetworkSettings', () => {
 
   it('should initialize state correctly when networkTypeOrRpcUrl is provided', () => {
     const SAMPLE_NETWORKSETTINGS_PROPS_2 = {
-      route: { params: { networkTypeOrRpcUrl: true } },
+      route: {
+        params: { network: 'mainnet' },
+      },
       navigation: {
         setOptions: jest.fn(),
         navigate: jest.fn(),
         goBack: jest.fn(),
+      },
+      networkConfigurations: {
+        '0x1': {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+          nickname: 'Ethereum mainnet',
+          rpcPrefs: {
+            blockExplorerUrl: 'https://etherscan.io',
+          },
+          ticker: 'ETH',
+        },
       },
     };
 
@@ -117,10 +137,96 @@ describe('NetworkSettings', () => {
     const instance = wrapper2.instance() as NetworkSettings;
     instance.componentDidMount();
 
-    expect(wrapper2.state('blockExplorerUrl')).toBe(undefined);
-    expect(wrapper2.state('nickname')).toBe(undefined);
-    expect(wrapper2.state('chainId')).toBe(undefined);
-    expect(wrapper2.state('rpcUrl')).toBe(undefined);
+    expect(wrapper2.state('blockExplorerUrl')).toBe('https://etherscan.io');
+    expect(wrapper2.state('nickname')).toBe('Ethereum Main Network');
+    expect(wrapper2.state('chainId')).toBe('0x1');
+    expect(wrapper2.state('rpcUrl')).toBe('https://mainnet.infura.io/v3/');
+  });
+
+  it('should initialize state correctly when networkTypeOrRpcUrl is provided and isCustomMainnet is true', () => {
+    const SAMPLE_NETWORKSETTINGS_PROPS_2 = {
+      route: {
+        params: { network: 'mainnet', isCustomMainnet: true },
+      },
+      navigation: {
+        setOptions: jest.fn(),
+        navigate: jest.fn(),
+        goBack: jest.fn(),
+      },
+      networkConfigurations: {
+        '0x1': {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+          nickname: 'Ethereum mainnet',
+          rpcPrefs: {
+            blockExplorerUrl: 'https://etherscan.io',
+          },
+          ticker: 'ETH',
+        },
+      },
+    };
+
+    const wrapperComponent = shallow(
+      <Provider store={store}>
+        <NetworkSettings {...SAMPLE_NETWORKSETTINGS_PROPS_2} />
+      </Provider>,
+    )
+      .find(NetworkSettings)
+      .dive();
+
+    const instance = wrapperComponent.instance() as NetworkSettings;
+    instance.componentDidMount();
+
+    expect(wrapperComponent.state('blockExplorerUrl')).toBe(
+      'https://etherscan.io',
+    );
+    expect(wrapperComponent.state('nickname')).toBe('Ethereum Main Custom');
+    expect(wrapperComponent.state('chainId')).toBe('0x1');
+    expect(wrapperComponent.state('rpcUrl')).toBe(
+      'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+    );
+  });
+
+  it('should initialize state correctly when networkTypeOrRpcUrl is provided and allNetworks is not found', () => {
+    const SAMPLE_NETWORKSETTINGS_PROPS_2 = {
+      route: {
+        params: { network: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID' },
+      },
+      navigation: {
+        setOptions: jest.fn(),
+        navigate: jest.fn(),
+        goBack: jest.fn(),
+      },
+      networkConfigurations: {
+        '0x1': {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+          nickname: 'Ethereum mainnet',
+          rpcPrefs: {
+            blockExplorerUrl: 'https://etherscan.io',
+          },
+          ticker: 'ETH',
+        },
+      },
+    };
+
+    const wrapper2 = shallow(
+      <Provider store={store}>
+        <NetworkSettings {...SAMPLE_NETWORKSETTINGS_PROPS_2} />
+      </Provider>,
+    )
+      .find(NetworkSettings)
+      .dive();
+
+    const instance = wrapper2.instance() as NetworkSettings;
+    instance.componentDidMount();
+
+    expect(wrapper2.state('blockExplorerUrl')).toBe('https://etherscan.io');
+    expect(wrapper2.state('nickname')).toBe('Ethereum mainnet');
+    expect(wrapper2.state('chainId')).toBe('0x1');
+    expect(wrapper2.state('rpcUrl')).toBe(
+      'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+    );
   });
 
   it('should update state and call getCurrentState on nickname change', async () => {
@@ -139,20 +245,18 @@ describe('NetworkSettings', () => {
     const instance = wrapper.instance();
     instance.componentDidMount();
 
-    expect(wrapper.state('rpcUrl')).toBe(undefined);
-    expect(wrapper.state('blockExplorerUrl')).toBe(undefined);
-    expect(wrapper.state('nickname')).toBe(undefined);
-    expect(wrapper.state('chainId')).toBe(undefined);
-    expect(wrapper.state('ticker')).toBe(undefined);
-    expect(wrapper.state('editable')).toBe(undefined);
-    expect(wrapper.state('addMode')).toBe(true);
-    expect(wrapper.state('warningRpcUrl')).toBe(undefined);
+    expect(wrapper.state('rpcUrl')).toBe('https://mainnet.infura.io/v3/');
+    expect(wrapper.state('blockExplorerUrl')).toBe('https://etherscan.io');
+    expect(wrapper.state('nickname')).toBe('Ethereum Main Network');
+    expect(wrapper.state('chainId')).toBe('0x1');
+    expect(wrapper.state('ticker')).toBe('ETH');
+    expect(wrapper.state('editable')).toBe(false);
+    expect(wrapper.state('addMode')).toBe(false);
     expect(wrapper.state('warningChainId')).toBe(undefined);
     expect(wrapper.state('warningSymbol')).toBe(undefined);
     expect(wrapper.state('validatedRpcURL')).toBe(true);
     expect(wrapper.state('validatedChainId')).toBe(true);
     expect(wrapper.state('validatedSymbol')).toBe(true);
-    expect(wrapper.state('initialState')).toBe(undefined);
     expect(wrapper.state('enableAction')).toBe(false);
     expect(wrapper.state('inputWidth')).toEqual({ width: '99%' });
     expect(wrapper.state('showPopularNetworkModal')).toBe(false);
@@ -220,5 +324,60 @@ describe('NetworkSettings', () => {
 
     expect(wrapper.state('chainId')).toBe('0x1');
     expect(getCurrentStateSpy).toHaveBeenCalled();
+  });
+
+  describe('getDecimalChainId', () => {
+    let wrapperTest;
+    // Do not need to mock entire Engine. Only need subset of data for testing purposes.
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let instanceTest: any;
+
+    beforeEach(() => {
+      wrapperTest = shallow(
+        <Provider store={store}>
+          <ThemeContext.Provider value={mockTheme}>
+            <NetworkSettings {...SAMPLE_NETWORKSETTINGS_PROPS} />
+          </ThemeContext.Provider>
+        </Provider>,
+      )
+        .find(NetworkSettings)
+        .dive();
+
+      instanceTest = wrapperTest.instance();
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should return the chainId as is if it is falsy', () => {
+      expect(instanceTest.getDecimalChainId(null)).toBe(null);
+      expect(instanceTest.getDecimalChainId(undefined)).toBe(undefined);
+    });
+
+    it('should return the chainId as is if it is not a string', () => {
+      expect(instanceTest.getDecimalChainId(123)).toBe(123);
+    });
+
+    it('should return the chainId as is if it does not start with 0x', () => {
+      expect(instanceTest.getDecimalChainId('123')).toBe('123');
+      expect(instanceTest.getDecimalChainId('abc')).toBe('abc');
+    });
+
+    it('should convert hex chainId to decimal string', () => {
+      expect(instanceTest.getDecimalChainId('0x1')).toBe('1');
+      expect(instanceTest.getDecimalChainId('0xa')).toBe('10');
+      expect(instanceTest.getDecimalChainId('0x64')).toBe('100');
+      expect(instanceTest.getDecimalChainId('0x12c')).toBe('300');
+    });
+
+    it('should handle edge cases for hex chainId conversion', () => {
+      expect(instanceTest.getDecimalChainId('0x0')).toBe('0');
+      expect(instanceTest.getDecimalChainId('0xff')).toBe('255');
+      expect(instanceTest.getDecimalChainId('0x7fffffffffffffff')).toBe(
+        '9223372036854776000',
+      );
+    });
   });
 });
