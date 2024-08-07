@@ -353,20 +353,18 @@ describe('NetworkSettings', () => {
     const instance = wrapper.instance();
     instance.componentDidMount();
 
-    expect(wrapper.state('rpcUrl')).toBe(undefined);
-    expect(wrapper.state('blockExplorerUrl')).toBe(undefined);
-    expect(wrapper.state('nickname')).toBe(undefined);
-    expect(wrapper.state('chainId')).toBe(undefined);
-    expect(wrapper.state('ticker')).toBe(undefined);
-    expect(wrapper.state('editable')).toBe(undefined);
-    expect(wrapper.state('addMode')).toBe(true);
-    expect(wrapper.state('warningRpcUrl')).toBe(undefined);
+    expect(wrapper.state('rpcUrl')).toBe('https://mainnet.infura.io/v3/');
+    expect(wrapper.state('blockExplorerUrl')).toBe('https://etherscan.io');
+    expect(wrapper.state('nickname')).toBe('Ethereum Main Network');
+    expect(wrapper.state('chainId')).toBe('0x1');
+    expect(wrapper.state('ticker')).toBe('ETH');
+    expect(wrapper.state('editable')).toBe(false);
+    expect(wrapper.state('addMode')).toBe(false);
     expect(wrapper.state('warningChainId')).toBe(undefined);
     expect(wrapper.state('warningSymbol')).toBe(undefined);
     expect(wrapper.state('validatedRpcURL')).toBe(true);
     expect(wrapper.state('validatedChainId')).toBe(true);
     expect(wrapper.state('validatedSymbol')).toBe(true);
-    expect(wrapper.state('initialState')).toBe(undefined);
     expect(wrapper.state('enableAction')).toBe(false);
     expect(wrapper.state('inputWidth')).toEqual({ width: '99%' });
     expect(wrapper.state('showPopularNetworkModal')).toBe(false);
