@@ -1219,17 +1219,19 @@ workflows:
       - script@1:
           is_always_run: true
           is_skippable: false
-          title: Add tests reports to Bitrise
+          title: Package test reports
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                cp -r $BITRISE_SOURCE_DIR/wdio/reports/html/* $BITRISE_HTML_REPORT_DIR/
+                cd $BITRISE_SOURCE_DIR/wdio/reports/
+                zip -r test-report.zip html/
+                mv test-report.zip $BITRISE_DEPLOY_DIR/
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
           is_skippable: false
           inputs:
-            - deploy_path: $BITRISE_HTML_REPORT_DIR
-          title: Deploy test report files
+            - deploy_path: $BITRISE_DEPLOY_DIR/test-report.zip
+          title: Deploy test report
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
