@@ -1232,6 +1232,24 @@ workflows:
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR/test-report.zip
           title: Deploy test report
+      - script@1:
+          is_always_run: true
+          is_skippable: false
+          title: Unzip and store test reports
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -e
+                set -x
+                # Unzip the test report file
+                unzip $BITRISE_DEPLOY_DIR/test-report.zip -d $BITRISE_HTML_REPORT_DIR
+                echo "Unzipped test report to $BITRISE_HTML_REPORT_DIR"
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: true
+          is_skippable: false
+          inputs:
+            - deploy_path: $BITRISE_HTML_REPORT_DIR
+          title: Display HTML Report
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
