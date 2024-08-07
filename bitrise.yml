@@ -277,14 +277,16 @@ workflows:
                 echo "Corepack enabling $YARN_VERSION"
                 corepack enable
           title: Install node, yarn and corepack
-  install_detox:
+  install_applesimutils:
     steps:
       - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                scripts/detox-setup.sh
-          title: Install Detox Dependencies
+        inputs:
+          - content: |-
+              #!/usr/bin/env bash
+              echo "Installing applesimutils..."
+              brew tap wix/brew
+              brew install applesimutils
+        title: Install applesimutils
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
@@ -569,7 +571,7 @@ workflows:
   android_e2e_build:
     before_run:
       - code_setup
-      - install_detox
+      - install_applesimutils
       - set_commit_hash
     after_run:
       - notify_failure
@@ -645,7 +647,7 @@ workflows:
     before_run:
       - setup
       - prep_environment
-      - install_detox
+      - install_applesimutils
     after_run:
       - notify_failure
     steps:
@@ -738,7 +740,7 @@ workflows:
     before_run:
       - setup
       - prep_environment
-      - install_detox
+      - install_applesimutils
     after_run:
       - notify_failure
     steps:
@@ -804,7 +806,7 @@ workflows:
   ios_e2e_build:
     before_run:
       - code_setup
-      - install_detox
+      - install_applesimutils
       - set_commit_hash
     after_run:
       - notify_failure
@@ -891,7 +893,7 @@ workflows:
     before_run:
       - setup
       - prep_environment
-      - install_detox
+      - install_applesimutils
     after_run:
       - notify_failure
     steps:
