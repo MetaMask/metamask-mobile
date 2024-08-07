@@ -1241,9 +1241,14 @@ workflows:
                 #!/usr/bin/env bash
                 set -e
                 set -x
-                # Unzip the test report file
-                unzip $BITRISE_DEPLOY_DIR/test-report.zip -d $BITRISE_HTML_REPORT_DIR
-                echo "Unzipped test report to $BITRISE_HTML_REPORT_DIR"
+                # Create a descriptive subfolder in BITRISE_HTML_REPORT_DIR
+                REPORT_DIR="$BITRISE_HTML_REPORT_DIR/AppLaunchTimesReport"
+                mkdir -p $REPORT_DIR
+                # Unzip the test report file into the subfolder
+                unzip $BITRISE_DEPLOY_DIR/test-report.zip -d $REPORT_DIR
+                echo "Unzipped test report to $REPORT_DIR"
+                ls $REPORT_DIR
+                ls $BITRISE_HTML_REPORT_DIR
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
           is_skippable: false
