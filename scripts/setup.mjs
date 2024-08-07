@@ -13,8 +13,6 @@ const rendererOptions = {
   collapseSubtasks: false
 };
 
-
-
 /*
  * TODO: parse example env file and add missing variables to existing .js.env
  */
