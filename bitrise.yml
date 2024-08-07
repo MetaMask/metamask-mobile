@@ -1253,7 +1253,7 @@ workflows:
           is_always_run: true
           is_skippable: false
           inputs:
-            - deploy_path: $BITRISE_HTML_REPORT_DIR
+            - deploy_path: $BITRISE_HTML_REPORT_DIR/AppLaunchTimesReport/html
           title: Display HTML Report
     meta:
       bitrise.io:
