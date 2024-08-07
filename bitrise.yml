@@ -1200,7 +1200,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                cat BITRISE_SOURCE_DIR/browserstack_uploaded_apps.json
+
                 # Extract the app_url from the first entry
                 export BROWSERSTACK_APP_URL=$(jq -r '.[0].app_url' $BROWSERSTACK_UPLOADED_APPS_LIST)
 
@@ -1232,29 +1232,6 @@ workflows:
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR/test-report.zip
           title: Deploy test report
-      - script@1:
-          is_always_run: true
-          is_skippable: false
-          title: Unzip and store test reports
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                set -e
-                set -x
-                # Create a descriptive subfolder in BITRISE_HTML_REPORT_DIR
-                REPORT_DIR="$BITRISE_HTML_REPORT_DIR/AppLaunchTimesReport"
-                mkdir -p $REPORT_DIR
-                # Unzip the test report file into the subfolder
-                unzip $BITRISE_DEPLOY_DIR/test-report.zip -d $REPORT_DIR
-                echo "Unzipped test report to $REPORT_DIR"
-                ls $REPORT_DIR
-                ls $BITRISE_HTML_REPORT_DIR
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: true
-          is_skippable: false
-          inputs:
-            - deploy_path: $BITRISE_HTML_REPORT_DIR/AppLaunchTimesReport/html
-          title: Display HTML Report
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
