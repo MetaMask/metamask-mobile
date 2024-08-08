@@ -267,7 +267,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             </View>
           </View>
           <View style={styles.tokenDetailsWrapper}>
-            <TokenDetails asset={asset} chainId={chainId} />
+            <TokenDetails asset={asset} />
           </View>
           {/*  Commented out since we are going to re enable it after curating content */}
           {/* <View style={styles.aboutWrapper}>

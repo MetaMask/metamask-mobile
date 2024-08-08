@@ -35,7 +35,7 @@ import { regex } from '../../../app/util/regex';
 import { InternalAccount } from '@metamask/keyring-api';
 import { AddressBookState } from '@metamask/address-book-controller';
 import { NetworkType, toChecksumHexAddress } from '@metamask/controller-utils';
-import { NetworkState } from '@metamask/network-controller';
+import { NetworkClientId, NetworkState } from '@metamask/network-controller';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { Hex, isHexString } from '@metamask/utils';
 
@@ -604,6 +604,18 @@ export const getTokenDetails = async (
     decimals,
     standard,
   };
+};
+
+export const getTokenDecimal = async (
+  address: string,
+  networkClientId?: NetworkClientId,
+) => {
+  const { AssetsContractController } = Engine.context;
+  const tokenDecimal = await AssetsContractController.getERC20TokenDecimals(
+    address,
+    networkClientId,
+  );
+  return tokenDecimal;
 };
 
 export const shouldShowBlockExplorer = (
