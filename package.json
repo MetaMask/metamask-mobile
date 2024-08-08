@@ -440,7 +440,7 @@
     "browserstack-local": "^1.5.1",
     "chromedriver": "^123.0.1",
     "depcheck": "^1.4.7",
-    "detox": "^20.23.1",
+    "detox": "20.25.2",
     "dotenv": "^16.0.3",
     "enzyme": "3.9.0",
     "enzyme-adapter-react-16": "1.10.0",
