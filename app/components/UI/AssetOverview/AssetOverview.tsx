@@ -51,6 +51,7 @@ import ChartNavigationButton from './ChartNavigationButton';
 import Price from './Price';
 import styleSheet from './AssetOverview.styles';
 import { useStyles } from '../../../component-library/hooks';
+import TokenDetails from './TokenDetails';
 
 interface AssetOverviewProps {
   navigation: {
@@ -264,6 +265,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
                 {...generateTestId(Platform, TOKEN_OVERVIEW_SEND_BUTTON)}
               />
             </View>
+          </View>
+          <View style={styles.tokenDetailsWrapper}>
+            <TokenDetails asset={asset} chainId={chainId} />
           </View>
           {/*  Commented out since we are going to re enable it after curating content */}
           {/* <View style={styles.aboutWrapper}>
