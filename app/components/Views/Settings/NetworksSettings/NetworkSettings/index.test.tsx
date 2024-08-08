@@ -23,9 +23,7 @@ const initialState = {
 const store = mockStore(initialState);
 
 const SAMPLE_NETWORKSETTINGS_PROPS = {
-  route: {
-    params: { network: 'mainnet' },
-  },
+  route: { params: {} },
   networkConfigurations: {
     chainId: '0x1',
     rpcUrl: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
@@ -36,6 +34,75 @@ const SAMPLE_NETWORKSETTINGS_PROPS = {
     ticker: 'ETH',
   },
   navigation: { setOptions: jest.fn(), navigate: jest.fn(), goBack: jest.fn() },
+  matchedChainNetwork: {
+    safeChainsList: [
+      {
+        name: 'Ethereum Mainnet',
+        chain: 'ETH',
+        icon: 'ethereum',
+        rpc: [
+          'https://mainnet.infura.io/v3/${INFURA_API_KEY}',
+          'wss://mainnet.infura.io/ws/v3/${INFURA_API_KEY}',
+          'https://api.mycryptoapi.com/eth',
+          'https://cloudflare-eth.com',
+          'https://ethereum-rpc.publicnode.com',
+          'wss://ethereum-rpc.publicnode.com',
+          'https://mainnet.gateway.tenderly.co',
+          'wss://mainnet.gateway.tenderly.co',
+          'https://rpc.blocknative.com/boost',
+          'https://rpc.flashbots.net',
+          'https://rpc.flashbots.net/fast',
+          'https://rpc.mevblocker.io',
+          'https://rpc.mevblocker.io/fast',
+          'https://rpc.mevblocker.io/noreverts',
+          'https://rpc.mevblocker.io/fullprivacy',
+          'https://eth.drpc.org',
+          'wss://eth.drpc.org',
+        ],
+        features: [
+          {
+            name: 'EIP155',
+          },
+          {
+            name: 'EIP1559',
+          },
+        ],
+        faucets: [],
+        nativeCurrency: {
+          name: 'Ether',
+          symbol: 'ETH',
+          decimals: 18,
+        },
+        infoURL: 'https://ethereum.org',
+        shortName: 'eth',
+        chainId: 1,
+        networkId: 1,
+        slip44: 60,
+        ens: {
+          registry: '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e',
+        },
+        explorers: [
+          {
+            name: 'etherscan',
+            url: 'https://etherscan.io',
+            standard: 'EIP3091',
+          },
+          {
+            name: 'blockscout',
+            url: 'https://eth.blockscout.com',
+            icon: 'blockscout',
+            standard: 'EIP3091',
+          },
+          {
+            name: 'dexguru',
+            url: 'https://ethereum.dex.guru',
+            icon: 'dexguru',
+            standard: 'EIP3091',
+          },
+        ],
+      },
+    ],
+  },
 };
 
 describe('NetworkSettings', () => {
@@ -245,18 +312,20 @@ describe('NetworkSettings', () => {
     const instance = wrapper.instance();
     instance.componentDidMount();
 
-    expect(wrapper.state('rpcUrl')).toBe('https://mainnet.infura.io/v3/');
-    expect(wrapper.state('blockExplorerUrl')).toBe('https://etherscan.io');
-    expect(wrapper.state('nickname')).toBe('Ethereum Main Network');
-    expect(wrapper.state('chainId')).toBe('0x1');
-    expect(wrapper.state('ticker')).toBe('ETH');
-    expect(wrapper.state('editable')).toBe(false);
-    expect(wrapper.state('addMode')).toBe(false);
+    expect(wrapper.state('rpcUrl')).toBe(undefined);
+    expect(wrapper.state('blockExplorerUrl')).toBe(undefined);
+    expect(wrapper.state('nickname')).toBe(undefined);
+    expect(wrapper.state('chainId')).toBe(undefined);
+    expect(wrapper.state('ticker')).toBe(undefined);
+    expect(wrapper.state('editable')).toBe(undefined);
+    expect(wrapper.state('addMode')).toBe(true);
+    expect(wrapper.state('warningRpcUrl')).toBe(undefined);
     expect(wrapper.state('warningChainId')).toBe(undefined);
     expect(wrapper.state('warningSymbol')).toBe(undefined);
     expect(wrapper.state('validatedRpcURL')).toBe(true);
     expect(wrapper.state('validatedChainId')).toBe(true);
     expect(wrapper.state('validatedSymbol')).toBe(true);
+    expect(wrapper.state('initialState')).toBe(undefined);
     expect(wrapper.state('enableAction')).toBe(false);
     expect(wrapper.state('inputWidth')).toEqual({ width: '99%' });
     expect(wrapper.state('showPopularNetworkModal')).toBe(false);
