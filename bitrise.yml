@@ -67,6 +67,12 @@ pipelines:
       - app_launch_times_test: {}
       - notify: {}
 
+#App Upgrade pipeline. Runs on browserstack
+  app_upgrade_pipeline:
+    stages:
+      - create_build_qa_android: {}
+      - app_upgrade_test: {}
+      - notify: {}
   # Pipeline for Flask
   create_flask_release_builds_pipeline:
     stages:
@@ -168,6 +174,7 @@ stages:
       - android_e2e_test: {}
   build_e2e_ios_android_stage:
     workflows:
+      - build_android_qa: {}
       - ios_e2e_build: {}
       - android_e2e_build: {}
   build_e2e_android_stage:
@@ -182,6 +189,9 @@ stages:
   app_launch_times_test:
     workflows:
       - run_android_app_launch_times_appium_test: {}
+  app_upgrade_test:
+    workflows:
+    - run_tag_upgrade_android: {}
   release_notify:
     workflows:
       - release_announcing_stores: {}
@@ -459,7 +469,7 @@ workflows:
       - NEW_BUILD_STRING: 'MetaMask-QA v$VERSION_NAME ($VERSION_NUMBER)'
       - TEST_TYPE: 'upgrade'
     after_run:
-      - run_android_appium_test
+      - wdio_android_e2e_test
   run_android_app_launch_times_appium_test:
     envs:
       - TEST_TYPE: 'performance'
@@ -467,8 +477,6 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
-    # before_run:
-    #   - build_android_qa
     after_run:
       - wdio_android_e2e_test
 
@@ -1075,15 +1083,6 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
-  run_android_appium_test:
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-20.04
-        machine_type_id: elite-xl
-    before_run:
-      - build_android_qa
-    after_run:
-      - wdio_android_e2e_test
   build_android_qa:
     before_run:
       - code_setup
@@ -1570,5 +1569,5 @@ trigger_map:
   - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline
   - push_branch: create-app-launch-times-pipeline
-    pipeline: app_launch_times_pipeline
+    pipeline: app_upgrade_pipeline
   
