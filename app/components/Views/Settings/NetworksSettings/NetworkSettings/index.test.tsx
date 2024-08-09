@@ -1,5 +1,3 @@
-// NetworkSettings.test.js or NetworkSettings.test.tsx
-
 import React from 'react';
 import { shallow } from 'enzyme';
 import { NetworkSettings } from './'; // Import the undecorated component
