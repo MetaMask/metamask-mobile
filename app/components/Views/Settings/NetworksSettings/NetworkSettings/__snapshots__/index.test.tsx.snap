@@ -30,3 +30,65 @@ exports[`NetworkSettings should render correctly 1`] = `
   <NetworkSettings />
 </ContextProvider>
 `;
+
+exports[`NetworkSettings should render the component correctly when isNetworkUiRedesignEnabled is false 1`] = `
+<ContextProvider
+  value={
+    {
+      "getServerState": undefined,
+      "noopCheck": "once",
+      "stabilityCheck": "once",
+      "store": {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": {
+        "addNestedSub": [Function],
+        "getListeners": [Function],
+        "handleChangeWrapper": [Function],
+        "isSubscribed": [Function],
+        "notifyNestedSubs": [Function],
+        "trySubscribe": [Function],
+        "tryUnsubscribe": [Function],
+      },
+    }
+  }
+>
+  <NetworkSettings />
+</ContextProvider>
+`;
+
+exports[`NetworkSettings should render the component correctly when isNetworkUiRedesignEnabled is true 1`] = `
+<ContextProvider
+  value={
+    {
+      "getServerState": undefined,
+      "noopCheck": "once",
+      "stabilityCheck": "once",
+      "store": {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": {
+        "addNestedSub": [Function],
+        "getListeners": [Function],
+        "handleChangeWrapper": [Function],
+        "isSubscribed": [Function],
+        "notifyNestedSubs": [Function],
+        "trySubscribe": [Function],
+        "tryUnsubscribe": [Function],
+      },
+    }
+  }
+>
+  <NetworkSettings />
+</ContextProvider>
+`;

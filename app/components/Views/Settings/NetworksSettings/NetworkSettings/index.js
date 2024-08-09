@@ -20,7 +20,6 @@ import Networks, {
   isprivateConnection,
   getAllNetworks,
   getIsNetworkOnboarded,
-  isNetworkUiRedesignEnabled,
 } from '../../../../../util/networks';
 import { getEtherscanBaseUrl } from '../../../../../util/etherscan';
 import Engine from '../../../../../core/Engine';
@@ -83,6 +82,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
+import { isNetworkUiRedesignEnabled } from '../../../../../util/networks/isNetworkUiRedesignEnabled';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -556,7 +556,7 @@ export class NetworkSettings extends PureComponent {
     );
 
     // Return true if the chainId exists and the UI redesign is enabled, otherwise false
-    return isNetworkUiRedesignEnabled && chainIdExists;
+    return isNetworkUiRedesignEnabled() && chainIdExists;
   };
 
   checkIfNetworkExists = async (rpcUrl) => {
@@ -565,7 +565,7 @@ export class NetworkSettings extends PureComponent {
     ).filter((item) => item.rpcUrl === rpcUrl);
 
     if (checkCustomNetworks.length > 0) {
-      if (isNetworkUiRedesignEnabled) {
+      if (isNetworkUiRedesignEnabled()) {
         this.setState({
           warningRpcUrl: strings(
             'app_settings.url_associated_to_another_chain_id',
@@ -734,7 +734,7 @@ export class NetworkSettings extends PureComponent {
     }
 
     if (isNetworkExists.length > 0) {
-      if (isNetworkUiRedesignEnabled) {
+      if (isNetworkUiRedesignEnabled()) {
         return this.setState({
           validatedRpcURL: false,
           warningRpcUrl: strings(
@@ -774,7 +774,7 @@ export class NetworkSettings extends PureComponent {
     if (
       isChainIdExists &&
       isNetworkExists.length > 0 &&
-      isNetworkUiRedesignEnabled &&
+      isNetworkUiRedesignEnabled() &&
       !editable
     ) {
       return this.setState({
@@ -1182,7 +1182,7 @@ export class NetworkSettings extends PureComponent {
 
     const renderWarningChainId = () => {
       const CHAIN_LIST_URL = 'https://chainid.network/';
-      const containerStyle = isNetworkUiRedesignEnabled
+      const containerStyle = isNetworkUiRedesignEnabled()
         ? styles.newWarningContainer
         : styles.warningContainer;
 
@@ -1345,7 +1345,7 @@ export class NetworkSettings extends PureComponent {
           {!networkTypeOrRpcUrl ? (
             <WarningMessage
               style={
-                isNetworkUiRedesignEnabled
+                isNetworkUiRedesignEnabled()
                   ? styles.newWarningContainer
                   : styles.warningContainer
               }
@@ -1413,7 +1413,7 @@ export class NetworkSettings extends PureComponent {
             {warningRpcUrl && (
               <View
                 style={
-                  isNetworkUiRedesignEnabled
+                  isNetworkUiRedesignEnabled()
                     ? styles.newWarningContainer
                     : styles.warningContainer
                 }
@@ -1577,7 +1577,7 @@ export class NetworkSettings extends PureComponent {
         testID={NetworksViewSelectorsIDs.CONTAINER}
       >
         <View style={styles.informationWrapper}>
-          {(isNetworkUiRedesignEnabled && !shouldShowPopularNetworks) ||
+          {(isNetworkUiRedesignEnabled() && !shouldShowPopularNetworks) ||
           networkTypeOrRpcUrl ? (
             this.customNetwork(networkTypeOrRpcUrl)
           ) : (

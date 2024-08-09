@@ -119,10 +119,10 @@ import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetec
 import NftOptions from '../../../components/Views/NftOptions';
 import ShowTokenIdSheet from '../../../components/Views/ShowTokenIdSheet';
 import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
-import { isNetworkUiRedesignEnabled } from '../../../util/networks';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
+import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesignEnabled';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -925,7 +925,7 @@ const App = ({ userLoggedIn }) => {
               component={AddNetworkFlow}
               options={{ animationEnabled: true }}
             />
-            {isNetworkUiRedesignEnabled ? (
+            {isNetworkUiRedesignEnabled() ? (
               <Stack.Screen
                 name={Routes.EDIT_NETWORK}
                 component={AddNetworkFlow}

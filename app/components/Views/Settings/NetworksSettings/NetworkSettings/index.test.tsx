@@ -1,5 +1,3 @@
-// NetworkSettings.test.js or NetworkSettings.test.tsx
-
 import React from 'react';
 import { shallow } from 'enzyme';
 import { NetworkSettings } from './'; // Import the undecorated component
@@ -7,6 +5,13 @@ import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { ThemeContext, mockTheme } from '../../../../../../app/util/theme';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+// eslint-disable-next-line import/no-namespace
+import * as networkUtils from '../../../../../util/networks/isNetworkUiRedesignEnabled';
+
+// Mock the entire module
+jest.mock('../../../../../util/networks/isNetworkUiRedesignEnabled', () => ({
+  isNetworkUiRedesignEnabled: jest.fn(),
+}));
 
 jest.useFakeTimers();
 const mockStore = configureMockStore();
@@ -133,6 +138,36 @@ describe('NetworkSettings', () => {
     );
 
     expect(component).toMatchSnapshot();
+  });
+
+  it('should render the component correctly when isNetworkUiRedesignEnabled is true', () => {
+    (networkUtils.isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(
+      () => true,
+    );
+
+    const component = shallow(
+      <Provider store={store}>
+        <NetworkSettings />
+      </Provider>,
+    );
+
+    expect(component).toMatchSnapshot();
+    expect(networkUtils.isNetworkUiRedesignEnabled()).toBe(true);
+  });
+
+  it('should render the component correctly when isNetworkUiRedesignEnabled is false', () => {
+    (networkUtils.isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(
+      () => false,
+    );
+
+    const component = shallow(
+      <Provider store={store}>
+        <NetworkSettings />
+      </Provider>,
+    );
+
+    expect(component).toMatchSnapshot();
+    expect(networkUtils.isNetworkUiRedesignEnabled()).toBe(false);
   });
 
   it('should return an empty string if the mainnet configuration is not found', () => {
