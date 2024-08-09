@@ -5,12 +5,12 @@ import { TextInput, View } from 'react-native';
 // External dependencies.
 import { strings } from '../../../../../locales/i18n';
 import { mockTheme, useTheme } from '../../../../util/theme';
-import { isNetworkUiRedesignEnabled } from '../../../../util/networks';
 
 // Internal dependencies
 import Icon from 'react-native-vector-icons/Ionicons';
 import createStyles from './NetworkSearchTextInput.styles';
 import { NetworksViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/NetworksView.selectors';
+import { isNetworkUiRedesignEnabled } from '../../../../util/networks/isNetworkUiRedesignEnabled';
 
 interface NetworkSearchTextInputProps {
   searchString: string;
@@ -28,32 +28,33 @@ function NetworkSearchTextInput({
   const { colors } = theme;
   const styles = createStyles(colors || mockTheme.colors);
   const [isSearchFieldFocused, setIsSearchFieldFocused] = useState(false);
-  const searchPlaceHolder = isNetworkUiRedesignEnabled
+  const searchPlaceHolder = isNetworkUiRedesignEnabled()
     ? 'search-short'
     : 'search';
 
-  const propsWhichAreFeatureFlagged = isNetworkUiRedesignEnabled
+  const propsWhichAreFeatureFlagged = isNetworkUiRedesignEnabled()
     ? {
         onFocus: () => {
-          isNetworkUiRedesignEnabled && setIsSearchFieldFocused(true);
+          isNetworkUiRedesignEnabled() && setIsSearchFieldFocused(true);
         },
         onBlur: () => {
-          isNetworkUiRedesignEnabled && setIsSearchFieldFocused(false);
+          isNetworkUiRedesignEnabled() && setIsSearchFieldFocused(false);
         },
       }
     : {};
 
-  const inputStylesWhichAreFeatureFlagged = !isNetworkUiRedesignEnabled
+  const inputStylesWhichAreFeatureFlagged = !isNetworkUiRedesignEnabled()
     ? styles.input
     : isSearchFieldFocused
     ? styles.input
     : styles.unfocusedInput;
 
-  const containerInputStylesWhichAreFeatureFlagged = !isNetworkUiRedesignEnabled
-    ? styles.inputWrapper
-    : isSearchFieldFocused
-    ? styles.focusedInputWrapper
-    : styles.inputWrapper;
+  const containerInputStylesWhichAreFeatureFlagged =
+    !isNetworkUiRedesignEnabled()
+      ? styles.inputWrapper
+      : isSearchFieldFocused
+      ? styles.focusedInputWrapper
+      : styles.inputWrapper;
 
   return (
     <View style={containerInputStylesWhichAreFeatureFlagged}>

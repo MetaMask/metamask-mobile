@@ -124,6 +124,7 @@ const Routes = {
     WALLET_RESET_NEEDED: 'WalletResetNeeded',
   },
   ADD_NETWORK: 'AddNetwork',
+  EDIT_NETWORK: 'EditNetwork',
   SWAPS: 'Swaps',
   LOCK_SCREEN: 'LockScreen',
   NOTIFICATIONS: {
