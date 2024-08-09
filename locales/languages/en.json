@@ -595,7 +595,10 @@
     "decimals_is_required": "Decimal is required. Find it on:",
     "no_tokens_found": "We couldn't find any tokens with that name.",
     "select_token": "Select Token",
-    "address_must_be_smart_contract": "Personal address detected. Enter the token contract address."
+    "address_must_be_smart_contract": "Personal address detected. Enter the token contract address.",
+    "billionAbbreviation": "B",
+    "trillionAbbreviation": "T",
+    "millionAbbreviation": "M"
   },
   "collectible": {
     "collectible_address": "Address",

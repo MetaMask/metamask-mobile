@@ -867,3 +867,36 @@ export const safeBNToHex = (value) => {
 
   return BNToHex(value);
 };
+
+/**
+ * Formats a potentially large number to the nearest unit.
+ * e.g. 1T for trillions, 2.3B for billions, 4.56M for millions, 7,890 for thousands, etc.
+ *
+ * @param t - An I18nContext translator.
+ * @param number - The number to format.
+ * @returns A localized string of the formatted number + unit.
+ */
+// eslint-disable-next-line
+export const localizeLargeNumber = (i18n, number) => {
+  if (number >= 1000000000000) {
+    return `${(number / 1000000000000).toFixed(2)}${i18n.t(
+      'token.trillionAbbreviation',
+    )}`;
+  } else if (number >= 1000000000) {
+    return `${(number / 1000000000).toFixed(2)}${i18n.t(
+      'token.billionAbbreviation',
+    )}`;
+  } else if (number >= 1000000) {
+    return `${(number / 1000000).toFixed(2)}${i18n.t(
+      'token.millionAbbreviation',
+    )}`;
+  }
+  return number.toFixed(2);
+};
+
+export const convertDecimalToPercentage = (decimal) => {
+  if (typeof decimal !== 'number' || isNaN(decimal)) {
+    throw new Error('Input must be a valid number');
+  }
+  return (decimal * 100).toFixed(2) + '%';
+};

@@ -23,6 +23,15 @@ import { formatAddress, safeToChecksumAddress } from '../../../../util/address';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { selectTokenList } from '../../../../selectors/tokenListController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../../selectors/currencyRateController';
+import {
+  convertDecimalToPercentage,
+  localizeLargeNumber,
+} from '../../../../util/number';
+import { formatCurrency } from '../../../../util/confirm-tx';
 // import ContentDisplay from './ContentDisplay';
 
 interface TokenDetailsProps {
@@ -46,10 +55,10 @@ interface MarketDetailsListProps {
 type MarketDetails = {
   marketCap: string;
   totalVolume: number;
-  volumeToMarketCap: number | null;
+  volumeToMarketCap: string | null;
   circulatingSupply: number;
-  allTimeHigh: number;
-  allTimeLow: number;
+  allTimeHigh: string;
+  allTimeLow: string;
   fullyDiluted: number;
 };
 
@@ -64,26 +73,29 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const { styles } = useStyles(styleSheet, {});
   const tokenList = useSelector(selectTokenList);
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
+  const conversionRate = useSelector(selectConversionRate);
+  const currentCurrency = useSelector(selectCurrentCurrency);
   const locale: keyof TokenDescriptions = i18n.locale;
 
   const tokenContractAddress = safeToChecksumAddress(
     asset.isETH ? zeroAddress() : asset.address,
   );
 
-  if (!tokenContractAddress) {
+  if (!tokenContractAddress || !conversionRate) {
+    console.log("can't find tokenContractAddress or conversionRate");
     return null;
   }
 
   const tokenMetadata = tokenList[tokenContractAddress.toLowerCase()];
-  const tokenMarketDetails = tokenExchangeRates[tokenContractAddress];
+  const marketData = tokenExchangeRates[tokenContractAddress];
 
   if (!tokenMetadata) {
     console.log("can't find tokenMetadata");
     return null;
   }
 
-  if (!tokenMarketDetails) {
-    console.log("can't find tokenMarketDetails");
+  if (!marketData) {
+    console.log("can't find marketData");
     return null;
   }
 
@@ -94,16 +106,27 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   };
 
   const marketDetails: MarketDetails = {
-    marketCap: tokenMarketDetails.marketCap.toFixed(2),
-    totalVolume: tokenMarketDetails.totalVolume,
+    marketCap: localizeLargeNumber(i18n, conversionRate * marketData.marketCap),
+    totalVolume: localizeLargeNumber(
+      i18n,
+      conversionRate * marketData.totalVolume,
+    ),
     volumeToMarketCap:
-      tokenMarketDetails.marketCap <= 0
+      marketData.marketCap <= 0
         ? null
-        : tokenMarketDetails.totalVolume / tokenMarketDetails.marketCap,
-    circulatingSupply: tokenMarketDetails.circulatingSupply,
-    allTimeHigh: tokenMarketDetails.allTimeHigh,
-    allTimeLow: tokenMarketDetails.allTimeLow,
-    fullyDiluted: tokenMarketDetails.dilutedMarketCap,
+        : convertDecimalToPercentage(
+            marketData.totalVolume / marketData.marketCap,
+          ),
+    circulatingSupply: localizeLargeNumber(i18n, marketData.circulatingSupply),
+    allTimeHigh: formatCurrency(
+      conversionRate * marketData.allTimeHigh,
+      currentCurrency,
+    ),
+    allTimeLow: formatCurrency(
+      conversionRate * marketData.allTimeLow,
+      currentCurrency,
+    ),
+    fullyDiluted: localizeLargeNumber(i18n, marketData.dilutedMarketCap),
   };
 
   return (
