@@ -99,26 +99,28 @@ const NftDetails = () => {
     updateNavBar();
   }, [updateNavBar]);
 
-  useEffect(() => {
-    const updateOwnership = async () => {
-      const { NftController } = Engine.context;
-      await NftController.checkAndUpdateSingleNftOwnershipStatus(
-        collectible,
-        false,
-      );
-    };
-
-    updateOwnership();
-    const refreshedCollectible = collectibles?.find((singleCollectible) =>
-      toLowerCaseEquals(singleCollectible.address, collectible.address),
+  const updateOwnership = async () => {
+    const { NftController } = Engine.context;
+    await NftController.checkAndUpdateSingleNftOwnershipStatus(
+      collectible,
+      false,
     );
-    setCollectible({
-      ...collectible,
-      ...(refreshedCollectible?.isCurrentlyOwned && {
-        isCurrentlyOwned: refreshedCollectible?.isCurrentlyOwned,
-      }),
-    });
+  };
 
+  useEffect(() => {
+    const updateOwnershipAndSetCollectible = async () => {
+      await updateOwnership();
+      const refreshedCollectible = collectibles?.find(
+        (singleCollectible) =>
+          toLowerCaseEquals(singleCollectible.address, collectible.address) &&
+          singleCollectible.tokenId.toString() === collectible.tokenId,
+      );
+      setCollectible({
+        ...collectible,
+        isCurrentlyOwned: refreshedCollectible?.isCurrentlyOwned,
+      });
+    };
+    updateOwnershipAndSetCollectible();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -193,13 +195,6 @@ const NftDetails = () => {
     );
     navigation.navigate('SendFlowView');
   }, [collectible, navigation, dispatch]);
-
-  const isTradable = useCallback(
-    () =>
-      collectible.standard === 'ERC721' &&
-      collectible.isCurrentlyOwned === true,
-    [collectible],
-  );
 
   const getCurrentHighestBidValue = () => {
     if (
@@ -665,16 +660,13 @@ const NftDetails = () => {
         </View>
       </ScrollView>
 
-      {isTradable() ? (
+      {collectible.standard === 'ERC721' ? (
         <View style={styles.buttonSendWrapper}>
           <StyledButton
             type={'confirm'}
             containerStyle={styles.buttonSend}
             onPress={onSend}
-            disabled={
-              collectible.standard === 'ERC1155' ||
-              !collectible.isCurrentlyOwned
-            }
+            disabled={collectible.isCurrentlyOwned === false}
           >
             {strings('transaction.send')}
           </StyledButton>
