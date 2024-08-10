@@ -143,6 +143,14 @@ jest.mock('../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(() => mockUseParamsValues),
 }));
 
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    NftController: {
+      checkAndUpdateSingleNftOwnershipStatus: jest.fn(),
+    },
+  },
+}));
+
 describe('NftDetails', () => {
   beforeEach(() => {
     mockUseParamsValues = {
