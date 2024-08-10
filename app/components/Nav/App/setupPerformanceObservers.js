@@ -1,6 +1,6 @@
 import performance, { PerformanceObserver } from 'react-native-performance';
 
-const setupPerformanceObservers = (setNativeLaunch, setRunJsBundle) => {
+const setupPerformanceObservers = (setAppStartTime) => {
   new PerformanceObserver((list, observer) => {
     const entries = list.getEntries();
     if (entries.find((entry) => entry.name === 'runJsBundleEnd')) {
@@ -14,39 +14,14 @@ const setupPerformanceObservers = (setNativeLaunch, setRunJsBundle) => {
       // Retrieve the measurements
       const nativeLaunch = performance.getEntriesByName('nativeLaunch');
       const runJsBundle = performance.getEntriesByName('runJsBundle');
-      /* eslint-disable no-console */ console.log(
-        'Native Launch:',
-        nativeLaunch,
-      );
-      /* eslint-disable-next-line no-console */ console.log(
-        'Run JS Bundle:',
-        runJsBundle,
+      const maxTime = Math.max(
+        nativeLaunch[0].startTime,
+        runJsBundle[0].startTime,
       );
 
-      // Update state with the measurements
-      setNativeLaunch(nativeLaunch);
-      setRunJsBundle(runJsBundle);
+      setAppStartTime(maxTime);
     }
-
-    // if (entries.find((entry) => entry.name === 'contentAppeared')) {
-    //   performance.measure(
-    //     'contentAppeared',
-    //     'nativeLaunchStart',
-    //     'contentAppeared',
-    //   );
-
-    //   // Retrieve the measurement
-    //   const contentAppeared = performance.getEntriesByName('contentAppeared');
-
-    //   // Update state with the measurement
-    //   setContentAppeared(contentAppeared);
-    // }
   }).observe({ type: 'react-native-mark', buffered: true });
 };
 
 export default setupPerformanceObservers;
-
-// create marks
-// create observers
-// measure marks
-// get measured data

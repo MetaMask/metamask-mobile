@@ -4,12 +4,12 @@ import React, {
   useEffect,
   useRef,
   useState,
-  Profiler
+  Profiler,
 } from 'react';
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
 import {
   Animated,
-  Linking, 
+  Linking,
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   View,
   ///: END:ONLY_INCLUDE_IF
@@ -339,9 +339,8 @@ const App = ({ userLoggedIn }) => {
   const dispatch = useDispatch();
   const sdkInit = useRef();
   const [onboarded, setOnboarded] = useState(false);
-  //state variables store the performance metrics, native marks, and resource timings
-  const [nativeLaunch, setNativeLaunch] = useState([]);
-  const [runJsBundle, setRunJsBundle] = useState([]);
+  const [appStartTime, setAppStartTime] = useState([]);
+  const isDevelopment = process.env.NODE_ENV !== 'production';
 
   const triggerSetCurrentRoute = (route) => {
     dispatch(setCurrentRoute(route));
@@ -351,13 +350,23 @@ const App = ({ userLoggedIn }) => {
     }
   };
 
-  React.useEffect(() => {
-    setupPerformanceObservers(setNativeLaunch, setRunJsBundle);
+  /* eslint-disable react-hooks/exhaustive-deps */
+  useEffect(() => {
+    if (isDevelopment) {
+      setupPerformanceObservers(setAppStartTime);
+      /* eslint-disable no-console */ console.log(
+        'App Start Time:',
+        appStartTime,
+      );
+    }
   }, []);
 
-  /* eslint-disable no-console */ console.log('nativeLaunch:', nativeLaunch);
-  /* eslint-disable no-console */ console.log('runJsBundle:', runJsBundle);
-  // /* eslint-disable no-console */ console.log('contentAppeared:', contentAppeared);
+  if (isDevelopment) {
+    /* eslint-disable no-console */ console.log(
+      'App Start Time:',
+      appStartTime,
+    );
+  }
 
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
