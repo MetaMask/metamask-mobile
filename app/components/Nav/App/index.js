@@ -350,16 +350,11 @@ const App = ({ userLoggedIn }) => {
     }
   };
 
-  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (isDevelopment) {
       setupPerformanceObservers(setAppStartTime);
-      /* eslint-disable no-console */ console.log(
-        'App Start Time:',
-        appStartTime,
-      );
     }
-  }, []);
+  }, [isDevelopment]);
 
   if (isDevelopment) {
     /* eslint-disable no-console */ console.log(
