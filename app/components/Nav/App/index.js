@@ -122,7 +122,6 @@ import ShowTokenIdSheet from '../../../components/Views/ShowTokenIdSheet';
 import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
 import performance, {
   setResourceLoggingEnabled,
-  // PerformanceObserver,
 } from 'react-native-performance';
 import setupPerformanceObservers from './setupPerformanceObservers';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -132,13 +131,13 @@ import { SnapsExecutionWebView } from '../../../lib/snaps';
 setResourceLoggingEnabled(true);
 
 const traceRender = (
-  id,
-  phase,
-  actualDuration,
-  baseDuration,
-  startTime,
-  _commitTime,
-  _interactions,
+  id, // the "id" prop of the Profiler tree that has just committed
+  phase, // either "mount" (if the tree just mounted) or "update" (if it re-rendered)
+  actualDuration, // time spent rendering the committed update
+  baseDuration, // estimated time to render the entire subtree without memoization
+  startTime, // when React began rendering this update
+  _commitTime, // when React committed this update
+  _interactions, // the Set of interactions belonging to this update
 ) =>
   performance.measure(id, {
     start: startTime,
