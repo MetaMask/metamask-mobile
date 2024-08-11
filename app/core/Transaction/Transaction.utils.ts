@@ -5,9 +5,13 @@ import {
   TransactionReceipt,
 } from '@metamask/transaction-controller';
 
-// TODO add description
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function getTokenIdParam(tokenData: any = {}): string | undefined {
+/**
+ * Returns the '_tokenId' parameter or the 'id' param of the parsed transaction logs;
+ * The tokenId and id are defined in the ERC721 and ERC1155 ABIs from metamask-eth-abis (https://github.com/MetaMask/metamask-eth-abis/tree/main/src/abis)
+ * @param tokenData the parsed transaction log param
+ * @returns the tokenId value as string or undefined
+ */
+export function getTokenIdParam(tokenData: LogDescription): string | undefined {
   return (
     tokenData?.args?._tokenId?.toString() ?? tokenData?.args?.id?.toString()
   );
