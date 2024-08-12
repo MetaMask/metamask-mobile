@@ -24,7 +24,6 @@ config.capabilities = [
     'browserstack.local': true,
     'browserstack.midSessionInstallApps' : [process.env.BROWSERSTACK_APP_URL],
   },
-
 ];
 
 config.waitforTimeout = 10000;
