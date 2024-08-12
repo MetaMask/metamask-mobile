@@ -20,6 +20,7 @@
     "setup": "yarn clean && node scripts/setup.mjs",
     "setup:node": "yarn clean:node && yarn allow-scripts && yarn patch-package",
     "setup:e2e": "cd wdio && yarn install",
+    "setup:detox-e2e": "./scripts/detox-setup.sh",
     "start:ios": "./scripts/build.sh ios debug",
     "start:ios:qa": "./scripts/build.sh ios qaDebug",
     "start:ios:e2e": "./scripts/build.sh ios debugE2E",
