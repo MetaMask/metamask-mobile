@@ -8,7 +8,7 @@ import { ListItemProps } from '../ListItem/ListItem.types';
  * ListItemSelect component props.
  */
 export interface ListItemSelectProps
-  extends TouchableOpacityProps,
+  extends Omit<TouchableOpacityProps, 'hitSlop'>,
     Omit<ListItemProps, 'style'> {
   /**
    * Optional prop to determine if the item is selected.

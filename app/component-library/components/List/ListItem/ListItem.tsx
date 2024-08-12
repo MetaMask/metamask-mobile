@@ -2,7 +2,7 @@
 
 // Third party dependencies.
 import React from 'react';
-import { View } from 'react-native';
+import { DimensionValue, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
@@ -36,7 +36,7 @@ const ListItem: React.FC<ListItemProps> = ({
           <React.Fragment key={index}>
             {index > 0 && (
               <View
-                style={{ width: gap }}
+                style={{ width: gap as DimensionValue }}
                 testID={TESTID_LISTITEM_GAP}
                 accessible={false}
               />
