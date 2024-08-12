@@ -163,7 +163,6 @@ describe(Regression('Custom RPC Tests'), () => {
     if (device.getPlatform() === 'android') {
       await device.disableSynchronization();
     }
-    // Tap on Gnosis to remove network
     await NetworkEducationModal.tapGotItButton();
 
     try {
