@@ -845,7 +845,10 @@ export class NetworkSettings extends PureComponent {
       providerError = err;
     }
 
-    if (providerError || typeof endpointChainId !== 'string') {
+    if (
+      (providerError || typeof endpointChainId !== 'string') &&
+      isNetworkUiRedesignEnabled()
+    ) {
       return this.setState({
         validatedRpcURL: false,
         warningRpcUrl: strings('app_settings.unMatched_chain'),
@@ -854,17 +857,14 @@ export class NetworkSettings extends PureComponent {
 
     if (endpointChainId !== toHex(chainId)) {
       if (isNetworkUiRedesignEnabled()) {
-        this.setState({
+        return this.setState({
           warningRpcUrl: strings(
             'app_settings.url_associated_to_another_chain_id',
           ),
+          validatedRpcURL: false,
+          warningChainId: strings('app_settings.unMatched_chain_name'),
         });
       }
-
-      return this.setState({
-        validatedRpcURL: false,
-        warningChainId: strings('app_settings.unMatched_chain_name'),
-      });
     }
 
     this.validateRpcAndChainId();
