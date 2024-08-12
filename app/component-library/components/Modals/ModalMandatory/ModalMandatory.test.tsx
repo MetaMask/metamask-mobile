@@ -15,7 +15,6 @@ jest.mock('@react-navigation/native', () => {
 describe('Mandatory Modal', () => {
   it('should render correctly webview mandatory modal', () => {
     const { toJSON } = renderWithProvider(
-      /*  <SafeAreaView> */
       <ModalMandatory
         route={{
           params: {
@@ -28,7 +27,6 @@ describe('Mandatory Modal', () => {
           },
         }}
       />,
-      /*   </SafeAreaView>, */
     );
     expect(toJSON).toMatchSnapshot();
   });
