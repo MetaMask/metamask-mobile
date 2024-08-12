@@ -501,7 +501,6 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   }
                                 }
                                 testID="portfolio-button"
-                                variant="Secondary"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -1768,7 +1767,6 @@ exports[`Tokens should render correctly 1`] = `
                                   }
                                 }
                                 testID="portfolio-button"
-                                variant="Secondary"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -3043,7 +3041,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   }
                                 }
                                 testID="portfolio-button"
-                                variant="Secondary"
                               >
                                 <Text
                                   accessibilityRole="text"

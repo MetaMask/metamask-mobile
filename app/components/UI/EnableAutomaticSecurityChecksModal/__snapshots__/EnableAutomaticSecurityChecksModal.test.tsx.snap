@@ -471,7 +471,6 @@ exports[`EnableAutomaticSecurityChecksModal should render correctly 1`] = `
                                 "paddingHorizontal": 16,
                               }
                             }
-                            variant="Primary"
                           >
                             <Text
                               accessibilityRole="text"
@@ -509,7 +508,6 @@ exports[`EnableAutomaticSecurityChecksModal should render correctly 1`] = `
                               }
                             }
                             testID="no-thanks-button"
-                            variant="Link"
                           >
                             <Text
                               accessibilityRole="text"

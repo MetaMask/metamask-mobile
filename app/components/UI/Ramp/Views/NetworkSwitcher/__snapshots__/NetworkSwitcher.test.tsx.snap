@@ -1358,7 +1358,6 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                   }
                                                 }
                                                 testID="approve-network-cancel-button"
-                                                variant="Secondary"
                                               >
                                                 <Text
                                                   accessibilityRole="text"
@@ -1399,7 +1398,6 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                   }
                                                 }
                                                 testID="approve-network-approve-button"
-                                                variant="Primary"
                                               >
                                                 <Text
                                                   accessibilityRole="text"

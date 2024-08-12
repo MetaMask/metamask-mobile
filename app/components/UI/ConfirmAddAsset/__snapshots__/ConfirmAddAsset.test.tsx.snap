@@ -322,7 +322,6 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
           }
         }
         testID="bottomsheetfooter-button"
-        variant="Secondary"
       >
         <Text
           accessibilityRole="text"
@@ -363,7 +362,6 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
           }
         }
         testID="bottomsheetfooter-button-subsequent"
-        variant="Primary"
       >
         <Text
           accessibilityRole="text"

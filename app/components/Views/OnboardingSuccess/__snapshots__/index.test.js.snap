@@ -209,7 +209,6 @@ Change these at any time.
           }
         }
         testID="onboarding-success-done-button"
-        variant="Primary"
       >
         <Text
           accessibilityRole="text"

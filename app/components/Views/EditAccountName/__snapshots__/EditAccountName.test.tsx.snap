@@ -197,7 +197,6 @@ exports[`EditAccountName should render correctly 1`] = `
           "paddingHorizontal": 16,
         }
       }
-      variant="Secondary"
     >
       <Text
         accessibilityRole="text"
@@ -238,7 +237,6 @@ exports[`EditAccountName should render correctly 1`] = `
         }
       }
       testID="edit-account-name-save-button"
-      variant="Primary"
     >
       <Text
         accessibilityRole="text"

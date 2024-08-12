@@ -524,7 +524,6 @@ exports[`NetworkDetails renders correctly 1`] = `
                   }
                 }
                 testID="approve-network-cancel-button"
-                variant="Secondary"
               >
                 <Text
                   accessibilityRole="text"
@@ -565,7 +564,6 @@ exports[`NetworkDetails renders correctly 1`] = `
                   }
                 }
                 testID="approve-network-approve-button"
-                variant="Primary"
               >
                 <Text
                   accessibilityRole="text"

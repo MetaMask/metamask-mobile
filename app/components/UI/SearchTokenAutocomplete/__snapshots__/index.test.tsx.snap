@@ -478,7 +478,6 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                             }
                           }
                           testID="token-import-next-button"
-                          variant="Primary"
                         >
                           <Text
                             accessibilityRole="text"

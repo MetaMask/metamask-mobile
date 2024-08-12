@@ -546,7 +546,6 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         "paddingHorizontal": 16,
                                       }
                                     }
-                                    variant="Secondary"
                                   >
                                     <Text
                                       accessibilityRole="text"
@@ -1111,7 +1110,6 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           "paddingHorizontal": 16,
                                         }
                                       }
-                                      variant="Secondary"
                                     >
                                       <Text
                                         accessibilityRole="text"
@@ -1695,7 +1693,6 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         "paddingHorizontal": 16,
                                       }
                                     }
-                                    variant="Secondary"
                                   >
                                     <Text
                                       accessibilityRole="text"
@@ -1832,7 +1829,6 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                           "paddingHorizontal": 16,
                                         }
                                       }
-                                      variant="Secondary"
                                     >
                                       <Text
                                         accessibilityRole="text"
@@ -2960,7 +2956,6 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                         "paddingHorizontal": 16,
                                       }
                                     }
-                                    variant="Secondary"
                                   >
                                     <Text
                                       accessibilityRole="text"
@@ -3543,7 +3538,6 @@ exports[`Settings renders correctly 1`] = `
                                         "paddingHorizontal": 16,
                                       }
                                     }
-                                    variant="Secondary"
                                   >
                                     <Text
                                       accessibilityRole="text"
@@ -4126,7 +4120,6 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         "paddingHorizontal": 16,
                                       }
                                     }
-                                    variant="Secondary"
                                   >
                                     <Text
                                       accessibilityRole="text"
@@ -4687,7 +4680,6 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           "paddingHorizontal": 16,
                                         }
                                       }
-                                      variant="Secondary"
                                     >
                                       <Text
                                         accessibilityRole="text"

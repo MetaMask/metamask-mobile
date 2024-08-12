@@ -108,7 +108,6 @@ exports[`OriginSpamModal renders SiteBlockedContent if user opt in to block dapp
           "paddingHorizontal": 16,
         }
       }
-      variant="Primary"
     >
       <Text
         accessibilityRole="text"
@@ -299,7 +298,6 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
         }
       }
       testID="continue-origin-button"
-      variant="Secondary"
     >
       <Text
         accessibilityRole="text"
@@ -337,7 +335,6 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
         }
       }
       testID="block-origin-button"
-      variant="Primary"
     >
       <Text
         accessibilityRole="text"

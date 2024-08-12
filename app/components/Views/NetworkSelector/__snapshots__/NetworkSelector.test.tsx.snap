@@ -1144,7 +1144,6 @@ exports[`Network Selector renders correctly 1`] = `
                               }
                             }
                             testID="add-network-button"
-                            variant="Secondary"
                           >
                             <Text
                               accessibilityRole="text"

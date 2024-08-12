@@ -171,7 +171,6 @@ exports[`Banner should render correctly with a close button 1`] = `
           "paddingHorizontal": 0,
         }
       }
-      variant="Secondary"
     >
       <Text
         accessibilityRole="text"
@@ -407,7 +406,6 @@ exports[`Banner should render correctly with an action button 1`] = `
           "paddingHorizontal": 0,
         }
       }
-      variant="Secondary"
     >
       <Text
         accessibilityRole="text"

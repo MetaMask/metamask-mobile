@@ -260,7 +260,6 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
@@ -307,7 +306,6 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Primary"
             >
               <Text
                 accessibilityRole="text"

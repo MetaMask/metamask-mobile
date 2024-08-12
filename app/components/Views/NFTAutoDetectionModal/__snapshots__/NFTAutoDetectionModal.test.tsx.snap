@@ -586,7 +586,6 @@ exports[`NFT Auto detection modal render matches snapshot 1`] = `
                                   }
                                 }
                                 testID="allow"
-                                variant="Primary"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -631,7 +630,6 @@ exports[`NFT Auto detection modal render matches snapshot 1`] = `
                                   }
                                 }
                                 testID="cancel"
-                                variant="Link"
                               >
                                 <Text
                                   accessibilityRole="text"

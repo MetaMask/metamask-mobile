@@ -81,7 +81,6 @@ exports[`Asset should render correctly 1`] = `
         }
       }
       testID="token-swap-button"
-      variant="Primary"
     >
       <Text
         accessibilityRole="text"

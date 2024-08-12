@@ -71,7 +71,6 @@ exports[`TemplateConfirmation renders content and actions 1`] = `
           }
         }
         testID="bottomsheetfooter-button"
-        variant="Primary"
       >
         <Text
           accessibilityRole="text"
@@ -114,7 +113,6 @@ exports[`TemplateConfirmation renders content and actions 1`] = `
           }
         }
         testID="bottomsheetfooter-button-subsequent"
-        variant="Secondary"
       >
         <Text
           accessibilityRole="text"

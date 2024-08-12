@@ -81,7 +81,6 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             }
           }
           testID="generate-salt-button"
-          variant="Primary"
         >
           <Text
             accessibilityRole="text"
@@ -194,7 +193,6 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             }
           }
           testID="generate-encryption-key-button"
-          variant="Primary"
         >
           <Text
             accessibilityRole="text"
@@ -307,7 +305,6 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             }
           }
           testID="encrypt-with-key-button"
-          variant="Primary"
         >
           <Text
             accessibilityRole="text"
@@ -395,7 +392,6 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             }
           }
           testID="decrypt-with-key-button"
-          variant="Primary"
         >
           <Text
             accessibilityRole="text"
@@ -508,7 +504,6 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             }
           }
           testID="encrypt-button"
-          variant="Primary"
         >
           <Text
             accessibilityRole="text"
@@ -596,7 +591,6 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             }
           }
           testID="decrypt-button"
-          variant="Primary"
         >
           <Text
             accessibilityRole="text"

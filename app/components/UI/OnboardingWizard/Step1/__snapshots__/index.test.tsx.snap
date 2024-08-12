@@ -150,7 +150,6 @@ exports[`Step1 should render correctly 1`] = `
               }
             }
             testID="onboarding-wizard-no-thanks-button"
-            variant="Primary"
           >
             <Text
               accessibilityRole="text"
@@ -192,7 +191,6 @@ exports[`Step1 should render correctly 1`] = `
               }
             }
             testID="onboarding-wizard-next-button"
-            variant="Secondary"
           >
             <Text
               accessibilityRole="text"

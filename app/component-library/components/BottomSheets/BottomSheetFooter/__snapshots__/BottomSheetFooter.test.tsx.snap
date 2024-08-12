@@ -35,7 +35,6 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
       }
     }
     testID="bottomsheetfooter-button"
-    variant="Secondary"
   >
     <Text
       accessibilityRole="text"
@@ -76,7 +75,6 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
       }
     }
     testID="bottomsheetfooter-button-subsequent"
-    variant="Primary"
   >
     <Text
       accessibilityRole="text"

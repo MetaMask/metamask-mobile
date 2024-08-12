@@ -187,7 +187,6 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
           }
         }
         testID="bottomsheetfooter-button"
-        variant="Primary"
       >
         <Text
           accessibilityRole="text"
@@ -397,7 +396,6 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
           }
         }
         testID="bottomsheetfooter-button"
-        variant="Primary"
       >
         <Text
           accessibilityRole="text"

@@ -584,7 +584,6 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
                                     "paddingHorizontal": 16,
                                   }
                                 }
-                                variant="Primary"
                               >
                                 <Text
                                   accessibilityRole="text"

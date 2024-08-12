@@ -625,7 +625,6 @@ exports[`AddActivationKey renders correctly 1`] = `
                                     "paddingHorizontal": 16,
                                   }
                                 }
-                                variant="Secondary"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -665,7 +664,6 @@ exports[`AddActivationKey renders correctly 1`] = `
                                     "paddingHorizontal": 16,
                                   }
                                 }
-                                variant="Primary"
                               >
                                 <Text
                                   accessibilityRole="text"

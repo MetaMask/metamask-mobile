@@ -470,7 +470,6 @@ exports[`UpdateNeeded should render correctly 1`] = `
                                 "paddingHorizontal": 16,
                               }
                             }
-                            variant="Primary"
                           >
                             <Text
                               accessibilityRole="text"
@@ -507,7 +506,6 @@ exports[`UpdateNeeded should render correctly 1`] = `
                                 "paddingHorizontal": 16,
                               }
                             }
-                            variant="Link"
                           >
                             <Text
                               accessibilityRole="text"

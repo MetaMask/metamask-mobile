@@ -197,7 +197,6 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
               }
             }
             testID="data-collection-modal-accept-button"
-            variant="Primary"
           >
             <Text
               accessibilityRole="text"

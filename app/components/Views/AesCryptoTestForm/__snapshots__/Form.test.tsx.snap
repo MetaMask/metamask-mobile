@@ -47,7 +47,6 @@ exports[`TestForm renders correctly 1`] = `
       }
     }
     testID="random-callback-test-id"
-    variant="Primary"
   >
     <Text
       accessibilityRole="text"

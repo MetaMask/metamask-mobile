@@ -227,7 +227,6 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
         }
       }
       testID="next-button-custom-import"
-      variant="Primary"
     >
       <Text
         accessibilityRole="text"
