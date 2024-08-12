@@ -10,6 +10,11 @@ import Accordion from '../../../../../component-library/components/Accordions/Ac
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner';
 import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
+import {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
+import Icon from '../../../../../component-library/components/Icons/Icon/Icon';
 import Text from '../../../../../component-library/components/Texts/Text/Text';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import { isBlockaidFeatureEnabled } from '../../../../../util/blockaid';
@@ -31,6 +36,9 @@ import {
 } from '../../../../../constants/urls';
 import { BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../../util/networks';
 import BlockaidVersionInfo from '../../../../../lib/ppom/blockaid-version';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
 import AppConstants from '../../../../../core/AppConstants';
 
@@ -59,6 +67,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
     onContactUsClicked,
   } = bannerProps;
   const { styles, theme } = useStyles(styleSheet, { style });
+  const [displayPositiveResponse, setDisplayPositiveResponse] = useState(false);
   const [reportUrl, setReportUrl] = useState<string>('');
   const [isFeatureEnabled, setIsFeatureEnabled] = useState<boolean | null>(
     null,
@@ -72,6 +81,12 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
 
     checkFeatureEnabled();
   }, []);
+
+  useEffect(() => {
+    if (securityAlertResponse?.reason === Reason.requestInProgress) {
+      setDisplayPositiveResponse(true);
+    }
+  }, [securityAlertResponse]);
 
   useEffect(() => {
     if (!securityAlertResponse) {
@@ -114,15 +129,33 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
 
   if (securityAlertResponse.reason === Reason.requestInProgress) {
     return (
-      <ActivityIndicator
-        style={styles.bannerSectionSmall}
-        size="small"
-        color={theme.colors.warning.default}
-      />
+      <View style={styles.bannerSectionSmall}>
+        <ActivityIndicator size="small" color={theme.colors.icon.default} />
+        <Text style={styles.infoText}>
+          {strings('blockaid_banner.loading_title')}
+        </Text>
+      </View>
     );
   }
 
   if (result_type === ResultType.Benign) {
+    if (displayPositiveResponse) {
+      return (
+        <View style={styles.bannerSectionSmallSpaced}>
+          <View style={styles.flexRowSection}>
+            <Icon name={IconName.Info} size={IconSize.Lg} />
+            <Text style={styles.infoText}>
+              {strings('blockaid_banner.loading_complete_title')}
+            </Text>
+          </View>
+          <ButtonIcon
+            size={ButtonIconSizes.Sm}
+            onPress={() => setDisplayPositiveResponse(false)}
+            iconName={IconName.Close}
+          />
+        </View>
+      );
+    }
     return null;
   }
 
