@@ -1,13 +1,18 @@
 import { Web3Provider } from '@ethersproject/providers';
 import { toHex } from '@metamask/controller-utils';
+import BigNumber from 'bignumber.js';
 import { NotificationServicesController } from '@metamask/notification-services-controller';
+
 import Engine from '../../../core/Engine';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { hexWEIToDecETH, hexWEIToDecGWEI } from '../../conversions';
 import { TRIGGER_TYPES } from '../constants';
 import { Notification } from '../types';
-import BigNumber from 'bignumber.js';
+import { calcTokenAmount } from '../../transactions';
+import images from '../../../images/image-icons';
+import CHAIN_SCANS_URLS from '../constants/urls';
 
+const { UI } = NotificationServicesController;
 /**
  * Checks if 2 date objects are on the same day
  *
@@ -336,4 +341,149 @@ export const sortNotifications = (
   return notifications.sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
+};
+
+/**
+ * Gets token information for the notification chains we support.
+ * @param chainId Notification Chain Id. This is a subset of chains that support notifications
+ * @returns native token details for a given chain
+ */
+export function getNativeTokenDetailsByChainId(chainId: number) {
+  const chainIdString = chainId.toString();
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ETHEREUM) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images.ETHEREUM,
+    };
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.OPTIMISM) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images.OPTIMISM,
+    };
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.BSC) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images.BNB,
+    };
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.POLYGON) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images.MATIC,
+    };
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ARBITRUM) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images.AETH,
+    };
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.AVALANCHE) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images.AVAX,
+    };
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.LINEA) {
+    return {
+      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      image: images['LINEA-MAINNET'],
+    };
+  }
+
+  return undefined;
+}
+
+/**
+ * Gets block explorer information for the notification chains we support
+ * @param chainId Notification Chain Id. This is a subset of chains that support notifications
+ * @returns some default block explorers for the chains we support.
+ */
+export function getBlockExplorerByChainId(chainId: number) {
+  const chainIdString = chainId.toString();
+
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ETHEREUM) {
+    return CHAIN_SCANS_URLS.ETHEREUM;
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.OPTIMISM) {
+    return CHAIN_SCANS_URLS.OPTIMISM;
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.BSC) {
+    return CHAIN_SCANS_URLS.BSC;
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.POLYGON) {
+    return CHAIN_SCANS_URLS.POLYGON;
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ARBITRUM) {
+    return CHAIN_SCANS_URLS.ARBITRUM;
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.AVALANCHE) {
+    return CHAIN_SCANS_URLS.AVALANCHE;
+  }
+  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.LINEA) {
+    return CHAIN_SCANS_URLS.LINEA;
+  }
+
+  return undefined;
+}
+
+/**
+ * Converts a token amount from its smallest unit based on its decimals to a human-readable format,
+ * applying formatting options such as decimal places and ellipsis for overflow.
+ *
+ * @param amount - The token amount in its smallest unit as a string.
+ * @param decimals - The number of decimals the token uses.
+ * @param options - Optional formatting options to specify the number of decimal places and whether to use ellipsis.
+ * @returns The formatted token amount as a string. If the input is invalid, returns an empty string.
+ */
+export const getAmount = (
+  amount: string,
+  decimals: string,
+  options?: FormatOptions,
+) => {
+  if (!amount || !decimals) {
+    return '';
+  }
+
+  const numericAmount = calcTokenAmount(
+    amount,
+    parseFloat(decimals),
+  ).toNumber();
+
+  return formatAmount(numericAmount, options);
+};
+
+/**
+ * Converts a token amount and its USD conversion rate to a formatted USD string.
+ *
+ * This function first converts the token amount from its smallest unit based on the provided decimals
+ * to a human-readable format. It then multiplies this amount by the USD conversion rate to get the
+ * equivalent amount in USD, and formats this USD amount into a readable string.
+ *
+ * @param amount - The token amount in its smallest unit as a string.
+ * @param decimals - The number of decimals the token uses.
+ * @param usd - The current USD conversion rate for the token.
+ * @returns The formatted USD amount as a string. If any input is invalid, returns an empty string.
+ */
+export const getUsdAmount = (amount: string, decimals: string, usd: string) => {
+  if (!amount || !decimals || !usd) {
+    return '';
+  }
+
+  const amountInEther = calcTokenAmount(
+    amount,
+    parseFloat(decimals),
+  ).toNumber();
+  const numericAmount = parseFloat(`${amountInEther}`) * parseFloat(usd);
+
+  return formatAmount(numericAmount);
 };

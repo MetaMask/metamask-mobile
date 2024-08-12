@@ -1,7 +1,6 @@
 import { KeyringController } from '@metamask/keyring-controller';
 import { NetworkController } from '@metamask/network-controller';
 import { PermissionController } from '@metamask/permission-controller';
-import { PreferencesController } from '@metamask/preferences-controller';
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { Linking } from 'react-native';
 import { PROTOCOLS } from '../../../constants/deeplinks';
@@ -23,6 +22,8 @@ import handleBatchRpcResponse from '../handlers/handleBatchRpcResponse';
 import handleCustomRpcCalls from '../handlers/handleCustomRpcCalls';
 import DevLogger from '../utils/DevLogger';
 import { wait, waitForKeychainUnlocked } from '../utils/wait.util';
+import { AccountsController } from '@metamask/accounts-controller';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 export default class DeeplinkProtocolService {
   public connections: DappConnections = {};
@@ -202,6 +203,18 @@ export default class DeeplinkProtocolService {
           messageWithMetadata,
         )}`,
       );
+
+      const origRpcId = messageWithMetadata?.data?.id;
+
+      const isPartOfBatchRequest = origRpcId?.includes('_');
+
+      if (isPartOfBatchRequest) {
+        DevLogger.log(
+          `DeeplinkProtocolService::sendMessage skip openDeeplink for origRpcId=${origRpcId}`,
+        );
+
+        return;
+      }
 
       this.openDeeplink({
         message: messageWithMetadata,
@@ -545,11 +558,15 @@ export default class DeeplinkProtocolService {
       this.currentClientId ?? '',
     );
 
-    const preferencesController = (
-      Engine.context as { PreferencesController: PreferencesController }
-    ).PreferencesController;
+    const accountsController = (
+      Engine.context as {
+        AccountsController: AccountsController;
+      }
+    ).AccountsController;
 
-    const selectedAddress = preferencesController.state.selectedAddress;
+    const selectedInternalAccountChecksummedAddress = toChecksumHexAddress(
+      accountsController.getSelectedAccount().address,
+    );
 
     let connectedAddresses = permissions?.eth_accounts?.caveats?.[0]
       ?.value as string[];
@@ -568,15 +585,17 @@ export default class DeeplinkProtocolService {
     );
 
     const isPartOfConnectedAddresses = lowerCaseConnectedAddresses.includes(
-      selectedAddress.toLowerCase(),
+      selectedInternalAccountChecksummedAddress.toLowerCase(),
     );
 
     if (isPartOfConnectedAddresses) {
       // Create a new array with selectedAddress at the first position
       connectedAddresses = [
-        selectedAddress,
+        selectedInternalAccountChecksummedAddress,
         ...connectedAddresses.filter(
-          (address) => address.toLowerCase() !== selectedAddress.toLowerCase(),
+          (address) =>
+            address.toLowerCase() !==
+            selectedInternalAccountChecksummedAddress.toLowerCase(),
         ),
       ];
     }
@@ -585,20 +604,22 @@ export default class DeeplinkProtocolService {
   }
 
   public getSelectedAddress() {
-    const preferencesController = (
+    const accountsController = (
       Engine.context as {
-        PreferencesController: PreferencesController;
+        AccountsController: AccountsController;
       }
-    ).PreferencesController;
+    ).AccountsController;
 
-    const selectedAddress = preferencesController.state.selectedAddress;
+    const selectedInternalAccountChecksummedAddress = toChecksumHexAddress(
+      accountsController.getSelectedAccount().address,
+    );
 
     DevLogger.log(
       `DeeplinkProtocolService::clients_connected selectedAddress`,
-      selectedAddress,
+      selectedInternalAccountChecksummedAddress,
     );
 
-    return selectedAddress;
+    return selectedInternalAccountChecksummedAddress;
   }
 
   public handleMessage(params: {

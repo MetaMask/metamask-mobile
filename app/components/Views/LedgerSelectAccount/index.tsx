@@ -21,9 +21,9 @@ import { useDispatch } from 'react-redux';
 import { KeyringController } from '@metamask/keyring-controller';
 import { StackNavigationProp } from '@react-navigation/stack';
 import createStyles from './index.styles';
-import OperationTypes from '../../../core/Ledger/types';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import PAGINATION_OPERATIONS from '../../../constants/pagination';
 
 const LedgerSelectAccount = () => {
   const navigation = useNavigation<StackNavigationProp<never>>();
@@ -68,21 +68,21 @@ const LedgerSelectAccount = () => {
       device_type: HardwareDeviceTypes.LEDGER,
     });
     const _accounts = await getLedgerAccountsByOperation(
-      OperationTypes.GET_FIRST_PAGE,
+      PAGINATION_OPERATIONS.GET_FIRST_PAGE,
     );
     setAccounts(_accounts);
   }, [trackEvent]);
 
   const nextPage = useCallback(async () => {
     const _accounts = await getLedgerAccountsByOperation(
-      OperationTypes.GET_NEXT_PAGE,
+      PAGINATION_OPERATIONS.GET_NEXT_PAGE,
     );
     setAccounts(_accounts);
   }, []);
 
   const prevPage = useCallback(async () => {
     const _accounts = await getLedgerAccountsByOperation(
-      OperationTypes.GET_PREVIOUS_PAGE,
+      PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE,
     );
     setAccounts(_accounts);
   }, []);
