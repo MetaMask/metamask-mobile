@@ -430,6 +430,46 @@ describe('NetworkSettings', () => {
     expect(getCurrentStateSpy).toHaveBeenCalled();
   });
 
+  it('should update isNameFieldFocused state on name input focus and blur', () => {
+    const instance = wrapper.instance();
+
+    instance.onNameFocused();
+    expect(wrapper.state('isNameFieldFocused')).toBe(true);
+
+    instance.onNameBlur();
+    expect(wrapper.state('isNameFieldFocused')).toBe(false);
+  });
+
+  it('should update isSymbolFieldFocused state on symbol input focus and blur', () => {
+    const instance = wrapper.instance();
+
+    instance.onSymbolFocused();
+    expect(wrapper.state('isSymbolFieldFocused')).toBe(true);
+
+    instance.onSymbolBlur();
+    expect(wrapper.state('isSymbolFieldFocused')).toBe(false);
+  });
+
+  it('should update isRpcUrlFieldFocused state on RPC URL input focus and blur', () => {
+    const instance = wrapper.instance();
+
+    instance.onRpcUrlFocused();
+    expect(wrapper.state('isRpcUrlFieldFocused')).toBe(true);
+
+    instance.onRpcUrlBlur();
+    expect(wrapper.state('isRpcUrlFieldFocused')).toBe(false);
+  });
+
+  it('should update isChainIdFieldFocused state on chain ID input focus and blur', () => {
+    const instance = wrapper.instance();
+
+    instance.onChainIdFocused();
+    expect(wrapper.state('isChainIdFieldFocused')).toBe(true);
+
+    instance.onChainIdBlur();
+    expect(wrapper.state('isChainIdFieldFocused')).toBe(false);
+  });
+
   describe('getDecimalChainId', () => {
     let wrapperTest;
     // Do not need to mock entire Engine. Only need subset of data for testing purposes.
