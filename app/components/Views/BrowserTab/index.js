@@ -267,6 +267,7 @@ export const BrowserTab = (props) => {
   const [blockedUrl, setBlockedUrl] = useState(undefined);
   const [ipfsBannerVisible, setIpfsBannerVisible] = useState(false);
   const [isResolvedIpfsUrl, setIsResolvedIpfsUrl] = useState(false);
+  const [isWebActivityPaused, setIsWebActivityPaused] = useState(false);
   const webviewRef = useRef(null);
   const blockListType = useRef('');
   const allowList = useRef([]);
@@ -714,11 +715,13 @@ export const BrowserTab = (props) => {
         webviewRef.current.injectJavaScript(`
           window.isTabActive = true;
         `);
+        setIsWebActivityPaused(false);
       } else {
         webviewRef.current.injectJavaScript(`
           window.isTabActive = false;
         `);
         webviewRef.current.stopLoading(); // Stop loading the page
+        setIsWebActivityPaused(true);
       }
     }
   }, [isFocused]);
