@@ -317,7 +317,6 @@ const App = ({ userLoggedIn }) => {
   const dispatch = useDispatch();
   const sdkInit = useRef();
   const [onboarded, setOnboarded] = useState(false);
-
   const triggerSetCurrentRoute = (route) => {
     dispatch(setCurrentRoute(route));
     if (route === 'Wallet' || route === 'BrowserView') {
