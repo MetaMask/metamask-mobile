@@ -258,6 +258,14 @@ workflows:
                 echo "Corepack enabling $YARN_VERSION"
                 corepack enable
           title: Install node, yarn and corepack
+  install_detox:
+    steps:
+    - script@1:
+        inputs:
+          - content: |-
+              #!/usr/bin/env bash
+              scripts/detox-setup.sh
+        title: Install Detox Dependencies
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
@@ -529,6 +537,7 @@ workflows:
   android_e2e_build:
     before_run:
       - code_setup
+      - install_detox
       - set_commit_hash
     after_run:
       - notify_failure
@@ -610,6 +619,7 @@ workflows:
   android_e2e_test:
     before_run:
       - setup
+      - install_detox
       - prep_environment
     after_run:
       - notify_failure
@@ -708,6 +718,7 @@ workflows:
   ios_api_specs:
     before_run:
       - setup
+      - install_detox
       - prep_environment
     after_run:
       - notify_failure
@@ -774,6 +785,7 @@ workflows:
   ios_e2e_build:
     before_run:
       - code_setup
+      - install_detox
       - set_commit_hash
     after_run:
       - notify_failure
@@ -859,6 +871,7 @@ workflows:
   ios_e2e_test:
     before_run:
       - setup
+      - install_detox
       - prep_environment
     after_run:
       - notify_failure
@@ -1460,16 +1473,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.27.1
+      VERSION_NAME: 7.28.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1369
+      VERSION_NUMBER: 1375
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.27.1
+      FLASK_VERSION_NAME: 7.28.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1369
+      FLASK_VERSION_NUMBER: 1375
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
