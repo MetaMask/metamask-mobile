@@ -3,49 +3,57 @@ import LedgerConnect from '.';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import useBluetoothPermissions from '../../hooks/useBluetoothPermissions';
 import useBluetooth from '../../hooks/Ledger/useBluetooth';
-import useBluetoothDevices from '../../hooks/Ledger/useBluetoothDevices';
+import useBluetoothDevices, {
+  BluetoothDevice,
+} from '../../hooks/Ledger/useBluetoothDevices';
 import { fireEvent } from '@testing-library/react-native';
 import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  NavigationProp,
+  ParamListBase,
+} from '@react-navigation/native';
 import { LedgerCommunicationErrors } from '../../../core/Ledger/ledgerErrors';
 import { strings } from '../../../../locales/i18n';
 import { getSystemVersion } from 'react-native-device-info';
 import Device from '../../../util/device';
 import { LEDGER_SUPPORT_LINK } from '../../../constants/urls';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import { BluetoothDevice } from '../../hooks/Ledger/useBluetoothDevices';
 
 // Add types for the mocked hooks
-type UseBluetoothPermissionsHook = {
+interface UseBluetoothPermissionsHook {
   hasBluetoothPermissions: boolean;
   bluetoothPermissionError: string | undefined;
   checkPermissions: jest.Mock;
-};
+}
 
-type UseBluetoothHook = {
+interface UseBluetoothHook {
   bluetoothOn: boolean;
   bluetoothConnectionError: boolean | undefined;
-};
+}
 
-type UseBluetoothDevicesHook = {
+interface UseBluetoothDevicesHook {
   devices: BluetoothDevice[];
   deviceScanError: boolean;
-};
+}
 
-type UseLedgerBluetoothHook = {
+interface UseLedgerBluetoothHook {
   isSendingLedgerCommands: boolean;
   isAppLaunchConfirmationNeeded: boolean;
   ledgerLogicToRun: jest.Mock;
   error: LedgerCommunicationErrors | undefined;
-};
+}
 
 type MockedHook<T> = jest.MockedFunction<() => T> & {
   mockReturnValue: (value: T) => jest.MockedFunction<() => T>;
 };
 
 // Update the type for the mocked useLedgerBluetooth hook
-type MockedUseLedgerBluetoothHook = jest.MockedFunction<(deviceId?: string) => UseLedgerBluetoothHook> & {
-  mockReturnValue: (value: UseLedgerBluetoothHook) => jest.MockedFunction<(deviceId?: string) => UseLedgerBluetoothHook>;
+type MockedUseLedgerBluetoothHook = jest.MockedFunction<
+  (deviceId?: string) => UseLedgerBluetoothHook
+> & {
+  mockReturnValue: (
+    value: UseLedgerBluetoothHook,
+  ) => jest.MockedFunction<(deviceId?: string) => UseLedgerBluetoothHook>;
 };
 
 jest.mock('../../hooks/useBluetoothPermissions');
@@ -115,7 +123,7 @@ jest.mock('../../hooks/useBluetoothPermissions', () => ({
 
 jest.mock('../../hooks/Ledger/useLedgerBluetooth', () => ({
   __esModule: true,
-  default: jest.fn((deviceId?: string) => ({
+  default: jest.fn((_deviceId?: string) => ({
     isSendingLedgerCommands: false,
     isAppLaunchConfirmationNeeded: false,
     ledgerLogicToRun: jest.fn(),
@@ -153,33 +161,47 @@ describe('LedgerConnect', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     //mock hook return values
-    (useBluetoothPermissions as jest.MockedFunction<() => UseBluetoothPermissionsHook>).mockReturnValue({
+    (
+      useBluetoothPermissions as jest.MockedFunction<
+        () => UseBluetoothPermissionsHook
+      >
+    ).mockReturnValue({
       hasBluetoothPermissions: true,
       bluetoothPermissionError: undefined,
       checkPermissions: jest.fn(),
     });
 
-    (useBluetooth as jest.MockedFunction<() => UseBluetoothHook>).mockReturnValue({
+    (
+      useBluetooth as jest.MockedFunction<() => UseBluetoothHook>
+    ).mockReturnValue({
       bluetoothOn: true,
       bluetoothConnectionError: false,
     });
 
-    (useBluetoothDevices as jest.MockedFunction<() => UseBluetoothDevicesHook>).mockReturnValue({
+    (
+      useBluetoothDevices as jest.MockedFunction<() => UseBluetoothDevicesHook>
+    ).mockReturnValue({
       devices: [{ id: '1', name: 'Ledger Nano X' }],
       deviceScanError: false,
     });
 
-    (useLedgerBluetooth as unknown as jest.MockedFunction<typeof useLedgerBluetooth>).mockImplementation(() => ({
+    (
+      useLedgerBluetooth as unknown as jest.MockedFunction<
+        typeof useLedgerBluetooth
+      >
+    ).mockImplementation(() => ({
       isSendingLedgerCommands: false,
       isAppLaunchConfirmationNeeded: false,
       ledgerLogicToRun: jest.fn(),
       error: undefined,
-      cleanupBluetoothConnection: function (): void {
+      cleanupBluetoothConnection(): void {
         throw new Error('Function not implemented.');
-      }
+      },
     }));
 
-    (useNavigation as jest.MockedFunction<typeof useNavigation>).mockReturnValue({
+    (
+      useNavigation as jest.MockedFunction<typeof useNavigation>
+    ).mockReturnValue({
       navigate: jest.fn(),
       setOptions: jest.fn(),
       dispatch: jest.fn(),
@@ -203,14 +225,18 @@ describe('LedgerConnect', () => {
   it('calls connectLedger when continue button is pressed', () => {
     const ledgerLogicToRun = jest.fn();
 
-    (useLedgerBluetooth as unknown as jest.MockedFunction<typeof useLedgerBluetooth>).mockReturnValue({
+    (
+      useLedgerBluetooth as unknown as jest.MockedFunction<
+        typeof useLedgerBluetooth
+      >
+    ).mockReturnValue({
       isSendingLedgerCommands: false,
       isAppLaunchConfirmationNeeded: false,
       ledgerLogicToRun,
       error: undefined,
-      cleanupBluetoothConnection: function (): void {
+      cleanupBluetoothConnection(): void {
         throw new Error('Function not implemented.');
-      }
+      },
     });
 
     ledgerLogicToRun.mockImplementation((callback: () => void) => callback());
@@ -265,7 +291,11 @@ describe('LedgerConnect', () => {
       dispatch: jest.fn(),
     } as unknown as NavigationProp<ParamListBase>);
 
-    (useLedgerBluetooth as unknown as jest.MockedFunction<() => UseLedgerBluetoothHook>).mockReturnValue({
+    (
+      useLedgerBluetooth as unknown as jest.MockedFunction<
+        () => UseLedgerBluetoothHook
+      >
+    ).mockReturnValue({
       isSendingLedgerCommands: true,
       isAppLaunchConfirmationNeeded: false,
       ledgerLogicToRun: jest.fn(),
@@ -329,14 +359,18 @@ describe('LedgerConnect', () => {
   it('calls connectLedger on retry button', () => {
     const ledgerLogicToRun = jest.fn();
 
-    (useLedgerBluetooth as unknown as jest.MockedFunction<typeof useLedgerBluetooth>).mockReturnValue({
+    (
+      useLedgerBluetooth as unknown as jest.MockedFunction<
+        typeof useLedgerBluetooth
+      >
+    ).mockReturnValue({
       isSendingLedgerCommands: true,
       isAppLaunchConfirmationNeeded: false,
       ledgerLogicToRun,
       error: LedgerCommunicationErrors.FailedToOpenApp,
-      cleanupBluetoothConnection: function (): void {
+      cleanupBluetoothConnection(): void {
         throw new Error('Function not implemented.');
-      }
+      },
     });
 
     const { getByTestId } = renderWithProvider(

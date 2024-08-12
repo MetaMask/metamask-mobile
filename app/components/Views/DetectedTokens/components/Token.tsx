@@ -115,7 +115,10 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
   const tokenBalances = useSelector(selectContractBalances);
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const tokenMarketData = (tokenExchangeRates as Record<`0x${string}`, MarketDataDetails>)?.[address as `0x${string}`] ?? null;
+  const tokenMarketData =
+    (tokenExchangeRates as Record<`0x${string}`, MarketDataDetails>)?.[
+      address as `0x${string}`
+    ] ?? null;
   const tokenBalance = renderFromTokenMinimalUnit(
     tokenBalances[address],
     decimals,

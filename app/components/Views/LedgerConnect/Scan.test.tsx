@@ -11,10 +11,6 @@ jest.mock('../../hooks/Ledger/useBluetooth');
 jest.mock('../../hooks/Ledger/useBluetoothDevices');
 jest.mock('../../hooks/useBluetoothPermissions');
 
-const mockUseBluetooth = jest.mocked(useBluetooth);
-const mockUseBluetoothDevices = jest.mocked(useBluetoothDevices);
-const mockUseBluetoothPermissions = jest.mocked(useBluetoothPermissions);
-
 jest.mock('react-native-permissions', () => ({
   openSettings: jest.fn(),
 }));

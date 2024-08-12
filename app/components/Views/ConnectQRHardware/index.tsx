@@ -11,14 +11,14 @@ import Engine from '../../../core/Engine';
 import AnimatedQRScannerModal from '../../UI/QRHardware/AnimatedQRScanner';
 import AccountSelector from '../../UI/HardwareWallet/AccountSelector';
 import ConnectQRInstruction from './Instruction';
-import Icon, { IconProps } from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { strings } from '../../../../locales/i18n';
 import { UR } from '@ngraveio/bc-ur';
 import Alert, { AlertType } from '../../Base/Alert';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
-import MaterialIcon, { MaterialIconProps } from 'react-native-vector-icons/MaterialIcons';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Device from '../../../util/device';
 import { useTheme } from '../../../util/theme';
 import { SUPPORTED_UR_TYPE } from '../../../constants/qr';
@@ -188,12 +188,12 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     Engine.context.KeyringController.getOrAddQRKeyring();
     Engine.controllerMessenger.subscribe(
       'KeyringController:qrKeyringStateChange',
-      (storeValue: unknown) => subscribeKeyringState(storeValue as any)
+      (storeValue: unknown) => subscribeKeyringState(storeValue as any),
     );
     return () => {
       Engine.controllerMessenger.unsubscribe(
         'KeyringController:qrKeyringStateChange',
-        (storeValue: unknown) => subscribeKeyringState(storeValue as any)
+        (storeValue: unknown) => subscribeKeyringState(storeValue as any),
       );
     };
   }, [KeyringController, subscribeKeyringState]);
