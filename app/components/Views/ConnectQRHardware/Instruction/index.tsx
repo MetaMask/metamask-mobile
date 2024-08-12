@@ -2,12 +2,14 @@
 /* eslint @typescript-eslint/no-require-imports: "off" */
 
 import React from 'react';
-import { View, Text, Image, ScrollView, Platform } from 'react-native';
+import { View, Text, ScrollView, Platform } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import {
   KEYSTONE_LEARN_MORE,
   KEYSTONE_SUPPORT,
   KEYSTONE_SUPPORT_VIDEO,
+  NGRAVE_BUY,
+  NGRAVE_LEARN_MORE,
 } from '../../../../constants/urls';
 import { useTheme } from '../../../../util/theme';
 import { createStyles } from './styles';
@@ -24,12 +26,21 @@ interface IConnectQRInstructionProps {
 }
 
 // eslint-disable-next-line import/no-commonjs
-const connectQRHardwareImg = require('images/connect-qr-hardware.png');
 
 const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
   const { onConnect, renderAlert, navigation } = props;
   const theme = useTheme();
   const styles = createStyles(theme);
+
+  const navigateTo = (url: string, title: string) => {
+    navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url,
+        title: strings(title),
+      },
+    });
+  };
 
   const navigateToVideo = () => {
     navigation.navigate('Webview', {
@@ -40,7 +51,7 @@ const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
       },
     });
   };
-  const navigateToLearnMore = () => {
+  const navigateToLearnMoreKeystone = () => {
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
@@ -82,7 +93,7 @@ const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
           <View style={styles.buttonGroup}>
             <Text
               style={[styles.text, styles.link, styles.linkMarginRight]}
-              onPress={navigateToLearnMore}
+              onPress={navigateToLearnMoreKeystone}
             >
               {strings('connect_qr_hardware.learnMore')}
             </Text>
@@ -93,18 +104,28 @@ const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
               {strings('connect_qr_hardware.tutorial')}
             </Text>
           </View>
-          <Text style={styles.text}>
-            {strings('connect_qr_hardware.description5')}
+          <Text style={styles.keystone}>
+            {strings('connect_qr_hardware.ngravezero')}
           </Text>
-          <Text style={styles.text}>
-            {strings('connect_qr_hardware.description6')}
-          </Text>
+          <View style={styles.buttonGroup}>
+            <Text
+              style={[styles.text, styles.link, styles.linkMarginRight]}
+              onPress={() =>
+                navigateTo(NGRAVE_LEARN_MORE, 'connect_qr_hardware.ngravezero')
+              }
+            >
+              {strings('connect_qr_hardware.learnMore')}
+            </Text>
+            <Text
+              style={[styles.text, styles.link]}
+              onPress={() =>
+                navigateTo(NGRAVE_BUY, 'connect_qr_hardware.ngravezero')
+              }
+            >
+              {strings('connect_qr_hardware.buyNow')}
+            </Text>
+          </View>
         </View>
-        <Image
-          style={styles.image}
-          source={connectQRHardwareImg}
-          resizeMode={'contain'}
-        />
       </ScrollView>
       <View style={styles.bottom}>
         <StyledButton
