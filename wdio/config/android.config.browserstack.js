@@ -25,19 +25,6 @@ config.capabilities = [
     'browserstack.midSessionInstallApps' : [process.env.BROWSERSTACK_APP_URL],
   },
 
-  {
-    platformName: 'Android',
-    noReset: false,
-    fullReset: false,
-    maxInstances: 1,
-    build: 'Android App Launch Times Test',
-    device: process.env.BROWSERSTACK_DEVICE || 'Google Pixel 6',
-    os_version: process.env.BROWSERSTACK_OS_VERSION || '12.0',
-    app: process.env.BROWSERSTACK_APP_URL,
-    'browserstack.debug': true,
-    'browserstack.local': true,
-
-  },
 ];
 
 config.waitforTimeout = 10000;

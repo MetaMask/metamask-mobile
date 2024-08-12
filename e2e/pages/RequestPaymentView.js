@@ -32,7 +32,7 @@ class RequestPaymentView {
   }
 
   async tapBackButton() {
-    await Gestures.tap(this.backButton);
+    await Gestures.waitAndTap(this.backButton);
   }
 
   async searchForToken(token) {
@@ -41,7 +41,7 @@ class RequestPaymentView {
 
   async tapOnToken(token) {
     const tokenElement = await Matchers.getElementByText(token, 1);
-    await Gestures.tap(tokenElement);
+    await Gestures.waitAndTap(tokenElement);
   }
 
   async typeInTokenAmount(amount) {
