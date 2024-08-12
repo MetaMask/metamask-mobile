@@ -29,7 +29,7 @@ import {
   selectProviderConfig,
   selectProviderType,
 } from '../../../selectors/networkController';
-import { selectPrimaryCurrency } from '../../../../../selectors/settings';
+import { selectPrimaryCurrency } from '../../../selectors/settings';
 import { selectTokensByAddress } from '../../../selectors/tokensController';
 import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeController';
 import { baseStyles, fontStyles } from '../../../styles/common';
