@@ -349,7 +349,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -388,7 +388,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
               style={
                 {
                   "color": "#ffffff",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,

@@ -485,7 +485,7 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                             style={
                               {
                                 "color": "#ffffff",
-                                "fontFamily": "Euclid Circular B",
+                                "fontFamily": "EuclidCircularB-Regular",
                                 "fontSize": 14,
                                 "fontWeight": "400",
                                 "letterSpacing": 0,

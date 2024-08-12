@@ -7,7 +7,7 @@ exports[`PercentageChange should render correctly 1`] = `
     style={
       {
         "color": "#1c8234",
-        "fontFamily": "Euclid Circular B",
+        "fontFamily": "EuclidCircularB-Medium",
         "fontSize": 14,
         "fontWeight": "500",
         "letterSpacing": 0,

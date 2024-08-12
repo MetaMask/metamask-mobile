@@ -154,7 +154,7 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
             style={
               {
                 "color": "#141618",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -204,7 +204,7 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
               style={
                 {
                   "color": "#ffffff",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,

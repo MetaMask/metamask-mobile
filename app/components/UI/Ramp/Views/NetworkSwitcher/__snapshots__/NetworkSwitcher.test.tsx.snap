@@ -1013,7 +1013,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                   style={
                                                     {
                                                       "color": "#141618",
-                                                      "fontFamily": "Euclid Circular B",
+                                                      "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 18,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -1082,7 +1082,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                       style={
                                                         {
                                                           "color": "#141618",
-                                                          "fontFamily": "Euclid Circular B",
+                                                          "fontFamily": "EuclidCircularB-Regular",
                                                           "fontSize": 10,
                                                           "fontWeight": "400",
                                                           "letterSpacing": 0,
@@ -1100,7 +1100,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                       {
                                                         "color": "#141618",
                                                         "flexShrink": 1,
-                                                        "fontFamily": "Euclid Circular B",
+                                                        "fontFamily": "EuclidCircularB-Regular",
                                                         "fontSize": 14,
                                                         "fontWeight": "400",
                                                         "letterSpacing": 0,
@@ -1118,7 +1118,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                   style={
                                                     {
                                                       "color": "#141618",
-                                                      "fontFamily": "Euclid Circular B",
+                                                      "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 14,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -1135,7 +1135,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                     style={
                                                       {
                                                         "color": "#141618",
-                                                        "fontFamily": "Euclid Circular B",
+                                                        "fontFamily": "EuclidCircularB-Regular",
                                                         "fontSize": 14,
                                                         "fontWeight": "400",
                                                         "letterSpacing": 0,
@@ -1171,7 +1171,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                       style={
                                                         {
                                                           "color": "#141618",
-                                                          "fontFamily": "Euclid Circular B",
+                                                          "fontFamily": "EuclidCircularB-Bold",
                                                           "fontSize": 14,
                                                           "fontWeight": "700",
                                                           "letterSpacing": 0,
@@ -1186,7 +1186,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                       style={
                                                         {
                                                           "color": "#141618",
-                                                          "fontFamily": "Euclid Circular B",
+                                                          "fontFamily": "EuclidCircularB-Regular",
                                                           "fontSize": 14,
                                                           "fontWeight": "400",
                                                           "letterSpacing": 0,
@@ -1202,7 +1202,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                       style={
                                                         {
                                                           "color": "#141618",
-                                                          "fontFamily": "Euclid Circular B",
+                                                          "fontFamily": "EuclidCircularB-Bold",
                                                           "fontSize": 14,
                                                           "fontWeight": "700",
                                                           "letterSpacing": 0,
@@ -1217,7 +1217,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                       style={
                                                         {
                                                           "color": "#141618",
-                                                          "fontFamily": "Euclid Circular B",
+                                                          "fontFamily": "EuclidCircularB-Regular",
                                                           "fontSize": 14,
                                                           "fontWeight": "400",
                                                           "letterSpacing": 0,
@@ -1233,7 +1233,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                       style={
                                                         {
                                                           "color": "#141618",
-                                                          "fontFamily": "Euclid Circular B",
+                                                          "fontFamily": "EuclidCircularB-Bold",
                                                           "fontSize": 14,
                                                           "fontWeight": "700",
                                                           "letterSpacing": 0,
@@ -1248,7 +1248,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                       style={
                                                         {
                                                           "color": "#141618",
-                                                          "fontFamily": "Euclid Circular B",
+                                                          "fontFamily": "EuclidCircularB-Regular",
                                                           "fontSize": 14,
                                                           "fontWeight": "400",
                                                           "letterSpacing": 0,
@@ -1277,7 +1277,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                         style={
                                                           {
                                                             "color": "#0376c9",
-                                                            "fontFamily": "Euclid Circular B",
+                                                            "fontFamily": "EuclidCircularB-Regular",
                                                             "fontSize": 14,
                                                             "fontWeight": "400",
                                                             "letterSpacing": 0,
@@ -1365,7 +1365,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                   style={
                                                     {
                                                       "color": "#0376c9",
-                                                      "fontFamily": "Euclid Circular B",
+                                                      "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 14,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -1406,7 +1406,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                   style={
                                                     {
                                                       "color": "#ffffff",
-                                                      "fontFamily": "Euclid Circular B",
+                                                      "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 14,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,

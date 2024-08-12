@@ -14,7 +14,7 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
     style={
       {
         "color": "#141618",
-        "fontFamily": "Euclid Circular B",
+        "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",
         "letterSpacing": 0,
@@ -202,7 +202,7 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
                     style={
                       {
                         "color": "#141618",
-                        "fontFamily": "Euclid Circular B",
+                        "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -223,7 +223,7 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
             style={
               {
                 "color": "#141618",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -329,7 +329,7 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
           style={
             {
               "color": "#0376c9",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -370,7 +370,7 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,

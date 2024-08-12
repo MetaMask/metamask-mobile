@@ -45,7 +45,7 @@ exports[`OriginSpamModal renders SiteBlockedContent if user opt in to block dapp
       style={
         {
           "color": "#141618",
-          "fontFamily": "Euclid Circular B",
+          "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 18,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -69,7 +69,7 @@ exports[`OriginSpamModal renders SiteBlockedContent if user opt in to block dapp
     style={
       {
         "color": "#141618",
-        "fontFamily": "Euclid Circular B",
+        "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",
         "letterSpacing": 0,
@@ -115,7 +115,7 @@ exports[`OriginSpamModal renders SiteBlockedContent if user opt in to block dapp
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -167,7 +167,7 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
           "color": "#141618",
           "flex": 1,
           "flexWrap": "wrap",
-          "fontFamily": "Euclid Circular B",
+          "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 18,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -239,7 +239,7 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
           {
             "color": "#6a737d",
             "flexShrink": 1,
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -256,7 +256,7 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
     style={
       {
         "color": "#141618",
-        "fontFamily": "Euclid Circular B",
+        "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",
         "letterSpacing": 0,
@@ -306,7 +306,7 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
         style={
           {
             "color": "#0376c9",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -344,7 +344,7 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,

@@ -479,7 +479,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                   style={
                                     {
                                       "color": "#141618",
-                                      "fontFamily": "Euclid Circular B",
+                                      "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
@@ -493,7 +493,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Bold",
                                         "fontSize": 18,
                                         "fontWeight": "normal",
                                         "letterSpacing": 0,
@@ -509,7 +509,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Bold",
                                         "fontSize": 18,
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
@@ -555,7 +555,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Bold",
                                         "fontSize": 18,
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
@@ -691,7 +691,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Bold",
                                         "fontSize": 18,
                                         "fontWeight": "normal",
                                         "letterSpacing": 0,
@@ -737,7 +737,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#141618",
-                                    "fontFamily": "Euclid Circular B",
+                                    "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
@@ -787,7 +787,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                   style={
                                     {
                                       "color": "#ffffff",
-                                      "fontFamily": "Euclid Circular B",
+                                      "fontFamily": "EuclidCircularB-Medium",
                                       "fontSize": 16,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
@@ -1294,7 +1294,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                   style={
                                     {
                                       "color": "#141618",
-                                      "fontFamily": "Euclid Circular B",
+                                      "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
@@ -1308,7 +1308,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Bold",
                                         "fontSize": 18,
                                         "fontWeight": "normal",
                                         "letterSpacing": 0,
@@ -1324,7 +1324,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Bold",
                                         "fontSize": 18,
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
@@ -1370,7 +1370,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Bold",
                                         "fontSize": 18,
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
@@ -1468,7 +1468,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                 style={
                                   {
                                     "color": "#141618",
-                                    "fontFamily": "Euclid Circular B",
+                                    "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
@@ -1518,7 +1518,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                   style={
                                     {
                                       "color": "#ffffff",
-                                      "fontFamily": "Euclid Circular B",
+                                      "fontFamily": "EuclidCircularB-Medium",
                                       "fontSize": 16,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
@@ -2025,7 +2025,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                   style={
                                     {
                                       "color": "#141618",
-                                      "fontFamily": "Euclid Circular B",
+                                      "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
@@ -2039,7 +2039,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Bold",
                                         "fontSize": 18,
                                         "fontWeight": "normal",
                                         "letterSpacing": 0,
@@ -2055,7 +2055,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Bold",
                                         "fontSize": 18,
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
@@ -2101,7 +2101,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Bold",
                                         "fontSize": 18,
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
@@ -2237,7 +2237,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Bold",
                                         "fontSize": 18,
                                         "fontWeight": "normal",
                                         "letterSpacing": 0,
@@ -2283,7 +2283,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                 style={
                                   {
                                     "color": "#141618",
-                                    "fontFamily": "Euclid Circular B",
+                                    "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
@@ -2333,7 +2333,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                   style={
                                     {
                                       "color": "#ffffff",
-                                      "fontFamily": "Euclid Circular B",
+                                      "fontFamily": "EuclidCircularB-Medium",
                                       "fontSize": 16,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,

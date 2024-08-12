@@ -179,7 +179,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "Euclid Circular B",
+                      "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 18,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -438,7 +438,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Medium",
                                         "fontSize": 16,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -486,7 +486,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           style={
                                             {
                                               "color": "#141618",
-                                              "fontFamily": "Euclid Circular B",
+                                              "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 14,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -512,7 +512,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           style={
                                             {
                                               "color": "#141618",
-                                              "fontFamily": "Euclid Circular B",
+                                              "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 14,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -553,7 +553,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                       style={
                                         {
                                           "color": "#0376c9",
-                                          "fontFamily": "Euclid Circular B",
+                                          "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 14,
                                           "fontWeight": "400",
                                           "letterSpacing": 0,
@@ -582,7 +582,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "letterSpacing": 0,
@@ -595,7 +595,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                       style={
                                         {
                                           "color": "#141618",
-                                          "fontFamily": "Euclid Circular B",
+                                          "fontFamily": "EuclidCircularB-Medium",
                                           "fontSize": 16,
                                           "fontWeight": "500",
                                           "letterSpacing": 0,
@@ -610,7 +610,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                       style={
                                         {
                                           "color": "#141618",
-                                          "fontFamily": "Euclid Circular B",
+                                          "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 14,
                                           "fontWeight": "400",
                                           "letterSpacing": 0,
@@ -641,7 +641,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                       style={
                                         {
                                           "color": "#6a737d",
-                                          "fontFamily": "Euclid Circular B",
+                                          "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 14,
                                           "fontWeight": "400",
                                           "letterSpacing": 0,
@@ -718,7 +718,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         style={
                                           {
                                             "color": "#141618",
-                                            "fontFamily": "Euclid Circular B",
+                                            "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 14,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
@@ -734,7 +734,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         style={
                                           {
                                             "color": "#141618",
-                                            "fontFamily": "Euclid Circular B",
+                                            "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 14,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
@@ -930,7 +930,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         style={
                                           {
                                             "color": "#9fa6ae",
-                                            "fontFamily": "Euclid Circular B",
+                                            "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 14,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
@@ -946,7 +946,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         style={
                                           {
                                             "color": "#9fa6ae",
-                                            "fontFamily": "Euclid Circular B",
+                                            "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 14,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
@@ -1118,7 +1118,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         style={
                                           {
                                             "color": "#0376c9",
-                                            "fontFamily": "Euclid Circular B",
+                                            "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 14,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
@@ -1328,7 +1328,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "Euclid Circular B",
+                      "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 18,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -1587,7 +1587,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Medium",
                                         "fontSize": 16,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -1635,7 +1635,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                           style={
                                             {
                                               "color": "#141618",
-                                              "fontFamily": "Euclid Circular B",
+                                              "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 14,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -1661,7 +1661,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                           style={
                                             {
                                               "color": "#141618",
-                                              "fontFamily": "Euclid Circular B",
+                                              "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 14,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -1702,7 +1702,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                       style={
                                         {
                                           "color": "#0376c9",
-                                          "fontFamily": "Euclid Circular B",
+                                          "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 14,
                                           "fontWeight": "400",
                                           "letterSpacing": 0,
@@ -1731,7 +1731,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "letterSpacing": 0,
@@ -1744,7 +1744,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                       style={
                                         {
                                           "color": "#141618",
-                                          "fontFamily": "Euclid Circular B",
+                                          "fontFamily": "EuclidCircularB-Medium",
                                           "fontSize": 16,
                                           "fontWeight": "500",
                                           "letterSpacing": 0,
@@ -1759,7 +1759,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                       style={
                                         {
                                           "color": "#141618",
-                                          "fontFamily": "Euclid Circular B",
+                                          "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 14,
                                           "fontWeight": "400",
                                           "letterSpacing": 0,
@@ -1787,7 +1787,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                       style={
                                         {
                                           "color": "#6a737d",
-                                          "fontFamily": "Euclid Circular B",
+                                          "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 14,
                                           "fontWeight": "400",
                                           "letterSpacing": 0,
@@ -1839,7 +1839,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         style={
                                           {
                                             "color": "#0376c9",
-                                            "fontFamily": "Euclid Circular B",
+                                            "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 14,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
@@ -2049,7 +2049,7 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "Euclid Circular B",
+                      "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 18,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -2308,7 +2308,7 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Medium",
                                         "fontSize": 16,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -2356,7 +2356,7 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                           style={
                                             {
                                               "color": "#141618",
-                                              "fontFamily": "Euclid Circular B",
+                                              "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 14,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -2382,7 +2382,7 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                           style={
                                             {
                                               "color": "#141618",
-                                              "fontFamily": "Euclid Circular B",
+                                              "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 14,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -2593,7 +2593,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "Euclid Circular B",
+                      "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 18,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -2852,7 +2852,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Medium",
                                         "fontSize": 16,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -2900,7 +2900,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                           style={
                                             {
                                               "color": "#141618",
-                                              "fontFamily": "Euclid Circular B",
+                                              "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 14,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -2926,7 +2926,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                           style={
                                             {
                                               "color": "#141618",
-                                              "fontFamily": "Euclid Circular B",
+                                              "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 14,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -2967,7 +2967,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                       style={
                                         {
                                           "color": "#0376c9",
-                                          "fontFamily": "Euclid Circular B",
+                                          "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 14,
                                           "fontWeight": "400",
                                           "letterSpacing": 0,
@@ -3176,7 +3176,7 @@ exports[`Settings renders correctly 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "Euclid Circular B",
+                      "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 18,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -3435,7 +3435,7 @@ exports[`Settings renders correctly 1`] = `
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Medium",
                                         "fontSize": 16,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -3483,7 +3483,7 @@ exports[`Settings renders correctly 1`] = `
                                           style={
                                             {
                                               "color": "#141618",
-                                              "fontFamily": "Euclid Circular B",
+                                              "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 14,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -3509,7 +3509,7 @@ exports[`Settings renders correctly 1`] = `
                                           style={
                                             {
                                               "color": "#141618",
-                                              "fontFamily": "Euclid Circular B",
+                                              "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 14,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -3550,7 +3550,7 @@ exports[`Settings renders correctly 1`] = `
                                       style={
                                         {
                                           "color": "#0376c9",
-                                          "fontFamily": "Euclid Circular B",
+                                          "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 14,
                                           "fontWeight": "400",
                                           "letterSpacing": 0,
@@ -3759,7 +3759,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "Euclid Circular B",
+                      "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 18,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -4018,7 +4018,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Medium",
                                         "fontSize": 16,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -4066,7 +4066,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           style={
                                             {
                                               "color": "#141618",
-                                              "fontFamily": "Euclid Circular B",
+                                              "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 14,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -4092,7 +4092,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           style={
                                             {
                                               "color": "#141618",
-                                              "fontFamily": "Euclid Circular B",
+                                              "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 14,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -4133,7 +4133,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                       style={
                                         {
                                           "color": "#0376c9",
-                                          "fontFamily": "Euclid Circular B",
+                                          "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 14,
                                           "fontWeight": "400",
                                           "letterSpacing": 0,
@@ -4162,7 +4162,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "letterSpacing": 0,
@@ -4175,7 +4175,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                       style={
                                         {
                                           "color": "#141618",
-                                          "fontFamily": "Euclid Circular B",
+                                          "fontFamily": "EuclidCircularB-Medium",
                                           "fontSize": 16,
                                           "fontWeight": "500",
                                           "letterSpacing": 0,
@@ -4190,7 +4190,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                       style={
                                         {
                                           "color": "#141618",
-                                          "fontFamily": "Euclid Circular B",
+                                          "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 14,
                                           "fontWeight": "400",
                                           "letterSpacing": 0,
@@ -4218,7 +4218,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                       style={
                                         {
                                           "color": "#6a737d",
-                                          "fontFamily": "Euclid Circular B",
+                                          "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 14,
                                           "fontWeight": "400",
                                           "letterSpacing": 0,
@@ -4295,7 +4295,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         style={
                                           {
                                             "color": "#141618",
-                                            "fontFamily": "Euclid Circular B",
+                                            "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 14,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
@@ -4311,7 +4311,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         style={
                                           {
                                             "color": "#141618",
-                                            "fontFamily": "Euclid Circular B",
+                                            "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 14,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
@@ -4507,7 +4507,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         style={
                                           {
                                             "color": "#9fa6ae",
-                                            "fontFamily": "Euclid Circular B",
+                                            "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 14,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
@@ -4523,7 +4523,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         style={
                                           {
                                             "color": "#9fa6ae",
-                                            "fontFamily": "Euclid Circular B",
+                                            "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 14,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
@@ -4694,7 +4694,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         style={
                                           {
                                             "color": "#0376c9",
-                                            "fontFamily": "Euclid Circular B",
+                                            "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 14,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,

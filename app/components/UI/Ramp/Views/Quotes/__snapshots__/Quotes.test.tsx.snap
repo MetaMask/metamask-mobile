@@ -3460,7 +3460,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                 style={
                                   {
                                     "color": "#141618",
-                                    "fontFamily": "Euclid Circular B",
+                                    "fontFamily": "EuclidCircularB-Bold",
                                     "fontSize": 16,
                                     "fontWeight": "700",
                                     "letterSpacing": 0,
@@ -4950,7 +4950,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                 style={
                                   {
                                     "color": "#141618",
-                                    "fontFamily": "Euclid Circular B",
+                                    "fontFamily": "EuclidCircularB-Bold",
                                     "fontSize": 16,
                                     "fontWeight": "700",
                                     "letterSpacing": 0,
@@ -5974,7 +5974,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                           style={
                                             {
                                               "color": "#141618",
-                                              "fontFamily": "Euclid Circular B",
+                                              "fontFamily": "EuclidCircularB-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,

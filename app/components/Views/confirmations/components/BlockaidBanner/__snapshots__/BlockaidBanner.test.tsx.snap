@@ -71,7 +71,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
       style={
         {
           "color": "#141618",
-          "fontFamily": "Euclid Circular B",
+          "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -86,7 +86,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
       style={
         {
           "color": "#141618",
-          "fontFamily": "Euclid Circular B",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -114,7 +114,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
         style={
           {
             "color": "#0376c9",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -224,7 +224,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
       style={
         {
           "color": "#141618",
-          "fontFamily": "Euclid Circular B",
+          "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -239,7 +239,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
       style={
         {
           "color": "#141618",
-          "fontFamily": "Euclid Circular B",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -267,7 +267,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
         style={
           {
             "color": "#0376c9",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -377,7 +377,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
       style={
         {
           "color": "#141618",
-          "fontFamily": "Euclid Circular B",
+          "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -392,7 +392,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
       style={
         {
           "color": "#141618",
-          "fontFamily": "Euclid Circular B",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -420,7 +420,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
         style={
           {
             "color": "#0376c9",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -527,7 +527,7 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
         style={
           {
             "color": "#141618",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -542,7 +542,7 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
         style={
           {
             "color": "#141618",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -620,7 +620,7 @@ exports[`BlockaidBanner should render something does not look right with contact
       style={
         {
           "color": "#141618",
-          "fontFamily": "Euclid Circular B",
+          "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -635,7 +635,7 @@ exports[`BlockaidBanner should render something does not look right with contact
       style={
         {
           "color": "#141618",
-          "fontFamily": "Euclid Circular B",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -663,7 +663,7 @@ exports[`BlockaidBanner should render something does not look right with contact
         style={
           {
             "color": "#0376c9",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,

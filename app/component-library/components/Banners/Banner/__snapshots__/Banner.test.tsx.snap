@@ -48,7 +48,7 @@ exports[`Banner should render correctly 1`] = `
       style={
         {
           "color": "#141618",
-          "fontFamily": "Euclid Circular B",
+          "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -63,7 +63,7 @@ exports[`Banner should render correctly 1`] = `
       style={
         {
           "color": "#141618",
-          "fontFamily": "Euclid Circular B",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -125,7 +125,7 @@ exports[`Banner should render correctly with a close button 1`] = `
       style={
         {
           "color": "#141618",
-          "fontFamily": "Euclid Circular B",
+          "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -140,7 +140,7 @@ exports[`Banner should render correctly with a close button 1`] = `
       style={
         {
           "color": "#141618",
-          "fontFamily": "Euclid Circular B",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -178,7 +178,7 @@ exports[`Banner should render correctly with a close button 1`] = `
         style={
           {
             "color": "#0376c9",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -261,7 +261,7 @@ exports[`Banner should render correctly with a start accessory 1`] = `
       style={
         {
           "color": "#141618",
-          "fontFamily": "Euclid Circular B",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -284,7 +284,7 @@ exports[`Banner should render correctly with a start accessory 1`] = `
       style={
         {
           "color": "#141618",
-          "fontFamily": "Euclid Circular B",
+          "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -299,7 +299,7 @@ exports[`Banner should render correctly with a start accessory 1`] = `
       style={
         {
           "color": "#141618",
-          "fontFamily": "Euclid Circular B",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -361,7 +361,7 @@ exports[`Banner should render correctly with an action button 1`] = `
       style={
         {
           "color": "#141618",
-          "fontFamily": "Euclid Circular B",
+          "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -376,7 +376,7 @@ exports[`Banner should render correctly with an action button 1`] = `
       style={
         {
           "color": "#141618",
-          "fontFamily": "Euclid Circular B",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -414,7 +414,7 @@ exports[`Banner should render correctly with an action button 1`] = `
         style={
           {
             "color": "#0376c9",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,

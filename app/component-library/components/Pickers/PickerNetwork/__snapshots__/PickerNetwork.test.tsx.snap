@@ -52,7 +52,7 @@ exports[`PickerNetwork renders correctly 1`] = `
       {
         "color": "#141618",
         "flexShrink": 1,
-        "fontFamily": "Euclid Circular B",
+        "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",
         "letterSpacing": 0,
