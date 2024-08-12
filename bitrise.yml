@@ -258,6 +258,14 @@ workflows:
                 echo "Corepack enabling $YARN_VERSION"
                 corepack enable
           title: Install node, yarn and corepack
+  install_detox:
+    steps:
+    - script@1:
+        inputs:
+          - content: |-
+              #!/usr/bin/env bash
+              scripts/detox-setup.sh
+        title: Install Detox Dependencies
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
@@ -529,6 +537,7 @@ workflows:
   android_e2e_build:
     before_run:
       - code_setup
+      - install_detox
       - set_commit_hash
     after_run:
       - notify_failure
@@ -610,6 +619,7 @@ workflows:
   android_e2e_test:
     before_run:
       - setup
+      - install_detox
       - prep_environment
     after_run:
       - notify_failure
@@ -645,7 +655,8 @@ workflows:
                 "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
       - avd-manager@1:
           inputs:
-            - api_level: '30'
+            - api_level: '34'
+            - abi: 'x86_64'
             - create_command_flags: --sdcard 8192M
             - start_command_flags: -read-only
             - profile: pixel_5
@@ -708,6 +719,7 @@ workflows:
   ios_api_specs:
     before_run:
       - setup
+      - install_detox
       - prep_environment
     after_run:
       - notify_failure
@@ -774,6 +786,7 @@ workflows:
   ios_e2e_build:
     before_run:
       - code_setup
+      - install_detox
       - set_commit_hash
     after_run:
       - notify_failure
@@ -859,6 +872,7 @@ workflows:
   ios_e2e_test:
     before_run:
       - setup
+      - install_detox
       - prep_environment
     after_run:
       - notify_failure

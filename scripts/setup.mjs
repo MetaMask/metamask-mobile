@@ -13,36 +13,7 @@ const rendererOptions = {
   collapseSubtasks: false
 };
 
-/*
- * FIXME: We shouldn't be making system wide installs without user consent.
- * Should make it optional on non-CI environments
-*/
-const detoxGlobalInstallTask = {
-  title: 'Install Detox utils',
-  task: (_, task) => task.newListr([
-    {
-      title: 'Install detox-cli globally',
-      task: async () => {
-        await $`yarn global add detox-cli`;
-      }
-    },
-    {
-      title: 'Install applesimutils globally',
-      task: async (_, appSimTask) => {
-        if (!IS_OSX) {
-          appSimTask.skip('Not macOS.');
-        } else {
-          await $`brew tap wix/brew`;
-          await $`brew install applesimutils`;
-        }
-      }
-    }
-  ],
-    {
-     rendererOptions
-    }
-  )
-};
+
 
 /*
  * TODO: parse example env file and add missing variables to existing .js.env
@@ -148,7 +119,6 @@ const mainSetupTask = {
       },
     },
     copyEnvVarsTask,
-    detoxGlobalInstallTask
   ],
     {
       exitOnError: false,
