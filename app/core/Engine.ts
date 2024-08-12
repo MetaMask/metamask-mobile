@@ -1722,7 +1722,7 @@ class Engine {
         tokenFiat1dAgo: tokenFiat1dAgo ?? 0,
       };
     }
-    // if selectedAccount is undefined, return empty.
+    // if selectedInternalAccount is undefined, return default 0 value.
     return {
       ethFiat: 0,
       tokenFiat: 0,
