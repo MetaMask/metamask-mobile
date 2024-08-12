@@ -7,7 +7,7 @@ import BaseListItem from '../../../../Base/ListItem';
 import { FiatOrder, getProviderName } from '../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../locales/i18n';
 import { toDateFormat } from '../../../../../util/date';
-import { addCurrencySymbol, renderFiat } from '../../../../../util/number';
+import { renderFiat } from '../../../../../util/number';
 import { getOrderAmount } from '../../utils';
 import Text, {
   TextColor,
@@ -78,8 +78,6 @@ function OrderListItem({ order }: Props) {
   const amount = getOrderAmount(order);
   const isBuy = order.orderType === 'BUY';
   const [statusColor, statusText] = getStatusColorAndText(order);
-
-  console.log('ORDER: ', order);
 
   return (
     <ListItem>

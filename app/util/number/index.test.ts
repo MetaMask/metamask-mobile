@@ -26,7 +26,6 @@ import {
   renderFiat,
   renderFromTokenMinimalUnit,
   renderFromWei,
-  renderPortfolioBalance,
   safeBNToHex,
   safeNumberToBN,
   toBN,
