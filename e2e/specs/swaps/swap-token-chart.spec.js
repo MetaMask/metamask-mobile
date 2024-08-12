@@ -61,7 +61,7 @@ describe(Regression('Swap from Token view'), () => {
     await QuoteView.tapOnGetQuotes();
     await SwapView.isVisible();
     await SwapView.tapIUnderstandPriceWarning();
-    await SwapView.swipeToSwap();
+    await SwapView.tapToSwap();
     await SwapView.waitForSwapToComplete('USDC', 'DAI');
   });
 });
