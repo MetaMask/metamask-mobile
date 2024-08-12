@@ -115,6 +115,20 @@ const createStyles = (colors: Colors) =>
     horizontalScrollView: { flexGrow: 0 },
   });
 
+/**
+ * NOTE: This modal is currently disabled.
+ *
+ * Reasons for disabling:
+ * 1. It was found to be disruptive to user experience.
+ * 2. It became repetitive for frequent users.
+ * 3. Its functionality now overlaps with:
+ *    - New notification system for product announcements
+ *    - Opt-in prompts for new features
+ * See issue: https://github.com/MetaMask/MetaMask-planning/issues/2614
+ *
+ * TODO: Consider removing or refactoring this component if it remains unused.
+ *
+ */
 const WhatsNewModal = () => {
   const modalRef = useRef<ReusableModalRef>(null);
   const scrollViewRef = useRef<ScrollView>(null);
