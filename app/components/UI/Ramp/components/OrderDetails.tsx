@@ -263,7 +263,6 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
           </Text>
           {orderData?.fiatCurrency?.decimals !== undefined && currencySymbol ? (
             <Text centered small grey>
-              {currencySymbol}
               {renderFiat(amountOut, currency, orderData.fiatCurrency.decimals)}
             </Text>
           ) : (

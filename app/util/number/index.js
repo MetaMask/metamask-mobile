@@ -667,19 +667,15 @@ export function getCurrencySymbol(currencyCode) {
 }
 
 /**
- * Renders a formatted portfolio balance. This uses the I18n for all supported fiat currencies.
+ * Formats a fiat value into a string ready to be rendered. This uses the I18n for all supported fiat currencies
  * If unsupported fiat, or crypto, fallback to custom implementation. decimalsToShow defaults to 5 decimals, unless provided.
  *
- * @param {number} value - The balance value to format.
- * @param {string} currencyCode - The currency code (e.g., 'usd', 'btc').
- * @param {number} [decimalsToShow=5] - The number of decimal places to show (default is 5).
- * @returns {string} The formatted balance with the currency symbol or code.
+ * @param {number} value - number corresponding to a balance of an asset
+ * @param {string} currencyCode - Current currency code to display (e.g., 'usd', 'btc').
+ * @param {number} decimalsToShow - The number of decimal places to show (default is 5).
+ * @returns {string} - The converted balance
  */
-export function renderPortfolioBalance(
-  value,
-  currencyCode,
-  decimalsToShow = 5,
-) {
+export function renderFiat(value, currencyCode, decimalsToShow = 5) {
   if (currencySymbols[currencyCode.toLowerCase()]) {
     return new Intl.NumberFormat(I18n.locale, {
       style: 'currency',
@@ -693,24 +689,6 @@ export function renderPortfolioBalance(
   );
   fixedBalance = isNaN(fixedBalance) ? 0.0 : fixedBalance; // no matter what, don't render NaN
   return `${fixedBalance} ${currencyCode.toUpperCase()}`;
-}
-
-/**
- * Formats a fiat value into a string ready to be rendered
- *
- * @param {number} value - number corresponding to a balance of an asset
- * @param {string} currencyCode - Current currency code to display
- * @param {number} decimalsToShow - Decimals to 5
- * @returns {string} - The converted balance
- */
-export function renderFiat(value, currencyCode, decimalsToShow = 5) {
-  const base = Math.pow(10, decimalsToShow);
-  let fiatFixed = parseFloat(Math.round(value * base) / base);
-  fiatFixed = isNaN(fiatFixed) ? 0.0 : fiatFixed;
-  if (currencySymbols[currencyCode]) {
-    return `${currencySymbols[currencyCode]}${fiatFixed}`;
-  }
-  return `${fiatFixed} ${currencyCode.toUpperCase()}`;
 }
 
 /**

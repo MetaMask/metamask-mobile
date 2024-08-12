@@ -579,7 +579,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   ]
                 }
               >
-                $34.23 
+                $34.23
               </Text>
             </View>
           </View>
@@ -878,7 +878,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   ]
                 }
               >
-                $34.23 
+                $34.23
               </Text>
             </View>
           </View>
@@ -1740,7 +1740,7 @@ exports[`OrdersList renders correctly 1`] = `
                   ]
                 }
               >
-                $34.23 
+                $34.23
               </Text>
             </View>
           </View>
@@ -2039,7 +2039,7 @@ exports[`OrdersList renders correctly 1`] = `
                   ]
                 }
               >
-                $34.23 
+                $34.23
               </Text>
             </View>
           </View>
@@ -2338,7 +2338,7 @@ exports[`OrdersList renders correctly 1`] = `
                   ]
                 }
               >
-                $34.23 
+                $34.23
               </Text>
             </View>
           </View>
@@ -3640,7 +3640,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                   ]
                 }
               >
-                $34.23 
+                $34.23
               </Text>
             </View>
           </View>
@@ -4187,7 +4187,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                   ]
                 }
               >
-                $34.23 
+                $34.23
               </Text>
             </View>
           </View>
@@ -4798,7 +4798,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   ]
                 }
               >
-                $34.23 
+                $34.23
               </Text>
             </View>
           </View>
@@ -5097,7 +5097,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   ]
                 }
               >
-                $34.23 
+                $34.23
               </Text>
             </View>
           </View>
@@ -5396,7 +5396,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   ]
                 }
               >
-                $34.23 
+                $34.23
               </Text>
             </View>
           </View>

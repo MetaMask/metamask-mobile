@@ -238,7 +238,7 @@ exports[`DrawerView should render correctly 1`] = `
                 }
               }
             >
-              $0
+              $0.00
             </Text>
             <Text
               numberOfLines={1}

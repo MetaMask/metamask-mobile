@@ -79,6 +79,8 @@ function OrderListItem({ order }: Props) {
   const isBuy = order.orderType === 'BUY';
   const [statusColor, statusText] = getStatusColorAndText(order);
 
+  console.log('ORDER: ', order);
+
   return (
     <ListItem>
       {Boolean(order.createdAt) && (
@@ -116,10 +118,7 @@ function OrderListItem({ order }: Props) {
           <ListItem.FiatAmount>
             {order.amount == null
               ? '...'
-              : addCurrencySymbol(
-                  renderFiat(Number(order.amount), ''),
-                  order.currency,
-                )}
+              : renderFiat(Number(order.amount), order.currency)}
           </ListItem.FiatAmount>
         </ListItem.Amounts>
       </ListItem.Content>

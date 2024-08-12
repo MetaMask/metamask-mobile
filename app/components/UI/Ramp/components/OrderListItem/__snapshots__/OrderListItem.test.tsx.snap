@@ -275,7 +275,7 @@ exports[`OrderListItem should render correctly 1`] = `
           ]
         }
       >
-        $123345 
+        $123,345.00
       </Text>
     </View>
   </View>
@@ -557,7 +557,7 @@ exports[`OrderListItem should render correctly 2`] = `
           ]
         }
       >
-        $123345 
+        $123,345.00
       </Text>
     </View>
   </View>
@@ -839,7 +839,7 @@ exports[`OrderListItem should render correctly 3`] = `
           ]
         }
       >
-        $123345 
+        $123,345.00
       </Text>
     </View>
   </View>
@@ -1121,7 +1121,7 @@ exports[`OrderListItem should render correctly 4`] = `
           ]
         }
       >
-        $123345 
+        $123,345.00
       </Text>
     </View>
   </View>
@@ -1403,7 +1403,7 @@ exports[`OrderListItem should render correctly 5`] = `
           ]
         }
       >
-        $123345 
+        $123,345.00
       </Text>
     </View>
   </View>
@@ -1685,7 +1685,7 @@ exports[`OrderListItem should render correctly 6`] = `
           ]
         }
       >
-        $123345 
+        $123,345.00
       </Text>
     </View>
   </View>
@@ -1967,7 +1967,7 @@ exports[`OrderListItem should render correctly 7`] = `
           ]
         }
       >
-        $123345 
+        $123,345.00
       </Text>
     </View>
   </View>

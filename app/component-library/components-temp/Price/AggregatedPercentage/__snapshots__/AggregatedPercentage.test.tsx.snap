@@ -22,7 +22,7 @@ exports[`AggregatedPercentage should render correctly 1`] = `
       }
     }
   >
-    +20 USD 
+    +$20.00 
   </Text>
   <Text
     accessibilityRole="text"
