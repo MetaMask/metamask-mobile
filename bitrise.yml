@@ -65,14 +65,12 @@ pipelines:
     stages:
       - create_build_qa_android: {}
       - app_launch_times_test: {}
-      - notify: {}
 
 #App Upgrade pipeline. Runs on browserstack
   app_upgrade_pipeline:
     stages:
       - create_build_qa_android: {}
       - app_upgrade_test: {}
-      - notify: {}
   # Pipeline for Flask
   create_flask_release_builds_pipeline:
     stages:
@@ -1569,6 +1567,4 @@ trigger_map:
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline
-  - push_branch: create-app-launch-times-pipeline
-    pipeline: app_upgrade_pipeline
   
