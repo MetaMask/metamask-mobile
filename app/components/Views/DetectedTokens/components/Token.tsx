@@ -22,6 +22,10 @@ import {
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
 
+interface MarketDataDetails {
+  price: number;
+}
+
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
@@ -111,7 +115,7 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
   const tokenBalances = useSelector(selectContractBalances);
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const tokenMarketData = tokenExchangeRates?.[address] ?? null;
+  const tokenMarketData = (tokenExchangeRates as Record<`0x${string}`, MarketDataDetails>)?.[address as `0x${string}`] ?? null;
   const tokenBalance = renderFromTokenMinimalUnit(
     tokenBalances[address],
     decimals,
@@ -177,6 +181,7 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
               address={address}
               type={'short'}
             />
+            {/* @ts-expect-error Deprecated component */}
             <Icon style={styles.copyIcon} name={'copy'} size={16} />
           </TouchableOpacity>
         </View>
@@ -200,6 +205,7 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
           ) : null}
         </View>
       </View>
+      {/* @ts-expect-error Deprecated component */}
       <CheckBox
         style={styles.checkBox}
         value={selected}
