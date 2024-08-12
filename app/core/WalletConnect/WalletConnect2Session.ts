@@ -4,7 +4,7 @@ import { PermissionController } from '@metamask/permission-controller';
 import { NavigationContainerRef } from '@react-navigation/native';
 import { ErrorResponse } from '@walletconnect/jsonrpc-types';
 import { SessionTypes } from '@walletconnect/types';
-import { Platform } from 'react-native';
+import { Platform, Linking } from 'react-native';
 
 import Routes from '../../../app/constants/navigation/Routes';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
@@ -186,12 +186,27 @@ class WalletConnect2Session {
     if (!this.deeplink) return;
 
     const navigation = this.navigation;
+
+    const showReturnModal = () => {
+      navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+      });
+    };
+
     setTimeout(() => {
       if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
-        // TODO: implement uri scheme redirection where available
-        navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-        });
+        const redirect = this.session.peer.metadata.redirect;
+        const peerLink = redirect?.native || redirect?.universal;
+        if (peerLink) {
+          try {
+            Linking.openURL(peerLink);
+          } catch (error) {
+            DevLogger.log(`WC2::redirect error while opening ${peerLink}`);
+            showReturnModal();
+          }
+        } else {
+          showReturnModal();
+        }
       } else {
         Minimizer.goBack();
       }
