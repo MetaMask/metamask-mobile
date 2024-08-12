@@ -136,7 +136,7 @@ class TestDApp {
   }
 
   async tapConfirmButton() {
-    await Gestures.waitAndTap(this.confirmButtonText);
+    await Gestures.tap(this.confirmButtonText, 0);
   }
 
   async tapButton(elementId) {
