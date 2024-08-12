@@ -1,0 +1,414 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
+[
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flex": 1,
+        "flexDirection": "column",
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "marginTop": 50,
+          "paddingHorizontal": 32,
+          "width": "100%",
+        }
+      }
+    >
+      <Text
+        allowFontScaling={false}
+        style={
+          [
+            {
+              "color": "#141618",
+              "fontSize": 42,
+            },
+            {
+              "flex": 1,
+              "flexDirection": "row",
+              "justifyContent": "flex-start",
+            },
+            {
+              "fontFamily": "FontAwesome",
+              "fontStyle": "normal",
+              "fontWeight": "normal",
+            },
+            {},
+          ]
+        }
+      >
+        
+      </Text>
+      <TouchableOpacity
+        style={
+          {
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "flex-end",
+            "width": 48,
+          }
+        }
+      >
+        <Text
+          allowFontScaling={false}
+          style={
+            [
+              {
+                "color": undefined,
+                "fontSize": 15,
+              },
+              {
+                "color": "#141618",
+                "fontSize": 28,
+              },
+              {
+                "fontFamily": "Material Icons",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              {},
+            ]
+          }
+        >
+          
+        </Text>
+      </TouchableOpacity>
+    </View>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flex": 1,
+          "width": "100%",
+        }
+      }
+    >
+      <RCTScrollView
+        contentContainerStyle={
+          {
+            "alignItems": "center",
+            "flexDirection": "column",
+            "paddingHorizontal": 32,
+          }
+        }
+        style={
+          {
+            "width": "100%",
+          }
+        }
+      >
+        <View>
+          <Text
+            style={
+              {
+                "color": "#6a737d",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 24,
+                "fontWeight": "400",
+                "marginBottom": 20,
+                "marginTop": 40,
+                "width": "100%",
+              }
+            }
+          >
+            Connect a QR-based hardware wallet
+          </Text>
+          <View
+            style={
+              {
+                "marginTop": 20,
+                "width": "100%",
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "#6a737d",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "marginBottom": 24,
+                }
+              }
+            >
+              Connect an airgapped hardware wallet that communicates through QR-codes.
+            </Text>
+            <Text
+              onPress={[Function]}
+              style={
+                [
+                  {
+                    "color": "#6a737d",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "marginBottom": 24,
+                  },
+                  {
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontWeight": "600",
+                  },
+                ]
+              }
+            >
+              How it works?
+            </Text>
+            <Text
+              style={
+                {
+                  "color": "#6a737d",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "marginBottom": 24,
+                }
+              }
+            >
+              Officially supported airgapped hardware wallets include:
+            </Text>
+            <Text
+              style={
+                {
+                  "color": "#141618",
+                  "fontSize": 24,
+                  "height": 48,
+                }
+              }
+            >
+              Keystone
+            </Text>
+            <View
+              style={
+                {
+                  "display": "flex",
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <Text
+                onPress={[Function]}
+                style={
+                  [
+                    {
+                      "color": "#6a737d",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "marginBottom": 24,
+                    },
+                    {
+                      "color": "#0376c9",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontWeight": "600",
+                    },
+                    {
+                      "marginRight": 16,
+                    },
+                  ]
+                }
+              >
+                Learn more
+              </Text>
+              <Text
+                onPress={[Function]}
+                style={
+                  [
+                    {
+                      "color": "#6a737d",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "marginBottom": 24,
+                    },
+                    {
+                      "color": "#0376c9",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontWeight": "600",
+                    },
+                  ]
+                }
+              >
+                Tutorial
+              </Text>
+            </View>
+            <Text
+              style={
+                {
+                  "color": "#6a737d",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "marginBottom": 24,
+                }
+              }
+            >
+              1. Unlock your Keystone
+            </Text>
+            <Text
+              style={
+                {
+                  "color": "#6a737d",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "marginBottom": 24,
+                }
+              }
+            >
+              2. Tap the ··· Menu, then go to Sync
+            </Text>
+          </View>
+          <Image
+            resizeMode="contain"
+            source={
+              {
+                "default": {
+                  "uri": "MockImage",
+                },
+              }
+            }
+            style={
+              {
+                "height": 96,
+                "marginBottom": 20,
+                "marginTop": 20,
+                "width": 240,
+              }
+            }
+          />
+        </View>
+      </RCTScrollView>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "height": 80,
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={0.2}
+          onPress={[Function]}
+          style={
+            [
+              [
+                {
+                  "borderRadius": 100,
+                  "justifyContent": "center",
+                  "padding": 15,
+                },
+                {
+                  "backgroundColor": "#0376c9",
+                  "minHeight": 50,
+                },
+                undefined,
+              ],
+              null,
+            ]
+          }
+          testID="qr-continue-button"
+        >
+          <Text
+            style={
+              [
+                {
+                  "color": "#007aff",
+                  "fontSize": 17,
+                  "fontWeight": "500",
+                  "textAlign": "center",
+                },
+                null,
+                [
+                  {
+                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                    "textAlign": "center",
+                  },
+                  {
+                    "color": "#ffffff",
+                  },
+                  {
+                    "padding": 5,
+                    "paddingHorizontal": "30%",
+                  },
+                ],
+                null,
+              ]
+            }
+          >
+            Continue
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </View>,
+  <Modal
+    animationType="none"
+    deviceHeight={null}
+    deviceWidth={null}
+    hardwareAccelerated={false}
+    hideModalContentWhileAnimating={false}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    onRequestClose={[Function]}
+    panResponderThreshold={4}
+    scrollHorizontal={false}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    statusBarTranslucent={false}
+    supportedOrientations={
+      [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeThreshold={100}
+    transparent={true}
+    visible={false}
+  />,
+  <Modal
+    animationType="none"
+    deviceHeight={null}
+    deviceWidth={null}
+    hardwareAccelerated={false}
+    hideModalContentWhileAnimating={true}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    onRequestClose={[Function]}
+    panResponderThreshold={4}
+    scrollHorizontal={false}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    statusBarTranslucent={false}
+    supportedOrientations={
+      [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeThreshold={100}
+    transparent={true}
+    visible={false}
+  />,
+]
+`;

@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.27.0",
+  "version": "7.28.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -20,6 +20,7 @@
     "setup": "yarn clean && node scripts/setup.mjs",
     "setup:node": "yarn clean:node && yarn allow-scripts && yarn patch-package",
     "setup:e2e": "cd wdio && yarn install",
+    "setup:detox-e2e": "./scripts/detox-setup.sh",
     "start:ios": "./scripts/build.sh ios debug",
     "start:ios:qa": "./scripts/build.sh ios qaDebug",
     "start:ios:e2e": "./scripts/build.sh ios debugE2E",
@@ -30,7 +31,6 @@
     "start:android:qa": "./scripts/build.sh android qaDebug",
     "start:android:e2e": "./scripts/build.sh android debugE2E",
     "start:android:flask": "export METAMASK_BUILD_TYPE='flask' && ./scripts/build.sh android flaskDebug",
-    "build:static-logos": "node ./scripts/metamask-bot-build-generate-static-assets",
     "build:announce": "node ./scripts/metamask-bot-build-announce-bitrise.js",
     "build:android:release": "./scripts/build.sh android release",
     "build:android:release:e2e": "./scripts/build.sh android releaseE2E",
@@ -319,6 +319,7 @@
     "react-native-randombytes": "^3.5.3",
     "react-native-reanimated": "3.4.2",
     "react-native-redash": "16.2.2",
+    "react-native-render-html": "^6.3.4",
     "react-native-safe-area-context": "^3.1.9",
     "react-native-screens": "3.19.0",
     "react-native-scrollable-tab-view": "^1.0.0",
