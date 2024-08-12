@@ -18,7 +18,6 @@ const styleSheet = (params: { theme: Theme }) => {
     title: {
       ...typography.sHeadingSM,
       marginVertical: 0,
-      //   marginBottom: 4,
       paddingVertical: 8,
     } as TextStyle,
     icon: { marginLeft: 4 },

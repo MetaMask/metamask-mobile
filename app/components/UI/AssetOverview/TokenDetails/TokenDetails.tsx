@@ -10,7 +10,7 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import Title from '../../../Base/Title';
-import { TokenDescriptions } from '../../../hooks/useTokenDescriptions';
+// import { TokenDescriptions } from '../../../hooks/useTokenDescriptions';
 import { Asset } from '../AssetOverview.types';
 import styleSheet from './TokenDetails.styles';
 import Icon, {
@@ -31,6 +31,7 @@ import {
   localizeLargeNumber,
 } from '../../../../util/number';
 import { formatCurrency } from '../../../../util/confirm-tx';
+import Logger from '../../../../util/Logger';
 
 interface TokenDetailsProps {
   asset: Asset;
@@ -60,96 +61,12 @@ interface MarketDetails {
   fullyDiluted: number | null;
 }
 
-const skeletonProps = {
-  width: '100%',
-  height: 18,
-  borderRadius: 6,
-  marginBottom: 8,
-};
-
-const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
-  const { styles } = useStyles(styleSheet, {});
-  const tokenList = useSelector(selectTokenList);
-  const tokenExchangeRates = useSelector(selectContractExchangeRates);
-  const conversionRate = useSelector(selectConversionRate);
-  const currentCurrency = useSelector(selectCurrentCurrency);
-
-  const tokenContractAddress = safeToChecksumAddress(asset.address);
-
-  if (!tokenContractAddress) {
-    console.log("can't find contract address");
-    return null;
-  }
-
-  if (!conversionRate || conversionRate < 0) {
-    console.log('invalid conversion rate');
-    return null;
-  }
-
-  const tokenMetadata = tokenList[tokenContractAddress.toLowerCase()];
-  const marketData = tokenExchangeRates[tokenContractAddress];
-
-  // why isn't zeroAddress() in TokenList?
-  const tokenDetails: TokenDetails = asset.isETH
-    ? {
-        contractAddress: formatAddress(zeroAddress(), 'short'),
-        tokenDecimal: 18,
-        tokenList: '',
-      }
-    : {
-        contractAddress: formatAddress(tokenContractAddress, 'short') || null,
-        tokenDecimal: tokenMetadata.decimals || null,
-        tokenList: tokenMetadata.aggregators.join(', ') || null,
-      };
-
-  const marketDetails: MarketDetails = {
-    marketCap:
-      marketData?.marketCap > 0
-        ? localizeLargeNumber(i18n, conversionRate * marketData.marketCap)
-        : null,
-    totalVolume:
-      marketData?.totalVolume > 0
-        ? localizeLargeNumber(i18n, conversionRate * marketData.totalVolume)
-        : null,
-    volumeToMarketCap:
-      marketData?.marketCap > 0
-        ? convertDecimalToPercentage(
-            marketData.totalVolume / marketData.marketCap,
-          )
-        : null,
-    circulatingSupply:
-      marketData?.circulatingSupply > 0
-        ? localizeLargeNumber(i18n, marketData.circulatingSupply)
-        : null,
-    allTimeHigh:
-      marketData?.allTimeHigh > 0
-        ? formatCurrency(
-            conversionRate * marketData.allTimeHigh,
-            currentCurrency,
-          )
-        : null,
-    allTimeLow:
-      marketData?.allTimeLow > 0
-        ? formatCurrency(
-            conversionRate * marketData.allTimeLow,
-            currentCurrency,
-          )
-        : null,
-    fullyDiluted:
-      marketData?.dilutedMarketCap > 0
-        ? localizeLargeNumber(i18n, marketData.dilutedMarketCap)
-        : null,
-  };
-
-  return (
-    <View style={styles.wrapper}>
-      {(asset.isETH || tokenMetadata) && (
-        <TokenDetailsList tokenDetails={tokenDetails} />
-      )}
-      {marketData && <MarketDetailsList marketDetails={marketDetails} />}
-    </View>
-  );
-};
+// const skeletonProps = {
+//   width: '100%',
+//   height: 18,
+//   borderRadius: 6,
+//   marginBottom: 8,
+// };
 
 const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
   tokenDetails,
@@ -271,6 +188,90 @@ const MarketDetailsList: React.FC<MarketDetailsListProps> = ({
           </View>
         )}
       </View>
+    </View>
+  );
+};
+
+const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
+  const { styles } = useStyles(styleSheet, {});
+  const tokenList = useSelector(selectTokenList);
+  const tokenExchangeRates = useSelector(selectContractExchangeRates);
+  const conversionRate = useSelector(selectConversionRate);
+  const currentCurrency = useSelector(selectCurrentCurrency);
+
+  const tokenContractAddress = safeToChecksumAddress(asset.address);
+
+  if (!tokenContractAddress) {
+    Logger.log("can't find contract address");
+    return null;
+  }
+
+  if (!conversionRate || conversionRate < 0) {
+    Logger.log('invalid conversion rate');
+    return null;
+  }
+
+  const tokenMetadata = tokenList[tokenContractAddress.toLowerCase()];
+  const marketData = tokenExchangeRates[tokenContractAddress];
+
+  // why isn't zeroAddress() in TokenList?
+  const tokenDetails: TokenDetails = asset.isETH
+    ? {
+        contractAddress: formatAddress(zeroAddress(), 'short'),
+        tokenDecimal: 18,
+        tokenList: '',
+      }
+    : {
+        contractAddress: formatAddress(tokenContractAddress, 'short') || null,
+        tokenDecimal: tokenMetadata.decimals || null,
+        tokenList: tokenMetadata.aggregators.join(', ') || null,
+      };
+
+  const marketDetails: MarketDetails = {
+    marketCap:
+      marketData?.marketCap > 0
+        ? localizeLargeNumber(i18n, conversionRate * marketData.marketCap)
+        : null,
+    totalVolume:
+      marketData?.totalVolume > 0
+        ? localizeLargeNumber(i18n, conversionRate * marketData.totalVolume)
+        : null,
+    volumeToMarketCap:
+      marketData?.marketCap > 0
+        ? convertDecimalToPercentage(
+            marketData.totalVolume / marketData.marketCap,
+          )
+        : null,
+    circulatingSupply:
+      marketData?.circulatingSupply > 0
+        ? localizeLargeNumber(i18n, marketData.circulatingSupply)
+        : null,
+    allTimeHigh:
+      marketData?.allTimeHigh > 0
+        ? formatCurrency(
+            conversionRate * marketData.allTimeHigh,
+            currentCurrency,
+          )
+        : null,
+    allTimeLow:
+      marketData?.allTimeLow > 0
+        ? formatCurrency(
+            conversionRate * marketData.allTimeLow,
+            currentCurrency,
+          )
+        : null,
+    fullyDiluted:
+      marketData?.dilutedMarketCap > 0
+        ? localizeLargeNumber(i18n, marketData.dilutedMarketCap)
+        : null,
+  };
+
+  return (
+    <View style={styles.wrapper}>
+      {(asset.isETH || tokenMetadata) && (
+        <TokenDetailsList tokenDetails={tokenDetails} />
+      )}
+      {marketData && <MarketDetailsList marketDetails={marketDetails} />}
     </View>
   );
 };

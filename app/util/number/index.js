@@ -878,7 +878,6 @@ export const safeBNToHex = (value) => {
  */
 // eslint-disable-next-line
 export const localizeLargeNumber = (i18n, number) => {
-  console.log(number);
   if (number >= 1000000000000) {
     return `${(number / 1000000000000).toFixed(2)}${i18n.t(
       'token.trillionAbbreviation',
