@@ -31,6 +31,7 @@ import BottomSheetHeader from '../../../component-library/components/BottomSheet
 import {
   getNetworkImageSource,
   toggleUseSafeChainsListValidation,
+  isMutichainVersion1Enabled,
 } from '../../../util/networks';
 import { NetworkApprovalModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkApprovalModal.selectors';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
@@ -70,6 +71,12 @@ const NetworkVerificationInfo = ({
 
   const showCheckNetworkModal = () => setShowCheckNetwork(!showCheckNetwork);
 
+  const goToLearnMore = () => {
+    Linking.openURL(
+      'https://support.metamask.io/networks-and-sidechains/managing-networks/verifying-custom-network-information/',
+    );
+  };
+
   useEffect(() => setAlerts(alertsFromProps), [alertsFromProps]);
 
   const networkImageSource = useMemo(
@@ -79,6 +86,55 @@ const NetworkVerificationInfo = ({
         chainId: customNetworkInformation.chainId,
       }),
     [customNetworkInformation],
+  );
+
+  const renderCurrencySymbol = () => (
+    <>
+      <Text
+        variant={
+          !isMutichainVersion1Enabled
+            ? TextVariant.BodyMDBold
+            : TextVariant.BodyMDMedium
+        }
+      >
+        {strings('add_custom_network.currency_symbol')}
+      </Text>
+      <Text style={styles.textSection}>{customNetworkInformation.ticker}</Text>
+    </>
+  );
+
+  const renderChainId = () => (
+    <>
+      <Text
+        variant={
+          !isMutichainVersion1Enabled
+            ? TextVariant.BodyMDBold
+            : TextVariant.BodyMDMedium
+        }
+      >
+        {strings('add_custom_network.chain_id')}
+      </Text>
+      <Text style={styles.textSection}>
+        {convertHexToDecimal(customNetworkInformation.chainId)}
+      </Text>
+    </>
+  );
+
+  const renderNetworkDisplayName = () => (
+    <>
+      <Text
+        variant={
+          !isMutichainVersion1Enabled
+            ? TextVariant.BodyMDBold
+            : TextVariant.BodyMDMedium
+        }
+      >
+        {strings('add_custom_network.display_name')}
+      </Text>
+      <Text style={styles.textSection}>
+        {customNetworkInformation.chainName}
+      </Text>
+    </>
   );
 
   const renderNetworkInfo = () => (
@@ -97,22 +153,22 @@ const NetworkVerificationInfo = ({
         networkDetailsExpanded ? styles.nestedScrollContent : undefined
       }
     >
-      <Text variant={TextVariant.BodyMDBold}>
-        {strings('add_custom_network.display_name')}
-      </Text>
-      <Text style={styles.textSection}>
-        {customNetworkInformation.chainName}
-      </Text>
+      {!isMutichainVersion1Enabled && renderNetworkDisplayName()}
 
-      <Text variant={TextVariant.BodyMDBold}>
-        {strings('add_custom_network.chain_id')}
-      </Text>
-      <Text style={styles.textSection}>
-        {convertHexToDecimal(customNetworkInformation.chainId)}
-      </Text>
+      {isMutichainVersion1Enabled && renderCurrencySymbol()}
 
-      <Text variant={TextVariant.BodyMDBold}>
-        {strings('add_custom_network.network_url')}
+      {!isMutichainVersion1Enabled && renderChainId()}
+
+      <Text
+        variant={
+          !isMutichainVersion1Enabled
+            ? TextVariant.BodyMDBold
+            : TextVariant.BodyMDMedium
+        }
+      >
+        {isMutichainVersion1Enabled
+          ? strings('networks.network_rpc_url_label')
+          : strings('add_custom_network.network_url')}
       </Text>
       <Text style={styles.textSection}>
         {hideKeyFromUrl(customNetworkInformation.rpcUrl)}
@@ -122,14 +178,19 @@ const NetworkVerificationInfo = ({
         title={strings('spend_limit_edition.view_details')}
         onPress={() => setNetworkDetailsExpanded(!networkDetailsExpanded)}
       >
-        <Text variant={TextVariant.BodyMDBold}>
-          {strings('add_custom_network.currency_symbol')}
-        </Text>
-        <Text style={styles.textSection}>
-          {customNetworkInformation.ticker}
-        </Text>
+        {isMutichainVersion1Enabled && renderChainId()}
 
-        <Text variant={TextVariant.BodyMDBold}>
+        {isMutichainVersion1Enabled && renderNetworkDisplayName()}
+
+        {!isMutichainVersion1Enabled && renderCurrencySymbol()}
+
+        <Text
+          variant={
+            !isMutichainVersion1Enabled
+              ? TextVariant.BodyMDBold
+              : TextVariant.BodyMDMedium
+          }
+        >
           {strings('add_custom_network.block_explorer_url')}
         </Text>
         <Text>{customNetworkInformation.blockExplorerUrl}</Text>
@@ -163,6 +224,21 @@ const NetworkVerificationInfo = ({
     }
     return null;
   };
+
+  const renderCustomNetworkBanner = () => (
+    <View style={styles.alertBar}>
+      <Banner
+        severity={BannerAlertSeverity.Warning}
+        variant={BannerVariant.Alert}
+        description={strings('wallet.cant_verify_custom_network_warning')}
+        actionButtonProps={{
+          variant: ButtonVariants.Link,
+          label: strings('wallet.learn_more'),
+          onPress: goToLearnMore,
+        }}
+      />
+    </View>
+  );
 
   const renderAlerts = useCallback(() => {
     if (!safeChainsListValidationEnabled) return null;
@@ -243,6 +319,10 @@ const NetworkVerificationInfo = ({
         <Text variant={TextVariant.HeadingMD}>
           {isCustomNetwork
             ? strings('networks.add_custom_network')
+            : isMutichainVersion1Enabled
+            ? strings('networks.add_specific_network', {
+                network_name: customNetworkInformation.chainName,
+              })
             : strings('app_settings.network_add_network')}
         </Text>
       </BottomSheetHeader>
@@ -255,11 +335,29 @@ const NetworkVerificationInfo = ({
         />
         {renderAlerts()}
         {renderBanner()}
+        {isMutichainVersion1Enabled &&
+          isCustomNetwork &&
+          renderCustomNetworkBanner()}
         <Text style={styles.textCentred}>
-          {strings('add_custom_network.warning_subtext_new.1')}{' '}
-          <Text onPress={openHowToUseCustomNetworks}>
-            {strings('add_custom_network.warning_subtext_new.2')}
-          </Text>
+          {isMutichainVersion1Enabled ? (
+            <Text>
+              {strings(
+                'switch_custom_network.add_network_and_give_dapp_permission_warning',
+                {
+                  // @ts-expect-error let's adjust the CustomNetworkInformation after multichain controllers have been updated by the api team
+                  dapp_origin: new URL(customNetworkInformation.pageMeta.url)
+                    ?.hostname,
+                },
+              )}
+            </Text>
+          ) : (
+            <>
+              {strings('add_custom_network.warning_subtext_new.1')}{' '}
+              <Text onPress={openHowToUseCustomNetworks}>
+                {strings('add_custom_network.warning_subtext_new.2')}
+              </Text>
+            </>
+          )}
         </Text>
         {renderNetworkInfo()}
       </ScrollView>
