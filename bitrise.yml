@@ -1567,5 +1567,5 @@ trigger_map:
   - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline
   - push_branch: create-app-launch-times-pipeline
-     pipeline: app_upgrade_pipeline
+    pipeline: app_upgrade_pipeline
   
