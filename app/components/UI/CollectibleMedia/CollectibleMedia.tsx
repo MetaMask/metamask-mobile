@@ -11,7 +11,7 @@ import {
   selectDisplayNftMedia,
   selectIsIpfsGatewayEnabled,
 } from '../../../selectors/preferencesController';
-import createStyles from './CollectibleMedia.styles';
+import createStyles, { createContainerStyle } from './CollectibleMedia.styles';
 import { CollectibleMediaProps } from './CollectibleMedia.types';
 import NftFallbackImage from '../../../../docs/assets/nft-fallback.png';
 import {
@@ -237,7 +237,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   ]);
 
   return (
-    <View style={styles.container(collectible.backgroundColor)}>
+    <View style={createContainerStyle(collectible.backgroundColor)}>
       {renderMedia()}
     </View>
   );

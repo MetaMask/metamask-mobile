@@ -90,20 +90,23 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
         keyExtractor={(item) => `address-${item.index}`}
         renderItem={({ item }) => (
           <View style={[styles.account]}>
-            <CheckBox
-              style={[styles.checkBox]}
-              disabled={item.exist}
-              value={item.checked}
-              onValueChange={() => onCheckBoxClick(item.index)}
-              boxType={'square'}
-              tintColors={{
-                true: colors.primary.default,
-                false: colors.border.default,
-              }}
-              onCheckColor={colors.background.default}
-              onFillColor={colors.primary.default}
-              onTintColor={colors.primary.default}
-            />
+            {
+              //@ts-expect-error This checkbox needs to be replaced by the component-library/components/Checkbox component
+              <CheckBox
+                style={[styles.checkBox]}
+                disabled={item.exist}
+                value={item.checked}
+                onValueChange={() => onCheckBoxClick(item.index)}
+                boxType={'square'}
+                tintColors={{
+                  true: colors.primary.default,
+                  false: colors.border.default,
+                }}
+                onCheckColor={colors.background.default}
+                onFillColor={colors.primary.default}
+                onTintColor={colors.primary.default}
+              />
+            }
             <AccountDetails
               index={item.index}
               address={item.address}
@@ -120,7 +123,10 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
           onPress={prevPage}
           {...generateTestId(Platform, ACCOUNT_SELECTOR_PREVIOUS_BUTTON)}
         >
-          <Icon name={'chevron-left'} color={colors.primary.default} />
+          {
+            //@ts-expect-error The usage of react-native-vector-icons is deprecated and the TS error will be expected, needs to be refactored
+            <Icon name={'chevron-left'} color={colors.primary.default} />
+          }{' '}
           <Text style={styles.paginationText}>
             {strings('account_selector.prev')}
           </Text>
@@ -133,7 +139,10 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
           <Text style={styles.paginationText}>
             {strings('account_selector.next')}
           </Text>
-          <Icon name={'chevron-right'} color={colors.primary.default} />
+          {
+            //@ts-expect-error The usage of react-native-vector-icons is deprecated and the TS error will be expected, needs to be refactored
+            <Icon name={'chevron-right'} color={colors.primary.default} />
+          }
         </TouchableOpacity>
       </View>
       <View style={styles.bottom}>

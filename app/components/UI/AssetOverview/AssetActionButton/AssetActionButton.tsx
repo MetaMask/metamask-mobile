@@ -33,6 +33,7 @@ const AssetActionButton = ({
     switch (type) {
       case 'send': {
         return (
+          //@ts-expect-error The usage of react-native-vector-icons is deprecated and the TS error will be expected, needs to be refactored
           <MaterialCommunityIcon
             name={'arrow-top-right'}
             size={20}
@@ -42,6 +43,7 @@ const AssetActionButton = ({
       }
       case 'receive': {
         return (
+          //@ts-expect-error The usage of react-native-vector-icons is deprecated and the TS error will be expected, needs to be refactored
           <MaterialCommunityIcon
             name={'keyboard-tab'}
             size={20}
@@ -51,15 +53,18 @@ const AssetActionButton = ({
         );
       }
       case 'add': {
+        //@ts-expect-error The usage of react-native-vector-icons is deprecated and the TS error will be expected, needs to be refactored
         return <Ionicon name="ios-add" size={30} style={styles.buttonIcon} />;
       }
       case 'information': {
         return (
+          //@ts-expect-error The usage of react-native-vector-icons is deprecated and the TS error will be expected, needs to be refactored
           <Ionicon name="md-information" size={30} style={styles.buttonIcon} />
         );
       }
       case 'swap': {
         return (
+          //@ts-expect-error The usage of react-native-vector-icons is deprecated and the TS error will be expected, needs to be refactored
           <MaterialCommunityIcon
             name="repeat"
             size={22}
@@ -69,6 +74,7 @@ const AssetActionButton = ({
       }
       case 'buy': {
         return (
+          //@ts-expect-error The usage of react-native-vector-icons is deprecated and the TS error will be expected, needs to be refactored
           <FeatherIcon
             name="credit-card"
             size={20}

@@ -153,12 +153,15 @@ const DeleteWalletModal = () => {
             style={styles.areYouSure}
             testID={DeleteWalletModalSelectorsIDs.CONTAINER}
           >
-            <Icon
-              style={styles.warningIcon}
-              size={46}
-              color={colors.error.default}
-              name="exclamation-triangle"
-            />
+            {
+              //@ts-expect-error The usage of react-native-vector-icons is deprecated and the TS error will be expected, needs to be refactored
+              <Icon
+                style={styles.warningIcon}
+                size={46}
+                color={colors.error.default}
+                name="exclamation-triangle"
+              />
+            }
             <Text style={[styles.heading, styles.red]}>
               {strings('login.are_you_sure')}
             </Text>

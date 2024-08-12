@@ -33,13 +33,16 @@ const AccountDetails = (props: IAccountDetailsProps) => {
           {renderFromWei(balance)} {ticker || defaultTicker}
         </Text>
       </View>
-      <Icon
-        size={18}
-        name={'external-link'}
-        onPress={() => toBlockExplorer(address)}
-        style={styles.linkIcon}
-        color={colors.text.default}
-      />
+      {
+        //@ts-expect-error The usage of react-native-vector-icons is deprecated and the TS error will be expected, needs to be refactored
+        <Icon
+          size={18}
+          name={'external-link'}
+          onPress={() => toBlockExplorer(address)}
+          style={styles.linkIcon}
+          color={colors.text.default}
+        />
+      }
     </View>
   );
 };

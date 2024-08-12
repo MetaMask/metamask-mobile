@@ -3,18 +3,16 @@ import scaling from '../../../util/scaling';
 import Device from '../../../util/device';
 
 import { MEDIA_WIDTH_MARGIN } from './Collectible.constants';
+import { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createStyles = (colors: any) =>
+export const createContainerStyle = (backgroundColor?: string) => ({
+  flex: 0,
+  borderRadius: 12,
+  backgroundColor: `#${backgroundColor}`,
+});
+
+const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
-    container(backgroundColor: string) {
-      return {
-        flex: 0,
-        borderRadius: 12,
-        backgroundColor: `#${backgroundColor}`,
-      };
-    },
     tinyImage: {
       width: 32,
       height: 32,

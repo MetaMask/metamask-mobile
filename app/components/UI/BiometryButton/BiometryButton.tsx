@@ -34,6 +34,7 @@ const BiometryButton = ({
     if (Platform.OS === 'ios') {
       if (type === 'TouchID') {
         return (
+          //@ts-expect-error The usage of react-native-vector-icons is deprecated and the TS error will be expected, needs to be refactored
           <Ionicons
             color={colors.text.default}
             size={28}
@@ -43,6 +44,7 @@ const BiometryButton = ({
         );
       } else if (type.includes(AUTHENTICATION_TYPE.PASSCODE)) {
         return (
+          //@ts-expect-error The usage of react-native-vector-icons is deprecated and the TS error will be expected, needs to be refactored
           <Ionicons
             color={colors.text.default}
             size={28}
@@ -57,6 +59,7 @@ const BiometryButton = ({
     if (Platform.OS === 'android') {
       if (type === 'Fingerprint') {
         return (
+          //@ts-expect-error The usage of react-native-vector-icons is deprecated and the TS error will be expected, needs to be refactored
           <MaterialIcon
             color={colors.text.default}
             style={styles.fixCenterIcon}
@@ -70,6 +73,7 @@ const BiometryButton = ({
         return <ImageRN style={styles.image} source={androidIris} />;
       } else if (type.includes(AUTHENTICATION_TYPE.PASSCODE)) {
         return (
+          //@ts-expect-error The usage of react-native-vector-icons is deprecated and the TS error will be expected, needs to be refactored
           <MaterialIcon
             color={colors.text.default}
             style={styles.fixCenterIcon}
@@ -81,6 +85,7 @@ const BiometryButton = ({
     }
 
     return (
+      //@ts-expect-error The usage of react-native-vector-icons is deprecated and the TS error will be expected, needs to be refactored
       <Ionicons
         color={colors.text.default}
         style={styles.fixCenterIcon}
