@@ -33,6 +33,8 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   cover,
   onClose,
   onPressColectible,
+  isTokenImage,
+  isFullRatio,
 }) => {
   const [sourceUri, setSourceUri] = useState<string | null>(null);
   const { colors } = useTheme();
@@ -99,7 +101,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
           <View style={styles.imageFallBackTextContainer}>
             <Text style={styles.imageFallBackText}>
               {collectible.tokenId
-                ? ` #${formatTokenId(collectible.tokenId)}`
+                ? ` #${formatTokenId(parseInt(collectible.tokenId, 10))}`
                 : ''}
             </Text>
           </View>
@@ -139,7 +141,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
             style={tiny ? styles.textWrapperIcon : styles.textWrapper}
           >
             {collectible.tokenId
-              ? ` #${formatTokenId(collectible.tokenId)}`
+              ? ` #${formatTokenId(parseInt(collectible.tokenId, 10))}`
               : ''}
           </Text>
         </View>
@@ -194,6 +196,8 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
             ]}
             onError={fallback}
             testID="nft-image"
+            isTokenImage={isTokenImage}
+            isFullRatio={isFullRatio}
           />
         );
       }
@@ -208,20 +212,28 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
 
     return renderFallback(false);
   }, [
-    collectible,
+    displayNftMedia,
+    isIpfsGatewayEnabled,
     sourceUri,
-    onClose,
+    collectible.error,
+    collectible.animation,
+    renderFallback,
     renderAnimation,
+    onClose,
+    styles.mediaPlayer,
+    styles.cover,
+    styles.image,
+    styles.tinyImage,
+    styles.smallImage,
+    styles.bigImage,
+    cover,
     style,
     tiny,
     small,
     big,
-    cover,
-    styles,
-    isIpfsGatewayEnabled,
-    renderFallback,
     fallback,
-    displayNftMedia,
+    isTokenImage,
+    isFullRatio,
   ]);
 
   return (
