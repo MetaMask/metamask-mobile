@@ -4,7 +4,6 @@ import React, {
   useEffect,
   useRef,
   useState,
-  Profiler,
 } from 'react';
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
 import {
@@ -120,29 +119,9 @@ import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetec
 import NftOptions from '../../../components/Views/NftOptions';
 import ShowTokenIdSheet from '../../../components/Views/ShowTokenIdSheet';
 import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
-import performance, {
-  setResourceLoggingEnabled,
-} from 'react-native-performance';
-import setupPerformanceObservers from './setupPerformanceObservers';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
-
-setResourceLoggingEnabled(true);
-
-const traceRender = (
-  id, // the "id" prop of the Profiler tree that has just committed
-  phase, // either "mount" (if the tree just mounted) or "update" (if it re-rendered)
-  actualDuration, // time spent rendering the committed update
-  baseDuration, // estimated time to render the entire subtree without memoization
-  startTime, // when React began rendering this update
-  _commitTime, // when React committed this update
-  _interactions, // the Set of interactions belonging to this update
-) =>
-  performance.measure(id, {
-    start: startTime,
-    duration: actualDuration,
-  });
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -338,8 +317,6 @@ const App = ({ userLoggedIn }) => {
   const dispatch = useDispatch();
   const sdkInit = useRef();
   const [onboarded, setOnboarded] = useState(false);
-  const [appStartTime, setAppStartTime] = useState([]);
-  const isDevelopment = process.env.NODE_ENV !== 'production';
 
   const triggerSetCurrentRoute = (route) => {
     dispatch(setCurrentRoute(route));
@@ -348,19 +325,6 @@ const App = ({ userLoggedIn }) => {
       dispatch(setCurrentBottomNavRoute(route));
     }
   };
-
-  useEffect(() => {
-    if (isDevelopment) {
-      setupPerformanceObservers(setAppStartTime);
-    }
-  }, [isDevelopment]);
-
-  if (isDevelopment) {
-    /* eslint-disable no-console */ console.log(
-      'App Start Time:',
-      appStartTime,
-    );
-  }
 
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
@@ -843,7 +807,7 @@ const App = ({ userLoggedIn }) => {
   return (
     // do not render unless a route is defined
     (route && (
-      <Profiler id="App.render()" onRender={traceRender}>
+      <>
         {
           ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         }
@@ -970,7 +934,7 @@ const App = ({ userLoggedIn }) => {
         </NavigationContainer>
         {renderSplash()}
         <Toast ref={toastRef} />
-      </Profiler>
+      </>
     )) ||
     null
   );
