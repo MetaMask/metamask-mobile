@@ -1192,13 +1192,18 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+              #!/usr/bin/env bash
 
-                # Extract the app_url from the first entry
-                export BROWSERSTACK_APP_URL=$(jq -r '.[0].app_url' $BROWSERSTACK_UPLOADED_APPS_LIST)
-
-                # Check the extracted URL
-                echo "Extracted BROWSERSTACK_APP_URL: $BROWSERSTACK_APP_URL"
-
+              # Check if BROWSERSTACK_UPLOADED_APPS_LIST is empty or does not exist
+              if [ ! -s "$BROWSERSTACK_UPLOADED_APPS_LIST" ]; then
+                # If the file is empty or does not exist, use the existing BROWSERSTACK_APP_URL. 
+                # This is incase an engineer wants to kick off the tests with an existing browserstack url
+                echo "BROWSERSTACK_UPLOADED_APPS_LIST is empty or does not exist. Using existing BROWSERSTACK_APP_URL."
+              else
+                # If the file is not empty, extract the app_url
+                export BROWSERSTACK_APP_URL=$(jq -r '.[0].app_url' "$BROWSERSTACK_UPLOADED_APPS_LIST")
+                echo "BROWSERSTACK_APP_URL extracted from BROWSERSTACK_UPLOADED_APPS_LIST: $BROWSERSTACK_APP_URL"
+              fi
                 # Check if TEST_TYPE is set to upgrade
                 if [ "$TEST_TYPE" = "upgrade" ]; then
                   TEST_TYPE="--upgrade"
@@ -1561,4 +1566,6 @@ trigger_map:
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline
+  - push_branch: create-app-launch-times-pipeline
+     pipeline: app_upgrade_pipeline
   
