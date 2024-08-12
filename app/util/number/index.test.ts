@@ -602,26 +602,17 @@ describe('Number utils :: balanceToFiatNumber', () => {
   });
 });
 
-describe('Number utils :: renderPortfolioBalance', () => {
-  it('renderPortfolioBalance handles supported fiat currencies', () => {
-    expect(renderPortfolioBalance(0.1, 'usd')).toEqual('$0.10');
-    expect(renderPortfolioBalance(64.72546, 'hkd')).toEqual('HK$64.73');
-    expect(renderPortfolioBalance(7242.199978, 'jpy')).toEqual('¥7,242');
-    expect(renderPortfolioBalance(12312312.987987, 'eur')).toEqual(
-      '€12,312,312.99',
-    );
-    expect(renderPortfolioBalance(0.0, 'USD')).toEqual('$0.00');
-  });
-  it('renderPortfolioBalance handles crypto and unsupported fiat with 5 fixed decimals, unless specified', () => {
-    expect(renderPortfolioBalance(0.1, 'btc')).toEqual('0.10000 BTC');
-    expect(renderPortfolioBalance(50022.33, 'rmb')).toEqual('50022.33000 RMB');
-  });
-});
-
 describe('Number utils :: renderFiat', () => {
-  it('renderFiat', () => {
-    expect(renderFiat(0.1, 'usd')).toEqual('$0.1');
-    expect(renderFiat(0.0010000001, 'usd')).toEqual('$0.001');
+  it('renderFiat handles supported fiat currencies', () => {
+    expect(renderFiat(0.1, 'usd')).toEqual('$0.10');
+    expect(renderFiat(64.72546, 'hkd')).toEqual('HK$64.73');
+    expect(renderFiat(7242.199978, 'jpy')).toEqual('¥7,242');
+    expect(renderFiat(12312312.987987, 'eur')).toEqual('€12,312,312.99');
+    expect(renderFiat(0.0, 'USD')).toEqual('$0.00');
+  });
+  it('renderFiat handles crypto and unsupported fiat with 5 fixed decimals, unless specified', () => {
+    expect(renderFiat(0.1, 'btc')).toEqual('0.10000 BTC');
+    expect(renderFiat(50022.33, 'rmb')).toEqual('50022.33000 RMB');
   });
 });
 
