@@ -10,6 +10,8 @@ import DevLogger from '../utils/DevLogger';
 import DeeplinkProtocolService from './DeeplinkProtocolService';
 import AppConstants from '../../AppConstants';
 import { DappClient } from '../AndroidSDK/dapp-sdk-types';
+import { createMockInternalAccount } from '../../../util/test/accountsControllerTestUtils';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 jest.mock('../SDKConnect');
 jest.mock('../../../core/Engine');
@@ -19,6 +21,12 @@ jest.mock('../utils/DevLogger');
 jest.mock('../../../util/Logger');
 jest.mock('../handlers/handleCustomRpcCalls');
 jest.mock('../handlers/handleBatchRpcResponse');
+
+const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
+const mockInternalAccount = createMockInternalAccount(
+  MOCK_ADDRESS,
+  'Account 1',
+);
 
 describe('DeeplinkProtocolService', () => {
   let service: DeeplinkProtocolService;
@@ -48,7 +56,9 @@ describe('DeeplinkProtocolService', () => {
       },
       KeyringController: { unlock: jest.fn() },
       NetworkController: { state: { providerConfig: { chainId: '0x1' } } },
-      PreferencesController: { state: { selectedAddress: '0xAddress' } },
+      AccountsController: {
+        getSelectedAccount: jest.fn().mockReturnValue(mockInternalAccount),
+      },
     };
 
     (Linking.openURL as jest.Mock).mockResolvedValue(null);
@@ -484,7 +494,7 @@ describe('DeeplinkProtocolService', () => {
         ).toString('base64'),
         channelId: 'channel1',
         scheme: 'scheme',
-        account: '0xAddress@1',
+        account: `${toChecksumHexAddress(MOCK_ADDRESS)}@1`,
       };
       service.handleMessage(params);
       expect(DevLogger.log).toHaveBeenCalled();

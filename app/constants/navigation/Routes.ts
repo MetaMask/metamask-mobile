@@ -85,6 +85,7 @@ const Routes = {
     ACCOUNT_SELECTOR: 'AccountSelector',
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     BASIC_FUNCTIONALITY: 'BasicFunctionality',
+    PROFILE_SYNCING: 'ProfileSyncing',
     SDK_LOADING: 'SDKLoading',
     SDK_FEEDBACK: 'SDKFeedback',
     DATA_COLLECTION: 'DataCollection',
@@ -100,6 +101,8 @@ const Routes = {
     FIAT_ON_TESTNETS_FRICTION: 'SettingsAdvancedFiatOnTestnetsFriction',
     SHOW_IPFS: 'ShowIpfs',
     SHOW_NFT_DISPLAY_MEDIA: 'ShowNftDisplayMedia',
+    SHOW_TOKEN_ID: 'ShowTokenId',
+    ORIGIN_SPAM_MODAL: 'OriginSpamModal',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',
@@ -121,6 +124,7 @@ const Routes = {
     WALLET_RESET_NEEDED: 'WalletResetNeeded',
   },
   ADD_NETWORK: 'AddNetwork',
+  EDIT_NETWORK: 'EditNetwork',
   SWAPS: 'Swaps',
   LOCK_SCREEN: 'LockScreen',
   NOTIFICATIONS: {
