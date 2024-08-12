@@ -1189,6 +1189,7 @@ workflows:
           title: Pull browserstack app json list
       - script@1:
           title: Run Android E2E tests on Browserstack
+          is_always_run: true
           inputs:
             - content: |-
                 #!/usr/bin/env bash
