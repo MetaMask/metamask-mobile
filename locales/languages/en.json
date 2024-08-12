@@ -598,7 +598,18 @@
     "address_must_be_smart_contract": "Personal address detected. Enter the token contract address.",
     "billionAbbreviation": "B",
     "trillionAbbreviation": "T",
-    "millionAbbreviation": "M"
+    "millionAbbreviation": "M",
+    "token_details": "Token details",
+    "contract_address": "Contract address",
+    "token_list": "Token list",
+    "market_details": "Market Details",
+    "market_cap": "Market Cap",
+    "total_volume": "Total Volume (24h)",
+    "volume_to_marketcap": "Volume / Market Cap",
+    "circulating_supply": "Circulating supply",
+    "all_time_high": "All time high",
+    "all_time_low": "All time low",
+    "fully_diluted": "Fully diluted"
   },
   "collectible": {
     "collectible_address": "Address",

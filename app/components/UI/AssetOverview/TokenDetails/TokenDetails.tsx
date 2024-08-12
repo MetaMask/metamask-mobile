@@ -1,7 +1,6 @@
 import { zeroAddress } from 'ethereumjs-util';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useDispatch, useSelector } from 'react-redux';
 import { showAlert } from '../../../../actions/alert';
 import i18n, { strings } from '../../../../../locales/i18n';
@@ -32,7 +31,6 @@ import {
   localizeLargeNumber,
 } from '../../../../util/number';
 import { formatCurrency } from '../../../../util/confirm-tx';
-// import ContentDisplay from './ContentDisplay';
 
 interface TokenDetailsProps {
   asset: Asset;
@@ -42,25 +40,25 @@ interface TokenDetailsListProps {
   tokenDetails: TokenDetails;
 }
 
-type TokenDetails = {
-  contractAddress: string;
-  tokenDecimal: number;
-  tokenList: string;
-};
+interface TokenDetails {
+  contractAddress: string | null;
+  tokenDecimal: number | null;
+  tokenList: string | null;
+}
 
 interface MarketDetailsListProps {
   marketDetails: MarketDetails;
 }
 
-type MarketDetails = {
-  marketCap: string;
-  totalVolume: number;
+interface MarketDetails {
+  marketCap: string | null;
+  totalVolume: number | null;
   volumeToMarketCap: string | null;
-  circulatingSupply: number;
-  allTimeHigh: string;
-  allTimeLow: string;
-  fullyDiluted: number;
-};
+  circulatingSupply: number | null;
+  allTimeHigh: string | null;
+  allTimeLow: string | null;
+  fullyDiluted: number | null;
+}
 
 const skeletonProps = {
   width: '100%',
@@ -75,64 +73,80 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const locale: keyof TokenDescriptions = i18n.locale;
 
-  const tokenContractAddress = safeToChecksumAddress(
-    asset.isETH ? zeroAddress() : asset.address,
-  );
+  const tokenContractAddress = safeToChecksumAddress(asset.address);
 
-  if (!tokenContractAddress || !conversionRate) {
-    console.log("can't find tokenContractAddress or conversionRate");
+  if (!tokenContractAddress) {
+    console.log("can't find contract address");
+    return null;
+  }
+
+  if (!conversionRate || conversionRate < 0) {
+    console.log('invalid conversion rate');
     return null;
   }
 
   const tokenMetadata = tokenList[tokenContractAddress.toLowerCase()];
   const marketData = tokenExchangeRates[tokenContractAddress];
 
-  if (!tokenMetadata) {
-    console.log("can't find tokenMetadata");
-    return null;
-  }
-
-  if (!marketData) {
-    console.log("can't find marketData");
-    return null;
-  }
-
-  const tokenDetails: TokenDetails = {
-    contractAddress: formatAddress(tokenContractAddress, 'short'),
-    tokenDecimal: tokenMetadata.decimals,
-    tokenList: tokenMetadata.aggregators.join(', '),
-  };
+  // why isn't zeroAddress() in TokenList?
+  const tokenDetails: TokenDetails = asset.isETH
+    ? {
+        contractAddress: formatAddress(zeroAddress(), 'short'),
+        tokenDecimal: 18,
+        tokenList: '',
+      }
+    : {
+        contractAddress: formatAddress(tokenContractAddress, 'short') || null,
+        tokenDecimal: tokenMetadata.decimals || null,
+        tokenList: tokenMetadata.aggregators.join(', ') || null,
+      };
 
   const marketDetails: MarketDetails = {
-    marketCap: localizeLargeNumber(i18n, conversionRate * marketData.marketCap),
-    totalVolume: localizeLargeNumber(
-      i18n,
-      conversionRate * marketData.totalVolume,
-    ),
+    marketCap:
+      marketData?.marketCap > 0
+        ? localizeLargeNumber(i18n, conversionRate * marketData.marketCap)
+        : null,
+    totalVolume:
+      marketData?.totalVolume > 0
+        ? localizeLargeNumber(i18n, conversionRate * marketData.totalVolume)
+        : null,
     volumeToMarketCap:
-      marketData.marketCap <= 0
-        ? null
-        : convertDecimalToPercentage(
+      marketData?.marketCap > 0
+        ? convertDecimalToPercentage(
             marketData.totalVolume / marketData.marketCap,
-          ),
-    circulatingSupply: localizeLargeNumber(i18n, marketData.circulatingSupply),
-    allTimeHigh: formatCurrency(
-      conversionRate * marketData.allTimeHigh,
-      currentCurrency,
-    ),
-    allTimeLow: formatCurrency(
-      conversionRate * marketData.allTimeLow,
-      currentCurrency,
-    ),
-    fullyDiluted: localizeLargeNumber(i18n, marketData.dilutedMarketCap),
+          )
+        : null,
+    circulatingSupply:
+      marketData?.circulatingSupply > 0
+        ? localizeLargeNumber(i18n, marketData.circulatingSupply)
+        : null,
+    allTimeHigh:
+      marketData?.allTimeHigh > 0
+        ? formatCurrency(
+            conversionRate * marketData.allTimeHigh,
+            currentCurrency,
+          )
+        : null,
+    allTimeLow:
+      marketData?.allTimeLow > 0
+        ? formatCurrency(
+            conversionRate * marketData.allTimeLow,
+            currentCurrency,
+          )
+        : null,
+    fullyDiluted:
+      marketData?.dilutedMarketCap > 0
+        ? localizeLargeNumber(i18n, marketData.dilutedMarketCap)
+        : null,
   };
 
   return (
     <View style={styles.wrapper}>
-      <TokenDetailsList tokenDetails={tokenDetails} />
-      <MarketDetailsList marketDetails={marketDetails} />
+      {(asset.isETH || tokenMetadata) && (
+        <TokenDetailsList tokenDetails={tokenDetails} />
+      )}
+      {marketData && <MarketDetailsList marketDetails={marketDetails} />}
     </View>
   );
 };
@@ -160,35 +174,44 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
       data: { msg: strings('account_details.account_copied_to_clipboard') },
     });
   };
+
   return (
     <View style={styles.wrapper}>
-      <Title style={styles.title}>Token Details</Title>
+      <Title style={styles.title}>{strings('token.token_details')}</Title>
       <View style={styles.listWrapper}>
-        <View style={[styles.listItem, styles.firstChild]}>
-          <Text style={styles.listItemLabel}>Contract address</Text>
-          <TouchableOpacity
-            style={styles.copyButton}
-            onPress={copyAccountToClipboard}
-          >
-            <Text color={TextColor.Primary} variant={TextVariant.BodySM}>
-              {tokenDetails.contractAddress}
+        {tokenDetails.contractAddress && (
+          <View style={[styles.listItem, styles.firstChild]}>
+            <Text style={styles.listItemLabel}>
+              {strings('token.contract_address')}
             </Text>
-            <Icon
-              name={IconName.Copy}
-              size={IconSize.Sm}
-              color={IconColor.Primary}
-              style={styles.icon}
-            />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.listItem}>
-          <Text>Token Decimal</Text>
-          <Text>{tokenDetails.tokenDecimal}</Text>
-        </View>
-        <View style={[styles.listItemStacked, styles.lastChild]}>
-          <Text>Token list</Text>
-          <Text>{tokenDetails.tokenList}</Text>
-        </View>
+            <TouchableOpacity
+              style={styles.copyButton}
+              onPress={copyAccountToClipboard}
+            >
+              <Text color={TextColor.Primary} variant={TextVariant.BodySM}>
+                {tokenDetails.contractAddress}
+              </Text>
+              <Icon
+                name={IconName.Copy}
+                size={IconSize.Sm}
+                color={IconColor.Primary}
+                style={styles.icon}
+              />
+            </TouchableOpacity>
+          </View>
+        )}
+        {tokenDetails.tokenDecimal && (
+          <View style={styles.listItem}>
+            <Text>{strings('token.token_decimal')}</Text>
+            <Text>{tokenDetails.tokenDecimal}</Text>
+          </View>
+        )}
+        {tokenDetails.tokenList && (
+          <View style={[styles.listItemStacked, styles.lastChild]}>
+            <Text>{strings('token.token_list')}</Text>
+            <Text>{tokenDetails.tokenList}</Text>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -203,36 +226,50 @@ const MarketDetailsList: React.FC<MarketDetailsListProps> = ({
     <View style={styles.wrapper}>
       <Title style={styles.title}>Market Details</Title>
       <View style={styles.listWrapper}>
-        <View style={[styles.listItem, styles.firstChild]}>
-          <Text style={styles.listItemLabel}>Market Cap</Text>
-          <Text>{marketDetails.marketCap}</Text>
-        </View>
-        <View style={styles.listItem}>
-          <Text>Total Volume (24h)</Text>
-          <Text>{marketDetails.totalVolume}</Text>
-        </View>
+        {marketDetails.marketCap && (
+          <View style={[styles.listItem, styles.firstChild]}>
+            <Text style={styles.listItemLabel}>
+              {strings('token.market_cap')}
+            </Text>
+            <Text>{marketDetails.marketCap}</Text>
+          </View>
+        )}
+        {marketDetails.totalVolume && (
+          <View style={styles.listItem}>
+            <Text>{strings('token.total_volume')}</Text>
+            <Text>{marketDetails.totalVolume}</Text>
+          </View>
+        )}
         {marketDetails.volumeToMarketCap && (
           <View style={styles.listItem}>
-            <Text>Volume / Market Cap</Text>
+            <Text>{strings('token.volume_to_marketcap')}</Text>
             <Text>{marketDetails.volumeToMarketCap}</Text>
           </View>
         )}
-        <View style={styles.listItem}>
-          <Text>Circulating supply</Text>
-          <Text>{marketDetails.circulatingSupply}</Text>
-        </View>
-        <View style={styles.listItem}>
-          <Text>All time high</Text>
-          <Text>{marketDetails.allTimeHigh}</Text>
-        </View>
-        <View style={styles.listItem}>
-          <Text>All time low</Text>
-          <Text>{marketDetails.allTimeLow}</Text>
-        </View>
-        <View style={styles.listItem}>
-          <Text>Fully diluted</Text>
-          <Text>{marketDetails.fullyDiluted}</Text>
-        </View>
+        {marketDetails.circulatingSupply && (
+          <View style={styles.listItem}>
+            <Text>{strings('token.circulating_supply')}</Text>
+            <Text>{marketDetails.circulatingSupply}</Text>
+          </View>
+        )}
+        {marketDetails.allTimeHigh && (
+          <View style={styles.listItem}>
+            <Text>{strings('token.all_time_high')}</Text>
+            <Text>{marketDetails.allTimeHigh}</Text>
+          </View>
+        )}
+        {marketDetails.allTimeLow && (
+          <View style={styles.listItem}>
+            <Text>{strings('token.all_time_low')}</Text>
+            <Text>{marketDetails.allTimeLow}</Text>
+          </View>
+        )}
+        {marketDetails.fullyDiluted && (
+          <View style={styles.listItem}>
+            <Text>{strings('token.fully_diluted')}</Text>
+            <Text>{marketDetails.fullyDiluted}</Text>
+          </View>
+        )}
       </View>
     </View>
   );
