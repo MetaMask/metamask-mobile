@@ -12,7 +12,7 @@
     "clean:android": "rm -rf android/app/build",
     "clean:node": "rm -rf node_modules && yarn --frozen-lockfile",
     "clean": "yarn clean:ios && yarn clean:android && yarn clean:node && yarn clean:ppom",
-    "clean-android": "yarn clean:android && yarn clean:node",
+    "clean-android": "yarn clean:android && yarn  clean:node",
     "lint": "eslint '**/*.{js,ts,tsx}'",
     "lint:fix": "eslint '**/*.{js,ts,tsx}' --fix",
     "lint:tsc": "tsc --project ./tsconfig.lint.json",
