@@ -17,7 +17,6 @@ import {
 import Icon from '../../../../../component-library/components/Icons/Icon/Icon';
 import Text from '../../../../../component-library/components/Texts/Text/Text';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
-import { isBlockaidFeatureEnabled } from '../../../../../util/blockaid';
 import {
   FALSE_POSITIVE_REPOST_LINE_TEST_ID,
   REASON_DESCRIPTION_I18N_KEY_MAP,
@@ -69,18 +68,6 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   const { styles, theme } = useStyles(styleSheet, { style });
   const [displayPositiveResponse, setDisplayPositiveResponse] = useState(false);
   const [reportUrl, setReportUrl] = useState<string>('');
-  const [isFeatureEnabled, setIsFeatureEnabled] = useState<boolean | null>(
-    null,
-  );
-
-  useEffect(() => {
-    const checkFeatureEnabled = async () => {
-      const enabled = await isBlockaidFeatureEnabled();
-      setIsFeatureEnabled(enabled);
-    };
-
-    checkFeatureEnabled();
-  }, []);
 
   useEffect(() => {
     if (securityAlertResponse?.reason === Reason.requestInProgress) {
@@ -121,7 +108,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
     })();
   }, [securityAlertResponse]);
 
-  if (!securityAlertResponse || !isFeatureEnabled) {
+  if (!securityAlertResponse) {
     return null;
   }
 

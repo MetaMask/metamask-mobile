@@ -18,7 +18,7 @@ const BlockaidBannerLink = ({
 }: {
   text: string;
   link: string;
-  onContactUsClicked?: () => Promise<void> | void;
+  onContactUsClicked?: () => Promise<void>;
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
