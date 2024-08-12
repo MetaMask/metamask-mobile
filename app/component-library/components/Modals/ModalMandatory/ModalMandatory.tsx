@@ -83,10 +83,22 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
     }
   };
 
+  const isBodyWebViewUri = (
+    webviewBody: BodyWebView,
+  ): webviewBody is BodyWebViewUri =>
+    (webviewBody as BodyWebViewUri).uri !== undefined;
+
   const scrollToEnd = () => {
     if (body.source === 'WebView') {
-      scrollToEndWebView();
-      return;
+      const source = isBodyWebViewUri(body)
+        ? { uri: body.uri }
+        : { html: body.html };
+
+      if (source.uri) {
+        scrollToEndWebView();
+        return;
+      }
+      webViewRef.current?.injectJavaScript(scrollToEndJS);
     }
     scrollRef.current?.scrollToEnd({ animated: true });
   };
@@ -144,14 +156,28 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
         testID={TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON}
         onPress={scrollToEnd}
         iconName={IconName.ArrowDown}
+        hitSlop={12}
       />
     </View>
   );
 
-  const isBodyWebViewUri = (
-    webviewBody: BodyWebView,
-  ): webviewBody is BodyWebViewUri =>
-    (webviewBody as BodyWebViewUri).uri !== undefined;
+  const isCloseToBottom = ({
+    layoutMeasurement,
+    contentOffset,
+    contentSize,
+  }: NativeScrollEvent) => {
+    const paddingToBottom = 20;
+    if (
+      layoutMeasurement.height + contentOffset.y >=
+      contentSize.height - paddingToBottom
+    ) {
+      setIsScrollEnded(true);
+      setIsFloatingButtonBackground(false);
+    } else {
+      setIsScrollEnded(false);
+      setIsFloatingButtonBackground(true);
+    }
+  };
 
   const renderWebView = (webviewBody: BodyWebView) => {
     const source = isBodyWebViewUri(webviewBody)
@@ -166,28 +192,14 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
         injectedJavaScript={isScrollEndedJS}
         onLoad={() => setIsWebViewLoaded(true)}
         onMessage={onMessage}
+        onScroll={({ nativeEvent }) =>
+          isCloseToBottom(nativeEvent as NativeScrollEvent)
+        }
         {...(source.uri && {
           onShouldStartLoadWithRequest: (req) => source.uri === req.url,
         })}
       />
     );
-  };
-
-  const isCloseToBottom = ({
-    layoutMeasurement,
-    contentOffset,
-    contentSize,
-  }: NativeScrollEvent) => {
-    const paddingToBottom = 20;
-
-    if (
-      layoutMeasurement.height + contentOffset.y >=
-      contentSize.height - paddingToBottom
-    ) {
-      setIsFloatingButtonBackground(false);
-    } else {
-      setIsFloatingButtonBackground(true);
-    }
   };
 
   const renderBody = () => {

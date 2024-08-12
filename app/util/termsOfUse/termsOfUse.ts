@@ -57,7 +57,7 @@ export default async function navigateTermsOfUse(
           html: termsOfUse,
         },
         onRender: useTermsDisplayed,
-        isScrollToEndNeeded: false,
+        isScrollToEndNeeded: true,
         scrollEndBottomMargin: 50,
       },
     });
