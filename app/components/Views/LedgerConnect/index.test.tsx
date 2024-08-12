@@ -106,7 +106,7 @@ describe('LedgerConnect', () => {
     });
 
     useBluetoothDevices.mockReturnValue({
-      devices: [{ id: '1', name: 'Ledger Nano X', value: '1' }],
+      devices: [{ id: '1', name: 'Ledger device', value: '1' }],
       deviceScanError: false,
     });
 
