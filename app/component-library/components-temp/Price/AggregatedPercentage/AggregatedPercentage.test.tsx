@@ -41,7 +41,7 @@ describe('AggregatedPercentage', () => {
     );
 
     expect(getByText('(+25.00%)')).toBeTruthy();
-    expect(getByText('+100 USD')).toBeTruthy();
+    expect(getByText('+$100.00')).toBeTruthy();
 
     expect(getByText('(+25.00%)').props.style).toMatchObject({
       color: mockTheme.colors.success.default,
@@ -59,7 +59,7 @@ describe('AggregatedPercentage', () => {
     );
 
     expect(getByText('(-30.00%)')).toBeTruthy();
-    expect(getByText('-150 USD')).toBeTruthy();
+    expect(getByText('-$150.00')).toBeTruthy();
 
     expect(getByText('(-30.00%)').props.style).toMatchObject({
       color: mockTheme.colors.error.default,
