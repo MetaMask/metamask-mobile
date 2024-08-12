@@ -40,6 +40,7 @@ import { ContractNickNameViewSelectorsIDs } from '../../../../../../../e2e/selec
 import { useMetrics } from '../../../../../../components/hooks/useMetrics';
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import { RootState } from '../../../../../../reducers';
+import { selectAddressBook } from '../../../../../../selectors/addressBookController';
 
 const getAnalyticsParams = () => ({});
 
@@ -267,7 +268,7 @@ const mapStateToProps = (state: RootState) => ({
   providerType: selectProviderType(state),
   providerRpcTarget: selectRpcUrl(state),
   providerChainId: selectChainId(state),
-  addressBook: state.engine.backgroundState.AddressBookController.addressBook,
+  addressBook: selectAddressBook(state),
   internalAccounts: selectInternalAccounts(state),
   networkConfigurations: selectNetworkConfigurations(state),
 });
