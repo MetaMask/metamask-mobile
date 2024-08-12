@@ -5,7 +5,6 @@ exports[`OnboardingSuccess should render correctly 1`] = `
   style={
     {
       "flex": 1,
-      "paddingBottom": 50,
     }
   }
   testID="onboarding-success-screen"
@@ -186,6 +185,7 @@ Change these at any time.
     <View
       style={
         {
+          "paddingBottom": 50,
           "paddingHorizontal": 24,
         }
       }

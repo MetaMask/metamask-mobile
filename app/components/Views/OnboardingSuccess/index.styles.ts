@@ -3,7 +3,6 @@ import { StyleSheet } from 'react-native';
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    paddingBottom: 50,
   },
   contentWrapper: {
     flex: 1,
@@ -12,6 +11,7 @@ const styles = StyleSheet.create({
   },
   buttonWrapper: {
     paddingHorizontal: 24,
+    paddingBottom: 50,
   },
   emoji: {
     textAlign: 'center',
