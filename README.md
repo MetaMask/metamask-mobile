@@ -76,7 +76,7 @@ _Like a local server for the app_
 **Run on a iOS device**
 
 ```bash
-yarn start:ios
+yarn start:ios 
 ```
 
 **Run on an Android device**
