@@ -162,9 +162,6 @@ loadJSEnv(){
 
 
 prebuild(){
-	# Import provider
-	yarn --ignore-engines build:static-logos
-
   WATCHER_PORT=${WATCHER_PORT:-8081}
 }
 
@@ -543,8 +540,7 @@ buildIos() {
 
 startWatcher() {
 	source $JS_ENV_FILE
-  WATCHER_PORT=${WATCHER_PORT:-8081}
-	yarn --ignore-engines build:static-logos
+  	WATCHER_PORT=${WATCHER_PORT:-8081}
 	if [ "$MODE" == "clean" ]; then
 		watchman watch-del-all
 		rm -rf $TMPDIR/metro-cache
