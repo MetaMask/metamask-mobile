@@ -82,5 +82,5 @@ yarn start:ios
 **Run on an Android device**
 
 ```bash
-yarn start:android 
+yarn start:android
 ```
