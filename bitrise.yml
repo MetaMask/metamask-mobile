@@ -71,6 +71,7 @@ pipelines:
     stages:
       - create_build_qa_android: {}
       - app_upgrade_test: {}
+      - app_launch_times_test: {}
   # Pipeline for Flask
   create_flask_release_builds_pipeline:
     stages:
