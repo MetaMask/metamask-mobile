@@ -10,7 +10,7 @@ import {
   Platform,
   Linking,
 } from 'react-native';
-import AsyncStorage from '../../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../../store/storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
@@ -105,7 +105,7 @@ import Networks, {
   toggleUseSafeChainsListValidation,
 } from '../../../../util/networks';
 import images from 'images/image-icons';
-import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller/dist/constants';
+import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 import Text, {
   TextVariant,
@@ -121,6 +121,7 @@ import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFun
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetrics } from '../../../../core/Analytics';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
+import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -135,7 +136,7 @@ const Heading: React.FC<HeadingProps> = ({ children, first }) => {
 };
 
 const Settings: React.FC = () => {
-  const { trackEvent, isEnabled } = useMetrics();
+  const { trackEvent, isEnabled, addTraitsToUser } = useMetrics();
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
@@ -231,7 +232,7 @@ const Settings: React.FC = () => {
   }, [isIpfsGatewayEnabled]);
 
   const handleHintText = useCallback(async () => {
-    const currentSeedphraseHints = await AsyncStorage.getItem(
+    const currentSeedphraseHints = await StorageWrapper.getItem(
       SEED_PHRASE_HINTS,
     );
     const parsedHints =
@@ -298,12 +299,12 @@ const Settings: React.FC = () => {
   const saveHint = async () => {
     if (!hintText) return;
     toggleHint();
-    const currentSeedphraseHints = await AsyncStorage.getItem(
+    const currentSeedphraseHints = await StorageWrapper.getItem(
       SEED_PHRASE_HINTS,
     );
     if (currentSeedphraseHints) {
       const parsedHints = JSON.parse(currentSeedphraseHints);
-      await AsyncStorage.setItem(
+      await StorageWrapper.setItem(
         SEED_PHRASE_HINTS,
         JSON.stringify({ ...parsedHints, manualBackup: hintText }),
       );
@@ -320,15 +321,15 @@ const Settings: React.FC = () => {
 
       await Engine.context.KeyringController.exportSeedPhrase(password);
 
-      await AsyncStorage.setItem(EXISTING_USER, TRUE);
+      await StorageWrapper.setItem(EXISTING_USER, TRUE);
 
       if (!enabled) {
         setLoading(false);
         if (authChoice === PASSCODE_CHOICE_STRING) {
-          await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
         } else if (authChoice === BIOMETRY_CHOICE_STRING) {
-          await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-          await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+          await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
         }
 
         return;
@@ -542,13 +543,26 @@ const Settings: React.FC = () => {
     if (!value) PreferencesController?.setUseNftDetection(value);
   };
 
-  const toggleNftAutodetect = (value: boolean) => {
-    const { PreferencesController } = Engine.context;
-    if (value) {
-      PreferencesController.setDisplayNftMedia(value);
-    }
-    PreferencesController.setUseNftDetection(value);
-  };
+  const toggleNftAutodetect = useCallback(
+    (value) => {
+      const { PreferencesController } = Engine.context;
+      if (value) {
+        PreferencesController.setDisplayNftMedia(value);
+      }
+      PreferencesController.setUseNftDetection(value);
+      const traits = {
+        [UserProfileProperty.NFT_AUTODETECTION]: value
+          ? UserProfileProperty.ON
+          : UserProfileProperty.OFF,
+      };
+      addTraitsToUser(traits);
+      trackEvent(MetaMetricsEvents.NFT_AUTO_DETECTION_ENABLED, {
+        ...traits,
+        location: 'app_settings',
+      });
+    },
+    [addTraitsToUser, trackEvent],
+  );
 
   const renderDisplayNftMedia = useCallback(
     () => (
@@ -709,7 +723,7 @@ const Settings: React.FC = () => {
         </Text>
       </View>
     ),
-    [colors, styles, useNftDetection, theme],
+    [colors, styles, useNftDetection, theme, toggleNftAutodetect],
   );
 
   const setIpfsGateway = (gateway: string) => {

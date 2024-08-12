@@ -5,28 +5,10 @@ import { RootState } from '../reducers';
 const selectPreferencesControllerState = (state: RootState) =>
   state.engine.backgroundState.PreferencesController;
 
-/**
- * @deprecated use selectInternalAccounts rom selectors/accountsController.ts instead
- */
-export const selectIdentities = createSelector(
-  selectPreferencesControllerState,
-  (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.identities,
-);
-
 export const selectIpfsGateway = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.ipfsGateway,
-);
-
-/**
- * @deprecated use selectSelectedInternal or selectSelectedInternalAccountChecksummedAddress from selectors/accountsController.ts
- */
-export const selectSelectedAddress = createSelector(
-  selectPreferencesControllerState,
-  (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.selectedAddress,
 );
 
 export const selectUseNftDetection = createSelector(

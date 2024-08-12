@@ -100,6 +100,7 @@ export default class AppInformation extends PureComponent {
 
   state = {
     appInfo: '',
+    appVersion: '',
   };
 
   updateNavBar = () => {
@@ -120,7 +121,10 @@ export default class AppInformation extends PureComponent {
     const appName = await getApplicationName();
     const appVersion = await getVersion();
     const buildNumber = await getBuildNumber();
-    this.setState({ appInfo: `${appName} v${appVersion} (${buildNumber})` });
+    this.setState({
+      appInfo: `${appName} v${appVersion} (${buildNumber})`,
+      appVersion,
+    });
   };
 
   componentDidUpdate = () => {
@@ -150,8 +154,7 @@ export default class AppInformation extends PureComponent {
   };
 
   onAttributions = () => {
-    const url =
-      'https://raw.githubusercontent.com/MetaMask/metamask-mobile/main/attribution.txt';
+    const url = `https://raw.githubusercontent.com/MetaMask/metamask-mobile/v${this.state.appVersion}/attribution.txt`;
     this.goTo(url, strings('app_information.attributions'));
   };
 

@@ -1,0 +1,92 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ProfileSyncing should render correctly 1`] = `
+<View
+  style={
+    {
+      "marginVertical": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+        "paddingBottom": 8,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#141618",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 16,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      Profile Sync
+    </Text>
+    <RCTSwitch
+      accessibilityRole="switch"
+      disabled={true}
+      onChange={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      onTintColor="#0376c9"
+      style={
+        [
+          {
+            "height": 31,
+            "width": 51,
+          },
+          {
+            "backgroundColor": "#bbc0c566",
+            "borderRadius": 16,
+          },
+        ]
+      }
+      thumbTintColor="#ffffff"
+      tintColor="#bbc0c566"
+      value={true}
+    />
+  </View>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#6a737d",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. 
+    <Text
+      accessibilityRole="text"
+      onPress={[Function]}
+      style={
+        {
+          "color": "#0376c9",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Learn how we protect your privacy
+    </Text>
+  </Text>
+</View>
+`;
