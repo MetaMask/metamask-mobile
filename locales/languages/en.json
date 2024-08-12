@@ -5,6 +5,8 @@
     "deceptive_request_title": "This is a deceptive request",
     "failed_title": "Request may not be safe",
     "failed_description": "Because of an error, this request was not verified by the security provider. Proceed with caution.",
+    "loading_title": "Checking for security alerts...",
+    "loading_complete_title": "No alerts received. Always do your own due diligence before approving requests.",
     "malicious_domain_description": "You're interacting with a malicious domain. If you approve this request, you might lose your assets.",
     "other_description": "If you approve this request, you might lose your assets.",
     "raw_signature_farming_description": "If you approve this request, you might lose your assets.",
