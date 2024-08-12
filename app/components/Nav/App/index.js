@@ -6,13 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
-import {
-  Animated,
-  Linking,
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-  View,
-  ///: END:ONLY_INCLUDE_IF
-} from 'react-native';
+import { Animated, Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
@@ -811,9 +805,7 @@ const App = ({ userLoggedIn }) => {
         {
           ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         }
-        <View>
-          <SnapsExecutionWebView />
-        </View>
+        isBasicFunctionalityEnabled && <SnapsExecutionWebView />
         {
           ///: END:ONLY_INCLUDE_IF
         }
@@ -950,6 +942,7 @@ const App = ({ userLoggedIn }) => {
 
 const mapStateToProps = (state) => ({
   userLoggedIn: state.user.userLoggedIn,
+  isBasicFunctionalityEnabled: state.settings?.basicFunctionalityEnabled,
 });
 
 export default connect(mapStateToProps)(App);
