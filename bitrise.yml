@@ -1175,12 +1175,6 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
-            - deploy_path: browserstack_uploaded_apps.json
-          title: Bitrise Deploy Browserstack Uploaded Apps
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
             - pipeline_intermediate_files: $BITRISE_SOURCE_DIR/browserstack_uploaded_apps.json:BROWSERSTACK_UPLOADED_APPS_LIST
           title: Save Browserstack uploaded apps JSON
   wdio_android_e2e_test:
