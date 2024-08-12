@@ -13,7 +13,6 @@ import ActionSheet from '@metamask/react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
 import {
   renderFromTokenMinimalUnit,
-  addCurrencySymbol,
   balanceToFiatNumber,
   renderFiat,
 } from '../../../util/number';
@@ -307,7 +306,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     }
   };
 
-  const handleBalance = (asset: TokenI) => {
+  const handleBalance = (asset: TokenI, currencyCode: string) => {
     const itemAddress: string = safeToChecksumAddress(asset.address) || '';
 
     // When the exchange rate of a token is not found, the return is undefined
@@ -352,8 +351,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     const balanceFiat =
       balanceFiatCalculation >= 0.01 || balanceFiatCalculation === 0
-        ? addCurrencySymbol(balanceFiatCalculation, currentCurrency)
-        : `< ${addCurrencySymbol('0.01', currentCurrency)}`;
+        ? renderFiat(balanceFiatCalculation, currencyCode)
+        : `< ${renderFiat(0.01, currencyCode)}`;
 
     return { balanceFiat, balanceValueFormatted };
   };
@@ -361,7 +360,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const renderItem = (asset: TokenI) => {
     const itemAddress = safeToChecksumAddress(asset.address);
 
-    const { balanceFiat, balanceValueFormatted } = handleBalance(asset);
+    const { balanceFiat, balanceValueFormatted } = handleBalance(
+      asset,
+      currentCurrency,
+    );
 
     const pricePercentChange1d = itemAddress
       ? tokenExchangeRates?.[itemAddress as `0x${string}`]?.pricePercentChange1d
@@ -391,12 +393,14 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
       // Adjust balances for native currencies in non-ETH scenarios.
       if (asset.isETH) {
+        // console.log('THIS: ', balanceFiat, balanceValueFormatted);
         // Main balance logic: Show crypto value if fiat is absent or fiat value on safe networks.
         mainBalance = !balanceFiat
           ? balanceValueFormatted // Show crypto value if fiat setting is not preferred.
           : isOriginalNativeTokenSymbol // Check for safe network to decide on fiat display.
           ? balanceFiat
           : null;
+
         // Secondary balance mirrors the main balance logic for consistency.
         secondaryBalance = !balanceFiat ? balanceFiat : balanceValueFormatted;
       }
@@ -426,6 +430,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
       return ticker ? images[ticker] : undefined;
     };
+
+    // console.log(mainBalance, secondaryBalance);
 
     return (
       <AssetElement

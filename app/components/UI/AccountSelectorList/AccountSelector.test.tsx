@@ -129,12 +129,12 @@ describe('AccountSelectorList', () => {
 
       expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();
       expect(
-        within(businessAccountItem).getByText(regex.usd(3200)),
+        within(businessAccountItem).getByText(/\$3,200\.00/),
       ).toBeDefined();
 
       expect(within(personalAccountItem).getByText(regex.eth(2))).toBeDefined();
       expect(
-        within(personalAccountItem).getByText(regex.usd(6400)),
+        within(personalAccountItem).getByText(/\$6,400\.00/),
       ).toBeDefined();
 
       const accounts = getAllByTestId(regex.accountBalance);
@@ -169,7 +169,7 @@ describe('AccountSelectorList', () => {
 
       expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();
       expect(
-        within(businessAccountItem).getByText(regex.usd(3200)),
+        within(businessAccountItem).getByText(/\$3,200\.00/),
       ).toBeDefined();
 
       expect(toJSON()).toMatchSnapshot();

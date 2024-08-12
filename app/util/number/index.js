@@ -468,7 +468,7 @@ export function weiToFiat(
   }
   decimalsToShow = (currencyCode === 'usd' && 2) || undefined;
   const value = weiToFiatNumber(wei, conversionRate, decimalsToShow);
-  return addCurrencySymbol(value, currencyCode);
+  return renderFiat(value, currencyCode);
 }
 
 /**

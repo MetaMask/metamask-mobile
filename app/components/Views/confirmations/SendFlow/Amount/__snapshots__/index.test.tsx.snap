@@ -1240,7 +1240,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                       }
                                       testID="txn-amount-conversion-value"
                                     >
-                                      $3000.00
+                                      $3,000.00
                                     </Text>
                                     <View
                                       styles={

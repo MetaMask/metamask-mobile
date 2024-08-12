@@ -165,7 +165,7 @@ describe('Transactions utils :: parseTransactionLegacy', () => {
       suggestedGasPriceHex: '0',
       totalHex: new BN(totalHexValue),
       transactionFee,
-      transactionFeeFiat: '$0',
+      transactionFeeFiat: '$0.00',
     };
     if (onlyGas) {
       return expectedParsedTransactionLegacy;
@@ -195,7 +195,7 @@ describe('Transactions utils :: parseTransactionLegacy', () => {
     const expectedResult = createExpectedResult({
       totalHexValue: totalHexValueMocked,
       transactionTotalAmount: '< 0.00001 ETH',
-      transactionTotalAmountFiat: '$0',
+      transactionTotalAmountFiat: '$0.00',
       transactionFee: '0 ETH',
     });
 
@@ -222,7 +222,7 @@ describe('Transactions utils :: parseTransactionLegacy', () => {
     const expectedResult = createExpectedResult({
       totalHexValue: totalHexValueMocked,
       transactionTotalAmount: '0 BNB',
-      transactionTotalAmountFiat: '$0',
+      transactionTotalAmountFiat: '$0.00',
       transactionFee: '0 BNB',
     });
 

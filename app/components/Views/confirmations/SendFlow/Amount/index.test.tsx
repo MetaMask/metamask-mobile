@@ -359,7 +359,7 @@ describe('Amount', () => {
     const amountConversionValue = getByTestId(
       AmountViewSelectorsIDs.TRANSACTION_AMOUNT_CONVERSION_VALUE,
     );
-    expect(amountConversionValue.props.children).toBe('$3000.00');
+    expect(amountConversionValue.props.children).toBe('$3,000.00');
     expect(toJSON()).toMatchSnapshot();
   });
 
