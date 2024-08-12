@@ -475,7 +475,8 @@
     "hide_cta": "Hide token",
     "options": {
       "view_on_block": "View on block explorer",
-      "token_details": "Token details"
+      "token_details": "Token details",
+      "remove_token": "Remove token"
     }
   },
   "nft_details": {
