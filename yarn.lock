@@ -4937,10 +4937,10 @@
     "@ethersproject/providers" "^5.7.2"
     async-mutex "^0.3.1"
 
-"@metamask/notification-services-controller@0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/notification-services-controller/-/notification-services-controller-0.2.0.tgz#98e2ac7cfdd40675e66d8e10f8b572b7de3f5a32"
-  integrity sha512-wzHri0SYxktNeYByanIJW2xqsvoN+pDkG3+Dpb6dtbmFuMG1jwIjhPM5xSoS7V1Uon8FUUlOYZ/B54DgfsLJXA==
+"@metamask/notification-services-controller@0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@metamask/notification-services-controller/-/notification-services-controller-0.2.1.tgz#aa36275d20f71297d73c33055e88bf55b33ac4d9"
+  integrity sha512-TvQAiA38a8j0r7amNQivi4itFFfuNAGrCWJUGbKqyu/rZiS2itTFLXchhazGu1H8TK3lxOx9r7C/RfRYwkuDpA==
   dependencies:
     "@contentful/rich-text-html-renderer" "^16.5.2"
     "@metamask/base-controller" "^6.0.2"
@@ -5142,10 +5142,10 @@
     "@metamask/base-controller" "^5.0.2"
     "@metamask/controller-utils" "^9.1.0"
 
-"@metamask/profile-sync-controller@0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-0.2.0.tgz#6850807c9e0febcce1e7d4feb77b68b4eb69d8df"
-  integrity sha512-UbtT7D3gvRhZLvdqJrK3gnlALwTJrJuJHKhAzEEghrKAHH1WHOng05jX/n1p545AKU8hxfHhDGBeHaTexV0n+g==
+"@metamask/profile-sync-controller@0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-0.2.1.tgz#b9e4d951ba357c7b26dd4ad68049635f1b6947e1"
+  integrity sha512-F4domapXsNmN2LmEUzOGTWPoTmlorlebCnh8LW6JxbIQuqgyi+sKpfE0zb2M60Z8AYR6v+qnjw7X47CS9HHupQ==
   dependencies:
     "@metamask/base-controller" "^6.0.2"
     "@metamask/snaps-sdk" "^6.1.1"
