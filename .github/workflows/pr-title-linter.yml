@@ -2,7 +2,7 @@ name: "Conventional Commit Validation PR Title"
 on:
   pull_request:
     branches:
-      - main
+      - merge-queue-test
     types: [opened,edited]
 
 jobs:

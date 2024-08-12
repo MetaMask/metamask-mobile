@@ -3,7 +3,7 @@ on:
   pull_request:
     branches:
       - develop
-      - main
+      - merge-queue-test
     types: [opened]
 jobs:
   bump-version-name:
