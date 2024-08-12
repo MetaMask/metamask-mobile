@@ -108,6 +108,7 @@ import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import {
   SWAP_QUOTE_SUMMARY,
   SWAP_GAS_FEE,
+  TAP_TO_SWAP_BUTTON,
 } from '../../../../wdio/screen-objects/testIDs/Screens/SwapView.js';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { addTransaction } from '../../../util/transaction-controller';
@@ -2148,6 +2149,7 @@ function SwapsQuotesView({
           width={ButtonWidthTypes.Full}
           size={ButtonSize.Lg}
           isDisabled={unableToSwap || isAnimating}
+          testID={TAP_TO_SWAP_BUTTON}
         />
         <TouchableOpacity onPress={handleTermsPress} style={styles.termsButton}>
           <Text link centered>
