@@ -342,6 +342,8 @@ export class NetworkSettings extends PureComponent {
     showNetworkDetailsModal: false,
     isNameFieldFocused: false,
     isSymbolFieldFocused: false,
+    isRpcUrlFieldFocused: false,
+    isChainIdFieldFocused: false,
     networkList: [],
   };
 
@@ -565,15 +567,13 @@ export class NetworkSettings extends PureComponent {
     ).filter((item) => item.rpcUrl === rpcUrl);
 
     if (checkCustomNetworks.length > 0) {
-      if (isNetworkUiRedesignEnabled()) {
+      if (!isNetworkUiRedesignEnabled()) {
         this.setState({
-          warningRpcUrl: strings(
-            'app_settings.url_associated_to_another_chain_id',
-          ),
+          warningRpcUrl: strings('app_settings.network_exists'),
         });
         return checkCustomNetworks;
       }
-      this.setState({ warningRpcUrl: strings('app_settings.network_exists') });
+
       return checkCustomNetworks;
     }
     const defaultNetworks = getAllNetworks().map((item) => Networks[item]);
@@ -778,10 +778,22 @@ export class NetworkSettings extends PureComponent {
       !editable
     ) {
       return this.setState({
-        validateChainId: false,
+        validateChainId: true,
         warningChainId: strings(
           'app_settings.chain_id_associated_with_another_network',
         ),
+      });
+    }
+
+    if (
+      isChainIdExists &&
+      isNetworkExists.length === 0 &&
+      isNetworkUiRedesignEnabled() &&
+      !editable
+    ) {
+      return this.setState({
+        validateChainId: true,
+        warningChainId: strings('app_settings.network_already_exist'),
       });
     }
 
@@ -841,6 +853,14 @@ export class NetworkSettings extends PureComponent {
     }
 
     if (endpointChainId !== toHex(chainId)) {
+      if (isNetworkUiRedesignEnabled()) {
+        this.setState({
+          warningRpcUrl: strings(
+            'app_settings.url_associated_to_another_chain_id',
+          ),
+        });
+      }
+
       return this.setState({
         validatedRpcURL: false,
         warningChainId: strings('app_settings.unMatched_chain_name'),
@@ -940,6 +960,13 @@ export class NetworkSettings extends PureComponent {
    */
   disabledByChainId = () => {
     const { chainId, validatedChainId, warningChainId } = this.state;
+
+    if (isNetworkUiRedesignEnabled()) {
+      return (
+        !chainId ||
+        (chainId && (!validatedChainId || warningChainId !== undefined))
+      );
+    }
     if (!chainId) return true;
     return validatedChainId && !!warningChainId;
   };
@@ -1018,6 +1045,22 @@ export class NetworkSettings extends PureComponent {
 
   onSymbolBlur = () => {
     this.setState({ isSymbolFieldFocused: false });
+  };
+
+  onRpcUrlFocused = () => {
+    this.setState({ isRpcUrlFieldFocused: true });
+  };
+
+  onRpcUrlBlur = () => {
+    this.setState({ isRpcUrlFieldFocused: false });
+  };
+
+  onChainIdFocused = () => {
+    this.setState({ isChainIdFieldFocused: true });
+  };
+
+  onChainIdBlur = () => {
+    this.setState({ isChainIdFieldFocused: false });
   };
 
   jumpToRpcURL = () => {
@@ -1110,6 +1153,8 @@ export class NetworkSettings extends PureComponent {
       inputWidth,
       isNameFieldFocused,
       isSymbolFieldFocused,
+      isRpcUrlFieldFocused,
+      isChainIdFieldFocused,
     } = this.state;
     const { route } = this.props;
     const isCustomMainnet = route.params?.isCustomMainnet;
@@ -1148,6 +1193,26 @@ export class NetworkSettings extends PureComponent {
     const inputErrorSymbolStyle = [
       warningSymbol
         ? isSymbolFieldFocused
+          ? styles.inputWithFocus
+          : styles.inputWithError
+        : styles.input,
+      inputWidth,
+      isCustomMainnet ? styles.onboardingInput : undefined,
+    ];
+
+    const inputErrorRpcStyle = [
+      warningRpcUrl
+        ? isRpcUrlFieldFocused
+          ? styles.inputWithFocus
+          : styles.inputWithError
+        : styles.input,
+      inputWidth,
+      isCustomMainnet ? styles.onboardingInput : undefined,
+    ];
+
+    const inputChainIdStyle = [
+      warningChainId
+        ? isChainIdFieldFocused
           ? styles.inputWithFocus
           : styles.inputWithError
         : styles.input,
@@ -1397,13 +1462,17 @@ export class NetworkSettings extends PureComponent {
             </Text>
             <TextInput
               ref={this.inputRpcURL}
-              style={[styles.input, inputWidth]}
+              style={inputErrorRpcStyle}
               autoCapitalize={'none'}
               autoCorrect={false}
               value={formatNetworkRpcUrl(rpcUrl, chainId) || rpcUrl}
               editable={isRPCEditable}
               onChangeText={this.onRpcUrlChange}
-              onBlur={this.validateRpcUrl}
+              onBlur={() => {
+                this.validateRpcUrl();
+                this.onRpcUrlBlur();
+              }}
+              onFocus={this.onRpcUrlFocused}
               placeholder={strings('app_settings.network_rpc_placeholder')}
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.jumpToChainId}
@@ -1428,13 +1497,17 @@ export class NetworkSettings extends PureComponent {
             </Text>
             <TextInput
               ref={this.inputChainId}
-              style={inputStyle}
+              style={inputChainIdStyle}
               autoCapitalize={'none'}
               autoCorrect={false}
               value={chainId}
               editable={editable}
               onChangeText={this.onChainIDChange}
-              onBlur={this.validateChainId}
+              onBlur={() => {
+                this.validateChainId();
+                this.onChainIdBlur();
+              }}
+              onFocus={this.onChainIdFocused}
               placeholder={strings('app_settings.network_chain_id_placeholder')}
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.jumpToSymbol}

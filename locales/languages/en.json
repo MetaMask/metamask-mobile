@@ -955,6 +955,7 @@
     "unMatched_chain_name": "This chain ID doesn’t match the network name.",
     "url_associated_to_another_chain_id": "This URL is associated with another chain ID.",
     "chain_id_associated_with_another_network": "The information you have entered is associated with an existing chain ID. Update your information or",
+    "network_already_exist": "You already have a network with the same chain ID or RPC URL. Enter a new chain ID or RPC URL",
     "edit_original_network": "edit the original network",
     "find_the_right_one": "Find the right one on:",
     "delete_metrics_title": "Delete MetaMetrics data",
