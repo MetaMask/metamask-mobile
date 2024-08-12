@@ -7,12 +7,27 @@ import {
 // eslint-disable-next-line import/no-namespace
 import * as NetworkControllerMock from '../../selectors/networkController';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
+import Engine from '../../core/Engine';
 
 import {
   getBlockaidMetricsParams,
   isBlockaidSupportedOnCurrentChain,
   getBlockaidTransactionMetricsParams,
+  isBlockaidFeatureEnabled,
+  TransactionType,
 } from '.';
+import { TransactionStatus } from '@metamask/transaction-controller';
+
+jest.mock('../../core/Engine', () => ({
+  resetState: jest.fn(),
+  context: {
+    PreferencesController: {
+      state: {
+        securityAlertsEnabled: true,
+      },
+    },
+  },
+}));
 
 describe('Blockaid util', () => {
   describe('getBlockaidTransactionMetricsParams', () => {
@@ -27,10 +42,17 @@ describe('Blockaid util', () => {
     });
 
     it('returns empty object when transaction id does not match security response id', () => {
-      const transaction = {
-        id: 1,
+      const transaction: TransactionType = {
+        status: TransactionStatus.failed,
+        error: new Error('Simulated transaction error'),
+        id: '1',
+        chainId: '0x1',
+        time: Date.now(),
+        txParams: {
+          from: '0x1',
+        },
         currentTransactionSecurityAlertResponse: {
-          id: 2,
+          id: '2',
           response: {
             result_type: ResultType.Malicious,
             reason: Reason.notApplicable,
@@ -47,10 +69,17 @@ describe('Blockaid util', () => {
     });
 
     it('returns metrics params object when transaction id matches security response id', () => {
-      const transaction = {
-        id: 1,
+      const transaction: TransactionType = {
+        status: TransactionStatus.failed,
+        error: new Error('Simulated transaction error'),
+        id: '1',
+        chainId: '0x1',
+        time: Date.now(),
+        txParams: {
+          from: '0x1',
+        },
         currentTransactionSecurityAlertResponse: {
-          id: 1,
+          id: '1',
           response: {
             result_type: ResultType.Malicious,
             reason: Reason.notApplicable,
@@ -170,6 +199,35 @@ describe('Blockaid util', () => {
         .spyOn(NetworkControllerMock, 'selectChainId')
         .mockReturnValue(NETWORKS_CHAIN_ID.GOERLI);
       const result = isBlockaidSupportedOnCurrentChain();
+      expect(result).toEqual(false);
+    });
+  });
+
+  describe('isBlockaidFeatureEnabled', () => {
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('return true if blockaid is supported on current network and its enabled by the user', () => {
+      jest
+        .spyOn(NetworkControllerMock, 'selectChainId')
+        .mockReturnValue(NETWORKS_CHAIN_ID.MAINNET);
+      const result = isBlockaidFeatureEnabled();
+      expect(result).toEqual(true);
+    });
+
+    it('return false if blockaid is not supported on current network', () => {
+      jest.spyOn(NetworkControllerMock, 'selectChainId').mockReturnValue('0x9');
+      const result = isBlockaidFeatureEnabled();
+      expect(result).toEqual(false);
+    });
+
+    it('return false if blockaid is not enabled by the user', () => {
+      jest
+        .spyOn(NetworkControllerMock, 'selectChainId')
+        .mockReturnValue(NETWORKS_CHAIN_ID.MAINNET);
+      Engine.context.PreferencesController.state.securityAlertsEnabled = false;
+      const result = isBlockaidFeatureEnabled();
       expect(result).toEqual(false);
     });
   });

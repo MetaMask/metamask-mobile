@@ -50,7 +50,6 @@ import {
 } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { Authentication } from '../../../core/';
-import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
@@ -73,8 +72,6 @@ import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
-import LedgerAccountInfo from '../../Views/LedgerAccountInfo';
-import LedgerConnect from '../../Views/LedgerConnect';
 import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../constants/error';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
 import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
@@ -101,7 +98,7 @@ import { DevLogger } from '../../../../app/core/SDKConnect/utils/DevLogger';
 import { PPOMView } from '../../../lib/ppom/PPOMView';
 import NavigationService from '../../../core/NavigationService';
 import LockScreen from '../../Views/LockScreen';
-import AsyncStorage from '../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
 import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
 import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
@@ -112,14 +109,20 @@ import { MetaMetrics } from '../../../core/Analytics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
 import generateUserSettingsAnalyticsMetaData from '../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
+import LedgerSelectAccount from '../../Views/LedgerSelectAccount';
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
 import SmartTransactionsOptInModal from '../../Views/SmartTransactionsOptInModal/SmartTranactionsOptInModal';
+import ProfileSyncingModal from '../../UI/ProfileSyncing/ProfileSyncingModal/ProfileSyncingModal';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
+import NftOptions from '../../../components/Views/NftOptions';
+import ShowTokenIdSheet from '../../../components/Views/ShowTokenIdSheet';
+import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
+import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesignEnabled';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -300,6 +303,7 @@ const VaultRecoveryFlow = () => (
   </Stack.Navigator>
 );
 
+// eslint-disable-next-line react/prop-types
 const App = ({ userLoggedIn }) => {
   const animationRef = useRef(null);
   const animationNameRef = useRef(null);
@@ -325,7 +329,7 @@ const App = ({ userLoggedIn }) => {
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
     const appTriggeredAuth = async () => {
-      const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+      const existingUser = await StorageWrapper.getItem(EXISTING_USER);
       try {
         if (existingUser) {
           await Authentication.appTriggeredAuth();
@@ -395,8 +399,10 @@ const App = ({ userLoggedIn }) => {
       SharedDeeplinkManager.init({
         navigation: {
           navigate: (routeName, opts) => {
-            const params = { name: routeName, params: opts };
-            navigator.dispatch?.(CommonActions.navigate(params));
+            if (navigator) {
+              const params = { name: routeName, params: opts };
+              navigator.dispatch?.(CommonActions.navigate(params));
+            }
           },
         },
         dispatch,
@@ -474,6 +480,7 @@ const App = ({ userLoggedIn }) => {
         }
       }
     }
+
     initSDKConnect()
       .then(() => {
         queueOfHandleDeeplinkFunctions.current.forEach((func) => func());
@@ -497,7 +504,7 @@ const App = ({ userLoggedIn }) => {
 
   useEffect(() => {
     async function checkExisting() {
-      const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+      const existingUser = await StorageWrapper.getItem(EXISTING_USER);
       setOnboarded(!!existingUser);
       const route = !existingUser
         ? Routes.ONBOARDING.ROOT_NAV
@@ -513,24 +520,24 @@ const App = ({ userLoggedIn }) => {
 
   useEffect(() => {
     async function startApp() {
-      const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+      const existingUser = await StorageWrapper.getItem(EXISTING_USER);
       try {
         const currentVersion = getVersion();
-        const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
+        const savedVersion = await StorageWrapper.getItem(CURRENT_APP_VERSION);
         if (currentVersion !== savedVersion) {
           if (savedVersion)
-            await AsyncStorage.setItem(LAST_APP_VERSION, savedVersion);
-          await AsyncStorage.setItem(CURRENT_APP_VERSION, currentVersion);
+            await StorageWrapper.setItem(LAST_APP_VERSION, savedVersion);
+          await StorageWrapper.setItem(CURRENT_APP_VERSION, currentVersion);
         }
 
-        const lastVersion = await AsyncStorage.getItem(LAST_APP_VERSION);
+        const lastVersion = await StorageWrapper.getItem(LAST_APP_VERSION);
         if (!lastVersion) {
           if (existingUser) {
             // Setting last version to first version if user exists and lastVersion does not, to simulate update
-            await AsyncStorage.setItem(LAST_APP_VERSION, '0.0.1');
+            await StorageWrapper.setItem(LAST_APP_VERSION, '0.0.1');
           } else {
             // Setting last version to current version so that it's not treated as an update
-            await AsyncStorage.setItem(LAST_APP_VERSION, currentVersion);
+            await StorageWrapper.setItem(LAST_APP_VERSION, currentVersion);
           }
         }
       } catch (error) {
@@ -657,6 +664,10 @@ const App = ({ userLoggedIn }) => {
         component={BasicFunctionalityModal}
       />
       <Stack.Screen
+        name={Routes.SHEET.PROFILE_SYNCING}
+        component={ProfileSyncingModal}
+      />
+      <Stack.Screen
         name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
         component={ReturnToAppModal}
       />
@@ -674,6 +685,7 @@ const App = ({ userLoggedIn }) => {
       />
       <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
       <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
+      <Stack.Screen name={'NftOptions'} component={NftOptions} />
       <Stack.Screen
         name={Routes.MODAL.UPDATE_NEEDED}
         component={UpdateNeeded}
@@ -706,6 +718,15 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}
         component={NFTAutoDetectionModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.SHOW_TOKEN_ID}
+        component={ShowTokenIdSheet}
+      />
+
+      <Stack.Screen
+        name={Routes.SHEET.ORIGIN_SPAM_MODAL}
+        component={OriginSpamModal}
       />
     </Stack.Navigator>
   );
@@ -742,8 +763,16 @@ const App = ({ userLoggedIn }) => {
   );
 
   const LedgerConnectFlow = () => (
-    <Stack.Navigator initialRouteName={Routes.HW.LEDGER_CONNECT}>
-      <Stack.Screen name={Routes.HW.LEDGER_CONNECT} component={LedgerConnect} />
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+      initialRouteName={Routes.HW.LEDGER_CONNECT}
+    >
+      <Stack.Screen
+        name={Routes.HW.LEDGER_CONNECT}
+        component={LedgerSelectAccount}
+      />
     </Stack.Navigator>
   );
 
@@ -754,7 +783,6 @@ const App = ({ userLoggedIn }) => {
         component={SelectHardwareWallet}
         options={SelectHardwareWallet.navigationOptions}
       />
-      <Stack.Screen name="LedgerAccountInfo" component={LedgerAccountInfo} />
     </Stack.Navigator>
   );
 
@@ -789,7 +817,7 @@ const App = ({ userLoggedIn }) => {
         {
           ///: END:ONLY_INCLUDE_IF
         }
-        {isBlockaidFeatureEnabled() && <PPOMView />}
+        <PPOMView />
         <NavigationContainer
           // Prevents artifacts when navigating between screens
           theme={{
@@ -897,6 +925,14 @@ const App = ({ userLoggedIn }) => {
               component={AddNetworkFlow}
               options={{ animationEnabled: true }}
             />
+            {isNetworkUiRedesignEnabled() ? (
+              <Stack.Screen
+                name={Routes.EDIT_NETWORK}
+                component={AddNetworkFlow}
+                options={{ animationEnabled: true }}
+              />
+            ) : null}
+
             <Stack.Screen
               name={Routes.LOCK_SCREEN}
               component={LockScreen}

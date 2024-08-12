@@ -1,5 +1,4 @@
 process.env.TZ = 'America/Toronto';
-process.env.MM_BLOCKAID_UI_ENABLED = 'true';
 
 process.env.SEGMENT_DELETE_API_SOURCE_ID = 'testSourceId';
 process.env.SEGMENT_REGULATIONS_ENDPOINT = 'TestRegulationsEndpoint';
@@ -39,6 +38,7 @@ const config = {
   moduleNameMapper: {
     '\\.svg': '<rootDir>/app/__mocks__/svgMock.js',
     '\\.png': '<rootDir>/app/__mocks__/pngMock.js',
+    '\\webview/index.html': '<rootDir>/app/__mocks__/htmlMock.ts',
   },
   // Disable jest cache
   cache: false,

@@ -1,22 +1,18 @@
-/* eslint-disable react/display-name */
-import React, { useCallback, useEffect, useState } from 'react';
-import { InteractionManager, View, TouchableOpacity } from 'react-native';
+import React, { useCallback, useEffect, useMemo } from 'react';
+import { View, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
-
 import { NotificationsViewSelectorsIDs } from '../../../../e2e/selectors/NotificationsView.selectors';
-import { createStyles } from './styles';
+import styles from './styles';
 import Notifications from '../../UI/Notification/List';
-import {
-  FeatureAnnouncementRawNotification,
-  HalRawNotification,
-  Notification,
-  TRIGGER_TYPES,
-  sortNotifications,
-} from '../../../util/notifications';
+import { TRIGGER_TYPES, sortNotifications } from '../../../util/notifications';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+
+import Button, {
+  ButtonVariants,
+} from '../../../component-library/components/Buttons/Button';
 
 import Text, {
   TextVariant,
@@ -24,98 +20,89 @@ import Text, {
 import Empty from '../../UI/Notification/Empty';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
+import {
+  selectIsMetamaskNotificationsEnabled,
+  getNotificationsList,
+} from '../../../selectors/notifications';
+import {
+  useListNotifications,
+  useMarkNotificationAsRead,
+} from '../../../util/notifications/hooks/useNotifications';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
+
+const TRIGGER_TYPES_VALS: ReadonlySet<string> = new Set<string>(
+  Object.values(TRIGGER_TYPES),
+);
 
 const NotificationsView = ({
   navigation,
-  selectedAddress,
-  notifications,
 }: {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
-  selectedAddress: string;
-  notifications: Notification[];
+  navigation: NavigationProp<ParamListBase>;
 }) => {
-  const styles = createStyles();
-  const [allNotifications, setAllNotifications] =
-    useState<Notification[]>(notifications);
-  const [walletNotifications, setWalletNotifications] = useState<
-    HalRawNotification[]
-  >([]);
-  const [annoucementsNotifications, setAnnoucementsNotifications] = useState<
-    FeatureAnnouncementRawNotification[]
-  >([]);
+  const { listNotifications, isLoading } = useListNotifications();
   const isNotificationEnabled = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.notification.notificationsSettings?.isEnabled,
+    selectIsMetamaskNotificationsEnabled,
   );
-  const [loading, setLoading] = useState<boolean>(false);
+  const { markNotificationAsRead, loading } = useMarkNotificationAsRead();
+  const notifications = useSelector(getNotificationsList);
 
-  const filterNotifications = useCallback(
-    (address) => {
-      if (address === null) {
-        setLoading(false);
-        return;
+  const handleMarkAllAsRead = useCallback(() => {
+    markNotificationAsRead(notifications);
+  }, [markNotificationAsRead, notifications]);
+
+  const allNotifications = useMemo(() => {
+    // All unique notifications
+    const uniqueIDs = new Set<string>();
+    const uniqueNotifications = notifications.filter((n) => {
+      if (!uniqueIDs.has(n.id)) {
+        uniqueIDs.add(n.id);
+        return true;
       }
+      return false;
+    });
+    const sortedNotifications = sortNotifications(uniqueNotifications);
+    return sortedNotifications;
+  }, [notifications]);
 
-      const wallet: HalRawNotification[] = [];
-      const annoucements: FeatureAnnouncementRawNotification[] = [];
-      const uniqueNotifications: Notification[] = [];
-
-      const allNotificationsSorted = sortNotifications(allNotifications);
-      const seenIds = new Set();
-
-      for (const notification of allNotificationsSorted) {
-        if (!seenIds.has(notification.id)) {
-          seenIds.add(notification.id);
-          uniqueNotifications.push(notification);
-          if (notification.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT) {
-            annoucements.push(notification);
-          } else {
-            wallet.push(notification);
-          }
-        }
-      }
-
-      setAllNotifications(uniqueNotifications);
-      setWalletNotifications(wallet);
-      setAnnoucementsNotifications(annoucements);
-
-      setLoading(false);
-    },
+  // Wallet notifications = On-Chain + Feature Announcements
+  const walletNotifications = useMemo(
+    () => allNotifications.filter((n) => TRIGGER_TYPES_VALS.has(n.type)),
     [allNotifications],
   );
 
+  // NOTE - We currently do not support web3 notifications
+  const announcementNotifications = useMemo(() => [], []);
+
+  // Effect - fetch notifications when component/view is visible.
   useEffect(() => {
-    setLoading(true);
-    InteractionManager.runAfterInteractions(() => {
-      filterNotifications(selectedAddress);
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedAddress]);
-
-  const notificationToShow =
-    allNotifications || walletNotifications || annoucementsNotifications;
-
-  /** Current address is an important piece of notification since it is
-   * used by MM auth snap to derivated the token/identifier and to MM storage to store notifications
-   * TODO: Need to figure out the best place to fetch notifications from MM auth when user switches accounts, Maybe on the Engine and store it on the redux store
-   */
+    async function updateNotifications() {
+      await listNotifications();
+    }
+    updateNotifications();
+  }, [listNotifications]);
 
   return (
     <View
       style={styles.wrapper}
       testID={NotificationsViewSelectorsIDs.NOTIFICATIONS_CONTAINER}
     >
-      {isNotificationEnabled && notificationToShow.length > 0 ? (
-        <Notifications
-          navigation={navigation}
-          allNotifications={allNotifications}
-          walletNotifications={walletNotifications}
-          annoucementsNotifications={annoucementsNotifications}
-          loading={loading}
-        />
+      {isNotificationEnabled && allNotifications.length > 0 ? (
+        <>
+          <Notifications
+            navigation={navigation}
+            allNotifications={allNotifications}
+            walletNotifications={walletNotifications}
+            web3Notifications={announcementNotifications}
+            loading={isLoading}
+          />
+          <Button
+            variant={ButtonVariants.Primary}
+            label={strings('notifications.mark_all_as_read')}
+            onPress={handleMarkAllAsRead}
+            style={styles.stickyButton}
+            disabled={loading}
+          />
+        </>
       ) : (
         <Empty
           testID={NotificationsViewSelectorsIDs.NO_NOTIFICATIONS_CONTAINER}
@@ -130,28 +117,18 @@ export default NotificationsView;
 NotificationsView.navigationOptions = ({
   navigation,
 }: {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
+  navigation: NavigationProp<Record<string, undefined>>;
 }) => ({
   headerRight: () => (
     <TouchableOpacity
       onPress={() => navigation.navigate(Routes.SETTINGS.NOTIFICATIONS)}
     >
-      <Icon
-        name={IconName.Setting}
-        size={IconSize.Lg}
-        style={createStyles().icon}
-      />
+      <Icon name={IconName.Setting} size={IconSize.Lg} style={styles.icon} />
     </TouchableOpacity>
   ),
   headerLeft: () => (
     <TouchableOpacity onPress={() => navigation.navigate(Routes.WALLET.HOME)}>
-      <Icon
-        name={IconName.Close}
-        size={IconSize.Md}
-        style={createStyles().icon}
-      />
+      <Icon name={IconName.Close} size={IconSize.Md} style={styles.icon} />
     </TouchableOpacity>
   ),
   headerTitle: () => (

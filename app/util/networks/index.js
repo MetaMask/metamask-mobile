@@ -122,6 +122,10 @@ export const BLOCKAID_SUPPORTED_CHAIN_IDS = [
   NETWORKS_CHAIN_ID.LINEA_MAINNET,
   NETWORKS_CHAIN_ID.SEPOLIA,
   NETWORKS_CHAIN_ID.OPBNB,
+  NETWORKS_CHAIN_ID.ZKSYNC_ERA,
+  NETWORKS_CHAIN_ID.SCROLL,
+  NETWORKS_CHAIN_ID.BERACHAIN,
+  NETWORKS_CHAIN_ID.METACHAIN_ONE,
 ];
 
 export const BLOCKAID_SUPPORTED_NETWORK_NAMES = {
@@ -134,6 +138,10 @@ export const BLOCKAID_SUPPORTED_NETWORK_NAMES = {
   [NETWORKS_CHAIN_ID.LINEA_MAINNET]: 'Linea',
   [NETWORKS_CHAIN_ID.SEPOLIA]: 'Sepolia',
   [NETWORKS_CHAIN_ID.OPBNB]: 'opBNB',
+  [NETWORKS_CHAIN_ID.ZKSYNC_ERA]: 'zkSync Era Mainnet',
+  [NETWORKS_CHAIN_ID.SCROLL]: 'Scroll',
+  [NETWORKS_CHAIN_ID.BERACHAIN]: 'Berachain Artio',
+  [NETWORKS_CHAIN_ID.METACHAIN_ONE]: 'Metachain One Mainnet',
 };
 
 export default NetworkList;
@@ -565,5 +573,5 @@ export const deprecatedGetNetworkId = async () => {
   });
 };
 
-export const isNetworkUiRedesignEnabled =
-  process.env.MM_NETWORK_UI_REDESIGN_ENABLED === '1';
+export const isMutichainVersion1Enabled =
+  process.env.MM_MULTICHAIN_V1_ENABLED === '1';

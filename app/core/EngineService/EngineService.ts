@@ -1,7 +1,6 @@
 import UntypedEngine from '../Engine';
 import AppConstants from '../AppConstants';
 import { getVaultFromBackup } from '../BackupVault';
-import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 import { store as importedStore } from '../../store';
 import Logger from '../../util/Logger';
 import {
@@ -74,7 +73,10 @@ class EngineService {
         key: `${engine.context.TokenBalancesController.name}:stateChange`,
       },
       { name: 'TokenRatesController' },
-      { name: 'TransactionController' },
+      {
+        name: 'TransactionController',
+        key: `${engine.context.TransactionController.name}:stateChange`,
+      },
       { name: 'SmartTransactionsController' },
       { name: 'SwapsController' },
       {
@@ -115,14 +117,23 @@ class EngineService {
         name: 'AccountsController',
         key: `${engine.context.AccountsController.name}:stateChange`,
       },
-    ];
-
-    if (isBlockaidFeatureEnabled()) {
-      controllers.push({
+      {
         name: 'PPOMController',
         key: `${engine.context.PPOMController.name}:stateChange`,
-      });
-    }
+      },
+      {
+        name: 'AuthenticationController',
+        key: `AuthenticationController:stateChange`,
+      },
+      {
+        name: 'UserStorageController',
+        key: `UserStorageController:stateChange`,
+      },
+      {
+        name: 'NotificationServicesController',
+        key: `NotificationServicesController:stateChange`,
+      },
+    ];
 
     engine?.datamodel?.subscribe?.(() => {
       if (!engine.context.KeyringController.metadata.vault) {
