@@ -36,6 +36,7 @@ const validAccount = Accounts.getValidAccount();
 export const acceptTermOfUse = async () => {
   // tap on accept term of use screen
   await Assertions.checkIfVisible(TermsOfUseModal.container);
+  await TermsOfUseModal.tapScrollEndButton();
   await TermsOfUseModal.tapAgreeCheckBox();
   await TermsOfUseModal.tapAcceptButton();
   await Assertions.checkIfNotVisible(TermsOfUseModal.container);
