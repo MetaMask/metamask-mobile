@@ -18,6 +18,7 @@ const SelectOption: React.FC<SelectOptionProps> = ({
   isDisabled,
   gap = 12,
   verticalAlignment,
+  hitSlop,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, {
