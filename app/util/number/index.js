@@ -490,7 +490,6 @@ export function weiToFiatValue(
   if (!wei || !isBN(wei) || !conversionRate) {
     return addCurrencySymbol(0, currencyCode);
   }
-  decimalsToShow = (currencyCode === 'usd' && 2) || undefined;
   const value = weiToFiatNumber(wei, conversionRate, decimalsToShow);
   return value;
 }
