@@ -18,7 +18,6 @@ import ScrollableTabView, {
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTabView = View as any;
-import Icon from 'react-native-vector-icons/FontAwesome5';
 import StorageWrapper from '../../../store/storage-wrapper';
 import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
@@ -26,6 +25,10 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
+import Icon, {
+  IconSize,
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
 import InfoModal from '../../UI/Swaps/components/InfoModal';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { showAlert } from '../../../actions/alert';
@@ -45,6 +48,7 @@ import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { passwordRequirementsMet } from '../../../util/password';
 import { Authentication } from '../../../core/';
 
+import { isTest } from '../../../util/test/utils';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import { isHardwareAccount } from '../../../util/address';
@@ -458,18 +462,28 @@ const RevealPrivateCredential = ({
               </Text>
             </TouchableOpacity>
           </Text>
-
-          <ButtonReveal
-            label={strings('reveal_credential.hold_to_reveal_credential', {
-              credentialName: isPrivateKeyReveal
-                ? strings('reveal_credential.private_key_text')
-                : strings('reveal_credential.srp_abbreviation_text'),
-            })}
-            onLongPress={() => revealCredential(privCredentialName)}
-            testID={
-              RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_LONG_PRESS_BUTTON_ID
-            }
-          />
+          {isTest ? (
+            <Button
+              label={strings('reveal_credential.reveal_credential', {
+                credentialName: isPrivateKeyReveal
+                  ? strings('reveal_credential.private_key_text')
+                  : strings('reveal_credential.srp_abbreviation_text'),
+              })}
+              variant={ButtonVariants.Primary}
+              size={ButtonSize.Lg}
+              onPress={() => revealCredential(privCredentialName)}
+              style={styles.revealButton}
+            />
+          ) : (
+            <ButtonReveal
+              label={strings('reveal_credential.hold_to_reveal_credential', {
+                credentialName: isPrivateKeyReveal
+                  ? strings('reveal_credential.private_key_text')
+                  : strings('reveal_credential.srp_abbreviation_text'),
+              })}
+              onLongPress={() => revealCredential(privCredentialName)}
+            />
+          )}
         </>
       }
     />
@@ -505,7 +519,7 @@ const RevealPrivateCredential = ({
   const renderWarning = (privCredentialName: string) => (
     <View style={styles.warningWrapper}>
       <View style={[styles.rowWrapper, styles.warningRowWrapper]}>
-        <Icon style={styles.icon} name="eye-slash" size={20} solid />
+        <Icon style={styles.icon} name={IconName.EyeSlash} size={IconSize.Lg} />
         {privCredentialName === PRIVATE_KEY ? (
           <Text style={styles.warningMessageText}>
             {strings(
