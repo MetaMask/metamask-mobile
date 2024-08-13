@@ -479,7 +479,6 @@ export function weiToFiat(
  * @param {string} currencyCode - Current currency code (not used in this function but may be relevant for formatting elsewhere).
  * @returns {number} - The converted fiat value as a number.
  *
- * TODO: Ensure that 'wei' is always a BN instance for consistency.
  */
 export function weiToFiatValue(
   wei,
