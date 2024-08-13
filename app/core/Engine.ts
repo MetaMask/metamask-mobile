@@ -1075,6 +1075,7 @@ class Engine {
         name: 'UserStorageController',
         allowedActions: [
           'SnapController:handleRequest',
+          'KeyringController:getState',
           'AuthenticationController:getBearerToken',
           'AuthenticationController:getSessionProfile',
           'AuthenticationController:isSignedIn',
@@ -1083,7 +1084,7 @@ class Engine {
           'NotificationServicesController:disableNotificationServices',
           'NotificationServicesController:selectIsNotificationServicesEnabled',
         ],
-        allowedEvents: [],
+        allowedEvents: ['KeyringController:unlock', 'KeyringController:lock'],
       }),
     });
 
@@ -1094,6 +1095,7 @@ class Engine {
         messenger: this.controllerMessenger.getRestricted({
           name: 'NotificationServicesController',
           allowedActions: [
+            'KeyringController:getState',
             'KeyringController:getAccounts',
             'AuthenticationController:getBearerToken',
             'AuthenticationController:isSignedIn',
@@ -1102,7 +1104,11 @@ class Engine {
             'UserStorageController:performGetStorage',
             'UserStorageController:performSetStorage',
           ],
-          allowedEvents: ['KeyringController:stateChange'],
+          allowedEvents: [
+            'KeyringController:unlock',
+            'KeyringController:lock',
+            'KeyringController:stateChange',
+          ],
         }),
         state: initialState.NotificationServicesController,
         env: {
