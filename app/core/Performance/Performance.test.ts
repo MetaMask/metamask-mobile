@@ -45,6 +45,10 @@ jest.mock('react-native-performance', () => {
 });
 
 describe('Performance', () => {
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
   it('should log performance numbers in development mode', () => {
     // Mock __DEV__ to be true to simulate development mode
     global.__DEV__ = true;
@@ -82,5 +86,19 @@ describe('Performance', () => {
 
     // Clean up
     global.__DEV__ = false; // Reset __DEV__ to its original state
+  });
+
+  it('should not log performance numbers in non-development mode', () => {
+    // Mock __DEV__ to be true to simulate development mode
+    global.__DEV__ = false;
+
+    // Set up performance service
+    Performance.setupPerformanceObservers();
+
+    // Verify that measure wasn't called
+    expect(performance.measure).not.toHaveBeenCalled();
+
+    // Verify that console.info wasn't called
+    expect(console.info).not.toHaveBeenCalled();
   });
 });
