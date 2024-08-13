@@ -5,6 +5,7 @@ import { render } from '@testing-library/react-native';
 // External dependencies.
 import Text, { TextVariant } from '../Texts/Text';
 import { mockTheme } from '../../../util/theme';
+import { getFontFamily, FontWeight } from '../Texts/Text/Text.utils';
 
 // Internal dependencies.
 import RadioButton from './RadioButton';
@@ -38,9 +39,13 @@ describe('RadioButton', () => {
     const { getByRole } = render(
       <RadioButton label={'Sample RadioButton Label'} />,
     );
-    expect(getByRole('text').props.style.fontFamily).toBe(
-      mockTheme.typography[DEFAULT_RADIOBUTTON_LABEL_TEXTVARIANT].fontFamily,
+    const fontFamily = getFontFamily(
+      mockTheme.typography[DEFAULT_RADIOBUTTON_LABEL_TEXTVARIANT]
+        .fontWeight as FontWeight,
+      'normal',
     );
+
+    expect(getByRole('text').props.style.fontFamily).toBe(fontFamily);
   });
 
   it('should render RadioButton with the custom node if typeof label !== string', () => {
@@ -50,8 +55,11 @@ describe('RadioButton', () => {
         label={<Text variant={testTextVariant}>Sample RadioButton Label</Text>}
       />,
     );
-    expect(getByRole('text').props.style.fontFamily).toBe(
-      mockTheme.typography[testTextVariant].fontFamily,
+
+    const fontFamily = getFontFamily(
+      mockTheme.typography[testTextVariant].fontWeight as FontWeight,
+      'normal',
     );
+    expect(getByRole('text').props.style.fontFamily).toBe(fontFamily);
   });
 });

@@ -1,19 +1,19 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Text should render Text 1`] = `
+exports[`Text should render correctly 1`] = `
 <Text
   accessibilityRole="text"
   style={
     {
       "color": "#141618",
       "fontFamily": "EuclidCircularB-Regular",
-      "fontSize": 16,
+      "fontSize": 14,
       "fontWeight": "400",
       "letterSpacing": 0,
-      "lineHeight": 24,
+      "lineHeight": 22,
     }
   }
 >
-  I'm Text!
+  Sample Text
 </Text>
 `;
