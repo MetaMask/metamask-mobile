@@ -5,6 +5,8 @@ on:
       - develop
       - merge-queue-test
     types: [opened]
+  merge_group:
+
 jobs:
   bump-version-name:
     runs-on: ubuntu-latest
