@@ -1053,10 +1053,11 @@ class Engine {
         allowedActions: [
           'KeyringController:getState',
           'KeyringController:getAccounts',
+
           'SnapController:handleRequest',
           'UserStorageController:enableProfileSyncing',
         ],
-        allowedEvents: [],
+        allowedEvents: ['KeyringController:unlock', 'KeyringController:lock'],
       }),
       metametrics: {
         agent: 'mobile',
