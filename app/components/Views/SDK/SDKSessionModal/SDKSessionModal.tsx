@@ -2,7 +2,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 // External dependencies
+// @ts-expect-error Deprecated component
 import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
+// @ts-expect-error Deprecated component
 import { ThemeTypography } from '@metamask/design-tokens/dist/js/typography';
 import { useNavigation } from '@react-navigation/native';
 import { StyleSheet, View } from 'react-native';
