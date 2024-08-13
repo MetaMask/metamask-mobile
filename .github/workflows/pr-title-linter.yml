@@ -4,6 +4,7 @@ on:
     branches:
       - merge-queue-test
     types: [opened,edited]
+  merge_group:
 
 jobs:
   pr-title-linter:

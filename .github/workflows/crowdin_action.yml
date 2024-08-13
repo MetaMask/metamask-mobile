@@ -10,6 +10,7 @@ on:
       - merge-queue-test
   schedule:
     - cron: "0 */12 * * *"
+  merge_group:
 
 jobs:
   synchronize-with-crowdin:
