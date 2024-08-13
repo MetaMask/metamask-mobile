@@ -32,17 +32,13 @@ import { selectSelectedInternalAccountChecksummedAddress } from '../../../select
 import Logger from '../../../util/Logger';
 import { safeToChecksumAddress } from '../../../util/address';
 import {
-  balanceToFiat,
   balanceToFiatNumber,
   hexToBN,
   renderFromTokenMinimalUnit,
   renderFromWei,
   renderIntlDenomination,
   toHexadecimal,
-  weiToFiat,
-  weiToFiatNumber,
   weiToFiatValue,
-  weiToIntlDenomination,
 } from '../../../util/number';
 import { getEther } from '../../../util/transactions';
 import Text from '../../Base/Text';

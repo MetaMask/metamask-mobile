@@ -13,9 +13,7 @@ import ActionSheet from '@metamask/react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
 import {
   renderFromTokenMinimalUnit,
-  addCurrencySymbol,
   balanceToFiatNumber,
-  renderFiat,
   renderIntlDenomination,
 } from '../../../util/number';
 import Engine from '../../../core/Engine';

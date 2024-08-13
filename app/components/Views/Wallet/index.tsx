@@ -17,7 +17,6 @@ import { getWalletNavbarOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
 import {
   renderFromWei,
-  weiToFiat,
   hexToBN,
   weiToIntlDenomination,
 } from '../../../util/number';

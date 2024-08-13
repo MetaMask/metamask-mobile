@@ -35,7 +35,6 @@ import {
   toWei,
   weiToFiat,
   weiToFiatNumber,
-  weiToIntlDenomination,
 } from './';
 
 describe('Number utils :: BNToHex', () => {
