@@ -471,6 +471,16 @@ export function weiToFiat(
   return addCurrencySymbol(value, currencyCode);
 }
 
+/**
+ * Converts wei expressed as a BN instance or number into a human-readable fiat number.
+ *
+ * @param {number | BN} wei - Amount of wei, either as a BN instance or a number.
+ * @param {number | null} conversionRate - ETH to current currency conversion rate. If null, no conversion is applied.
+ * @param {string} currencyCode - Current currency code (not used in this function but may be relevant for formatting elsewhere).
+ * @returns {number} - The converted fiat value as a number.
+ *
+ * TODO: Ensure that 'wei' is always a BN instance for consistency.
+ */
 export function weiToFiatValue(
   wei,
   conversionRate = null,
@@ -699,6 +709,16 @@ export function renderFiat(value, currencyCode, decimalsToShow = 5) {
   return `${fiatFixed} ${currencyCode.toUpperCase()}`;
 }
 
+/**
+ * Converts a value in wei to an international denomination format based on the provided currency.
+ * Useful when converting directly from ETH balance
+ *
+ * @param {BN} wei - The amount in wei, expressed as a BN instance.
+ * @param {number | null} [conversionRate=null] - The conversion rate from ETH to the specified currency. If null, the function returns undefined.
+ * @param {string} currencyCode - The currency code (e.g., 'USD', 'ETH') for formatting.
+ * @param {number} [decimalsToShow=5] - The number of decimal places to show for the formatted value. Defaults to 5, but is set to 2 for 'usd'.
+ * @returns {string | undefined} - The formatted value as a currency string, or undefined if the conversion rate is not provided.
+ */
 export function weiToIntlDenomination(
   wei,
   conversionRate = null,
@@ -714,6 +734,15 @@ export function weiToIntlDenomination(
   return renderIntlDenomination(value, currencyCode);
 }
 
+/**
+ * Renders a value in international number format, either as a fiat currency or a cryptocurrency.
+ * Additionally identifies if value is less than the lowest possible denomination in any given currency (ie '< $0.01')
+ *
+ * @param {number} value - The numeric value to be formatted.
+ * @param {string} currencyCode - The currency code (e.g., 'usd', 'eth') that determines the formatting and symbol.
+ * @param {number} [decimalsToShow=5] - The number of decimal places to show for cryptocurrency values (defaults to 5).
+ * @returns {string} - The formatted value, either as a currency string or a fixed decimal string with the currency code.
+ */
 export function renderIntlDenomination(
   value,
   currencyCode,

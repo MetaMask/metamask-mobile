@@ -26,6 +26,7 @@ import {
   renderFiat,
   renderFromTokenMinimalUnit,
   renderFromWei,
+  renderIntlDenomination,
   safeBNToHex,
   safeNumberToBN,
   toBN,
@@ -34,6 +35,7 @@ import {
   toWei,
   weiToFiat,
   weiToFiatNumber,
+  weiToIntlDenomination,
 } from './';
 
 describe('Number utils :: BNToHex', () => {
@@ -605,6 +607,74 @@ describe('Number utils :: renderFiat', () => {
   it('renderFiat', () => {
     expect(renderFiat(0.1, 'usd')).toEqual('$0.1');
     expect(renderFiat(0.0010000001, 'usd')).toEqual('$0.001');
+  });
+});
+
+describe('Number utils :: renderIntlDenomination', () => {
+  it('should render USD correctly with default decimals', () => {
+    expect(renderIntlDenomination(1000, 'usd')).toEqual('$1,000.00');
+    expect(renderIntlDenomination(0.1, 'usd')).toEqual('$0.10');
+    expect(renderIntlDenomination(123456.789, 'usd')).toEqual('$123,456.79');
+  });
+
+  it('should render EUR correctly with default decimals', () => {
+    expect(renderIntlDenomination(1000, 'eur')).toEqual('€1,000.00');
+    expect(renderIntlDenomination(0.01, 'eur')).toEqual('€0.01');
+    expect(renderIntlDenomination(987654.321, 'eur')).toEqual('€987,654.32');
+  });
+
+  it('should render small USD values below minimum denomination', () => {
+    expect(renderIntlDenomination(0.0001, 'usd')).toEqual('< $0.01');
+    expect(renderIntlDenomination(0.009, 'usd')).toEqual('< $0.01');
+  });
+
+  it('should render small EUR values below minimum denomination', () => {
+    expect(renderIntlDenomination(0.0001, 'eur')).toEqual('< €0.01');
+    expect(renderIntlDenomination(0.009, 'eur')).toEqual('< €0.01');
+  });
+
+  it('should render ETH correctly with custom decimals', () => {
+    expect(renderIntlDenomination(0.123456, 'eth', 5)).toEqual('0.12346 ETH');
+    expect(renderIntlDenomination(1.987654, 'eth', 3)).toEqual('1.988 ETH');
+    expect(renderIntlDenomination(0.0000123456, 'eth', 8)).toEqual(
+      '0.00001235 ETH',
+    );
+  });
+
+  it('should render small ETH values below threshold', () => {
+    expect(renderIntlDenomination(0.00000001, 'eth', 5)).toEqual(
+      '< 0.00001 ETH',
+    );
+  });
+
+  it('should handle unsupported currencies as fixed decimal with currency code', () => {
+    expect(renderIntlDenomination(1000, 'xyz')).toEqual('1000.00000 XYZ');
+    expect(renderIntlDenomination(0.01, 'abc')).toEqual('0.01000 ABC');
+  });
+
+  it('should render ETH with default 5 decimals when currency code is not USD', () => {
+    expect(renderIntlDenomination(0.123456789, 'eth')).toEqual('0.12346 ETH');
+  });
+
+  it('should render fiat currencies with 2 decimals when smallest denominations', () => {
+    expect(renderIntlDenomination(0.001, 'usd')).toEqual('< $0.01');
+    expect(renderIntlDenomination(0.001, 'eur')).toEqual('< €0.01');
+  });
+
+  it('should render ETH with appropriate decimals when below threshold', () => {
+    expect(renderIntlDenomination(0.00001, 'eth')).toEqual('0.00001 ETH');
+    expect(renderIntlDenomination(0.000001, 'eth')).toEqual('< 0.00001 ETH');
+  });
+
+  it('should render JPY (Japanese Yen) correctly without decimals', () => {
+    expect(renderIntlDenomination(1000, 'jpy')).toEqual('¥1,000');
+    expect(renderIntlDenomination(1, 'jpy')).toEqual('¥1');
+    expect(renderIntlDenomination(123456.789, 'jpy')).toEqual('¥123,457');
+  });
+
+  it('should render small JPY values correctly (though JPY does not have decimals)', () => {
+    expect(renderIntlDenomination(0.0001, 'jpy')).toEqual('< ¥1');
+    expect(renderIntlDenomination(0.9, 'jpy')).toEqual('< ¥1');
   });
 });
 
