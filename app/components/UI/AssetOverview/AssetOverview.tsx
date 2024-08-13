@@ -176,11 +176,18 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const ethBalance =
     accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance;
 
-  const balance = asset.isETH
-    ? renderFromWei(ethBalance)
-    : itemAddress && tokenBalances[itemAddress] // if not ETH, render balance based on tokenBalances selector
-    ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], asset.decimals)
-    : 0;
+  let balance;
+
+  if (asset.isETH) {
+    balance = renderFromWei(ethBalance);
+  } else if (itemAddress && tokenBalances[itemAddress]) {
+    balance = renderFromTokenMinimalUnit(
+      tokenBalances[itemAddress],
+      asset.decimals,
+    );
+  } else {
+    balance = 0;
+  }
 
   const balanceFiat = asset.isETH
     ? weiToFiatValue(hexToBN(ethBalance), conversionRate, currentCurrency)
