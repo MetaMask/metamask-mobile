@@ -33,9 +33,11 @@ import Logger from '../../../util/Logger';
 import { safeToChecksumAddress } from '../../../util/address';
 import {
   balanceToFiat,
+  balanceToFiatNumber,
   hexToBN,
   renderFromTokenMinimalUnit,
   renderFromWei,
+  renderIntlDenomination,
   toHexadecimal,
   weiToFiat,
 } from '../../../util/number';
@@ -189,24 +191,21 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       itemAddress && itemAddress in tokenBalances
         ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], asset.decimals)
         : 0;
-    balanceFiat = balanceToFiat(
-      balance,
-      conversionRate,
-      exchangeRate,
-      currentCurrency,
-    );
+    balanceFiat = balanceToFiatNumber(balance, conversionRate, exchangeRate);
   }
 
-  let mainBalance, secondaryBalance;
-  if (primaryCurrency === 'ETH') {
-    mainBalance = `${balance} ${asset.symbol}`;
-    secondaryBalance = balanceFiat;
-  } else {
-    mainBalance = !balanceFiat ? `${balance} ${asset.symbol}` : balanceFiat;
-    secondaryBalance = !balanceFiat
-      ? balanceFiat
-      : `${balance} ${asset.symbol}`;
-  }
+  // PrimaryCurrency toggle in settings
+  const isNativeCurrency = primaryCurrency === 'ETH';
+
+  const mainBalance = renderIntlDenomination(
+    isNativeCurrency || !balanceFiat ? balance : balanceFiat,
+    isNativeCurrency ? asset.symbol : currentCurrency,
+  );
+
+  const secondaryBalance = renderIntlDenomination(
+    isNativeCurrency || !balanceFiat ? balanceFiat : balance,
+    isNativeCurrency ? currentCurrency : asset.symbol,
+  );
 
   let currentPrice = 0;
   let priceDiff = 0;
