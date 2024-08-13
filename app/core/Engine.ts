@@ -1051,15 +1051,17 @@ class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'AuthenticationController',
         allowedActions: [
+          'KeyringController:getState',
+          'KeyringController:getAccounts',
           'SnapController:handleRequest',
-          'UserStorageController:disableProfileSyncing',
+          'UserStorageController:enableProfileSyncing',
         ],
         allowedEvents: [],
       }),
       metametrics: {
         agent: 'mobile',
         getMetaMetricsId: async () =>
-          await MetaMetrics.getInstance().getMetaMetricsId(),
+          (await MetaMetrics.getInstance().getMetaMetricsId()) || '',
       },
     });
 
