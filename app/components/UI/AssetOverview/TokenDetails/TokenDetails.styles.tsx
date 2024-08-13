@@ -11,10 +11,6 @@ const styleSheet = (params: { theme: Theme }) => {
     contentWrapper: {
       paddingVertical: 4,
     },
-    text: {
-      ...typography.sBodyMD,
-      marginVertical: 0,
-    } as TextStyle,
     title: {
       ...typography.sHeadingSM,
       marginVertical: 0,
@@ -41,14 +37,6 @@ const styleSheet = (params: { theme: Theme }) => {
     lastChild: {
       paddingBottom: 0,
     },
-    listItemLabel: {
-      ...typography.sBodyMDMedium,
-      marginVertical: 0,
-    } as TextStyle,
-    listItemValue: {
-      ...typography.sBodyMD,
-      marginVertical: 0,
-    } as TextStyle,
     copyButton: {
       flexDirection: 'row',
       alignItems: 'center',

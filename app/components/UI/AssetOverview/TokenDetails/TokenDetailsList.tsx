@@ -17,6 +17,7 @@ import Icon, {
 } from '../../../../component-library/components/Icons/Icon';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { TokenDetails } from './TokenDetails';
+import TokenDetailsListItem from './TokenDetailsListItem';
 
 interface TokenDetailsListProps {
   tokenDetails: TokenDetails;
@@ -51,10 +52,10 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
       <Title style={styles.title}>{strings('token.token_details')}</Title>
       <View style={styles.listWrapper}>
         {tokenDetails.contractAddress && (
-          <View style={[styles.listItem, styles.firstChild]}>
-            <Text style={styles.listItemLabel}>
-              {strings('token.contract_address')}
-            </Text>
+          <TokenDetailsListItem
+            label={strings('token.contract_address')}
+            style={[styles.listItem, styles.firstChild]}
+          >
             <TouchableOpacity
               style={styles.copyButton}
               onPress={copyAccountToClipboard}
@@ -69,19 +70,21 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
                 style={styles.icon}
               />
             </TouchableOpacity>
-          </View>
+          </TokenDetailsListItem>
         )}
         {tokenDetails.tokenDecimal && (
-          <View style={styles.listItem}>
-            <Text>{strings('token.token_decimal')}</Text>
-            <Text>{tokenDetails.tokenDecimal}</Text>
-          </View>
+          <TokenDetailsListItem
+            label={strings('token.token_decimal')}
+            value={tokenDetails.tokenDecimal}
+            style={styles.listItem}
+          />
         )}
         {tokenDetails.tokenList && (
-          <View style={[styles.listItemStacked, styles.lastChild]}>
-            <Text>{strings('token.token_list')}</Text>
-            <Text>{tokenDetails.tokenList}</Text>
-          </View>
+          <TokenDetailsListItem
+            label={strings('token.token_list')}
+            value={tokenDetails.tokenList}
+            style={[styles.listItemStacked, styles.lastChild]}
+          />
         )}
       </View>
     </View>
