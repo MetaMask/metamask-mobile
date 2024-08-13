@@ -111,7 +111,6 @@ class TypedSign extends PureComponent {
       messageParams,
       'typed_sign',
     );
-    // console.log('>>>>>>>', analyticsParams);
     metrics.trackEvent(MetaMetricsEvents.SIGNATURE_REQUESTED, analyticsParams);
     addSignatureErrorListener(metamaskId, this.onSignatureError);
   }
