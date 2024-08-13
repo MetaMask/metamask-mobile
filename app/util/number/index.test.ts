@@ -488,9 +488,9 @@ describe('Number utils :: weiToFiatNumber', () => {
 describe('Number utils :: weiToFiatValue', () => {
   it('weiToFiatValue', () => {
     const wei = toWei('1');
-    expect(weiToFiatValue(wei, 1, 'usd')).toEqual(1);
-    expect(weiToFiatValue(wei, 0.5, 'usd')).toEqual(0.5);
-    expect(weiToFiatValue(wei, 0.1, 'usd')).toEqual(0.1);
+    expect(weiToFiatValue(wei, 'usd', 1)).toEqual(1);
+    expect(weiToFiatValue(wei, 'usd', 0.5)).toEqual(0.5);
+    expect(weiToFiatValue(wei, 'usd', 0.1)).toEqual(0.1);
   });
 });
 
@@ -623,9 +623,9 @@ describe('Number utils :: renderFiat', () => {
 describe('Number utils :: weiToIntlDenomination', () => {
   it('weiToIntlDenomination', () => {
     const wei = toWei('1');
-    expect(weiToIntlDenomination(wei, 1, 'eth')).toEqual('1.00000 ETH');
-    expect(weiToIntlDenomination(wei, 0.5, 'eth')).toEqual('0.50000 ETH');
-    expect(weiToIntlDenomination(wei, 0.1, 'eth')).toEqual('0.10000 ETH');
+    expect(weiToIntlDenomination(wei, 'eth', 1)).toEqual('1.00000 ETH');
+    expect(weiToIntlDenomination(wei, 'eth', 0.5)).toEqual('0.50000 ETH');
+    expect(weiToIntlDenomination(wei, 'eth', 0.1)).toEqual('0.10000 ETH');
   });
 });
 

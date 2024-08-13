@@ -498,8 +498,8 @@ const Wallet = ({
             // TODO: Replace "any" with type
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             hexToBN(accountBalanceByChainId.balance) as any,
-            conversionRate,
             currentCurrency,
+            conversionRate,
           ),
           logo: '../images/eth-logo-new.png',
           // TODO: Replace "any" with type

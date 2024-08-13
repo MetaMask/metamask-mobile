@@ -190,8 +190,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }
 
   const balanceFiat = asset.isETH
-    ? weiToFiatValue(hexToBN(ethBalance), conversionRate, currentCurrency)
-    : balanceToFiatNumber(balance, conversionRate, exchangeRate);
+    ? weiToFiatValue(hexToBN(ethBalance), currentCurrency, conversionRate)
+    : balanceToFiatNumber(balance, exchangeRate, conversionRate);
 
   // PrimaryCurrency toggle in settings
   const isNativeCurrency = primaryCurrency === 'ETH';

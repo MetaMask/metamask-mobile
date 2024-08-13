@@ -482,8 +482,8 @@ export function weiToFiat(
  */
 export function weiToFiatValue(
   wei,
-  conversionRate = null,
   currencyCode,
+  conversionRate = null,
   decimalsToShow = 5,
 ) {
   if (!conversionRate) return undefined;
@@ -719,8 +719,8 @@ export function renderFiat(value, currencyCode, decimalsToShow = 5) {
  */
 export function weiToIntlDenomination(
   wei,
-  conversionRate = null,
   currencyCode,
+  conversionRate = null,
   decimalsToShow = 5,
 ) {
   if (!conversionRate) return undefined;
