@@ -663,11 +663,11 @@ class ChoosePassword extends PureComponent {
                       </Text>
                     </Text>
                   )) || (
-                      <Text
-                        variant={TextVariant.BodySM}
-                        style={styles.passwordStrengthLabel}
-                      />
-                    )}
+                    <Text
+                      variant={TextVariant.BodySM}
+                      style={styles.passwordStrengthLabel}
+                    />
+                  )}
                 </View>
                 <View style={styles.field}>
                   <Text variant={TextVariant.BodySM}>
