@@ -15,7 +15,12 @@ import { baseStyles } from '../../../styles/common';
 import Tokens from '../../UI/Tokens';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
-import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
+import {
+  renderFromWei,
+  weiToFiat,
+  hexToBN,
+  weiToIntlDenomination,
+} from '../../../util/number';
 import {
   isPastPrivacyPolicyDate,
   shouldShowNewPrivacyToastSelector,
@@ -490,7 +495,7 @@ const Wallet = ({
           symbol: getTicker(ticker),
           isETH: true,
           balance,
-          balanceFiat: weiToFiat(
+          balanceFiat: weiToIntlDenomination(
             // TODO: Replace "any" with type
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             hexToBN(accountBalanceByChainId.balance) as any,

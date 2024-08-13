@@ -684,6 +684,21 @@ export function renderFiat(value, currencyCode, decimalsToShow = 5) {
   return `${fiatFixed} ${currencyCode.toUpperCase()}`;
 }
 
+export function weiToIntlDenomination(
+  wei,
+  conversionRate = null,
+  currencyCode,
+  decimalsToShow = 5,
+) {
+  if (!conversionRate) return undefined;
+  if (!wei || !isBN(wei) || !conversionRate) {
+    return addCurrencySymbol(0, currencyCode);
+  }
+  decimalsToShow = (currencyCode === 'usd' && 2) || undefined;
+  const value = weiToFiatNumber(wei, conversionRate, decimalsToShow);
+  return renderIntlDenomination(value, currencyCode);
+}
+
 export function renderIntlDenomination(
   value,
   currencyCode,
