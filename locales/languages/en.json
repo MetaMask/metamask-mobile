@@ -745,6 +745,7 @@
     "enabling_profile_sync": "Enabling profile syncing...",
     "disabling_profile_sync": "Disabling profile syncing...",
     "notifications_dismiss_modal": "Dismiss",
+    "select_rpc_url": "Select RPC URL",
     "title": "Settings",
     "current_conversion": "Base Currency",
     "current_language": "Current Language",

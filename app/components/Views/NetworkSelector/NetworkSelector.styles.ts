@@ -22,6 +22,25 @@ const createStyles = (colors: Colors) =>
     networkMenu: {
       alignItems: 'center',
     },
+    rpcMenu: {
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'center',
+    },
+    cellBorder: { borderWidth: 0, paddingVertical: 4 },
+    baseHeader: { paddingVertical: 8 },
+    rpcText: {
+      width: '100%',
+    },
+    textWrapper: {
+      display: 'flex',
+      alignSelf: 'center',
+      borderWidth: 2,
+      height: 'auto',
+    },
+    alternativeText: {
+      color: colors.text.alternative,
+    },
     containerDeleteText: {
       paddingLeft: 16,
       paddingRight: 8,
