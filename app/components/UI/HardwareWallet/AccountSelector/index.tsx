@@ -90,23 +90,20 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
         keyExtractor={(item) => `address-${item.index}`}
         renderItem={({ item }) => (
           <View style={[styles.account]}>
-            {
-              //@ts-expect-error This checkbox needs to be replaced by the component-library/components/Checkbox component
-              <CheckBox
-                style={[styles.checkBox]}
-                disabled={item.exist}
-                value={item.checked}
-                onValueChange={() => onCheckBoxClick(item.index)}
-                boxType={'square'}
-                tintColors={{
-                  true: colors.primary.default,
-                  false: colors.border.default,
-                }}
-                onCheckColor={colors.background.default}
-                onFillColor={colors.primary.default}
-                onTintColor={colors.primary.default}
-              />
-            }
+            <CheckBox
+              style={[styles.checkBox]}
+              disabled={item.exist}
+              value={item.checked}
+              onValueChange={() => onCheckBoxClick(item.index)}
+              boxType={'square'}
+              tintColors={{
+                true: colors.primary.default,
+                false: colors.border.default,
+              }}
+              onCheckColor={colors.background.default}
+              onFillColor={colors.primary.default}
+              onTintColor={colors.primary.default}
+            />
             <AccountDetails
               index={item.index}
               address={item.address}
