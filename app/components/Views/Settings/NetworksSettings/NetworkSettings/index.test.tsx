@@ -210,8 +210,6 @@ describe('NetworkSettings', () => {
       route: {
         params: {
           network: 'mainnet',
-
-          // networkTypeOrRpcUrl: true
         },
       },
       navigation: {

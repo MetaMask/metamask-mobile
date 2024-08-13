@@ -126,10 +126,12 @@ const NetworkSelector = () => {
     isVisible: boolean;
     chainId: string;
     rpcUrls: string[];
+    networkName: string;
   }>({
     isVisible: false,
     rpcUrls: [],
     chainId: CHAIN_IDS.MAINNET,
+    networkName: '',
   });
 
   const networkMenuSheetRef = useRef<BottomSheetRef>(null);
@@ -198,11 +200,12 @@ const NetworkSelector = () => {
     }
   };
 
-  const openRpcModal = useCallback(({ rpcUrls, chainId }) => {
+  const openRpcModal = useCallback(({ rpcUrls, chainId, networkName }) => {
     setShowMultiRpcSelectModal({
       isVisible: true,
       rpcUrls: [...rpcUrls],
       chainId,
+      networkName,
     });
     rpcMenuSheetRef.current?.onOpenBottomSheet();
   }, []);
@@ -212,6 +215,7 @@ const NetworkSelector = () => {
       isVisible: false,
       rpcUrls: [],
       chainId: CHAIN_IDS.MAINNET,
+      networkName: '',
     });
     rpcMenuSheetRef.current?.onCloseBottomSheet();
   }, []);
@@ -332,6 +336,7 @@ const NetworkSelector = () => {
             openRpcModal({
               rpcUrls: [hideKeyFromUrl(MAINNET_DEFAULT_RPC_URL)],
               chainId,
+              networkName: mainnetName,
             })
           }
         />
@@ -386,7 +391,11 @@ const NetworkSelector = () => {
           }}
           // TODO: Substitute with the new network controller's RPC array.
           onRpcClick={() =>
-            openRpcModal({ rpcUrls: [LINEA_DEFAULT_RPC_URL], chainId })
+            openRpcModal({
+              rpcUrls: [LINEA_DEFAULT_RPC_URL],
+              chainId,
+              networkName: lineaMainnetName,
+            })
           }
         />
       );
@@ -447,6 +456,7 @@ const NetworkSelector = () => {
                 openRpcModal({
                   rpcUrls: [hideKeyFromUrl(rpcUrl)],
                   chainId,
+                  networkName: name,
                 })
               }
             />
@@ -700,7 +710,7 @@ const NetworkSelector = () => {
             title={Networks.mainnet.name}
             avatarProps={{
               variant: AvatarVariant.Network,
-              name: Networks.mainnet.name,
+              name: showMultiRpcSelectModal.networkName,
               imageSource,
               size: AvatarSize.Sm,
               style: { marginRight: 0 },
@@ -708,13 +718,19 @@ const NetworkSelector = () => {
             style={styles.cellBorder}
           >
             <Text style={styles.alternativeText} variant={TextVariant.BodyMD}>
-              {Networks.mainnet.name}
+              {showMultiRpcSelectModal.networkName}
             </Text>
           </Cell>
         </BottomSheetHeader>
         <View style={styles.rpcMenu}>
           {showMultiRpcSelectModal.rpcUrls.map((rpcUrl) => (
-            <ListItemSelect key={rpcUrl} isSelected isDisabled={false} gap={8}>
+            <ListItemSelect
+              key={rpcUrl}
+              isSelected
+              isDisabled={false}
+              gap={8}
+              onPress={closeRpcModal}
+            >
               <View style={styles.rpcText}>
                 <Text style={styles.textCentred}>
                   {hideProtocolFromUrl(rpcUrl)}
