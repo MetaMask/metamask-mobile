@@ -260,12 +260,12 @@ workflows:
           title: Install node, yarn and corepack
   install_detox:
     steps:
-    - script@1:
-        inputs:
-          - content: |-
-              #!/usr/bin/env bash
-              scripts/detox-setup.sh
-        title: Install Detox Dependencies
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                scripts/detox-setup.sh
+          title: Install Detox Dependencies
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
@@ -1510,7 +1510,7 @@ app:
       COREPACK_VERSION: 0.28.0
 meta:
   bitrise.io:
-    stack: osx-xcode-15.0.x
+    stack: osx-xcode-16.0.x
     machine_type_id: g2-m1-max.5core
 trigger_map:
   - push_branch: release/*
