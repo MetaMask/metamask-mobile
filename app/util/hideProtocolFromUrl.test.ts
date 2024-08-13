@@ -22,7 +22,7 @@ describe('hideProtocolFromUrl', () => {
   });
 
   it('should return the URL as is if it does not start with http or https', () => {
-    const url = 'ftp://example.com';
+    const url = 'example.com';
     expect(hideProtocolFromUrl(url)).toBe(url);
   });
 

@@ -81,6 +81,10 @@ import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRe
 import ListItemSelect from '../../../component-library/components/List/ListItemSelect';
 import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import {
+  LINEA_DEFAULT_RPC_URL,
+  MAINNET_DEFAULT_RPC_URL,
+} from '../../../constants/urls';
 
 const NetworkSelector = () => {
   const [showPopularNetworkModal, setShowPopularNetworkModal] = useState(false);
@@ -305,7 +309,6 @@ const NetworkSelector = () => {
 
   const renderMainnet = () => {
     const { name: mainnetName, chainId } = Networks.mainnet;
-    const MAINNET_DEFAULT_RPC_URL = 'mainnet.infura.io/';
 
     if (isNetworkUiRedesignEnabled() && isNoSearchResults(MAINNET)) return null;
 
@@ -364,7 +367,6 @@ const NetworkSelector = () => {
 
   const renderLineaMainnet = () => {
     const { name: lineaMainnetName, chainId } = Networks['linea-mainnet'];
-    const LINEA_DEFAULT_RPC_URL = 'linea-mainnet.infura.io/';
 
     if (isNetworkUiRedesignEnabled() && isNoSearchResults('linea-mainnet'))
       return null;
