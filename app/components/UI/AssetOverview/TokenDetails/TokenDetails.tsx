@@ -52,7 +52,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const tokenContractAddress = safeToChecksumAddress(asset.address);
 
   if (!tokenContractAddress) {
-    Logger.log("can't find contract address");
+    Logger.log('cannot find contract address');
     return null;
   }
 
