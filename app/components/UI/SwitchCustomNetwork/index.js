@@ -8,6 +8,7 @@ import Device from '../../../util/device';
 import Text from '../../Base/Text';
 import { useTheme } from '../../../util/theme';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
+import { isMutichainVersion1Enabled } from '../../../util/networks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -20,7 +21,7 @@ const createStyles = (colors) =>
       paddingBottom: Device.isIphoneX() ? 20 : 0,
     },
     intro: {
-      fontSize: Device.isSmallDevice() ? 18 : 24,
+      fontSize: Device.isSmallDevice() | isMutichainVersion1Enabled ? 18 : 24,
       marginBottom: 16,
       marginTop: 16,
       marginRight: 24,
@@ -103,6 +104,43 @@ const SwitchCustomNetwork = ({
     onCancel && onCancel();
   };
 
+  const renderSwitchWarningText = () => (
+    <Text primary noMargin style={styles.warning}>
+      {type === 'switch' ? (
+        strings('switch_custom_network.switch_warning')
+      ) : (
+        <Text>
+          <Text
+            bold
+            primary
+            noMargin
+          >{`"${customNetworkInformation.chainName}"`}</Text>
+          <Text noMargin> {strings('switch_custom_network.available')}</Text>
+        </Text>
+      )}
+    </Text>
+  );
+
+  function renderNetworkBadge() {
+    return (
+      <View style={styles.networkContainer}>
+        <View style={styles.networkBadge}>
+          <View
+            style={[
+              styles.networkIcon,
+              customNetworkInformation.chainColor
+                ? { backgroundColor: customNetworkInformation.chainColor }
+                : styles.otherNetworkIcon,
+            ]}
+          />
+          <Text primary noMargin style={styles.networkText}>
+            {customNetworkInformation.chainName}
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.root}>
       {type === 'switch' ? (
@@ -110,40 +148,13 @@ const SwitchCustomNetwork = ({
       ) : null}
       <Text bold centered primary noMargin style={styles.intro}>
         {type === 'switch'
-          ? strings('switch_custom_network.title_existing_network')
+          ? isMutichainVersion1Enabled
+            ? strings('switch_custom_network.title_enabled_network')
+            : strings('switch_custom_network.title_existing_network')
           : strings('switch_custom_network.title_new_network')}
       </Text>
-      <Text primary noMargin style={styles.warning}>
-        {type === 'switch' ? (
-          strings('switch_custom_network.switch_warning')
-        ) : (
-          <Text>
-            <Text
-              bold
-              primary
-              noMargin
-            >{`"${customNetworkInformation.chainName}"`}</Text>
-            <Text noMargin> {strings('switch_custom_network.available')}</Text>
-          </Text>
-        )}
-      </Text>
-      {type === 'switch' ? (
-        <View style={styles.networkContainer}>
-          <View style={styles.networkBadge}>
-            <View
-              style={[
-                styles.networkIcon,
-                customNetworkInformation.chainColor
-                  ? { backgroundColor: customNetworkInformation.chainColor }
-                  : styles.otherNetworkIcon,
-              ]}
-            />
-            <Text primary noMargin style={styles.networkText}>
-              {customNetworkInformation.chainName}
-            </Text>
-          </View>
-        </View>
-      ) : null}
+      {!isMutichainVersion1Enabled && renderSwitchWarningText()}
+      {!isMutichainVersion1Enabled && type === 'switch' && renderNetworkBadge()}
       <View style={styles.actionContainer(type === 'new')}>
         <StyledButton
           type={'cancel'}
@@ -159,7 +170,9 @@ const SwitchCustomNetwork = ({
           containerStyle={[styles.button, styles.confirm]}
           testID={CommonSelectorsIDs.CONNECT_BUTTON}
         >
-          {strings('switch_custom_network.switch')}
+          {isMutichainVersion1Enabled
+            ? strings('confirmation_modal.confirm_cta')
+            : strings('switch_custom_network.switch')}
         </StyledButton>
       </View>
     </View>

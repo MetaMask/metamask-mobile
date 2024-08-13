@@ -2801,6 +2801,7 @@
   },
   "switch_custom_network": {
     "title_existing_network": "This site would like to switch the network",
+    "title_enabled_network": "This site wants to:",
     "title_new_network": "New network added",
     "switch_warning": "This will switch the selected network within MetaMask to a previously added network:",
     "add_network_and_give_dapp_permission_warning": "You're adding this network to MetaMask and giving {{dapp_origin}} permission to use it.",
