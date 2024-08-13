@@ -7,7 +7,11 @@ const navigationMock = {
   navigate: jest.fn(),
 };
 
-const coachmarkRef = React.createRef<{ measure: jest.Mock }>();
+const coachmarkRef = {
+  current: {
+    measure: jest.fn(),
+  },
+};
 
 describe('OnboardingWizard', () => {
   it('should render correctly', () => {
