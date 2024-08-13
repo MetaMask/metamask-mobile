@@ -55,15 +55,18 @@ const createStyles = (colors: any) =>
     preCompletedContainerStyle: {
       ...StyleSheet.absoluteFillObject,
       borderRadius: radius,
+      backgroundColor: colors.primary.default,
     },
     outerCircle: {
       ...StyleSheet.absoluteFillObject,
       borderRadius: radius,
+      backgroundColor: colors.primary.inverse,
     },
     innerCircle: {
       flex: 1,
       borderRadius: radius - strokeWidth,
       margin: strokeWidth,
+      backgroundColor: colors.primary.default,
     },
     label: {
       color: colors.primary.inverse,
@@ -270,6 +273,7 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
           cx={radius}
           cy={radius}
           r={innerRadius}
+          stroke={colors.primary.alternative}
           strokeWidth={strokeWidth}
           strokeLinecap={'round'}
           fill={colors.primary.inverse}
