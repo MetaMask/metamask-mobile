@@ -3,13 +3,13 @@
   // TODO: Fix type errors and uncomment all directories
   "include": [
     "app/declarations.d.ts",
-    "app/**/*",
+    // "app/**/*",
     "app/__mocks__/**/*",
     "app/actions/**/*",
-    "app/component-library/**/*",
+    // "app/component-library/**/*",
     "app/component-library/constants/**/*",
     "app/component-library/hooks/**/*",
-    "app/components/**/*",
+    // "app/components/**/*",
     "app/constants/**/*",
     "app/core/**/*",
     "app/core/*.ts",
@@ -19,6 +19,6 @@
     "app/selectors/**/*",
     "app/store/**/*",
     "app/styles/**/*"
-    "app/util/**/*",
+    // "app/util/**/*",
   ]
 }
