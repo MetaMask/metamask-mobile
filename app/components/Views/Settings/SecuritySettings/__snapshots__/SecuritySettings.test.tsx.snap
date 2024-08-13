@@ -3087,8 +3087,188 @@ exports[`SecuritySettings should render correctly 1`] = `
       swipeDirection="down"
       swipeThreshold={100}
       transparent={true}
-      visible={false}
-    />
+      visible={true}
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "backgroundColor": "#00000099",
+            "bottom": 0,
+            "height": 1334,
+            "left": 0,
+            "opacity": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+            "width": 750,
+          }
+        }
+      />
+      <View
+        collapsable={false}
+        deviceHeight={null}
+        deviceWidth={null}
+        hideModalContentWhileAnimating={false}
+        onBackdropPress={[Function]}
+        onModalHide={[Function]}
+        onModalWillHide={[Function]}
+        onModalWillShow={[Function]}
+        onMoveShouldSetResponder={[Function]}
+        onMoveShouldSetResponderCapture={[Function]}
+        onResponderEnd={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderReject={[Function]}
+        onResponderRelease={[Function]}
+        onResponderStart={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        onStartShouldSetResponderCapture={[Function]}
+        onSwipeComplete={[Function]}
+        panResponderThreshold={4}
+        pointerEvents="box-none"
+        scrollHorizontal={false}
+        scrollOffset={0}
+        scrollOffsetMax={0}
+        scrollTo={null}
+        statusBarTranslucent={false}
+        style={
+          {
+            "flex": 1,
+            "justifyContent": "flex-end",
+            "left": 0,
+            "margin": 37.5,
+            "marginHorizontal": 0,
+            "top": 0,
+            "transform": [
+              {
+                "translateY": 1334,
+              },
+            ],
+          }
+        }
+        supportedOrientations={
+          [
+            "portrait",
+            "landscape",
+          ]
+        }
+        swipeDirection="down"
+        swipeThreshold={100}
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "borderColor": "#bbc0c5",
+              "borderRadius": 16,
+              "borderWidth": 2,
+              "margin": 16,
+              "minHeight": 120,
+              "paddingBottom": 24,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "marginVertical": 12,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "borderColor": "#f2f4f6",
+                  "borderRadius": 64,
+                  "borderWidth": 3.5,
+                  "height": 36,
+                  "width": 36,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                style={
+                  {
+                    "height": 40,
+                    "left": -5.5,
+                    "position": "relative",
+                    "top": -5.5,
+                    "transform": [
+                      {
+                        "rotate": "0deg",
+                      },
+                    ],
+                    "width": 40,
+                  }
+                }
+              >
+                <Text
+                  allowFontScaling={false}
+                  style={
+                    [
+                      {
+                        "color": "#0376c9",
+                        "fontSize": 36,
+                      },
+                      undefined,
+                      {
+                        "fontFamily": "Material Design Icons",
+                        "fontStyle": "normal",
+                        "fontWeight": "normal",
+                      },
+                      {},
+                    ]
+                  }
+                >
+                  
+                </Text>
+              </View>
+            </View>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "alignSelf": "center",
+                "color": "#141618",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 20,
+                "marginVertical": 12,
+                "paddingHorizontal": 24,
+              }
+            }
+          >
+            Disabling profile syncing...
+          </Text>
+        </View>
+      </View>
+    </Modal>
   </View>
 </RCTScrollView>
 `;
