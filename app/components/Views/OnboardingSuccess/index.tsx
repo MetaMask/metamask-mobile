@@ -29,6 +29,7 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import AppConstants from '../../../core/AppConstants';
+// @ts-expect-error Deprecated component
 import Emoji from 'react-native-emoji';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
 import styles from './index.styles';
