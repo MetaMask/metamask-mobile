@@ -12,6 +12,9 @@ import createStyles from './NetworkSearchTextInput.styles';
 import { NetworksViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/NetworksView.selectors';
 import { isNetworkUiRedesignEnabled } from '../../../../util/networks/isNetworkUiRedesignEnabled';
 
+// Type assertion for Icon component
+const IconComponent = Icon as any;
+
 interface NetworkSearchTextInputProps {
   searchString: string;
   handleSearchTextChange: (text: string) => void;
@@ -58,7 +61,7 @@ function NetworkSearchTextInput({
 
   return (
     <View style={containerInputStylesWhichAreFeatureFlagged}>
-      <Icon name="ios-search" size={20} color={colors.icon.default} />
+      <IconComponent name="ios-search" size={20} color={colors.icon.default} />
       <TextInput
         style={inputStylesWhichAreFeatureFlagged}
         placeholder={strings(`networks.${searchPlaceHolder}`)}
@@ -69,7 +72,7 @@ function NetworkSearchTextInput({
         {...propsWhichAreFeatureFlagged}
       />
       {searchString.length > 0 && (
-        <Icon
+        <IconComponent
           name="ios-close"
           size={20}
           color={colors.icon.default}
