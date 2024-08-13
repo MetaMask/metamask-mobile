@@ -255,7 +255,6 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
       </Animated.View>
       <Animated.View style={[styles.absoluteFillWithCenter, checkIconStyle]}>
         {
-          //@ts-expect-error The usage of react-native-vector-icons is deprecated and the TS error will be expected, needs to be refactored
           <Icon
             name={'check'}
             color={colors.primary.inverse}
@@ -271,10 +270,7 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
       style={[styles.preCompletedContainerStyle, preCompletedContainerStyle]}
     >
       <Animated.View style={[styles.absoluteFillWithCenter, lockIconStyle]}>
-        {
-          //@ts-expect-error The usage of react-native-vector-icons is deprecated and the TS error will be expected, needs to be refactored
-          <Icon name={'lock'} color={colors.primary.inverse} size={iconSize} />
-        }
+        {<Icon name={'lock'} color={colors.primary.inverse} size={iconSize} />}
       </Animated.View>
       <Svg style={styles.absoluteFill}>
         <Circle

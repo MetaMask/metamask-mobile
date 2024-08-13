@@ -123,7 +123,7 @@ describe('AddToAddressBookWrapper', () => {
     expect(Engine.context.AddressBookController.set).toHaveBeenCalledWith(
       '0x10e08af911f2e48948',
       'New Alias',
-      expect.any(String),
+      '0x1',
     );
 
     expect(mockSetToAddressName).toHaveBeenCalledWith('New Alias');

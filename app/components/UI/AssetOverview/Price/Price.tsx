@@ -116,7 +116,6 @@ const Price = ({
           ) : distributedPriceData.length > 0 ? (
             <Text style={styles.priceDiff}>
               {
-                //@ts-expect-error The usage of react-native-vector-icons is deprecated and the TS error will be expected, needs to be refactored
                 <Icon
                   name={
                     diff > 0

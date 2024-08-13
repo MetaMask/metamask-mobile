@@ -236,7 +236,6 @@ const AccountSelectorList = ({
   }, [accounts, selectedAddresses, isAutoScrollEnabled]);
 
   return (
-    //@ts-expect-error The props of AccountSelectorList include properties that FlatList do not have
     <FlatList
       ref={accountListRef}
       onContentSizeChange={onContentSizeChanged}

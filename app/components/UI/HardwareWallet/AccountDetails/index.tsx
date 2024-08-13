@@ -34,7 +34,6 @@ const AccountDetails = (props: IAccountDetailsProps) => {
         </Text>
       </View>
       {
-        //@ts-expect-error The usage of react-native-vector-icons is deprecated and the TS error will be expected, needs to be refactored
         <Icon
           size={18}
           name={'external-link'}

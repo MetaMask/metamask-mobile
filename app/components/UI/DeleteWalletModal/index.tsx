@@ -154,7 +154,6 @@ const DeleteWalletModal = () => {
             testID={DeleteWalletModalSelectorsIDs.CONTAINER}
           >
             {
-              //@ts-expect-error The usage of react-native-vector-icons is deprecated and the TS error will be expected, needs to be refactored
               <Icon
                 style={styles.warningIcon}
                 size={46}

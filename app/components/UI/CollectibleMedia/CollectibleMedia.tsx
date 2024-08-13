@@ -4,14 +4,13 @@ import { View } from 'react-native';
 import RemoteImage from '../../Base/RemoteImage';
 import MediaPlayer from '../../Views/MediaPlayer';
 import Text from '../../Base/Text';
-import { useTheme } from '../../../util/theme';
 import { isIPFSUri } from '../../../util/general';
 import { useSelector } from 'react-redux';
 import {
   selectDisplayNftMedia,
   selectIsIpfsGatewayEnabled,
 } from '../../../selectors/preferencesController';
-import createStyles, { createContainerStyle } from './CollectibleMedia.styles';
+import createStyles from './CollectibleMedia.styles';
 import { CollectibleMediaProps } from './CollectibleMedia.types';
 import NftFallbackImage from '../../../../docs/assets/nft-fallback.png';
 import {
@@ -22,6 +21,7 @@ import Button from '../../../component-library/components/Buttons/Button/Button'
 import { strings } from '../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
+import { useStyles } from '../../../component-library/hooks';
 
 const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   collectible,
@@ -37,12 +37,13 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   isFullRatio,
 }) => {
   const [sourceUri, setSourceUri] = useState<string | null>(null);
-  const { colors } = useTheme();
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
   const { navigate } = useNavigation();
 
-  const styles = createStyles(colors);
+  const { styles } = useStyles(createStyles, {
+    backgroundColor: collectible.backgroundColor,
+  });
 
   const fallback = useCallback(() => setSourceUri(null), []);
 
@@ -236,11 +237,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
     isFullRatio,
   ]);
 
-  return (
-    <View style={createContainerStyle(collectible.backgroundColor)}>
-      {renderMedia()}
-    </View>
-  );
+  return <View style={styles.container}>{renderMedia()}</View>;
 };
 
 export default CollectibleMedia;
