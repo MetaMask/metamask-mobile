@@ -711,11 +711,21 @@ export function renderIntlDenomination(
       valueToReturn = new Intl.NumberFormat('en-US', options).format(value);
     }
   } else {
+    const multiplier = Math.pow(10, decimalsToShow);
+    const threshold = 1 / multiplier;
     const base = Math.pow(10, decimalsToShow);
-    const belowThreshold = '';
-    let fiatFixed = parseFloat(Math.round(value * base) / base);
-    fiatFixed = isNaN(fiatFixed) ? 0.0 : fiatFixed;
+    const fixedBalance = parseFloat(Math.round(value * base) / base).toFixed(
+      decimalsToShow,
+    );
+    const belowThreshold = value < threshold && value !== 0;
+    if (belowThreshold) {
+      isBelowMinimum = true;
+      valueToReturn = `${threshold} ${currencyCode.toUpperCase()}`;
+    } else {
+      valueToReturn = `${fixedBalance} ${currencyCode.toUpperCase()}`;
+    }
   }
+  return isBelowMinimum ? `< ${valueToReturn}` : valueToReturn;
 }
 
 /**
