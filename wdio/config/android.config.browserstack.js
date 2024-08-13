@@ -47,21 +47,34 @@ const upgradeCapabilities = [
 const isAppUpgrade = process.argv.includes('--upgrade') || false;
 const isPerformance = process.argv.includes('--performance') || false;
 
-// Select capabilities based on the test type
-const selectedCapabilities = isAppUpgrade ? upgradeCapabilities : defaultCapabilities;
+// Consolidating the conditional logic for capabilities and tag expression
+const { selectedCapabilities, defaultTagExpression } = (() => {
+    if (isAppUpgrade) {
+        return {
+            selectedCapabilities: upgradeCapabilities,
+            defaultTagExpression: '@upgrade and @androidApp',
+        };
+    } else if (isPerformance) {
+        return {
+            selectedCapabilities: defaultCapabilities,
+            defaultTagExpression: '@performance and @androidApp',
+        };
+    } else {
+        return {
+            selectedCapabilities: defaultCapabilities,
+            defaultTagExpression: '@smoke and @androidApp',
+        };
+    }
+})();
+
+// Apply the selected configuration
 config.capabilities = selectedCapabilities;
+config.cucumberOpts.tagExpression = process.env.BROWSERSTACK_TAG_EXPRESSION || defaultTagExpression;
 
 config.waitforTimeout = 10000;
 config.connectionRetryTimeout = 90000;
 config.connectionRetryCount = 3;
 
-// Set tag expression based on the test type
-const defaultTagExpression = isAppUpgrade
-  ? '@upgrade and @androidApp'
-  : isPerformance
-    ? '@performance and @androidApp'
-    : '@smoke and @androidApp'; // defaults to running smoke if the performance or appUpgrade flag is not set
-config.cucumberOpts.tagExpression = process.env.BROWSERSTACK_TAG_EXPRESSION || defaultTagExpression;
 
 config.onPrepare = function (config, capabilities) {
   removeSync('./wdio/reports');

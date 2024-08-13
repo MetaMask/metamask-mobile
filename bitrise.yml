@@ -189,7 +189,7 @@ stages:
       - run_android_app_launch_times_appium_test: {}
   app_upgrade_test_stage:
     workflows:
-    - run_tag_upgrade_android: {}
+      - run_tag_upgrade_android: {}
   release_notify:
     workflows:
       - release_announcing_stores: {}
