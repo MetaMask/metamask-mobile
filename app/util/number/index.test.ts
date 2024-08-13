@@ -35,6 +35,8 @@ import {
   toWei,
   weiToFiat,
   weiToFiatNumber,
+  weiToFiatValue,
+  weiToIntlDenomination,
 } from './';
 
 describe('Number utils :: BNToHex', () => {
@@ -483,6 +485,15 @@ describe('Number utils :: weiToFiatNumber', () => {
   });
 });
 
+describe('Number utils :: weiToFiatValue', () => {
+  it('weiToFiatValue', () => {
+    const wei = toWei('1');
+    expect(weiToFiatValue(wei, 1, 'usd')).toEqual(1);
+    expect(weiToFiatValue(wei, 0.5, 'usd')).toEqual(0.5);
+    expect(weiToFiatValue(wei, 0.1, 'usd')).toEqual(0.1);
+  });
+});
+
 describe('Number utils :: handleWeiNumber', () => {
   it('weiToFiatNumber', () => {
     expect(handleWeiNumber('1.123')).toEqual('1.123');
@@ -606,6 +617,15 @@ describe('Number utils :: renderFiat', () => {
   it('renderFiat', () => {
     expect(renderFiat(0.1, 'usd')).toEqual('$0.1');
     expect(renderFiat(0.0010000001, 'usd')).toEqual('$0.001');
+  });
+});
+
+describe('Number utils :: weiToIntlDenomination', () => {
+  it('weiToIntlDenomination', () => {
+    const wei = toWei('1');
+    expect(weiToIntlDenomination(wei, 1, 'eth')).toEqual('1.00000 ETH');
+    expect(weiToIntlDenomination(wei, 0.5, 'eth')).toEqual('0.50000 ETH');
+    expect(weiToIntlDenomination(wei, 0.1, 'eth')).toEqual('0.10000 ETH');
   });
 });
 
