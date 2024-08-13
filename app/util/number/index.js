@@ -471,6 +471,21 @@ export function weiToFiat(
   return addCurrencySymbol(value, currencyCode);
 }
 
+export function weiToFiatValue(
+  wei,
+  conversionRate = null,
+  currencyCode,
+  decimalsToShow = 5,
+) {
+  if (!conversionRate) return undefined;
+  if (!wei || !isBN(wei) || !conversionRate) {
+    return addCurrencySymbol(0, currencyCode);
+  }
+  decimalsToShow = (currencyCode === 'usd' && 2) || undefined;
+  const value = weiToFiatNumber(wei, conversionRate, decimalsToShow);
+  return value;
+}
+
 /**
  * Renders fiat amount with currency symbol if exists
  *

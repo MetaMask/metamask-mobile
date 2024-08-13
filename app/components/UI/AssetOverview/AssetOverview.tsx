@@ -40,6 +40,9 @@ import {
   renderIntlDenomination,
   toHexadecimal,
   weiToFiat,
+  weiToFiatNumber,
+  weiToFiatValue,
+  weiToIntlDenomination,
 } from '../../../util/number';
 import { getEther } from '../../../util/transactions';
 import Text from '../../Base/Text';
@@ -174,29 +177,23 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       ? tokenExchangeRates?.[itemAddress]?.price
       : undefined;
 
-  let balance, balanceFiat;
-  if (asset.isETH) {
-    balance = renderFromWei(
-      accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
-    );
-    balanceFiat = weiToFiat(
-      hexToBN(
-        accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
-      ),
-      conversionRate,
-      currentCurrency,
-    );
-  } else {
-    balance =
-      itemAddress && itemAddress in tokenBalances
-        ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], asset.decimals)
-        : 0;
-    balanceFiat = balanceToFiatNumber(balance, conversionRate, exchangeRate);
-  }
+  const ethBalance =
+    accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance;
+
+  const balance = asset.isETH
+    ? renderFromWei(ethBalance)
+    : itemAddress && tokenBalances[itemAddress] // if not ETH, render balance based on tokenBalances selector
+    ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], asset.decimals)
+    : 0;
+
+  const balanceFiat = asset.isETH
+    ? weiToFiatValue(hexToBN(ethBalance), conversionRate, currentCurrency)
+    : balanceToFiatNumber(balance, conversionRate, exchangeRate);
 
   // PrimaryCurrency toggle in settings
   const isNativeCurrency = primaryCurrency === 'ETH';
 
+  // depending on PrimaryCurrency toggle, either Fiat value or Native value will take precendance as primary/secondary
   const mainBalance = renderIntlDenomination(
     isNativeCurrency || !balanceFiat ? balance : balanceFiat,
     isNativeCurrency ? asset.symbol : currentCurrency,
