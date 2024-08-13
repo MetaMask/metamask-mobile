@@ -103,6 +103,7 @@ import { trackDappViewedEvent } from '../../../util/metrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { useIsFocused } from '@react-navigation/native';
+import handleWebViewFocus from '../../../util/browser/webViewFocus';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -709,18 +710,8 @@ export const BrowserTab = (props) => {
   }, [goBack, isTabActive, props.navigation]);
 
   useEffect(() => {
-    if (webviewRef.current) {
-      if (isFocused) {
-        webviewRef.current.injectJavaScript(`
-          window.isTabActive = true;
-        `);
-      } else {
-        webviewRef.current.injectJavaScript(`
-          window.isTabActive = false;
-        `);
-        webviewRef.current.stopLoading(); // Stop loading the page
-      }
-    }
+    // Stops the loading and execution of JS if the tab is not active
+    handleWebViewFocus({ webviewRef, isFocused });
   }, [isFocused]);
 
   /**
