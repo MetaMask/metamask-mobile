@@ -1,74 +1,59 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`OnboardingSuccess should render correctly 1`] = `
-<View
+<RCTScrollView
   style={
     {
-      "alignItems": "center",
       "flex": 1,
     }
   }
   testID="onboarding-success-screen"
 >
-  <View
-    style={
-      {
-        "flex": 1,
-        "paddingTop": "10%",
-      }
-    }
-  >
-    <Text
-      style={
-        {
-          "fontSize": 65,
-          "marginBottom": 16,
-          "textAlign": "center",
-        }
-      }
-    >
-      🎉
-    </Text>
-    <Text
-      accessibilityRole="text"
-      style={
-        {
-          "color": "#141618",
-          "fontFamily": "Euclid Circular B",
-          "fontSize": 24,
-          "fontWeight": "700",
-          "letterSpacing": 0,
-          "lineHeight": 22,
-          "paddingTop": 20,
-          "textAlign": "center",
-        }
-      }
-    >
-      Your Wallet is ready
-    </Text>
+  <View>
     <View
       style={
         {
-          "width": "90%",
+          "flex": 1,
+          "padding": 24,
+          "paddingTop": 24,
         }
       }
     >
+      <Text
+        style={
+          {
+            "fontSize": 65,
+            "marginBottom": 16,
+            "textAlign": "center",
+          }
+        }
+      >
+        🎉
+      </Text>
       <Text
         accessibilityRole="text"
         style={
           {
             "color": "#141618",
             "fontFamily": "Euclid Circular B",
-            "fontSize": 14,
-            "fontWeight": "400",
+            "fontSize": 24,
+            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 22,
-            "marginTop": 14,
-            "textAlign": "left",
+            "paddingTop": 20,
+            "textAlign": "center",
           }
         }
       >
-        Remember, if you lose your Secret Recovery Phrase, you lose access to your wallet. 
+        Your Wallet is ready
+      </Text>
+      <View
+        style={
+          {
+            "width": "90%",
+          }
+        }
+      >
         <Text
           accessibilityRole="text"
           style={
@@ -84,9 +69,86 @@ exports[`OnboardingSuccess should render correctly 1`] = `
             }
           }
         >
+          Remember, if you lose your Secret Recovery Phrase, you lose access to your wallet. 
           <Text
             accessibilityRole="text"
-            onPress={[Function]}
+            style={
+              {
+                "color": "#141618",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginTop": 14,
+                "textAlign": "left",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              onPress={[Function]}
+              style={
+                {
+                  "color": "#0376c9",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Learn how
+               
+            </Text>
+            to keep this set of words safe so you can always access your funds.
+          </Text>
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "minHeight": 50,
+          }
+        }
+      >
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              },
+              {
+                "paddingTop": 10,
+              },
+            ]
+          }
+        >
+          <View
+            style={
+              {
+                "marginRight": 6,
+              }
+            }
+          >
+            <SvgMock
+              color="#0376c9"
+              height={16}
+              name="Setting"
+              style={
+                {
+                  "height": 16,
+                  "width": 16,
+                }
+              }
+              width={16}
+            />
+          </View>
+          <Text
+            accessibilityRole="text"
             style={
               {
                 "color": "#0376c9",
@@ -98,59 +160,62 @@ exports[`OnboardingSuccess should render correctly 1`] = `
               }
             }
           >
-            Learn how
-             
+            Manage default settings
           </Text>
-          to keep this set of words safe so you can always access your funds.
-        </Text>
-      </Text>
-    </View>
-    <View
-      style={
-        {
-          "minHeight": 50,
-        }
-      }
-    >
-      <TouchableOpacity
-        onPress={[Function]}
-        style={
-          [
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-            },
-            {
-              "paddingTop": 10,
-            },
-          ]
-        }
-      >
-        <View
-          style={
-            {
-              "marginRight": 6,
-            }
-          }
-        >
-          <SvgMock
-            color="#0376c9"
-            height={16}
-            name="Setting"
-            style={
-              {
-                "height": 16,
-                "width": 16,
-              }
-            }
-            width={16}
-          />
-        </View>
+        </TouchableOpacity>
         <Text
           accessibilityRole="text"
           style={
             {
-              "color": "#0376c9",
+              "color": "#141618",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 12,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 10,
+            }
+          }
+        >
+          Settings are optimized for ease of use and security.
+Change these at any time.
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "paddingBottom": 50,
+          "paddingHorizontal": 24,
+        }
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "backgroundColor": "#0376c9",
+            "borderRadius": 24,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="onboarding-success-done-button"
+        variant="Primary"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#ffffff",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
@@ -159,102 +224,39 @@ exports[`OnboardingSuccess should render correctly 1`] = `
             }
           }
         >
-          Manage default settings
+          Done
         </Text>
       </TouchableOpacity>
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#141618",
-            "fontFamily": "Euclid Circular B",
-            "fontSize": 12,
-            "fontWeight": "400",
-            "letterSpacing": 0,
-            "lineHeight": 22,
-            "marginTop": 10,
-          }
-        }
-      >
-        Settings are optimized for ease of use and security.
-Change these at any time.
-      </Text>
     </View>
-  </View>
-  <View
-    style={
-      {
-        "bottom": 50,
-        "width": "85%",
+    <Modal
+      animationType="none"
+      deviceHeight={null}
+      deviceWidth={null}
+      hardwareAccelerated={false}
+      hideModalContentWhileAnimating={false}
+      onBackdropPress={[Function]}
+      onModalHide={[Function]}
+      onModalWillHide={[Function]}
+      onModalWillShow={[Function]}
+      onRequestClose={[Function]}
+      onSwipeComplete={[Function]}
+      panResponderThreshold={4}
+      scrollHorizontal={false}
+      scrollOffset={0}
+      scrollOffsetMax={0}
+      scrollTo={null}
+      statusBarTranslucent={false}
+      supportedOrientations={
+        [
+          "portrait",
+          "landscape",
+        ]
       }
-    }
-  >
-    <TouchableOpacity
-      accessibilityRole="button"
-      accessible={true}
-      activeOpacity={1}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
-      style={
-        {
-          "alignItems": "center",
-          "alignSelf": "stretch",
-          "backgroundColor": "#0376c9",
-          "borderRadius": 24,
-          "flexDirection": "row",
-          "height": 48,
-          "justifyContent": "center",
-          "paddingHorizontal": 16,
-        }
-      }
-      testID="onboarding-success-done-button"
-      variant="Primary"
-    >
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#ffffff",
-            "fontFamily": "Euclid Circular B",
-            "fontSize": 14,
-            "fontWeight": "400",
-            "letterSpacing": 0,
-            "lineHeight": 22,
-          }
-        }
-      >
-        Done
-      </Text>
-    </TouchableOpacity>
+      swipeDirection="down"
+      swipeThreshold={100}
+      transparent={true}
+      visible={false}
+    />
   </View>
-  <Modal
-    animationType="none"
-    deviceHeight={null}
-    deviceWidth={null}
-    hardwareAccelerated={false}
-    hideModalContentWhileAnimating={false}
-    onBackdropPress={[Function]}
-    onModalHide={[Function]}
-    onModalWillHide={[Function]}
-    onModalWillShow={[Function]}
-    onRequestClose={[Function]}
-    onSwipeComplete={[Function]}
-    panResponderThreshold={4}
-    scrollHorizontal={false}
-    scrollOffset={0}
-    scrollOffsetMax={0}
-    scrollTo={null}
-    statusBarTranslucent={false}
-    supportedOrientations={
-      [
-        "portrait",
-        "landscape",
-      ]
-    }
-    swipeDirection="down"
-    swipeThreshold={100}
-    transparent={true}
-    visible={false}
-  />
-</View>
+</RCTScrollView>
 `;
