@@ -1,7 +1,4 @@
 // This file contains type declarations for asset types.
-
-import { ComponentType } from 'react';
-
 // Ex. This makes it so that when you import CloseIcon from './close-icon.svg, CloseIcon, will be detected as a React.FC component.
 declare module '*.mp4';
 
