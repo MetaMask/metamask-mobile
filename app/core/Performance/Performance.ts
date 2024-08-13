@@ -32,6 +32,7 @@ class Performance {
         // Retrieve the measurements
         const nativeLaunchEntry = performance.getEntriesByName('nativeLaunch');
         const runJsBundleEntry = performance.getEntriesByName('runJsBundle');
+
         // Get the duration
         const nativeLaunchDuration = nativeLaunchEntry[0].duration;
         const jsBundleDuration = runJsBundleEntry[0].duration;
