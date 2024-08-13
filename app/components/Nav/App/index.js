@@ -122,6 +122,7 @@ import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
+import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesignEnabled';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -924,6 +925,14 @@ const App = ({ userLoggedIn }) => {
               component={AddNetworkFlow}
               options={{ animationEnabled: true }}
             />
+            {isNetworkUiRedesignEnabled() ? (
+              <Stack.Screen
+                name={Routes.EDIT_NETWORK}
+                component={AddNetworkFlow}
+                options={{ animationEnabled: true }}
+              />
+            ) : null}
+
             <Stack.Screen
               name={Routes.LOCK_SCREEN}
               component={LockScreen}
