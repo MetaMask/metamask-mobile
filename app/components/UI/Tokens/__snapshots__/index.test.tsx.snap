@@ -337,7 +337,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                 }
                                 testID="total-balance-text"
                               >
-                                0 USD
+                                $0.00
                               </Text>
                               <AggregatedPercentage />
                             </View>
@@ -361,7 +361,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                           [
                             {
                               "address": "0x0",
-                              "balanceFiat": "< $0.01",
+                              "balanceFiat": 0.01,
                               "decimals": 18,
                               "iconUrl": "",
                               "isETH": true,
@@ -438,7 +438,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   }
                                   testID="total-balance-text"
                                 >
-                                  0 USD
+                                  $0.00
                                 </Text>
                                 <View
                                   style={
@@ -907,7 +907,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     }
                                   }
                                 >
-                                  &lt; $0.01
+                                  $0.01
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -1172,7 +1172,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     }
                                   }
                                 >
-                                  &lt; $0.01
+                                  $NaN
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -1604,7 +1604,7 @@ exports[`Tokens should render correctly 1`] = `
                                 }
                                 testID="total-balance-text"
                               >
-                                0 USD
+                                $0.00
                               </Text>
                               <AggregatedPercentage />
                             </View>
@@ -1628,7 +1628,7 @@ exports[`Tokens should render correctly 1`] = `
                           [
                             {
                               "address": "0x0",
-                              "balanceFiat": "< $0.01",
+                              "balanceFiat": 0.01,
                               "decimals": 18,
                               "iconUrl": "",
                               "isETH": true,
@@ -1705,7 +1705,7 @@ exports[`Tokens should render correctly 1`] = `
                                   }
                                   testID="total-balance-text"
                                 >
-                                  0 USD
+                                  $0.00
                                 </Text>
                                 <View
                                   style={
@@ -2174,7 +2174,7 @@ exports[`Tokens should render correctly 1`] = `
                                     }
                                   }
                                 >
-                                  &lt; $0.01
+                                  $0.01
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -2439,7 +2439,7 @@ exports[`Tokens should render correctly 1`] = `
                                     }
                                   }
                                 >
-                                  &lt; $0.01
+                                  $NaN
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -2871,7 +2871,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 }
                                 testID="total-balance-text"
                               >
-                                0 USD
+                                $0.00
                               </Text>
                               <AggregatedPercentage />
                             </View>
@@ -2895,7 +2895,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                           [
                             {
                               "address": "0x0",
-                              "balanceFiat": "< $0.01",
+                              "balanceFiat": 0.01,
                               "decimals": 18,
                               "iconUrl": "",
                               "isETH": true,
@@ -2980,7 +2980,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   }
                                   testID="total-balance-text"
                                 >
-                                  0 USD
+                                  $0.00
                                 </Text>
                                 <View
                                   style={
@@ -3449,7 +3449,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     }
                                   }
                                 >
-                                  &lt; $0.01
+                                  $0.01
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -3714,7 +3714,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     }
                                   }
                                 >
-                                  &lt; $0.01
+                                  $NaN
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -3979,7 +3979,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     }
                                   }
                                 >
-                                  &lt; $0.01
+                                  $NaN
                                 </Text>
                               </View>
                             </TouchableOpacity>

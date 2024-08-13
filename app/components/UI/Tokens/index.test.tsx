@@ -12,6 +12,7 @@ import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../../app/core/AppConstants';
 import Routes from '../../../../app/constants/navigation/Routes';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { renderIntlDenomination } from '../../../../app/util/number';
 
 const mockEngine = Engine;
 
@@ -38,7 +39,7 @@ const initialState = {
             decimals: 18,
             isETH: true,
 
-            balanceFiat: '< $0.01',
+            balanceFiat: 0.01,
             iconUrl: '',
           },
           {
@@ -165,8 +166,11 @@ describe('Tokens', () => {
   it('navigates to Asset screen when token is pressed', () => {
     const { getByText } = renderComponent(initialState);
     fireEvent.press(getByText('Ethereum'));
+    const token =
+      initialState.engine.backgroundState.TokensController.tokens[0];
+    token.balanceFiat = renderIntlDenomination(token.balanceFiat, 'usd');
     expect(mockNavigate).toHaveBeenCalledWith('Asset', {
-      ...initialState.engine.backgroundState.TokensController.tokens[0],
+      ...token,
     });
   });
 
