@@ -727,7 +727,6 @@ export function weiToIntlDenomination(
   if (!wei || !isBN(wei) || !conversionRate) {
     return addCurrencySymbol(0, currencyCode);
   }
-  decimalsToShow = (currencyCode === 'usd' && 2) || undefined;
   const value = weiToFiatNumber(wei, conversionRate, decimalsToShow);
   return renderIntlDenomination(value, currencyCode);
 }
