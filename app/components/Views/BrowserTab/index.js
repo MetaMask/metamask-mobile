@@ -479,7 +479,6 @@ export const BrowserTab = (props) => {
           const statusCode = response.status;
           if (statusCode >= 400) {
             Logger.log('Status code ', statusCode, gatewayUrl);
-            //urlNotFound(gatewayUrl);
             return null;
           }
         } else if (type === 'swarm-ns') {
@@ -1118,7 +1117,6 @@ export const BrowserTab = (props) => {
               params: {
                 hostInfo: {
                   metadata: {
-                    // origin: url.current,
                     origin: url.current && new URL(url.current).hostname,
                   },
                 },
@@ -1528,10 +1526,7 @@ export const BrowserTab = (props) => {
                 onMessage={onMessage}
                 onError={onError}
                 onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
-                sendCookies
-                javascriptEnabled
                 allowsInlineMediaPlayback
-                useWebkit
                 testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
                 applicationNameForUserAgent={'WebView MetaMaskMobile'}
                 onFileDownload={handleOnFileDownload}
