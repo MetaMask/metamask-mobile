@@ -8,6 +8,7 @@ export enum UserProfileProperty {
   TOKEN_DETECTION = 'token_detection_enable',
   MULTI_ACCOUNT_BALANCE = 'Batch account balance requests',
   SECURITY_PROVIDERS = 'security_providers',
+  PRIMARY_CURRENCY = 'primary_currency',
 }
 
 export interface UserProfileMetaData {
@@ -18,4 +19,5 @@ export interface UserProfileMetaData {
   [UserProfileProperty.TOKEN_DETECTION]: string;
   [UserProfileProperty.MULTI_ACCOUNT_BALANCE]: string;
   [UserProfileProperty.SECURITY_PROVIDERS]: string;
+  [UserProfileProperty.PRIMARY_CURRENCY]?: string;
 }
