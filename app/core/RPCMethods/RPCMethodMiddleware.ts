@@ -783,11 +783,12 @@ export const getRpcMethodMiddleware = ({
 
       metamask_removeFavorite: async () => {
         checkTabActive();
-        const { bookmarks } = store.getState();
 
         if (!isHomepage()) {
           throw providerErrors.unauthorized('Forbidden.');
         }
+
+        const { bookmarks } = store.getState();
 
         return new Promise<void>((resolve) => {
           Alert.alert(
