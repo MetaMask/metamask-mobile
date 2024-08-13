@@ -45,8 +45,6 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
   const [isScrollEnded, setIsScrollEnded] = useState<boolean>(false);
   const [isCheckboxSelected, setIsCheckboxSelected] = useState<boolean>(false);
 
-  const [isFloatingButton, setIsFloatingButtonBackground] = useState(true);
-
   const scrollRef = useRef<ScrollView>(null);
 
   const {
@@ -135,10 +133,8 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
   const onMessage = (event: { nativeEvent: { data: string } }) => {
     if (event.nativeEvent.data === WEBVIEW_SCROLL_END_EVENT) {
       setIsScrollEnded(true);
-      setIsFloatingButtonBackground(false);
     } else {
       setIsScrollEnded(false);
-      setIsFloatingButtonBackground(true);
     }
   };
 
@@ -147,7 +143,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
       style={[
         styles.scrollToEndButton,
         // eslint-disable-next-line react-native/no-inline-styles
-        !isFloatingButton && {
+        isScrollEnded && {
           display: 'none',
         },
       ]}
@@ -172,10 +168,8 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
       contentSize.height - paddingToBottom
     ) {
       setIsScrollEnded(true);
-      setIsFloatingButtonBackground(false);
     } else {
       setIsScrollEnded(false);
-      setIsFloatingButtonBackground(true);
     }
   };
 
