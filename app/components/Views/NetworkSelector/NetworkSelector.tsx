@@ -19,7 +19,7 @@ import { strings } from '../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import { IconName } from '../../../component-library/components/Icons/Icon';
+import Icon, { IconName, IconSize } from '../../../component-library/components/Icons/Icon';
 import { useSelector } from 'react-redux';
 import {
   selectNetworkConfigurations,
@@ -70,7 +70,6 @@ import CustomNetwork from '../Settings/NetworksSettings/NetworkSettings/CustomNe
 import { NetworksSelectorSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
 import { PopularList } from '../../../util/networks/customNetworks';
 import NetworkSearchTextInput from './NetworkSearchTextInput';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import AccountAction from '../AccountAction';
 import { ButtonsAlignment } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
@@ -131,12 +130,12 @@ const NetworkSelector = () => {
       AccountTrackerController,
     } = Engine.context;
 
-    let ticker = type;
+    let ticker: InfuraNetworkType = type;
     if (type === LINEA_SEPOLIA) {
-      ticker = TESTNET_TICKER_SYMBOLS.LINEA_SEPOLIA;
+      ticker = LINEA_SEPOLIA;
     }
     if (type === SEPOLIA) {
-      ticker = TESTNET_TICKER_SYMBOLS.SEPOLIA;
+      ticker = SEPOLIA;
     }
 
     CurrencyRateController.updateExchangeRate(ticker);
@@ -244,8 +243,8 @@ const NetworkSelector = () => {
     networks: ExtendedNetwork[],
     networkName: string,
   ) => {
-    const searchResult: ExtendedNetwork[] = networks.filter(({ name }) =>
-      name.toLowerCase().includes(networkName.toLowerCase()),
+    const searchResult: ExtendedNetwork[] = networks.filter((network) =>
+      network.nickname?.toLowerCase().includes(networkName.toLowerCase()),
     );
 
     return searchResult;
@@ -258,7 +257,7 @@ const NetworkSelector = () => {
 
     if (networkIdenfier === MAINNET || networkIdenfier === LINEA_MAINNET) {
       return (
-        filterNetworksByName([Networks[networkIdenfier]], searchString)
+        filterNetworksByName([Networks[networkIdenfier] as unknown as ExtendedNetwork], searchString)
           .length === 0
       );
     }
@@ -439,7 +438,7 @@ const NetworkSelector = () => {
               size: AvatarSize.Sm,
             }}
             isSelected={chainId === providerConfig.chainId}
-            onPress={() => onNetworkChange(networkType)}
+            onPress={() => onNetworkChange(networkType as InfuraNetworkType)}
             style={styles.networkCell}
             buttonIcon={IconName.MoreVertical}
             onButtonClick={() => {
@@ -461,7 +460,7 @@ const NetworkSelector = () => {
             size: avatarSize,
           }}
           isSelected={chainId === providerConfig.chainId}
-          onPress={() => onNetworkChange(networkType)}
+          onPress={() => onNetworkChange(networkType as InfuraNetworkType)}
           style={styles.networkCell}
         />
       );
@@ -539,10 +538,10 @@ const NetworkSelector = () => {
         onPress={toggleWarningModal}
         hitSlop={styles.hitSlop}
       >
-        <MaterialCommunityIcons
-          name="information"
-          size={14}
-          style={styles.gasInfoIcon}
+        <Icon
+          name={IconName.Info}
+          size={IconSize.Sm}
+          color={colors.icon.alternative}
         />
       </TouchableOpacity>
     </View>
@@ -579,13 +578,13 @@ const NetworkSelector = () => {
 
     setShowConfirmDeleteModal({
       isVisible: true,
-      networkName: nickname,
-      entry,
+      networkName: nickname || '',
+      entry: [entry[0], { nickname }],
     });
   };
 
   const confirmRemoveRpc = () => {
-    const [networkConfigurationId] = showConfirmDeleteModal.entry;
+    const [networkConfigurationId] = showConfirmDeleteModal.entry as [string, { nickname: string }];
 
     const { NetworkController } = Engine.context;
 
