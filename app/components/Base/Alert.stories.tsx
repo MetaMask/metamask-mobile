@@ -28,8 +28,7 @@ storiesOf('Components / Base / Alert', module)
         small={boolean('small', false)}
         renderIcon={
           renderIconKnob
-            ? //@ts-expect-error needs to be replaced by Icon of component library, EvilIcons are deprecated
-              // All this component is deprecated so it should be replaced and removed
+            ? // All this component is deprecated so it should be replaced and removed
               () => <EvilIcons name="bell" style={styles.alertIcon} size={20} />
             : () => null
         }

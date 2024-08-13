@@ -34,9 +34,9 @@ declare module '*.png' {
 }
 
 declare module '@react-native-community/checkbox' {
-  import CheckBoxOriginal from '@react-native-community/checkbox';
+  import { CheckBoxProps } from '@react-native-community/checkbox';
 
-  type CheckBoxType = typeof CheckBoxOriginal;
+  const CheckBox: ComponentType<CheckBoxProps>;
 
   /**
    * @deprecated The `<CheckBox />` component has been deprecated in favor of the new `<Checkbox>` component from the component-library.
@@ -46,13 +46,13 @@ declare module '@react-native-community/checkbox' {
    * If you would like to help with the replacement of the old CheckBox component, please submit a pull request against this GitHub issue:
    * {@link https://github.com/MetaMask/metamask-mobile/issues/6882}
    */
-  export default class CheckBox extends CheckBoxType {}
+  export default CheckBox;
 }
 
 declare module 'react-native-vector-icons/Ionicons' {
-  import IonicIconOriginal from 'react-native-vector-icons/Ionicons';
+  import { IconProps } from 'react-native-vector-icons/Ionicons';
 
-  type IonicIconType = typeof IonicIconOriginal;
+  const IonicIcon: ComponentType<IconProps>;
 
   /**
    * @deprecated The `<IonicIcon />` component has been deprecated in favor of the new `<Icon>` component from the component-library.
@@ -62,13 +62,13 @@ declare module 'react-native-vector-icons/Ionicons' {
    * If you would like to help with the replacement of the usage of the IonicIcon component, please submit a pull request against this GitHub issue:
    * {@link https://github.com/MetaMask/metamask-mobile/issues/8110}
    */
-  export default class IonicIcon extends IonicIconType {}
+  export default IonicIcon;
 }
 
 declare module 'react-native-vector-icons/FontAwesome' {
-  import FontAwesomeIconOriginal from 'react-native-vector-icons/FontAwesome';
+  import { IconProps } from 'react-native-vector-icons/FontAwesome';
 
-  type FontAwesomeIconType = typeof FontAwesomeIconOriginal;
+  const FontAwesomeIcon: ComponentType<IconProps>;
 
   /**
    * @deprecated The `<FontAwesomeIcon />` component has been deprecated in favor of the new `<Icon>` component from the component-library.
@@ -78,13 +78,13 @@ declare module 'react-native-vector-icons/FontAwesome' {
    * If you would like to help with the replacement of the usage of the FontAwesomeIcon component, please submit a pull request against this GitHub issue:
    * {@link https://github.com/MetaMask/metamask-mobile/issues/8111}
    */
-  export default class FontAwesomeIcon extends FontAwesomeIconType {}
+  export default FontAwesomeIcon;
 }
 
 declare module 'react-native-vector-icons/AntDesign' {
-  import AntDesignIconOriginal from 'react-native-vector-icons/AntDesign';
+  import { IconProps } from 'react-native-vector-icons/AntDesign';
 
-  type AntDesignIconType = typeof AntDesignIconOriginal;
+  const AntDesignIcon: ComponentType<IconProps>;
 
   /**
    * @deprecated The `<AntDesignIcon />` component has been deprecated in favor of the new `<Icon>` component from the component-library.
@@ -94,14 +94,13 @@ declare module 'react-native-vector-icons/AntDesign' {
    * If you would like to help with the replacement of the usage of the AntDesignIcon component, please submit a pull request against this GitHub issue:
    * {@link https://github.com/MetaMask/metamask-mobile/issues/8112}
    */
-  export default class AntDesignIcon extends AntDesignIconType {}
+  export default AntDesignIcon;
 }
 
 declare module 'react-native-vector-icons/MaterialCommunityIcons' {
-  import MaterialCommunityIconsOriginal from 'react-native-vector-icons/MaterialCommunityIcons';
+  import { IconProps } from 'react-native-vector-icons/MaterialCommunityIcons';
 
-  type MaterialCommunityIconsType = typeof MaterialCommunityIconsOriginal;
-
+  const MaterialCommunityIcons: ComponentType<IconProps>;
   /**
    * @deprecated The `<MaterialCommunityIconsIcon />` component has been deprecated in favor of the new `<Icon>` component from the component-library.
    * Please update your code to use the new `<Icon>` component instead, which can be found at app/component-library/components/Icons/Icon/Icon.tsx.
@@ -110,13 +109,13 @@ declare module 'react-native-vector-icons/MaterialCommunityIcons' {
    * If you would like to help with the replacement of the usage of the MaterialCommunityIcons component, please submit a pull request against this GitHub issue:
    * {@link https://github.com/MetaMask/metamask-mobile/issues/8113}
    */
-  export default class MaterialCommunityIcons extends MaterialCommunityIconsIconType {}
+  export default MaterialCommunityIcons;
 }
 
 declare module 'react-native-vector-icons/Feather' {
-  import FeatherIconOriginal from 'react-native-vector-icons/Feather';
+  import { IconProps } from 'react-native-vector-icons/Feather';
 
-  type FeatherIconType = typeof FeatherIconOriginal;
+  const FeatherIcon: ComponentType<IconProps>;
 
   /**
    * @deprecated The `<FeatherIcon />` component has been deprecated in favor of the new `<Icon>` component from the component-library.
@@ -126,13 +125,13 @@ declare module 'react-native-vector-icons/Feather' {
    * If you would like to help with the replacement of the usage of the FeatherIcon component, please submit a pull request against this GitHub issue:
    * {@link https://github.com/MetaMask/metamask-mobile/issues/8114}
    */
-  export default class FeatherIcon extends FeatherIconType {}
+  export default FeatherIcon;
 }
 
 declare module 'react-native-vector-icons/EvilIcons' {
-  import EvilIconsOriginal from 'react-native-vector-icons/EvilIcons';
+  import { IconProps } from 'react-native-vector-icons/EvilIcons';
 
-  type EvilIconsType = typeof EvilIconsOriginal;
+  const EvilIcons: ComponentType<IconProps>;
 
   /**
    * @deprecated The `<EvilIconsIcon />` component has been deprecated in favor of the new `<Icon>` component from the component-library.
@@ -142,13 +141,13 @@ declare module 'react-native-vector-icons/EvilIcons' {
    * If you would like to help with the replacement of the usage of the EvilIcons component, please submit a pull request against this GitHub issue:
    * {@link https://github.com/MetaMask/metamask-mobile/issues/8115}
    */
-  export default class EvilIcons extends EvilIconsType {}
+  export default EvilIcons;
 }
 
 declare module 'react-native-vector-icons/SimpleLineIcons' {
-  import SimpleLineIconsOriginal from 'react-native-vector-icons/SimpleLineIcons';
+  import { IconProps } from 'react-native-vector-icons/SimpleLineIcons';
 
-  type SimpleLineIconsType = typeof SimpleLineIconsOriginal;
+  const SimpleLineIcons: ComponentType<IconProps>;
 
   /**
    * @deprecated The `<SimpleLineIconsIcon />` component has been deprecated in favor of the new `<Icon>` component from the component-library.
@@ -158,13 +157,13 @@ declare module 'react-native-vector-icons/SimpleLineIcons' {
    * If you would like to help with the replacement of the usage of the SimpleLineIcons component, please submit a pull request against this GitHub issue:
    * {@link https://github.com/MetaMask/metamask-mobile/issues/8116}
    */
-  export default class SimpleLineIcons extends SimpleLineIconsType {}
+  export default SimpleLineIcons;
 }
 
 declare module 'react-native-vector-icons/MaterialIcons' {
-  import MaterialIconsOriginal from 'react-native-vector-icons/MaterialIcons';
+  import { IconProps } from 'react-native-vector-icons/MaterialIcons';
 
-  type MaterialIconsType = typeof MaterialIconsOriginal;
+  const MaterialIcons: ComponentType<IconProps>;
 
   /**
    * @deprecated The `<MaterialIconsIcon />` component has been deprecated in favor of the new `<Icon>` component from the component-library.
@@ -174,13 +173,13 @@ declare module 'react-native-vector-icons/MaterialIcons' {
    * If you would like to help with the replacement of the usage of the MaterialIcons component, please submit a pull request against this GitHub issue:
    * {@link https://github.com/MetaMask/metamask-mobile/issues/8117}
    */
-  export default class MaterialIcons extends MaterialIconsType {}
+  export default MaterialIcons;
 }
 
 declare module 'react-native-vector-icons/FontAwesome5' {
-  import FontAwesome5IconOriginal from 'react-native-vector-icons/FontAwesome5';
+  import { IconProps } from 'react-native-vector-icons/FontAwesome5';
 
-  type FontAwesome5IconType = typeof FontAwesome5IconOriginal;
+  const FontAwesome5: ComponentType<IconProps>;
 
   /**
    * @deprecated The `<FontAwesome5Icon />` component has been deprecated in favor of the new `<Icon>` component from the component-library.
@@ -190,13 +189,13 @@ declare module 'react-native-vector-icons/FontAwesome5' {
    * If you would like to help with the replacement of the usage of the FontAwesome5 component, please submit a pull request against this GitHub issue:
    * {@link https://github.com/MetaMask/metamask-mobile/issues/8118}
    */
-  export default class FontAwesome5 extends FontAwesome5IconType {}
+  export default FontAwesome5;
 }
 
 declare module 'react-native-vector-icons/Octicons' {
-  import OcticonsIconOriginal from 'react-native-vector-icons/Octicons';
+  import { IconProps } from 'react-native-vector-icons/Octicons';
 
-  type OcticonsIconType = typeof OcticonsIconOriginal;
+  const Octicons: ComponentType<IconProps>;
 
   /**
    * @deprecated The `<OcticonsIcon />` component has been deprecated in favor of the new `<Icon>` component from the component-library.
@@ -206,13 +205,13 @@ declare module 'react-native-vector-icons/Octicons' {
    * If you would like to help with the replacement of the usage of the Octicons component, please submit a pull request against this GitHub issue:
    * {@link https://github.com/MetaMask/metamask-mobile/issues/8119}
    */
-  export default class Octicons extends OcticonsIconType {}
+  export default Octicons;
 }
 
 declare module 'react-native-vector-icons/Entypo' {
-  import EntypoIconOriginal from 'react-native-vector-icons/Entypo';
+  import { IconProps } from 'react-native-vector-icons/Entypo';
 
-  type EntypoIconType = typeof EntypoIconOriginal;
+  const Entypo: ComponentType<IconProps>;
 
   /**
    * @deprecated The `<EntypoIcon />` component has been deprecated in favor of the new `<Icon>` component from the component-library.
@@ -222,13 +221,13 @@ declare module 'react-native-vector-icons/Entypo' {
    * If you would like to help with the replacement of the usage of the Entypo component, please submit a pull request against this GitHub issue:
    * {@link https://github.com/MetaMask/metamask-mobile/issues/8120}
    */
-  export default class Entypo extends EntypoIconType {}
+  export default Entypo;
 }
 
 declare module 'react-native-vector-icons/Foundation' {
-  import FoundationIconOriginal from 'react-native-vector-icons/Foundation';
+  import { IconProps } from 'react-native-vector-icons/Foundation';
 
-  type FoundationIconType = typeof FoundationIconOriginal;
+  const Foundation: ComponentType<IconProps>;
 
   /**
    * @deprecated The `<FoundationIcon />` component has been deprecated in favor of the new `<Icon>` component from the component-library.
@@ -238,13 +237,13 @@ declare module 'react-native-vector-icons/Foundation' {
    * If you would like to help with the replacement of the usage of the Foundation component, please submit a pull request against this GitHub issue:
    * {@link https://github.com/MetaMask/metamask-mobile/issues/8121}
    */
-  export default class Foundation extends FoundationIconType {}
+  export default Foundation;
 }
 
 declare module 'react-native-vector-icons/Fontisto' {
-  import FontistoIconOriginal from 'react-native-vector-icons/Fontisto';
+  import { IconProps } from 'react-native-vector-icons/Fontisto';
 
-  type FontistoIconType = typeof FontistoIconOriginal;
+  const Fontisto: ComponentType<IconProps>;
 
   /**
    * @deprecated The `<FontistoIcon />` component has been deprecated in favor of the new `<Icon>` component from the component-library.
@@ -254,13 +253,13 @@ declare module 'react-native-vector-icons/Fontisto' {
    * If you would like to help with the replacement of the usage of the Fontisto component, please submit a pull request against this GitHub issue:
    * {@link https://github.com/MetaMask/metamask-mobile/issues/8122}
    */
-  export default class Fontisto extends FontistoIconType {}
+  export default Fontisto;
 }
 
 declare module 'react-native-vector-icons/Zocial' {
-  import ZocialIconOriginal from 'react-native-vector-icons/Zocial';
+  import { IconProps } from 'react-native-vector-icons/Zocial';
 
-  type ZocialIconType = typeof ZocialIconOriginal;
+  const Zocial: ComponentType<IconProps>;
 
   /**
    * @deprecated The `<ZocialIcon />` component has been deprecated in favor of the new `<Icon>` component from the component-library.
@@ -270,7 +269,7 @@ declare module 'react-native-vector-icons/Zocial' {
    * If you would like to help with the replacement of the usage of the Zocial component, please submit a pull request against this GitHub issue:
    * {@link https://github.com/MetaMask/metamask-mobile/issues/8123}
    */
-  export default class Zocial extends ZocialIconType {}
+  export default Zocial;
 }
 
 declare module '@metamask/contract-metadata' {
