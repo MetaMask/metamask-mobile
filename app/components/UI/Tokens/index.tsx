@@ -351,10 +351,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         balanceToFiatNumber(balance, conversionRate, tokenMarketData.price),
     );
 
-    const balanceFiat =
-      balanceFiatCalculation >= 0.01 || balanceFiatCalculation === 0
-        ? addCurrencySymbol(balanceFiatCalculation, currentCurrency)
-        : `< ${addCurrencySymbol('0.01', currentCurrency)}`;
+    const balanceFiat = renderIntlDenomination(
+      balanceFiatCalculation,
+      currentCurrency,
+    );
 
     return { balanceFiat, balanceValueFormatted };
   };
