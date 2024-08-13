@@ -12,6 +12,7 @@ import numberToBN from 'number-to-bn';
 import BigNumber from 'bignumber.js';
 
 import currencySymbols from '../currency-symbols.json';
+import currencyDenominations from '../currency-denominations.json';
 import { isZero } from '../lodash';
 import { regex } from '../regex';
 export { BNToHex };
@@ -681,6 +682,40 @@ export function renderFiat(value, currencyCode, decimalsToShow = 5) {
     return `${currencySymbols[currencyCode]}${fiatFixed}`;
   }
   return `${fiatFixed} ${currencyCode.toUpperCase()}`;
+}
+
+export function renderIntlDenomination(
+  value,
+  currencyCode,
+  decimalsToShow = 5,
+) {
+  const supportedFiatCurrency = currencySymbols[currencyCode.toLowerCase()];
+  const lowestDenomination = currencyDenominations[currencyCode.toLowerCase()];
+
+  let valueToReturn;
+  let isBelowMinimum = false;
+
+  if (supportedFiatCurrency) {
+    const belowThreshold = value < lowestDenomination && value !== 0;
+    const options = {
+      style: 'currency',
+      currency: currencyCode,
+      minimumFractionDigits: lowestDenomination < 1 ? 2 : 0,
+    };
+    if (belowThreshold) {
+      isBelowMinimum = true;
+      valueToReturn = new Intl.NumberFormat('en-US', options).format(
+        lowestDenomination,
+      );
+    } else {
+      valueToReturn = new Intl.NumberFormat('en-US', options).format(value);
+    }
+  } else {
+    const base = Math.pow(10, decimalsToShow);
+    const belowThreshold = '';
+    let fiatFixed = parseFloat(Math.round(value * base) / base);
+    fiatFixed = isNaN(fiatFixed) ? 0.0 : fiatFixed;
+  }
 }
 
 /**
