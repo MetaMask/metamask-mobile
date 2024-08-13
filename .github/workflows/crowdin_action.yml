@@ -10,6 +10,9 @@ on:
       - main
   schedule:
     - cron: "0 */12 * * *"
+  merge_group:
+    branches:
+      - merge-queue-test
 
 jobs:
   synchronize-with-crowdin:

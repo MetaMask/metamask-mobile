@@ -6,6 +6,7 @@ on:
       - main
     types:
       - closed
+  merge_group:
 
 jobs:
   add-release-label:
