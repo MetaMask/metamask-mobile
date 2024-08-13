@@ -194,25 +194,21 @@ const TransactionHeader = (props) => {
     return <Text style={styles.domainUrl}>{title}</Text>;
   };
 
-  const renderDomainUrlContainer = () => {
-    return (
-      <View style={styles.domanUrlContainer}>
-        {renderSecureIcon()}
-        {renderTitle()}
-      </View>
-    );
-  };
+  const renderDomainUrlContainer = () => (
+    <View style={styles.domanUrlContainer}>
+      {renderSecureIcon()}
+      {renderTitle()}
+    </View>
+  );
 
-  const renderNetworkContainer = () => {
-    return (
-      <View style={styles.networkContainer}>
-        {renderNetworkStatusIndicator()}
-        <Text style={styles.network}>
-          {props.nickname || networkList[props.networkType]?.shortName}
-        </Text>
-      </View>
-    );
-  };
+  const renderNetworkContainer = () => (
+    <View style={styles.networkContainer}>
+      {renderNetworkStatusIndicator()}
+      <Text style={styles.network}>
+        {props.nickname || networkList[props.networkType]?.shortName}
+      </Text>
+    </View>
+  );
 
   return (
     <View style={styles.transactionHeader}>
