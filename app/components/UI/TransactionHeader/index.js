@@ -27,9 +27,9 @@ const createStyles = (colors) =>
       alignItems: 'center',
     },
     domainLogo: {
-      width: isMutichainVersion1Enabled ? 28 : 56,
-      height: isMutichainVersion1Enabled ? 28 : 56,
-      borderRadius: 16,
+      width: isMutichainVersion1Enabled ? 32 : 56,
+      height: isMutichainVersion1Enabled ? 32 : 56,
+      borderRadius: isMutichainVersion1Enabled ? 16 : 32,
     },
     assetLogo: {
       alignItems: 'center',

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import StyledButton from '../StyledButton';
 import { StyleSheet, View } from 'react-native';
@@ -8,7 +8,18 @@ import Device from '../../../util/device';
 import Text from '../../Base/Text';
 import { useTheme } from '../../../util/theme';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
-import { isMutichainVersion1Enabled } from '../../../util/networks';
+import {
+  getNetworkImageSource,
+  isMutichainVersion1Enabled,
+} from '../../../util/networks';
+import Avatar, {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../component-library/components/Avatars/Avatar';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import TextComponent, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -64,6 +75,16 @@ const createStyles = (colors) =>
     networkContainer: {
       alignItems: 'center',
     },
+    siteRequestInfoCard: {
+      marginLeft: 24,
+      marginTop: 8,
+      marginBottom: 12,
+      alignItems: 'center',
+      flexDirection: 'row',
+    },
+    siteRequestDetails: {
+      marginLeft: 12,
+    },
     networkBadge: {
       flexDirection: 'row',
       borderColor: colors.border.default,
@@ -74,6 +95,11 @@ const createStyles = (colors) =>
     networkText: {
       fontSize: 12,
       color: colors.text.default,
+    },
+    networkAvatar: { marginLeft: 2 },
+    permissionRequestNetworkInfo: {
+      flexDirection: 'row',
+      alignItems: 'center',
     },
   });
 
@@ -89,6 +115,15 @@ const SwitchCustomNetwork = ({
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+
+  const networkImageSource = useCallback(
+    () =>
+      //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+      getNetworkImageSource({
+        chainId: customNetworkInformation?.chainId,
+      }),
+    [customNetworkInformation],
+  );
 
   /**
    * Calls onConfirm callback and analytics to track connect confirmed event
@@ -141,6 +176,42 @@ const SwitchCustomNetwork = ({
     );
   }
 
+  function renderSiteRequestInfoCard() {
+    return (
+      <View style={styles.siteRequestInfoCard}>
+        <Avatar
+          variant={AvatarVariant.Icon}
+          name={IconName.Data}
+          size={AvatarSize.Md}
+          backgroundColor={colors.shadow.default}
+          iconColor={colors.icon.alternative}
+        />
+        <View style={styles.siteRequestDetails}>
+          <TextComponent variant={TextVariant.BodyMD}>
+            {strings('switch_custom_network.use_enabled_networks')}
+          </TextComponent>
+          <View style={styles.permissionRequestNetworkInfo}>
+            <TextComponent>
+              <TextComponent variant={TextVariant.BodySM}>
+                {strings('switch_custom_network.requesting_for_network')}
+              </TextComponent>
+              <TextComponent variant={TextVariant.BodySMMedium}>
+                {customNetworkInformation.chainName}
+              </TextComponent>
+            </TextComponent>
+            <Avatar
+              style={styles.networkAvatar}
+              variant={AvatarVariant.Network}
+              size={AvatarSize.Xs}
+              name={customNetworkInformation.chainName}
+              imageSource={networkImageSource()}
+            />
+          </View>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.root}>
       {type === 'switch' ? (
@@ -155,7 +226,12 @@ const SwitchCustomNetwork = ({
       </Text>
       {!isMutichainVersion1Enabled && renderSwitchWarningText()}
       {!isMutichainVersion1Enabled && type === 'switch' && renderNetworkBadge()}
-      <View style={styles.actionContainer(type === 'new')}>
+      {isMutichainVersion1Enabled && renderSiteRequestInfoCard()}
+      <View
+        style={styles.actionContainer(
+          type === 'new' || isMutichainVersion1Enabled,
+        )}
+      >
         <StyledButton
           type={'cancel'}
           onPress={cancel}
