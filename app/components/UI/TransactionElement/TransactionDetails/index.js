@@ -44,7 +44,7 @@ import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTran
 import { selectPrimaryCurrency } from '../../../../selectors/settings';
 import {
   selectSwapsTransactions,
-  selectTransactionsStrict,
+  selectTransactions,
 } from '../../../../selectors/transactionController';
 import { swapsControllerTokens } from '../../../../reducers/swaps';
 
@@ -426,7 +426,7 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   networkConfigurations: selectNetworkConfigurations(state),
   selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
-  transactions: selectTransactionsStrict(state),
+  transactions: selectTransactions(state),
   ticker: selectTicker(state),
   tokens: selectTokensByAddress(state),
   contractExchangeRates: selectContractExchangeRates(state),
