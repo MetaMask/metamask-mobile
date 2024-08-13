@@ -34,7 +34,6 @@ export const getAnalyticsParams = async (
     let blockaidParams = {};
     if (securityAlertResponse) {
       blockaidParams = await getBlockaidMetricsParams(securityAlertResponse);
-      // console.log('getAnalyticsParams 2 >>>>>', blockaidParams);
     }
 
     return {
