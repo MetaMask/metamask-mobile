@@ -60,7 +60,7 @@ const defaultTagExpression = isAppUpgrade
   ? '@upgrade and @androidApp'
   : isPerformance
     ? '@performance and @androidApp'
-    : '@smoke and @androidApp'; // defaults to running smoke if the performance or appUpgrade flag is nto set
+    : '@smoke and @androidApp'; // defaults to running smoke if the performance or appUpgrade flag is not set
 config.cucumberOpts.tagExpression = process.env.BROWSERSTACK_TAG_EXPRESSION || defaultTagExpression;
 
 config.onPrepare = function (config, capabilities) {
