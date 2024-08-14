@@ -12,6 +12,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
 const mockEngine = Engine;
 
@@ -131,14 +132,16 @@ const render = (Component: React.ComponentType) =>
 
 describe('Wallet', () => {
   it('should render correctly', () => {
+    const mockNavigation = {} as NavigationProp<ParamListBase>;
     const wrapper = shallow(
       <Provider store={store}>
-        <Wallet />
+        <Wallet navigation={mockNavigation} />
       </Provider>,
     );
     expect(wrapper).toMatchSnapshot();
   });
   it('should render scan qr icon', () => {
+    // @ts-expect-error Argument type mismatch for ConnectedComponent
     render(Wallet);
     const scanButton = screen.getByTestId(
       WalletViewSelectorsIDs.WALLET_SCAN_BUTTON,
@@ -146,10 +149,12 @@ describe('Wallet', () => {
     expect(scanButton).toBeDefined();
   });
   it('should render ScrollableTabView', () => {
+    // @ts-expect-error Argument type mismatch for ConnectedComponent
     render(Wallet);
     expect(ScrollableTabView).toHaveBeenCalled();
   });
   it('should render fox icon', () => {
+    // @ts-expect-error Argument type mismatch for ConnectedComponent
     render(Wallet);
     const foxIcon = screen.getByTestId(CommonSelectorsIDs.FOX_ICON);
     expect(foxIcon).toBeDefined();
