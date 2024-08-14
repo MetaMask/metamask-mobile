@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Confirmations team or Transactions team
 import {
   DeepPartial,
   renderScreen,
@@ -54,7 +52,7 @@ const initialState: DeepPartial<RootState> = {
         contractBalances: {},
       },
       TokenListController: {
-        tokenList: [],
+        tokenList: { '0x1': {} },
       },
       PreferencesController: {
         featureFlags: {},
@@ -109,8 +107,6 @@ const initialState: DeepPartial<RootState> = {
       TransactionController: {
         methodData: {},
         transactions: [],
-        internalTransactions: [],
-        swapsTransactions: {},
       },
       SmartTransactionsController: {
         smartTransactionsState: {
