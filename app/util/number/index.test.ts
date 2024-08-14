@@ -23,6 +23,7 @@ import {
   isNumberScientificNotationWhenString,
   isZeroValue,
   limitToMaximumDecimalPlaces,
+  localizeLargeNumber,
   renderFiat,
   renderFromTokenMinimalUnit,
   renderFromWei,
@@ -412,6 +413,66 @@ describe('Number utils :: renderFromWei', () => {
     expect(renderFromWei(new BN('133700000000000000'))).toEqual('0.1337');
     expect(renderFromWei(new BN('1337'))).toEqual('< 0.00001');
     expect(renderFromWei(new BN('0'))).toEqual('0');
+  });
+});
+
+describe('Number utils :: localizeLargeNumber', () => {
+  let i18n: { t: unknown };
+
+  beforeEach(() => {
+    i18n = {
+      t: jest.fn((key: string) => {
+        const translations: Record<string, string> = {
+          'token.trillionAbbreviation': 'T',
+          'token.billionAbbreviation': 'B',
+          'token.millionAbbreviation': 'M',
+        };
+        return translations[key];
+      }),
+    };
+  });
+
+  it('should localize numbers in the trillions correctly', () => {
+    const number = 1500000000000;
+    const result = localizeLargeNumber(i18n, number);
+    expect(result).toBe('1.50T');
+    expect(i18n.t).toHaveBeenCalledWith('token.trillionAbbreviation');
+  });
+
+  it('should localize numbers in the billions correctly', () => {
+    const number = 1500000000;
+    const result = localizeLargeNumber(i18n, number);
+    expect(result).toBe('1.50B');
+    expect(i18n.t).toHaveBeenCalledWith('token.billionAbbreviation');
+  });
+
+  it('should localize numbers in the millions correctly', () => {
+    const number = 1500000;
+    const result = localizeLargeNumber(i18n, number);
+    expect(result).toBe('1.50M');
+    expect(i18n.t).toHaveBeenCalledWith('token.millionAbbreviation');
+  });
+
+  it('should format numbers below one million correctly', () => {
+    const number = 123456.789;
+    const result = localizeLargeNumber(i18n, number);
+    expect(result).toBe('123456.79');
+    expect(i18n.t).not.toHaveBeenCalled();
+  });
+
+  it('should handle exact boundary conditions correctly', () => {
+    const trillion = 1000000000000;
+    const billion = 1000000000;
+    const million = 1000000;
+
+    expect(localizeLargeNumber(i18n, trillion)).toBe('1.00T');
+    expect(i18n.t).toHaveBeenCalledWith('token.trillionAbbreviation');
+
+    expect(localizeLargeNumber(i18n, billion)).toBe('1.00B');
+    expect(i18n.t).toHaveBeenCalledWith('token.billionAbbreviation');
+
+    expect(localizeLargeNumber(i18n, million)).toBe('1.00M');
+    expect(i18n.t).toHaveBeenCalledWith('token.millionAbbreviation');
   });
 });
 
