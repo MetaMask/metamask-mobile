@@ -48,7 +48,6 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
-
   const tokenContractAddress = safeToChecksumAddress(asset.address);
 
   if (!tokenContractAddress) {
