@@ -51,6 +51,7 @@ import {
   NetworkController,
   NetworkControllerActions,
   NetworkControllerEvents,
+  NetworkControllerMessenger,
   NetworkState,
   NetworkStatus,
 } from '@metamask/network-controller';
@@ -497,7 +498,7 @@ class Engine {
         name: 'NetworkController',
         allowedEvents: [],
         allowedActions: [],
-      }),
+      }) as unknown as NetworkControllerMessenger,
       // Metrics event tracking is handled in this repository instead
       // TODO: Use events for controller metric events
       trackMetaMetricsEvent: () => {
@@ -1241,6 +1242,8 @@ class Engine {
           this.transactionController.confirmExternalTransaction.bind(
             this.transactionController,
           ),
+
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
         getNonceLock: this.transactionController.getNonceLock.bind(
