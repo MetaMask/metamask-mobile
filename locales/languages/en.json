@@ -3163,7 +3163,10 @@
     "error_during_connection_message": "There's been a slight problem connecting your Ledger device, tap 'Retry' below to give this another go. Sometimes this occurs due to the ETH app on your Ledger device being open at the start of the pairing process with MetaMask Mobile.",
     "how_to_install_eth_webview_title": "How to install the Ethereum App",
     "nonce_too_low": "Nonce too low",
-    "nonce_too_low_error": "The set nonce is too low"
+    "nonce_too_low_error": "The set nonce is too low",
+    "select_accounts": "Select an Account",
+    "select_accounts_warning": "Note: these accounts might be different to what you're used to.",
+    "select_accounts_sub_msg": "These accounts are derived using the BIP44 derivation path, which is different to the default Ledger Live derivation path on MetaMask Extension, Different derivation paths for Ledger will be available on MetaMask Mobile soon."
   },
   "account_actions": {
     "edit_name": "Edit account name",
