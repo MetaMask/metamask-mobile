@@ -53,6 +53,9 @@ const initialState: DeepPartial<RootState> = {
       TokenBalancesController: {
         contractBalances: {},
       },
+      TokenListController: {
+        tokenList: [],
+      },
       PreferencesController: {
         featureFlags: {},
         ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',
