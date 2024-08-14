@@ -1,17 +1,21 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
 
 import Device from '../../../../util/device';
 import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
 import { useTheme } from '../../../../util/theme';
+import { AlertsContextProvider } from '../context/Alerts';
 import useApprovalRequest from '../hooks/useApprovalRequest';
 
+import AlertBanner from '../components/Confirm/AlertBanner';
+import AlertModal from '../components/Confirm/AlertModal';
 import BottomModal from '../components/Confirm/BottomModal';
 import Footer from '../components/Confirm//Footer';
 import Header from '../components/Confirm//Header';
 import Info from '../components/Confirm/Info';
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     bottomModal: {
       justifyContent: 'flex-end',
@@ -46,13 +50,17 @@ const Confirm = () => {
   }
 
   return (
-    <BottomModal onClose={onReject}>
-      <View style={styles.container}>
-        <Header />
-        <Info />
-        <Footer />
-      </View>
-    </BottomModal>
+    <AlertsContextProvider>
+      <BottomModal onClose={onReject}>
+        <View style={styles.container}>
+          <AlertBanner />
+          <Header />
+          <Info />
+          <Footer />
+          <AlertModal />
+        </View>
+      </BottomModal>
+    </AlertsContextProvider>
   );
 };
 

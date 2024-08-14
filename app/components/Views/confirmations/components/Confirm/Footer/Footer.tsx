@@ -7,6 +7,7 @@ import Button, {
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
+import { useAlerts } from '../../../context/Alerts';
 
 const styles = StyleSheet.create({
   buttonContainer: {
@@ -23,15 +24,20 @@ const styles = StyleSheet.create({
 });
 
 const Footer = () => {
+  const { alerts, showAlertModal } = useAlerts();
   const { onReject, onConfirm } = useApprovalRequest();
 
   const onSignConfirm = useCallback(async () => {
+    if (alerts.length > 0) {
+      showAlertModal();
+      return;
+    }
     await onConfirm({
       waitForResult: true,
       deleteAfterResult: true,
       handleErrors: false,
     });
-  }, [onConfirm]);
+  }, [onConfirm, showAlertModal, alerts]);
 
   return (
     <View style={styles.buttonContainer}>
@@ -49,6 +55,7 @@ const Footer = () => {
         label={strings('confirmation_modal.confirm_cta')}
         size={ButtonSize.Lg}
         style={styles.button}
+        isDanger={alerts.length > 0}
       />
     </View>
   );
