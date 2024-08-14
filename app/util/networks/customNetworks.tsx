@@ -123,9 +123,9 @@ export const UnpopularNetworkList = [
     ticker: 'ONE',
     warning: true,
     rpcPrefs: {
-      blockExplorerUrl: 'https://basescan.org',
-      imageUrl: 'BASE',
-      imageSource: require('../../images/base.png'),
+      blockExplorerUrl: 'https://explorer.harmony.one',
+      imageUrl: 'ONE',
+      imageSource: require('../../images/harmony.png'),
     },
   },
 ];
