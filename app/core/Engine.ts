@@ -51,6 +51,7 @@ import {
   NetworkController,
   NetworkControllerActions,
   NetworkControllerEvents,
+  NetworkControllerMessenger,
   NetworkState,
   NetworkStatus,
 } from '@metamask/network-controller';
@@ -497,7 +498,7 @@ class Engine {
         name: 'NetworkController',
         allowedEvents: [],
         allowedActions: [],
-      }),
+      }) as unknown as NetworkControllerMessenger,
       // Metrics event tracking is handled in this repository instead
       // TODO: Use events for controller metric events
       trackMetaMetricsEvent: () => {
@@ -516,6 +517,7 @@ class Engine {
           listener,
         ),
       chainId: networkController.state.providerConfig.chainId,
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
@@ -527,8 +529,10 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'NftController',
           allowedActions: [
@@ -607,11 +611,13 @@ class Engine {
     const tokensController = new TokensController({
       chainId: networkController.state.providerConfig.chainId,
       config: {
+        // @ts-expect-error TODO: Resolve mismatch between network-controller versions.
         provider: networkController.getProviderAndBlockTracker().provider,
         chainId: networkController.state.providerConfig.chainId,
         selectedAddress: preferencesController.state.selectedAddress,
       },
       state: initialState.TokensController,
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'TokensController',
         allowedActions: [
@@ -639,6 +645,7 @@ class Engine {
       }),
     });
     const currencyRateController = new CurrencyRateController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'CurrencyRateController',
         allowedActions: [`${networkController.name}:getNetworkClientById`],
@@ -823,6 +830,7 @@ class Engine {
         preferencesController.state.isMultiAccountBalancesEnabled,
       getCurrentChainId: () =>
         toHexadecimal(networkController.state.providerConfig.chainId),
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
@@ -1140,7 +1148,6 @@ class Engine {
         }),
       getGasFeeEstimates:
         gasFeeController.fetchGasFeeEstimates.bind(gasFeeController),
-      // @ts-expect-error NetworkController in TransactionController is later version
       // but only breaking change is Node version and bumped dependencies
       getNetworkClientRegistry:
         networkController.getNetworkClientRegistry.bind(networkController),
@@ -1232,7 +1239,7 @@ class Engine {
           this.transactionController.confirmExternalTransaction.bind(
             this.transactionController,
           ),
-        // @ts-expect-error Need to make sure types match.
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
         getNonceLock: this.transactionController.getNonceLock.bind(
@@ -1324,6 +1331,7 @@ class Engine {
         addNft: nftController.addNft.bind(nftController),
         getNftApi: nftController.getNftApi.bind(nftController),
         getNftState: () => nftController.state,
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
         disabled: false,
@@ -1359,6 +1367,7 @@ class Engine {
         selectedAddress: preferencesController.state.selectedAddress,
         tokenPricesService: codefiTokenApiV2,
         interval: 30 * 60 * 1000,
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
       }),
@@ -1598,6 +1607,7 @@ class Engine {
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
     AccountTrackerController.configure({ provider });
+    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     AssetsContractController.configure({ provider });
 
     SwapsController.configure({
