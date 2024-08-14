@@ -154,6 +154,7 @@ export const useAppTheme = (): Theme => {
         shadows = lightTheme.shadows;
         setLightStatusBar();
       }
+      break;
     }
     case AppThemeKey.light:
       colors = lightTheme.colors;
