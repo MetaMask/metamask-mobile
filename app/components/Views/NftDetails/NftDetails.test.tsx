@@ -1,32 +1,21 @@
-import { renderScreen } from '../../../util/test/renderWithProvider';
-import QrScanner from './';
-import { backgroundState } from '../../../util/test/initial-root-state';
+import React from 'react';
+import renderWithProvider, {
+  renderScreen,
+} from '../../../util/test/renderWithProvider';
+import { createStackNavigator } from '@react-navigation/stack';
+import { fireEvent, waitFor } from '@testing-library/react-native';
+import { RootState } from 'app/reducers';
+import initialRootState, { backgroundState } from '../../../util/test/initial-root-state';
+import NftDetails from './';
 import { Collectible } from '../../../components/UI/CollectibleMedia/CollectibleMedia.types';
-
-const initialState = {
-  engine: {
-    backgroundState,
-  },
-};
-
-const mockSetOptions = jest.fn();
-const mockNavigate = jest.fn();
-
-jest.mock('@react-navigation/native', () => {
-  const actualReactNavigation = jest.requireActual('@react-navigation/native');
-  return {
-    ...actualReactNavigation,
-    useNavigation: () => ({
-      navigate: mockNavigate,
-      setOptions: mockSetOptions,
-    }),
-    useFocusEffect: jest.fn(),
-  };
-});
+// eslint-disable-next-line import/no-namespace
+import * as allSelectors from '../../../../app/reducers/collectibles/index.js';
+import { NetworkController } from '@metamask/network-controller';
+import { merge } from 'lodash';
 
 const TEST_COLLECTIBLE = {
   address: '0x7c3Ea2b7B3beFA1115aB51c09F0C9f245C500B18',
-  tokenId: 23000044,
+  tokenId: '23000044',
   favorite: false,
   isCurrentlyOwned: true,
   name: 'Aura #44',
@@ -132,7 +121,7 @@ const TEST_COLLECTIBLE = {
   logo: 'https://img.reservoir.tools/images/v2/mainnet/m8Rol%2FE80oMmjzi7K7IQ0u6HzXVyHUh6MaSEPbYQy1GRP1ztTkhG1VSzAwMMXv97QfX8ZgwGwpR8nf9yb12HQqI%2BXfaLY%2BhMdAJk7UThICq3VpXqP8R9a7UJJWaudViqrlaZXcB%2B9WiV9avzgRprPEfJ1chTNYa3%2B36V9Areb6V%2BqwbskYYLZjPXCrV525seJSJnfQqrVwl64p9PV9sCkw%3D%3D?width=250',
 };
 
-let mockUseParamsValues: {
+const mockUseParamsValues: {
   collectible: Collectible;
 } = {
   collectible: TEST_COLLECTIBLE,
@@ -151,18 +140,68 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+type PartialDeepState<T> = {
+  [P in keyof T]?: PartialDeepState<T[P]>;
+};
+
+const initialState = {
+  engine: {
+    backgroundState,
+  },
+};
+
+const Stack = createStackNavigator();
+
+const renderComponent = (state: PartialDeepState<RootState> = {}) =>
+  renderWithProvider(
+    <Stack.Navigator>
+      <Stack.Screen name="NftDetails">{() => <NftDetails />}</Stack.Screen>
+    </Stack.Navigator>,
+    { state },
+  );
+
+const mockDispatch = jest.fn();
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: () => mockDispatch,
+}));
+
 describe('NftDetails', () => {
-  beforeEach(() => {
-    mockUseParamsValues = {
-      collectible: TEST_COLLECTIBLE,
-    };
+  afterEach(() => {
+    jest.clearAllMocks();
   });
   it('should render correctly', () => {
-    const { toJSON } = renderScreen(
-      QrScanner,
-      { name: 'NftDetails' },
-      { state: initialState },
-    );
+    const { toJSON } = renderComponent(initialState);
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should should show a disabled send button when NFT is no longer owned', async () => {
+    const mockCollectibleSelectorData = [
+      {
+        address: '0x7c3Ea2b7B3beFA1115aB51c09F0C9f245C500B18',
+        description: null,
+        favorite: false,
+        isCurrentlyOwned: false,
+        standard: 'ERC721',
+        tokenId: 23000044,
+        tokenURI:
+          'https://cloudflare-ipfs.com/ipfs/bafybeidxfmwycgzcp4v2togflpqh2gnibuexjy4m4qqwxp7nh3jx5zlh4y/20.json',
+      },
+    ];
+    const spyOnContracts = jest
+      .spyOn(allSelectors, 'collectiblesSelector')
+      .mockReturnValue(mockCollectibleSelectorData);
+
+    const { getByTestId } = renderComponent(initialState);
+    const sendButton = getByTestId('send');
+
+    fireEvent.press(sendButton);
+
+    await waitFor(() => {
+      expect(sendButton.props.disabled).toBe(true);
+    });
+
+    spyOnContracts.mockRestore();
   });
 });

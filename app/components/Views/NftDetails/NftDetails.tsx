@@ -190,10 +190,12 @@ const NftDetails = () => {
   };
 
   const onSend = useCallback(async () => {
-    dispatch(
-      newAssetTransaction({ contractName: collectible.name, ...collectible }),
-    );
-    navigation.navigate('SendFlowView');
+    if (collectible.isCurrentlyOwned === true) {
+      dispatch(
+        newAssetTransaction({ contractName: collectible.name, ...collectible }),
+      );
+      navigation.navigate('SendFlowView');
+    }
   }, [collectible, navigation, dispatch]);
 
   const getCurrentHighestBidValue = () => {
@@ -663,6 +665,7 @@ const NftDetails = () => {
       {collectible.standard === 'ERC721' ? (
         <View style={styles.buttonSendWrapper}>
           <StyledButton
+            testID="send"
             type={'confirm'}
             containerStyle={styles.buttonSend}
             onPress={onSend}

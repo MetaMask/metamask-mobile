@@ -54,10 +54,11 @@ exports[`NftDetails should render correctly 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
+                "shadowColor": "transparent",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
@@ -105,7 +106,48 @@ exports[`NftDetails should render correctly 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
+                }
+                testID="asset-back-button"
+              >
+                <SvgMock
+                  color="#141618"
+                  height={24}
+                  name="ArrowLeft"
+                  style={
+                    {
+                      "color": "#141618",
+                      "height": 24,
+                      "width": 24,
+                    }
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
@@ -126,6 +168,46 @@ exports[`NftDetails should render correctly 1`] = `
               >
                 NftDetails
               </Text>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
+                }
+              >
+                <SvgMock
+                  color="#141618"
+                  height={24}
+                  name="MoreVertical"
+                  style={
+                    {
+                      "color": "#141618",
+                      "height": 24,
+                      "width": 24,
+                    }
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -1391,6 +1473,7 @@ exports[`NftDetails should render correctly 1`] = `
                               null,
                             ]
                           }
+                          testID="send"
                         >
                           <Text
                             style={
