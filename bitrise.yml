@@ -655,8 +655,7 @@ workflows:
                 "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
       - avd-manager@1:
           inputs:
-            - api_level: '34'
-            - abi: 'x86_64'
+            - api_level: '30'
             - create_command_flags: --sdcard 8192M
             - start_command_flags: -read-only
             - profile: pixel_5
@@ -1474,16 +1473,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.29.0
+      VERSION_NAME: 7.28.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1380
+      VERSION_NUMBER: 1375
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.29.0
+      FLASK_VERSION_NAME: 7.28.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1380
+      FLASK_VERSION_NUMBER: 1375
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
