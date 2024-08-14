@@ -34,7 +34,7 @@ export interface ListItemMultiSelectButtonProps
   /**
    * Optional button onClick rpc modal function
    */
-  onRpcClick?: (() => void) | undefined;
+  onTextClick?: (() => void) | undefined;
 }
 
 /**

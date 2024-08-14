@@ -335,7 +335,7 @@ const NetworkSelector = () => {
             openModal(chainId, false, MAINNET, true);
           }}
           // TODO: Substitute with the new network controller's RPC array.
-          onRpcClick={() =>
+          onTextClick={() =>
             openRpcModal({
               rpcUrls: [hideKeyFromUrl(MAINNET_DEFAULT_RPC_URL)],
               chainId,
@@ -392,7 +392,7 @@ const NetworkSelector = () => {
             openModal(chainId, false, LINEA_MAINNET, true);
           }}
           // TODO: Substitute with the new network controller's RPC array.
-          onRpcClick={() =>
+          onTextClick={() =>
             openRpcModal({
               rpcUrls: [LINEA_DEFAULT_RPC_URL],
               chainId,
@@ -454,7 +454,7 @@ const NetworkSelector = () => {
                 openModal(chainId, true, rpcUrl, false);
               }}
               // TODO: Substitute with the new network controller's RPC array.
-              onRpcClick={() =>
+              onTextClick={() =>
                 openRpcModal({
                   rpcUrls: [hideKeyFromUrl(rpcUrl)],
                   chainId,

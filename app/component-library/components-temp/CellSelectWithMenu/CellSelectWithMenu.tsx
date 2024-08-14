@@ -65,7 +65,7 @@ const CellSelectWithMenu = ({
             <TouchableWithoutFeedback>
               <TouchableOpacity
                 style={styles.containerRow}
-                onPress={props.onRpcClick}
+                onPress={props.onTextClick}
               >
                 <Text
                   numberOfLines={1}
