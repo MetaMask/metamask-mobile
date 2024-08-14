@@ -47,7 +47,7 @@ const SnapPermissions = ({
     if (coinType === 1) {
       return 'Test Networks';
     }
-    return slip44[coinType]?.name;
+    return (slip44 as Record<string | number, { name: string }>)[coinType]?.name;
   };
 
   /**
