@@ -431,7 +431,7 @@ exports[`NftDetails should render correctly 1`] = `
                                 <View
                                   style={
                                     {
-                                      "backgroundColor": "#undefined",
+                                      "backgroundColor": undefined,
                                       "borderRadius": 12,
                                       "flex": 0,
                                     }
