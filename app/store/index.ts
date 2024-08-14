@@ -1,6 +1,6 @@
 import { Store } from 'redux';
 import { configureStore } from '@reduxjs/toolkit';
-import { persistStore, persistReducer } from 'redux-persist';
+import { persistStore, persistReducer, Persistor } from 'redux-persist';
 import createSagaMiddleware from 'redux-saga';
 import { rootSaga } from './sagas';
 import rootReducer, { RootState } from '../reducers';
@@ -21,8 +21,10 @@ const pReducer = persistReducer<RootState, any>(persistConfig, rootReducer);
 // TODO: Fix the Action type. It's set to `any` now because some of the
 // TypeScript reducers have invalid actions
 // TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, import/no-mutable-exports
-let store: Store<RootState, any>, persistor;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const store: Store<RootState, any> = {} as Store<RootState, any>;
+const persistor: Persistor = {} as Persistor;
+
 const createStoreAndPersistor = async () => {
   // Obtain the initial state from ReadOnlyNetworkStore for E2E tests.
   const initialState = isE2E
@@ -34,11 +36,14 @@ const createStoreAndPersistor = async () => {
   // Create the store and apply middlewares. In E2E tests, an optional initialState
   // from fixtures can be provided to preload the store; otherwise, it remains undefined.
 
-  store = configureStore({
-    reducer: pReducer,
-    middleware: [sagaMiddleware, thunk],
-    preloadedState: initialState,
-  });
+  Object.assign(
+    store,
+    configureStore({
+      reducer: pReducer,
+      middleware: [sagaMiddleware, thunk],
+      preloadedState: initialState,
+    }),
+  );
 
   sagaMiddleware.run(rootSaga);
 
@@ -71,7 +76,7 @@ const createStoreAndPersistor = async () => {
     LockManagerService.init(store);
   };
 
-  persistor = persistStore(store, null, onPersistComplete);
+  Object.assign(persistor, persistStore(store, null, onPersistComplete));
 };
 
 (async () => {
