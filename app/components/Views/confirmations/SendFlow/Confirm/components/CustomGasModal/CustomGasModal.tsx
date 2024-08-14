@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Confirmations team or Transactions team
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Modal from 'react-native-modal';
@@ -126,9 +124,11 @@ const CustomGasModal = ({
   const eip1559GasObject = {
     suggestedMaxFeePerGas:
       eip1559GasObj?.suggestedMaxFeePerGas ||
+      //@ts-expect-error - To be solve by Confirmations team or Transactions team
       eip1559GasObj?.[selectedGas]?.suggestedMaxFeePerGas,
     suggestedMaxPriorityFeePerGas:
       eip1559GasObj?.suggestedMaxPriorityFeePerGas ||
+      //@ts-expect-error - To be solve by Confirmations team or Transactions team
       gasFeeEstimate[selectedGas]?.suggestedMaxPriorityFeePerGas,
     suggestedGasLimit:
       eip1559GasObj?.suggestedGasLimit || eip1559Txn?.suggestedGasLimit,
@@ -170,16 +170,20 @@ const CustomGasModal = ({
         ) : (
           <EditGasFee1559
             selectedGasValue={selectedGas}
+            //@ts-expect-error - To be solve by Confirmations team or Transactions team
             gasOptions={gasFeeEstimate}
             onChange={onChangeGas}
+            //@ts-expect-error - To be solve by Confirmations team or Transactions team
             primaryCurrency={primaryCurrency}
             chainId={chainId}
             onCancel={onCancelGas}
             onSave={onSaveEIP1559GasOption}
             animateOnChange={animateOnChange}
             isAnimating={isAnimating}
+            //@ts-expect-error - To be solve by Confirmations team or Transactions team
             analyticsParams={getGasAnalyticsParams()}
             view={'SendTo (Confirm)'}
+            //@ts-expect-error - To be solve by Confirmations team or Transactions team
             selectedGasObject={eip1559GasObject}
             onlyGas={onlyGas}
             error={error}

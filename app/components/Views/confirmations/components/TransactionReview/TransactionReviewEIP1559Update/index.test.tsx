@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Confirmations team or Transactions team
 import React from 'react';
 
 import renderWithProvider, {
@@ -28,11 +26,13 @@ const initialState: DeepPartial<RootState> = {
           medium: '0x0',
           high: '0x0',
         },
+        //@ts-expect-error - To be solve by Confirmations team or Transactions team
         gasEstimateType: 'low',
       },
       TokenRatesController: {
         marketData: {
           '0x1': {
+            //@ts-expect-error - To be solve by Confirmations team or Transactions team
             '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': 1,
           },
         },

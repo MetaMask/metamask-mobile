@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Confirmations team or Transactions team
 import React, { useCallback, useEffect, useState } from 'react';
 import { Linking, TouchableOpacity, View } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -64,26 +62,42 @@ const TransactionReviewEIP1559Update = ({
     onlyGas: !!onlyGas,
     gasSelected,
     legacy: !!legacy,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     gasObject,
     gasObjectLegacy,
     multiLayerL1FeeTotal,
   });
 
   const {
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     renderableGasFeeMinNative,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     renderableGasFeeMinConversion,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     renderableGasFeeMaxNative,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     renderableTotalMinNative,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     renderableTotalMinConversion,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     renderableTotalMaxNative,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     renderableGasFeeMaxConversion,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     timeEstimateColor,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     timeEstimate,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     timeEstimateId,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     transactionFee,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     transactionFeeFiat,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     transactionTotalAmount,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     transactionTotalAmountFiat,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     suggestedGasLimit,
   } = gasTransaction;
 
@@ -117,111 +131,120 @@ const TransactionReviewEIP1559Update = ({
   const valueToWatchAnimation = `${renderableGasFeeMinNative}${renderableGasFeeMaxNative}`;
 
   return (
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     <Summary style={styles.overview(noMargin)}>
-      <Summary.Row>
-        <View style={styles.gasRowContainer}>
+      {
+        //@ts-expect-error - To be solve by Confirmations team or Transactions team
+        <Summary.Row>
           <View style={styles.gasRowContainer}>
-            <Text
-              primary={!originWarning}
-              bold
-              orange={Boolean(originWarning)}
-              noMargin
-            >
-              {!origin
-                ? strings('transaction_review_eip1559.estimated_gas_fee')
-                : strings('transaction_review_eip1559.suggested_gas_fee', {
-                    origin,
-                  })}
-              <TouchableOpacity
-                style={styles.gasInfoContainer}
-                onPress={() =>
-                  originWarning ? showLegacyLearnMore() : toggleLearnMoreModal()
-                }
-                hitSlop={styles.hitSlop}
+            <View style={styles.gasRowContainer}>
+              <Text
+                primary={!originWarning}
+                bold
+                orange={Boolean(originWarning)}
+                noMargin
               >
-                <MaterialCommunityIcons
-                  name="information"
-                  size={13}
-                  style={styles.gasInfoIcon(originWarning)}
-                />
-              </TouchableOpacity>
-            </Text>
-          </View>
+                {!origin
+                  ? strings('transaction_review_eip1559.estimated_gas_fee')
+                  : strings('transaction_review_eip1559.suggested_gas_fee', {
+                      origin,
+                    })}
+                <TouchableOpacity
+                  style={styles.gasInfoContainer}
+                  onPress={() =>
+                    originWarning
+                      ? showLegacyLearnMore()
+                      : toggleLearnMoreModal()
+                  }
+                  //@ts-expect-error - To be solve by Confirmations team or Transactions team
+                  hitSlop={styles.hitSlop}
+                >
+                  <MaterialCommunityIcons
+                    name="information"
+                    size={13}
+                    //@ts-expect-error - To be solve by Confirmations team or Transactions team
+                    style={styles.gasInfoIcon(originWarning)}
+                  />
+                </TouchableOpacity>
+              </Text>
+            </View>
 
-          {gasEstimationReady ? (
-            <FadeAnimationView
-              style={styles.valuesContainer}
-              valueToWatch={valueToWatchAnimation}
-              animateOnChange={animateOnChange}
-              onAnimationStart={onUpdatingValuesStart}
-              onAnimationEnd={onUpdatingValuesEnd}
-            >
-              {isMainnet && (
+            {gasEstimationReady ? (
+              <FadeAnimationView
+                style={styles.valuesContainer}
+                valueToWatch={valueToWatchAnimation}
+                animateOnChange={animateOnChange}
+                onAnimationStart={onUpdatingValuesStart}
+                onAnimationEnd={onUpdatingValuesEnd}
+              >
+                {isMainnet && (
+                  <TouchableOpacity
+                    onPress={edit}
+                    disabled={nativeCurrencySelected}
+                    testID={EditGasViewSelectorsIDs.ESTIMATED_FEE_TEST_ID}
+                  >
+                    <Text
+                      upper
+                      right
+                      grey={nativeCurrencySelected}
+                      link={!nativeCurrencySelected}
+                      underline={!nativeCurrencySelected}
+                      style={styles.amountContainer}
+                      noMargin
+                      adjustsFontSizeToFit
+                      numberOfLines={2}
+                    >
+                      {legacy
+                        ? switchNativeCurrencyDisplayOptions(
+                            transactionFeeFiat,
+                            transactionFee,
+                          )
+                        : switchNativeCurrencyDisplayOptions(
+                            renderableGasFeeMinConversion,
+                            renderableGasFeeMinNative,
+                          )}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+
                 <TouchableOpacity
                   onPress={edit}
-                  disabled={nativeCurrencySelected}
+                  disabled={!nativeCurrencySelected}
+                  style={[Device.isSmallDevice() && styles.flex]}
                   testID={EditGasViewSelectorsIDs.ESTIMATED_FEE_TEST_ID}
                 >
                   <Text
+                    primary
+                    bold
                     upper
+                    grey={!nativeCurrencySelected}
+                    link={nativeCurrencySelected}
+                    underline={nativeCurrencySelected}
                     right
-                    grey={nativeCurrencySelected}
-                    link={!nativeCurrencySelected}
-                    underline={!nativeCurrencySelected}
-                    style={styles.amountContainer}
                     noMargin
                     adjustsFontSizeToFit
                     numberOfLines={2}
                   >
                     {legacy
                       ? switchNativeCurrencyDisplayOptions(
-                          transactionFeeFiat,
                           transactionFee,
+                          transactionFeeFiat,
                         )
                       : switchNativeCurrencyDisplayOptions(
-                          renderableGasFeeMinConversion,
                           renderableGasFeeMinNative,
+                          renderableGasFeeMinConversion,
                         )}
                   </Text>
                 </TouchableOpacity>
-              )}
-
-              <TouchableOpacity
-                onPress={edit}
-                disabled={!nativeCurrencySelected}
-                style={[Device.isSmallDevice() && styles.flex]}
-                testID={EditGasViewSelectorsIDs.ESTIMATED_FEE_TEST_ID}
-              >
-                <Text
-                  primary
-                  bold
-                  upper
-                  grey={!nativeCurrencySelected}
-                  link={nativeCurrencySelected}
-                  underline={nativeCurrencySelected}
-                  right
-                  noMargin
-                  adjustsFontSizeToFit
-                  numberOfLines={2}
-                >
-                  {legacy
-                    ? switchNativeCurrencyDisplayOptions(
-                        transactionFee,
-                        transactionFeeFiat,
-                      )
-                    : switchNativeCurrencyDisplayOptions(
-                        renderableGasFeeMinNative,
-                        renderableGasFeeMinConversion,
-                      )}
-                </Text>
-              </TouchableOpacity>
-            </FadeAnimationView>
-          ) : (
-            <SkeletonComponent width={80} />
-          )}
-        </View>
-      </Summary.Row>
+              </FadeAnimationView>
+            ) : (
+              <SkeletonComponent width={80} />
+            )}
+          </View>
+        </Summary.Row>
+      }
       {!legacy && (
+        //@ts-expect-error - To be solve by Confirmations team or Transactions team
         <Summary.Row>
           <View style={styles.gasRowContainer}>
             {gasEstimationReady ? (
@@ -243,6 +266,7 @@ const TransactionReviewEIP1559Update = ({
                     <TouchableOpacity
                       style={styles.gasInfoContainer}
                       onPress={showTimeEstimateInfoModal}
+                      //@ts-expect-error - To be solve by Confirmations team or Transactions team
                       hitSlop={styles.hitSlop}
                     >
                       <MaterialCommunityIcons
@@ -275,6 +299,7 @@ const TransactionReviewEIP1559Update = ({
                       <TouchableOpacity
                         style={styles.gasInfoContainer}
                         onPress={showTimeEstimateInfoModal}
+                        //@ts-expect-error - To be solve by Confirmations team or Transactions team
                         hitSlop={styles.hitSlop}
                       >
                         <MaterialCommunityIcons
@@ -315,71 +340,78 @@ const TransactionReviewEIP1559Update = ({
       )}
       {!hideTotal && (
         <View>
-          <Summary.Separator />
+          {
+            //@ts-expect-error - To be solve by Confirmations team or Transactions team
+            <Summary.Separator />
+          }
           <View style={styles.gasBottomRowContainer}>
-            <Summary.Row>
-              <Text primary bold noMargin>
-                {strings('transaction_review_eip1559.total')}
-              </Text>
-              {gasEstimationReady ? (
-                <FadeAnimationView
-                  style={styles.valuesContainer}
-                  valueToWatch={valueToWatchAnimation}
-                  animateOnChange={animateOnChange}
-                >
-                  {isMainnet &&
-                    switchNativeCurrencyDisplayOptions(
-                      renderableTotalMinConversion,
-                      renderableTotalMinNative,
-                    ) !== 'undefined' && (
-                      <Text
-                        grey
-                        upper
-                        right
-                        noMargin
-                        style={styles.amountContainer}
-                        adjustsFontSizeToFit
-                        numberOfLines={2}
-                      >
-                        {legacy
-                          ? switchNativeCurrencyDisplayOptions(
-                              transactionTotalAmountFiat,
-                              transactionTotalAmount,
-                            )
-                          : switchNativeCurrencyDisplayOptions(
-                              renderableTotalMinConversion,
-                              renderableTotalMinNative,
-                            )}
-                      </Text>
-                    )}
-
-                  <Text
-                    bold
-                    primary
-                    upper
-                    right
-                    noMargin
-                    style={[Device.isSmallDevice() && styles.flex]}
-                    adjustsFontSizeToFit
-                    numberOfLines={2}
+            {
+              //@ts-expect-error - To be solve by Confirmations team or Transactions team
+              <Summary.Row>
+                <Text primary bold noMargin>
+                  {strings('transaction_review_eip1559.total')}
+                </Text>
+                {gasEstimationReady ? (
+                  <FadeAnimationView
+                    style={styles.valuesContainer}
+                    valueToWatch={valueToWatchAnimation}
+                    animateOnChange={animateOnChange}
                   >
-                    {legacy
-                      ? switchNativeCurrencyDisplayOptions(
-                          transactionTotalAmount,
-                          transactionTotalAmountFiat,
-                        )
-                      : switchNativeCurrencyDisplayOptions(
-                          renderableTotalMinNative,
-                          renderableTotalMinConversion,
-                        )}
-                  </Text>
-                </FadeAnimationView>
-              ) : (
-                <SkeletonComponent width={80} />
-              )}
-            </Summary.Row>
+                    {isMainnet &&
+                      switchNativeCurrencyDisplayOptions(
+                        renderableTotalMinConversion,
+                        renderableTotalMinNative,
+                      ) !== 'undefined' && (
+                        <Text
+                          grey
+                          upper
+                          right
+                          noMargin
+                          style={styles.amountContainer}
+                          adjustsFontSizeToFit
+                          numberOfLines={2}
+                        >
+                          {legacy
+                            ? switchNativeCurrencyDisplayOptions(
+                                transactionTotalAmountFiat,
+                                transactionTotalAmount,
+                              )
+                            : switchNativeCurrencyDisplayOptions(
+                                renderableTotalMinConversion,
+                                renderableTotalMinNative,
+                              )}
+                        </Text>
+                      )}
+
+                    <Text
+                      bold
+                      primary
+                      upper
+                      right
+                      noMargin
+                      style={[Device.isSmallDevice() && styles.flex]}
+                      adjustsFontSizeToFit
+                      numberOfLines={2}
+                    >
+                      {legacy
+                        ? switchNativeCurrencyDisplayOptions(
+                            transactionTotalAmount,
+                            transactionTotalAmountFiat,
+                          )
+                        : switchNativeCurrencyDisplayOptions(
+                            renderableTotalMinNative,
+                            renderableTotalMinConversion,
+                          )}
+                    </Text>
+                  </FadeAnimationView>
+                ) : (
+                  <SkeletonComponent width={80} />
+                )}
+              </Summary.Row>
+            }
           </View>
           {!legacy && (
+            //@ts-expect-error - To be solve by Confirmations team or Transactions team
             <Summary.Row>
               {gasEstimationReady ? (
                 <FadeAnimationView

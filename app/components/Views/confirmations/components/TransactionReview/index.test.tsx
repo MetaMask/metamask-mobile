@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Confirmations team or Transactions team
 import React from 'react';
 import TransactionReview from '.';
 import configureMockStore from 'redux-mock-store';
@@ -140,6 +138,7 @@ const mockState: DeepPartial<RootState> = {
     networks: [
       {
         chainId: '1',
+        //@ts-expect-error - To be solve by Confirmations team or Transactions team
         type: 'sepolia',
         nickname: 'Sepolia',
       },
@@ -184,6 +183,7 @@ describe('TransactionReview', () => {
     const wrapper = shallow(
       <Provider store={store}>
         <TransactionReview
+          //@ts-expect-error - To be solve by Confirmations team or Transactions team
           generateTransform={
             // TODO: Replace "any" with type
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -198,7 +198,9 @@ describe('TransactionReview', () => {
   it('should match snapshot', () => {
     const container = renderWithProvider(
       <TransactionReview
+        //@ts-expect-error - To be solve by Confirmations team or Transactions team
         EIP1559GasData={{}}
+        //@ts-expect-error - To be solve by Confirmations team or Transactions team
         generateTransform={generateTransform}
       />,
       { state: mockState },
@@ -229,7 +231,9 @@ describe('TransactionReview', () => {
       );
     const { queryByText, queryByTestId, getByText } = renderWithProvider(
       <TransactionReview
+        //@ts-expect-error - To be solve by Confirmations team or Transactions team
         EIP1559GasData={{}}
+        //@ts-expect-error - To be solve by Confirmations team or Transactions team
         generateTransform={generateTransform}
       />,
       {
@@ -282,10 +286,13 @@ describe('TransactionReview', () => {
   it('should have enabled confirm button if from account has balance', async () => {
     jest
       .spyOn(TransactionUtils, 'getTransactionReviewActionKey')
+      //@ts-expect-error - To be solve by Confirmations team or Transactions team
       .mockReturnValue(Promise.resolve(undefined));
     const { queryByRole } = renderWithProvider(
       <TransactionReview
+        //@ts-expect-error - To be solve by Confirmations team or Transactions team
         EIP1559GasData={{}}
+        //@ts-expect-error - To be solve by Confirmations team or Transactions team
         generateTransform={generateTransform}
       />,
       { state: mockState },
@@ -300,8 +307,10 @@ describe('TransactionReview', () => {
       engine: {
         ...mockState.engine,
         backgroundState: {
+          //@ts-expect-error - To be solve by Confirmations team or Transactions team
           ...mockState.engine.backgroundState,
           AccountTrackerController: {
+            //@ts-expect-error - To be solve by Confirmations team or Transactions team
             ...mockState.engine.backgroundState.AccountTrackerController,
             accounts: {
               '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
@@ -320,7 +329,9 @@ describe('TransactionReview', () => {
     }));
     const { getByRole } = renderWithProvider(
       <TransactionReview
+        //@ts-expect-error - To be solve by Confirmations team or Transactions team
         EIP1559GasData={{}}
+        //@ts-expect-error - To be solve by Confirmations team or Transactions team
         generateTransform={generateTransform}
       />,
       { state: mockState },
@@ -338,8 +349,11 @@ describe('TransactionReview', () => {
     }));
     const { getByRole } = renderWithProvider(
       <TransactionReview
+        //@ts-expect-error - To be solve by Confirmations team or Transactions team
         EIP1559GasData={{}}
+        //@ts-expect-error - To be solve by Confirmations team or Transactions team
         generateTransform={generateTransform}
+        //@ts-expect-error - To be solve by Confirmations team or Transactions team
         error="You need 1 more ETH to complete the transaction"
       />,
       { state: mockState },

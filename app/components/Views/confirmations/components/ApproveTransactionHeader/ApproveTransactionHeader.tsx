@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Confirmations team or Transactions team
 import { toChecksumAddress } from 'ethereumjs-util';
 import React, { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
@@ -129,7 +127,7 @@ const ApproveTransactionHeader = ({
   const faviconSource = useFavicon(faviconUpdatedOrigin);
 
   const accountTypeLabel = getLabelTextByAddress(activeAddress);
-
+  //@ts-expect-error - To be solve by Confirmations team or Transactions team
   const imageSource = faviconSource?.uri
     ? faviconSource
     : sdkDappMetadata?.icon
@@ -153,6 +151,7 @@ const ApproveTransactionHeader = ({
         accountTokenBalance={addressBalance}
         accountName={accountName}
         accountBalanceLabel={strings('transaction.balance')}
+        //@ts-expect-error - To be solve by Confirmations team or Transactions team
         accountTypeLabel={accountTypeLabel}
         accountNetwork={networkName}
         badgeProps={{

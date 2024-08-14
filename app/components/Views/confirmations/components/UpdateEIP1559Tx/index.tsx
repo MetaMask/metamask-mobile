@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Confirmations team or Transactions team
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import EditGasFee1559Update from '../EditGasFee1559Update';
 import { connect } from 'react-redux';
@@ -194,6 +192,7 @@ const UpdateEIP1559Tx = ({
           onlyDisplayHigh.current = true;
           //Disable polling
           stopUpdateGas.current = true;
+          //@ts-expect-error - To be solve by Confirmations team or Transactions team
           setGasSelected('');
         } else {
           updateTx1559Options.current = {
@@ -224,6 +223,7 @@ const UpdateEIP1559Tx = ({
 
   const update1559TempGasValue = (selected: string) => {
     stopUpdateGas.current = !selected;
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     setGasSelected(selected);
   };
 
@@ -259,6 +259,7 @@ const UpdateEIP1559Tx = ({
           ? [AppConstants.GAS_OPTIONS.LOW, AppConstants.GAS_OPTIONS.MEDIUM]
           : [AppConstants.GAS_OPTIONS.LOW]
       }
+      //@ts-expect-error - To be solve by Confirmations team or Transactions team
       updateOption={updateTx1559Options.current}
       analyticsParams={getGasAnalyticsParams()}
       animateOnChange={animateOnGasChange}
@@ -279,5 +280,5 @@ const mapStateToProps = (state: any) => ({
   primaryCurrency: state.settings.primaryCurrency,
   chainId: selectChainId(state),
 });
-
+//@ts-expect-error - To be solve by Confirmations team or Transactions team
 export default connect(mapStateToProps)(UpdateEIP1559Tx);

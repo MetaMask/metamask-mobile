@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Confirmations team or Transactions team
 /* eslint-disable react/prop-types */
 
 // Third-Party dependencies
@@ -71,6 +69,7 @@ const AddressList: React.FC<AddressListProps> = ({
           chainId &&
           ambiguousAddressEntries && // these are possibly undefined
           ambiguousAddressEntries[chainId] &&
+          //@ts-expect-error - To be solve by Confirmations team or Transactions team
           ambiguousAddressEntries[chainId].includes(contact.address);
         return {
           ...contact,

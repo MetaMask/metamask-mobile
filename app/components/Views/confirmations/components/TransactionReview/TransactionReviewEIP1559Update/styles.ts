@@ -1,11 +1,10 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Confirmations team or Transactions team
 import { StyleSheet } from 'react-native';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     overview: (noMargin) => ({
       marginHorizontal: noMargin ? 0 : 24,
       paddingTop: 10,
@@ -19,6 +18,7 @@ const createStyles = (colors: any) =>
     gasInfoContainer: {
       paddingLeft: 2,
     },
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     gasInfoIcon: (hasOrigin) => ({
       color: hasOrigin ? colors.warning.default : colors.icon.muted,
     }),

@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Confirmations team or Transactions team
 import BigNumber from 'bignumber.js';
 /* eslint-disable react/display-name */
 import React, { useCallback, useMemo, useState } from 'react';
@@ -129,13 +127,17 @@ const EditGasFeeLegacy = ({
 
       const lowerValue = new BigNumber(
         gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-          ? gasFeeEstimate?.low
-          : gasFeeEstimate?.gasPrice,
+          ? //@ts-expect-error - To be solve by Confirmations team or Transactions team
+            gasFeeEstimate?.low
+          : //@ts-expect-error - To be solve by Confirmations team or Transactions team
+            gasFeeEstimate?.gasPrice,
       );
       const higherValue = new BigNumber(
         gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-          ? gasFeeEstimate?.high
-          : gasFeeEstimate?.gasPrice,
+          ? //@ts-expect-error - To be solve by Confirmations team or Transactions team
+            gasFeeEstimate?.high
+          : //@ts-expect-error - To be solve by Confirmations team or Transactions team
+            gasFeeEstimate?.gasPrice,
       ).multipliedBy(new BigNumber(1.5));
 
       const valueBN = new BigNumber(value);

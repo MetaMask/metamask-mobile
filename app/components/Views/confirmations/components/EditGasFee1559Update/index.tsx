@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Confirmations team or Transactions team
 import React, { useCallback, useState, useMemo } from 'react';
 import {
   View,
@@ -99,19 +97,33 @@ const EditGasFee1559Update = ({
   });
 
   const {
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     renderableGasFeeMinNative,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     renderableGasFeeMaxNative,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     renderableGasFeeMaxConversion,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     renderableMaxFeePerGasNative,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     renderableGasFeeMinConversion,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     renderableMaxPriorityFeeNative,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     renderableMaxFeePerGasConversion,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     renderableMaxPriorityFeeConversion,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     timeEstimateColor,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     timeEstimate,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     timeEstimateId,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     suggestedMaxFeePerGas,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     suggestedMaxPriorityFeePerGas,
+    //@ts-expect-error - To be solve by Confirmations team or Transactions team
     suggestedGasLimit,
   } = gasTransaction;
 
@@ -178,6 +190,7 @@ const EditGasFee1559Update = ({
 
   const changedGasLimit = useCallback(
     (value) => {
+      //@ts-expect-error - To be solve by Confirmations team or Transactions team
       const newGas = { ...gasTransaction, suggestedGasLimit: value };
       changeGas(newGas, null);
     },
@@ -187,20 +200,24 @@ const EditGasFee1559Update = ({
   const changedMaxPriorityFee = useCallback(
     (value) => {
       const lowerValue = new BigNumber(
+        //@ts-expect-error - To be solve by Confirmations team or Transactions team
         gasOptions?.[
           warningMinimumEstimateOption
         ]?.suggestedMaxPriorityFeePerGas,
       );
 
       const higherValue = new BigNumber(
+        //@ts-expect-error - To be solve by Confirmations team or Transactions team
         gasOptions?.high?.suggestedMaxPriorityFeePerGas,
       ).multipliedBy(new BigNumber(1.5));
+      //@ts-expect-error - To be solve by Confirmations team or Transactions team
       const updateFloor = new BigNumber(updateOption?.maxPriortyFeeThreshold);
 
       const valueBN = new BigNumber(value);
 
       if (updateFloor && !updateFloor.isNaN() && valueBN.lt(updateFloor)) {
         setMaxPriorityFeeError(
+          //@ts-expect-error - To be solve by Confirmations team or Transactions team
           updateOption?.isCancel
             ? strings('edit_gas_fee_eip1559.max_priority_fee_cancel_low', {
                 cancel_value: updateFloor,
@@ -218,10 +235,12 @@ const EditGasFee1559Update = ({
           strings('edit_gas_fee_eip1559.max_priority_fee_high'),
         );
       } else {
+        //@ts-expect-error - To be solve by Confirmations team or Transactions team
         setMaxPriorityFeeError(null);
       }
 
       const newGas = {
+        //@ts-expect-error - To be solve by Confirmations team or Transactions team
         ...gasTransaction,
         suggestedMaxPriorityFeePerGas: value,
       };
@@ -240,17 +259,21 @@ const EditGasFee1559Update = ({
   const changedMaxFeePerGas = useCallback(
     (value) => {
       const lowerValue = new BigNumber(
+        //@ts-expect-error - To be solve by Confirmations team or Transactions team
         gasOptions?.[warningMinimumEstimateOption]?.suggestedMaxFeePerGas,
       );
       const higherValue = new BigNumber(
+        //@ts-expect-error - To be solve by Confirmations team or Transactions team
         gasOptions?.high?.suggestedMaxFeePerGas,
       ).multipliedBy(new BigNumber(1.5));
+      //@ts-expect-error - To be solve by Confirmations team or Transactions team
       const updateFloor = new BigNumber(updateOption?.maxFeeThreshold);
 
       const valueBN = new BigNumber(value);
 
       if (updateFloor && !updateFloor.isNaN() && valueBN.lt(updateFloor)) {
         setMaxFeeError(
+          //@ts-expect-error - To be solve by Confirmations team or Transactions team
           updateOption?.isCancel
             ? strings('edit_gas_fee_eip1559.max_fee_cancel_low', {
                 cancel_value: updateFloor,
@@ -268,6 +291,7 @@ const EditGasFee1559Update = ({
       }
 
       const newGas = {
+        //@ts-expect-error - To be solve by Confirmations team or Transactions team
         ...gasTransaction,
         suggestedMaxFeePerGas: value,
       };
@@ -288,6 +312,7 @@ const EditGasFee1559Update = ({
       setSelectedOption(option);
       setMaxFeeError('');
       setMaxPriorityFeeError('');
+      //@ts-expect-error - To be solve by Confirmations team or Transactions team
       changeGas({ ...gasOptions?.[option] }, option);
     },
     [changeGas, gasOptions],
@@ -375,7 +400,11 @@ const EditGasFee1559Update = ({
       <Text bold reset>
         {strings(value)}:
       </Text>{' '}
-      {gasOptions?.[suggestedEstimateOption]?.suggestedMaxFeePerGas} GWEI
+      {
+        //@ts-expect-error - To be solve by Confirmations team or Transactions team
+        gasOptions?.[suggestedEstimateOption]?.suggestedMaxFeePerGas
+      }
+      GWEI
     </Text>
   );
 
@@ -403,14 +432,18 @@ const EditGasFee1559Update = ({
         animateOnChange={animateOnChange}
       >
         <View>
-          <HorizontalSelector
-            selected={selectedOption}
-            onPress={selectOption}
-            options={renderOptions}
-          />
+          {
+            //@ts-expect-error - To be solve by Confirmations team or Transactions team
+            <HorizontalSelector
+              selected={selectedOption}
+              onPress={selectOption}
+              options={renderOptions}
+            />
+          }
         </View>
         <View style={styles.advancedOptionsContainer}>
           <TouchableOpacity
+            //@ts-expect-error - To be solve by Confirmations team or Transactions team
             disabled={option?.showAdvanced}
             onPress={toggleAdvancedOptions}
             style={styles.advancedOptionsButton}
@@ -422,82 +455,87 @@ const EditGasFee1559Update = ({
               <Icon name={`ios-arrow-${showAdvancedOptions ? 'up' : 'down'}`} />
             </Text>
           </TouchableOpacity>
-          {(showAdvancedOptions || option?.maxFeeThreshold) && (
-            <View style={styles.advancedOptionsInputsContainer}>
-              <View style={styles.rangeInputContainer}>
-                <RangeInput
-                  leftLabelComponent={
-                    <LeftLabelComponent
-                      value="edit_gas_fee_eip1559.gas_limit"
-                      infoValue="gas_limit"
-                    />
+          {
+            //@ts-expect-error - To be solve by Confirmations team or Transactions team
+            (showAdvancedOptions || option?.maxFeeThreshold) && (
+              <View style={styles.advancedOptionsInputsContainer}>
+                <View style={styles.rangeInputContainer}>
+                  <RangeInput
+                    leftLabelComponent={
+                      <LeftLabelComponent
+                        value="edit_gas_fee_eip1559.gas_limit"
+                        infoValue="gas_limit"
+                      />
+                    }
+                    min={GAS_LIMIT_MIN}
+                    value={suggestedGasLimit}
+                    onChangeValue={changedGasLimit}
+                    name={strings('edit_gas_fee_eip1559.gas_limit')}
+                    increment={GAS_LIMIT_INCREMENT}
+                  />
+                </View>
+                <View
+                  style={styles.rangeInputContainer}
+                  testID={
+                    EditGasViewSelectorsIDs.MAX_PRIORITY_FEE_INPUT_TEST_ID
                   }
-                  min={GAS_LIMIT_MIN}
-                  value={suggestedGasLimit}
-                  onChangeValue={changedGasLimit}
-                  name={strings('edit_gas_fee_eip1559.gas_limit')}
-                  increment={GAS_LIMIT_INCREMENT}
-                />
+                >
+                  <RangeInput
+                    leftLabelComponent={
+                      <LeftLabelComponent
+                        value="edit_gas_fee_eip1559.max_priority_fee"
+                        infoValue="max_priority_fee"
+                      />
+                    }
+                    rightLabelComponent={
+                      <RightLabelComponent value="edit_gas_fee_eip1559.estimate" />
+                    }
+                    value={suggestedMaxPriorityFeePerGas}
+                    name={strings('edit_gas_fee_eip1559.max_priority_fee')}
+                    unit={'GWEI'}
+                    min={GAS_MIN}
+                    increment={GAS_INCREMENT}
+                    inputInsideLabel={
+                      renderableMaxPriorityFeeNative &&
+                      `≈ ${switchNativeCurrencyDisplayOptions(
+                        renderableMaxPriorityFeeNative,
+                        renderableMaxPriorityFeeConversion,
+                      )}`
+                    }
+                    error={maxPriorityFeeError}
+                    onChangeValue={changedMaxPriorityFee}
+                  />
+                </View>
+                <View style={styles.rangeInputContainer}>
+                  <RangeInput
+                    leftLabelComponent={
+                      <LeftLabelComponent
+                        value="edit_gas_fee_eip1559.max_fee"
+                        infoValue="max_fee"
+                      />
+                    }
+                    rightLabelComponent={
+                      <RightLabelComponent value="edit_gas_fee_eip1559.estimate" />
+                    }
+                    value={suggestedMaxFeePerGas}
+                    name={strings('edit_gas_fee_eip1559.max_fee')}
+                    unit={'GWEI'}
+                    min={GAS_MIN}
+                    increment={GAS_INCREMENT}
+                    error={maxFeeError}
+                    onChangeValue={changedMaxFeePerGas}
+                    inputInsideLabel={
+                      renderableMaxFeePerGasNative &&
+                      `≈ ${switchNativeCurrencyDisplayOptions(
+                        renderableMaxFeePerGasNative,
+                        renderableMaxFeePerGasConversion,
+                      )}`
+                    }
+                  />
+                </View>
               </View>
-              <View
-                style={styles.rangeInputContainer}
-                testID={EditGasViewSelectorsIDs.MAX_PRIORITY_FEE_INPUT_TEST_ID}
-              >
-                <RangeInput
-                  leftLabelComponent={
-                    <LeftLabelComponent
-                      value="edit_gas_fee_eip1559.max_priority_fee"
-                      infoValue="max_priority_fee"
-                    />
-                  }
-                  rightLabelComponent={
-                    <RightLabelComponent value="edit_gas_fee_eip1559.estimate" />
-                  }
-                  value={suggestedMaxPriorityFeePerGas}
-                  name={strings('edit_gas_fee_eip1559.max_priority_fee')}
-                  unit={'GWEI'}
-                  min={GAS_MIN}
-                  increment={GAS_INCREMENT}
-                  inputInsideLabel={
-                    renderableMaxPriorityFeeNative &&
-                    `≈ ${switchNativeCurrencyDisplayOptions(
-                      renderableMaxPriorityFeeNative,
-                      renderableMaxPriorityFeeConversion,
-                    )}`
-                  }
-                  error={maxPriorityFeeError}
-                  onChangeValue={changedMaxPriorityFee}
-                />
-              </View>
-              <View style={styles.rangeInputContainer}>
-                <RangeInput
-                  leftLabelComponent={
-                    <LeftLabelComponent
-                      value="edit_gas_fee_eip1559.max_fee"
-                      infoValue="max_fee"
-                    />
-                  }
-                  rightLabelComponent={
-                    <RightLabelComponent value="edit_gas_fee_eip1559.estimate" />
-                  }
-                  value={suggestedMaxFeePerGas}
-                  name={strings('edit_gas_fee_eip1559.max_fee')}
-                  unit={'GWEI'}
-                  min={GAS_MIN}
-                  increment={GAS_INCREMENT}
-                  error={maxFeeError}
-                  onChangeValue={changedMaxFeePerGas}
-                  inputInsideLabel={
-                    renderableMaxFeePerGasNative &&
-                    `≈ ${switchNativeCurrencyDisplayOptions(
-                      renderableMaxFeePerGasNative,
-                      renderableMaxFeePerGasConversion,
-                    )}`
-                  }
-                />
-              </View>
-            </View>
-          )}
+            )
+          }
         </View>
       </FadeAnimationView>
       <View>
@@ -581,10 +619,12 @@ const EditGasFee1559Update = ({
   }, [error, styles, colors]);
 
   const renderDisplayTitle = useMemo(() => {
-    if (updateOption)
+    if (updateOption) {
+      //@ts-expect-error - To be solve by Confirmations team or Transactions team
       return updateOption.isCancel
         ? strings('edit_gas_fee_eip1559.cancel_transaction')
         : strings('edit_gas_fee_eip1559.speed_up_transaction');
+    }
     return strings('edit_gas_fee_eip1559.edit_priority');
   }, [updateOption]);
 
@@ -739,6 +779,7 @@ const EditGasFee1559Update = ({
                       strings('edit_gas_fee_eip1559.learn_more_max_fee')}
                     {modalInfo.value === 'new_gas_fee' &&
                     updateOption &&
+                    //@ts-expect-error - To be solve by Confirmations team or Transactions team
                     updateOption.isCancel
                       ? strings(
                           'edit_gas_fee_eip1559.learn_more_cancel_gas_fee',

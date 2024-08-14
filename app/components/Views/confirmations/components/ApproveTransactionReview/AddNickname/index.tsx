@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Confirmations team or Transactions team
 import React, { useState, useEffect, useCallback } from 'react';
 import { SafeAreaView, View, TextInput, TouchableOpacity } from 'react-native';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign';
@@ -285,5 +283,5 @@ const mapDispatchToProps = (dispatch: any) => ({
     data: { msg: string };
   }) => dispatch(showAlert(config)),
 });
-
+//@ts-expect-error - To be solve by Confirmations team or Transactions team
 export default connect(mapStateToProps, mapDispatchToProps)(AddNickname);
