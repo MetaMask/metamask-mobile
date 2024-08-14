@@ -76,7 +76,7 @@
     const _crc32 = new Array();
 
     // initialize buffer with zero bytes
-    for (var i = 0; i < this.buffer_size; i++) {
+    for (let i = 0; i < this.buffer_size; i++) {
       this.buffer[i] = '\x00';
     }
 
@@ -102,8 +102,8 @@
     write(this.buffer, this.idat_offs + 8, byte2(header));
 
     // initialize deflate block headers
-    for (var i = 0; (i << 16) - 1 < this.pix_size; i++) {
-      var size, bits;
+    for (let i = 0; (i << 16) - 1 < this.pix_size; i++) {
+      let size, bits;
       if (i + 0xffff < this.pix_size) {
         size = 0xffff;
         bits = '\x00';
@@ -121,7 +121,7 @@
     }
 
     /* Create crc32 lookup table */
-    for (var i = 0; i < 256; i++) {
+    for (let i = 0; i < 256; i++) {
       let c = i;
       for (let j = 0; j < 8; j++) {
         if (c & 1) {
@@ -293,10 +293,10 @@
   const randseed = new Array(4); // Xorshift: [x, y, z, w] 32 bit values
 
   function seedrand(seed) {
-    for (var i = 0; i < randseed.length; i++) {
+    for (let i = 0; i < randseed.length; i++) {
       randseed[i] = 0;
     }
-    for (var i = 0; i < seed.length; i++) {
+    for (let i = 0; i < seed.length; i++) {
       randseed[i % 4] =
         (randseed[i % 4] << 5) - randseed[i % 4] + seed.charCodeAt(i);
     }
