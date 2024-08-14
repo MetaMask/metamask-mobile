@@ -1,7 +1,6 @@
 import React, { useContext } from 'react';
 import { View, StyleSheet, TextStyle } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import DefaultPreference from 'react-native-default-preference';
 import Modal from 'react-native-modal';
 import type { Theme } from '@metamask/design-tokens';
 import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
@@ -23,9 +22,10 @@ import {
 } from '../../../core/Analytics';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
-import AsyncStorageWrapper from '../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import { isTest } from '../../../util/test/utils';
 import { useMetrics } from '../../hooks/useMetrics';
+import { RootState } from '../../../reducers';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -79,6 +79,11 @@ interface OnboardingWizardProps {
   coachmarkRef: React.RefObject<any> | null;
 }
 
+interface DrawerRef {
+  dismissDrawer: () => void;
+  showDrawer: () => void;
+}
+
 const OnboardingWizard = ({
   navigation,
   coachmarkRef,
@@ -90,20 +95,16 @@ const OnboardingWizard = ({
   const styles = createStyles(theme);
 
   const isAutomaticSecurityChecksModalOpen = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.security.isAutomaticSecurityChecksModalOpen,
+    (state: RootState) => state.security.isAutomaticSecurityChecksModalOpen,
   );
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { step } = useSelector((state: any) => state.wizard);
+  const { step } = useSelector((state: RootState) => state.wizard);
 
   /**
    * Close onboarding wizard setting step to 0 and closing drawer
    */
   const closeOnboardingWizard = async () => {
-    await DefaultPreference.set(ONBOARDING_WIZARD, EXPLORED);
+    await StorageWrapper.setItem(ONBOARDING_WIZARD, EXPLORED);
     dispatch(setOnboardingWizardStep(0));
     drawerRef?.current?.dismissDrawer?.();
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_SKIPPED, {
@@ -118,7 +119,7 @@ const OnboardingWizard = ({
   // it indicates that it was provided by fixtures, triggering the call to closeOnboardingWizard().
   if (isTest && step === 1) {
     const inTestCloseOnboardingWizard = async () => {
-      const wizardStep = await AsyncStorageWrapper.getItem(ONBOARDING_WIZARD);
+      const wizardStep = await StorageWrapper.getItem(ONBOARDING_WIZARD);
       if (wizardStep === EXPLORED) {
         await closeOnboardingWizard();
       }
@@ -145,9 +146,13 @@ const OnboardingWizard = ({
     } else if (step === 6) {
       dispatch(setOnboardingWizardStep(5));
       navigation.navigate(Routes.WALLET.HOME);
-      drawerRef?.current?.dismissDrawer?.();
+      (
+        drawerRef as unknown as React.RefObject<DrawerRef>
+      )?.current?.dismissDrawer?.();
     } else if (step === 7) {
-      drawerRef?.current?.showDrawer?.();
+      (
+        drawerRef as unknown as React.RefObject<DrawerRef>
+      )?.current?.showDrawer?.();
       dispatch(setOnboardingWizardStep(6));
     }
     return setOnboardingWizardStep(step - 1);
