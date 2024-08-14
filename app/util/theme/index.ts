@@ -155,6 +155,7 @@ export const useAppTheme = (): Theme => {
         setLightStatusBar();
       }
     }
+    break;
     case AppThemeKey.light:
       colors = lightTheme.colors;
       typography = lightTheme.typography;
