@@ -134,28 +134,29 @@ export const useAppTheme = (): Theme => {
 
   switch (appTheme) {
     /* eslint-disable no-fallthrough */
-    case AppThemeKey.os: {
-      if (osThemeName === AppThemeKey.light) {
-        colors = lightTheme.colors;
-        typography = lightTheme.typography;
-        shadows = lightTheme.shadows;
-        setLightStatusBar();
-        break;
-      } else if (osThemeName === AppThemeKey.dark) {
-        colors = darkTheme.colors;
-        typography = darkTheme.typography;
-        shadows = darkTheme.shadows;
-        setDarkStatusBar();
-        break;
-      } else {
-        // Cover cases where OS returns undefined
-        colors = lightTheme.colors;
-        typography = lightTheme.typography;
-        shadows = lightTheme.shadows;
-        setLightStatusBar();
+    case AppThemeKey.os:
+      {
+        if (osThemeName === AppThemeKey.light) {
+          colors = lightTheme.colors;
+          typography = lightTheme.typography;
+          shadows = lightTheme.shadows;
+          setLightStatusBar();
+          break;
+        } else if (osThemeName === AppThemeKey.dark) {
+          colors = darkTheme.colors;
+          typography = darkTheme.typography;
+          shadows = darkTheme.shadows;
+          setDarkStatusBar();
+          break;
+        } else {
+          // Cover cases where OS returns undefined
+          colors = lightTheme.colors;
+          typography = lightTheme.typography;
+          shadows = lightTheme.shadows;
+          setLightStatusBar();
+        }
       }
-    }
-    break;
+      break;
     case AppThemeKey.light:
       colors = lightTheme.colors;
       typography = lightTheme.typography;
