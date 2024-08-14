@@ -511,5 +511,8 @@ export function setupSentry() {
   init();
 }
 
-// eslint-disable-next-line no-empty-function
-export function deleteSentryData() {}
+// This function is intentionally left empty as Sentry data deletion is not implemented
+// TODO: Implement Sentry data deletion logic when required
+export function deleteSentryData() {
+  console.warn('deleteSentryData: This function is not implemented yet.');
+}
