@@ -683,7 +683,7 @@ workflows:
                 "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
       - avd-manager@1:
           inputs:
-            - api_level: '30'
+            - api_level: '34'
             - create_command_flags: --sdcard 8192M
             - start_command_flags: -read-only
             - profile: pixel_5
@@ -1195,7 +1195,7 @@ workflows:
 
                 # Check if BROWSERSTACK_UPLOADED_APPS_LIST is empty or does not exist
                 if [ ! -s "$BROWSERSTACK_UPLOADED_APPS_LIST" ]; then
-                  # If the file is empty or does not exist, use the existing BROWSERSTACK_APP_URL. 
+                  # If the file is empty or does not exist, use the existing BROWSERSTACK_APP_URL.
                   # This is incase an engineer wants to kick off the tests with an existing browserstack url
                   echo "BROWSERSTACK_UPLOADED_APPS_LIST is empty or does not exist. Using existing BROWSERSTACK_APP_URL."
                 else
@@ -1207,7 +1207,7 @@ workflows:
                 if [ "$TEST_TYPE" = "upgrade" ]; then
                   TEST_TYPE="--upgrade"
 
-                # Check if TEST_TYPE is set to performance  
+                # Check if TEST_TYPE is set to performance
                 elif [ "$TEST_TYPE" = "performance" ]; then
                   TEST_TYPE="--performance"
                 fi
