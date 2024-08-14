@@ -1634,9 +1634,7 @@ class Engine {
       toChecksumHexAddress(selectedInternalAccount.address);
     const { currentCurrency } = CurrencyRateController.state;
     const { chainId, ticker } = NetworkController.state.providerConfig;
-    const {
-      settings: { showFiatOnTestnets },
-    } = store.getState();
+    const { settings: { showFiatOnTestnets } = {} } = store.getState();
 
     if (isTestNet(chainId) && !showFiatOnTestnets) {
       return { ethFiat: 0, tokenFiat: 0, ethFiat1dAgo: 0, tokenFiat1dAgo: 0 };
@@ -1648,7 +1646,8 @@ class Engine {
 
     const { accountsByChainId } = AccountTrackerController.state;
     const { tokens } = TokensController.state;
-    const { marketData: tokenExchangeRates } = TokenRatesController.state;
+    const { marketData } = TokenRatesController.state;
+    const tokenExchangeRates = marketData?.[toHexadecimal(chainId)];
 
     let ethFiat = 0;
     let ethFiat1dAgo = 0;
@@ -1669,24 +1668,19 @@ class Engine {
       );
     }
 
+    const ethPricePercentChange1d =
+      tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
+
     ethFiat1dAgo =
-      ethFiat +
-        (ethFiat *
-          tokenExchangeRates?.[toHexadecimal(chainId)]?.[
-            zeroAddress() as `0x${string}`
-          ]?.pricePercentChange1d) /
-          100 || ethFiat;
+      ethPricePercentChange1d !== undefined
+        ? ethFiat / (1 + ethPricePercentChange1d / 100)
+        : ethFiat;
 
     if (tokens.length > 0) {
       const { contractBalances: tokenBalances } = TokenBalancesController.state;
-      const { marketData } = TokenRatesController.state;
-      const tokenExchangeRates = marketData[chainId];
       tokens.forEach(
         (item: { address: string; balance?: string; decimals: number }) => {
-          const exchangeRate =
-            tokenExchangeRates && item.address in tokenExchangeRates
-              ? tokenExchangeRates[item.address as Hex]?.price
-              : undefined;
+          const exchangeRate = tokenExchangeRates?.[item.address as Hex]?.price;
 
           const tokenBalance =
             item.balance ||
@@ -1705,12 +1699,13 @@ class Engine {
             decimalsToShow,
           );
 
+          const tokenPricePercentChange1d =
+            tokenExchangeRates?.[item.address as Hex]?.pricePercentChange1d;
+
           const tokenBalance1dAgo =
-            tokenBalanceFiat +
-              (tokenBalanceFiat *
-                tokenExchangeRates?.[item.address as `0x${string}`]
-                  ?.pricePercentChange1d) /
-                100 || tokenBalanceFiat;
+            tokenPricePercentChange1d !== undefined
+              ? tokenBalanceFiat / (1 + tokenPricePercentChange1d / 100)
+              : tokenBalanceFiat;
 
           tokenFiat += tokenBalanceFiat;
           tokenFiat1dAgo += tokenBalance1dAgo;
