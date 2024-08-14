@@ -13,7 +13,6 @@ import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecuri
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import LoginScreen from '../screen-objects/LoginScreen';
 import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
-import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
 import Gestures from '../helpers/Gestures';
 import OnboardingSucessScreen from '../screen-objects/OnboardingSucessScreen.js';
 import ExperienceEnhancerModal from '../screen-objects/Modals/ExperienceEnhancerModal';
@@ -264,12 +263,6 @@ Then(/^I am on the main wallet view/, async () => {
 When(/^the toast is displayed$/, async () => {
   await CommonScreen.waitForToastToDisplay();
   await CommonScreen.waitForToastToDisappear();
-});
-
-Given(/^I close the Whats New modal$/, async () => {
-  await WhatsNewModal.waitForDisplay();
-  await WhatsNewModal.tapCloseButton();
-  await WhatsNewModal.waitForDisappear();
 });
 
 When(/^I tap on the Settings tab option$/, async () => {
