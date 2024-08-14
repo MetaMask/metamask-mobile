@@ -24,10 +24,8 @@ import { isTest } from './app/util/test/utils.js';
 import NotificationManager from './app/core/NotificationManager';
 import { isNotificationsFeatureEnabled } from './app/util/notifications';
 
-import { Performance } from './app/core/Performance';
-Performance.setupPerformanceObservers();
-
 // List of warnings that we're ignoring
+
 LogBox.ignoreLogs([
   '{}',
   // Uncomment the below lines (21 and 22) to run browser-tests.spec.js in debug mode
