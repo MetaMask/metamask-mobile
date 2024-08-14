@@ -172,6 +172,7 @@ class Browser {
       await Gestures.tapWebElement(this.TestDappURLInFavourtiesTab);
     } else {
       await Gestures.tapWebElement(this.HomePageFavourtiesTab);
+      await TestHelpers.delay(3000);
       await Gestures.tapWebElement(this.TestDappURLInFavourtiesTab);
     }
   }
