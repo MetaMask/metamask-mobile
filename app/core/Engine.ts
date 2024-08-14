@@ -275,7 +275,6 @@ type GlobalActions =
   | UserStorageControllerActions
   | NotificationsServicesControllerActions
   ///: END:ONLY_INCLUDE_IF
-  | KeyringControllerActions
   | AccountsControllerActions
   | PreferencesControllerActions
   | TokensControllerActions
