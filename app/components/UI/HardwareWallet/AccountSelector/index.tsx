@@ -120,7 +120,7 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
           onPress={prevPage}
           {...generateTestId(Platform, ACCOUNT_SELECTOR_PREVIOUS_BUTTON)}
         >
-          <Icon name={'chevron-left'} color={colors.primary.default} />
+          {<Icon name={'chevron-left'} color={colors.primary.default} />}{' '}
           <Text style={styles.paginationText}>
             {strings('account_selector.prev')}
           </Text>
@@ -133,7 +133,7 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
           <Text style={styles.paginationText}>
             {strings('account_selector.next')}
           </Text>
-          <Icon name={'chevron-right'} color={colors.primary.default} />
+          {<Icon name={'chevron-right'} color={colors.primary.default} />}
         </TouchableOpacity>
       </View>
       <View style={styles.bottom}>

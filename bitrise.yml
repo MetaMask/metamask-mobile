@@ -53,6 +53,24 @@ pipelines:
       - build_smoke_e2e_ios_android_stage: {}
       - run_smoke_e2e_ios_android_stage: {}
       - notify: {}
+
+  #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
+  pr_regression_e2e_pipeline:
+    stages:
+      - build_regression_e2e_ios_android_stage: {}
+      - run_regression_e2e_ios_android_stage: {}
+      - notify: {}
+  #App launch times pipeline. Runs on browserstack
+  app_launch_times_pipeline:
+    stages:
+      - create_build_qa_android: {}
+      - app_launch_times_test_stage: {}
+
+#App Upgrade pipeline. Runs on browserstack
+  app_upgrade_pipeline:
+    stages:
+      - create_build_qa_android: {}
+      - app_upgrade_test_stage: {}
   # Pipeline for Flask
   create_flask_release_builds_pipeline:
     stages:
@@ -63,13 +81,6 @@ pipelines:
       - create_build_flask_release: {}
       - deploy_flask_build_release: {}
       - release_notify: {}
-  #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
-  pr_regression_e2e_pipeline:
-    stages:
-      - build_regression_e2e_ios_android_stage: {}
-      - run_regression_e2e_ios_android_stage: {}
-      - notify: {}
-
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   create_build_all_targets:
@@ -161,6 +172,7 @@ stages:
       - android_e2e_test: {}
   build_e2e_ios_android_stage:
     workflows:
+      - build_android_qa: {}
       - ios_e2e_build: {}
       - android_e2e_build: {}
   build_e2e_android_stage:
@@ -172,6 +184,12 @@ stages:
   notify:
     workflows:
       - notify_success: {}
+  app_launch_times_test_stage:
+    workflows:
+      - run_android_app_launch_times_appium_test: {}
+  app_upgrade_test_stage:
+    workflows:
+      - run_tag_upgrade_android: {}
   release_notify:
     workflows:
       - release_announcing_stores: {}
@@ -447,8 +465,18 @@ workflows:
       - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
       - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_NAME ($PRODUCTION_BUILD_NUMBER)'
       - NEW_BUILD_STRING: 'MetaMask-QA v$VERSION_NAME ($VERSION_NUMBER)'
+      - TEST_TYPE: 'upgrade'
     after_run:
-      - run_android_appium_test
+      - wdio_android_e2e_test
+  run_android_app_launch_times_appium_test:
+    envs:
+      - TEST_TYPE: 'performance'
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    after_run:
+      - wdio_android_e2e_test
 
   ### Separating workflows so they run concurrently during smoke runs
   run_tag_smoke_accounts_ios:
@@ -1053,15 +1081,6 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
-  run_android_appium_test:
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-20.04
-        machine_type_id: elite-xl
-    before_run:
-      - build_android_qa
-    after_run:
-      - wdio_android_e2e_test
   build_android_qa:
     before_run:
       - code_setup
@@ -1155,34 +1174,60 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
-            - deploy_path: browserstack_uploaded_apps.json
-          title: Bitrise Deploy Browserstack Uploaded Apps
+            - pipeline_intermediate_files: $BITRISE_SOURCE_DIR/browserstack_uploaded_apps.json:BROWSERSTACK_UPLOADED_APPS_LIST
+          title: Save Browserstack uploaded apps JSON
   wdio_android_e2e_test:
     before_run:
       - code_setup
     after_run:
       - notify_failure
     steps:
+      - pull-intermediate-files@1:
+          inputs:
+            - artifact_sources: .*
+          title: Pull browserstack app json list
       - script@1:
           title: Run Android E2E tests on Browserstack
+          is_always_run: true
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                yarn test:wdio:android:browserstack
+
+                # Check if BROWSERSTACK_UPLOADED_APPS_LIST is empty or does not exist
+                if [ ! -s "$BROWSERSTACK_UPLOADED_APPS_LIST" ]; then
+                  # If the file is empty or does not exist, use the existing BROWSERSTACK_APP_URL. 
+                  # This is incase an engineer wants to kick off the tests with an existing browserstack url
+                  echo "BROWSERSTACK_UPLOADED_APPS_LIST is empty or does not exist. Using existing BROWSERSTACK_APP_URL."
+                else
+                  # If the file is not empty, extract the app_url
+                  export BROWSERSTACK_APP_URL=$(jq -r '.[0].app_url' "$BROWSERSTACK_UPLOADED_APPS_LIST")
+                  echo "BROWSERSTACK_APP_URL extracted from BROWSERSTACK_UPLOADED_APPS_LIST: $BROWSERSTACK_APP_URL"
+                fi
+                # Check if TEST_TYPE is set to upgrade
+                if [ "$TEST_TYPE" = "upgrade" ]; then
+                  TEST_TYPE="--upgrade"
+
+                # Check if TEST_TYPE is set to performance  
+                elif [ "$TEST_TYPE" = "performance" ]; then
+                  TEST_TYPE="--performance"
+                fi
+                yarn test:wdio:android:browserstack $TEST_TYPE
       - script@1:
           is_always_run: true
           is_skippable: false
-          title: Add tests reports to Bitrise
+          title: Package test reports
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                cp -r $BITRISE_SOURCE_DIR/wdio/reports/junit-results/ $BITRISE_TEST_RESULT_DIR/
+                cd $BITRISE_SOURCE_DIR/wdio/reports/
+                zip -r test-report.zip html/
+                mv test-report.zip $BITRISE_DEPLOY_DIR/
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
           is_skippable: false
           inputs:
-            - deploy_path: $BITRISE_TEST_RESULT_DIR
-          title: Deploy test report files
+            - deploy_path: $BITRISE_DEPLOY_DIR/test-report.zip
+          title: Deploy test report
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
