@@ -277,3 +277,8 @@ declare module '@metamask/contract-metadata' {
   const content: Record<string, TokenListToken>;
   export default content;
 }
+
+declare module './util/termsOfUse/termsOfUseContent' {
+  const content: string;
+  export default content;
+}
