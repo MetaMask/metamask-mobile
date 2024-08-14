@@ -149,14 +149,14 @@ const PersonalSign = ({
   };
 
   const rejectSignature = async () => {
-    await onReject();
+    onReject();
     showWalletConnectNotification(false);
     trackEvent(MetaMetricsEvents.SIGNATURE_REJECTED, getAnalyticsParams());
   };
 
   const confirmSignature = async () => {
     if (!isExternalHardwareAccount(messageParams.from)) {
-      await onConfirm();
+      onConfirm();
       showWalletConnectNotification(true);
       trackEvent(MetaMetricsEvents.SIGNATURE_APPROVED, getAnalyticsParams());
     } else {
