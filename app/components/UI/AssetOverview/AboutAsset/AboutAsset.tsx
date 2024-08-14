@@ -2,6 +2,7 @@ import { zeroAddress } from 'ethereumjs-util';
 import React from 'react';
 import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import { Hex } from '@metamask/utils';
 import i18n, { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import Title from '../../../Base/Title';
@@ -14,7 +15,7 @@ import ContentDisplay from './ContentDisplay';
 
 interface AboutAssetProps {
   asset: Asset;
-  chainId: string;
+  chainId: Hex;
 }
 
 const AboutAsset = ({ asset, chainId }: AboutAssetProps) => {
@@ -29,7 +30,7 @@ const AboutAsset = ({ asset, chainId }: AboutAssetProps) => {
   const { data: descriptions, isLoading: isDescriptionLoading } =
     useTokenDescriptions({
       address: asset.isETH ? zeroAddress() : asset.address,
-      chainId: chainId as string,
+      chainId,
     });
 
   const description = descriptions[locale] || descriptions.en;
