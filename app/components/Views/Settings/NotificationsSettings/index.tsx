@@ -148,36 +148,38 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     </>
   );
 
-    const refetchAccountSettings = async () => {
+  const refetchAccountSettings = useCallback(async () => {
     await accountSettingsProps.update(accountAddresses);
-  };
+  }, [accountSettingsProps, accountAddresses]);
 
-  const renderAccounts = useCallback(() => {
-    return accounts.map((account) => (
-      <NotificationOptionToggle
-        type={NotificationsToggleTypes.ACCOUNT}
-        icon={accountAvatarType}
-        key={account.address}
-        title={account.name}
-        address={account.address}
-        disabledSwitch={accountSettingsProps.initialLoading}
-        isLoading={accountSettingsProps.accountsBeingUpdated.includes(
-          account.address,
-        )}
-        isEnabled={
-          accountSettingsProps.data?.[account.address.toLowerCase()] ?? false
-        }
-        refetchAccountSettings={refetchAccountSettings}
-      />
-    ));
-  }, [
-    accounts,
-    accountAvatarType,
-    accountSettingsProps.initialLoading,
-    accountSettingsProps.accountsBeingUpdated,
-    accountSettingsProps.data,
-    refetchAccountSettings,
-  ]);
+  const renderAccounts = useCallback(
+    () =>
+      accounts.map((account) => (
+        <NotificationOptionToggle
+          type={NotificationsToggleTypes.ACCOUNT}
+          icon={accountAvatarType}
+          key={account.address}
+          title={account.name}
+          address={account.address}
+          disabledSwitch={accountSettingsProps.initialLoading}
+          isLoading={accountSettingsProps.accountsBeingUpdated.includes(
+            account.address,
+          )}
+          isEnabled={
+            accountSettingsProps.data?.[account.address.toLowerCase()] ?? false
+          }
+          refetchAccountSettings={refetchAccountSettings}
+        />
+      )),
+    [
+      accounts,
+      accountAvatarType,
+      accountSettingsProps.initialLoading,
+      accountSettingsProps.accountsBeingUpdated,
+      accountSettingsProps.data,
+      refetchAccountSettings,
+    ],
+  );
 
   return (
     <ScrollView style={styles.wrapper}>
