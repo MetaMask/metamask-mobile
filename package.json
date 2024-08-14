@@ -226,7 +226,7 @@
     "@xmldom/xmldom": "^0.8.10",
     "appium-adb": "^9.11.4",
     "asyncstorage-down": "4.2.0",
-    "axios": "^1.6.8",
+    "axios": "^1.7.4",
     "base-64": "1.0.0",
     "bignumber.js": "^9.0.1",
     "buffer": "6.0.3",
