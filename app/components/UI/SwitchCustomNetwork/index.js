@@ -32,7 +32,7 @@ const createStyles = (colors) =>
       paddingBottom: Device.isIphoneX() ? 20 : 0,
     },
     intro: {
-      fontSize: Device.isSmallDevice() | isMutichainVersion1Enabled ? 18 : 24,
+      fontSize: Device.isSmallDevice() || isMutichainVersion1Enabled ? 18 : 24,
       marginBottom: 16,
       marginTop: 16,
       marginRight: 24,
@@ -212,6 +212,10 @@ const SwitchCustomNetwork = ({
     );
   }
 
+  const title = isMutichainVersion1Enabled
+    ? strings('switch_custom_network.title_enabled_network')
+    : strings('switch_custom_network.title_existing_network');
+
   return (
     <View style={styles.root}>
       {type === 'switch' ? (
@@ -219,9 +223,7 @@ const SwitchCustomNetwork = ({
       ) : null}
       <Text bold centered primary noMargin style={styles.intro}>
         {type === 'switch'
-          ? isMutichainVersion1Enabled
-            ? strings('switch_custom_network.title_enabled_network')
-            : strings('switch_custom_network.title_existing_network')
+          ? title
           : strings('switch_custom_network.title_new_network')}
       </Text>
       {!isMutichainVersion1Enabled && renderSwitchWarningText()}
