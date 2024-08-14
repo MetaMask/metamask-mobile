@@ -31,7 +31,7 @@ class WalletConnectPort extends EventEmitter {
       } else if (msg?.data?.method === NOTIFICATION_NAMES.accountsChanged) {
         const chainId = selectChainId(store.getState());
         this._wcRequestActions?.updateSession?.({
-          chainId: parseInt(chainId, 10),
+          chainId: parseInt(chainId),
           accounts: msg.data.params,
         });
       } else if (msg?.data?.method === NOTIFICATION_NAMES.unlockStateChanged) {
