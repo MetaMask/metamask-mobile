@@ -738,7 +738,7 @@ export function weiToIntlDenomination(
  * @param {number} value - The numeric value to be formatted.
  * @param {string} currencyCode - The currency code (e.g., 'usd', 'eth') that determines the formatting and symbol.
  * @param {number} [decimalsToShow=5] - The number of decimal places to show for cryptocurrency values (defaults to 5).
- * @returns {string} - The formatted value, either as a currency string or a fixed decimal string with the currency code.
+ * @returns {string} - The formatted value, either as a Intl currency string or a fixed decimal string with the currency code.
  */
 export function renderIntlDenomination(
   value,
@@ -749,17 +749,20 @@ export function renderIntlDenomination(
   const lowestDenomination = currencyDenominations[currencyCode.toLowerCase()];
 
   let valueToReturn;
-  let isBelowMinimum = false;
+  let isBelowMinimum = false; // used to evaluate return value format in ternary
 
   if (supportedFiatCurrency) {
-    const belowThreshold = value < lowestDenomination && value !== 0;
+    // supported fiat (for example: usd, jpy, eur)
     const options = {
       style: 'currency',
       currency: currencyCode,
       minimumFractionDigits: lowestDenomination < 1 ? 2 : 0,
     };
+
+    // lowest threshold determined by lowestDenomination (0.01 for usd, 1 for jpy)
+    const belowThreshold = value < lowestDenomination && value !== 0;
     if (belowThreshold) {
-      isBelowMinimum = true;
+      isBelowMinimum = true; // used to evaluate ternary in return statement
       valueToReturn = new Intl.NumberFormat('en-US', options).format(
         lowestDenomination,
       );
@@ -767,20 +770,24 @@ export function renderIntlDenomination(
       valueToReturn = new Intl.NumberFormat('en-US', options).format(value);
     }
   } else {
+    // crypto/unsupported fiat (for example: ltc, xlm, inr)
     const multiplier = Math.pow(10, decimalsToShow);
     const threshold = 1 / multiplier;
     const base = Math.pow(10, decimalsToShow);
     const fixedBalance = parseFloat(Math.round(value * base) / base).toFixed(
       decimalsToShow,
     );
+
+    // lowest threshold determined by decimalsToShow, default is 5 decimal places (0.00001)
     const belowThreshold = value < threshold && value !== 0;
     if (belowThreshold) {
-      isBelowMinimum = true;
+      isBelowMinimum = true; // used to evaluate ternary in return statement
       valueToReturn = `${threshold} ${currencyCode.toUpperCase()}`;
     } else {
       valueToReturn = `${fixedBalance} ${currencyCode.toUpperCase()}`;
     }
   }
+  // if below lowest threshold for given currecy, identify this with < else return value
   return isBelowMinimum ? `< ${valueToReturn}` : valueToReturn;
 }
 
