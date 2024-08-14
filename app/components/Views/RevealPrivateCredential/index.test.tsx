@@ -11,6 +11,10 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
+jest.mock('../../../../locales/i18n', () => ({
+  strings: jest.fn(),
+}));
+
 const mockStore = configureMockStore();
 const initialState = {
   engine: {
@@ -23,18 +27,40 @@ const initialState = {
 const store = mockStore(initialState);
 
 describe('RevealPrivateCredential', () => {
-  it('should render correctly', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('renders reveal private key correctly', () => {
     const wrapper = shallow(
       <Provider store={store}>
         <RevealPrivateCredential
           route={{
             params: {
-              privateCredentialName: 'private_key',
+              credentialName: 'private_key',
             },
           }}
           navigation={null}
           cancel={() => null}
           credentialName={'private_key'}
+        />
+      </Provider>,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
+
+  it('renders reveal SRP correctly', () => {
+    const wrapper = shallow(
+      <Provider store={store}>
+        <RevealPrivateCredential
+          route={{
+            params: {
+              credentialName: 'seed_phrase',
+            },
+          }}
+          navigation={null}
+          cancel={() => null}
+          credentialName={'seed_phrase'}
         />
       </Provider>,
     );

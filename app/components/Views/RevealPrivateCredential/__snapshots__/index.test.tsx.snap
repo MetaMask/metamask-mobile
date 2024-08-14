@@ -1,6 +1,48 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`RevealPrivateCredential should render correctly 1`] = `
+exports[`RevealPrivateCredential renders reveal SRP correctly 1`] = `
+<ContextProvider
+  value={
+    {
+      "getServerState": undefined,
+      "noopCheck": "once",
+      "stabilityCheck": "once",
+      "store": {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": {
+        "addNestedSub": [Function],
+        "getListeners": [Function],
+        "handleChangeWrapper": [Function],
+        "isSubscribed": [Function],
+        "notifyNestedSubs": [Function],
+        "trySubscribe": [Function],
+        "tryUnsubscribe": [Function],
+      },
+    }
+  }
+>
+  <RevealPrivateCredential
+    cancel={[Function]}
+    credentialName="seed_phrase"
+    navigation={null}
+    route={
+      {
+        "params": {
+          "credentialName": "seed_phrase",
+        },
+      }
+    }
+  />
+</ContextProvider>
+`;
+
+exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
 <ContextProvider
   value={
     {
@@ -34,7 +76,7 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
     route={
       {
         "params": {
-          "privateCredentialName": "private_key",
+          "credentialName": "private_key",
         },
       }
     }
