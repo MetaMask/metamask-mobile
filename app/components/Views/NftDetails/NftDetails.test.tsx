@@ -1,17 +1,13 @@
 import React from 'react';
-import renderWithProvider, {
-  renderScreen,
-} from '../../../util/test/renderWithProvider';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { RootState } from 'app/reducers';
-import initialRootState, { backgroundState } from '../../../util/test/initial-root-state';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import NftDetails from './';
 import { Collectible } from '../../../components/UI/CollectibleMedia/CollectibleMedia.types';
 // eslint-disable-next-line import/no-namespace
 import * as allSelectors from '../../../../app/reducers/collectibles/index.js';
-import { NetworkController } from '@metamask/network-controller';
-import { merge } from 'lodash';
 
 const TEST_COLLECTIBLE = {
   address: '0x7c3Ea2b7B3beFA1115aB51c09F0C9f245C500B18',
