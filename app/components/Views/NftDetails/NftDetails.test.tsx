@@ -8,6 +8,7 @@ import NftDetails from './';
 import { Collectible } from '../../../components/UI/CollectibleMedia/CollectibleMedia.types';
 // eslint-disable-next-line import/no-namespace
 import * as allSelectors from '../../../../app/reducers/collectibles/index.js';
+import Routes from '../../../constants/navigation/Routes';
 
 const TEST_COLLECTIBLE = {
   address: '0x7c3Ea2b7B3beFA1115aB51c09F0C9f245C500B18',
@@ -146,6 +147,22 @@ const initialState = {
   },
 };
 
+const mockNavigate = jest.fn();
+const mockSetOptions = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualReactNavigation,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      setOptions: mockSetOptions.mockImplementation(
+        actualReactNavigation.useNavigation().setOptions,
+      ),
+    }),
+  };
+});
+
 const Stack = createStackNavigator();
 
 const renderComponent = (state: PartialDeepState<RootState> = {}) =>
@@ -199,5 +216,18 @@ describe('NftDetails', () => {
     });
 
     spyOnContracts.mockRestore();
+  });
+
+  it('should navigate to nft options after clicking on more icon in navbar menu', () => {
+    const { getByTestId } = renderComponent(initialState);
+    const moreButton = getByTestId('more');
+
+    fireEvent.press(moreButton);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: 'NftOptions',
+      params: {
+        collectible: TEST_COLLECTIBLE,
+      },
+    });
   });
 });
