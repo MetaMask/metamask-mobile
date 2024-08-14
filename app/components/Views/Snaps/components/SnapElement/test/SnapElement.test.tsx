@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import SnapElement from '../SnapElement';
-import { Snap, Status } from '@metamask/snaps-utils';
+import { Snap, Status, SnapIds } from '@metamask/snaps-utils';
 import { SemVerVersion } from '@metamask/utils';
 import SNAP_ElEMENT from '../SnapElement.constants';
 
@@ -21,22 +21,16 @@ describe('SnapElement', () => {
     blocked: false,
     enabled: true,
     permissionName: 'wallet_snap_npm:@chainsafe/filsnap',
-    id: 'npm:@chainsafe/filsnap',
+    id: 'npm:@chainsafe/filsnap' as SnapIds,
     initialPermissions: {
       'endowment:network-access': {},
       'endowment:rpc': {
         dapps: true,
         snaps: true,
       },
-      snap_confirm: {},
-      snap_getBip44Entropy: [
-        {
-          coinType: 1,
-        },
-        {
-          coinType: 461,
-        },
-      ],
+      snap_getBip44Entropy: {
+        coinTypes: [1, 461],
+      },
       snap_manageState: {},
     },
     manifest: {
@@ -63,20 +57,14 @@ describe('SnapElement', () => {
           dapps: true,
           snaps: true,
         },
-        snap_confirm: {},
-        snap_getBip44Entropy: [
-          {
-            coinType: 1,
-          },
-          {
-            coinType: 461,
-          },
-        ],
+        snap_getBip44Entropy: {
+          coinTypes: [1, 461],
+        },
         snap_manageState: {},
       },
       manifestVersion: '0.1',
     },
-    status: 'runing' as Status,
+    status: 'running' as Status,
     version: '2.3.13' as SemVerVersion,
     versionHistory: [
       {
