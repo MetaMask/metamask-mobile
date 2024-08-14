@@ -148,11 +148,11 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     </>
   );
 
-  const renderAccounts = useCallback(() => {
     const refetchAccountSettings = async () => {
-      await accountSettingsProps.update(accountAddresses);
-    };
+    await accountSettingsProps.update(accountAddresses);
+  };
 
+  const renderAccounts = useCallback(() => {
     return accounts.map((account) => (
       <NotificationOptionToggle
         type={NotificationsToggleTypes.ACCOUNT}
@@ -170,8 +170,14 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
         refetchAccountSettings={refetchAccountSettings}
       />
     ));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accountSettingsProps]);
+  }, [
+    accounts,
+    accountAvatarType,
+    accountSettingsProps.initialLoading,
+    accountSettingsProps.accountsBeingUpdated,
+    accountSettingsProps.data,
+    refetchAccountSettings,
+  ]);
 
   return (
     <ScrollView style={styles.wrapper}>
