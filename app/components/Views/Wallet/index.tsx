@@ -82,6 +82,8 @@ import {
 } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import type { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
+import { ButtonVariants } from '../../../component-library/components/Buttons/Button/Button.types';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -237,6 +239,7 @@ const Wallet = ({
         },
       ],
       closeButtonOptions: {
+        variant: ButtonVariants.Secondary,
         label: strings(`privacy_policy.toast_action_button`),
         onPress: () => {
           storePrivacyPolicyClickedOrClosed();
