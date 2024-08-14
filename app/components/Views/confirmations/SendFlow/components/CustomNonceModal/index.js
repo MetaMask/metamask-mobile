@@ -242,7 +242,7 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
             </StyledButton>
             <StyledButton
               type={'blue'}
-              onPress={() => saveAndClose(nonce)}
+              onPress={saveAndClose}
               containerStyle={styles.actionButton}
             >
               {strings('transaction.save')}
