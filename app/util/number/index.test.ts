@@ -423,9 +423,9 @@ describe('Number utils :: localizeLargeNumber', () => {
     i18n = {
       t: jest.fn((key: string) => {
         const translations: Record<string, string> = {
-          'token.trillionAbbreviation': 'T',
-          'token.billionAbbreviation': 'B',
-          'token.millionAbbreviation': 'M',
+          'token.trillion_abbreviation': 'T',
+          'token.billion_abbreviation': 'B',
+          'token.million_abbreviation': 'M',
         };
         return translations[key];
       }),
@@ -436,21 +436,21 @@ describe('Number utils :: localizeLargeNumber', () => {
     const number = 1500000000000;
     const result = localizeLargeNumber(i18n, number);
     expect(result).toBe('1.50T');
-    expect(i18n.t).toHaveBeenCalledWith('token.trillionAbbreviation');
+    expect(i18n.t).toHaveBeenCalledWith('token.trillion_abbreviation');
   });
 
   it('should localize numbers in the billions correctly', () => {
     const number = 1500000000;
     const result = localizeLargeNumber(i18n, number);
     expect(result).toBe('1.50B');
-    expect(i18n.t).toHaveBeenCalledWith('token.billionAbbreviation');
+    expect(i18n.t).toHaveBeenCalledWith('token.billion_abbreviation');
   });
 
   it('should localize numbers in the millions correctly', () => {
     const number = 1500000;
     const result = localizeLargeNumber(i18n, number);
     expect(result).toBe('1.50M');
-    expect(i18n.t).toHaveBeenCalledWith('token.millionAbbreviation');
+    expect(i18n.t).toHaveBeenCalledWith('token.million_abbreviation');
   });
 
   it('should format numbers below one million correctly', () => {
@@ -466,13 +466,13 @@ describe('Number utils :: localizeLargeNumber', () => {
     const million = 1000000;
 
     expect(localizeLargeNumber(i18n, trillion)).toBe('1.00T');
-    expect(i18n.t).toHaveBeenCalledWith('token.trillionAbbreviation');
+    expect(i18n.t).toHaveBeenCalledWith('token.trillion_abbreviation');
 
     expect(localizeLargeNumber(i18n, billion)).toBe('1.00B');
-    expect(i18n.t).toHaveBeenCalledWith('token.billionAbbreviation');
+    expect(i18n.t).toHaveBeenCalledWith('token.billion_abbreviation');
 
     expect(localizeLargeNumber(i18n, million)).toBe('1.00M');
-    expect(i18n.t).toHaveBeenCalledWith('token.millionAbbreviation');
+    expect(i18n.t).toHaveBeenCalledWith('token.million_abbreviation');
   });
 });
 

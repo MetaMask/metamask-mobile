@@ -880,15 +880,15 @@ export const safeBNToHex = (value) => {
 export const localizeLargeNumber = (i18n, number) => {
   if (number >= 1000000000000) {
     return `${(number / 1000000000000).toFixed(2)}${i18n.t(
-      'token.trillionAbbreviation',
+      'token.trillion_abbreviation',
     )}`;
   } else if (number >= 1000000000) {
     return `${(number / 1000000000).toFixed(2)}${i18n.t(
-      'token.billionAbbreviation',
+      'token.billion_abbreviation',
     )}`;
   } else if (number >= 1000000) {
     return `${(number / 1000000).toFixed(2)}${i18n.t(
-      'token.millionAbbreviation',
+      'token.million_abbreviation',
     )}`;
   }
   return number.toFixed(2);
