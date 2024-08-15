@@ -14,6 +14,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Linking,
 } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -279,7 +280,11 @@ const QRScanner = () => {
       strings('qr_scanner.not_allowed_error_desc'),
       [
         {
-          text: strings('qr_scanner.ok'),
+          text: strings('qr_scanner.cancel'),
+        },
+        {
+          text: strings('qr_scanner.open_settings'),
+          onPress: () => Linking.openSettings(),
         },
       ],
     );

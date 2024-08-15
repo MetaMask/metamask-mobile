@@ -1315,13 +1315,14 @@
     "error": "Error",
     "attempting_to_scan_with_wallet_locked": "Looks like you're trying to scan a QR code, you need to unlock your wallet to be able to use it.",
     "attempting_sync_from_wallet_error": "Looks like you're trying to sync with the extension. In order to do so, you will need to erase your current wallet. \n\nOnce you've erased or reinstalled a fresh version of the app, select the option to \"Sync with MetaMask Extension\". Important! Before erasing your wallet, make sure you've backed up your Secret Recovery Phrase.",
-    "not_allowed_error_title": "Enable camera access",
+    "not_allowed_error_title": "Enable Camera Access",
     "not_allowed_error_desc": "Camera access needed to scan a QR code associated with an account address or a contract address",
     "unrecognized_address_qr_code_title": "Unrecognized QR Code",
     "unrecognized_address_qr_code_desc": "Sorry, this QR code is not associated with an account address or a contract address.",
     "url_redirection_alert_title": "You are about to visit  an external link",
     "url_redirection_alert_desc": "Links can be used to try to defraud or phish people, so make sure to only visit websites that you trust.",
-    "label": "Scan a QR code"
+    "label": "Scan a QR code",
+    "open_settings": "Settings"
   },
   "action_view": {
     "cancel": "Cancel",
