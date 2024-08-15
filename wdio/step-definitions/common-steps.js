@@ -265,6 +265,12 @@ When(/^the toast is displayed$/, async () => {
   await CommonScreen.waitForToastToDisappear();
 });
 
+Given(/^I close the Whats New modal$/, async () => {
+  await WhatsNewModal.waitForDisplay();
+  await WhatsNewModal.tapCloseButton();
+  await WhatsNewModal.waitForDisappear();
+});
+
 When(/^I tap on the Settings tab option$/, async () => {
   await TabBarModal.tapSettingButton();
   await SettingsScreen.waitForDisplay();
