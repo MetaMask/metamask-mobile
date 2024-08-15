@@ -16,6 +16,7 @@ import currencyDenominations from '../currency-denominations.json';
 import { isZero } from '../lodash';
 import { regex } from '../regex';
 export { BNToHex };
+import I18n from '../../../locales/i18n';
 
 // Big Number Constants
 const BIG_NUMBER_WEI_MULTIPLIER = new BigNumber('1000000000000000000');
@@ -748,6 +749,8 @@ export function renderIntlDenomination(
   const supportedFiatCurrency = currencySymbols[currencyCode.toLowerCase()];
   const lowestDenomination = currencyDenominations[currencyCode.toLowerCase()];
 
+  const locale = I18n.locale || 'en-US'; // fallback to US style locale if failure to find
+
   let valueToReturn;
   let isBelowMinimum = false; // used to evaluate return value format in ternary
 
@@ -763,11 +766,11 @@ export function renderIntlDenomination(
     const belowThreshold = value < lowestDenomination && value !== 0;
     if (belowThreshold) {
       isBelowMinimum = true; // used to evaluate ternary in return statement
-      valueToReturn = new Intl.NumberFormat('en-US', options).format(
+      valueToReturn = new Intl.NumberFormat(locale, options).format(
         lowestDenomination,
       );
     } else {
-      valueToReturn = new Intl.NumberFormat('en-US', options).format(value);
+      valueToReturn = new Intl.NumberFormat(locale, options).format(value);
     }
   } else {
     // crypto/unsupported fiat (for example: ltc, xlm, inr)
