@@ -4,11 +4,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { Notification } from '../../../../util/notifications';
 import { useTheme } from '../../../../util/theme';
 
-import {
-  NavigationProp,
-  ParamListBase,
-  RouteProp,
-} from '@react-navigation/native';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import Icon, {
   IconName,
   IconSize,
@@ -20,7 +16,6 @@ import { createStyles } from './styles';
 import ModalField from './Fields';
 import ModalHeader from './Headers';
 import ModalFooter from './Footers';
-import { NotificationModalDetails } from '../../../../util/notifications/notification-states/types/NotificationModalDetails';
 import { toLocaleDate } from '../../../../util/date';
 
 interface Props {
@@ -90,7 +85,6 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
   if (!state) {
     return null;
   }
-
   return (
     <ScrollView contentContainerStyle={styles.contentContainerWrapper}>
       <View style={styles.renderContainer}>
@@ -115,24 +109,3 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
 };
 
 export default NotificationsDetails;
-
-NotificationsDetails.navigationOptions = ({
-  route,
-  navigation,
-  state,
-}: {
-  route: RouteProp<{ params: { notification: Notification } }, 'params'>;
-  navigation: NavigationProp<Record<string, undefined>>;
-  state: NotificationModalDetails;
-}) => {
-  const notification = route?.params?.notification;
-  if (!notification) {
-    navigation.goBack();
-    return {};
-  }
-
-  if (!state) {
-    navigation.goBack();
-    return {};
-  }
-};
