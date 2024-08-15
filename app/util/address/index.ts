@@ -32,6 +32,7 @@ import TransactionTypes from '../../core/TransactionTypes';
 import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import { regex } from '../../../app/util/regex';
+import Logger from '../../../app/util/Logger';
 import { InternalAccount } from '@metamask/keyring-api';
 import { AddressBookState } from '@metamask/address-book-controller';
 import { NetworkType, toChecksumHexAddress } from '@metamask/controller-utils';
@@ -611,11 +612,15 @@ export const getTokenDecimal = async (
   networkClientId?: NetworkClientId,
 ) => {
   const { AssetsContractController } = Engine.context;
-  const tokenDecimal = await AssetsContractController.getERC20TokenDecimals(
-    address,
-    networkClientId,
-  );
-  return tokenDecimal;
+  try {
+    const tokenDecimal = await AssetsContractController.getERC20TokenDecimals(
+      address,
+      networkClientId,
+    );
+    return tokenDecimal;
+  } catch (err) {
+    await Logger.log('Error fetching or caching favicon: ', err);
+  }
 };
 
 export const shouldShowBlockExplorer = (
