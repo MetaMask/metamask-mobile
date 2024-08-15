@@ -87,7 +87,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly 1`] = `
               }
             }
           >
-            r
+            The
              
             <Text
               onPress={[Function]}
@@ -102,10 +102,10 @@ exports[`RevealPrivateCredential renders reveal SRP correctly 1`] = `
                 ]
               }
             >
-              e
+              Secret Recovery Phrase (SRP)
             </Text>
              
-            v
+            gives
              
             <Text
               style={
@@ -116,9 +116,11 @@ exports[`RevealPrivateCredential renders reveal SRP correctly 1`] = `
                 }
               }
             >
-              e
+              full access to your wallet, funds and accounts.
+
+
             </Text>
-            a
+            MetaMask is a
              
             <Text
               onPress={[Function]}
@@ -133,10 +135,10 @@ exports[`RevealPrivateCredential renders reveal SRP correctly 1`] = `
                 ]
               }
             >
-              l
+              non-custodial wallet.
                
             </Text>
-            _
+            That means,
              
             <Text
               style={
@@ -147,7 +149,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly 1`] = `
                 }
               }
             >
-              c
+              you are the owner of your SRP.
             </Text>
           </Text>
         </View>
@@ -203,7 +205,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly 1`] = `
                 }
               }
             >
-              r
+              Make sure nobody is looking at your screen. 
               <Text
                 style={
                   {
@@ -213,7 +215,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly 1`] = `
                   }
                 }
               >
-                e
+                MetaMask Support will never request this.
               </Text>
             </Text>
           </View>
@@ -233,7 +235,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly 1`] = `
               }
             }
           >
-            reveal_credential.enter_password
+            Enter password to continue
           </Text>
           <TextInput
             keyboardAppearance="light"
@@ -334,7 +336,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly 1`] = `
                 ]
               }
             >
-              reveal_credential.cancel
+              Cancel
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -403,7 +405,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly 1`] = `
                 ]
               }
             >
-              reveal_credential.confirm
+              Next
             </Text>
           </TouchableOpacity>
         </View>
@@ -531,7 +533,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
               }
             }
           >
-            reveal_credential.private_key_explanation
+            Save it somewhere safe and secret.
           </Text>
         </View>
         <View
@@ -586,7 +588,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
                 }
               }
             >
-              reveal_credential.private_key_warning_explanation
+              Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.
             </Text>
           </View>
         </View>
@@ -605,7 +607,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
               }
             }
           >
-            reveal_credential.enter_password
+            Enter password to continue
           </Text>
           <TextInput
             keyboardAppearance="light"
@@ -706,7 +708,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
                 ]
               }
             >
-              reveal_credential.cancel
+              Cancel
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -775,7 +777,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
                 ]
               }
             >
-              reveal_credential.confirm
+              Next
             </Text>
           </TouchableOpacity>
         </View>
