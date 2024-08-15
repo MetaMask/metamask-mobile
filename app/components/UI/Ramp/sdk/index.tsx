@@ -1,6 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Ramps team ownership
-
 import React, {
   useState,
   useCallback,
@@ -108,7 +105,7 @@ export interface RampSDK {
   getStarted: boolean;
   setGetStarted: (getStartedFlag: boolean) => void;
 
-  selectedAddress: string | undefined;
+  selectedAddress: string;
   selectedChainId: string;
   selectedNetworkName?: string;
 
