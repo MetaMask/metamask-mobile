@@ -272,8 +272,10 @@ describe('NetworkSwitcher View', () => {
     render(NetworkSwitcher);
     const lineaNetworkText = screen.getByText('Linea Main Network');
     fireEvent.press(lineaNetworkText);
-    expect(Engine.context.NetworkController.setProviderType.mock.calls)
-      .toMatchInlineSnapshot(`
+    expect(
+      (Engine.context.NetworkController.setProviderType as jest.Mock).mock
+        .calls,
+    ).toMatchInlineSnapshot(`
       [
         [
           "linea-mainnet",
@@ -284,16 +286,20 @@ describe('NetworkSwitcher View', () => {
     render(NetworkSwitcher);
     const polygonNetworkTest = screen.getByText('Polygon Mainnet');
     fireEvent.press(polygonNetworkTest);
-    expect(Engine.context.NetworkController.setActiveNetwork.mock.calls)
-      .toMatchInlineSnapshot(`
+    expect(
+      (Engine.context.NetworkController.setActiveNetwork as jest.Mock).mock
+        .calls,
+    ).toMatchInlineSnapshot(`
       [
         [
           "networkId1",
         ],
       ]
     `);
-    expect(Engine.context.CurrencyRateController.updateExchangeRate.mock.calls)
-      .toMatchInlineSnapshot(`
+    expect(
+      (Engine.context.CurrencyRateController.updateExchangeRate as jest.Mock)
+        .mock.calls,
+    ).toMatchInlineSnapshot(`
       [
         [
           "MATIC",

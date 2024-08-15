@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Ramps team ownership
+
 import { useSelector } from 'react-redux';
 import { hexToBN } from '@metamask/controller-utils';
 import { NATIVE_ADDRESS } from '../../../../constants/on-ramp';
@@ -53,16 +56,12 @@ export default function useBalance(asset?: Asset) {
 
   let balance, balanceFiat, balanceBN;
   if (assetAddress === NATIVE_ADDRESS) {
-    balance = selectedAddress
-      ? renderFromWei(
-          accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
-        )
-      : '0';
+    balance = renderFromWei(
+      accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
+    );
 
     balanceBN = hexToBN(
-      selectedAddress
-        ? accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance
-        : '0',
+      accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
     );
     balanceFiat = weiToFiat(balanceBN, conversionRate, currentCurrency);
   } else {

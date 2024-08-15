@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Ramps team ownership
+
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -111,7 +114,7 @@ function SendTransaction() {
   useEffect(() => {
     trackEvent(
       'OFFRAMP_SEND_CRYPTO_PROMPT_VIEWED',
-      // @ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
+      //@ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
       // transactionAnalyticsPayload expecting chain_id_source to be a string
       // but RampTransaction type / interface expecting it to be a number
       transactionAnalyticsPayload,

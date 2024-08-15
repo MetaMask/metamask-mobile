@@ -31,6 +31,7 @@ import {
   UseAccountsParams,
 } from './useAccounts.types';
 import { InternalAccountTypes } from '@metamask/keyring-api';
+import { Hex } from '@metamask/utils';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -134,7 +135,7 @@ const useAccounts = ({
             keyring: { type },
           },
         } = internalAccount;
-        const checksummedAddress = toChecksumHexAddress(address);
+        const checksummedAddress = toChecksumHexAddress(address) as Hex;
         const isSelected = selectedInternalAccount?.address === address;
         if (isSelected) {
           selectedIndex = index;

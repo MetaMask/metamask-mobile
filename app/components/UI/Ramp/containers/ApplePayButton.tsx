@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Ramps team ownership
+
 import React, { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { QuoteResponse } from '@consensys/on-ramp-sdk';

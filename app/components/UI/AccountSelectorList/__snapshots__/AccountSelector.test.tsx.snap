@@ -13,6 +13,12 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
         },
         "balanceError": undefined,
         "isSelected": true,
+        "metadata": {
+          "keyring": {
+            "type": "HD Key Tree",
+          },
+          "name": "Account 1",
+        },
         "name": "Account 1",
         "type": "HD Key Tree",
         "yOffset": 0,
@@ -25,6 +31,12 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
         },
         "balanceError": undefined,
         "isSelected": false,
+        "metadata": {
+          "keyring": {
+            "type": "HD Key Tree",
+          },
+          "name": "Account 2",
+        },
         "name": "Account 2",
         "type": "HD Key Tree",
         "yOffset": 78,
@@ -609,7 +621,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
   data={
     [
       {
-        "address": "0x0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
+        "address": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
         "assets": {
           "fiatBalance": "$3200.00
 1 ETH",
@@ -627,7 +639,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
         "yOffset": 0,
       },
       {
-        "address": "0x0xd018538C87232FF95acbCe4870629b75640a78E7",
+        "address": "0xd018538C87232FF95acbCe4870629b75640a78E7",
         "assets": {
           "fiatBalance": "$6400.00
 2 ETH",
@@ -726,7 +738,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                       "overflow": "hidden",
                     },
                     {
-                      "backgroundColor": "#F16802",
+                      "backgroundColor": "#C7144F",
                       "borderRadius": 16,
                       "height": 32,
                       "width": 32,
@@ -766,19 +778,19 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                     <RNSVGRect
                       fill={
                         {
-                          "payload": 4294720512,
+                          "payload": 4294711651,
                           "type": 0,
                         }
                       }
                       height={32}
                       matrix={
                         [
-                          0.3842953226598039,
-                          -0.9232102171129809,
-                          0.9232102171129809,
-                          0.3842953226598039,
-                          -7.70031610872053,
-                          21.478405267496427,
+                          0.46329603511986217,
+                          0.8862035792312145,
+                          -0.8862035792312145,
+                          0.46329603511986217,
+                          29.06767649409735,
+                          -8.290603334655817,
                         ]
                       }
                       propList={
@@ -793,19 +805,19 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                     <RNSVGRect
                       fill={
                         {
-                          "payload": 4278291569,
+                          "payload": 4280576225,
                           "type": 0,
                         }
                       }
                       height={32}
                       matrix={
                         [
-                          -0.7058715706786811,
-                          -0.7083398377245287,
-                          0.7083398377245287,
-                          -0.7058715706786811,
-                          17.880704118025015,
-                          50.33979559601017,
+                          -0.5778576243835052,
+                          0.8161375900801603,
+                          -0.8161375900801603,
+                          -0.5778576243835052,
+                          51.62016714634118,
+                          17.239003094412087,
                         ]
                       }
                       propList={
@@ -820,19 +832,19 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                     <RNSVGRect
                       fill={
                         {
-                          "payload": 4278410583,
+                          "payload": 4278407261,
                           "type": 0,
                         }
                       }
                       height={32}
                       matrix={
                         [
-                          0.44150585279174526,
-                          0.8972583696743284,
-                          -0.8972583696743284,
-                          0.44150585279174526,
-                          51.74855834494346,
-                          -0.14773854349720494,
+                          0.7046342099635947,
+                          -0.7095707365365209,
+                          0.7095707365365209,
+                          0.7046342099635947,
+                          -25.225718686778755,
+                          -4.611026307883787,
                         ]
                       }
                       propList={
@@ -887,7 +899,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                   }
                 }
               >
-                0x0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272
+                0xC495...D272
               </Text>
             </View>
             <View
@@ -900,7 +912,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
               <View
                 testID="right-accessory"
               >
-                0x0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272 - Account 1
+                0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272 - Account 1
               </View>
             </View>
           </View>
@@ -966,7 +978,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                       "overflow": "hidden",
                     },
                     {
-                      "backgroundColor": "#2447E1",
+                      "backgroundColor": "#2461E1",
                       "borderRadius": 16,
                       "height": 32,
                       "width": 32,
@@ -1006,19 +1018,19 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                     <RNSVGRect
                       fill={
                         {
-                          "payload": 4294174720,
+                          "payload": 4294711643,
                           "type": 0,
                         }
                       }
                       height={32}
                       matrix={
                         [
-                          0.6547408137173393,
-                          0.75585346916764,
-                          -0.75585346916764,
-                          0.6547408137173393,
-                          12.438980263559952,
-                          -13.253447390421252,
+                          -0.4210358133674908,
+                          -0.9070440142914651,
+                          0.9070440142914651,
+                          -0.4210358133674908,
+                          8.266156821330682,
+                          42.79486424435327,
                         ]
                       }
                       propList={
@@ -1033,19 +1045,19 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                     <RNSVGRect
                       fill={
                         {
-                          "payload": 4291236912,
+                          "payload": 4278289804,
                           "type": 0,
                         }
                       }
                       height={32}
                       matrix={
                         [
-                          -0.2957080500440466,
-                          0.9552783621223437,
-                          -0.9552783621223437,
-                          -0.2957080500440466,
-                          38.668213951232204,
-                          16.45770668374737,
+                          -0.8241261886220156,
+                          -0.5664062369248329,
+                          0.5664062369248329,
+                          -0.8241261886220156,
+                          29.655077569991498,
+                          50.077446101884746,
                         ]
                       }
                       propList={
@@ -1060,19 +1072,19 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                     <RNSVGRect
                       fill={
                         {
-                          "payload": 4294403585,
+                          "payload": 4294394881,
                           "type": 0,
                         }
                       }
                       height={32}
                       matrix={
                         [
-                          -0.19936793441719683,
-                          0.9799247046208297,
-                          -0.9799247046208297,
-                          -0.19936793441719683,
-                          41.59766937871591,
-                          -24.5024006781384,
+                          0.6704266189587993,
+                          -0.7419758409756162,
+                          0.7419758409756162,
+                          0.6704266189587993,
+                          8.152366664413217,
+                          -0.7899246956676649,
                         ]
                       }
                       propList={
@@ -1127,7 +1139,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                   }
                 }
               >
-                0x0xd018538C87232FF95acbCe4870629b75640a78E7
+                0xd018...78E7
               </Text>
             </View>
             <View
@@ -1140,7 +1152,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
               <View
                 testID="right-accessory"
               >
-                0x0xd018538C87232FF95acbCe4870629b75640a78E7 - Account 2
+                0xd018538C87232FF95acbCe4870629b75640a78E7 - Account 2
               </View>
             </View>
           </View>
@@ -1157,7 +1169,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
   data={
     [
       {
-        "address": "0x0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
+        "address": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
         "assets": {
           "fiatBalance": "$3200.00
 1 ETH",
@@ -1175,7 +1187,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
         "yOffset": 0,
       },
       {
-        "address": "0x0xd018538C87232FF95acbCe4870629b75640a78E7",
+        "address": "0xd018538C87232FF95acbCe4870629b75640a78E7",
         "assets": {
           "fiatBalance": "$6400.00
 2 ETH",
@@ -1273,7 +1285,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
                       "overflow": "hidden",
                     },
                     {
-                      "backgroundColor": "#F16802",
+                      "backgroundColor": "#C7144F",
                       "borderRadius": 16,
                       "height": 32,
                       "width": 32,
@@ -1313,19 +1325,19 @@ exports[`AccountSelectorList renders correctly 1`] = `
                     <RNSVGRect
                       fill={
                         {
-                          "payload": 4294720512,
+                          "payload": 4294711651,
                           "type": 0,
                         }
                       }
                       height={32}
                       matrix={
                         [
-                          0.3842953226598039,
-                          -0.9232102171129809,
-                          0.9232102171129809,
-                          0.3842953226598039,
-                          -7.70031610872053,
-                          21.478405267496427,
+                          0.46329603511986217,
+                          0.8862035792312145,
+                          -0.8862035792312145,
+                          0.46329603511986217,
+                          29.06767649409735,
+                          -8.290603334655817,
                         ]
                       }
                       propList={
@@ -1340,19 +1352,19 @@ exports[`AccountSelectorList renders correctly 1`] = `
                     <RNSVGRect
                       fill={
                         {
-                          "payload": 4278291569,
+                          "payload": 4280576225,
                           "type": 0,
                         }
                       }
                       height={32}
                       matrix={
                         [
-                          -0.7058715706786811,
-                          -0.7083398377245287,
-                          0.7083398377245287,
-                          -0.7058715706786811,
-                          17.880704118025015,
-                          50.33979559601017,
+                          -0.5778576243835052,
+                          0.8161375900801603,
+                          -0.8161375900801603,
+                          -0.5778576243835052,
+                          51.62016714634118,
+                          17.239003094412087,
                         ]
                       }
                       propList={
@@ -1367,19 +1379,19 @@ exports[`AccountSelectorList renders correctly 1`] = `
                     <RNSVGRect
                       fill={
                         {
-                          "payload": 4278410583,
+                          "payload": 4278407261,
                           "type": 0,
                         }
                       }
                       height={32}
                       matrix={
                         [
-                          0.44150585279174526,
-                          0.8972583696743284,
-                          -0.8972583696743284,
-                          0.44150585279174526,
-                          51.74855834494346,
-                          -0.14773854349720494,
+                          0.7046342099635947,
+                          -0.7095707365365209,
+                          0.7095707365365209,
+                          0.7046342099635947,
+                          -25.225718686778755,
+                          -4.611026307883787,
                         ]
                       }
                       propList={
@@ -1434,7 +1446,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
                   }
                 }
               >
-                0x0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272
+                0xC495...D272
               </Text>
             </View>
             <View
@@ -1450,7 +1462,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
                     "alignItems": "flex-end",
                   }
                 }
-                testID="account-balance-by-address-0x0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
+                testID="account-balance-by-address-0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
               >
                 <Text
                   accessibilityRole="text"
@@ -1560,7 +1572,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
                       "overflow": "hidden",
                     },
                     {
-                      "backgroundColor": "#2447E1",
+                      "backgroundColor": "#2461E1",
                       "borderRadius": 16,
                       "height": 32,
                       "width": 32,
@@ -1600,19 +1612,19 @@ exports[`AccountSelectorList renders correctly 1`] = `
                     <RNSVGRect
                       fill={
                         {
-                          "payload": 4294174720,
+                          "payload": 4294711643,
                           "type": 0,
                         }
                       }
                       height={32}
                       matrix={
                         [
-                          0.6547408137173393,
-                          0.75585346916764,
-                          -0.75585346916764,
-                          0.6547408137173393,
-                          12.438980263559952,
-                          -13.253447390421252,
+                          -0.4210358133674908,
+                          -0.9070440142914651,
+                          0.9070440142914651,
+                          -0.4210358133674908,
+                          8.266156821330682,
+                          42.79486424435327,
                         ]
                       }
                       propList={
@@ -1627,19 +1639,19 @@ exports[`AccountSelectorList renders correctly 1`] = `
                     <RNSVGRect
                       fill={
                         {
-                          "payload": 4291236912,
+                          "payload": 4278289804,
                           "type": 0,
                         }
                       }
                       height={32}
                       matrix={
                         [
-                          -0.2957080500440466,
-                          0.9552783621223437,
-                          -0.9552783621223437,
-                          -0.2957080500440466,
-                          38.668213951232204,
-                          16.45770668374737,
+                          -0.8241261886220156,
+                          -0.5664062369248329,
+                          0.5664062369248329,
+                          -0.8241261886220156,
+                          29.655077569991498,
+                          50.077446101884746,
                         ]
                       }
                       propList={
@@ -1654,19 +1666,19 @@ exports[`AccountSelectorList renders correctly 1`] = `
                     <RNSVGRect
                       fill={
                         {
-                          "payload": 4294403585,
+                          "payload": 4294394881,
                           "type": 0,
                         }
                       }
                       height={32}
                       matrix={
                         [
-                          -0.19936793441719683,
-                          0.9799247046208297,
-                          -0.9799247046208297,
-                          -0.19936793441719683,
-                          41.59766937871591,
-                          -24.5024006781384,
+                          0.6704266189587993,
+                          -0.7419758409756162,
+                          0.7419758409756162,
+                          0.6704266189587993,
+                          8.152366664413217,
+                          -0.7899246956676649,
                         ]
                       }
                       propList={
@@ -1721,7 +1733,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
                   }
                 }
               >
-                0x0xd018538C87232FF95acbCe4870629b75640a78E7
+                0xd018...78E7
               </Text>
             </View>
             <View
@@ -1737,7 +1749,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
                     "alignItems": "flex-end",
                   }
                 }
-                testID="account-balance-by-address-0x0xd018538C87232FF95acbCe4870629b75640a78E7"
+                testID="account-balance-by-address-0xd018538C87232FF95acbCe4870629b75640a78E7"
               >
                 <Text
                   accessibilityRole="text"
@@ -1779,6 +1791,12 @@ exports[`AccountSelectorList should render all accounts but only the balance for
         },
         "balanceError": undefined,
         "isSelected": true,
+        "metadata": {
+          "keyring": {
+            "type": "HD Key Tree",
+          },
+          "name": "Account 1",
+        },
         "name": "Account 1",
         "type": "HD Key Tree",
         "yOffset": 0,
@@ -1788,6 +1806,12 @@ exports[`AccountSelectorList should render all accounts but only the balance for
         "assets": undefined,
         "balanceError": undefined,
         "isSelected": false,
+        "metadata": {
+          "keyring": {
+            "type": "HD Key Tree",
+          },
+          "name": "Account 2",
+        },
         "name": "Account 2",
         "type": "HD Key Tree",
         "yOffset": 78,

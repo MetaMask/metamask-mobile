@@ -93,7 +93,7 @@ const mockOrder = {
         active: true,
         // type FiatOrder.Order.Cryptocurrency.Network.chainId should be type string
         // according to api.d.ts Network interface
-        chainId: 1,
+        chainId: '1',
         chainName: 'Ethereum Mainnet',
         shortName: 'Ethereum',
       },
@@ -195,9 +195,7 @@ const mockOrder2 = {
       idv2: '/currencies/crypto/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
       network: {
         active: true,
-        // type FiatOrder.Order.Cryptocurrency.Network.chainId should be type string
-        // according to api.d.ts Network interface
-        chainId: 1,
+        chainId: '1',
         chainName: 'Ethereum Mainnet',
         shortName: 'Ethereum',
       },
@@ -363,7 +361,7 @@ describe('SendTransaction View', () => {
       [
         "OFFRAMP_SEND_CRYPTO_PROMPT_VIEWED",
         {
-          "chain_id_source": 1,
+          "chain_id_source": "1",
           "crypto_amount": "0.012361263",
           "currency_destination": "USD",
           "currency_source": "ETH",
@@ -419,7 +417,7 @@ describe('SendTransaction View', () => {
       [
         "OFFRAMP_SEND_TRANSACTION_INVOKED",
         {
-          "chain_id_source": 1,
+          "chain_id_source": "1",
           "crypto_amount": "0.012361263",
           "currency_destination": "USD",
           "currency_source": "ETH",
@@ -468,7 +466,7 @@ describe('SendTransaction View', () => {
       [
         "OFFRAMP_SEND_TRANSACTION_CONFIRMED",
         {
-          "chain_id_source": 1,
+          "chain_id_source": "1",
           "crypto_amount": "0.012361263",
           "currency_destination": "USD",
           "currency_source": "ETH",
@@ -519,7 +517,7 @@ describe('SendTransaction View', () => {
       [
         "OFFRAMP_SEND_TRANSACTION_REJECTED",
         {
-          "chain_id_source": 1,
+          "chain_id_source": "1",
           "crypto_amount": "0.012361263",
           "currency_destination": "USD",
           "currency_source": "ETH",

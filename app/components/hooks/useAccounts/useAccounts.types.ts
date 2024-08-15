@@ -30,7 +30,7 @@ export interface Account {
   /**
    * Account address.
    */
-  address: Hex | string;
+  address: Hex;
   /**
    * Asset information associated with the account, which includes both the fiat balance and owned tokens.
    */

@@ -257,7 +257,7 @@ describe('aggregatorOrderToFiatOrder', () => {
       lastTimeFetched: 1673886669608,
       data: mockOrder1,
     });
-    expect(aggregatorOrderToFiatOrder(mockOrder2 as Order)).toEqual({
+    expect(aggregatorOrderToFiatOrder(mockOrder2 as unknown as Order)).toEqual({
       id: 'test-id',
       provider: 'AGGREGATOR',
       createdAt: 1673886669608,
