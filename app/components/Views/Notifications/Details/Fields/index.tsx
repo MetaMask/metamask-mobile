@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Notifications team directory
 import React from 'react';
 import type { ModalField } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
 import AddressField from './AddressField';

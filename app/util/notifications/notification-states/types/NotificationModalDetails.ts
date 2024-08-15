@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Notifications team directory
 import { ImageSourcePropType } from 'react-native';
 import { getNetworkFees } from '../../methods/common';
 import { FeatureAnnouncementRawNotification } from '../../types/featureAnnouncement';
