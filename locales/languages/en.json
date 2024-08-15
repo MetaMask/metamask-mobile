@@ -2806,6 +2806,7 @@
     "switch_warning": "This will switch the selected network within MetaMask to a previously added network:",
     "use_enabled_networks": "Use your enabled networks",
     "requesting_for_network": "Requesting for ",
+    "edit": "Edit",
     "add_network_and_give_dapp_permission_warning": "You're adding this network to MetaMask and giving {{dapp_origin}} permission to use it.",
     "available": "is now available in the network selector.",
     "cancel": "Cancel",

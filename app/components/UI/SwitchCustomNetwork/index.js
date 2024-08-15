@@ -19,6 +19,11 @@ import TextComponent, {
 } from '../../../component-library/components/Texts/Text';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
 import { AVAILABLE_TOKEN_LIST } from '../../../component-library/components/Avatars/AvatarGroup/AvatarGroup.constants';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -75,30 +80,32 @@ const createStyles = (colors) =>
       alignItems: 'center',
     },
     siteRequestInfoCard: {
-      marginLeft: 24,
+      marginHorizontal: 24,
       marginTop: 8,
       marginBottom: 12,
       alignItems: 'center',
       flexDirection: 'row',
     },
     siteRequestDetails: {
+      flex: 1,
       marginLeft: 12,
     },
+    permissionRequestNetworkInfo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    buttonLinkContainer: {},
+    networkText: {
+      fontSize: 12,
+      color: colors.text.default,
+    },
+    networkAvatar: { marginLeft: 2 },
     networkBadge: {
       flexDirection: 'row',
       borderColor: colors.border.default,
       borderRadius: 100,
       borderWidth: 1,
       padding: 10,
-    },
-    networkText: {
-      fontSize: 12,
-      color: colors.text.default,
-    },
-    networkAvatar: { marginLeft: 2 },
-    permissionRequestNetworkInfo: {
-      flexDirection: 'row',
-      alignItems: 'center',
     },
   });
 
@@ -193,6 +200,14 @@ const SwitchCustomNetwork = ({
               <AvatarGroup tokenList={AVAILABLE_TOKEN_LIST.slice(0, 6)} />
             </View>
           </View>
+        </View>
+        <View style={styles.buttonLinkContainer}>
+          <Button
+            variant={ButtonVariants.Link}
+            width={ButtonWidthTypes.Full}
+            label={strings('switch_custom_network.edit')}
+            size={ButtonSize.Lg}
+          />
         </View>
       </View>
     );
