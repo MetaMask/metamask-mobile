@@ -109,7 +109,7 @@ describe('isNetworkBuySupported', () => {
       isNetworkRampSupported('1', [
         {
           active: true,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
           shortName: 'Ethereum',
@@ -135,7 +135,7 @@ describe('isNetworkBuySupported', () => {
       isNetworkRampSupported('1', [
         {
           active: false,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
           shortName: 'Ethereum',
@@ -160,7 +160,7 @@ describe('isNetworkBuySupported', () => {
       isNetworkRampSupported('22', [
         {
           active: true,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
           shortName: 'Ethereum',
@@ -185,7 +185,7 @@ describe('isNetworkBuySupported', () => {
       isNetworkRampSupported('0x1', [
         {
           active: true,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
           shortName: 'Ethereum',
@@ -210,7 +210,7 @@ describe('isNetworkBuySupported', () => {
       isNetworkRampSupported('0x1', [
         {
           active: false,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
           shortName: 'Ethereum',
@@ -235,7 +235,7 @@ describe('isNetworkBuySupported', () => {
       isNetworkRampSupported('0x22', [
         {
           active: true,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
           shortName: 'Ethereum',
@@ -263,7 +263,7 @@ describe('isNetworkBuyNativeTokenSupported', () => {
       isNetworkRampNativeTokenSupported('1', [
         {
           active: true,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
           shortName: 'Ethereum',
@@ -288,7 +288,7 @@ describe('isNetworkBuyNativeTokenSupported', () => {
       isNetworkRampNativeTokenSupported('1', [
         {
           active: false,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
           shortName: 'Ethereum',
@@ -313,7 +313,7 @@ describe('isNetworkBuyNativeTokenSupported', () => {
       isNetworkRampNativeTokenSupported('22', [
         {
           active: true,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
           shortName: 'Ethereum',
@@ -338,7 +338,7 @@ describe('isNetworkBuyNativeTokenSupported', () => {
       isNetworkRampNativeTokenSupported('1', [
         {
           active: true,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: false,
           shortName: 'Ethereum',
@@ -363,7 +363,7 @@ describe('isNetworkBuyNativeTokenSupported', () => {
       isNetworkRampNativeTokenSupported('0x1', [
         {
           active: true,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
           shortName: 'Ethereum',
@@ -388,7 +388,7 @@ describe('isNetworkBuyNativeTokenSupported', () => {
       isNetworkRampNativeTokenSupported('0x1', [
         {
           active: false,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
           shortName: 'Ethereum',
@@ -413,7 +413,7 @@ describe('isNetworkBuyNativeTokenSupported', () => {
       isNetworkRampNativeTokenSupported('0x22', [
         {
           active: true,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
           shortName: 'Ethereum',
@@ -438,7 +438,7 @@ describe('isNetworkBuyNativeTokenSupported', () => {
       isNetworkRampNativeTokenSupported('0x1', [
         {
           active: true,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: false,
           shortName: 'Ethereum',

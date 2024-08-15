@@ -15,35 +15,35 @@ import { RampType } from '../../../../../reducers/fiatOrders/types';
 const mockedRampNetworksValues: AggregatorNetwork[] = [
   {
     active: true,
-    chainId: 1,
+    chainId: '1',
     chainName: 'Ethereum Mainnet',
     nativeTokenSupported: true,
     shortName: 'Ethereum',
   },
   {
     active: true,
-    chainId: 59144,
+    chainId: '59144',
     chainName: 'Linea Mainnet',
     nativeTokenSupported: true,
     shortName: 'Linea',
   },
   {
     active: true,
-    chainId: 25,
+    chainId: '25',
     chainName: 'Cronos Mainnet',
     nativeTokenSupported: true,
     shortName: 'Cronos',
   },
   {
     active: true,
-    chainId: 137,
+    chainId: '137',
     chainName: 'Polygon Mainnet',
     nativeTokenSupported: true,
     shortName: 'Polygon',
   },
   {
     active: false,
-    chainId: 56,
+    chainId: '56',
     chainName: 'BNB Smart Chain',
     nativeTokenSupported: false,
     shortName: 'BNB Smart Chain',
@@ -80,7 +80,8 @@ function render(Component: React.ComponentType, chainId?: string) {
             NetworkController: {
               ...backgroundState.NetworkController,
               providerConfig: {
-                chainId: chainId ?? '0x38',
+                // according to ProviderConfig type chainId should be Hex
+                chainId: chainId ? `0x${chainId}` : 0x38,
                 ticker: 'BNB',
                 nickname: 'BNB Smart Chain',
               },

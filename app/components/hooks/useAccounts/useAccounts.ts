@@ -30,6 +30,7 @@ import {
   UseAccounts,
   UseAccountsParams,
 } from './useAccounts.types';
+import { InternalAccountTypes } from '@metamask/keyring-api';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -49,7 +50,9 @@ const useAccounts = ({
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const ticker = useSelector(selectTicker);
-  const internalAccounts = useSelector(selectInternalAccounts);
+  const internalAccounts: InternalAccountTypes[] = useSelector(
+    selectInternalAccounts,
+  );
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
   const isMultiAccountBalancesEnabled = useSelector(
@@ -123,13 +126,14 @@ const useAccounts = ({
     let yOffset = 0;
     let selectedIndex = 0;
     const flattenedAccounts: Account[] = internalAccounts.map(
-      (internalAccount, index) => {
+      (internalAccount: InternalAccountTypes, index: number) => {
         const {
           address,
           metadata: {
             name,
             keyring: { type },
           },
+          metadata,
         } = internalAccount;
         const checksummedAddress = toChecksumHexAddress(address);
         const isSelected = selectedInternalAccount?.address === address;
@@ -154,7 +158,7 @@ const useAccounts = ({
         const isBalanceAvailable = isMultiAccountBalancesEnabled || isSelected;
         const mappedAccount: Account = {
           name,
-          address: checksummedAddress,
+          address: `0x${checksummedAddress}`,
           type: type as KeyringTypes,
           yOffset,
           isSelected,
@@ -164,6 +168,7 @@ const useAccounts = ({
             ? { fiatBalance: balanceLabel }
             : undefined,
           balanceError,
+          metadata,
         };
         // Calculate height of the account item.
         yOffset += 78;

@@ -105,7 +105,7 @@ export interface RampSDK {
   getStarted: boolean;
   setGetStarted: (getStartedFlag: boolean) => void;
 
-  selectedAddress: string;
+  selectedAddress: string | undefined;
   selectedChainId: string;
   selectedNetworkName?: string;
 
@@ -251,6 +251,7 @@ export const RampSDKProvider = ({
       setRampType,
 
       intent,
+      // @ts-expect-error - TODO: need help from Ramps team to fix this
       setIntent,
 
       selectedRegion,

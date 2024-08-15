@@ -18,6 +18,7 @@ import { hexToBN, toHexadecimal } from '../../../../util/number';
 import { selectAccountsByChainId } from '../../../../selectors/accountTrackerController';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectChainId } from '../../../../selectors/networkController';
+import { Token } from '@metamask/assets-controllers';
 
 function useHandleSuccessfulOrder() {
   const { selectedChainId, selectedAddress } = useRampSDK();
@@ -45,7 +46,7 @@ function useHandleSuccessfulOrder() {
       if (
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        !TokensController.state.tokens.includes((t: any) =>
+        !TokensController.state.tokens.find((t: Token) =>
           toLowerCaseEquals(t.address, address),
         )
       ) {

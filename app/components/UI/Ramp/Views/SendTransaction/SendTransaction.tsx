@@ -111,6 +111,9 @@ function SendTransaction() {
   useEffect(() => {
     trackEvent(
       'OFFRAMP_SEND_CRYPTO_PROMPT_VIEWED',
+      // @ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
+      // transactionAnalyticsPayload expecting chain_id_source to be a string
+      // but RampTransaction type / interface expecting it to be a number
       transactionAnalyticsPayload,
     );
   }, [trackEvent, transactionAnalyticsPayload]);

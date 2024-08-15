@@ -116,7 +116,7 @@ function render(Component: React.ReactElement, orders = testOrders) {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            network: '1',
+            selectedNetworkClientId: '1',
             providerConfig: {
               ticker: 'ETH',
               type: 'mainnet',
