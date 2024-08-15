@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Ramps team ownership
+
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';

@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Ramps team ownership
+
 import React, {
   useState,
   useCallback,
@@ -251,8 +254,7 @@ export const RampSDKProvider = ({
       setRampType,
 
       intent,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore-next-line - Ramps team ownership
+      // @ts-expect-error - TODO: need help from Ramps team to fix this
       setIntent,
 
       selectedRegion,

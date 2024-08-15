@@ -371,7 +371,7 @@ describe('NetworkSwitcher View', () => {
   });
 
   it('navigates on supported network', async () => {
-    render(NetworkSwitcher, '1');
+    render(NetworkSwitcher, '0x1');
     expect(mockNavigate.mock.calls).toMatchInlineSnapshot(`
       [
         [
