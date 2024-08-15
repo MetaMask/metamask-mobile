@@ -31,6 +31,6 @@ export const BrowserViewSelectorsText = {
 };
 export const BrowserViewSelectorsXPaths = {
   FAVORITE_TAB: `//div[@id='root']/div[@class='App']//ol//li[contains(text(), 'Favorites')]`,
-  TEST_DAPP_TEXT: `//div[@id='root']/div[@class='App']//p[contains(text(), 'E2E Test Dapp')]`,
+  TEST_DAPP_TEXT: '//a[@href="https://metamask.github.io/test-dapp/"]',
   TEST_DAPP_LINK: `//a[contains(@href, '${ExternalSites.TEST_DAPP}')]`,
 };
