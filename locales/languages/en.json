@@ -844,7 +844,7 @@
     "notifications_title": "Notifications",
     "notifications_desc": "Manage your notifications",
     "allow_notifications": "Allow notifications",
-    "allow_notifications_desc": "Stay in the loop on what’s happening in your wallet with notifications. To use notifications, we use a profile to sync some settings across your devices. Learn how we protect your privacy while using this feature.",
+    "allow_notifications_desc": "Stay in the loop on what’s happening in your wallet with notifications. To use notifications, we use a profile to sync some settings across your devices.",
     "notifications_opts": {
       "customize_session_title": "Customize your notifications",
       "customize_session_desc": "Turn on the types of notifications you want to receive:",
@@ -2043,7 +2043,7 @@
     "swap": "Swapped",
     "sent": "Sent to {{address}}",
     "menu_item_title": {
-      "metamask_swap_completed": "Swapped {{symbol1}} for {{symbol2}}",
+      "metamask_swap_completed": "Swapped {{symbolIn}} for {{symbolOut}}",
       "erc20_sent": "Sent to {{address}}",
       "erc20_received": "Received from {{address}}",
       "eth_sent": "Sent to {{address}}",
@@ -2070,7 +2070,7 @@
       "title_untake_ready": "Withdrawl ready",
       "title_stake": "Staked {{symbol}}",
       "title_unstake_completed": "Unstaking completed",
-      "title_swapped": "Swapped {{symbol1}} to {{symbol2}}",
+      "title_swapped": "Swapped {{symbolIn}} to {{symbolOut}}",
       "label_address_to": "To",
       "label_address_from": "From",
       "label_address_to_you": "To (You)",
