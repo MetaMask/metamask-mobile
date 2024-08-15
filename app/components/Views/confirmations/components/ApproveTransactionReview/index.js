@@ -732,22 +732,14 @@ class ApproveTransactionReview extends PureComponent {
 
   getConfirmButtonState() {
     const { transaction } = this.props;
-    const { id, currentTransactionSecurityAlertResponse } = transaction;
+    const { id, transactionSecurityAlertResponses } = transaction;
     let confirmButtonState = ConfirmButtonState.Normal;
-    if (
-      id &&
-      currentTransactionSecurityAlertResponse?.id &&
-      currentTransactionSecurityAlertResponse.id === id
-    ) {
-      if (
-        currentTransactionSecurityAlertResponse?.response?.result_type ===
-        ResultType.Malicious
-      ) {
+    const securityAlertResponse = transactionSecurityAlertResponses?.[id];
+
+    if (securityAlertResponse) {
+      if (securityAlertResponse.result_type === ResultType.Malicious) {
         confirmButtonState = ConfirmButtonState.Error;
-      } else if (
-        currentTransactionSecurityAlertResponse?.response?.result_type ===
-        ResultType.Warning
-      ) {
+      } else if (securityAlertResponse.result_type === ResultType.Warning) {
         confirmButtonState = ConfirmButtonState.Warning;
       }
     }

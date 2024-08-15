@@ -51,9 +51,8 @@ describe('Blockaid util', () => {
         txParams: {
           from: '0x1',
         },
-        currentTransactionSecurityAlertResponse: {
-          id: '2',
-          response: {
+        transactionSecurityAlertResponses: {
+          2: {
             result_type: ResultType.Malicious,
             reason: Reason.notApplicable,
             providerRequestsCount: {
@@ -78,9 +77,8 @@ describe('Blockaid util', () => {
         txParams: {
           from: '0x1',
         },
-        currentTransactionSecurityAlertResponse: {
-          id: '1',
-          response: {
+        transactionSecurityAlertResponses: {
+          1: {
             result_type: ResultType.Malicious,
             reason: Reason.notApplicable,
             providerRequestsCount: {

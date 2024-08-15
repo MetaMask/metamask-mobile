@@ -9,10 +9,7 @@ import { selectChainId } from '../../selectors/networkController';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 
 interface TransactionSecurityAlertResponseType {
-  currentTransactionSecurityAlertResponse: {
-    id: string;
-    response: SecurityAlertResponse;
-  };
+  transactionSecurityAlertResponses: Record<string, SecurityAlertResponse>;
 }
 
 export type TransactionType = TransactionMeta &
@@ -91,12 +88,10 @@ export const getBlockaidTransactionMetricsParams = (
     return blockaidParams;
   }
 
-  if (
-    transaction.id === transaction?.currentTransactionSecurityAlertResponse?.id
-  ) {
-    blockaidParams = getBlockaidMetricsParams(
-      transaction.currentTransactionSecurityAlertResponse?.response,
-    );
+  const { transactionSecurityAlertResponses, id } = transaction;
+  const securityAlertResponse = transactionSecurityAlertResponses?.[id];
+  if (securityAlertResponse) {
+    blockaidParams = getBlockaidMetricsParams(securityAlertResponse);
   }
 
   return blockaidParams;

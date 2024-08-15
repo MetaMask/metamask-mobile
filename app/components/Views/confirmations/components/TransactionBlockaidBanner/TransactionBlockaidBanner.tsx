@@ -8,25 +8,25 @@ const TransactionBlockaidBanner = (
 ) => {
   const { transactionId, ...rest } = bannerProps;
 
-  const securityAlertResponse = useSelector(
+  const transactionSecurityAlertResponses = useSelector(
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.transaction.currentTransactionSecurityAlertResponse,
+    (state: any) => state.transaction.transactionSecurityAlertResponses,
   );
 
-  if (
-    !transactionId ||
-    !securityAlertResponse?.id ||
-    securityAlertResponse.id !== transactionId
-  ) {
+  if (!transactionId) {
+    return null;
+  }
+
+  const securityAlertResponse =
+    transactionSecurityAlertResponses?.[transactionId];
+
+  if (!securityAlertResponse) {
     return null;
   }
 
   return (
-    <BlockaidBanner
-      securityAlertResponse={securityAlertResponse.response}
-      {...rest}
-    />
+    <BlockaidBanner securityAlertResponse={securityAlertResponse} {...rest} />
   );
 };
 

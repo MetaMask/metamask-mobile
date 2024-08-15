@@ -307,15 +307,13 @@ class Approval extends PureComponent {
 
   getBlockaidMetricsParams = () => {
     const { transaction } = this.props;
+    const { transactionSecurityAlertResponses, id } = transaction;
 
     let blockaidParams = {};
 
-    if (
-      transaction.id === transaction.currentTransactionSecurityAlertResponse?.id
-    ) {
-      blockaidParams = getBlockaidMetricsParams(
-        transaction.currentTransactionSecurityAlertResponse?.response,
-      );
+    const securityAlertResponse = transactionSecurityAlertResponses?.[id];
+    if (securityAlertResponse) {
+      blockaidParams = getBlockaidMetricsParams(securityAlertResponse);
     }
 
     return blockaidParams;

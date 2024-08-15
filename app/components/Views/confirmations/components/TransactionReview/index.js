@@ -359,12 +359,14 @@ class TransactionReview extends PureComponent {
 
   onContactUsClicked = () => {
     const { transaction, metrics } = this.props;
+    const { id, transactionSecurityAlertResponses } = transaction;
+    const securityAlertResponse = transactionSecurityAlertResponses?.[id];
+
     const additionalParams = {
-      ...getBlockaidMetricsParams(
-        transaction?.currentTransactionSecurityAlertResponse,
-      ),
+      ...getBlockaidMetricsParams(securityAlertResponse),
       external_link_clicked: 'security_alert_support_link',
     };
+
     metrics.trackEvent(
       MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
       additionalParams,
@@ -471,22 +473,14 @@ class TransactionReview extends PureComponent {
 
   getConfirmButtonState() {
     const { transaction } = this.props;
-    const { id, currentTransactionSecurityAlertResponse } = transaction;
+    const { id, transactionSecurityAlertResponses } = transaction;
     let confirmButtonState = ConfirmButtonState.Normal;
-    if (
-      id &&
-      currentTransactionSecurityAlertResponse?.id &&
-      currentTransactionSecurityAlertResponse.id === id
-    ) {
-      if (
-        currentTransactionSecurityAlertResponse?.response?.result_type ===
-        ResultType.Malicious
-      ) {
+    const securityAlertResponse = transactionSecurityAlertResponses?.[id];
+
+    if (securityAlertResponse) {
+      if (securityAlertResponse?.result_type === ResultType.Malicious) {
         confirmButtonState = ConfirmButtonState.Error;
-      } else if (
-        currentTransactionSecurityAlertResponse?.response?.result_type ===
-        ResultType.Warning
-      ) {
+      } else if (securityAlertResponse?.result_type === ResultType.Warning) {
         confirmButtonState = ConfirmButtonState.Warning;
       }
     }
