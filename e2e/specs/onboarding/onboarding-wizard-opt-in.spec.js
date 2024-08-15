@@ -83,6 +83,8 @@ describe(
         await Assertions.checkIfVisible(ExperienceEnhancerModal.container);
         await ExperienceEnhancerModal.tapIagree();
       } catch {
+        /* eslint-disable no-console */
+
         console.log('The marketing consent sheet is not visible');
       }
     });
