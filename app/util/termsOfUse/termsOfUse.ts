@@ -1,30 +1,10 @@
+import AppConstants from '../../core/AppConstants';
 import { MetaMetrics, MetaMetricsEvents } from '../../core/Analytics';
 import { TRUE, USE_TERMS } from '../../constants/storage';
 import Routes from '../../constants/navigation/Routes';
 import { strings } from '../../../locales/i18n';
 import { TermsOfUseModalSelectorsIDs } from '../../../e2e/selectors/Modals/TermsOfUseModal.selectors';
 import StorageWrapper from '../../store/storage-wrapper';
-import termsOfUse from './termsOfUseContent';
-
-interface TermsOfUseParamsI {
-  screen: string;
-  params: {
-    containerTestId: string;
-    buttonTestId: string;
-    buttonText: string;
-    checkboxText: string;
-    headerTitle: string;
-    onAccept: () => Promise<void>;
-    footerHelpText: string;
-    body: {
-      source: 'WebView';
-      html: string;
-    };
-    onRender: () => void;
-    isScrollToEndNeeded: boolean;
-    scrollEndBottomMargin: number;
-  };
-}
 
 const onConfirmUseTerms = async () => {
   await StorageWrapper.setItem(USE_TERMS, TRUE);
@@ -36,7 +16,9 @@ const useTermsDisplayed = () => {
 };
 
 export default async function navigateTermsOfUse(
-  navigate: (key: string, params: TermsOfUseParamsI) => void,
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  navigate: (key: string, params: any) => void,
 ) {
   const isUseTermsAccepted = await StorageWrapper.getItem(USE_TERMS);
   if (!isUseTermsAccepted) {
@@ -54,7 +36,7 @@ export default async function navigateTermsOfUse(
         footerHelpText: strings('terms_of_use_modal.accept_helper_description'),
         body: {
           source: 'WebView',
-          html: termsOfUse,
+          uri: AppConstants.TERMS_OF_USE.TERMS_OF_USE_URL_WITHOUT_COOKIES,
         },
         onRender: useTermsDisplayed,
         isScrollToEndNeeded: true,

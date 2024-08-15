@@ -1,32 +1,19 @@
 import { StyleSheet } from 'react-native';
 import scaling from '../../../util/scaling';
 import Device from '../../../util/device';
-import { Theme } from '../../../util/theme/models';
 
 import { MEDIA_WIDTH_MARGIN } from './Collectible.constants';
 
-/**
- * Style sheet
- *
- * @param params Style sheet params.
- * @param params.theme App theme from ThemeContext.
- * @param params.vars Stylesheet vars.
- * @returns StyleSheet object.
- */
-const styleSheet = (params: {
-  theme: Theme;
-  vars: { backgroundColor?: string };
-}) => {
-  const {
-    vars: { backgroundColor },
-    theme: { colors },
-  } = params;
-
-  return StyleSheet.create({
-    container: {
-      flex: 0,
-      borderRadius: 12,
-      backgroundColor: backgroundColor ? `#${backgroundColor}` : undefined,
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container(backgroundColor: string) {
+      return {
+        flex: 0,
+        borderRadius: 12,
+        backgroundColor: `#${backgroundColor}`,
+      };
     },
     tinyImage: {
       width: 32,
@@ -83,6 +70,5 @@ const styleSheet = (params: {
       alignSelf: 'center',
     },
   });
-};
 
-export default styleSheet;
+export default createStyles;

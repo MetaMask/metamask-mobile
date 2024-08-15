@@ -10,30 +10,13 @@ const browserstack = require('browserstack-local');
 config.user = process.env.BROWSERSTACK_USERNAME;
 config.key = process.env.BROWSERSTACK_ACCESS_KEY;
 
-// Define capabilities for regular tests
-const defaultCapabilities = [
+config.capabilities = [
   {
     platformName: 'Android',
     noReset: false,
     fullReset: false,
     maxInstances: 1,
-    build: 'Android App Launch Times Tests',
-    device: process.env.BROWSERSTACK_DEVICE || 'Google Pixel 6',
-    os_version: process.env.BROWSERSTACK_OS_VERSION || '12.0',
-    app: process.env.BROWSERSTACK_APP_URL,
-    'browserstack.debug': true,
-    'browserstack.local': true,
-  }
-];
-
-// Define capabilities for app upgrade tests
-const upgradeCapabilities = [
-  {
-    platformName: 'Android',
-    noReset: false,
-    fullReset: false,
-    maxInstances: 1,
-    build: 'Android App Upgrade Tests',
+    build: 'Android QA E2E Smoke Tests',
     device: process.env.BROWSERSTACK_DEVICE || 'Google Pixel 6',
     os_version: process.env.BROWSERSTACK_OS_VERSION || '12.0',
     app: process.env.PRODUCTION_APP_URL || process.env.BROWSERSTACK_APP_URL,
@@ -43,38 +26,11 @@ const upgradeCapabilities = [
   },
 ];
 
-// Determine test type based on command-line arguments
-const isAppUpgrade = process.argv.includes('--upgrade') || false;
-const isPerformance = process.argv.includes('--performance') || false;
-
-// Consolidating the conditional logic for capabilities and tag expression
-const { selectedCapabilities, defaultTagExpression } = (() => {
-    if (isAppUpgrade) {
-        return {
-            selectedCapabilities: upgradeCapabilities,
-            defaultTagExpression: '@upgrade and @androidApp',
-        };
-    } else if (isPerformance) {
-        return {
-            selectedCapabilities: defaultCapabilities,
-            defaultTagExpression: '@performance and @androidApp',
-        };
-    } else {
-        return {
-            selectedCapabilities: defaultCapabilities,
-            defaultTagExpression: '@smoke and @androidApp',
-        };
-    }
-})();
-
-// Apply the selected configuration
-config.capabilities = selectedCapabilities;
-config.cucumberOpts.tagExpression = process.env.BROWSERSTACK_TAG_EXPRESSION || defaultTagExpression;
-
 config.waitforTimeout = 10000;
 config.connectionRetryTimeout = 90000;
 config.connectionRetryCount = 3;
-
+config.cucumberOpts.tagExpression =
+  process.env.CUCUMBER_TAG_EXPRESSION || '@performance and @androidApp'; // pass tag to run tests specific to android
 
 config.onPrepare = function (config, capabilities) {
   removeSync('./wdio/reports');

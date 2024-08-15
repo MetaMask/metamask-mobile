@@ -783,50 +783,45 @@ export const getRpcMethodMiddleware = ({
 
       metamask_removeFavorite: async () => {
         checkTabActive();
-
         if (!isHomepage()) {
           throw providerErrors.unauthorized('Forbidden.');
         }
 
         const { bookmarks } = store.getState();
 
-        return new Promise<void>((resolve) => {
-          Alert.alert(
-            strings('browser.remove_bookmark_title'),
-            strings('browser.remove_bookmark_msg'),
-            [
-              {
-                text: strings('browser.cancel'),
-                onPress: () => {
-                  res.result = {
-                    favorites: bookmarks,
-                  };
-                  resolve();
-                },
-                style: 'cancel',
+        Alert.alert(
+          strings('browser.remove_bookmark_title'),
+          strings('browser.remove_bookmark_msg'),
+          [
+            {
+              text: strings('browser.cancel'),
+              onPress: () => {
+                res.result = {
+                  favorites: bookmarks,
+                };
               },
-              {
-                text: strings('browser.yes'),
-                onPress: () => {
-                  const bookmark = { url: req.params[0] };
+              style: 'cancel',
+            },
+            {
+              text: strings('browser.yes'),
+              onPress: () => {
+                const bookmark = { url: req.params[0] };
 
-                  store.dispatch(removeBookmark(bookmark));
+                store.dispatch(removeBookmark(bookmark));
 
-                  const { bookmarks: updatedBookmarks } = store.getState();
+                const { bookmarks: updatedBookmarks } = store.getState();
 
-                  if (isHomepage()) {
-                    injectHomePageScripts(updatedBookmarks);
-                  }
+                if (isHomepage()) {
+                  injectHomePageScripts(updatedBookmarks);
+                }
 
-                  res.result = {
-                    favorites: bookmarks,
-                  };
-                  resolve();
-                },
+                res.result = {
+                  favorites: bookmarks,
+                };
               },
-            ],
-          );
-        });
+            },
+          ],
+        );
       },
 
       metamask_showTutorial: async () => {

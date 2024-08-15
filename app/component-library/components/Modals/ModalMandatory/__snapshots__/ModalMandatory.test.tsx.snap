@@ -1,5 +1,23 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Mandatory Modal should render correctly component mandatory modal 1`] = `[Function]`;
-
-exports[`Mandatory Modal should render correctly webview mandatory modal 1`] = `[Function]`;
+exports[`Mandatory Modal should render correctly 1`] = `
+<RCTSafeAreaView>
+  <ModalMandatory
+    route={
+      {
+        "params": {
+          "body": {
+            "source": "WebView",
+            "uri": "http://google.com",
+          },
+          "buttonText": "test",
+          "checkboxText": "test",
+          "footerHelpText": "test",
+          "headerTitle": "test",
+          "onAccept": [Function],
+        },
+      }
+    }
+  />
+</RCTSafeAreaView>
+`;

@@ -60,7 +60,7 @@ export function renderFullAddress(address: string) {
  * @param {String} type - Format  type
  * @returns {String} Formatted address
  */
-type FormatAddressType = 'short' | 'mid' | 'full';
+type FormatAddressType = 'short' | 'mid';
 export const formatAddress = (rawAddress: string, type: FormatAddressType) => {
   let formattedAddress = rawAddress;
 

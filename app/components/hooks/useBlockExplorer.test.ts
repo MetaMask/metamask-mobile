@@ -14,7 +14,7 @@ const mockInitialState = {
       NetworkController: {
         providerConfig: {
           type: LINEA_GOERLI,
-          rpcUrl: 'https://mainnet.infura.io/v3/1234567890abcdef',
+          rpcTarget: 'https://mainnet.infura.io/v3/1234567890abcdef',
         },
       } as unknown as NetworkController['state'],
     },
@@ -66,7 +66,7 @@ describe('useBlockExplorer', () => {
             NetworkController: {
               providerConfig: {
                 type: RPC,
-                rpcUrl: 'http://localhost/v3/',
+                rpcTarget: 'http://localhost/v3/',
               },
             } as NetworkController['state'],
           },

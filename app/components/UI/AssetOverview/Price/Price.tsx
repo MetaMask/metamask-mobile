@@ -115,19 +115,17 @@ const Price = ({
             </View>
           ) : distributedPriceData.length > 0 ? (
             <Text style={styles.priceDiff}>
-              {
-                <Icon
-                  name={
-                    diff > 0
-                      ? 'trending-up'
-                      : diff < 0
-                      ? 'trending-down'
-                      : 'minus'
-                  }
-                  size={16}
-                  style={styles.priceDiffIcon}
-                />
-              }{' '}
+              <Icon
+                name={
+                  diff > 0
+                    ? 'trending-up'
+                    : diff < 0
+                    ? 'trending-down'
+                    : 'minus'
+                }
+                size={16}
+                style={styles.priceDiffIcon}
+              />{' '}
               {addCurrencySymbol(diff, currentCurrency, true)} (
               {diff > 0 ? '+' : ''}
               {diff === 0 ? '0' : ((diff / comparePrice) * 100).toFixed(2)}

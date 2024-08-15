@@ -527,7 +527,7 @@ PODS:
     - React-Core
   - react-native-camera/RN (3.44.3):
     - React-Core
-  - react-native-compat (2.14.0):
+  - react-native-compat (2.13.0):
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
   - react-native-cookies (6.2.1):
@@ -547,8 +547,6 @@ PODS:
     - React-Core
   - react-native-netinfo (9.5.0):
     - React-Core
-  - react-native-performance (5.1.2):
-    - React-Core
   - react-native-quick-base64 (2.0.8):
     - React-Core
   - react-native-quick-crypto (0.6.1):
@@ -557,8 +555,6 @@ PODS:
     - React-callinvoker
     - React-Core
   - react-native-randombytes (3.6.1):
-    - React-Core
-  - react-native-render-html (6.3.4):
     - React-Core
   - react-native-safe-area-context (3.4.1):
     - React-Core
@@ -854,11 +850,9 @@ DEPENDENCIES:
   - react-native-launch-arguments (from `../node_modules/react-native-launch-arguments`)
   - react-native-mmkv (from `../node_modules/react-native-mmkv`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
-  - react-native-performance (from `../node_modules/react-native-performance`)
   - react-native-quick-base64 (from `../node_modules/react-native-quick-base64`)
   - react-native-quick-crypto (from `../node_modules/react-native-quick-crypto`)
   - react-native-randombytes (from `../node_modules/react-native-randombytes`)
-  - react-native-render-html (from `../node_modules/react-native-render-html`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - "react-native-splash-screen (from `../node_modules/@metamask/react-native-splash-screen`)"
   - react-native-video (from `../node_modules/react-native-video`)
@@ -1033,16 +1027,12 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-mmkv"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
-  react-native-performance:
-    :path: "../node_modules/react-native-performance"
   react-native-quick-base64:
     :path: "../node_modules/react-native-quick-base64"
   react-native-quick-crypto:
     :path: "../node_modules/react-native-quick-crypto"
   react-native-randombytes:
     :path: "../node_modules/react-native-randombytes"
-  react-native-render-html:
-    :path: "../node_modules/react-native-render-html"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-splash-screen:
@@ -1214,7 +1204,7 @@ SPEC CHECKSUMS:
   react-native-blur: 507cf3dd4434eb9d5ca5f183e49d8bcccdd66826
   react-native-branch: 4e42fda662d96893afbbd02839806931398e3d2e
   react-native-camera: b8cc03e2feec0c04403d0998e37cf519d8fd4c6f
-  react-native-compat: 24c27f0076c5d094ac54a7c803aa5fd4f582444d
+  react-native-compat: e40ba72806755b12697fcfc0f826a0e245ac81a6
   react-native-cookies: f54fcded06bb0cda05c11d86788020b43528a26c
   react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
   react-native-gzip: c5e87ee9e359f02350e3a2ee52eb35eddc398868
@@ -1222,11 +1212,9 @@ SPEC CHECKSUMS:
   react-native-launch-arguments: 4e0fd58e56dcc7f52eedef9dc8eff81eb73ced7a
   react-native-mmkv: e97c0c79403fb94577e5d902ab1ebd42b0715b43
   react-native-netinfo: 48c5f79a84fbc3ba1d28a8b0d04adeda72885fa8
-  react-native-performance: ff93f8af3b2ee9519fd7879896aa9b8b8272691d
   react-native-quick-base64: 777057ea4286f806b00259ede65dc79c7c706320
   react-native-quick-crypto: 455c1b411db006dba1026a30681ececb19180187
   react-native-randombytes: 421f1c7d48c0af8dbcd471b0324393ebf8fe7846
-  react-native-render-html: 984dfe2294163d04bf5fe25d7c9f122e60e05ebe
   react-native-safe-area-context: 9e40fb181dac02619414ba1294d6c2a807056ab9
   react-native-splash-screen: 49a7160705f32169d27ab8dff9dda53331592412
   react-native-video: c26780b224543c62d5e1b2a7244a5cd1b50e8253

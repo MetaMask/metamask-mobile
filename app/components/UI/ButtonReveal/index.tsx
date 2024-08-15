@@ -1,9 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import Icon, {
-  IconSize,
-  IconName,
-} from '../../../component-library/components/Icons/Icon';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 import { fontStyles } from '../../../styles/common';
 import Svg, { Circle } from 'react-native-svg';
 import Animated, {
@@ -22,6 +19,7 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 const radius = 14;
 const strokeWidth = 2;
+const iconSize = radius - 4;
 const innerRadius = radius - strokeWidth / 2;
 const circumference = 2 * Math.PI * innerRadius;
 const animationDuration = 1200;
@@ -221,6 +219,7 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
 
   const lockIconStyle = useAnimatedStyle(() => ({
     opacity: pressControl.value,
+    // transform: [{ scale: pressControl.value }],
   }));
 
   const checkIconStyle = useAnimatedStyle(() => ({
@@ -256,9 +255,9 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
       </Animated.View>
       <Animated.View style={[styles.absoluteFillWithCenter, checkIconStyle]}>
         <Icon
-          name={IconName.Check}
+          name={'check'}
           color={colors.primary.inverse}
-          size={IconSize.Lg}
+          size={iconSize * 1.5}
         />
       </Animated.View>
     </View>
@@ -268,6 +267,9 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
     <Animated.View
       style={[styles.preCompletedContainerStyle, preCompletedContainerStyle]}
     >
+      <Animated.View style={[styles.absoluteFillWithCenter, lockIconStyle]}>
+        <Icon name={'lock'} color={colors.primary.inverse} size={iconSize} />
+      </Animated.View>
       <Svg style={styles.absoluteFill}>
         <Circle
           cx={radius}
@@ -276,7 +278,6 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
           stroke={colors.primary.alternative}
           strokeWidth={strokeWidth}
           strokeLinecap={'round'}
-          fill={colors.primary.inverse}
         />
       </Svg>
       <Svg style={[styles.absoluteFill, styles.animatedCircle]}>
@@ -285,20 +286,12 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
           cx={radius}
           cy={radius}
           r={innerRadius}
-          stroke={colors.primary.alternative}
+          stroke={colors.primary.inverse}
           strokeWidth={strokeWidth}
           strokeLinecap={'round'}
           strokeDasharray={`${circumference} ${circumference}`}
-          fill={colors.primary.inverse}
         />
       </Svg>
-      <Animated.View style={[styles.absoluteFillWithCenter, lockIconStyle]}>
-        <Icon
-          name={IconName.Lock}
-          color={colors.primary.default}
-          size={IconSize.Sm}
-        />
-      </Animated.View>
     </Animated.View>
   );
 

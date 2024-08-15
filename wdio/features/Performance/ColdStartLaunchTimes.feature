@@ -15,7 +15,7 @@ Feature: App Cold Start Launch Times
     Given the splash animation disappears
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
-    And I close all the onboarding modals
+    And I tap No thanks on the onboarding welcome tutorial
     And I am on the wallet view
     When I kill the app
     And I relaunch the app

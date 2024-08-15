@@ -1,10 +1,6 @@
-import { Nft } from '@metamask/assets-controllers';
+import { Collectible } from '../CollectibleMedia/CollectibleMedia.types';
 
 export interface CollectibleModalParams {
   contractName: string;
-  collectible: Nft;
-}
-
-export interface ReusableModalRef {
-  dismissModal: () => void;
+  collectible: Collectible;
 }

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import { Platform, Switch, View } from 'react-native';
 import { createStyles } from './styles';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
@@ -12,57 +12,24 @@ import {
   AvatarSize,
   AvatarVariant,
 } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
-import Avatar, {
-  AvatarAccountType,
-} from '../../../../../component-library/components/Avatars/Avatar';
+import Avatar from '../../../../../component-library/components/Avatars/Avatar';
 import { formatAddress } from '../../../../../util/address';
 import Icon, {
   IconColor,
-  IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import { useSwitchNotifications } from '../../../../../util/notifications/hooks/useSwitchNotifications';
-import { useListNotifications } from '../../../../../util/notifications/hooks/useNotifications';
 
 interface NotificationOptionsToggleProps {
-  address: string;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  icon?: any;
   title: string;
-  icon?: AvatarAccountType | IconName;
-  type?: string;
+  description?: string;
+  value?: boolean;
+  onOptionUpdated?: (enabled: boolean) => void;
   testId?: string;
-
-  isEnabled: boolean;
-  isLoading?: boolean;
-  disabledSwitch?: boolean;
-  refetchAccountSettings: () => Promise<void>;
-}
-
-function useUpdateAccountSetting(
-  address: string,
-  refetchAccountSettings: () => Promise<void>,
-) {
-  const { switchAccountNotifications } = useSwitchNotifications();
-  const { listNotifications: refetch } = useListNotifications();
-
-  // Local states
-  const [loading, setLoading] = useState(false);
-
-  const toggleAccount = useCallback(
-    async (state: boolean) => {
-      setLoading(true);
-      try {
-        await switchAccountNotifications([address], state);
-        await refetchAccountSettings();
-        refetch();
-      } catch {
-        // Do nothing (we don't need to propagate this)
-      }
-      setLoading(false);
-    },
-    [address, refetch, refetchAccountSettings, switchAccountNotifications],
-  );
-
-  return { toggleAccount, loading };
+  disabled?: boolean;
+  type?: string;
 }
 
 /**
@@ -70,29 +37,31 @@ function useUpdateAccountSetting(
  * This component assumes that the parent will manage the state of the toggle. This is because most of the state is global.
  */
 const NotificationOptionToggle = ({
-  address,
-  title,
   icon,
-  type,
+  title,
+  description,
+  value,
   testId,
-  isEnabled,
-  disabledSwitch,
-  refetchAccountSettings,
+  onOptionUpdated,
+  disabled,
+  type,
 }: NotificationOptionsToggleProps) => {
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles();
 
-  const { toggleAccount } = useUpdateAccountSetting(
-    address,
-    refetchAccountSettings,
+  const handleOnValueChange = useCallback(
+    (newValue: boolean) => {
+      onOptionUpdated?.(newValue);
+    },
+    [onOptionUpdated],
   );
 
   return (
     <View style={styles.container}>
-      {type === NotificationsToggleTypes.ACTIONS && icon ? (
+      {type === NotificationsToggleTypes.ACTIONS ? (
         <Icon
-          name={icon as IconName}
+          name={icon}
           style={styles.icon}
           color={IconColor.Default}
           size={icon === 'Received' ? IconSize.Md : IconSize.Lg}
@@ -100,8 +69,8 @@ const NotificationOptionToggle = ({
       ) : (
         <Avatar
           variant={AvatarVariant.Account}
-          type={icon as AvatarAccountType}
-          accountAddress={address}
+          type={icon}
+          accountAddress={description}
           size={AvatarSize.Md}
           style={styles.accountAvatar}
         />
@@ -110,18 +79,18 @@ const NotificationOptionToggle = ({
         <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
           {title}
         </Text>
-        {address ? (
+        {description ? (
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {type === NotificationsToggleTypes.ACTIONS
-              ? address
-              : formatAddress(address, 'short')}
+              ? description
+              : formatAddress(description, 'short')}
           </Text>
         ) : null}
       </View>
       <View style={styles.switchElement}>
         <Switch
-          value={isEnabled}
-          onValueChange={() => toggleAccount(!isEnabled)}
+          value={value}
+          onValueChange={(newValue: boolean) => handleOnValueChange(newValue)}
           trackColor={{
             true: colors.primary.default,
             false: colors.border.muted,
@@ -129,7 +98,7 @@ const NotificationOptionToggle = ({
           thumbColor={theme.brandColors.white}
           style={styles.switch}
           ios_backgroundColor={colors.border.muted}
-          disabled={disabledSwitch}
+          disabled={disabled}
           {...generateTestId(Platform, testId)}
         />
       </View>

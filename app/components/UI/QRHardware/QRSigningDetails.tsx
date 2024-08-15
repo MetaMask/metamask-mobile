@@ -226,24 +226,22 @@ const QRSigningDetails = ({
       hideScanner();
       const signature = ETHSignature.fromCBOR(ur.cbor);
       const buffer = signature.getRequestId();
-      if (buffer) {
-        const requestId = uuidStringify(buffer);
-        if (QRState.sign.request?.requestId === requestId) {
-          KeyringController.submitQRSignature(
-            QRState.sign.request?.requestId as string,
-            ur.cbor.toString('hex'),
-          );
-          setSentOrCanceled(true);
-          successCallback?.();
-          return;
-        }
+      const requestId = uuidStringify(buffer);
+      if (QRState.sign.request?.requestId === requestId) {
+        KeyringController.submitQRSignature(
+          QRState.sign.request?.requestId as string,
+          ur.cbor.toString('hex'),
+        );
+        setSentOrCanceled(true);
+        successCallback?.();
+      } else {
+        trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
+          error:
+            'received signature request id is not matched with origin request',
+        });
+        setErrorMessage(strings('transaction.mismatched_qr_request_id'));
+        failureCallback?.(strings('transaction.mismatched_qr_request_id'));
       }
-      trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
-        error:
-          'received signature request id is not matched with origin request',
-      });
-      setErrorMessage(strings('transaction.mismatched_qr_request_id'));
-      failureCallback?.(strings('transaction.mismatched_qr_request_id'));
     },
     [
       KeyringController,

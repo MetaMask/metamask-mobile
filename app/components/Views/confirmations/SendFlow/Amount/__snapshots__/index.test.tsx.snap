@@ -4770,7 +4770,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                 <View
                                   style={
                                     {
-                                      "backgroundColor": undefined,
+                                      "backgroundColor": "#undefined",
                                       "borderRadius": 12,
                                       "flex": 0,
                                     }

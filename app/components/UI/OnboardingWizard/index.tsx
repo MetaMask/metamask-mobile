@@ -25,7 +25,6 @@ import Device from '../../../util/device';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { isTest } from '../../../util/test/utils';
 import { useMetrics } from '../../hooks/useMetrics';
-import { RootState } from '../../../reducers';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -79,11 +78,6 @@ interface OnboardingWizardProps {
   coachmarkRef: React.RefObject<any> | null;
 }
 
-interface DrawerRef {
-  dismissDrawer: () => void;
-  showDrawer: () => void;
-}
-
 const OnboardingWizard = ({
   navigation,
   coachmarkRef,
@@ -95,10 +89,14 @@ const OnboardingWizard = ({
   const styles = createStyles(theme);
 
   const isAutomaticSecurityChecksModalOpen = useSelector(
-    (state: RootState) => state.security.isAutomaticSecurityChecksModalOpen,
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (state: any) => state.security.isAutomaticSecurityChecksModalOpen,
   );
 
-  const { step } = useSelector((state: RootState) => state.wizard);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { step } = useSelector((state: any) => state.wizard);
 
   /**
    * Close onboarding wizard setting step to 0 and closing drawer
@@ -146,13 +144,9 @@ const OnboardingWizard = ({
     } else if (step === 6) {
       dispatch(setOnboardingWizardStep(5));
       navigation.navigate(Routes.WALLET.HOME);
-      (
-        drawerRef as unknown as React.RefObject<DrawerRef>
-      )?.current?.dismissDrawer?.();
+      drawerRef?.current?.dismissDrawer?.();
     } else if (step === 7) {
-      (
-        drawerRef as unknown as React.RefObject<DrawerRef>
-      )?.current?.showDrawer?.();
+      drawerRef?.current?.showDrawer?.();
       dispatch(setOnboardingWizardStep(6));
     }
     return setOnboardingWizardStep(step - 1);

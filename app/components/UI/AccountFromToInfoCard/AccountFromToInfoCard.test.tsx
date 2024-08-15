@@ -2,18 +2,14 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { shallow } from 'enzyme';
 import configureMockStore from 'redux-mock-store';
-import Engine from '../../../core/Engine';
 
-import renderWithProvider, {
-  DeepPartial,
-} from '../../../util/test/renderWithProvider';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import { ENSCache } from '../../../util/ENSUtils';
 import { Transaction } from './AccountFromToInfoCard.types';
 import AccountFromToInfoCard from '.';
+import Engine from '../../../core/Engine';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
-import { RootState } from '../../../reducers';
-import { AssetsContractController } from '@metamask/assets-controllers';
 
 const MOCK_ADDRESS_1 = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
 const MOCK_ADDRESS_2 = '0x519d2CE57898513F676a5C3b66496c3C394c9CC7';
@@ -23,7 +19,7 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS_2,
 ]);
 
-const mockInitialState: DeepPartial<RootState> = {
+const mockInitialState = {
   settings: {},
   engine: {
     backgroundState: {
@@ -31,10 +27,10 @@ const mockInitialState: DeepPartial<RootState> = {
       AccountTrackerController: {
         accounts: {
           [MOCK_ADDRESS_1]: {
-            balance: '200',
+            balance: 200,
           },
           [MOCK_ADDRESS_2]: {
-            balance: '200',
+            balance: 200,
           },
         },
       },
@@ -52,7 +48,6 @@ jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
   isQRHardwareAccount: () => false,
 }));
-let mockGetERC20BalanceOf = jest.fn().mockReturnValue(0x0186a0);
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -73,9 +68,6 @@ jest.mock('../../../core/Engine', () => ({
       },
     },
     AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-    AssetsContractController: {
-      getERC20BalanceOf: mockGetERC20BalanceOf,
-    } as Partial<AssetsContractController> as AssetsContractController,
   },
 }));
 
@@ -86,9 +78,9 @@ jest.mock('../../../util/ENSUtils', () => ({
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-
-  useSelector: (fn: (arg: DeepPartial<RootState>) => void) =>
-    fn(mockInitialState),
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  useSelector: (fn: any) => fn(mockInitialState),
 }));
 
 jest.mock('../../../util/address', () => ({
@@ -225,38 +217,44 @@ describe('AccountFromToInfoCard', () => {
   });
 
   describe('from account balance', () => {
-    const ERC20Transaction: Transaction = {
-      transactionFromName: 'a',
-      transactionToName: 'b',
+    const ERC20Transaction = {
+      assetType: 'ERC20',
+      data: '0xa9059cbb0000000000000000000000002f318c334780961fb129d2a6c30d0763d9a5c9700000000000000000000000000000000000000000000000000000000000003a98',
+      from: '0x519d2CE57898513F676a5C3b66496c3C394c9CC7',
       selectedAsset: {
         address: '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95',
-        decimals: 4,
+        decimals: '4',
         image: 'https://metamask.github.io/test-dapp/metamask-fox.svg',
+        isERC721: false,
         symbol: 'TST',
-        isETH: false,
       },
-      transactionTo: '0x2f318c334780961fb129d2a6c30d0763d9a5c970',
+      to: '0x2f318c334780961fb129d2a6c30d0763d9a5c970',
       transaction: {
         data: '0xa9059cbb0000000000000000000000002f318c334780961fb129d2a6c30d0763d9a5c9700000000000000000000000000000000000000000000000000000000000003a98',
         from: '0x519d2CE57898513F676a5C3b66496c3C394c9CC7',
         to: '0x2f318c334780961fb129d2a6c30d0763d9a5c970',
+        value: '3a98',
       },
     };
-
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let mockGetERC20BalanceOf: any;
     beforeEach(() => {
       jest.useFakeTimers();
       mockGetERC20BalanceOf = jest.fn().mockReturnValue(0x0186a0);
       Engine.context.AssetsContractController = {
         getERC20BalanceOf: mockGetERC20BalanceOf,
-      } as Partial<AssetsContractController> as AssetsContractController;
+      };
     });
 
     it('should render balance from AssetsContractController.getERC20BalanceOf if selectedAddress is different from fromAddress', async () => {
       const { findByText } = renderWithProvider(
-        <AccountFromToInfoCard transactionState={ERC20Transaction} />,
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        <AccountFromToInfoCard transactionState={ERC20Transaction as any} />,
         { state: mockInitialState },
       );
-      expect(mockGetERC20BalanceOf).toHaveBeenCalled();
+      expect(mockGetERC20BalanceOf).toBeCalledTimes(1);
       expect(await findByText('Balance: 10 TST')).toBeDefined();
     });
 

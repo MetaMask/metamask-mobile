@@ -12,7 +12,6 @@ import Icon, {
 
 import Button, {
   ButtonVariants,
-  ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 
 import Text, {
@@ -100,7 +99,6 @@ const NotificationsView = ({
             variant={ButtonVariants.Primary}
             label={strings('notifications.mark_all_as_read')}
             onPress={handleMarkAllAsRead}
-            size={ButtonSize.Lg}
             style={styles.stickyButton}
             disabled={loading}
           />

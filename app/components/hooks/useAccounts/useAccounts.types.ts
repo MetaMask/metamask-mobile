@@ -3,7 +3,6 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 
 // External dependencies.
 import { AvatarGroupToken } from '../../../component-library/components/Avatars/AvatarGroup/AvatarGroup.types';
-import { Hex } from '@metamask/utils';
 
 /**
  * Asset information associated with the account, which includes both the fiat balance and owned tokens.
@@ -30,7 +29,7 @@ export interface Account {
   /**
    * Account address.
    */
-  address: Hex;
+  address: string;
   /**
    * Asset information associated with the account, which includes both the fiat balance and owned tokens.
    */

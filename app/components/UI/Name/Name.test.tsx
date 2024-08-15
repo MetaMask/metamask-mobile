@@ -39,7 +39,6 @@ describe('Name', () => {
     useDisplayName as jest.MockedFunction<typeof useDisplayName>
   ).mockReturnValue({
     variant: DisplayNameVariant.Unknown,
-    name: KNOWN_NAME_MOCK,
   });
 
   describe('unknown address', () => {

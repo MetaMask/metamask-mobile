@@ -1,16 +1,14 @@
-import {
-  NavigationProp,
-  ParamListBase,
-  RouteProp,
-} from '@react-navigation/native';
-
 export interface Props {
   /**
 	/* navigation object required to push new views
 	*/
-  navigation: NavigationProp<ParamListBase>;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  navigation: any;
   /**
    * contains params that are passed in from navigation
    */
-  route: RouteProp<{ params: { isFullScreenModal?: boolean } }, 'params'>;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  route: any;
 }

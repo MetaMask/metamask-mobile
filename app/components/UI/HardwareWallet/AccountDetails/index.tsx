@@ -33,15 +33,13 @@ const AccountDetails = (props: IAccountDetailsProps) => {
           {renderFromWei(balance)} {ticker || defaultTicker}
         </Text>
       </View>
-      {
-        <Icon
-          size={18}
-          name={'external-link'}
-          onPress={() => toBlockExplorer(address)}
-          style={styles.linkIcon}
-          color={colors.text.default}
-        />
-      }
+      <Icon
+        size={18}
+        name={'external-link'}
+        onPress={() => toBlockExplorer(address)}
+        style={styles.linkIcon}
+        color={colors.text.default}
+      />
     </View>
   );
 };

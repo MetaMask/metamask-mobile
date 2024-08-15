@@ -1,6 +1,5 @@
 import AppConstants from '../../../../core/AppConstants';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
-import { Hex } from '@metamask/utils';
 
 const {
   MAINNET,
@@ -31,7 +30,7 @@ const allowedChainIds = [
  * @param chainId The chain ID of the source network.
  * @returns `true` if the chain is allowed, otherwise, return `false`.
  */
-export default function isBridgeAllowed(chainId: Hex) {
+export default function isBridgeAllowed(chainId: string) {
   if (!AppConstants.BRIDGE.ACTIVE) return false;
 
   return allowedChainIds.includes(chainId);

@@ -118,7 +118,3 @@ ccache
 
 # open-rpc/test-coverage
 html-report/
-
-# terms of use
-app/util/termsOfUse/termsOfUseContent.js
-docs/assets/termsOfUse.html

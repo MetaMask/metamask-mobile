@@ -70,7 +70,6 @@ const SearchingForDeviceStep = () => {
   );
 
   const handleOpenInstallEthAppInstructions = () => {
-    //@ts-expect-error - Property 'push' does not exist on type 'NavigationProp<ParamListBase>'
     navigation.push('Webview', {
       screen: 'SimpleWebview',
       params: {
@@ -124,7 +123,7 @@ const SearchingForDeviceStep = () => {
         </Text>
       </View>
       <TouchableOpacity onPress={handleOpenInstallEthAppInstructions}>
-        <Text style={styles.howToInstallEthAppText} bold link numberOfLines={2}>
+        <Text style={styles.howToInstallEthAppText} bold link numerOfLines={2}>
           {strings('ledger.how_to_install_eth_app')}
         </Text>
       </TouchableOpacity>

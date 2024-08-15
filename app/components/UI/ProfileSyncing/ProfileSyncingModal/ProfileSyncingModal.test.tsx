@@ -28,9 +28,6 @@ const MOCK_STORE_STATE = {
       UserStorageController: {
         isProfileSyncingEnabled: true,
       },
-      AuthenticationController: {
-        isSignedIn: true,
-      },
     },
   },
 };

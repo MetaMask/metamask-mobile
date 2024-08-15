@@ -299,18 +299,8 @@ class OptinMetrics extends PureComponent {
    * Callback on press cancel
    */
   onCancel = async () => {
-    const {
-      isDataCollectionForMarketingEnabled,
-      setDataCollectionForMarketing,
-    } = this.props;
     setTimeout(async () => {
       const { clearOnboardingEvents, metrics } = this.props;
-      if (
-        isDataCollectionForMarketingEnabled === null &&
-        setDataCollectionForMarketing
-      ) {
-        setDataCollectionForMarketing(false);
-      }
       // if users refuses tracking, get rid of the stored events
       // and never send them to Segment
       // and disable analytics
@@ -324,22 +314,10 @@ class OptinMetrics extends PureComponent {
    * Callback on press confirm
    */
   onConfirm = async () => {
-    const {
-      events,
-      metrics,
-      isDataCollectionForMarketingEnabled,
-      setDataCollectionForMarketing,
-    } = this.props;
+    const { events, metrics } = this.props;
     await metrics.enable();
     InteractionManager.runAfterInteractions(async () => {
       // add traits to user for identification
-
-      if (
-        isDataCollectionForMarketingEnabled === null &&
-        setDataCollectionForMarketing
-      ) {
-        setDataCollectionForMarketing(false);
-      }
 
       // trait indicating if user opts in for data collection for marketing
       let dataCollectionForMarketingTraits;

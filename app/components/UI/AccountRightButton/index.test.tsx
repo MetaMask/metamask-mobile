@@ -1,20 +1,15 @@
-import React from 'react';
-import {
-  DeepPartial,
-  renderScreen,
-} from '../../../util/test/renderWithProvider';
+import { renderScreen } from '../../../util/test/renderWithProvider';
 import AccountRightButton from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { RootState } from '../../../reducers';
 
-const mockInitialState: DeepPartial<RootState> = {
+const mockInitialState = {
   settings: {},
   engine: {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
         providerConfig: {
-          chainId: '0x1',
+          chainId: 0x1,
         },
       },
     },
@@ -24,13 +19,7 @@ const mockInitialState: DeepPartial<RootState> = {
 describe('AccountRightButton', () => {
   it('should render correctly', () => {
     const { toJSON } = renderScreen(
-      () => (
-        <AccountRightButton
-          selectedAddress="0x123"
-          onPress={() => undefined}
-          isNetworkVisible
-        />
-      ),
+      AccountRightButton,
       {
         name: 'AccountRightButton',
       },

@@ -33,11 +33,7 @@ describe('NetworkVerificationInfo', () => {
   it('renders correctly', () => {
     (useSelector as jest.Mock).mockReturnValue(true);
     const { toJSON } = render(
-      <NetworkVerificationInfo
-        customNetworkInformation={mockNetworkInfo}
-        onReject={() => undefined}
-        onConfirm={() => undefined}
-      />,
+      <NetworkVerificationInfo customNetworkInformation={mockNetworkInfo} />,
     );
 
     expect(toJSON()).toMatchSnapshot();
@@ -45,11 +41,7 @@ describe('NetworkVerificationInfo', () => {
   it('renders one alert', () => {
     (useSelector as jest.Mock).mockReturnValue(true);
     const { getByText } = render(
-      <NetworkVerificationInfo
-        customNetworkInformation={mockNetworkInfo}
-        onReject={() => undefined}
-        onConfirm={() => undefined}
-      />,
+      <NetworkVerificationInfo customNetworkInformation={mockNetworkInfo} />,
     );
     expect(
       getByText(strings('add_custom_network.unrecognized_chain_name')),
@@ -59,11 +51,7 @@ describe('NetworkVerificationInfo', () => {
   it('should render the banner', () => {
     (useSelector as jest.Mock).mockReturnValue(false);
     const { getByText } = render(
-      <NetworkVerificationInfo
-        customNetworkInformation={mockNetworkInfo}
-        onReject={() => undefined}
-        onConfirm={() => undefined}
-      />,
+      <NetworkVerificationInfo customNetworkInformation={mockNetworkInfo} />,
     );
     expect(
       getByText(strings('wallet.turn_on_network_check_cta')),
@@ -73,11 +61,7 @@ describe('NetworkVerificationInfo', () => {
   it('should not render alert', () => {
     (useSelector as jest.Mock).mockReturnValue(false);
     const { getByText } = render(
-      <NetworkVerificationInfo
-        customNetworkInformation={mockNetworkInfo}
-        onReject={() => undefined}
-        onConfirm={() => undefined}
-      />,
+      <NetworkVerificationInfo customNetworkInformation={mockNetworkInfo} />,
     );
 
     expect(() =>
@@ -88,11 +72,7 @@ describe('NetworkVerificationInfo', () => {
   it('should render chainId on decimal', () => {
     (useSelector as jest.Mock).mockReturnValue(true);
     const { getByText } = render(
-      <NetworkVerificationInfo
-        customNetworkInformation={mockNetworkInfo}
-        onReject={() => undefined}
-        onConfirm={() => undefined}
-      />,
+      <NetworkVerificationInfo customNetworkInformation={mockNetworkInfo} />,
     );
 
     expect(getByText('10')).toBeTruthy();

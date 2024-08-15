@@ -3,7 +3,7 @@ import { ViewStyle } from 'react-native';
 
 export interface Collectible {
   name: string;
-  tokenId: string;
+  tokenId: number;
   image: string;
   imagePreview: string;
   address: string;
