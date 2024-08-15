@@ -123,4 +123,6 @@ post_install do |installer|
     :mac_catalyst_enabled => false
   )
   __apply_Xcode_12_5_M1_post_install_workaround(installer)
+
+  `patch -p1 < ../patches/sentry-crash-machine-context-fix.patch`
 end

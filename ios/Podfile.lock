@@ -1214,7 +1214,7 @@ SPEC CHECKSUMS:
   react-native-blur: 507cf3dd4434eb9d5ca5f183e49d8bcccdd66826
   react-native-branch: 4e42fda662d96893afbbd02839806931398e3d2e
   react-native-camera: b8cc03e2feec0c04403d0998e37cf519d8fd4c6f
-  react-native-compat: 24c27f0076c5d094ac54a7c803aa5fd4f582444d
+  react-native-compat: dcf61cf5a7377da0e34d4b7879dc8942cc0b5602
   react-native-cookies: f54fcded06bb0cda05c11d86788020b43528a26c
   react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
   react-native-gzip: c5e87ee9e359f02350e3a2ee52eb35eddc398868
@@ -1283,6 +1283,6 @@ SPEC CHECKSUMS:
   Yoga: 6f5ab94cd8b1ecd04b6e973d0bc583ede2a598cc
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 927882068f3289129c30becb4706176f8ad95e4b
+PODFILE CHECKSUM: ff48e2770f011e4026d1c846caa99fa4b06d1df6
 
 COCOAPODS: 1.15.2

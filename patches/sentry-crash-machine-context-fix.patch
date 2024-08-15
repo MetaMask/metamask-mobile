@@ -1,0 +1,10 @@
+--- ios/Pods/Sentry/Sources/SentryCrash/Recording/Tools/SentryCrashMachineContext.c.orig	2024-08-15 13:29:03
++++ ios/Pods/Sentry/Sources/SentryCrash/Recording/Tools/SentryCrashMachineContext.c	2024-08-15 13:28:56
+@@ -40,6 +40,7 @@
+ 
+ #ifdef __arm64__
+ #    define UC_MCONTEXT uc_mcontext64
++#    include <sys/_types/_ucontext64.h>
+ typedef ucontext64_t SignalUserContext;
+ #else
+ #    define UC_MCONTEXT uc_mcontext
