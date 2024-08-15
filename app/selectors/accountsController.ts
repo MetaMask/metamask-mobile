@@ -52,7 +52,6 @@ export const selectSelectedInternalAccount = createDeepEqualSelector(
         `selectSelectedInternalAccount: Account with ID ${accountId} not found.`,
       );
       captureException(err);
-      return undefined;
     }
     return account;
   },
@@ -63,8 +62,8 @@ export const selectSelectedInternalAccount = createDeepEqualSelector(
  */
 export const selectSelectedInternalAccountChecksummedAddress = createSelector(
   selectSelectedInternalAccount,
-  (account) => {
-    const selectedAddress = account?.address;
-    return selectedAddress ? toChecksumHexAddress(selectedAddress) : undefined;
+  (account): string => {
+    const selectedAddress = account.address;
+    return toChecksumHexAddress(selectedAddress);
   },
 );
