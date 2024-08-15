@@ -247,7 +247,6 @@ exports[`CollectibleModal should render correctly 1`] = `
     >
       <View
         collapsable={false}
-        forwardedRef={[Function]}
         onGestureHandlerEvent={[Function]}
         onGestureHandlerStateChange={[Function]}
         onLayout={[Function]}
