@@ -71,8 +71,8 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
       }
     : {
         contractAddress: formatAddress(tokenContractAddress, 'short') || null,
-        tokenDecimal: tokenMetadata.decimals || null,
-        tokenList: tokenMetadata.aggregators.join(', ') || null,
+        tokenDecimal: tokenMetadata?.decimals || null,
+        tokenList: tokenMetadata?.aggregators.join(', ') || null,
       };
 
   const marketDetails: MarketDetails = {

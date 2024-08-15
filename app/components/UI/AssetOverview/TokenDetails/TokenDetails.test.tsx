@@ -83,6 +83,9 @@ const mockContractExchangeRates = {
 };
 
 describe('TokenDetails', () => {
+  beforeAll(() => {
+    jest.resetAllMocks();
+  });
   it('should render correctly', () => {
     const useSelectorSpy = jest.spyOn(reactRedux, 'useSelector');
     useSelectorSpy.mockImplementation((selector) => {
@@ -130,5 +133,59 @@ describe('TokenDetails', () => {
     expect(getByText('Fully diluted')).toBeDefined();
     expect(getByText('1.92M')).toBeDefined();
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should render TokenDetils without MarketDetails when marketData is null', () => {
+    const useSelectorSpy = jest.spyOn(reactRedux, 'useSelector');
+    useSelectorSpy.mockImplementation((selector) => {
+      switch (selector) {
+        case selectTokenList:
+          return mockAssets;
+        case selectContractExchangeRates:
+          return {};
+        case selectConversionRate:
+          return mockExchangeRate;
+        case selectCurrentCurrency:
+          return mockCurrentCurrency;
+        default:
+          return undefined;
+      }
+    });
+
+    const { getByText, queryByText } = renderWithProvider(
+      <TokenDetails asset={mockDAI} />,
+      {
+        state: initialState,
+      },
+    );
+    expect(getByText('Token details')).toBeDefined();
+    expect(queryByText('Market details')).toBeNull();
+  });
+
+  it('should render MarketDetails without TokenDetails when tokenList is null', () => {
+    const useSelectorSpy = jest.spyOn(reactRedux, 'useSelector');
+    useSelectorSpy.mockImplementation((selector) => {
+      switch (selector) {
+        case selectTokenList:
+          return {};
+        case selectContractExchangeRates:
+          return mockContractExchangeRates;
+        case selectConversionRate:
+          return mockExchangeRate;
+        case selectCurrentCurrency:
+          return mockCurrentCurrency;
+        default:
+          return undefined;
+      }
+    });
+
+    const { getByText, queryByText } = renderWithProvider(
+      <TokenDetails asset={mockDAI} />,
+      {
+        state: initialState,
+      },
+    );
+    expect(queryByText('Token details')).toBeNull();
+    expect(getByText('Market details')).toBeDefined();
   });
 });
