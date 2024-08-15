@@ -62,7 +62,7 @@ export const selectSelectedInternalAccount = createDeepEqualSelector(
  */
 export const selectSelectedInternalAccountChecksummedAddress = createSelector(
   selectSelectedInternalAccount,
-  (account): string => {
+  (account) => {
     const selectedAddress = account.address;
     return toChecksumHexAddress(selectedAddress);
   },
