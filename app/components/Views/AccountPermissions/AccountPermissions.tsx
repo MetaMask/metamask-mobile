@@ -192,10 +192,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     [setIsLoading],
   );
 
-  const handleConnect = useCallback(async () => {
+  const handleConnect = useCallback(() => {
     try {
       setIsLoading(true);
-      const newActiveAddress = await addPermittedAccounts(
+      const newActiveAddress = addPermittedAccounts(
         hostname,
         selectedAddresses,
       );
