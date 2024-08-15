@@ -1,5 +1,11 @@
 // Third party dependencies.
-import { Linking, Switch, TouchableOpacity, View } from 'react-native';
+import {
+  ImageSourcePropType,
+  Linking,
+  Switch,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import React, { useCallback, useRef, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
@@ -76,8 +82,12 @@ import AccountAction from '../AccountAction';
 import { ButtonsAlignment } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
-import { ExtendedNetwork } from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
+import {
+  ExtendedNetwork,
+  Network,
+} from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
+import { Hex } from '@metamask/utils';
 
 const NetworkSelector = () => {
   const [showPopularNetworkModal, setShowPopularNetworkModal] = useState(false);
@@ -133,10 +143,10 @@ const NetworkSelector = () => {
 
     let ticker = type;
     if (type === LINEA_SEPOLIA) {
-      ticker = TESTNET_TICKER_SYMBOLS.LINEA_SEPOLIA;
+      ticker = TESTNET_TICKER_SYMBOLS.LINEA_SEPOLIA as InfuraNetworkType;
     }
     if (type === SEPOLIA) {
-      ticker = TESTNET_TICKER_SYMBOLS.SEPOLIA;
+      ticker = TESTNET_TICKER_SYMBOLS.SEPOLIA as InfuraNetworkType;
     }
 
     CurrencyRateController.updateExchangeRate(ticker);
@@ -257,9 +267,11 @@ const NetworkSelector = () => {
     }
 
     if (networkIdenfier === MAINNET || networkIdenfier === LINEA_MAINNET) {
+      const networkIdentified = Networks[
+        networkIdenfier
+      ] as unknown as ExtendedNetwork;
       return (
-        filterNetworksByName([Networks[networkIdenfier]], searchString)
-          .length === 0
+        filterNetworksByName([networkIdentified], searchString).length === 0
       );
     }
 
@@ -421,8 +433,27 @@ const NetworkSelector = () => {
   const renderOtherNetworks = () => {
     const getOtherNetworks = () => getAllNetworks().slice(2);
     return getOtherNetworks().map((networkType) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { name, imageSource, chainId } = (Networks as any)[networkType];
+      const {
+        name,
+        imageSource,
+        chainId,
+      }: {
+        name: string;
+        shortName: string;
+        color: string;
+        networkType: string;
+        imageSource: ImageSourcePropType;
+        chainId: Hex;
+      } = Networks[
+        networkType as unknown as keyof typeof Networks
+      ] as unknown as {
+        name: string;
+        shortName: string;
+        color: string;
+        networkType: string;
+        imageSource: ImageSourcePropType;
+        chainId: Hex;
+      };
 
       if (isNetworkUiRedesignEnabled() && isNoSearchResults(name)) return null;
 
@@ -439,7 +470,7 @@ const NetworkSelector = () => {
               size: AvatarSize.Sm,
             }}
             isSelected={chainId === providerConfig.chainId}
-            onPress={() => onNetworkChange(networkType)}
+            onPress={() => onNetworkChange(networkType as InfuraNetworkType)}
             style={styles.networkCell}
             buttonIcon={IconName.MoreVertical}
             onButtonClick={() => {
@@ -461,7 +492,7 @@ const NetworkSelector = () => {
             size: avatarSize,
           }}
           isSelected={chainId === providerConfig.chainId}
-          onPress={() => onNetworkChange(networkType)}
+          onPress={() => onNetworkChange(networkType as InfuraNetworkType)}
           style={styles.networkCell}
         />
       );
@@ -579,23 +610,25 @@ const NetworkSelector = () => {
 
     setShowConfirmDeleteModal({
       isVisible: true,
-      networkName: nickname,
+      networkName: nickname ?? '',
       entry,
     });
   };
 
   const confirmRemoveRpc = () => {
-    const [networkConfigurationId] = showConfirmDeleteModal.entry;
+    if (Array.isArray(showConfirmDeleteModal.entry)) {
+      const [networkConfigurationId] = showConfirmDeleteModal.entry;
 
-    const { NetworkController } = Engine.context;
+      const { NetworkController } = Engine.context;
 
-    NetworkController.removeNetworkConfiguration(networkConfigurationId);
+      NetworkController.removeNetworkConfiguration(networkConfigurationId);
 
-    setShowConfirmDeleteModal({
-      isVisible: false,
-      networkName: '',
-      entry: {},
-    });
+      setShowConfirmDeleteModal({
+        isVisible: false,
+        networkName: '',
+        entry: {},
+      });
+    }
   };
 
   const cancelButtonProps: ButtonProps = {
