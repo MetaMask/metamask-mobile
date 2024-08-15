@@ -230,15 +230,14 @@ const AccountConnect = (props: AccountConnectProps) => {
     inappBrowserOrigin || (!isChannelId ? channelIdOrHostname : ''),
   );
 
-  const actualIcon = useMemo(
-    () =>
-      faviconSource?.uri
-        ? faviconSource
-        : dappIconUrl
-        ? { uri: dappIconUrl }
-        : { uri: '' },
-    [dappIconUrl, faviconSource],
-  );
+  const actualIcon = useMemo(() => {
+    const favicon = faviconSource as ImageURISource;
+    if ('uri' in favicon) {
+      return faviconSource;
+    }
+
+    return { uri: dappIconUrl ?? '' };
+  }, [dappIconUrl, faviconSource]);
 
   const secureIcon = useMemo(
     () =>
@@ -373,6 +372,9 @@ const AccountConnect = (props: AccountConnectProps) => {
 
     try {
       setIsLoading(true);
+      /*
+       * TODO: update request object to match PermissionsRequest type
+       */
       await Engine.context.PermissionController.acceptPermissionsRequest(
         request,
       );
