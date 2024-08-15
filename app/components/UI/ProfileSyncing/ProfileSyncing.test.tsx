@@ -14,6 +14,9 @@ const MOCK_STORE_STATE = {
       NotificationServicesController: {
         isNotificationServicesEnabled: true,
       },
+      AuthenticationController: {
+        isSignedIn: true,
+      },
     },
   },
 };
