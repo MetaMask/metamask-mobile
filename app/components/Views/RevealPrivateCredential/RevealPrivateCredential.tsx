@@ -1,5 +1,5 @@
 /* eslint-disable no-mixed-spaces-and-tabs */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Dimensions,
   Linking,
@@ -124,48 +124,48 @@ const RevealPrivateCredential = ({
     );
   };
 
-  const tryUnlockWithPassword = async (
-    pswd: string,
-    privCredentialName?: string,
-  ) => {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { KeyringController } = Engine.context as any;
-    const isPrivateKeyReveal = privCredentialName === PRIVATE_KEY;
-
-    try {
-      let privateCredential;
-      if (!isPrivateKeyReveal) {
-        const uint8ArraySeed = await KeyringController.exportSeedPhrase(pswd);
-        privateCredential = uint8ArrayToMnemonic(uint8ArraySeed, wordlist);
-      } else {
-        privateCredential = await KeyringController.exportAccount(
-          pswd,
-          selectedAddress,
-        );
-      }
-
-      if (privateCredential && (isUserUnlocked || isPrivateKeyReveal)) {
-        setClipboardPrivateCredential(privateCredential);
-        setUnlocked(true);
-      }
+  const tryUnlockWithPassword = useCallback(
+    async (pswd: string, privCredentialName?: string) => {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (e: any) {
-      let msg = strings('reveal_credential.warning_incorrect_password');
-      if (isHardwareAccount(selectedAddress)) {
-        msg = strings('reveal_credential.hardware_error');
-      } else if (
-        e.toString().toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()
-      ) {
-        msg = strings('reveal_credential.unknown_error');
-      }
+      const { KeyringController } = Engine.context as any;
+      const isPrivateKeyReveal = privCredentialName === PRIVATE_KEY;
 
-      setIsModalVisible(false);
-      setUnlocked(false);
-      setWarningIncorrectPassword(msg);
-    }
-  };
+      try {
+        let privateCredential;
+        if (!isPrivateKeyReveal) {
+          const uint8ArraySeed = await KeyringController.exportSeedPhrase(pswd);
+          privateCredential = uint8ArrayToMnemonic(uint8ArraySeed, wordlist);
+        } else {
+          privateCredential = await KeyringController.exportAccount(
+            pswd,
+            selectedAddress,
+          );
+        }
+
+        if (privateCredential && (isUserUnlocked || isPrivateKeyReveal)) {
+          setClipboardPrivateCredential(privateCredential);
+          setUnlocked(true);
+        }
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (e: any) {
+        let msg = strings('reveal_credential.warning_incorrect_password');
+        if (isHardwareAccount(selectedAddress)) {
+          msg = strings('reveal_credential.hardware_error');
+        } else if (
+          e.toString().toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()
+        ) {
+          msg = strings('reveal_credential.unknown_error');
+        }
+
+        setIsModalVisible(false);
+        setUnlocked(false);
+        setWarningIncorrectPassword(msg);
+      }
+    },
+    [isUserUnlocked, selectedAddress],
+  );
 
   useEffect(() => {
     updateNavBar();
@@ -281,11 +281,17 @@ const RevealPrivateCredential = ({
     );
   };
 
-  const revealCredential = (privCredentialName: string) => {
-    tryUnlockWithPassword(password, privCredentialName);
+  const revealCredential = useCallback(() => {
+    const credential = credentialName || route?.params.credentialName;
+    tryUnlockWithPassword(password, credential);
     setIsUserUnlocked(true);
     setIsModalVisible(false);
-  };
+  }, [
+    credentialName,
+    password,
+    route?.params.credentialName,
+    tryUnlockWithPassword,
+  ]);
 
   const renderTabBar = () => (
     <DefaultTabBar
@@ -426,10 +432,7 @@ const RevealPrivateCredential = ({
     setIsModalVisible(false);
   };
 
-  const renderModal = (
-    isPrivateKeyReveal: boolean,
-    privCredentialName: string,
-  ) => (
+  const renderModal = (isPrivateKeyReveal: boolean) => (
     <InfoModal
       isVisible={isModalVisible}
       toggleModal={closeModal}
@@ -472,7 +475,7 @@ const RevealPrivateCredential = ({
               })}
               variant={ButtonVariants.Primary}
               size={ButtonSize.Lg}
-              onPress={() => revealCredential(privCredentialName)}
+              onPress={revealCredential}
               style={styles.revealButton}
             />
           ) : (
@@ -482,7 +485,7 @@ const RevealPrivateCredential = ({
                   ? strings('reveal_credential.private_key_text')
                   : strings('reveal_credential.srp_abbreviation_text'),
               })}
-              onLongPress={() => revealCredential(privCredentialName)}
+              onLongPress={revealCredential}
             />
           )}
         </>
@@ -579,7 +582,7 @@ const RevealPrivateCredential = ({
           </View>
         </>
       </ActionView>
-      {renderModal(isPrivateKey, credentialSlug)}
+      {renderModal(isPrivateKey)}
 
       <ScreenshotDeterrent
         enabled={unlocked}
