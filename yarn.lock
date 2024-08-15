@@ -5440,10 +5440,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/swappable-obj-proxy/-/swappable-obj-proxy-2.2.0.tgz#31b8e0ce57e28bf9847b3b24b214996f7748cc99"
   integrity sha512-0OjVwQtrrPFRGipw64yDUQA0CUXCK161LWCv2KlTTDZD8BKeWSNb0gbnpDI7HvhsJ0gki5gScZj1hF3ShDnBzA==
 
-"@metamask/swaps-controller@^9.0.1":
-  version "9.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-9.0.1.tgz#41842ac6150a4deb948aa7264d866134e0cbfb34"
-  integrity sha512-HabEz3a2w4Zb4xmpBZ63CVn7tgBOmZOxnVAG7f3R1BH36tP/WfUBVVTnkXS8B3YMTqCt/3EzC//VsD8/tcWFOg==
+"@metamask/swaps-controller@^9.0.2":
+  version "9.0.2"
+  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-9.0.2.tgz#250c0d6a51ad31d9ba4c280aef77fe3606fd1a39"
+  integrity sha512-/Ml5w0aTmMaM9cNzwI5wl23+aDjebepYv6TZPfvwR/yRei9/pcIarFmHkhWMvTNFni5P1ZErd1BYtDJug1SA/w==
   dependencies:
     "@metamask/base-controller" "^4.1.1"
     "@metamask/controller-utils" "^8.0.2"
