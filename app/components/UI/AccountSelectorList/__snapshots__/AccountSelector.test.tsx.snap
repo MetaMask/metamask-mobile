@@ -13,12 +13,6 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
         },
         "balanceError": undefined,
         "isSelected": true,
-        "metadata": {
-          "keyring": {
-            "type": "HD Key Tree",
-          },
-          "name": "Account 1",
-        },
         "name": "Account 1",
         "type": "HD Key Tree",
         "yOffset": 0,
@@ -31,12 +25,6 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
         },
         "balanceError": undefined,
         "isSelected": false,
-        "metadata": {
-          "keyring": {
-            "type": "HD Key Tree",
-          },
-          "name": "Account 2",
-        },
         "name": "Account 2",
         "type": "HD Key Tree",
         "yOffset": 78,
@@ -628,12 +616,6 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
         },
         "balanceError": undefined,
         "isSelected": true,
-        "metadata": {
-          "keyring": {
-            "type": "HD Key Tree",
-          },
-          "name": "Account 1",
-        },
         "name": "Account 1",
         "type": "HD Key Tree",
         "yOffset": 0,
@@ -646,12 +628,6 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
         },
         "balanceError": undefined,
         "isSelected": false,
-        "metadata": {
-          "keyring": {
-            "type": "HD Key Tree",
-          },
-          "name": "Account 2",
-        },
         "name": "Account 2",
         "type": "HD Key Tree",
         "yOffset": 78,
@@ -1176,12 +1152,6 @@ exports[`AccountSelectorList renders correctly 1`] = `
         },
         "balanceError": undefined,
         "isSelected": true,
-        "metadata": {
-          "keyring": {
-            "type": "HD Key Tree",
-          },
-          "name": "Account 1",
-        },
         "name": "Account 1",
         "type": "HD Key Tree",
         "yOffset": 0,
@@ -1194,12 +1164,6 @@ exports[`AccountSelectorList renders correctly 1`] = `
         },
         "balanceError": undefined,
         "isSelected": false,
-        "metadata": {
-          "keyring": {
-            "type": "HD Key Tree",
-          },
-          "name": "Account 2",
-        },
         "name": "Account 2",
         "type": "HD Key Tree",
         "yOffset": 78,
@@ -1791,12 +1755,6 @@ exports[`AccountSelectorList should render all accounts but only the balance for
         },
         "balanceError": undefined,
         "isSelected": true,
-        "metadata": {
-          "keyring": {
-            "type": "HD Key Tree",
-          },
-          "name": "Account 1",
-        },
         "name": "Account 1",
         "type": "HD Key Tree",
         "yOffset": 0,
@@ -1806,12 +1764,6 @@ exports[`AccountSelectorList should render all accounts but only the balance for
         "assets": undefined,
         "balanceError": undefined,
         "isSelected": false,
-        "metadata": {
-          "keyring": {
-            "type": "HD Key Tree",
-          },
-          "name": "Account 2",
-        },
         "name": "Account 2",
         "type": "HD Key Tree",
         "yOffset": 78,
