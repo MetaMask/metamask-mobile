@@ -1653,7 +1653,8 @@ class Engine {
 
       const { accountsByChainId } = AccountTrackerController.state;
       const { tokens } = TokensController.state;
-      const { marketData: tokenExchangeRates } = TokenRatesController.state;
+      const { marketData } = TokenRatesController.state;
+      const tokenExchangeRates = marketData?.[toHexadecimal(chainId)];
 
       let ethFiat = 0;
       let ethFiat1dAgo = 0;
@@ -1674,44 +1675,46 @@ class Engine {
         );
       }
 
-    const ethPricePercentChange1d =
-      tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
+      const ethPricePercentChange1d =
+        tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
 
-    ethFiat1dAgo =
-      ethPricePercentChange1d !== undefined
-        ? ethFiat / (1 + ethPricePercentChange1d / 100)
-        : ethFiat;
+      ethFiat1dAgo =
+        ethPricePercentChange1d !== undefined
+          ? ethFiat / (1 + ethPricePercentChange1d / 100)
+          : ethFiat;
 
-    if (tokens.length > 0) {
-      const { contractBalances: tokenBalances } = TokenBalancesController.state;
-      tokens.forEach(
-        (item: { address: string; balance?: string; decimals: number }) => {
-          const exchangeRate = tokenExchangeRates?.[item.address as Hex]?.price;
+      if (tokens.length > 0) {
+        const { contractBalances: tokenBalances } =
+          TokenBalancesController.state;
+        tokens.forEach(
+          (item: { address: string; balance?: string; decimals: number }) => {
+            const exchangeRate =
+              tokenExchangeRates?.[item.address as Hex]?.price;
 
-          const tokenBalance =
-            item.balance ||
-            (item.address in tokenBalances
-              ? renderFromTokenMinimalUnit(
-                  tokenBalances[item.address],
-                  item.decimals,
-                )
-              : undefined);
-          const tokenBalanceFiat = balanceToFiatNumber(
-            // TODO: Fix this by handling or eliminating the undefined case
-            // @ts-expect-error This variable can be `undefined`, which would break here.
-            tokenBalance,
-            conversionRate,
-            exchangeRate,
-            decimalsToShow,
-          );
+            const tokenBalance =
+              item.balance ||
+              (item.address in tokenBalances
+                ? renderFromTokenMinimalUnit(
+                    tokenBalances[item.address],
+                    item.decimals,
+                  )
+                : undefined);
+            const tokenBalanceFiat = balanceToFiatNumber(
+              // TODO: Fix this by handling or eliminating the undefined case
+              // @ts-expect-error This variable can be `undefined`, which would break here.
+              tokenBalance,
+              conversionRate,
+              exchangeRate,
+              decimalsToShow,
+            );
 
-          const tokenPricePercentChange1d =
-            tokenExchangeRates?.[item.address as Hex]?.pricePercentChange1d;
+            const tokenPricePercentChange1d =
+              tokenExchangeRates?.[item.address as Hex]?.pricePercentChange1d;
 
-          const tokenBalance1dAgo =
-            tokenPricePercentChange1d !== undefined
-              ? tokenBalanceFiat / (1 + tokenPricePercentChange1d / 100)
-              : tokenBalanceFiat;
+            const tokenBalance1dAgo =
+              tokenPricePercentChange1d !== undefined
+                ? tokenBalanceFiat / (1 + tokenPricePercentChange1d / 100)
+                : tokenBalanceFiat;
 
             tokenFiat += tokenBalanceFiat;
             tokenFiat1dAgo += tokenBalance1dAgo;
