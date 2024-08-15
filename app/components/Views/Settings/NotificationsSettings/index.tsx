@@ -83,12 +83,10 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
 
   const toggleNotificationsEnabled = async () => {
     if (!isMetamaskNotificationsEnabled) {
-      const notificationSettings = await requestPushNotificationsPermission();
+      const nativeNotificationStatus =
+        await requestPushNotificationsPermission();
 
-      if (
-        notificationSettings &&
-        notificationSettings.authorizationStatus >= 1
-      ) {
+      if (nativeNotificationStatus) {
         await enableNotifications();
       }
     } else {
