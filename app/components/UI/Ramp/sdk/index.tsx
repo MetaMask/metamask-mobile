@@ -254,7 +254,8 @@ export const RampSDKProvider = ({
       setRampType,
 
       intent,
-      // @ts-expect-error - TODO: need help from Ramps team to fix this
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-nocheck - Ramps team ownership"
       setIntent,
 
       selectedRegion,
