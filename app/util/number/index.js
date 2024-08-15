@@ -878,16 +878,20 @@ export const safeBNToHex = (value) => {
  */
 // eslint-disable-next-line
 export const localizeLargeNumber = (i18n, number) => {
-  if (number >= 1000000000000) {
-    return `${(number / 1000000000000).toFixed(2)}${i18n.t(
+  const oneTrillion = 1000000000000;
+  const oneBillion = 1000000000;
+  const oneMillion = 1000000;
+
+  if (number >= oneTrillion) {
+    return `${(number / oneTrillion).toFixed(2)}${i18n.t(
       'token.trillion_abbreviation',
     )}`;
-  } else if (number >= 1000000000) {
-    return `${(number / 1000000000).toFixed(2)}${i18n.t(
+  } else if (number >= oneBillion) {
+    return `${(number / oneBillion).toFixed(2)}${i18n.t(
       'token.billion_abbreviation',
     )}`;
-  } else if (number >= 1000000) {
-    return `${(number / 1000000).toFixed(2)}${i18n.t(
+  } else if (number >= oneMillion) {
+    return `${(number / oneMillion).toFixed(2)}${i18n.t(
       'token.million_abbreviation',
     )}`;
   }
