@@ -1,23 +1,23 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useDispatch } from 'react-redux';
-import { showAlert } from '../../../../actions/alert';
-import { strings } from '../../../../../locales/i18n';
-import { useStyles } from '../../../../component-library/hooks';
+import { showAlert } from '../../../../../actions/alert';
+import { strings } from '../../../../../../locales/i18n';
+import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import Title from '../../../Base/Title';
-import styleSheet from './TokenDetails.styles';
+} from '../../../../../component-library/components/Texts/Text';
+import Title from '../../../../Base/Title';
+import styleSheet from '../TokenDetails.styles';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
-} from '../../../../component-library/components/Icons/Icon';
-import ClipboardManager from '../../../../core/ClipboardManager';
-import { TokenDetails } from './TokenDetails';
-import TokenDetailsListItem from './TokenDetailsListItem';
+} from '../../../../../component-library/components/Icons/Icon';
+import ClipboardManager from '../../../../../core/ClipboardManager';
+import { TokenDetails } from '../TokenDetails';
+import TokenDetailsListItem from '../TokenDetailsListItem';
 
 interface TokenDetailsListProps {
   tokenDetails: TokenDetails;
