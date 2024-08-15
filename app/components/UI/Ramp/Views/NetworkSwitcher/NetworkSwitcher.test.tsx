@@ -11,6 +11,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Engine from '../../../../../core/Engine';
 import { RampType } from '../../../../../reducers/fiatOrders/types';
+import { Hex } from '@metamask/utils';
 
 const mockedRampNetworksValues: AggregatorNetwork[] = [
   {
@@ -66,7 +67,7 @@ const mockedNetworksDetails = [
   },
 ];
 
-function render(Component: React.ComponentType, chainId?: string) {
+function render(Component: React.ComponentType, chainId?: Hex) {
   return renderScreen(
     Component,
     {
@@ -81,7 +82,7 @@ function render(Component: React.ComponentType, chainId?: string) {
               ...backgroundState.NetworkController,
               providerConfig: {
                 // according to ProviderConfig type chainId should be Hex
-                chainId: chainId ? `0x${chainId}` : 0x38,
+                chainId: chainId ?? '0x38',
                 ticker: 'BNB',
                 nickname: 'BNB Smart Chain',
               },
