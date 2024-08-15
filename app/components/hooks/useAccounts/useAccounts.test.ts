@@ -24,6 +24,12 @@ const MOCK_ACCOUNT_1: Account = {
     fiatBalance: '\n0 ETH',
   },
   balanceError: undefined,
+  metadata: {
+    name: 'Account 1',
+    keyring: {
+      type: KeyringTypes.hd,
+    },
+  },
 };
 const MOCK_ACCOUNT_2: Account = {
   name: 'Account 2',
@@ -35,6 +41,12 @@ const MOCK_ACCOUNT_2: Account = {
     fiatBalance: '\n< 0.00001 ETH',
   },
   balanceError: undefined,
+  metadata: {
+    name: 'Account 2',
+    keyring: {
+      type: KeyringTypes.hd,
+    },
+  },
 };
 
 const MOCK_STORE_STATE = {

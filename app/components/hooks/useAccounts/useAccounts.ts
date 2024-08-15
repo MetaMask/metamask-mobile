@@ -133,7 +133,6 @@ const useAccounts = ({
             name,
             keyring: { type },
           },
-          metadata,
         } = internalAccount;
         const checksummedAddress = toChecksumHexAddress(address);
         const isSelected = selectedInternalAccount?.address === address;
@@ -158,7 +157,7 @@ const useAccounts = ({
         const isBalanceAvailable = isMultiAccountBalancesEnabled || isSelected;
         const mappedAccount: Account = {
           name,
-          address: `0x${checksummedAddress}`,
+          address: checksummedAddress,
           type: type as KeyringTypes,
           yOffset,
           isSelected,
@@ -168,7 +167,12 @@ const useAccounts = ({
             ? { fiatBalance: balanceLabel }
             : undefined,
           balanceError,
-          metadata,
+          metadata: {
+            name,
+            keyring: {
+              type: type as KeyringTypes,
+            },
+          },
         };
         // Calculate height of the account item.
         yOffset += 78;
