@@ -619,7 +619,7 @@ export const getTokenDecimal = async (
     );
     return tokenDecimal;
   } catch (err) {
-    await Logger.log('Error fetching or caching favicon: ', err);
+    await Logger.log('Error getting token decimal: ', err);
   }
 };
 
