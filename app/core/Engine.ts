@@ -1051,15 +1051,18 @@ class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'AuthenticationController',
         allowedActions: [
+          'KeyringController:getState',
+          'KeyringController:getAccounts',
+
           'SnapController:handleRequest',
-          'UserStorageController:disableProfileSyncing',
+          'UserStorageController:enableProfileSyncing',
         ],
-        allowedEvents: [],
+        allowedEvents: ['KeyringController:unlock', 'KeyringController:lock'],
       }),
-      // TODO: Fix this by (await MetaMetrics.getInstance().getMetaMetricsId()) before go live
       metametrics: {
         agent: 'mobile',
-        getMetaMetricsId: async () => Promise.resolve(''),
+        getMetaMetricsId: async () =>
+          (await MetaMetrics.getInstance().getMetaMetricsId()) || '',
       },
     });
 
@@ -1072,6 +1075,7 @@ class Engine {
         name: 'UserStorageController',
         allowedActions: [
           'SnapController:handleRequest',
+          'KeyringController:getState',
           'AuthenticationController:getBearerToken',
           'AuthenticationController:getSessionProfile',
           'AuthenticationController:isSignedIn',
@@ -1080,7 +1084,7 @@ class Engine {
           'NotificationServicesController:disableNotificationServices',
           'NotificationServicesController:selectIsNotificationServicesEnabled',
         ],
-        allowedEvents: [],
+        allowedEvents: ['KeyringController:unlock', 'KeyringController:lock'],
       }),
     });
 
@@ -1091,6 +1095,7 @@ class Engine {
         messenger: this.controllerMessenger.getRestricted({
           name: 'NotificationServicesController',
           allowedActions: [
+            'KeyringController:getState',
             'KeyringController:getAccounts',
             'AuthenticationController:getBearerToken',
             'AuthenticationController:isSignedIn',
@@ -1099,7 +1104,11 @@ class Engine {
             'UserStorageController:performGetStorage',
             'UserStorageController:performSetStorage',
           ],
-          allowedEvents: ['KeyringController:stateChange'],
+          allowedEvents: [
+            'KeyringController:unlock',
+            'KeyringController:lock',
+            'KeyringController:stateChange',
+          ],
         }),
         state: initialState.NotificationServicesController,
         env: {
@@ -1665,49 +1674,44 @@ class Engine {
         );
       }
 
-      ethFiat1dAgo =
-        ethFiat +
-          (ethFiat *
-            tokenExchangeRates?.[toHexadecimal(chainId)]?.[
-              zeroAddress() as `0x${string}`
-            ]?.pricePercentChange1d) /
-            100 || ethFiat;
+    const ethPricePercentChange1d =
+      tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
 
-      if (tokens.length > 0) {
-        const { contractBalances: tokenBalances } =
-          TokenBalancesController.state;
-        const { marketData } = TokenRatesController.state;
-        const tokenExchangeRates = marketData[chainId];
-        tokens.forEach(
-          (item: { address: string; balance?: string; decimals: number }) => {
-            const exchangeRate =
-              tokenExchangeRates && item.address in tokenExchangeRates
-                ? tokenExchangeRates[item.address as Hex]?.price
-                : undefined;
+    ethFiat1dAgo =
+      ethPricePercentChange1d !== undefined
+        ? ethFiat / (1 + ethPricePercentChange1d / 100)
+        : ethFiat;
 
-            const tokenBalance =
-              item.balance ||
-              (item.address in tokenBalances
-                ? renderFromTokenMinimalUnit(
-                    tokenBalances[item.address],
-                    item.decimals,
-                  )
-                : undefined);
-            const tokenBalanceFiat = balanceToFiatNumber(
-              // TODO: Fix this by handling or eliminating the undefined case
-              // @ts-expect-error This variable can be `undefined`, which would break here.
-              tokenBalance,
-              conversionRate,
-              exchangeRate,
-              decimalsToShow,
-            );
+    if (tokens.length > 0) {
+      const { contractBalances: tokenBalances } = TokenBalancesController.state;
+      tokens.forEach(
+        (item: { address: string; balance?: string; decimals: number }) => {
+          const exchangeRate = tokenExchangeRates?.[item.address as Hex]?.price;
 
-            const tokenBalance1dAgo =
-              tokenBalanceFiat +
-                (tokenBalanceFiat *
-                  tokenExchangeRates?.[item.address as `0x${string}`]
-                    ?.pricePercentChange1d) /
-                  100 || tokenBalanceFiat;
+          const tokenBalance =
+            item.balance ||
+            (item.address in tokenBalances
+              ? renderFromTokenMinimalUnit(
+                  tokenBalances[item.address],
+                  item.decimals,
+                )
+              : undefined);
+          const tokenBalanceFiat = balanceToFiatNumber(
+            // TODO: Fix this by handling or eliminating the undefined case
+            // @ts-expect-error This variable can be `undefined`, which would break here.
+            tokenBalance,
+            conversionRate,
+            exchangeRate,
+            decimalsToShow,
+          );
+
+          const tokenPricePercentChange1d =
+            tokenExchangeRates?.[item.address as Hex]?.pricePercentChange1d;
+
+          const tokenBalance1dAgo =
+            tokenPricePercentChange1d !== undefined
+              ? tokenBalanceFiat / (1 + tokenPricePercentChange1d / 100)
+              : tokenBalanceFiat;
 
             tokenFiat += tokenBalanceFiat;
             tokenFiat1dAgo += tokenBalance1dAgo;
