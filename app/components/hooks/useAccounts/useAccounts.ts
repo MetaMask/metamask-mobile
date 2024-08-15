@@ -168,12 +168,6 @@ const useAccounts = ({
             ? { fiatBalance: balanceLabel }
             : undefined,
           balanceError,
-          metadata: {
-            name,
-            keyring: {
-              type: type as KeyringTypes,
-            },
-          },
         };
         // Calculate height of the account item.
         yOffset += 78;
