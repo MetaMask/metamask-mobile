@@ -1,18 +1,16 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
-import { RevealPrivateCredential } from './';
 import { Provider } from 'react-redux';
 import { backgroundState } from '../../../util/test/initial-root-state';
+import { RevealPrivateCredential } from './';
+import { ThemeContext, mockTheme } from '../../../util/theme';
+import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
   useDispatch: jest.fn(),
-}));
-
-jest.mock('../../../../locales/i18n', () => ({
-  strings: jest.fn(),
 }));
 
 const mockStore = configureMockStore();
@@ -27,43 +25,95 @@ const initialState = {
 const store = mockStore(initialState);
 
 describe('RevealPrivateCredential', () => {
+  const SRP_CREDENTIAL = 'seed_phrase';
+  const PRIV_KEY_CREDENTIAL = 'private_key';
+
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it('renders reveal private key correctly', () => {
-    const wrapper = shallow(
+  const renderWithProviders = (ui: unknown) =>
+    render(
       <Provider store={store}>
-        <RevealPrivateCredential
-          route={{
-            params: {
-              credentialName: 'private_key',
-            },
-          }}
-          navigation={null}
-          cancel={() => null}
-          credentialName={'private_key'}
-        />
+        <ThemeContext.Provider value={mockTheme}>{ui}</ThemeContext.Provider>
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+
+  it('renders reveal private key correctly', () => {
+    const { toJSON } = renderWithProviders(
+      <RevealPrivateCredential
+        route={{
+          params: {
+            credentialName: PRIV_KEY_CREDENTIAL,
+          },
+        }}
+        navigation={null}
+        cancel={() => null}
+        credentialName={PRIV_KEY_CREDENTIAL}
+      />,
+    );
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders reveal SRP correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <RevealPrivateCredential
-          route={{
-            params: {
-              credentialName: 'seed_phrase',
-            },
-          }}
-          navigation={null}
-          cancel={() => null}
-          credentialName={'seed_phrase'}
-        />
-      </Provider>,
+    const { toJSON } = renderWithProviders(
+      <RevealPrivateCredential
+        route={{
+          params: {
+            credentialName: SRP_CREDENTIAL,
+          },
+        }}
+        navigation={null}
+        cancel={() => null}
+        credentialName={SRP_CREDENTIAL}
+      />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('shows warning message on incorrect password', async () => {
+    const { getByPlaceholderText, getByTestId } = renderWithProviders(
+      <RevealPrivateCredential
+        route={{
+          params: {
+            credentialName: SRP_CREDENTIAL,
+          },
+        }}
+        navigation={null}
+        cancel={() => null}
+        credentialName={SRP_CREDENTIAL}
+      />,
+    );
+    const passwordInput = getByPlaceholderText('Password');
+    fireEvent.changeText(passwordInput, 'wrong-password');
+    fireEvent(passwordInput, 'submitEditing');
+    await waitFor(() => {
+      expect(
+        getByTestId(RevealSeedViewSelectorsIDs.PASSWORD_WARNING_ID),
+      ).toBeTruthy();
+    });
+  });
+
+  it('shows modal on correct password', async () => {
+    const { getByPlaceholderText, getByTestId } = renderWithProviders(
+      <RevealPrivateCredential
+        route={{
+          params: {
+            credentialName: SRP_CREDENTIAL,
+          },
+        }}
+        navigation={null}
+        cancel={() => null}
+        credentialName={SRP_CREDENTIAL}
+      />,
+    );
+    const passwordInput = getByPlaceholderText('Password');
+    fireEvent.changeText(passwordInput, 'correct-password');
+    fireEvent(passwordInput, 'submitEditing');
+    await waitFor(() => {
+      expect(
+        getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_MODAL_ID),
+      ).toBeTruthy();
+    });
   });
 });

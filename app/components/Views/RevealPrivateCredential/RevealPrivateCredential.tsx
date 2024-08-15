@@ -433,6 +433,7 @@ const RevealPrivateCredential = ({
     <InfoModal
       isVisible={isModalVisible}
       toggleModal={closeModal}
+      testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_MODAL_ID}
       title={strings('reveal_credential.keep_credential_safe', {
         credentialName: isPrivateKeyReveal
           ? strings('reveal_credential.private_key_text')
