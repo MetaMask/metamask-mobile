@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import StyledButton from '../StyledButton';
 import { StyleSheet, View } from 'react-native';
@@ -8,10 +8,7 @@ import Device from '../../../util/device';
 import Text from '../../Base/Text';
 import { useTheme } from '../../../util/theme';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
-import {
-  getNetworkImageSource,
-  isMutichainVersion1Enabled,
-} from '../../../util/networks';
+import { isMutichainVersion1Enabled } from '../../../util/networks';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -118,15 +115,6 @@ const SwitchCustomNetwork = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const networkImageSource = useCallback(
-    () =>
-      //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-      getNetworkImageSource({
-        chainId: customNetworkInformation?.chainId,
-      }),
-    [customNetworkInformation],
-  );
-
   /**
    * Calls onConfirm callback and analytics to track connect confirmed event
    */
@@ -202,16 +190,7 @@ const SwitchCustomNetwork = ({
               </TextComponent>
             </TextComponent>
             <View style={styles.networkAvatar}>
-              {true ? (
-                <AvatarGroup tokenList={AVAILABLE_TOKEN_LIST.slice(0, 6)} />
-              ) : (
-                <Avatar
-                  variant={AvatarVariant.Network}
-                  size={AvatarSize.Xs}
-                  name={customNetworkInformation.chainName}
-                  imageSource={networkImageSource()}
-                />
-              )}
+              <AvatarGroup tokenList={AVAILABLE_TOKEN_LIST.slice(0, 6)} />
             </View>
           </View>
         </View>
