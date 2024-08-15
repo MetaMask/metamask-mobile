@@ -98,7 +98,7 @@ const QRScanner = ({
 
   const onBarCodeRead = useCallback(
     async (response) => {
-      const content = response.data;
+      let content = response.data;
       /**
        * Barcode read triggers multiple times
        * shouldReadBarCodeRef controls how often the logic below runs
@@ -122,9 +122,13 @@ const QRScanner = ({
       const contentProtocol = getURLProtocol(content);
       if (
         (contentProtocol === PROTOCOLS.HTTP ||
-          contentProtocol === PROTOCOLS.HTTPS) &&
+          contentProtocol === PROTOCOLS.HTTPS ||
+          contentProtocol === PROTOCOLS.DAPP) &&
         !content.startsWith(MM_SDK_DEEPLINK)
       ) {
+        if (contentProtocol === PROTOCOLS.DAPP) {
+          content = content.replace(PROTOCOLS.DAPP, PROTOCOLS.HTTPS);
+        }
         const redirect = await showAlertForURLRedirection(content);
 
         if (!redirect) {

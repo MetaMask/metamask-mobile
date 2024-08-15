@@ -102,11 +102,63 @@ export const swapsHasOnboardedSelector = createSelector(
   (swapsState) => swapsState.hasOnboarded,
 );
 
+const selectSwapsControllerState = (state) =>
+  state.engine.backgroundState.SwapsController;
+
 /**
  * Returns the swaps tokens from the state
  */
 export const swapsControllerTokens = (state) =>
   state.engine.backgroundState.SwapsController.tokens;
+
+export const selectSwapsApprovalTransaction = createSelector(
+  selectSwapsControllerState,
+  (swapsControllerState) => swapsControllerState.approvalTransaction,
+);
+export const selectSwapsQuoteValues = createSelector(
+  selectSwapsControllerState,
+  (swapsControllerState) => swapsControllerState.quoteValues,
+);
+export const selectSwapsQuotes = createSelector(
+  selectSwapsControllerState,
+  (swapsControllerState) => swapsControllerState.quotes,
+);
+export const selectSwapsAggregatorMetadata = createSelector(
+  selectSwapsControllerState,
+  (swapsControllerState) => swapsControllerState.aggregatorMetadata,
+);
+export const selectSwapsError = createSelector(
+  selectSwapsControllerState,
+  (swapsControllerState) => swapsControllerState.error,
+);
+export const selectSwapsQuoteRefreshSeconds = createSelector(
+  selectSwapsControllerState,
+  (swapsControllerState) => swapsControllerState.quoteRefreshSeconds,
+);
+export const selectSwapsUsedGasEstimate = createSelector(
+  selectSwapsControllerState,
+  (swapsControllerState) => swapsControllerState.usedGasEstimate,
+);
+export const selectSwapsUsedCustomGas = createSelector(
+  selectSwapsControllerState,
+  (swapsControllerState) => swapsControllerState.usedCustomGas,
+);
+export const selectSwapsTopAggId = createSelector(
+  selectSwapsControllerState,
+  (swapsControllerState) => swapsControllerState.topAggId,
+);
+export const selectSwapsPollingCyclesLeft = createSelector(
+  selectSwapsControllerState,
+  (swapsControllerState) => swapsControllerState.pollingCyclesLeft,
+);
+export const selectSwapsQuotesLastFetched = createSelector(
+  selectSwapsControllerState,
+  (swapsControllerState) => swapsControllerState.quotesLastFetched,
+);
+export const selectSwapsIsInPolling = createSelector(
+  selectSwapsControllerState,
+  (swapsControllerState) => swapsControllerState.isInPolling,
+);
 
 const swapsControllerAndUserTokens = createSelector(
   swapsControllerTokens,

@@ -6,6 +6,7 @@ import { shallow } from 'enzyme';
 import { BadgeVariant } from './Badge.types';
 import { SAMPLE_BADGENETWORK_PROPS } from './variants/BadgeNetwork/BadgeNetwork.constants';
 import { SAMPLE_BADGESTATUS_PROPS } from './variants/BadgeStatus/BadgeStatus.constants';
+import { SAMPLE_BADGENOTIFICATIONS_PROPS } from './variants/BadgeNotifications/BadgeNotifications.constants';
 
 // Internal dependencies.
 import Badge from './Badge';
@@ -41,7 +42,7 @@ describe('Badge', () => {
   it('should render badge notifications given the badge notification variant', () => {
     const wrapper = shallow(
       <Badge
-        {...SAMPLE_BADGESTATUS_PROPS}
+        {...SAMPLE_BADGENOTIFICATIONS_PROPS}
         variant={BadgeVariant.NotificationsKinds}
       />,
     );

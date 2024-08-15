@@ -5,10 +5,20 @@ import {
   ACCOUNT_LIST_ADD_BUTTON_ID,
 } from '../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
 import { CellModalSelectorsIDs } from '../selectors/Modals/CellModal.selectors';
-import { AccountListViewSelectorsText } from '../selectors/AccountListView.selectors';
+import {
+  AccountListViewSelectorsIDs,
+  AccountListViewSelectorsText,
+} from '../selectors/AccountListView.selectors';
 import { ConnectAccountModalSelectorsIDs } from '../selectors/Modals/ConnectAccountModal.selectors';
+import Matchers from '../utils/Matchers';
 
 export default class AccountListView {
+  static async accountTypeLabel() {
+    return await Matchers.getElementByID(
+      AccountListViewSelectorsIDs.ACCOUNT_TYPE_LABEL,
+    );
+  }
+
   static async tapAccountIndex(index) {
     await TestHelpers.tapItemAtIndex(CellModalSelectorsIDs.MULTISELECT, index);
   }
@@ -28,6 +38,7 @@ export default class AccountListView {
   static async longPressImportedAccount() {
     await TestHelpers.tapAndLongPressAtIndex(CellModalSelectorsIDs.SELECT, 1);
   }
+
   static async swipeToDimssAccountsModal() {
     if (device.getPlatform() === 'android') {
       await TestHelpers.swipe(ACCOUNT_LIST_ID, 'down', 'fast', 0.6);
@@ -54,6 +65,35 @@ export default class AccountListView {
 
   static async accountNameNotVisible() {
     await TestHelpers.checkIfElementWithTextIsNotVisible('Account 2');
+  }
+
+  static async checkAccountVisibilityAtIndex(index, shouldBeVisible) {
+    const expectedAccountElement = element(
+      by.id(CellModalSelectorsIDs.BASE_TITLE),
+    ).atIndex(index);
+
+    const expectedAccountNameText = `Account ${index + 1}`;
+
+    try {
+      if (shouldBeVisible) {
+        await expect(expectedAccountElement).toHaveText(
+          expectedAccountNameText,
+        );
+      } else {
+        await expect(expectedAccountElement).not.toHaveText(
+          expectedAccountNameText,
+        );
+      }
+    } catch (error) {
+      if (shouldBeVisible) {
+        throw new Error(
+          `Expected element at index ${index} to be visible, but it does not exist.`,
+        );
+      } else {
+        // If the element should not be visible and it doesn't exist, the test passes.
+        return;
+      }
+    }
   }
 
   static async connectAccountsButton() {

@@ -139,7 +139,7 @@ const WalletActions = () => {
           <WalletAction
             actionTitle={strings('asset_overview.sell_button')}
             actionDescription={strings('asset_overview.sell_description')}
-            iconName={IconName.Minus}
+            iconName={IconName.MinusBold}
             iconSize={AvatarSize.Md}
             onPress={onSell}
             iconStyle={styles.icon}

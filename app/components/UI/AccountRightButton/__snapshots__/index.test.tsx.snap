@@ -328,34 +328,238 @@ exports[`AccountRightButton should render correctly 1`] = `
                         }
                       />
                       <View
+                        onLayout={[Function]}
                         style={
                           {
-                            "alignItems": "center",
-                            "backgroundColor": "#f2f4f6",
-                            "borderRadius": 16,
-                            "borderWidth": 1,
-                            "height": 32,
-                            "justifyContent": "center",
-                            "overflow": "hidden",
-                            "width": 32,
+                            "alignSelf": "flex-start",
+                            "position": "relative",
                           }
                         }
+                        testID="badge-wrapper-badge"
                       >
-                        <Text
-                          accessibilityRole="text"
+                        <View>
+                          <View
+                            style={
+                              {
+                                "backgroundColor": "#ffffff",
+                                "borderRadius": 16,
+                                "height": 32,
+                                "overflow": "hidden",
+                                "width": 32,
+                              }
+                            }
+                          >
+                            <View
+                              style={
+                                [
+                                  {
+                                    "overflow": "hidden",
+                                  },
+                                  {
+                                    "backgroundColor": "#F39000",
+                                    "borderRadius": 16,
+                                    "height": 32,
+                                    "width": 32,
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <RNSVGSvgView
+                                bbHeight={32}
+                                bbWidth={32}
+                                focusable={false}
+                                height={32}
+                                style={
+                                  [
+                                    {
+                                      "backgroundColor": "transparent",
+                                      "borderWidth": 0,
+                                    },
+                                    {
+                                      "flex": 0,
+                                      "height": 32,
+                                      "width": 32,
+                                    },
+                                  ]
+                                }
+                                width={32}
+                              >
+                                <RNSVGGroup
+                                  fill={
+                                    {
+                                      "payload": 4278190080,
+                                      "type": 0,
+                                    }
+                                  }
+                                >
+                                  <RNSVGRect
+                                    fill={
+                                      {
+                                        "payload": 4294381057,
+                                        "type": 0,
+                                      }
+                                    }
+                                    height={32}
+                                    matrix={
+                                      [
+                                        -0.393941909590951,
+                                        -0.9191353392552345,
+                                        0.9191353392552345,
+                                        -0.393941909590951,
+                                        2.0673962067717984,
+                                        41.20297235917101,
+                                      ]
+                                    }
+                                    propList={
+                                      [
+                                        "fill",
+                                      ]
+                                    }
+                                    width={32}
+                                    x={0}
+                                    y={0}
+                                  />
+                                  <RNSVGRect
+                                    fill={
+                                      {
+                                        "payload": 4279616754,
+                                        "type": 0,
+                                      }
+                                    }
+                                    height={32}
+                                    matrix={
+                                      [
+                                        0.9378889346118975,
+                                        -0.34693565157325623,
+                                        0.34693565157325623,
+                                        0.9378889346118975,
+                                        -3.7958154919572626,
+                                        -8.214031424007846,
+                                      ]
+                                    }
+                                    propList={
+                                      [
+                                        "fill",
+                                      ]
+                                    }
+                                    width={32}
+                                    x={0}
+                                    y={0}
+                                  />
+                                  <RNSVGRect
+                                    fill={
+                                      {
+                                        "payload": 4278291572,
+                                        "type": 0,
+                                      }
+                                    }
+                                    height={32}
+                                    matrix={
+                                      [
+                                        0.39394190959095127,
+                                        0.9191353392552344,
+                                        -0.9191353392552344,
+                                        0.39394190959095127,
+                                        56.18052634818,
+                                        -1.5614990621965208,
+                                      ]
+                                    }
+                                    propList={
+                                      [
+                                        "fill",
+                                      ]
+                                    }
+                                    width={32}
+                                    x={0}
+                                    y={0}
+                                  />
+                                </RNSVGGroup>
+                              </RNSVGSvgView>
+                            </View>
+                          </View>
+                        </View>
+                        <View
                           style={
                             {
-                              "color": "#141618",
-                              "fontFamily": "Euclid Circular B",
-                              "fontSize": 16,
-                              "fontWeight": "400",
-                              "letterSpacing": 0,
-                              "lineHeight": 24,
+                              "alignItems": "center",
+                              "aspectRatio": 1,
+                              "height": 0,
+                              "justifyContent": "center",
+                              "position": "absolute",
+                              "right": 0,
+                              "top": 0,
+                              "transform": [
+                                {
+                                  "translateX": 0,
+                                },
+                                {
+                                  "translateY": -0,
+                                },
+                              ],
                             }
                           }
                         >
-                          P
-                        </Text>
+                          <View
+                            onLayout={[Function]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "aspectRatio": 1,
+                                "height": "50%",
+                                "justifyContent": "center",
+                                "maxHeight": 24,
+                                "minHeight": 8,
+                                "opacity": 0,
+                              }
+                            }
+                            testID="badgenetwork"
+                          >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "backgroundColor": "#f2f4f6",
+                                  "borderColor": "#ffffff",
+                                  "borderRadius": 16,
+                                  "borderWidth": 2,
+                                  "height": 32,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "shadowColor": "#0000001a",
+                                  "shadowOffset": {
+                                    "height": 2,
+                                    "width": 0,
+                                  },
+                                  "shadowOpacity": 1,
+                                  "shadowRadius": 4,
+                                  "transform": [
+                                    {
+                                      "scale": 1,
+                                    },
+                                  ],
+                                  "width": 32,
+                                }
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#141618",
+                                    "fontFamily": "Euclid Circular B",
+                                    "fontSize": 16,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                P
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
                       </View>
                     </TouchableOpacity>
                   </View>

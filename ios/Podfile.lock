@@ -527,7 +527,7 @@ PODS:
     - React-Core
   - react-native-camera/RN (3.44.3):
     - React-Core
-  - react-native-compat (2.13.0):
+  - react-native-compat (2.14.0):
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
   - react-native-cookies (6.2.1):
@@ -547,6 +547,8 @@ PODS:
     - React-Core
   - react-native-netinfo (9.5.0):
     - React-Core
+  - react-native-performance (5.1.2):
+    - React-Core
   - react-native-quick-base64 (2.0.8):
     - React-Core
   - react-native-quick-crypto (0.6.1):
@@ -555,6 +557,8 @@ PODS:
     - React-callinvoker
     - React-Core
   - react-native-randombytes (3.6.1):
+    - React-Core
+  - react-native-render-html (6.3.4):
     - React-Core
   - react-native-safe-area-context (3.4.1):
     - React-Core
@@ -751,14 +755,14 @@ PODS:
     - React-RCTText
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNScreens (3.19.0):
+  - RNScreens (3.22.0):
     - React-Core
     - React-RCTImage
   - RNSensors (5.3.0):
     - React
-  - RNSentry (5.19.3):
+  - RNSentry (5.24.1):
     - React-Core
-    - Sentry/HybridSDK (= 8.21.0)
+    - Sentry/HybridSDK (= 8.29.1)
   - RNShare (7.3.7):
     - React-Core
   - RNSVG (15.3.0):
@@ -768,9 +772,7 @@ PODS:
   - segment-analytics-react-native (2.17.0):
     - React-Core
     - sovran-react-native
-  - Sentry/HybridSDK (8.21.0):
-    - SentryPrivate (= 8.21.0)
-  - SentryPrivate (8.21.0)
+  - Sentry/HybridSDK (8.29.1)
   - SocketRocket (0.6.1)
   - sovran-react-native (1.0.4):
     - React-Core
@@ -852,9 +854,11 @@ DEPENDENCIES:
   - react-native-launch-arguments (from `../node_modules/react-native-launch-arguments`)
   - react-native-mmkv (from `../node_modules/react-native-mmkv`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
+  - react-native-performance (from `../node_modules/react-native-performance`)
   - react-native-quick-base64 (from `../node_modules/react-native-quick-base64`)
   - react-native-quick-crypto (from `../node_modules/react-native-quick-crypto`)
   - react-native-randombytes (from `../node_modules/react-native-randombytes`)
+  - react-native-render-html (from `../node_modules/react-native-render-html`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - "react-native-splash-screen (from `../node_modules/@metamask/react-native-splash-screen`)"
   - react-native-video (from `../node_modules/react-native-video`)
@@ -943,7 +947,6 @@ SPEC REPOS:
     - OpenSSL-Universal
     - PromisesObjC
     - Sentry
-    - SentryPrivate
     - SocketRocket
     - YogaKit
 
@@ -1030,12 +1033,16 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-mmkv"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
+  react-native-performance:
+    :path: "../node_modules/react-native-performance"
   react-native-quick-base64:
     :path: "../node_modules/react-native-quick-base64"
   react-native-quick-crypto:
     :path: "../node_modules/react-native-quick-crypto"
   react-native-randombytes:
     :path: "../node_modules/react-native-randombytes"
+  react-native-render-html:
+    :path: "../node_modules/react-native-render-html"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-splash-screen:
@@ -1207,7 +1214,7 @@ SPEC CHECKSUMS:
   react-native-blur: 507cf3dd4434eb9d5ca5f183e49d8bcccdd66826
   react-native-branch: 4e42fda662d96893afbbd02839806931398e3d2e
   react-native-camera: b8cc03e2feec0c04403d0998e37cf519d8fd4c6f
-  react-native-compat: e40ba72806755b12697fcfc0f826a0e245ac81a6
+  react-native-compat: 24c27f0076c5d094ac54a7c803aa5fd4f582444d
   react-native-cookies: f54fcded06bb0cda05c11d86788020b43528a26c
   react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
   react-native-gzip: c5e87ee9e359f02350e3a2ee52eb35eddc398868
@@ -1215,9 +1222,11 @@ SPEC CHECKSUMS:
   react-native-launch-arguments: 4e0fd58e56dcc7f52eedef9dc8eff81eb73ced7a
   react-native-mmkv: e97c0c79403fb94577e5d902ab1ebd42b0715b43
   react-native-netinfo: 48c5f79a84fbc3ba1d28a8b0d04adeda72885fa8
+  react-native-performance: ff93f8af3b2ee9519fd7879896aa9b8b8272691d
   react-native-quick-base64: 777057ea4286f806b00259ede65dc79c7c706320
   react-native-quick-crypto: 455c1b411db006dba1026a30681ececb19180187
   react-native-randombytes: 421f1c7d48c0af8dbcd471b0324393ebf8fe7846
+  react-native-render-html: 984dfe2294163d04bf5fe25d7c9f122e60e05ebe
   react-native-safe-area-context: 9e40fb181dac02619414ba1294d6c2a807056ab9
   react-native-splash-screen: 49a7160705f32169d27ab8dff9dda53331592412
   react-native-video: c26780b224543c62d5e1b2a7244a5cd1b50e8253
@@ -1260,15 +1269,14 @@ SPEC CHECKSUMS:
   RNOS: 6f2f9a70895bbbfbdad7196abd952e7b01d45027
   RNPermissions: 4e3714e18afe7141d000beae3755e5b5fb2f5e05
   RNReanimated: f8379347f71248607d530a21e31e4140c5910c25
-  RNScreens: ea4cd3a853063cda19a4e3c28d2e52180c80f4eb
+  RNScreens: 68fd1060f57dd1023880bf4c05d74784b5392789
   RNSensors: c363d486c879e181905dea84a2535e49af1c2d25
-  RNSentry: 98e170b6eedc5c54e3ac88b6140fffb8b496deb4
+  RNSentry: 0aefd4f23b45e3c00577c3a18af79b8f8193bcdb
   RNShare: f116bbb04f310c665ca483d0bd1e88cf59b3b334
   RNSVG: a48668fd382115bc89761ce291a81c4ca5f2fd2e
   RNVectorIcons: 6607bd3a30291d0edb56f9bbe7ae411ee2b928b0
   segment-analytics-react-native: dbdd08d96fec78132e96bda092562e41c2ce0ce0
-  Sentry: ebc12276bd17613a114ab359074096b6b3725203
-  SentryPrivate: d651efb234cf385ec9a1cdd3eff94b5e78a0e0fe
+  Sentry: c446963245407030e17f1b926a83c6337dc99f4e
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   sovran-react-native: 791f2f726b4d57ece59676eda58d6da9dc95ad4e
   TcpSockets: a8eb6b5867fe643e6cfed5db2e4de62f4d1e8fd0
