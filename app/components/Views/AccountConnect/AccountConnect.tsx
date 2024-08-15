@@ -197,21 +197,18 @@ const AccountConnect = (props: AccountConnectProps) => {
     ? prefixUrlWithProtocol(hostname)
     : domainTitle;
 
-  const isAllowedUrl = useCallback(
-    (url: string) => {
-      const { PhishingController } = Engine.context;
+  const isAllowedUrl = useCallback((url: string) => {
+    const { PhishingController } = Engine.context;
 
-      // Update phishing configuration if it is out-of-date
-      // This is async but we are not `await`-ing it here intentionally, so that we don't slow
-      // down network requests. The configuration is updated for the next request.
-      PhishingController.maybeUpdateState();
+    // Update phishing configuration if it is out-of-date
+    // This is async but we are not `await`-ing it here intentionally, so that we don't slow
+    // down network requests. The configuration is updated for the next request.
+    PhishingController.maybeUpdateState();
 
-      const phishingControllerTestResult = PhishingController.test(url);
+    const phishingControllerTestResult = PhishingController.test(url);
 
-      return !phishingControllerTestResult.result;
-    },
-    [Engine.context],
-  );
+    return !phishingControllerTestResult.result;
+  }, []);
 
   useEffect(() => {
     const url = dappUrl || channelIdOrHostname || '';
@@ -297,12 +294,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         source: SourceType.PERMISSION_SYSTEM,
       });
     },
-    [
-      Engine.context.PermissionController,
-      accountsLength,
-      channelIdOrHostname,
-      trackEvent,
-    ],
+    [accountsLength, channelIdOrHostname, trackEvent],
   );
 
   const navigateToUrlInEthPhishingModal = useCallback(
@@ -424,7 +416,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     accounts,
     ensByAccountAddress,
     accountAvatarType,
-    Engine.context.PermissionController,
     toastRef,
     accountsLength,
     channelIdOrHostname,
@@ -451,7 +442,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         setIsLoading(false);
       }
     },
-    [Engine.context, trackEvent],
+    [trackEvent],
   );
 
   const hideSheet = (callback?: () => void) =>
