@@ -20,6 +20,8 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 import TextComponent, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
+import { AVAILABLE_TOKEN_LIST } from '../../../component-library/components/Avatars/AvatarGroup/AvatarGroup.constants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -199,13 +201,18 @@ const SwitchCustomNetwork = ({
                 {customNetworkInformation.chainName}
               </TextComponent>
             </TextComponent>
-            <Avatar
-              style={styles.networkAvatar}
-              variant={AvatarVariant.Network}
-              size={AvatarSize.Xs}
-              name={customNetworkInformation.chainName}
-              imageSource={networkImageSource()}
-            />
+            <View style={styles.networkAvatar}>
+              {true ? (
+                <AvatarGroup tokenList={AVAILABLE_TOKEN_LIST.slice(0, 6)} />
+              ) : (
+                <Avatar
+                  variant={AvatarVariant.Network}
+                  size={AvatarSize.Xs}
+                  name={customNetworkInformation.chainName}
+                  imageSource={networkImageSource()}
+                />
+              )}
+            </View>
           </View>
         </View>
       </View>
