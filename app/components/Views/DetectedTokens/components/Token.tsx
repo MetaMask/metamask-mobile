@@ -21,14 +21,34 @@ import {
 } from '../../../../selectors/currencyRateController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
+import { Colors } from '../../../../util/theme/models';
+import { Hex } from '@metamask/utils';
 
+// Replace this interface by importing from TokenRatesController when it exports it
 interface MarketDataDetails {
+  tokenAddress: `0x${string}`;
+  currency: string;
+  allTimeHigh: number;
+  allTimeLow: number;
+  circulatingSupply: number;
+  dilutedMarketCap: number;
+  high1d: number;
+  low1d: number;
+  marketCap: number;
+  marketCapPercentChange1d: number;
   price: number;
+  priceChange1d: number;
+  pricePercentChange1d: number;
+  pricePercentChange1h: number;
+  pricePercentChange1y: number;
+  pricePercentChange7d: number;
+  pricePercentChange14d: number;
+  pricePercentChange30d: number;
+  pricePercentChange200d: number;
+  totalVolume: number;
 }
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createStyles = (colors: any) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     logo: {
       height: 40,
@@ -37,17 +57,13 @@ const createStyles = (colors: any) =>
     tokenContainer: { flexDirection: 'row', paddingVertical: 16 },
     tokenInfoContainer: { flex: 1, marginLeft: 8, marginRight: 16 },
     tokenUnitLabel: {
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ...(fontStyles.normal as any),
+      ...fontStyles.normal,
       fontSize: 18,
       color: colors.text.default,
       marginBottom: 4,
     },
     tokenDollarLabel: {
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ...(fontStyles.normal as any),
+      ...fontStyles.normal,
       fontSize: 14,
       color: colors.text.alternative,
       marginBottom: 4,
@@ -57,9 +73,7 @@ const createStyles = (colors: any) =>
       marginBottom: 4,
     },
     tokenAddressLabel: {
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ...(fontStyles.normal as any),
+      ...fontStyles.normal,
       fontSize: 14,
       color: colors.text.alternative,
     },
@@ -68,9 +82,7 @@ const createStyles = (colors: any) =>
       alignItems: 'center',
     },
     addressLinkLabel: {
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ...(fontStyles.normal as any),
+      ...fontStyles.normal,
       fontSize: 14,
       color: colors.primary.default,
     },
@@ -84,16 +96,12 @@ const createStyles = (colors: any) =>
       flexWrap: 'wrap',
     },
     tokenAggregatorLabel: {
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ...(fontStyles.normal as any),
+      ...fontStyles.normal,
       fontSize: 14,
       color: colors.text.default,
     },
     aggregatorLinkLabel: {
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ...(fontStyles.normal as any),
+      ...fontStyles.normal,
       fontSize: 14,
       color: colors.primary.default,
     },
@@ -116,9 +124,8 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const tokenMarketData =
-    (tokenExchangeRates as Record<`0x${string}`, MarketDataDetails>)?.[
-      address as `0x${string}`
-    ] ?? null;
+    (tokenExchangeRates as Record<Hex, MarketDataDetails>)?.[address as Hex] ??
+    null;
   const tokenBalance = renderFromTokenMinimalUnit(
     tokenBalances[address],
     decimals,
@@ -184,7 +191,6 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
               address={address}
               type={'short'}
             />
-            {/* @ts-expect-error Deprecated component */}
             <Icon style={styles.copyIcon} name={'copy'} size={16} />
           </TouchableOpacity>
         </View>
@@ -208,7 +214,6 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
           ) : null}
         </View>
       </View>
-      {/* @ts-expect-error Deprecated component */}
       <CheckBox
         style={styles.checkBox}
         value={selected}

@@ -188,12 +188,12 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     Engine.context.KeyringController.getOrAddQRKeyring();
     Engine.controllerMessenger.subscribe(
       'KeyringController:qrKeyringStateChange',
-      (storeValue: unknown) => subscribeKeyringState(storeValue as any),
+      (storeValue) => subscribeKeyringState(storeValue),
     );
     return () => {
       Engine.controllerMessenger.unsubscribe(
         'KeyringController:qrKeyringStateChange',
-        (storeValue: unknown) => subscribeKeyringState(storeValue as any),
+        (storeValue) => subscribeKeyringState(storeValue),
       );
     };
   }, [KeyringController, subscribeKeyringState]);
@@ -321,12 +321,16 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     navigation.pop(2);
   }, [KeyringController, navigation, resetError]);
 
-  const renderAlert = () =>
-    errorMsg !== '' && (
+  const renderAlert = () => {
+    const { color, ...errorStyles } = styles.error;
+    return errorMsg !== '' ? (
       <Alert type={AlertType.Error} onPress={resetError}>
-        <Text style={styles.error}>{errorMsg}</Text>
+        <Text style={errorStyles}>{errorMsg}</Text>
       </Alert>
+    ) : (
+      <></>
     );
+  };
 
   return (
     <Fragment>

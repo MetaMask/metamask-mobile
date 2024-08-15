@@ -43,19 +43,6 @@ interface UseLedgerBluetoothHook {
   error: LedgerCommunicationErrors | undefined;
 }
 
-type MockedHook<T> = jest.MockedFunction<() => T> & {
-  mockReturnValue: (value: T) => jest.MockedFunction<() => T>;
-};
-
-// Update the type for the mocked useLedgerBluetooth hook
-type MockedUseLedgerBluetoothHook = jest.MockedFunction<
-  (deviceId?: string) => UseLedgerBluetoothHook
-> & {
-  mockReturnValue: (
-    value: UseLedgerBluetoothHook,
-  ) => jest.MockedFunction<(deviceId?: string) => UseLedgerBluetoothHook>;
-};
-
 jest.mock('../../hooks/useBluetoothPermissions');
 jest.mock('../../hooks/Ledger/useBluetooth');
 jest.mock('../../hooks/Ledger/useBluetoothDevices');
