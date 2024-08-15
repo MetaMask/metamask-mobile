@@ -47,8 +47,6 @@ function useHandleSuccessfulOrder() {
       const { TokensController } = Engine.context;
 
       if (
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         !TokensController.state.tokens.find((t: Token) =>
           toLowerCaseEquals(t.address, address),
         )
