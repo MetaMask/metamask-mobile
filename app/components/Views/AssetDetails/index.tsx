@@ -137,6 +137,7 @@ const AssetDetails = (props: Props) => {
          * TODO: remove any as soon as NetworkController
          * removes goerly from provider config types
          */
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (Networks as any)[providerConfig.type]?.name ||
         { ...Networks.rpc, color: null }.name;
     }
