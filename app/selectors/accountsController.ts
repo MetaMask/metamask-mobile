@@ -5,7 +5,6 @@ import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { selectFlattenedKeyringAccounts } from './keyringController';
-import { Account } from 'app/components/hooks/useAccounts';
 
 /**
  *
