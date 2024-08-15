@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { Platform, SafeAreaView } from 'react-native';
+import { SafeAreaView } from 'react-native';
 
 // External dependencies
 import Text from '../../../component-library/components/Texts/Text/Text';
@@ -11,6 +11,7 @@ import { TextVariant } from '../../../component-library/components/Texts/Text';
 import { strings } from '../../../../locales/i18n';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
 import { formatAddress, getAddressAccountType } from '../../../util/address';
+import EditAccountNameSelectorIDs from '../../../../e2e/selectors/EditAccountName.selectors';
 
 import Button from '../../../component-library/components/Buttons/Button/Button';
 import {
@@ -21,18 +22,15 @@ import {
 import { useStyles } from '../../../component-library/hooks';
 import { getEditAccountNameNavBarOptions } from '../../../components/UI/Navbar';
 import Engine from '../../../core/Engine';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectChainId } from '../../../selectors/networkController';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import {
   doENSReverseLookup,
   isDefaultAccountName,
 } from '../../../util/ENSUtils';
 import { useTheme } from '../../../util/theme';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 // Internal dependencies
 import styleSheet from './EditAccountName.styles';
@@ -47,19 +45,27 @@ const EditAccountName = () => {
   const [accountName, setAccountName] = useState<string>();
   const [ens, setEns] = useState<string>();
 
-  const selectedAddress = useSelector(selectSelectedAddress);
-  const identities = useSelector(selectIdentities);
+  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+
+  const selectedChecksummedAddress = selectedInternalAccount?.address
+    ? toChecksumHexAddress(selectedInternalAccount.address)
+    : undefined;
 
   const chainId = useSelector(selectChainId);
 
   const lookupEns = useCallback(async () => {
-    try {
-      const accountEns = await doENSReverseLookup(selectedAddress, chainId);
+    if (selectedChecksummedAddress) {
+      try {
+        const accountEns = await doENSReverseLookup(
+          selectedChecksummedAddress,
+          chainId,
+        );
 
-      setEns(accountEns);
-      // eslint-disable-next-line no-empty
-    } catch {}
-  }, [selectedAddress, chainId]);
+        setEns(accountEns);
+        // eslint-disable-next-line no-empty
+      } catch {}
+    }
+  }, [selectedChecksummedAddress, chainId]);
 
   useEffect(() => {
     lookupEns();
@@ -74,22 +80,28 @@ const EditAccountName = () => {
   }, [updateNavBar]);
 
   useEffect(() => {
-    const name = identities[selectedAddress].name;
+    const name = selectedInternalAccount?.metadata.name;
     setAccountName(isDefaultAccountName(name) && ens ? ens : name);
-  }, [selectedAddress, identities, ens]);
+  }, [ens, selectedInternalAccount?.metadata.name]);
 
   const onChangeName = (name: string) => {
     setAccountName(name);
   };
 
   const saveAccountName = async () => {
-    if (accountName && accountName.length > 0) {
-      Engine.setAccountLabel(selectedAddress, accountName);
+    if (
+      accountName &&
+      accountName.length > 0 &&
+      selectedInternalAccount?.address
+    ) {
+      Engine.setAccountLabel(selectedInternalAccount?.address, accountName);
       navigate('WalletView');
 
       try {
         const analyticsProperties = async () => {
-          const accountType = getAddressAccountType(selectedAddress);
+          const accountType = getAddressAccountType(
+            selectedInternalAccount?.address,
+          );
           const account_type = accountType === 'QR' ? 'hardware' : accountType;
           return { account_type, chain_id: getDecimalChainId(chainId) };
         };
@@ -111,17 +123,22 @@ const EditAccountName = () => {
           <TextField
             value={accountName}
             onChangeText={onChangeName}
-            {...generateTestId(Platform, 'account-name-input')}
+            testID={EditAccountNameSelectorIDs.ACCOUNT_NAME_INPUT}
           />
         </View>
         <View style={styles.inputContainer}>
           <Text variant={TextVariant.BodyLGMedium}>
             {strings('address_book.address')}
           </Text>
-          <TextField
-            isDisabled
-            placeholder={formatAddress(selectedAddress, 'mid')}
-          />
+          {selectedInternalAccount?.address ? (
+            <TextField
+              isDisabled
+              placeholder={formatAddress(
+                selectedInternalAccount?.address,
+                'mid',
+              )}
+            />
+          ) : null}
         </View>
       </View>
       <View style={styles.buttonsContainer}>
@@ -145,7 +162,7 @@ const EditAccountName = () => {
               : styles.saveButton
           }
           disabled={!accountName?.length || accountName?.trim() === ''}
-          {...generateTestId(Platform, 'save-button')}
+          testID={EditAccountNameSelectorIDs.EDIT_ACCOUNT_NAME_SAVE}
         />
       </View>
     </SafeAreaView>

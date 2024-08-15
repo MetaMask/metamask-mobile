@@ -1,6 +1,7 @@
 import React, { useContext, useMemo } from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
 import ElevatedView from 'react-native-elevated-view';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Avatar, {
   AvatarSize,
@@ -18,15 +19,18 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import AppConstants from '../../../../core/AppConstants';
+import METAMASK_FOX from '../../../../images/fox.png';
+import {
+  selectNetworkName,
+  selectNetworkImageSource,
+} from '../../../../selectors/networkInfos';
 import { getHost } from '../../../../util/browser';
 import Device from '../../../../util/device';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import WebsiteIcon from '../../WebsiteIcon';
 import createStyles from './TabThumbnail.styles';
 import { TabThumbnailProps } from './TabThumbnail.types';
-import useNetworkInfo from './useNetworkInfo';
 import useSelectedAccount from './useSelectedAccount';
-import METAMASK_FOX from '../../../../images/fox.png';
 
 const { HOMEPAGE_URL } = AppConstants;
 
@@ -47,7 +51,8 @@ const TabThumbnail = ({
   const hostname = getHost(tab.url);
   const isHomepage = hostname === getHost(HOMEPAGE_URL);
   const selectedAccount = useSelectedAccount();
-  const { networkName, networkImageSource } = useNetworkInfo();
+  const networkName = useSelector(selectNetworkName);
+  const networkImageSource = useSelector(selectNetworkImageSource);
 
   return (
     <Container style={styles.checkWrapper} elevation={8}>

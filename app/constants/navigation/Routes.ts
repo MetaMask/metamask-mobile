@@ -29,7 +29,6 @@ const Routes = {
     SELECT_DEVICE: 'SelectHardwareWallet',
     CONNECT_QR_DEVICE: 'ConnectQRHardwareFlow',
     CONNECT_LEDGER: 'ConnectLedgerFlow',
-    LEDGER_ACCOUNT: 'LedgerAccountInfo',
     LEDGER_CONNECT: 'LedgerConnect',
   },
   LEDGER_MESSAGE_SIGN_MODAL: 'LedgerMessageSignModal',
@@ -49,6 +48,7 @@ const Routes = {
     DETECTED_TOKENS: 'DetectedTokens',
     SRP_REVEAL_QUIZ: 'SRPRevealQuiz',
     WALLET_ACTIONS: 'WalletActions',
+    NFT_AUTO_DETECTION_MODAL: 'NFTAutoDetectionModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -85,8 +85,11 @@ const Routes = {
     ACCOUNT_SELECTOR: 'AccountSelector',
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     BASIC_FUNCTIONALITY: 'BasicFunctionality',
+    PROFILE_SYNCING: 'ProfileSyncing',
     SDK_LOADING: 'SDKLoading',
     SDK_FEEDBACK: 'SDKFeedback',
+    DATA_COLLECTION: 'DataCollection',
+    EXPERIENCE_ENHANCER: 'ExperienceEnhancer',
     SDK_MANAGE_CONNECTIONS: 'SDKManageConnections',
     SDK_DISCONNECT: 'SDKDisconnect',
     ACCOUNT_CONNECT: 'AccountConnect',
@@ -95,8 +98,11 @@ const Routes = {
     RETURN_TO_DAPP_MODAL: 'ReturnToDappModal',
     ACCOUNT_ACTIONS: 'AccountActions',
     ETH_SIGN_FRICTION: 'SettingsAdvancedEthSignFriction',
+    FIAT_ON_TESTNETS_FRICTION: 'SettingsAdvancedFiatOnTestnetsFriction',
     SHOW_IPFS: 'ShowIpfs',
     SHOW_NFT_DISPLAY_MEDIA: 'ShowNftDisplayMedia',
+    SHOW_TOKEN_ID: 'ShowTokenId',
+    ORIGIN_SPAM_MODAL: 'OriginSpamModal',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',
@@ -118,13 +124,16 @@ const Routes = {
     WALLET_RESET_NEEDED: 'WalletResetNeeded',
   },
   ADD_NETWORK: 'AddNetwork',
+  EDIT_NETWORK: 'EditNetwork',
   SWAPS: 'Swaps',
   LOCK_SCREEN: 'LockScreen',
   NOTIFICATIONS: {
+    VIEW: 'NotificationsView',
     OPT_IN: 'OptIn',
     OPT_IN_STACK: 'OptInStack',
+    DETAILS: 'NotificationsDetails',
   },
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {
     SNAPS_SETTINGS_LIST: 'SnapsSettingsList',
     SNAP_SETTINGS: 'SnapSettings',

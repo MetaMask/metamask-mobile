@@ -142,7 +142,6 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -235,7 +234,6 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -379,7 +377,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                         <View
                           style={
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "borderRadius": 20,
                               "marginHorizontal": 8,
                               "paddingBottom": 32,
@@ -391,7 +389,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                           <RCTSafeAreaView
                             style={
                               {
-                                "backgroundColor": "#FFFFFF",
+                                "backgroundColor": "#ffffff",
                                 "borderTopLeftRadius": 10,
                                 "borderTopRightRadius": 10,
                                 "height": 450,
@@ -444,7 +442,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 30,
                                           "fontWeight": "400",
@@ -507,7 +505,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 30,
                                           "fontWeight": "400",
@@ -546,7 +544,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 30,
                                           "fontWeight": "400",
@@ -587,7 +585,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 30,
                                           "fontWeight": "400",
@@ -628,7 +626,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 30,
                                           "fontWeight": "400",
@@ -669,7 +667,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 30,
                                           "fontWeight": "400",
@@ -711,11 +709,11 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                   onPress={[Function]}
                                 >
                                   <Text
-                                    numerOfLines={2}
+                                    numberOfLines={2}
                                     style={
                                       [
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 30,
                                           "fontWeight": "400",
@@ -744,7 +742,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                         undefined,
                                         undefined,
                                         {
-                                          "color": "#0376C9",
+                                          "color": "#0376c9",
                                         },
                                         undefined,
                                         undefined,

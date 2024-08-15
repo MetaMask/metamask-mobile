@@ -1,10 +1,24 @@
-import React from 'react';
+import React, { useCallback, useContext } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import Banner from '../../../component-library/components/Banners/Banner/Banner';
 import { BannerVariant } from '../../../component-library/components/Banners/Banner';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../component-library/components/Toast';
+import {
+  IconColor,
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
+import { useTheme } from '../../../util/theme';
+import Engine from '../../../core/Engine';
+import {
+  hideNftFetchingLoadingIndicator,
+  showNftFetchingLoadingIndicator,
+} from '../../../reducers/collectibles';
 
 const styles = StyleSheet.create({
   alertBar: {
@@ -13,22 +27,33 @@ const styles = StyleSheet.create({
   },
 });
 
-interface Props {
-  /**
-   * Navigation object needed to link to settings
-   */
-  navigation: any;
-}
+const CollectibleDetectionModal = () => {
+  const { colors } = useTheme();
+  const { toastRef } = useContext(ToastContext);
 
-const CollectibleDetectionModal = ({ navigation }: Props) => {
-  const goToSecuritySettings = () => {
-    navigation.navigate('SettingsView', {
-      screen: 'SecuritySettings',
-      params: {
-        scrollToDetectNFTs: true,
-      },
+  const showToastAndEnableNFtDetection = useCallback(async () => {
+    // show toast
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      labelOptions: [{ label: strings('toast.nft_detection_enabled') }],
+      iconName: IconName.CheckBold,
+      iconColor: IconColor.Default,
+      backgroundColor: colors.primary.inverse,
+      hasNoTimeout: false,
     });
-  };
+    // set nft autodetection
+    const { PreferencesController, NftDetectionController } = Engine.context;
+    PreferencesController.setDisplayNftMedia(true);
+    PreferencesController.setUseNftDetection(true);
+    // Call detect nfts
+    showNftFetchingLoadingIndicator();
+    try {
+      await NftDetectionController.detectNfts();
+    } finally {
+      hideNftFetchingLoadingIndicator();
+    }
+  }, [colors.primary.inverse, toastRef]);
+
   return (
     <View style={styles.alertBar}>
       <Banner
@@ -38,7 +63,8 @@ const CollectibleDetectionModal = ({ navigation }: Props) => {
         actionButtonProps={{
           variant: ButtonVariants.Link,
           label: strings('wallet.nfts_autodetect_cta'),
-          onPress: goToSecuritySettings,
+          onPress: showToastAndEnableNFtDetection,
+          //@ts-expect-error this prop is being added by the name of labelTextVariant by this PR https://github.com/MetaMask/metamask-mobile/pull/10307
           textVariant: TextVariant.BodyMD,
         }}
       />

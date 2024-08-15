@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useMemo } from 'react';
-import { View, Text, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Platform } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import CheckBox from '@react-native-community/checkbox';
 import { useSelector } from 'react-redux';
@@ -13,13 +13,18 @@ import { createStyle } from './styles';
 import AccountDetails from '../AccountDetails';
 import StyledButton from '../../../UI/StyledButton';
 import { selectProviderConfig } from '../../../../selectors/networkController';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import {
+  ACCOUNT_SELECTOR_NEXT_BUTTON,
+  ACCOUNT_SELECTOR_PREVIOUS_BUTTON,
+} from '../../../../../wdio/screen-objects/testIDs/Components/AccountSelector.testIds';
 
 interface ISelectQRAccountsProps {
   accounts: IAccount[];
   selectedAccounts: string[];
   nextPage: () => void;
   prevPage: () => void;
-  toggleAccount: (index: number) => void;
+  onCheck?: (index: number) => void;
   onUnlock: (accountIndex: number[]) => void;
   onForget: () => void;
   title: string;
@@ -30,7 +35,7 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
     accounts,
     prevPage,
     nextPage,
-    toggleAccount,
+    onCheck,
     selectedAccounts,
     onForget,
     onUnlock,
@@ -69,9 +74,12 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
         prev.has(index) ? prev.delete(index) : prev.add(index);
         return new Set(prev);
       });
-      toggleAccount(index);
+
+      if (onCheck) {
+        onCheck(index);
+      }
     },
-    [toggleAccount],
+    [onCheck],
   );
 
   return (
@@ -107,17 +115,25 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
         )}
       />
       <View style={styles.pagination}>
-        <TouchableOpacity style={styles.paginationItem} onPress={prevPage}>
-          <Icon name={'chevron-left'} color={colors.primary.default} />
+        <TouchableOpacity
+          style={styles.paginationItem}
+          onPress={prevPage}
+          {...generateTestId(Platform, ACCOUNT_SELECTOR_PREVIOUS_BUTTON)}
+        >
+          {<Icon name={'chevron-left'} color={colors.primary.default} />}{' '}
           <Text style={styles.paginationText}>
             {strings('account_selector.prev')}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.paginationItem} onPress={nextPage}>
+        <TouchableOpacity
+          style={styles.paginationItem}
+          onPress={nextPage}
+          {...generateTestId(Platform, ACCOUNT_SELECTOR_NEXT_BUTTON)}
+        >
           <Text style={styles.paginationText}>
             {strings('account_selector.next')}
           </Text>
-          <Icon name={'chevron-right'} color={colors.primary.default} />
+          {<Icon name={'chevron-right'} color={colors.primary.default} />}
         </TouchableOpacity>
       </View>
       <View style={styles.bottom}>

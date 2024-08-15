@@ -5,7 +5,7 @@ import { strings } from '../../../../locales/i18n';
 import DeeplinkManager from '../DeeplinkManager';
 import formattedDeeplinkParsedValue from '../../../util/formattedDeeplinkParsedValue';
 import { NetworkSwitchErrorType } from '../../../constants/error';
-import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { getDecimalChainId } from '../../../util/networks';
 
 async function handleEthereumUrl({
@@ -71,6 +71,8 @@ async function handleEthereumUrl({
         }
       }
     }
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (e: any) {
     let alertMessage;
     switch (e.message) {

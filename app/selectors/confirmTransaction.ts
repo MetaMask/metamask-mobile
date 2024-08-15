@@ -1,9 +1,6 @@
 import { selectTransactions } from './transactionController';
 import { RootState } from '../reducers';
-import {
-  selectGasFeeControllerEstimateType,
-  selectGasFeeControllerEstimates,
-} from './gasFeeController';
+import { selectGasFeeControllerEstimates } from './gasFeeController';
 import { mergeGasFeeEstimates } from '@metamask/transaction-controller';
 import { createSelector } from 'reselect';
 import { createDeepEqualSelector } from './util';
@@ -33,17 +30,13 @@ export const selectCurrentTransactionGasFeeEstimates = createDeepEqualSelector(
 );
 
 export const selectGasFeeEstimates = createSelector(
-  selectGasFeeControllerEstimateType,
   selectGasFeeControllerEstimates,
   selectCurrentTransactionGasFeeEstimates,
-  (
-    gasFeeControllerEstimateType,
-    gasFeeControllerEstimates,
-    transactionGasFeeEstimates,
-  ) => {
+  (gasFeeControllerEstimates, transactionGasFeeEstimates) => {
     if (transactionGasFeeEstimates) {
       return mergeGasFeeEstimates({
-        gasFeeControllerEstimateType: gasFeeControllerEstimateType as any,
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         gasFeeControllerEstimates: gasFeeControllerEstimates as any,
         transactionGasFeeEstimates,
       });

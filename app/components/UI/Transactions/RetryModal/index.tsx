@@ -7,6 +7,8 @@ import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import ActionModal from '../../ActionModal';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     modal: {

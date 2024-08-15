@@ -42,8 +42,12 @@ import { useTheme } from '../../../util/theme';
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
 
 export interface QRScannerParams {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onScanSuccess: (data: any, content?: string) => void;
   onScanError?: (error: string) => void;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onStartScan?: (data: any) => Promise<void>;
   origin?: string;
 }
@@ -68,7 +72,13 @@ const QRScanner = () => {
 
   const goBack = useCallback(() => {
     navigation.goBack();
-    onScanError?.('USER_CANCELLED');
+    try {
+      onScanError?.('USER_CANCELLED');
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      console.warn(`Error setting onScanError: ${error.message}`);
+    }
   }, [onScanError, navigation]);
 
   const end = useCallback(() => {
@@ -114,7 +124,7 @@ const QRScanner = () => {
 
   const onBarCodeRead = useCallback(
     async (response) => {
-      const content = response.data;
+      let content = response.data;
       /**
        * Barcode read triggers multiple times
        * shouldReadBarCodeRef controls how often the logic below runs
@@ -138,9 +148,13 @@ const QRScanner = () => {
       const contentProtocol = getURLProtocol(content);
       if (
         (contentProtocol === PROTOCOLS.HTTP ||
-          contentProtocol === PROTOCOLS.HTTPS) &&
+          contentProtocol === PROTOCOLS.HTTPS ||
+          contentProtocol === PROTOCOLS.DAPP) &&
         !content.startsWith(MM_SDK_DEEPLINK)
       ) {
+        if (contentProtocol === PROTOCOLS.DAPP) {
+          content = content.replace(PROTOCOLS.DAPP, PROTOCOLS.HTTPS);
+        }
         const redirect = await showAlertForURLRedirection(content);
 
         if (!redirect) {
@@ -177,6 +191,8 @@ const QRScanner = () => {
           onScanSuccess(data, content);
           return;
         }
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { KeyringController } = Engine.context as any;
         const isUnlocked = KeyringController.isUnlocked();
 
@@ -211,6 +227,8 @@ const QRScanner = () => {
         const handledByDeeplink = SharedDeeplinkManager.parse(content, {
           origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
           // TODO: Check is pop is still valid.
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           onHandled: () => (navigation as any).pop(2),
         });
 

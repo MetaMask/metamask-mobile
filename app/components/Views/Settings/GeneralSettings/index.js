@@ -30,11 +30,13 @@ import { toDataUrl } from '../../../../util/blockies.js';
 import Jazzicon from 'react-native-jazzicon';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import { selectSelectedAddress } from '../../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
+import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
+import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 const diameter = 40;
 const spacing = 8;
@@ -203,6 +205,14 @@ class Settings extends PureComponent {
 
   selectPrimaryCurrency = (primaryCurrency) => {
     this.props.setPrimaryCurrency(primaryCurrency);
+
+    const metrics = MetaMetrics.getInstance();
+    const traits = { [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency };
+    metrics.addTraitsToUser(traits);
+    metrics.trackEvent(MetaMetricsEvents.PRIMARY_CURRENCY_TOGGLE, {
+      ...traits,
+      location: 'app_settings',
+    });
   };
 
   toggleHideZeroBalanceTokens = (toggleHideZeroBalanceTokens) => {
@@ -408,7 +418,7 @@ class Settings extends PureComponent {
                     true: colors.primary.default,
                     false: colors.border.muted,
                   }}
-                  thumbColor={themeTokens.brandColors.white['000']}
+                  thumbColor={themeTokens.brandColors.white}
                   style={styles.switch}
                   ios_backgroundColor={colors.border.muted}
                 />
@@ -481,7 +491,7 @@ const mapStateToProps = (state) => ({
   searchEngine: state.settings.searchEngine,
   primaryCurrency: state.settings.primaryCurrency,
   useBlockieIcon: state.settings.useBlockieIcon,
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens,
   // appTheme: state.user.appTheme,
 });

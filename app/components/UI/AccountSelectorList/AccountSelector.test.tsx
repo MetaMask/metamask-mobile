@@ -1,41 +1,35 @@
 import React from 'react';
 // eslint-disable-next-line @typescript-eslint/no-shadow
 import { waitFor, within } from '@testing-library/react-native';
-import Engine from '../../../core/Engine';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import AccountSelectorList from './AccountSelectorList';
 import { useAccounts } from '../../../components/hooks/useAccounts';
 import { View } from 'react-native';
 import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { regex } from '../../../../app/util/regex';
-
-const mockEngine = Engine;
+import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 
 const BUSINESS_ACCOUNT = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const PERSONAL_ACCOUNT = '0xd018538C87232FF95acbCe4870629b75640a78E7';
 
-jest.mock('../../../core/Engine', () => ({
-  init: () => mockEngine.init({}),
-  context: {
-    KeyringController: {
-      state: {
-        keyrings: [
-          {
-            type: 'HD Key Tree',
-            index: 0,
-            accounts: [BUSINESS_ACCOUNT, PERSONAL_ACCOUNT],
-          },
-        ],
-      },
-    },
-  },
-}));
+const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
+  BUSINESS_ACCOUNT,
+  PERSONAL_ACCOUNT,
+]);
+
+jest.mock('../../../util/address', () => {
+  const actual = jest.requireActual('../../../util/address');
+  return {
+    ...actual,
+    getLabelTextByAddress: jest.fn(),
+  };
+});
 
 const initialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       NetworkController: {
         network: '1',
         providerConfig: {
@@ -44,6 +38,7 @@ const initialState = {
           chainId: '0x1',
         },
       },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       AccountTrackerController: {
         accounts: {
           [BUSINESS_ACCOUNT]: { balance: '0xDE0B6B3A7640000' },
@@ -53,16 +48,6 @@ const initialState = {
       PreferencesController: {
         isMultiAccountBalancesEnabled: true,
         selectedAddress: BUSINESS_ACCOUNT,
-        identities: {
-          [BUSINESS_ACCOUNT]: {
-            address: BUSINESS_ACCOUNT,
-            name: 'Business Account',
-          },
-          [PERSONAL_ACCOUNT]: {
-            address: PERSONAL_ACCOUNT,
-            name: 'Personal Account',
-          },
-        },
       },
       CurrencyRateController: {
         currentCurrency: 'usd',
@@ -113,6 +98,8 @@ const AccountSelectorListRightAccessoryUseAccounts = () => {
 };
 
 const renderComponent = (
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: any = {},
   AccountSelectorListTest = AccountSelectorListUseAccounts,
 ) => renderWithProvider(<AccountSelectorListTest />, { state });
@@ -123,12 +110,12 @@ describe('AccountSelectorList', () => {
     onRemoveImportedAccount.mockClear();
   });
 
-  it('should render correctly', async () => {
+  it('renders correctly', async () => {
     const { toJSON } = renderComponent(initialState);
     await waitFor(() => expect(toJSON()).toMatchSnapshot());
   });
 
-  it('should render all accounts with balances', async () => {
+  it('renders all accounts with balances', async () => {
     const { queryByTestId, getAllByTestId, toJSON } =
       renderComponent(initialState);
 
@@ -167,6 +154,7 @@ describe('AccountSelectorList', () => {
             ...initialState.engine.backgroundState.PreferencesController,
             isMultiAccountBalancesEnabled: false,
           },
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
         },
       },
     });
@@ -188,7 +176,7 @@ describe('AccountSelectorList', () => {
     });
   });
 
-  it('should render all accounts with right acessory', async () => {
+  it('renders all accounts with right accessory', async () => {
     const { getAllByTestId, toJSON } = renderComponent(
       initialState,
       AccountSelectorListRightAccessoryUseAccounts,
@@ -199,6 +187,15 @@ describe('AccountSelectorList', () => {
       expect(rightAccessories.length).toBe(2);
 
       expect(toJSON()).toMatchSnapshot();
+    });
+  });
+  it('renders correct account names', async () => {
+    const { getAllByTestId } = renderComponent(initialState);
+
+    await waitFor(() => {
+      const accountNameItems = getAllByTestId('cellbase-avatar-title');
+      expect(within(accountNameItems[0]).getByText('Account 1')).toBeDefined();
+      expect(within(accountNameItems[1]).getByText('Account 2')).toBeDefined();
     });
   });
 });

@@ -14,6 +14,8 @@ import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NetworksSettings from '../../Views/Settings/NetworksSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
+import NotificationsView from '../../Views/Notifications';
+import NotificationsDetails from '../../Views/Notifications/Details';
 import OptIn from '../../Views/Notifications/OptIn';
 import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
@@ -58,7 +60,7 @@ import OrderDetails from '../../UI/Ramp/Views/OrderDetails';
 import SendTransaction from '../../UI/Ramp/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import { SnapSettings } from '../../Views/Snaps/SnapSettings';
 ///: END:ONLY_INCLUDE_IF
@@ -71,13 +73,19 @@ import { isEqual } from 'lodash';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import isUrl from 'is-url';
-import SDKSessionsManager from '../../Views/SDKSessionsManager/SDKSessionsManager';
+import SDKSessionsManager from '../../Views/SDK/SDKSessionsManager/SDKSessionsManager';
 import URL from 'url-parse';
 import Logger from '../../../util/Logger';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
 import ConfirmAddAsset from '../../UI/ConfirmAddAsset';
+import { AesCryptoTestForm } from '../../Views/AesCryptoTestForm';
+import { isTest } from '../../../util/test/utils';
+import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
+
+import NftDetails from '../../Views/NftDetails';
+import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -211,7 +219,7 @@ const BrowserFlow = () => (
 
 export const DrawerContext = React.createContext({ drawerRef: null });
 
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 const SnapsSettingsStack = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -272,6 +280,21 @@ const SettingsFlow = () => (
       name={Routes.RAMP.ACTIVATION_KEY_FORM}
       component={RampActivationKeyForm}
     />
+    {
+      /**
+       * This screen should only accessed in test mode.
+       * It is used to test the AES crypto functions.
+       *
+       * If this is in production, it is a bug.
+       */
+      isTest && (
+        <Stack.Screen
+          name="AesCryptoTestForm"
+          component={AesCryptoTestForm}
+          options={AesCryptoTestForm.navigationOptions}
+        />
+      )
+    }
     <Stack.Screen
       name="ExperimentalSettings"
       component={ExperimentalSettings}
@@ -342,7 +365,7 @@ const SettingsFlow = () => (
       options={NotificationsSettings.navigationOptions}
     />
     {
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
     }
     <Stack.Screen
       name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
@@ -377,8 +400,7 @@ const HomeTabs = () => {
     const activeTabUrl = getActiveTabUrl(state);
     if (!isUrl(activeTabUrl)) return [];
     try {
-      const permissionsControllerState =
-        state.engine.backgroundState.PermissionController;
+      const permissionsControllerState = selectPermissionControllerState(state);
       const hostname = new URL(activeTabUrl).hostname;
       const permittedAcc = getPermittedAccountsByHostname(
         permissionsControllerState,
@@ -523,6 +545,32 @@ const SendView = () => (
   </Stack.Navigator>
 );
 
+/* eslint-disable react/prop-types */
+const NftDetailsModeView = (props) => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name=" " // No name here because this title will be displayed in the header of the page
+      component={NftDetails}
+      initialParams={{
+        collectible: props.route.params?.collectible,
+      }}
+    />
+  </Stack.Navigator>
+);
+
+/* eslint-disable react/prop-types */
+const NftDetailsFullImageModeView = (props) => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name=" " // No name here because this title will be displayed in the header of the page
+      component={NftDetailsFullImage}
+      initialParams={{
+        collectible: props.route.params?.collectible,
+      }}
+    />
+  </Stack.Navigator>
+);
+
 const SendFlowView = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -578,8 +626,14 @@ const PaymentRequestView = () => (
   </Stack.Navigator>
 );
 
+/* eslint-disable react/prop-types */
 const NotificationsModeView = (props) => (
   <Stack.Navigator>
+    <Stack.Screen
+      name={Routes.NOTIFICATIONS.VIEW}
+      component={NotificationsView}
+      options={NotificationsView.navigationOptions}
+    />
     <Stack.Screen
       name={Routes.SETTINGS.NOTIFICATIONS}
       component={NotificationsSettings}
@@ -587,9 +641,14 @@ const NotificationsModeView = (props) => (
     />
     <Stack.Screen
       mode={'modal'}
-      name="NotificationsOptIn"
+      name={Routes.NOTIFICATIONS.OPT_IN}
       component={OptIn}
       options={OptIn.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.NOTIFICATIONS.DETAILS}
+      component={NotificationsDetails}
+      options={NotificationsDetails.navigationOptions}
     />
     <Stack.Screen
       name="ContactForm"
@@ -700,9 +759,17 @@ const MainNavigator = () => (
     />
     <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
     <Stack.Screen name="OfflineModeView" component={OfflineModeView} />
+    <Stack.Screen
+      name={Routes.NOTIFICATIONS.VIEW}
+      component={NotificationsModeView}
+    />
+    <Stack.Screen name="NftDetails" component={NftDetailsModeView} />
+    <Stack.Screen
+      name="NftDetailsFullImage"
+      component={NftDetailsFullImageModeView}
+    />
     <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
-    <Stack.Screen name="NotificationsView" component={NotificationsModeView} />
     <Stack.Screen name={Routes.RAMP.BUY}>
       {() => <RampRoutes rampType={RampType.BUY} />}
     </Stack.Screen>

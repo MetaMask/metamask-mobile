@@ -32,7 +32,7 @@ const createStyles = (theme: Theme) =>
     container: {
       width: '100%',
       height: '100%',
-      backgroundColor: theme.brandColors.black['000'],
+      backgroundColor: theme.brandColors.black,
     },
     preview: {
       flex: 1,
@@ -57,7 +57,7 @@ const createStyles = (theme: Theme) =>
     text: {
       flex: 1,
       fontSize: 17,
-      color: theme.brandColors.white['000'],
+      color: theme.brandColors.white,
       textAlign: 'center',
       justifyContent: 'center',
       marginTop: 100,
@@ -72,7 +72,7 @@ const createStyles = (theme: Theme) =>
     hintText: {
       width: 240,
       maxWidth: '80%',
-      color: theme.brandColors.black['000'],
+      color: theme.brandColors.black,
       textAlign: 'center',
       fontSize: 16,
       ...fontStyles.normal,
@@ -245,7 +245,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
         >
           <SafeAreaView style={styles.innerView}>
             <TouchableOpacity style={styles.closeIcon} onPress={hideModal}>
-              <Icon name={'ios-close'} size={50} color={'white'} />
+              {<Icon name={'ios-close'} size={50} color={'white'} />}
             </TouchableOpacity>
             <Image source={frameImage} style={styles.frame} />
             <Text style={styles.text}>{`${strings('qr_scanner.scanning')} ${

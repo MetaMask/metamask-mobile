@@ -104,7 +104,7 @@ class WelcomeScreen {
 
     while (screenExist) {
       await Gestures.waitAndTap(this.getStartedButton);
-      await driver.pause(5000);
+      await driver.pause(7000);
       screenExist = await element.isExisting();
     }
   }

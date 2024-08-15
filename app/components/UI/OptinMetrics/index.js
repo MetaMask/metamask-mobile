@@ -8,6 +8,7 @@ import {
   BackHandler,
   Alert,
   InteractionManager,
+  TouchableOpacity,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles } from '../../../styles/common';
@@ -17,28 +18,27 @@ import { strings } from '../../../../locales/i18n';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
+import { setDataCollectionForMarketing } from '../../../actions/security';
 import { ONBOARDING_WIZARD } from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
 import {
   MetaMetricsEvents,
   withMetricsAwareness,
 } from '../../hooks/useMetrics';
-import DefaultPreference from 'react-native-default-preference';
+import StorageWrapper from '../../../store/storage-wrapper';
 import { ThemeContext } from '../../../util/theme';
 import { MetaMetricsOptInSelectorsIDs } from '../../../../e2e/selectors/Onboarding/MetaMetricsOptIn.selectors';
+import Checkbox from '../../../component-library/components/Checkbox';
 import Button, {
   ButtonVariants,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import { MAINNET } from '../../../constants/network';
-import { newPrivacyPolicyDate } from '../../../reducers/legalNotices';
+import { isPastPrivacyPolicyDate } from '../../../reducers/legalNotices';
 import Routes from '../../../constants/navigation/Routes';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
 } from '../../../util/metrics';
-
-const currentDate = new Date(Date.now());
-const isPastPrivacyPolicyDate = currentDate >= newPrivacyPolicyDate;
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
@@ -51,6 +51,13 @@ const createStyles = ({ colors }) =>
     },
     crossIcon: {
       color: colors.error.default,
+    },
+    checkbox: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 15,
+      marginRight: 25,
     },
     icon: {
       marginRight: 5,
@@ -118,6 +125,8 @@ const createStyles = ({ colors }) =>
  */
 class OptinMetrics extends PureComponent {
   static propTypes = {
+    isDataCollectionForMarketingEnabled: PropTypes.bool,
+    setDataCollectionForMarketing: PropTypes.func,
     /**
     /* navigation object required to push and pop other views
     */
@@ -227,7 +236,7 @@ class OptinMetrics extends PureComponent {
     }
 
     // Get onboarding wizard state
-    const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
+    const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
     if (onboardingWizard) {
       this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
     } else {
@@ -290,8 +299,18 @@ class OptinMetrics extends PureComponent {
    * Callback on press cancel
    */
   onCancel = async () => {
+    const {
+      isDataCollectionForMarketingEnabled,
+      setDataCollectionForMarketing,
+    } = this.props;
     setTimeout(async () => {
       const { clearOnboardingEvents, metrics } = this.props;
+      if (
+        isDataCollectionForMarketingEnabled === null &&
+        setDataCollectionForMarketing
+      ) {
+        setDataCollectionForMarketing(false);
+      }
       // if users refuses tracking, get rid of the stored events
       // and never send them to Segment
       // and disable analytics
@@ -305,12 +324,33 @@ class OptinMetrics extends PureComponent {
    * Callback on press confirm
    */
   onConfirm = async () => {
-    const { events, metrics } = this.props;
+    const {
+      events,
+      metrics,
+      isDataCollectionForMarketingEnabled,
+      setDataCollectionForMarketing,
+    } = this.props;
     await metrics.enable();
     InteractionManager.runAfterInteractions(async () => {
       // add traits to user for identification
+
+      if (
+        isDataCollectionForMarketingEnabled === null &&
+        setDataCollectionForMarketing
+      ) {
+        setDataCollectionForMarketing(false);
+      }
+
+      // trait indicating if user opts in for data collection for marketing
+      let dataCollectionForMarketingTraits;
+      if (this.props.isDataCollectionForMarketingEnabled) {
+        dataCollectionForMarketingTraits = { has_marketing_consent: true };
+      }
+
       // consolidate device and user settings traits
       const consolidatedTraits = {
+        ...dataCollectionForMarketingTraits,
+        is_metrics_opted_in: true,
         ...generateDeviceAnalyticsMetaData(),
         ...generateUserSettingsAnalyticsMetaData(),
       };
@@ -337,9 +377,11 @@ class OptinMetrics extends PureComponent {
 
       this.props.clearOnboardingEvents();
 
-      // track event for user opting in
+      // track event for user opting in on metrics and data collection for marketing
       metrics.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
-        analytics_option_selected: 'Metrics Opt In',
+        ...dataCollectionForMarketingTraits,
+        is_metrics_opted_in: true,
+        location: 'onboarding_metametrics',
         updated_after_onboarding: false,
       });
     });
@@ -524,6 +566,11 @@ class OptinMetrics extends PureComponent {
   };
 
   render() {
+    const {
+      isDataCollectionForMarketingEnabled,
+      setDataCollectionForMarketing,
+    } = this.props;
+
     const styles = this.getStyles();
 
     return (
@@ -569,6 +616,31 @@ class OptinMetrics extends PureComponent {
                 ? this.renderAction(action, i)
                 : this.renderLegacyAction(action, i),
             )}
+            {isPastPrivacyPolicyDate ? (
+              <TouchableOpacity
+                style={styles.checkbox}
+                onPress={() =>
+                  setDataCollectionForMarketing(
+                    !isDataCollectionForMarketingEnabled,
+                  )
+                }
+                activeOpacity={1}
+              >
+                <Checkbox
+                  isChecked={isDataCollectionForMarketingEnabled}
+                  accessibilityRole={'checkbox'}
+                  accessible
+                  onPress={() =>
+                    setDataCollectionForMarketing(
+                      !isDataCollectionForMarketingEnabled,
+                    )
+                  }
+                />
+                <Text style={styles.content}>
+                  {strings('privacy_policy.checkbox')}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
             {this.renderPrivacyPolicy()}
           </View>
         </ScrollView>
@@ -582,11 +654,15 @@ OptinMetrics.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   events: state.onboarding.events,
+  isDataCollectionForMarketingEnabled:
+    state.security.dataCollectionForMarketing,
 });
 
 const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
   clearOnboardingEvents: () => dispatch(clearOnboardingEvents()),
+  setDataCollectionForMarketing: (value) =>
+    dispatch(setDataCollectionForMarketing(value)),
 });
 
 export default connect(

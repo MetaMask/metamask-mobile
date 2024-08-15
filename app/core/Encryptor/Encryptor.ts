@@ -73,7 +73,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
    * @param size - The number of bytes for the salt. Defaults to `constant.SALT_BYTES_COUNT`.
    * @returns The base64-encoded salt string.
    */
-  generateSalt = (size = SALT_BYTES_COUNT) => {
+  generateSalt = (size: number = SALT_BYTES_COUNT) => {
     const view = new Uint8Array(size);
     global.crypto.getRandomValues(view);
 
@@ -150,7 +150,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     key: EncryptionKey,
     payload: EncryptionResult,
   ): Promise<unknown> => {
-    // TODO: Check for key and payload compatiblity?
+    // TODO: Check for key and payload compatibility?
 
     // We assume that both `payload.lib` and `key.lib` are the same here!
     const lib = getEncryptionLibrary(payload.lib);

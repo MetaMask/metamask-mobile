@@ -22,7 +22,7 @@ import {
   selectProviderConfig,
 } from '../../selectors/networkController';
 import { store } from '../../store';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
 import { SubjectType } from '@metamask/permission-controller';
 ///: END:ONLY_INCLUDE_IF
@@ -38,6 +38,8 @@ import DevLogger from '../SDKConnect/utils/DevLogger';
 import { getPermittedAccounts } from '../Permissions';
 import { NetworkStatus } from '@metamask/network-controller';
 import { NETWORK_ID_LOADING } from '../redux/slices/inpageProvider';
+import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMethodMiddleware';
+import createLegacyMethodMiddleware from '../RPCMethods/createLegacyMethodMiddleware';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -95,7 +97,7 @@ export class BackgroundBridge extends EventEmitter {
 
     // This will only be used for WalletConnect for now
     this.addressSent =
-      Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
+      Engine.context.AccountsController.getSelectedAccount().address.toLowerCase();
 
     const portStream = new MobilePortStream(this.port, url);
     // setup multiplexing
@@ -294,10 +296,12 @@ export class BackgroundBridge extends EventEmitter {
       this.networkVersionSent = publicState.networkVersion;
       this.notifyChainChanged(publicState);
     }
-
     // ONLY NEEDED FOR WC FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
     if (this.isWalletConnect || this.isRemoteConn) {
-      if (this.addressSent !== memState.selectedAddress) {
+      if (
+        this.addressSent?.toLowerCase() !==
+        memState.selectedAddress?.toLowerCase()
+      ) {
         this.addressSent = memState.selectedAddress;
         this.notifySelectedAddressChanged(memState.selectedAddress);
       }
@@ -333,6 +337,7 @@ export class BackgroundBridge extends EventEmitter {
       'PreferencesController:stateChange',
       this.sendStateUpdate,
     );
+
     this.port.emit('disconnect', { name: this.port.name, data: null });
   };
 
@@ -386,16 +391,27 @@ export class BackgroundBridge extends EventEmitter {
     engine.push(filterMiddleware);
     engine.push(subscriptionManager.middleware);
 
-    // Add PermissionController middleware
+    // Handle unsupported RPC Methods
+    engine.push(createUnsupportedMethodMiddleware());
+
+    // Legacy RPC methods that need to be implemented ahead of the permission middleware
+    engine.push(
+      createLegacyMethodMiddleware({
+        getAccounts: async () =>
+          await getPermittedAccounts(this.isMMSDK ? this.channelId : origin),
+      }),
+    );
+
+    // Append PermissionController middleware
     engine.push(
       Engine.context.PermissionController.createPermissionMiddleware({
-        // FIXME: This condition migrates `eth_accounts` from RPCMethodMiddleware so that both WC and SDK are compatible with the permission middleware.
+        // FIXME: This condition exists so that both WC and SDK are compatible with the permission middleware.
         // This is not a long term solution. BackgroundBridge should be not contain hardcoded logic pertaining to WC, SDK, or browser.
         origin: this.isMMSDK ? this.channelId : origin,
       }),
     );
 
-    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     // Snaps middleware
     engine.push(
       snapMethodMiddlewareBuilder(
@@ -417,6 +433,7 @@ export class BackgroundBridge extends EventEmitter {
     );
 
     engine.push(createSanitizationMiddleware());
+
     // forward to metamask primary provider
     engine.push(providerAsMiddleware(provider));
     return engine;

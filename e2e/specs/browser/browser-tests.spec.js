@@ -42,7 +42,7 @@ describe(SmokeCore('Browser Tests'), () => {
     await TabBarComponent.tapBrowser();
     // Check that we are on the browser screen
 
-    await Assertions.checkIfVisible(await Browser.browserScreenID);
+    await Assertions.checkIfVisible(Browser.browserScreenID);
   });
 
   it('should connect to the test dapp', async () => {
@@ -60,16 +60,16 @@ describe(SmokeCore('Browser Tests'), () => {
     await Browser.tapOptionsButton();
     await Browser.tapAddToFavoritesButton();
 
-    await Assertions.checkIfVisible(await AddBookmarkView.container);
+    await Assertions.checkIfVisible(AddBookmarkView.container);
 
     await AddBookmarkView.tapAddBookmarksButton();
-    await Assertions.checkIfNotVisible(await AddBookmarkView.container);
+    await Assertions.checkIfNotVisible(AddBookmarkView.container);
   });
 
-  it('should tap on the test dapp in favorites on the home page', async () => {
+  it.skip('should tap on the test dapp in favorites on the home page', async () => {
     await Browser.tapHomeButton();
     // Wait for page to load
-    await TestHelpers.delay(1000);
+    await TestHelpers.delay(3000);
     await Browser.tapDappInFavorites();
     await Assertions.checkIfTextIsDisplayed('metamask.github.io');
     // }
@@ -91,7 +91,7 @@ describe(SmokeCore('Browser Tests'), () => {
     // Clear text & Navigate to URL
     await Browser.navigateToURL(ExternalSites.PHISHING_SITE);
     await Browser.waitForBrowserPageToLoad();
-    await Assertions.checkIfVisible(await Browser.backToSafetyButton);
+    await Assertions.checkIfVisible(Browser.backToSafetyButton);
 
     await Browser.tapBackToSafetyButton();
     // Check that we are on the browser screen

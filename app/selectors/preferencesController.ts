@@ -5,22 +5,10 @@ import { RootState } from '../reducers';
 const selectPreferencesControllerState = (state: RootState) =>
   state.engine.backgroundState.PreferencesController;
 
-export const selectIdentities = createSelector(
-  selectPreferencesControllerState,
-  (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.identities,
-);
-
 export const selectIpfsGateway = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.ipfsGateway,
-);
-
-export const selectSelectedAddress = createSelector(
-  selectPreferencesControllerState,
-  (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.selectedAddress,
 );
 
 export const selectUseNftDetection = createSelector(
@@ -109,4 +97,14 @@ export const selectSmartTransactionsOptInStatus = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.smartTransactionsOptInStatus,
+);
+
+export const selectUseTransactionSimulations = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    (
+      preferencesControllerState as PreferencesState & {
+        useTransactionSimulations: boolean;
+      }
+    ).useTransactionSimulations,
 );

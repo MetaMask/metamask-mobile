@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useRef,
-  useCallback,
-  useMemo,
-  useContext,
-} from 'react';
+import React, { useEffect, useRef, useCallback, useContext } from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -14,20 +8,16 @@ import {
   Linking,
 } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
-import { connect, useSelector } from 'react-redux';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { baseStyles } from '../../../styles/common';
 import Tokens from '../../UI/Tokens';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
+import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import {
-  renderFromWei,
-  weiToFiat,
-  hexToBN,
-  toHexadecimal,
-} from '../../../util/number';
-import {
+  isPastPrivacyPolicyDate,
   shouldShowNewPrivacyToastSelector,
   storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
@@ -53,32 +43,45 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   getDecimalChainId,
   getIsNetworkOnboarded,
-  getNetworkImageSource,
-  getNetworkNameFromProviderConfig,
+  isMainNet,
 } from '../../../util/networks';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
+import {
+  selectNetworkName,
+  selectNetworkImageSource,
+} from '../../../selectors/networkInfos';
 import { selectTokens } from '../../../selectors/tokensController';
-import { useNavigation } from '@react-navigation/native';
+import {
+  NavigationProp,
+  ParamListBase,
+  useNavigation,
+} from '@react-navigation/native';
 import { WalletAccount } from '../../../components/UI/WalletAccount';
 import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { useAccounts } from '../../hooks/useAccounts';
-import { RootState } from 'app/reducers';
+import { RootState } from '../../../reducers';
 import usePrevious from '../../hooks/usePrevious';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
+import { selectUseNftDetection } from '../../../selectors/preferencesController';
+import { setNftAutoDetectionModalOpen } from '../../../actions/security';
+import {
+  hideNftFetchingLoadingIndicator as hideNftFetchingLoadingIndicatorAction,
+  showNftFetchingLoadingIndicator as showNftFetchingLoadingIndicatorAction,
+} from '../../../reducers/collectibles';
+import { getCurrentRoute } from '../../../reducers/navigation';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -119,6 +122,16 @@ const createStyles = ({ colors, typography }: Theme) =>
     },
   });
 
+interface WalletProps {
+  navigation: NavigationProp<ParamListBase>;
+  storePrivacyPolicyShownDate: () => void;
+  shouldShowNewPrivacyToast: boolean;
+  currentRouteName: string;
+  storePrivacyPolicyClickedOrClosed: () => void;
+  showNftFetchingLoadingIndicator: () => void;
+  hideNftFetchingLoadingIndicator: () => void;
+}
+
 /**
  * Main view for the wallet
  */
@@ -126,8 +139,11 @@ const Wallet = ({
   navigation,
   storePrivacyPolicyShownDate,
   shouldShowNewPrivacyToast,
+  currentRouteName,
   storePrivacyPolicyClickedOrClosed,
-}: any) => {
+  showNftFetchingLoadingIndicator,
+  hideNftFetchingLoadingIndicator,
+}: WalletProps) => {
   const { navigate } = useNavigation();
   const walletRef = useRef(null);
   const theme = useTheme();
@@ -135,11 +151,12 @@ const Wallet = ({
   const { trackEvent } = useMetrics();
   const styles = createStyles(theme);
   const { colors } = theme;
+  const dispatch = useDispatch();
 
   /**
-   * Map of accountsByChainId to information objects including balances
+   * Object containing the balance of the current selected account
    */
-  const accountsByChainId = useSelector(selectAccountsByChainId);
+  const accountBalanceByChainId = useSelector(selectAccountBalanceByChainId);
 
   /**
    * ETH to current currency conversion rate
@@ -152,7 +169,9 @@ const Wallet = ({
   /**
    * A string that represents the selected address
    */
-  const selectedAddress = useSelector(selectSelectedAddress);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountChecksummedAddress,
+  );
   /**
    * An array that represents the user tokens
    */
@@ -164,12 +183,18 @@ const Wallet = ({
   /**
    * Current onboarding wizard step
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const wizardStep = useSelector((state: any) => state.wizard.step);
   /**
    * Provider configuration for the current selected network
    */
   const providerConfig = useSelector(selectProviderConfig);
   const prevChainId = usePrevious(providerConfig.chainId);
+
+  const isDataCollectionForMarketingEnabled = useSelector(
+    (state: RootState) => state.security.dataCollectionForMarketing,
+  );
   /**
    * Is basic functionality enabled
    */
@@ -177,12 +202,27 @@ const Wallet = ({
     (state: RootState) => state.settings.basicFunctionalityEnabled,
   );
 
-  /**
-   * A list of all the user accounts and a mapping of ENS name to account address if they exist
-   */
-  const { accounts, ensByAccountAddress } = useAccounts();
+  const { isEnabled: getParticipationInMetaMetrics } = useMetrics();
+
+  const isParticipatingInMetaMetrics = getParticipationInMetaMetrics();
 
   const currentToast = toastRef?.current;
+
+  useEffect(() => {
+    if (
+      isDataCollectionForMarketingEnabled === null &&
+      isParticipatingInMetaMetrics &&
+      isPastPrivacyPolicyDate
+    ) {
+      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.EXPERIENCE_ENHANCER,
+      });
+    }
+  }, [
+    isDataCollectionForMarketingEnabled,
+    isParticipatingInMetaMetrics,
+    navigate,
+  ]);
 
   useEffect(() => {
     if (!shouldShowNewPrivacyToast) return;
@@ -224,46 +264,23 @@ const Wallet = ({
    * Network onboarding state
    */
   const networkOnboardingState = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.networkOnboarded.networkOnboardedState,
   );
 
-  /**
-   * An object representing the currently selected account.
-   */
-  const selectedAccount = useMemo(() => {
-    if (accounts.length > 0) {
-      return accounts.find((account) => account.isSelected);
-    }
-    return undefined;
-  }, [accounts]);
-
   const isNotificationEnabled = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.notification?.notificationsSettings?.isEnabled,
   );
 
-  /**
-   * ENS name for the currently selected account.
-   * This value may be undefined if there is no corresponding ENS name for the account.
-   */
-  const ensForSelectedAccount = useMemo(() => {
-    if (ensByAccountAddress && selectedAccount) {
-      return ensByAccountAddress[selectedAccount.address];
-    }
-    return undefined;
-  }, [ensByAccountAddress, selectedAccount]);
+  const networkName = useSelector(selectNetworkName);
 
-  const networkName = useMemo(
-    () => getNetworkNameFromProviderConfig(providerConfig),
-    [providerConfig],
-  );
-
-  const networkImageSource = useMemo(
-    () =>
-      getNetworkImageSource({
-        networkType: providerConfig.type,
-        chainId: providerConfig.chainId,
-      }),
-    [providerConfig],
+  const networkImageSource = useSelector(selectNetworkImageSource);
+  const useNftDetection = useSelector(selectUseNftDetection);
+  const isNFTAutoDetectionModalViewed = useSelector(
+    (state: RootState) => state.security.isNFTAutoDetectionModalViewed,
   );
 
   /**
@@ -277,7 +294,31 @@ const Wallet = ({
       chain_id: getDecimalChainId(providerConfig.chainId),
     });
   }, [navigate, providerConfig.chainId, trackEvent]);
-  const { colors: themeColors } = useTheme();
+
+  const checkNftAutoDetectionModal = useCallback(() => {
+    const isOnMainnet = isMainNet(providerConfig.chainId);
+    if (!useNftDetection && isOnMainnet && !isNFTAutoDetectionModalViewed) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.NFT_AUTO_DETECTION_MODAL,
+      });
+      dispatch(setNftAutoDetectionModalOpen(true));
+    }
+  }, [
+    dispatch,
+    isNFTAutoDetectionModalViewed,
+    navigation,
+    providerConfig.chainId,
+    useNftDetection,
+  ]);
+
+  useEffect(() => {
+    if (
+      currentRouteName === 'Wallet' ||
+      currentRouteName === 'SecuritySettings'
+    ) {
+      checkNftAutoDetectionModal();
+    }
+  });
 
   /**
    * Check to see if we need to show What's New modal and Smart Transactions Opt In modal
@@ -313,12 +354,16 @@ const Wallet = ({
     // Fired on the first load of the wallet and also on network switch
     const checkSmartTransactionsOptInModal = async () => {
       try {
-        const showShowStxOptInModal =
+        const accountHasZeroBalance = hexToBN(
+          accountBalanceByChainId?.balance || '0x0',
+        ).isZero();
+        const shouldShowStxOptInModal =
           await shouldShowSmartTransactionsOptInModal(
             providerConfig.chainId,
             providerConfig.rpcUrl,
+            accountHasZeroBalance,
           );
-        if (showShowStxOptInModal) {
+        if (shouldShowStxOptInModal) {
           navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
             screen: Routes.MODAL.SMART_TRANSACTIONS_OPT_IN,
           });
@@ -343,18 +388,16 @@ const Wallet = ({
     providerConfig.rpcUrl,
     networkOnboardingState,
     prevChainId,
+    checkNftAutoDetectionModal,
+    accountBalanceByChainId?.balance,
   ]);
 
   useEffect(
     () => {
       requestAnimationFrame(async () => {
-        const {
-          TokenDetectionController,
-          NftDetectionController,
-          AccountTrackerController,
-        } = Engine.context as any;
+        const { TokenDetectionController, AccountTrackerController } =
+          Engine.context;
         TokenDetectionController.detectTokens();
-        NftDetectionController.detectNfts();
         AccountTrackerController.refresh();
       });
     },
@@ -369,14 +412,14 @@ const Wallet = ({
         networkImageSource,
         onTitlePress,
         navigation,
-        themeColors,
+        colors,
         isNotificationEnabled,
       ),
     );
     /* eslint-disable-next-line */
   }, [
     navigation,
-    themeColors,
+    colors,
     networkName,
     networkImageSource,
     onTitlePress,
@@ -403,14 +446,26 @@ const Wallet = ({
   );
 
   const onChangeTab = useCallback(
-    (obj) => {
+    async (obj) => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
         trackEvent(MetaMetricsEvents.WALLET_TOKENS);
       } else {
         trackEvent(MetaMetricsEvents.WALLET_COLLECTIBLES);
+        // Call detect nfts
+        const { NftDetectionController } = Engine.context;
+        try {
+          showNftFetchingLoadingIndicator();
+          await NftDetectionController.detectNfts();
+        } finally {
+          hideNftFetchingLoadingIndicator();
+        }
       }
     },
-    [trackEvent],
+    [
+      trackEvent,
+      hideNftFetchingLoadingIndicator,
+      showNftFetchingLoadingIndicator,
+    ],
   );
 
   const turnOnBasicFunctionality = useCallback(() => {
@@ -420,19 +475,13 @@ const Wallet = ({
   }, [navigation]);
 
   const renderContent = useCallback(() => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let balance: any = 0;
     let assets = tokens;
 
-    if (
-      accountsByChainId?.[toHexadecimal(providerConfig.chainId)]?.[
-        selectedAddress
-      ]
-    ) {
-      balance = renderFromWei(
-        accountsByChainId[toHexadecimal(providerConfig.chainId)][
-          selectedAddress
-        ].balance,
-      );
+    if (accountBalanceByChainId) {
+      balance = renderFromWei(accountBalanceByChainId.balance);
 
       assets = [
         {
@@ -442,15 +491,15 @@ const Wallet = ({
           isETH: true,
           balance,
           balanceFiat: weiToFiat(
-            hexToBN(
-              accountsByChainId[toHexadecimal(providerConfig.chainId)][
-                selectedAddress
-              ].balance,
-            ) as any,
+            // TODO: Replace "any" with type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            hexToBN(accountBalanceByChainId.balance) as any,
             conversionRate,
             currentCurrency,
           ),
           logo: '../images/eth-logo-new.png',
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any,
         ...(tokens || []),
       ];
@@ -458,7 +507,10 @@ const Wallet = ({
       assets = tokens;
     }
     return (
-      <View style={styles.wrapper}>
+      <View
+        style={styles.wrapper}
+        testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
+      >
         {!basicFunctionalityEnabled ? (
           <View style={styles.banner}>
             <BannerAlert
@@ -472,13 +524,8 @@ const Wallet = ({
             />
           </View>
         ) : null}
-        {selectedAccount ? (
-          <WalletAccount
-            account={selectedAccount}
-            ens={ensForSelectedAccount}
-            style={styles.walletAccount}
-            ref={walletRef}
-          />
+        {selectedAddress ? (
+          <WalletAccount style={styles.walletAccount} ref={walletRef} />
         ) : null}
         <ScrollableTabView
           renderTabBar={renderTabBar}
@@ -502,23 +549,18 @@ const Wallet = ({
             key={'nfts-tab'}
             navigation={navigation}
           />
-          {/* </View> */}
         </ScrollableTabView>
-        {/* </View> */}
       </View>
     );
   }, [
     tokens,
-    accountsByChainId,
-    providerConfig.chainId,
+    accountBalanceByChainId,
     selectedAddress,
     styles.wrapper,
     styles.banner,
     styles.walletAccount,
     basicFunctionalityEnabled,
     turnOnBasicFunctionality,
-    selectedAccount,
-    ensForSelectedAccount,
     renderTabBar,
     onChangeTab,
     navigation,
@@ -551,7 +593,7 @@ const Wallet = ({
 
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
-      <View style={baseStyles.flexGrow} {...generateTestId('wallet-screen')}>
+      <View style={baseStyles.flexGrow}>
         {selectedAddress ? renderContent() : renderLoader()}
 
         {renderOnboardingWizard()}
@@ -560,15 +602,24 @@ const Wallet = ({
   );
 };
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapStateToProps = (state: any) => ({
   shouldShowNewPrivacyToast: shouldShowNewPrivacyToastSelector(state),
+  currentRouteName: getCurrentRoute(state),
 });
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapDispatchToProps = (dispatch: any) => ({
   storePrivacyPolicyShownDate: () =>
     dispatch(storePrivacyPolicyShownDateAction(Date.now())),
   storePrivacyPolicyClickedOrClosed: () =>
     dispatch(storePrivacyPolicyClickedOrClosedAction()),
+  showNftFetchingLoadingIndicator: () =>
+    dispatch(showNftFetchingLoadingIndicatorAction()),
+  hideNftFetchingLoadingIndicator: () =>
+    dispatch(hideNftFetchingLoadingIndicatorAction()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Wallet);

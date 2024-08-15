@@ -3,12 +3,10 @@ import TestHelpers from '../../helpers';
 import Browser from '../../pages/Browser/BrowserView';
 import AccountListView from '../../pages/AccountListView';
 import TabBarComponent from '../../pages/TabBarComponent';
+import ToastModal from '../../pages/modals/ToastModal';
 import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';
-
-import CommonView from '../../pages/CommonView';
-
-import { loginToApp } from '../../viewHelper';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
+import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import Assertions from '../../utils/Assertions';
@@ -39,9 +37,9 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
         await Browser.navigateToTestDApp();
         await Browser.tapNetworkAvatarButtonOnBrowser();
         await Assertions.checkIfVisible(ConnectedAccountsModal.title);
-        // await TestHelpers.delay(1000);
+        await TestHelpers.delay(2000);
 
-        await Assertions.checkIfNotVisible(CommonView.toast);
+        await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
         await ConnectedAccountsModal.tapConnectMoreAccountsButton();
         await AccountListView.tapAddAccountButton();
         await AccountListView.tapCreateAccountButton();
@@ -54,7 +52,7 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
         await ConnectedAccountsModal.tapPermissionsButton();
         await TestHelpers.delay(1500);
         await ConnectedAccountsModal.tapDisconnectAllButton();
-        await Assertions.checkIfNotVisible(await CommonView.toast);
+        await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
 
         await Browser.tapNetworkAvatarButtonOnBrowser();
         await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);

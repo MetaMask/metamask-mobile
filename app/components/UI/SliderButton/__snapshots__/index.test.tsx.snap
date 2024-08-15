@@ -7,7 +7,7 @@ exports[`SliderButton should render correctly 1`] = `
     [
       {
         "elevation": 0,
-        "shadowColor": "#0376C933",
+        "shadowColor": "#0376c933",
         "shadowOffset": {
           "height": 2,
           "width": 0,
@@ -24,7 +24,7 @@ exports[`SliderButton should render correctly 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#0260A4",
+        "backgroundColor": "#0260a4",
         "borderRadius": 60,
         "height": 60,
         "justifyContent": "center",
@@ -54,7 +54,7 @@ exports[`SliderButton should render correctly 1`] = `
         ]
       }
     />
-    <ForwardRef(AnimatedComponentWrapper)
+    <ForwardRef
       resizeMode="contain"
       source={
         {
@@ -81,7 +81,7 @@ exports[`SliderButton should render correctly 1`] = `
         ]
       }
     />
-    <ForwardRef(AnimatedComponentWrapper)
+    <ForwardRef
       style={
         {
           "opacity": 1,
@@ -91,7 +91,7 @@ exports[`SliderButton should render correctly 1`] = `
       <Text
         style={
           {
-            "color": "#FFFFFF",
+            "color": "#ffffff",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 16,
             "fontWeight": "400",
@@ -100,9 +100,9 @@ exports[`SliderButton should render correctly 1`] = `
       >
         Incomplete Text
       </Text>
-    </ForwardRef(AnimatedComponentWrapper)>
+    </ForwardRef>
   </View>
-  <ForwardRef(AnimatedComponentWrapper)
+  <ForwardRef
     style={
       [
         {
@@ -137,7 +137,7 @@ exports[`SliderButton should render correctly 1`] = `
       <Text
         style={
           {
-            "color": "#FFFFFF",
+            "color": "#ffffff",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 16,
             "fontWeight": "400",
@@ -147,8 +147,8 @@ exports[`SliderButton should render correctly 1`] = `
         Complete Text
       </Text>
     </View>
-  </ForwardRef(AnimatedComponentWrapper)>
-  <ForwardRef(AnimatedComponentWrapper)
+  </ForwardRef>
+  <ForwardRef
     onMoveShouldSetResponder={[Function]}
     onMoveShouldSetResponderCapture={[Function]}
     onResponderEnd={[Function]}
@@ -164,8 +164,8 @@ exports[`SliderButton should render correctly 1`] = `
     style={
       [
         {
-          "backgroundColor": "#FFFFFF",
-          "borderColor": "#0260A4",
+          "backgroundColor": "#ffffff",
+          "borderColor": "#0260a4",
           "borderRadius": 60,
           "borderWidth": 9.6,
           "height": 60,

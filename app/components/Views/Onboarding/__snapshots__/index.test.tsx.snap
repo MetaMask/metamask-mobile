@@ -54,7 +54,7 @@ exports[`Onboarding should render correctly 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -132,7 +132,7 @@ exports[`Onboarding should render correctly 1`] = `
                   style={
                     {
                       "height": 15,
-                      "tintColor": "#24272A",
+                      "tintColor": "#141618",
                       "width": 122,
                     }
                   }
@@ -171,7 +171,6 @@ exports[`Onboarding should render correctly 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -264,7 +263,6 @@ exports[`Onboarding should render correctly 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -344,7 +342,7 @@ exports[`Onboarding should render correctly 1`] = `
                       <View
                         style={
                           {
-                            "backgroundColor": "#FFFFFF",
+                            "backgroundColor": "#ffffff",
                             "flex": 1,
                           }
                         }
@@ -425,7 +423,7 @@ exports[`Onboarding should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 24,
                                         "fontWeight": "700",
@@ -449,7 +447,7 @@ exports[`Onboarding should render correctly 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "Euclid Circular B",
                                           "fontSize": 14,
                                           "fontWeight": "400",
@@ -494,8 +492,8 @@ exports[`Onboarding should render correctly 1`] = `
                                                 "padding": 15,
                                               },
                                               {
-                                                "backgroundColor": "#FFFFFF",
-                                                "borderColor": "#0376C9",
+                                                "backgroundColor": "#ffffff",
+                                                "borderColor": "#0376c9",
                                                 "borderWidth": 1,
                                               },
                                               undefined,
@@ -523,7 +521,7 @@ exports[`Onboarding should render correctly 1`] = `
                                                   "textAlign": "center",
                                                 },
                                                 {
-                                                  "color": "#0376C9",
+                                                  "color": "#0376c9",
                                                 },
                                                 undefined,
                                               ],
@@ -556,7 +554,7 @@ exports[`Onboarding should render correctly 1`] = `
                                                 "padding": 15,
                                               },
                                               {
-                                                "backgroundColor": "#0376C9",
+                                                "backgroundColor": "#0376c9",
                                               },
                                               undefined,
                                             ],
@@ -583,7 +581,7 @@ exports[`Onboarding should render correctly 1`] = `
                                                   "textAlign": "center",
                                                 },
                                                 {
-                                                  "color": "#FFFFFF",
+                                                  "color": "#ffffff",
                                                 },
                                                 undefined,
                                               ],
@@ -606,7 +604,7 @@ exports[`Onboarding should render correctly 1`] = `
                         collapsable={false}
                         style={
                           {
-                            "backgroundColor": "#FFFFFF",
+                            "backgroundColor": "#ffffff",
                             "bottom": 0,
                             "left": 0,
                             "opacity": 1,

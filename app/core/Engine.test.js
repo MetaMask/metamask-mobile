@@ -1,7 +1,9 @@
 import Engine from './Engine';
-import initialState from '../util/test/initial-background-state.json';
+import { backgroundState } from '../util/test/initial-root-state';
+import { zeroAddress } from 'ethereumjs-util';
 
 jest.unmock('./Engine');
+jest.mock('../store', () => ({ store: { getState: jest.fn(() => ({})) } }));
 
 describe('Engine', () => {
   it('should expose an API', () => {
@@ -25,6 +27,9 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('LoggingController');
     expect(engine.context).toHaveProperty('TransactionController');
     expect(engine.context).toHaveProperty('SmartTransactionsController');
+    expect(engine.context).toHaveProperty('AuthenticationController');
+    expect(engine.context).toHaveProperty('UserStorageController');
+    expect(engine.context).toHaveProperty('NotificationServicesController');
   });
 
   it('calling Engine.init twice returns the same instance', () => {
@@ -43,22 +48,10 @@ describe('Engine', () => {
   // Use this to keep the unit test initial background state fixture up-to-date
   it('matches initial state fixture', () => {
     const engine = Engine.init({});
-    let backgroundState = engine.datamodel.state;
+    const initialBackgroundState = engine.datamodel.state;
 
-    backgroundState = {
+    expect(initialBackgroundState).toStrictEqual({
       ...backgroundState,
-      KeyringController: {
-        ...backgroundState.KeyringController,
-        vault: {
-          cipher: 'mock-cipher',
-          iv: 'mock-iv',
-          lib: 'original',
-        },
-      },
-    };
-
-    expect(backgroundState).toStrictEqual({
-      ...initialState,
 
       // JSON cannot store the value undefined, so we append it here
       SmartTransactionsController: {
@@ -93,11 +86,161 @@ describe('Engine', () => {
   });
 
   it('setSelectedAccount throws an error if no account exists for the given address', () => {
-    const engine = Engine.init(initialState);
+    const engine = Engine.init(backgroundState);
     const invalidAddress = '0xInvalidAddress';
 
     expect(() => engine.setSelectedAccount(invalidAddress)).toThrow(
       `No account found for address: ${invalidAddress}`,
     );
+  });
+
+  describe('getTotalFiatAccountBalance', () => {
+    let engine;
+    afterEach(() => engine?.destroyEngineInstance());
+
+    const selectedAddress = '0x9DeE4BF1dE9E3b930E511Db5cEBEbC8d6F855Db0';
+    const chainId = '0x1';
+    const ticker = 'ETH';
+    const ethConversionRate = 4000; // $4,000 / ETH
+
+    const state = {
+      AccountsController: {
+        internalAccounts: {
+          selectedAccount: selectedAddress,
+          accounts: { [selectedAddress]: { address: selectedAddress } },
+        },
+      },
+      NetworkController: {
+        state: { providerConfig: { chainId, ticker } },
+      },
+      CurrencyRateController: {
+        currencyRates: {
+          [ticker]: { conversionRate: ethConversionRate },
+        },
+      },
+    };
+
+    it('calculates when theres no balances', () => {
+      engine = Engine.init(state);
+      const totalFiatBalance = engine.getTotalFiatAccountBalance();
+      expect(totalFiatBalance).toStrictEqual({
+        ethFiat: 0,
+        ethFiat1dAgo: 0,
+        tokenFiat: 0,
+        tokenFiat1dAgo: 0,
+      });
+    });
+
+    it('calculates when theres only ETH', () => {
+      const ethBalance = 1; // 1 ETH
+      const ethPricePercentChange1d = 5; // up 5%
+
+      engine = Engine.init({
+        ...state,
+        AccountTrackerController: {
+          accountsByChainId: {
+            [chainId]: {
+              [selectedAddress]: { balance: ethBalance * 1e18 },
+            },
+          },
+        },
+        TokenRatesController: {
+          marketData: {
+            [chainId]: {
+              [zeroAddress()]: {
+                pricePercentChange1d: ethPricePercentChange1d,
+              },
+            },
+          },
+        },
+      });
+
+      const totalFiatBalance = engine.getTotalFiatAccountBalance();
+
+      const ethFiat = ethBalance * ethConversionRate;
+      expect(totalFiatBalance).toStrictEqual({
+        ethFiat,
+        ethFiat1dAgo: ethFiat / (1 + ethPricePercentChange1d / 100),
+        tokenFiat: 0,
+        tokenFiat1dAgo: 0,
+      });
+    });
+
+    it('calculates when there are ETH and tokens', () => {
+      const ethBalance = 1;
+      const ethPricePercentChange1d = 5;
+
+      const tokens = [
+        {
+          address: '0x001',
+          balance: 1,
+          price: '1',
+          pricePercentChange1d: -1,
+        },
+        {
+          address: '0x002',
+          balance: 2,
+          price: '2',
+          pricePercentChange1d: 2,
+        },
+      ];
+
+      engine = Engine.init({
+        ...state,
+        AccountTrackerController: {
+          accountsByChainId: {
+            [chainId]: {
+              [selectedAddress]: { balance: ethBalance * 1e18 },
+            },
+          },
+        },
+        TokensController: {
+          tokens: tokens.map((token) => ({
+            address: token.address,
+            balance: token.balance,
+          })),
+        },
+        TokenRatesController: {
+          marketData: {
+            [chainId]: {
+              [zeroAddress()]: {
+                pricePercentChange1d: ethPricePercentChange1d,
+              },
+              ...tokens.reduce(
+                (acc, token) => ({
+                  ...acc,
+                  [token.address]: {
+                    price: token.price,
+                    pricePercentChange1d: token.pricePercentChange1d,
+                  },
+                }),
+                {},
+              ),
+            },
+          },
+        },
+      });
+
+      const totalFiatBalance = engine.getTotalFiatAccountBalance();
+
+      const ethFiat = ethBalance * ethConversionRate;
+      const [tokenFiat, tokenFiat1dAgo] = tokens.reduce(
+        ([fiat, fiat1d], token) => {
+          const value = token.balance * token.price * ethConversionRate;
+          return [
+            fiat + value,
+            fiat1d + value / (1 + token.pricePercentChange1d / 100),
+          ];
+        },
+        [0, 0],
+      );
+
+      expect(totalFiatBalance).toStrictEqual({
+        ethFiat,
+        ethFiat1dAgo: ethFiat / (1 + ethPricePercentChange1d / 100),
+        tokenFiat,
+        tokenFiat1dAgo,
+      });
+    });
   });
 });

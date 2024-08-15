@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Image, View, Linking } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
@@ -18,26 +18,21 @@ import { CONSENSYS_PRIVACY_POLICY } from '../../../../constants/urls';
 import { useSelector } from 'react-redux';
 import { mmStorage } from '../../../../util/notifications';
 import { STORAGE_IDS } from '../../../../util/notifications/settings/storage/constants';
+import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 
 const OptIn = () => {
   const theme = useTheme();
   const styles = createStyles(theme);
   const navigation = useNavigation();
   const isNotificationEnabled = useSelector(
-    (state: any) => state.notification?.notificationsSettings?.isEnabled,
+    selectIsMetamaskNotificationsEnabled,
   );
-  const [promptCount, setPromptCount] = useState(0);
 
   const navigateToNotificationsSettings = () => {
     navigation.navigate(Routes.SETTINGS.NOTIFICATIONS);
   };
 
   const navigateToMainWallet = () => {
-    !isNotificationEnabled &&
-      mmStorage.saveLocal(
-        STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,
-        promptCount,
-      );
     navigation.navigate(Routes.WALLET_VIEW);
   };
 
@@ -54,7 +49,7 @@ const OptIn = () => {
       );
       const times = count + 1 || 1;
 
-      setPromptCount(times);
+      mmStorage.saveLocal(STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT, times);
     }
   });
 
@@ -86,7 +81,7 @@ const OptIn = () => {
         color={TextColor.Alternative}
         style={styles.textSpace}
       >
-        {strings('notifications.activation_card.description_2')}
+        {strings('notifications.activation_card.description_2')}{' '}
         <Text
           variant={TextVariant.BodyMD}
           color={TextColor.Info}

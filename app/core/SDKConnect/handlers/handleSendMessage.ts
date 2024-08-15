@@ -14,6 +14,8 @@ export const handleSendMessage = async ({
   msg,
   connection,
 }: {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   msg: any;
   connection: Connection;
 }) => {
@@ -32,6 +34,8 @@ export const handleSendMessage = async ({
         msg,
         batchRPCManager: connection.batchRPCManager,
         backgroundBridge: connection.backgroundBridge,
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         sendMessage: ({ msg: newmsg }: { msg: any }) =>
           handleSendMessage({ msg: newmsg, connection }),
       });

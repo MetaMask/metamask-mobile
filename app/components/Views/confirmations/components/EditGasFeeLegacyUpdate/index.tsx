@@ -41,6 +41,8 @@ import {
 } from '../../../../../util/gasUtils';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
+import { selectPrimaryCurrency } from '../../../../../selectors/settings';
+import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 
 const EditGasFeeLegacy = ({
   onCancel,
@@ -77,16 +79,11 @@ const EditGasFeeLegacy = ({
   const styles = createStyles(colors);
   const gasFeeEstimate = useSelector(selectGasFeeEstimates);
 
-  const primaryCurrency = useSelector(
-    (state: any) => state.settings.primaryCurrency,
-  );
+  const primaryCurrency = useSelector(selectPrimaryCurrency);
 
-  const gasEstimateType = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.GasFeeController.gasEstimateType,
-  );
+  const gasEstimateType = useSelector(selectGasFeeControllerEstimateType);
 
-  const chainId = useSelector((state: any) => selectChainId(state));
+  const chainId = useSelector(selectChainId);
 
   const gasTransaction = useGasTransaction({
     onlyGas,

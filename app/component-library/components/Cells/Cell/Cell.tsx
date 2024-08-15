@@ -5,12 +5,13 @@ import React from 'react';
 import CellDisplay from './variants/CellDisplay';
 import CellMultiSelect from './variants/CellMultiSelect';
 import CellSelect from './variants/CellSelect';
+import CellSelectWithMenu from '../../../components-temp/CellSelectWithMenu';
 import { CellModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/CellModal.selectors';
 
 // Internal dependencies.
 import { CellProps, CellVariant } from './Cell.types';
 
-const Cell = ({ variant, ...props }: CellProps) => {
+const Cell = ({ variant, hitSlop, ...props }: CellProps) => {
   switch (variant) {
     case CellVariant.Display:
       return <CellDisplay testID={CellModalSelectorsIDs.DISPLAY} {...props} />;
@@ -23,6 +24,13 @@ const Cell = ({ variant, ...props }: CellProps) => {
       );
     case CellVariant.Select:
       return <CellSelect testID={CellModalSelectorsIDs.SELECT} {...props} />;
+    case CellVariant.SelectWithMenu:
+      return (
+        <CellSelectWithMenu
+          testID={CellModalSelectorsIDs.SELECT_WITH_MENU}
+          {...props}
+        />
+      );
     default:
       throw new Error('Invalid Cell Variant');
   }

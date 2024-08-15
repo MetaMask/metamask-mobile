@@ -10,7 +10,7 @@ import { estimateGas as controllerEstimateGas } from '../transaction-controller'
 
 interface opts {
   amount?: string;
-  data?: any;
+  data?: string;
   to?: string;
 }
 
@@ -76,13 +76,16 @@ export const estimateGas = async (
   let estimation;
   try {
     estimation = await controllerEstimateGas({
-      amount,
+      value: amount,
       from,
       data,
       to: selectedAsset?.address ? selectedAsset.address : to,
     });
   } catch (e) {
-    estimation = { gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT };
+    estimation = {
+      gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT,
+      gasPrice: undefined,
+    };
   }
   return estimation;
 };
@@ -143,14 +146,14 @@ export const validateTokenAmount = async (
     }
     // If user trying to send a token that doesn't own, validate balance querying contract
     // If it fails, skip validation
-    let contractBalanceForAddress;
+    let contractBalanceForAddress: BN | undefined | number;
     if (selectedAddress === from && contractBalances[selectedAsset.address]) {
       contractBalanceForAddress = hexToBN(
         contractBalances[selectedAsset.address].toString(),
       );
     } else {
       try {
-        const { AssetsContractController }: any = Engine.context;
+        const { AssetsContractController } = Engine.context;
         contractBalanceForAddress =
           await AssetsContractController.getERC20BalanceOf(
             selectedAsset.address,
@@ -163,7 +166,10 @@ export const validateTokenAmount = async (
     if (value && !isBN(value)) return strings('transaction.invalid_amount');
     const validateAssetAmount =
       contractBalanceForAddress &&
-      lt(contractBalanceForAddress, value as unknown as number);
+      lt(
+        contractBalanceForAddress as unknown as number,
+        value as unknown as number,
+      );
     if (validateAssetAmount) return strings('transaction.insufficient');
   }
 };
@@ -173,7 +179,7 @@ export const validateCollectibleOwnership = async (
   tokenId: string,
   selectedAddress: string,
 ): Promise<string | undefined> => {
-  const { AssetsContractController }: any = Engine.context;
+  const { AssetsContractController } = Engine.context;
 
   try {
     const owner = await AssetsContractController.getERC721OwnerOf(

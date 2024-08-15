@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import Coachmark from '../Coachmark';
@@ -12,8 +12,7 @@ import {
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { ONBOARDING_WIZARD_SECOND_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
+import { OnboardingWizardModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/OnboardingWizardModal.selectors';
 import { useMetrics } from '../../../hooks/useMetrics';
 import useHandleLayout from '../useHandleLayout';
 
@@ -30,6 +29,8 @@ const styles = StyleSheet.create({
 });
 
 interface Step2Props {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   coachmarkRef: any;
   onClose: () => Promise<void>;
 }
@@ -65,10 +66,7 @@ const Step2 = ({ coachmarkRef, onClose }: Step2Props) => {
       <View style={dynamicOnboardingStyles.contentContainer}>
         <Text
           style={dynamicOnboardingStyles.content}
-          {...generateTestId(
-            Platform,
-            ONBOARDING_WIZARD_SECOND_STEP_CONTENT_ID,
-          )}
+          testID={OnboardingWizardModalSelectorsIDs.STEP_TWO_CONTAINER}
         >
           {strings('onboarding_wizard_new.step2.content1')}
         </Text>

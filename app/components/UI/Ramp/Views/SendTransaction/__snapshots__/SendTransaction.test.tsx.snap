@@ -54,7 +54,7 @@ exports[`SendTransaction View renders correctly 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -130,7 +130,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -167,7 +167,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -206,7 +206,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -252,7 +252,6 @@ exports[`SendTransaction View renders correctly 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -345,7 +344,6 @@ exports[`SendTransaction View renders correctly 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -425,7 +423,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -480,7 +478,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                       "fontFamily": "Euclid Circular B",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -494,7 +492,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 18,
                                         "fontWeight": "normal",
@@ -510,7 +508,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 18,
                                         "fontWeight": "700",
@@ -525,7 +523,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                   <View
                                     style={
                                       {
-                                        "backgroundColor": "#FFFFFF",
+                                        "backgroundColor": "#ffffff",
                                         "borderRadius": 12,
                                         "height": 24,
                                         "overflow": "hidden",
@@ -556,7 +554,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 18,
                                         "fontWeight": "700",
@@ -582,7 +580,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                 }
                               >
                                 <SvgMock
-                                  color="#6A737D"
+                                  color="#6a737d"
                                   height={24}
                                   name="Arrow2Down"
                                   style={
@@ -634,7 +632,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                 }
                               >
                                 <SvgMock
-                                  color="#6A737D"
+                                  color="#6a737d"
                                   height={24}
                                   name="Arrow2Down"
                                   style={
@@ -673,7 +671,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#6A737D",
+                                          "color": "#6a737d",
                                           "fontSize": 20,
                                         },
                                         undefined,
@@ -692,7 +690,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 18,
                                         "fontWeight": "normal",
@@ -738,7 +736,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -774,7 +772,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#0376C9",
+                                    "backgroundColor": "#0376c9",
                                     "borderRadius": 24,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -788,7 +786,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#FFFFFF",
+                                      "color": "#ffffff",
                                       "fontFamily": "Euclid Circular B",
                                       "fontSize": 16,
                                       "fontWeight": "500",
@@ -871,7 +869,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -947,7 +945,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -984,7 +982,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -1023,7 +1021,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -1069,7 +1067,6 @@ exports[`SendTransaction View renders correctly for custom action payment method
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -1162,7 +1159,6 @@ exports[`SendTransaction View renders correctly for custom action payment method
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1242,7 +1238,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                         style={
                           [
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -1297,7 +1293,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                       "fontFamily": "Euclid Circular B",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -1311,7 +1307,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 18,
                                         "fontWeight": "normal",
@@ -1327,7 +1323,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 18,
                                         "fontWeight": "700",
@@ -1342,7 +1338,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                   <View
                                     style={
                                       {
-                                        "backgroundColor": "#FFFFFF",
+                                        "backgroundColor": "#ffffff",
                                         "borderRadius": 12,
                                         "height": 24,
                                         "overflow": "hidden",
@@ -1373,7 +1369,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 18,
                                         "fontWeight": "700",
@@ -1399,7 +1395,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                 }
                               >
                                 <SvgMock
-                                  color="#6A737D"
+                                  color="#6a737d"
                                   height={24}
                                   name="Arrow2Down"
                                   style={
@@ -1471,7 +1467,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -1507,7 +1503,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#0376C9",
+                                    "backgroundColor": "#0376c9",
                                     "borderRadius": 24,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -1521,7 +1517,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#FFFFFF",
+                                      "color": "#ffffff",
                                       "fontFamily": "Euclid Circular B",
                                       "fontSize": 16,
                                       "fontWeight": "500",
@@ -1604,7 +1600,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -1680,7 +1676,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376C9",
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -1717,7 +1713,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -1756,7 +1752,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
@@ -1802,7 +1798,6 @@ exports[`SendTransaction View renders correctly for token 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -1895,7 +1890,6 @@ exports[`SendTransaction View renders correctly for token 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1975,7 +1969,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -2030,7 +2024,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#24272A",
+                                      "color": "#141618",
                                       "fontFamily": "Euclid Circular B",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -2044,7 +2038,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 18,
                                         "fontWeight": "normal",
@@ -2060,7 +2054,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 18,
                                         "fontWeight": "700",
@@ -2075,7 +2069,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                   <View
                                     style={
                                       {
-                                        "backgroundColor": "#FFFFFF",
+                                        "backgroundColor": "#ffffff",
                                         "borderRadius": 12,
                                         "height": 24,
                                         "overflow": "hidden",
@@ -2106,7 +2100,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 18,
                                         "fontWeight": "700",
@@ -2132,7 +2126,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                 }
                               >
                                 <SvgMock
-                                  color="#6A737D"
+                                  color="#6a737d"
                                   height={24}
                                   name="Arrow2Down"
                                   style={
@@ -2184,7 +2178,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                 }
                               >
                                 <SvgMock
-                                  color="#6A737D"
+                                  color="#6a737d"
                                   height={24}
                                   name="Arrow2Down"
                                   style={
@@ -2223,7 +2217,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#6A737D",
+                                          "color": "#6a737d",
                                           "fontSize": 20,
                                         },
                                         undefined,
@@ -2242,7 +2236,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 18,
                                         "fontWeight": "normal",
@@ -2288,7 +2282,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -2324,7 +2318,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#0376C9",
+                                    "backgroundColor": "#0376c9",
                                     "borderRadius": 24,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -2338,7 +2332,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#FFFFFF",
+                                      "color": "#ffffff",
                                       "fontFamily": "Euclid Circular B",
                                       "fontSize": 16,
                                       "fontWeight": "500",

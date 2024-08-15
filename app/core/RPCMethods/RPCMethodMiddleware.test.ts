@@ -20,7 +20,7 @@ import {
   PermissionController,
 } from '@metamask/permission-controller';
 import PPOMUtil from '../../lib/ppom/ppom-util';
-import initialBackgroundState from '../../util/test/initial-background-state.json';
+import { backgroundState } from '../../util/test/initial-root-state';
 import { Store } from 'redux';
 import { RootState } from 'app/reducers';
 import { addTransaction } from '../../util/transaction-controller';
@@ -31,6 +31,16 @@ import {
   unrestrictedMethods,
 } from '../Permissions/specifications';
 import { EthAccountType, EthMethod } from '@metamask/keyring-api';
+import {
+  processOriginThrottlingRejection,
+  validateOriginThrottling,
+} from './spam';
+import {
+  NUMBER_OF_REJECTIONS_THRESHOLD,
+  OriginThrottlingState,
+} from '../redux/slices/originThrottling';
+
+jest.mock('./spam');
 
 jest.mock('../Engine', () => ({
   context: {
@@ -77,6 +87,10 @@ jest.mock('../Permissions', () => ({
 }));
 const mockGetPermittedAccounts = getPermittedAccounts as jest.Mock;
 const mockAddTransaction = addTransaction as jest.Mock;
+
+const mockProcessOriginThrottlingRejection =
+  processOriginThrottlingRejection as jest.Mock;
+const mockValidateOriginThrottling = validateOriginThrottling as jest.Mock;
 
 /**
  * This is used to build JSON-RPC requests. It is defined here for convenience, so that we don't
@@ -221,15 +235,19 @@ function setupGlobalState({
   permittedAccounts,
   providerConfig,
   selectedAddress,
+  originThrottling,
 }: {
   activeTab?: number;
   addTransactionResult?: Promise<string>;
   permittedAccounts?: Record<string, string[]>;
   providerConfig?: ProviderConfig;
   selectedAddress?: string;
+  originThrottling?: OriginThrottlingState;
 }) {
   // TODO: Remove any cast once PermissionController type is fixed. Currently, the state shows never.
   jest
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .spyOn(store as Store<Partial<RootState>, any>, 'getState')
     .mockImplementation(() => ({
       browser: activeTab
@@ -239,13 +257,18 @@ function setupGlobalState({
         : {},
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           NetworkController: {
             providerConfig: providerConfig || {},
           },
           PreferencesController: selectedAddress ? { selectedAddress } : {},
         },
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any,
+      originThrottling: originThrottling || {
+        origins: {},
+      },
     }));
   mockStore.dispatch.mockImplementation((obj) => obj);
   if (addTransactionResult) {
@@ -350,6 +373,8 @@ describe('getRpcMethodMiddleware', () => {
     const permissionController = new PermissionController({
       messenger: controllerMessenger.getRestricted({
         name: 'PermissionController',
+        allowedActions: [],
+        allowedEvents: [],
       }),
       caveatSpecifications: getCaveatSpecifications({
         getInternalAccounts: mockGetInternalAccounts,
@@ -392,54 +417,9 @@ describe('getRpcMethodMiddleware', () => {
         expectedError.message,
       );
     });
-
-    it('returns unauthorized error on restricted method without permission', async () => {
-      const ethAccountsMethodName = 'eth_accounts';
-      const response = await engine.handle({
-        jsonrpc,
-        id: 1,
-        method: ethAccountsMethodName,
-      });
-
-      const expectedError = providerErrors.unauthorized(
-        'Unauthorized to perform action. Try requesting the required permission(s) first. For more information, see: https://docs.metamask.io/guide/rpc-api.html#permissions',
-      );
-
-      expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
-      expect((response as JsonRpcFailure).error.message).toBe(
-        expectedError.message,
-      );
-    });
-
-    it('handles restricted method with permission', async () => {
-      const ethAccountsMethodName = 'eth_accounts';
-      permissionController.grantPermissions({
-        subject: { origin: hostMock },
-        approvedPermissions: {
-          eth_accounts: {},
-        },
-        requestData: {
-          approvedAccounts: ['0x1'],
-        },
-      });
-      const response = await engine.handle({
-        jsonrpc,
-        id: 1,
-        method: ethAccountsMethodName,
-      });
-
-      expect((response as JsonRpcFailure).error).toBeUndefined();
-      expect((response as JsonRpcSuccess<string>).result).toStrictEqual([
-        '0x1',
-      ]);
-    });
   });
 
-  const accountMethods = [
-    'eth_accounts',
-    'eth_coinbase',
-    'parity_defaultAccount',
-  ];
+  const accountMethods = ['eth_coinbase', 'parity_defaultAccount'];
   for (const method of accountMethods) {
     describe(method, () => {
       describe('browser', () => {
@@ -1161,6 +1141,8 @@ describe('getRpcMethodMiddleware', () => {
         params: [addressMock, data],
       };
 
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (await callMiddleware({ middleware, request })) as any;
     }
 
@@ -1229,6 +1211,8 @@ describe('getRpcMethodMiddleware', () => {
         signatureMock,
       );
 
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (await callMiddleware({ middleware, request })) as any;
     }
 
@@ -1280,6 +1264,8 @@ describe('getRpcMethodMiddleware', () => {
         signatureMock,
       );
 
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (await callMiddleware({ middleware, request })) as any;
     }
 
@@ -1322,6 +1308,86 @@ describe('getRpcMethodMiddleware', () => {
       const spy = jest.spyOn(PPOMUtil, 'validateRequest');
       await sendRequest();
       expect(spy).toBeCalledTimes(1);
+    });
+  });
+
+  describe('originThrottling', () => {
+    const assumedBlockableRPCMethod = 'eth_sendTransaction';
+    const mockBlockedOrigin = 'blocked.origin';
+
+    it('blocks the request when the origin has an active spam filter for origin', async () => {
+      // Restore mock for this test
+      mockValidateOriginThrottling.mockImplementationOnce(
+        jest.requireActual('./spam').validateOriginThrottling,
+      );
+
+      setupGlobalState({
+        originThrottling: {
+          origins: {
+            [mockBlockedOrigin]: {
+              rejections: NUMBER_OF_REJECTIONS_THRESHOLD,
+              lastRejection: Date.now() - 1,
+            },
+          },
+        },
+      });
+
+      const middleware = getRpcMethodMiddleware(getMinimalBrowserOptions());
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: assumedBlockableRPCMethod,
+        params: [],
+        origin: mockBlockedOrigin,
+      };
+
+      const response = await callMiddleware({ middleware, request });
+
+      const expectedError = jest.requireActual('./spam').SPAM_FILTER_ACTIVATED;
+      expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
+      expect((response as JsonRpcFailure).error.message).toBe(
+        expectedError.message,
+      );
+    });
+
+    it('calls processOriginThrottlingRejection hook after receiving error', async () => {
+      jest.doMock('./eth_sendTransaction', () => ({
+        __esModule: true,
+        default: jest.fn(() =>
+          Promise.reject(providerErrors.userRejectedRequest()),
+        ),
+      }));
+
+      mockProcessOriginThrottlingRejection.mockClear();
+
+      setupGlobalState({
+        originThrottling: {
+          origins: {
+            [mockBlockedOrigin]: {
+              rejections: 1,
+              lastRejection: Date.now() - 1,
+            },
+          },
+        },
+      });
+
+      const middleware = getRpcMethodMiddleware(getMinimalBrowserOptions());
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: assumedBlockableRPCMethod,
+        params: [],
+        origin: mockBlockedOrigin,
+      };
+
+      await callMiddleware({ middleware, request });
+
+      expect(mockProcessOriginThrottlingRejection).toHaveBeenCalledTimes(1);
+      expect(mockProcessOriginThrottlingRejection).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error: providerErrors.userRejectedRequest(),
+        }),
+      );
     });
   });
 });

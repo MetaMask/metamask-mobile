@@ -15,6 +15,7 @@ const {
   OPTIMISM_CHAIN_ID,
   ZKSYNC_ERA_CHAIN_ID,
   LINEA_CHAIN_ID,
+  BASE_CHAIN_ID,
 } = swapsUtils;
 
 const allowedChainIds = [
@@ -26,6 +27,7 @@ const allowedChainIds = [
   OPTIMISM_CHAIN_ID,
   ZKSYNC_ERA_CHAIN_ID,
   LINEA_CHAIN_ID,
+  BASE_CHAIN_ID,
   SWAPS_TESTNET_CHAIN_ID,
 ];
 
@@ -34,10 +36,9 @@ export const allowedTestnetChainIds = [
   NETWORKS_CHAIN_ID.SEPOLIA,
 ];
 
-// TODO uncomment this when we are done QA. This is to let ppl test on sepolia
-// if (__DEV__) {
-allowedChainIds.push(...allowedTestnetChainIds);
-// }
+if (__DEV__) {
+  allowedChainIds.push(...allowedTestnetChainIds);
+}
 
 export function isSwapsAllowed(chainId) {
   if (!AppConstants.SWAPS.ACTIVE) {

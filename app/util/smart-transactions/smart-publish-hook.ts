@@ -20,6 +20,7 @@ import {
 import { v1 as random } from 'uuid';
 import { decimalToHex } from '../conversions';
 import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
+import { RAMPS_SEND } from '../../components/UI/Ramp/constants';
 
 export declare type Hex = `0x${string}`;
 
@@ -146,7 +147,10 @@ class SmartTransactionHook {
       this.#shouldUseSmartTransaction,
     );
     const useRegularTransactionSubmit = { transactionHash: undefined };
-    if (!this.#shouldUseSmartTransaction) {
+    if (
+      !this.#shouldUseSmartTransaction ||
+      this.#transactionMeta.origin === RAMPS_SEND
+    ) {
       return useRegularTransactionSubmit;
     }
 
@@ -196,6 +200,8 @@ class SmartTransactionHook {
       );
 
       return { transactionHash };
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       Logger.error(
         error,
@@ -238,6 +244,8 @@ class SmartTransactionHook {
   };
 
   #getTransactionHash = async (
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     submitTransactionResponse: any,
     uuid: string,
   ) => {
@@ -354,6 +362,8 @@ class SmartTransactionHook {
       await this.#approvalController.updateRequestState({
         id: this.#approvalId,
         requestState: {
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           smartTransaction: smartTransaction as any,
           isDapp: this.#isDapp,
           isInSwapFlow: this.#isInSwapFlow,
@@ -424,9 +434,9 @@ class SmartTransactionHook {
       this.#transactionController.state.swapsTransactions || {};
 
     newSwapsTransactions[id] = newSwapsTransactions[this.#transactionMeta.id];
-    this.#transactionController.update({
-      // @ts-expect-error This is not defined on the type, but is a field added in app/components/UI/Swaps/QuotesView.js
-      swapsTransactions: newSwapsTransactions,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (this.#transactionController as any).update((state: any) => {
+      state.swapsTransactions = newSwapsTransactions;
     });
   };
 }

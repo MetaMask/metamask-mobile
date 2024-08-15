@@ -54,7 +54,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -137,7 +137,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                 testID="back-arrow-button"
               >
                 <SvgMock
-                  color="#24272A"
+                  color="#141618"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -168,7 +168,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                 onLayout={[Function]}
                 style={
                   {
-                    "color": "#0376C9",
+                    "color": "#0376c9",
                     "fontSize": 17,
                     "fontWeight": "600",
                   }
@@ -178,7 +178,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 18,
                       "fontWeight": "700",
@@ -206,7 +206,6 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -299,7 +298,6 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -392,7 +390,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                           style={
                             [
                               {
-                                "backgroundColor": "#FFFFFF",
+                                "backgroundColor": "#ffffff",
                                 "flex": 1,
                               },
                               undefined,
@@ -439,7 +437,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 16,
                                         "fontWeight": "500",
@@ -487,7 +485,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "Euclid Circular B",
                                               "fontSize": 14,
                                               "fontWeight": "400",
@@ -513,7 +511,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "Euclid Circular B",
                                               "fontSize": 14,
                                               "fontWeight": "400",
@@ -539,7 +537,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         "alignItems": "center",
                                         "alignSelf": "stretch",
                                         "backgroundColor": "transparent",
-                                        "borderColor": "#0376C9",
+                                        "borderColor": "#0376c9",
                                         "borderRadius": 24,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
@@ -554,7 +552,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#0376C9",
+                                          "color": "#0376c9",
                                           "fontFamily": "Euclid Circular B",
                                           "fontSize": 14,
                                           "fontWeight": "400",
@@ -583,7 +581,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -596,7 +594,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "Euclid Circular B",
                                           "fontSize": 16,
                                           "fontWeight": "500",
@@ -611,7 +609,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "Euclid Circular B",
                                           "fontSize": 14,
                                           "fontWeight": "400",
@@ -642,7 +640,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#535A61",
+                                          "color": "#6a737d",
                                           "fontFamily": "Euclid Circular B",
                                           "fontSize": 14,
                                           "fontWeight": "400",
@@ -679,7 +677,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         onChange={[Function]}
                                         onResponderTerminationRequest={[Function]}
                                         onStartShouldSetResponder={[Function]}
-                                        onTintColor="#0376C9"
+                                        onTintColor="#0376c9"
                                         style={
                                           [
                                             {
@@ -687,13 +685,13 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                               "width": 51,
                                             },
                                             {
-                                              "backgroundColor": "#D6D9DC",
+                                              "backgroundColor": "#bbc0c566",
                                               "borderRadius": 16,
                                             },
                                           ]
                                         }
-                                        thumbTintColor="#FFFFFF"
-                                        tintColor="#D6D9DC"
+                                        thumbTintColor="#ffffff"
+                                        tintColor="#bbc0c566"
                                         value={true}
                                       />
                                     </View>
@@ -719,7 +717,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         selectable={true}
                                         style={
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "Euclid Circular B",
                                             "fontSize": 14,
                                             "fontWeight": "400",
@@ -735,7 +733,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         selectable={true}
                                         style={
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "Euclid Circular B",
                                             "fontSize": 14,
                                             "fontWeight": "400",
@@ -768,6 +766,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         accessibilityLabel="Edit Activation Key"
                                         accessibilityRole="button"
                                         accessible={true}
+                                        activeOpacity={1}
                                         disabled={true}
                                         hitSlop={
                                           {
@@ -778,9 +777,21 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           }
                                         }
                                         onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "borderRadius": 8,
+                                            "height": 32,
+                                            "justifyContent": "center",
+                                            "opacity": 1,
+                                            "width": 32,
+                                          }
+                                        }
                                       >
                                         <SvgMock
-                                          color="#0376C980"
+                                          color="#0376c9"
                                           height={24}
                                           name="Edit"
                                           style={
@@ -814,6 +825,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         accessibilityLabel="Delete Activation Key"
                                         accessibilityRole="button"
                                         accessible={true}
+                                        activeOpacity={1}
                                         disabled={true}
                                         hitSlop={
                                           {
@@ -824,9 +836,21 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           }
                                         }
                                         onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "borderRadius": 8,
+                                            "height": 32,
+                                            "justifyContent": "center",
+                                            "opacity": 1,
+                                            "width": 32,
+                                          }
+                                        }
                                       >
                                         <SvgMock
-                                          color="#D7384780"
+                                          color="#d73847"
                                           height={24}
                                           name="Trash"
                                           style={
@@ -865,7 +889,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         onChange={[Function]}
                                         onResponderTerminationRequest={[Function]}
                                         onStartShouldSetResponder={[Function]}
-                                        onTintColor="#0376C9"
+                                        onTintColor="#0376c9"
                                         style={
                                           [
                                             {
@@ -873,13 +897,13 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                               "width": 51,
                                             },
                                             {
-                                              "backgroundColor": "#D6D9DC",
+                                              "backgroundColor": "#bbc0c566",
                                               "borderRadius": 16,
                                             },
                                           ]
                                         }
-                                        thumbTintColor="#FFFFFF"
-                                        tintColor="#D6D9DC"
+                                        thumbTintColor="#ffffff"
+                                        tintColor="#bbc0c566"
                                         value={false}
                                       />
                                     </View>
@@ -905,7 +929,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         selectable={true}
                                         style={
                                           {
-                                            "color": "#BBC0C5",
+                                            "color": "#9fa6ae",
                                             "fontFamily": "Euclid Circular B",
                                             "fontSize": 14,
                                             "fontWeight": "400",
@@ -921,7 +945,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         selectable={true}
                                         style={
                                           {
-                                            "color": "#BBC0C5",
+                                            "color": "#9fa6ae",
                                             "fontFamily": "Euclid Circular B",
                                             "fontSize": 14,
                                             "fontWeight": "400",
@@ -954,6 +978,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         accessibilityLabel="Edit Activation Key"
                                         accessibilityRole="button"
                                         accessible={true}
+                                        activeOpacity={1}
                                         disabled={true}
                                         hitSlop={
                                           {
@@ -964,9 +989,21 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           }
                                         }
                                         onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "borderRadius": 8,
+                                            "height": 32,
+                                            "justifyContent": "center",
+                                            "opacity": 1,
+                                            "width": 32,
+                                          }
+                                        }
                                       >
                                         <SvgMock
-                                          color="#0376C980"
+                                          color="#0376c9"
                                           height={24}
                                           name="Edit"
                                           style={
@@ -1000,6 +1037,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         accessibilityLabel="Delete Activation Key"
                                         accessibilityRole="button"
                                         accessible={true}
+                                        activeOpacity={1}
                                         disabled={true}
                                         hitSlop={
                                           {
@@ -1010,9 +1048,21 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           }
                                         }
                                         onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "borderRadius": 8,
+                                            "height": 32,
+                                            "justifyContent": "center",
+                                            "opacity": 1,
+                                            "width": 32,
+                                          }
+                                        }
                                       >
                                         <SvgMock
-                                          color="#D7384780"
+                                          color="#d73847"
                                           height={24}
                                           name="Trash"
                                           style={
@@ -1051,7 +1101,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           "alignItems": "center",
                                           "alignSelf": "stretch",
                                           "backgroundColor": "transparent",
-                                          "borderColor": "#0376C9",
+                                          "borderColor": "#0376c9",
                                           "borderRadius": 24,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
@@ -1067,7 +1117,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#0376C9",
+                                            "color": "#0376c9",
                                             "fontFamily": "Euclid Circular B",
                                             "fontSize": 14,
                                             "fontWeight": "400",
@@ -1153,7 +1203,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -1236,7 +1286,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                 testID="back-arrow-button"
               >
                 <SvgMock
-                  color="#24272A"
+                  color="#141618"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -1267,7 +1317,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                 onLayout={[Function]}
                 style={
                   {
-                    "color": "#0376C9",
+                    "color": "#0376c9",
                     "fontSize": 17,
                     "fontWeight": "600",
                   }
@@ -1277,7 +1327,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 18,
                       "fontWeight": "700",
@@ -1305,7 +1355,6 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -1398,7 +1447,6 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1491,7 +1539,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                           style={
                             [
                               {
-                                "backgroundColor": "#FFFFFF",
+                                "backgroundColor": "#ffffff",
                                 "flex": 1,
                               },
                               undefined,
@@ -1538,7 +1586,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 16,
                                         "fontWeight": "500",
@@ -1586,7 +1634,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "Euclid Circular B",
                                               "fontSize": 14,
                                               "fontWeight": "400",
@@ -1612,7 +1660,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "Euclid Circular B",
                                               "fontSize": 14,
                                               "fontWeight": "400",
@@ -1638,7 +1686,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         "alignItems": "center",
                                         "alignSelf": "stretch",
                                         "backgroundColor": "transparent",
-                                        "borderColor": "#0376C9",
+                                        "borderColor": "#0376c9",
                                         "borderRadius": 24,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
@@ -1653,7 +1701,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#0376C9",
+                                          "color": "#0376c9",
                                           "fontFamily": "Euclid Circular B",
                                           "fontSize": 14,
                                           "fontWeight": "400",
@@ -1682,7 +1730,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -1695,7 +1743,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "Euclid Circular B",
                                           "fontSize": 16,
                                           "fontWeight": "500",
@@ -1710,7 +1758,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "Euclid Circular B",
                                           "fontSize": 14,
                                           "fontWeight": "400",
@@ -1738,7 +1786,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#535A61",
+                                          "color": "#6a737d",
                                           "fontFamily": "Euclid Circular B",
                                           "fontSize": 14,
                                           "fontWeight": "400",
@@ -1775,7 +1823,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                           "alignItems": "center",
                                           "alignSelf": "stretch",
                                           "backgroundColor": "transparent",
-                                          "borderColor": "#0376C9",
+                                          "borderColor": "#0376c9",
                                           "borderRadius": 24,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
@@ -1790,7 +1838,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#0376C9",
+                                            "color": "#0376c9",
                                             "fontFamily": "Euclid Circular B",
                                             "fontSize": 14,
                                             "fontWeight": "400",
@@ -1876,7 +1924,7 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -1959,7 +2007,7 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                 testID="back-arrow-button"
               >
                 <SvgMock
-                  color="#24272A"
+                  color="#141618"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -1990,7 +2038,7 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                 onLayout={[Function]}
                 style={
                   {
-                    "color": "#0376C9",
+                    "color": "#0376c9",
                     "fontSize": 17,
                     "fontWeight": "600",
                   }
@@ -2000,7 +2048,7 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 18,
                       "fontWeight": "700",
@@ -2028,7 +2076,6 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -2121,7 +2168,6 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -2214,7 +2260,7 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                           style={
                             [
                               {
-                                "backgroundColor": "#FFFFFF",
+                                "backgroundColor": "#ffffff",
                                 "flex": 1,
                               },
                               undefined,
@@ -2261,7 +2307,7 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 16,
                                         "fontWeight": "500",
@@ -2309,7 +2355,7 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "Euclid Circular B",
                                               "fontSize": 14,
                                               "fontWeight": "400",
@@ -2335,7 +2381,7 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "Euclid Circular B",
                                               "fontSize": 14,
                                               "fontWeight": "400",
@@ -2422,7 +2468,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -2505,7 +2551,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                 testID="back-arrow-button"
               >
                 <SvgMock
-                  color="#24272A"
+                  color="#141618"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -2536,7 +2582,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                 onLayout={[Function]}
                 style={
                   {
-                    "color": "#0376C9",
+                    "color": "#0376c9",
                     "fontSize": 17,
                     "fontWeight": "600",
                   }
@@ -2546,7 +2592,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 18,
                       "fontWeight": "700",
@@ -2574,7 +2620,6 @@ exports[`Settings Region renders correctly when region is set 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -2667,7 +2712,6 @@ exports[`Settings Region renders correctly when region is set 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -2760,7 +2804,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                           style={
                             [
                               {
-                                "backgroundColor": "#FFFFFF",
+                                "backgroundColor": "#ffffff",
                                 "flex": 1,
                               },
                               undefined,
@@ -2807,7 +2851,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 16,
                                         "fontWeight": "500",
@@ -2855,7 +2899,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "Euclid Circular B",
                                               "fontSize": 14,
                                               "fontWeight": "400",
@@ -2881,7 +2925,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "Euclid Circular B",
                                               "fontSize": 14,
                                               "fontWeight": "400",
@@ -2907,7 +2951,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                         "alignItems": "center",
                                         "alignSelf": "stretch",
                                         "backgroundColor": "transparent",
-                                        "borderColor": "#0376C9",
+                                        "borderColor": "#0376c9",
                                         "borderRadius": 24,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
@@ -2922,7 +2966,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#0376C9",
+                                          "color": "#0376c9",
                                           "fontFamily": "Euclid Circular B",
                                           "fontSize": 14,
                                           "fontWeight": "400",
@@ -3007,7 +3051,7 @@ exports[`Settings renders correctly 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -3090,7 +3134,7 @@ exports[`Settings renders correctly 1`] = `
                 testID="back-arrow-button"
               >
                 <SvgMock
-                  color="#24272A"
+                  color="#141618"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -3121,7 +3165,7 @@ exports[`Settings renders correctly 1`] = `
                 onLayout={[Function]}
                 style={
                   {
-                    "color": "#0376C9",
+                    "color": "#0376c9",
                     "fontSize": 17,
                     "fontWeight": "600",
                   }
@@ -3131,7 +3175,7 @@ exports[`Settings renders correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 18,
                       "fontWeight": "700",
@@ -3159,7 +3203,6 @@ exports[`Settings renders correctly 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -3252,7 +3295,6 @@ exports[`Settings renders correctly 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -3345,7 +3387,7 @@ exports[`Settings renders correctly 1`] = `
                           style={
                             [
                               {
-                                "backgroundColor": "#FFFFFF",
+                                "backgroundColor": "#ffffff",
                                 "flex": 1,
                               },
                               undefined,
@@ -3392,7 +3434,7 @@ exports[`Settings renders correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 16,
                                         "fontWeight": "500",
@@ -3440,7 +3482,7 @@ exports[`Settings renders correctly 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "Euclid Circular B",
                                               "fontSize": 14,
                                               "fontWeight": "400",
@@ -3466,7 +3508,7 @@ exports[`Settings renders correctly 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "Euclid Circular B",
                                               "fontSize": 14,
                                               "fontWeight": "400",
@@ -3492,7 +3534,7 @@ exports[`Settings renders correctly 1`] = `
                                         "alignItems": "center",
                                         "alignSelf": "stretch",
                                         "backgroundColor": "transparent",
-                                        "borderColor": "#0376C9",
+                                        "borderColor": "#0376c9",
                                         "borderRadius": 24,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
@@ -3507,7 +3549,7 @@ exports[`Settings renders correctly 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#0376C9",
+                                          "color": "#0376c9",
                                           "fontFamily": "Euclid Circular B",
                                           "fontSize": 14,
                                           "fontWeight": "400",
@@ -3592,7 +3634,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -3675,7 +3717,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                 testID="back-arrow-button"
               >
                 <SvgMock
-                  color="#24272A"
+                  color="#141618"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -3706,7 +3748,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                 onLayout={[Function]}
                 style={
                   {
-                    "color": "#0376C9",
+                    "color": "#0376c9",
                     "fontSize": 17,
                     "fontWeight": "600",
                   }
@@ -3716,7 +3758,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 18,
                       "fontWeight": "700",
@@ -3744,7 +3786,6 @@ exports[`Settings renders correctly for internal builds 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -3837,7 +3878,6 @@ exports[`Settings renders correctly for internal builds 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -3930,7 +3970,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                           style={
                             [
                               {
-                                "backgroundColor": "#FFFFFF",
+                                "backgroundColor": "#ffffff",
                                 "flex": 1,
                               },
                               undefined,
@@ -3977,7 +4017,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 16,
                                         "fontWeight": "500",
@@ -4025,7 +4065,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "Euclid Circular B",
                                               "fontSize": 14,
                                               "fontWeight": "400",
@@ -4051,7 +4091,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#24272A",
+                                              "color": "#141618",
                                               "fontFamily": "Euclid Circular B",
                                               "fontSize": 14,
                                               "fontWeight": "400",
@@ -4077,7 +4117,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         "alignItems": "center",
                                         "alignSelf": "stretch",
                                         "backgroundColor": "transparent",
-                                        "borderColor": "#0376C9",
+                                        "borderColor": "#0376c9",
                                         "borderRadius": 24,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
@@ -4092,7 +4132,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#0376C9",
+                                          "color": "#0376c9",
                                           "fontFamily": "Euclid Circular B",
                                           "fontSize": 14,
                                           "fontWeight": "400",
@@ -4121,7 +4161,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#24272A",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -4134,7 +4174,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "Euclid Circular B",
                                           "fontSize": 16,
                                           "fontWeight": "500",
@@ -4149,7 +4189,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#24272A",
+                                          "color": "#141618",
                                           "fontFamily": "Euclid Circular B",
                                           "fontSize": 14,
                                           "fontWeight": "400",
@@ -4177,7 +4217,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#535A61",
+                                          "color": "#6a737d",
                                           "fontFamily": "Euclid Circular B",
                                           "fontSize": 14,
                                           "fontWeight": "400",
@@ -4214,7 +4254,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         onChange={[Function]}
                                         onResponderTerminationRequest={[Function]}
                                         onStartShouldSetResponder={[Function]}
-                                        onTintColor="#0376C9"
+                                        onTintColor="#0376c9"
                                         style={
                                           [
                                             {
@@ -4222,13 +4262,13 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                               "width": 51,
                                             },
                                             {
-                                              "backgroundColor": "#D6D9DC",
+                                              "backgroundColor": "#bbc0c566",
                                               "borderRadius": 16,
                                             },
                                           ]
                                         }
-                                        thumbTintColor="#FFFFFF"
-                                        tintColor="#D6D9DC"
+                                        thumbTintColor="#ffffff"
+                                        tintColor="#bbc0c566"
                                         value={true}
                                       />
                                     </View>
@@ -4254,7 +4294,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         selectable={true}
                                         style={
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "Euclid Circular B",
                                             "fontSize": 14,
                                             "fontWeight": "400",
@@ -4270,7 +4310,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         selectable={true}
                                         style={
                                           {
-                                            "color": "#24272A",
+                                            "color": "#141618",
                                             "fontFamily": "Euclid Circular B",
                                             "fontSize": 14,
                                             "fontWeight": "400",
@@ -4303,6 +4343,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         accessibilityLabel="Edit Activation Key"
                                         accessibilityRole="button"
                                         accessible={true}
+                                        activeOpacity={1}
                                         disabled={false}
                                         hitSlop={
                                           {
@@ -4313,9 +4354,21 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           }
                                         }
                                         onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "borderRadius": 8,
+                                            "height": 32,
+                                            "justifyContent": "center",
+                                            "opacity": 1,
+                                            "width": 32,
+                                          }
+                                        }
                                       >
                                         <SvgMock
-                                          color="#0376C9"
+                                          color="#0376c9"
                                           height={24}
                                           name="Edit"
                                           style={
@@ -4349,6 +4402,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         accessibilityLabel="Delete Activation Key"
                                         accessibilityRole="button"
                                         accessible={true}
+                                        activeOpacity={1}
                                         disabled={false}
                                         hitSlop={
                                           {
@@ -4359,9 +4413,21 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           }
                                         }
                                         onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "borderRadius": 8,
+                                            "height": 32,
+                                            "justifyContent": "center",
+                                            "opacity": 1,
+                                            "width": 32,
+                                          }
+                                        }
                                       >
                                         <SvgMock
-                                          color="#D73847"
+                                          color="#d73847"
                                           height={24}
                                           name="Trash"
                                           style={
@@ -4400,7 +4466,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         onChange={[Function]}
                                         onResponderTerminationRequest={[Function]}
                                         onStartShouldSetResponder={[Function]}
-                                        onTintColor="#0376C9"
+                                        onTintColor="#0376c9"
                                         style={
                                           [
                                             {
@@ -4408,13 +4474,13 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                               "width": 51,
                                             },
                                             {
-                                              "backgroundColor": "#D6D9DC",
+                                              "backgroundColor": "#bbc0c566",
                                               "borderRadius": 16,
                                             },
                                           ]
                                         }
-                                        thumbTintColor="#FFFFFF"
-                                        tintColor="#D6D9DC"
+                                        thumbTintColor="#ffffff"
+                                        tintColor="#bbc0c566"
                                         value={false}
                                       />
                                     </View>
@@ -4440,7 +4506,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         selectable={true}
                                         style={
                                           {
-                                            "color": "#BBC0C5",
+                                            "color": "#9fa6ae",
                                             "fontFamily": "Euclid Circular B",
                                             "fontSize": 14,
                                             "fontWeight": "400",
@@ -4456,7 +4522,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         selectable={true}
                                         style={
                                           {
-                                            "color": "#BBC0C5",
+                                            "color": "#9fa6ae",
                                             "fontFamily": "Euclid Circular B",
                                             "fontSize": 14,
                                             "fontWeight": "400",
@@ -4489,6 +4555,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         accessibilityLabel="Edit Activation Key"
                                         accessibilityRole="button"
                                         accessible={true}
+                                        activeOpacity={1}
                                         disabled={false}
                                         hitSlop={
                                           {
@@ -4499,9 +4566,21 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           }
                                         }
                                         onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "borderRadius": 8,
+                                            "height": 32,
+                                            "justifyContent": "center",
+                                            "opacity": 1,
+                                            "width": 32,
+                                          }
+                                        }
                                       >
                                         <SvgMock
-                                          color="#0376C9"
+                                          color="#0376c9"
                                           height={24}
                                           name="Edit"
                                           style={
@@ -4535,6 +4614,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         accessibilityLabel="Delete Activation Key"
                                         accessibilityRole="button"
                                         accessible={true}
+                                        activeOpacity={1}
                                         disabled={false}
                                         hitSlop={
                                           {
@@ -4545,9 +4625,21 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           }
                                         }
                                         onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "borderRadius": 8,
+                                            "height": 32,
+                                            "justifyContent": "center",
+                                            "opacity": 1,
+                                            "width": 32,
+                                          }
+                                        }
                                       >
                                         <SvgMock
-                                          color="#D73847"
+                                          color="#d73847"
                                           height={24}
                                           name="Trash"
                                           style={
@@ -4586,7 +4678,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           "alignItems": "center",
                                           "alignSelf": "stretch",
                                           "backgroundColor": "transparent",
-                                          "borderColor": "#0376C9",
+                                          "borderColor": "#0376c9",
                                           "borderRadius": 24,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
@@ -4601,7 +4693,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#0376C9",
+                                            "color": "#0376c9",
                                             "fontFamily": "Euclid Circular B",
                                             "fontSize": 14,
                                             "fontWeight": "400",

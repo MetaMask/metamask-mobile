@@ -1,22 +1,41 @@
 import setSignatureRequestSecurityAlertResponse from '../../actions/signatureRequest';
 import { setTransactionSecurityAlertResponse } from '../../actions/transaction';
-import { BLOCKAID_SUPPORTED_CHAIN_IDS } from '../../util/networks';
 import {
   Reason,
   ResultType,
+  SecurityAlertResponse,
+  SecurityAlertSource,
 } from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
 import Engine from '../../core/Engine';
 import { store } from '../../store';
 import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 import Logger from '../../util/Logger';
 import { updateSecurityAlertResponse } from '../../util/transaction-controller';
-import { normalizeTransactionParams } from '@metamask/transaction-controller';
+import {
+  TransactionParams,
+  normalizeTransactionParams,
+} from '@metamask/transaction-controller';
 import { WALLET_CONNECT_ORIGIN } from '../../util/walletconnect';
 import AppConstants from '../../core/AppConstants';
+import {
+  getSecurityAlertsAPISupportedChainIds,
+  isSecurityAlertsAPIEnabled,
+  validateWithSecurityAlertsAPI,
+} from './security-alerts-api';
+import { PPOMController } from '@metamask/ppom-validator';
+import { Hex } from '@metamask/utils';
+import { BLOCKAID_SUPPORTED_CHAIN_IDS } from '../../util/networks';
+
+export interface PPOMRequest {
+  method: string;
+  params: unknown[];
+  origin?: string;
+}
 
 const TRANSACTION_METHOD = 'eth_sendTransaction';
+const TRANSACTION_METHODS = [TRANSACTION_METHOD, 'eth_sendRawTransaction'];
 
-const ConfirmationMethods = Object.freeze([
+const CONFIRMATION_METHODS = Object.freeze([
   'eth_sendRawTransaction',
   TRANSACTION_METHOD,
   'eth_sign',
@@ -27,99 +46,166 @@ const ConfirmationMethods = Object.freeze([
   'personal_sign',
 ]);
 
-const FailedResponse = {
+const SECURITY_ALERT_RESPONSE_FAILED = {
   result_type: ResultType.Failed,
   reason: Reason.failed,
   description: 'Validating the confirmation failed by throwing error.',
 };
 
-const RequestInProgress = {
+const SECURITY_ALERT_RESPONSE_IN_PROGRESS = {
   result_type: ResultType.RequestInProgress,
   reason: Reason.requestInProgress,
   description: 'Validating the confirmation in progress.',
 };
 
-const validateRequest = async (req: any, transactionId?: string) => {
-  let securityAlertResponse;
-
+async function validateRequest(req: PPOMRequest, transactionId?: string) {
   const {
-    PPOMController: ppomController,
-    PreferencesController,
+    AccountsController,
     NetworkController,
+    PPOMController: ppomController,
   } = Engine.context;
-  const currentChainId = NetworkController.state.providerConfig.chainId;
+
+  const chainId = NetworkController.state.providerConfig.chainId;
+  const isConfirmationMethod = CONFIRMATION_METHODS.includes(req.method);
+  const isSupportedChain = await isChainSupported(chainId);
+
   if (
     !ppomController ||
     !isBlockaidFeatureEnabled() ||
-    !PreferencesController.state.securityAlertsEnabled ||
-    !ConfirmationMethods.includes(req.method) ||
-    !BLOCKAID_SUPPORTED_CHAIN_IDS.includes(currentChainId)
+    !isConfirmationMethod ||
+    !isSupportedChain
   ) {
     return;
   }
-  try {
+
+  if (req.method === 'eth_sendTransaction') {
+    const internalAccounts = AccountsController.listAccounts();
+    const toAddress: string | undefined = (
+      req?.params?.[0] as Record<string, string>
+    ).to;
+
     if (
-      (req.method === 'eth_sendRawTransaction' ||
-        req.method === 'eth_sendTransaction') &&
-      !transactionId
+      internalAccounts.some(
+        ({ address }: { address: string }) =>
+          address?.toLowerCase() === toAddress?.toLowerCase(),
+      )
     ) {
-      securityAlertResponse = FailedResponse;
-    } else {
-      if (
-        req.method === 'eth_sendRawTransaction' ||
-        req.method === 'eth_sendTransaction'
-      ) {
-        store.dispatch(
-          setTransactionSecurityAlertResponse(transactionId, RequestInProgress),
-        );
-      } else {
-        store.dispatch(
-          setSignatureRequestSecurityAlertResponse(RequestInProgress),
-        );
-      }
-      const normalizedRequest = normalizeRequest(req);
-      securityAlertResponse = await ppomController.usePPOM((ppom: any) =>
-        ppom.validateJsonRpc(normalizedRequest),
-      );
-      securityAlertResponse = {
-        ...securityAlertResponse,
-        req,
-        chainId: currentChainId,
-      };
+      return;
     }
+  }
+
+  const isTransaction = isTransactionRequest(req);
+  let securityAlertResponse: SecurityAlertResponse | undefined;
+
+  try {
+    if (isTransaction && !transactionId) {
+      securityAlertResponse = SECURITY_ALERT_RESPONSE_FAILED;
+      return;
+    }
+
+    setSecurityAlertResponse(
+      req,
+      SECURITY_ALERT_RESPONSE_IN_PROGRESS,
+      transactionId,
+    );
+
+    const normalizedRequest = normalizeRequest(req);
+
+    securityAlertResponse = isSecurityAlertsAPIEnabled()
+      ? await validateWithAPI(ppomController, chainId, normalizedRequest)
+      : await validateWithController(ppomController, normalizedRequest);
+
+    securityAlertResponse = {
+      ...securityAlertResponse,
+      req: req as unknown as Record<string, unknown>,
+      chainId,
+    };
   } catch (e) {
     Logger.log(`Error validating JSON RPC using PPOM: ${e}`);
   } finally {
     if (!securityAlertResponse) {
-      securityAlertResponse = FailedResponse;
+      securityAlertResponse = SECURITY_ALERT_RESPONSE_FAILED;
     }
-    if (
-      req.method === 'eth_sendRawTransaction' ||
-      req.method === 'eth_sendTransaction'
-    ) {
-      store.dispatch(
-        setTransactionSecurityAlertResponse(
-          transactionId,
-          securityAlertResponse,
-        ),
-      );
-      updateSecurityAlertResponse(
-        transactionId as string,
-        // @ts-expect-error TODO: fix types
-        securityAlertResponse,
-      );
-    } else {
-      store.dispatch(
-        // @ts-expect-error TODO: fix types
-        setSignatureRequestSecurityAlertResponse(securityAlertResponse),
-      );
-    }
-  }
-  // todo: once all call to validateRequest are async we may not return any result
-  return securityAlertResponse;
-};
 
-function normalizeRequest(request: any) {
+    setSecurityAlertResponse(req, securityAlertResponse, transactionId, {
+      updateControllerState: true,
+    });
+  }
+}
+
+async function isChainSupported(chainId: Hex): Promise<boolean> {
+  let supportedChainIds = BLOCKAID_SUPPORTED_CHAIN_IDS;
+
+  try {
+    if (isSecurityAlertsAPIEnabled()) {
+      supportedChainIds = await getSecurityAlertsAPISupportedChainIds();
+    }
+  } catch (e) {
+    Logger.log(
+      `Error fetching supported chains from security alerts API: ${e}`,
+    );
+  }
+
+  return supportedChainIds.includes(chainId);
+}
+
+async function validateWithController(
+  ppomController: PPOMController,
+  request: PPOMRequest,
+): Promise<SecurityAlertResponse> {
+  const response = (await ppomController.usePPOM((ppom) =>
+    ppom.validateJsonRpc(request as unknown as Record<string, unknown>),
+  )) as SecurityAlertResponse;
+
+  return {
+    ...response,
+    source: SecurityAlertSource.Local,
+  };
+}
+
+async function validateWithAPI(
+  ppomController: PPOMController,
+  chainId: string,
+  request: PPOMRequest,
+): Promise<SecurityAlertResponse> {
+  try {
+    const response = await validateWithSecurityAlertsAPI(chainId, request);
+
+    return {
+      ...response,
+      source: SecurityAlertSource.API,
+    };
+  } catch (e) {
+    Logger.log(`Error validating request with security alerts API: ${e}`);
+    return await validateWithController(ppomController, request);
+  }
+}
+
+function setSecurityAlertResponse(
+  request: PPOMRequest,
+  response: SecurityAlertResponse,
+  transactionId?: string,
+  { updateControllerState }: { updateControllerState?: boolean } = {},
+) {
+  if (isTransactionRequest(request)) {
+    store.dispatch(
+      setTransactionSecurityAlertResponse(transactionId, response),
+    );
+
+    if (updateControllerState) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      updateSecurityAlertResponse(transactionId as string, response as any);
+    }
+  } else {
+    store.dispatch(setSignatureRequestSecurityAlertResponse(response));
+  }
+}
+
+function isTransactionRequest(request: PPOMRequest) {
+  return TRANSACTION_METHODS.includes(request.method);
+}
+
+function normalizeRequest(request: PPOMRequest): PPOMRequest {
   if (request.method !== TRANSACTION_METHOD) {
     return request;
   }
@@ -128,7 +214,7 @@ function normalizeRequest(request: any) {
     ?.replace(WALLET_CONNECT_ORIGIN, '')
     ?.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
 
-  const transactionParams = request.params?.[0] || {};
+  const transactionParams = (request.params?.[0] || {}) as TransactionParams;
   const normalizedParams = normalizeTransactionParams(transactionParams);
 
   return {

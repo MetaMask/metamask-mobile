@@ -8,13 +8,12 @@ class Gestures {
    * Tap an element and long press.
    *
    * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to tap
-   * @param {number} index - Index of the element (default: 0)
    * @param {number} timeout - Timeout for waiting (default: 2000ms)
    */
-  static async tapAndLongPress(elementID, index = 0, timeout = 2000) {
+  static async tapAndLongPress(elementID, timeout = 2000) {
     const element = await elementID;
 
-    await element.atIndex(index).longPress(timeout);
+    await element.longPress(timeout);
   }
 
   /**
@@ -32,25 +31,32 @@ class Gestures {
    * Wait for an element to be visible and then tap it.
    *
    * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to tap
-   * @param {number} index - Index of the element (default: 0)
 
    */
-  static async tap(elementID, index = 0) {
+  static async tap(elementID) {
     const element = await elementID;
-    await element.atIndex(index).tap();
+    await element.tap();
+  }
+
+  /**
+   * Tap an element with text partial text matching before tapping it
+   *
+   * @param {string} textPattern - Regular expression pattern to match the text
+   */
+  static async tapTextBeginingWith(textPattern) {
+    await element(by.text(new RegExp(`^/${textPattern} .*$/`))).tap();
   }
 
   /**
    * Wait for an element to be visible and then tap it.
    *
    * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to tap
-   * @param {number} index - Index of the element (default: 0)
    * @param {number} timeout - Timeout for waiting (default: 8000ms)
    */
-  static async waitAndTap(elementID, index = 0, timeout = 15000) {
+  static async waitAndTap(elementID, timeout = 15000) {
     const element = await elementID;
     await waitFor(element).toBeVisible().withTimeout(timeout);
-    await element.atIndex(index).tap();
+    await element.tap();
   }
 
   /**
@@ -67,12 +73,11 @@ class Gestures {
    * Double tap an element by text.
    *
    * @param {Promise<Detox.IndexableNativeElement>} elementID - Text of the element to double tap
-   * @param {number} index - Index of the element (default: 0)
    */
-  static async doubleTap(elementID, index = 0) {
+  static async doubleTap(elementID) {
     const element = await elementID;
 
-    await element.atIndex(index).multiTap(2);
+    await element.multiTap(2);
   }
 
   /**

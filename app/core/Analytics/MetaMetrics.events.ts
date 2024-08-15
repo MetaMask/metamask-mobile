@@ -38,6 +38,7 @@ const ONBOARDING_WIZARD_STEP_DESCRIPTION: { [key: number]: string } = {
 enum EVENT_NAME {
   // Error
   ERROR = 'Error occurred',
+  ERROR_SCREEN_VIEWED = 'Error Screen Viewed',
 
   // Approval
   APPROVAL_STARTED = 'Approval Started',
@@ -71,6 +72,8 @@ enum EVENT_NAME {
   WALLET_OPENED = 'Wallet Opened',
   TOKEN_ADDED = 'Token Added',
   COLLECTIBLE_ADDED = 'Collectible Added',
+  COLLECTIBLE_DETAILS_OPENED = 'Collectible Details Opened',
+  COLLECTIBLE_REMOVED = 'Collectible Removed',
 
   // Network
   NETWORK_SWITCHED = 'Network Switched',
@@ -352,10 +355,28 @@ enum EVENT_NAME {
   CONNECT_LEDGER_SUCCESS = 'Connected Account with hardware wallet',
   LEDGER_HARDWARE_TRANSACTION_CANCELLED = 'User canceled Ledger hardware transaction',
   LEDGER_HARDWARE_WALLET_ERROR = 'Ledger hardware wallet error',
-  LEDGER_HARDWARE_WALLET_FORGOTTEN = 'Ledger hardware wallet forgotten',
 
+  // common hardware wallet
+  HARDWARE_WALLET_FORGOTTEN = 'Hardware wallet forgotten',
+
+  // Remove an account
+  ACCOUNT_REMOVED = 'Account removed',
+
+  //Notifications
+  ALL_NOTIFICATIONS = 'All Notifications',
+  WALLET_NOTIFICATIONS = 'Wallet Notifications',
+  ANNOUCEMENTS_NOTIFICATIONS = 'Annoucements Notifications',
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
+
+  // Simulations
+  INCOMPLETE_ASSET_DISPLAYED = 'Incomplete Asset Displayed',
+  // Nft auto detection modal
+  NFT_AUTO_DETECTION_ENABLED_MODAL = 'Nft Autodetection Enabled from modal',
+  NFT_AUTO_DETECTION_DISBLED_MODAL = 'Nft Autodetection Disabled from modal',
+  // NFT auto detection events
+  NFT_AUTO_DETECTION_ENABLED = 'nft_autodetection_enabled',
+  PRIMARY_CURRENCY_TOGGLE = 'primary_currency_toggle',
 }
 
 enum ACTIONS {
@@ -404,10 +425,15 @@ enum ACTIONS {
   ADVANCED_SETTINGS_ETH_SIGN_ENABLED = 'eth_sign_enabled',
   ADVANCED_SETTINGS_ETH_SIGN_DISABLED = 'eth_sign_disabled',
   STAKE = 'Stake',
+  // Notifications
+  SELECTS_ALL_NOTIFICATIONS = 'Selects All Notifications',
+  SELECTS_WALLET_NOTIFICATIONS = 'Selects Wallet Notifications',
+  SELECTS_ANNOUCEMENTS_NOTIFICATIONS = 'Selects Annoucements Notifications',
 }
 
 const events = {
   ERROR: generateOpt(EVENT_NAME.ERROR),
+  ERROR_SCREEN_VIEWED: generateOpt(EVENT_NAME.ERROR_SCREEN_VIEWED),
   APPROVAL_STARTED: generateOpt(EVENT_NAME.APPROVAL_STARTED),
   APPROVAL_COMPLETED: generateOpt(EVENT_NAME.APPROVAL_COMPLETED),
   APPROVAL_CANCELLED: generateOpt(EVENT_NAME.APPROVAL_CANCELLED),
@@ -439,6 +465,10 @@ const events = {
   WALLET_OPENED: generateOpt(EVENT_NAME.WALLET_OPENED),
   TOKEN_ADDED: generateOpt(EVENT_NAME.TOKEN_ADDED),
   COLLECTIBLE_ADDED: generateOpt(EVENT_NAME.COLLECTIBLE_ADDED),
+  COLLECTIBLE_DETAILS_OPENED: generateOpt(
+    EVENT_NAME.COLLECTIBLE_DETAILS_OPENED,
+  ),
+  COLLECTIBLE_REMOVED: generateOpt(EVENT_NAME.COLLECTIBLE_REMOVED),
   NETWORK_SWITCHED: generateOpt(EVENT_NAME.NETWORK_SWITCHED),
   NETWORK_ADDED: generateOpt(EVENT_NAME.NETWORK_ADDED),
   NETWORK_REQUESTED: generateOpt(EVENT_NAME.NETWORK_REQUESTED),
@@ -826,12 +856,43 @@ const events = {
   LEDGER_HARDWARE_WALLET_ERROR: generateOpt(
     EVENT_NAME.LEDGER_HARDWARE_WALLET_ERROR,
   ),
-  LEDGER_HARDWARE_WALLET_FORGOTTEN: generateOpt(
-    EVENT_NAME.LEDGER_HARDWARE_WALLET_FORGOTTEN,
-  ),
+  HARDWARE_WALLET_FORGOTTEN: generateOpt(EVENT_NAME.HARDWARE_WALLET_FORGOTTEN),
+
+  // Remove an account
+  ACCOUNT_REMOVED: generateOpt(EVENT_NAME.ACCOUNT_REMOVED),
 
   // Smart transactions
   SMART_TRANSACTION_OPT_IN: generateOpt(EVENT_NAME.SMART_TRANSACTION_OPT_IN),
+
+  // Notifications
+  ALL_NOTIFICATIONS: generateOpt(
+    EVENT_NAME.ALL_NOTIFICATIONS,
+    ACTIONS.SELECTS_ALL_NOTIFICATIONS,
+  ),
+  WALLET_NOTIFICATIONS: generateOpt(
+    EVENT_NAME.WALLET_NOTIFICATIONS,
+    ACTIONS.SELECTS_WALLET_NOTIFICATIONS,
+  ),
+  ANNOUCEMENTS_NOTIFICATIONS: generateOpt(
+    EVENT_NAME.ANNOUCEMENTS_NOTIFICATIONS,
+    ACTIONS.SELECTS_ANNOUCEMENTS_NOTIFICATIONS,
+  ),
+  // Simulations
+  INCOMPLETE_ASSET_DISPLAYED: generateOpt(
+    EVENT_NAME.INCOMPLETE_ASSET_DISPLAYED,
+  ),
+  // Nft auto detection modal
+  NFT_AUTO_DETECTION_MODAL_ENABLE: generateOpt(
+    EVENT_NAME.NFT_AUTO_DETECTION_ENABLED_MODAL,
+  ),
+  NFT_AUTO_DETECTION_MODAL_DISABLE: generateOpt(
+    EVENT_NAME.NFT_AUTO_DETECTION_DISBLED_MODAL,
+  ),
+  // Nft detection event
+  NFT_AUTO_DETECTION_ENABLED: generateOpt(
+    EVENT_NAME.NFT_AUTO_DETECTION_ENABLED,
+  ),
+  PRIMARY_CURRENCY_TOGGLE: generateOpt(EVENT_NAME.PRIMARY_CURRENCY_TOGGLE),
 };
 
 /**
@@ -884,6 +945,7 @@ enum DESCRIPTION {
   WALLET_QR_SCANNER = 'QR scanner',
   WALLET_COPIED_ADDRESS = 'Copied Address',
   WALLET_ADD_COLLECTIBLES = 'Add Collectibles',
+
   // Transactions
   TRANSACTIONS_CONFIRM_STARTED = 'Confirm Started',
   TRANSACTIONS_EDIT_TRANSACTION = 'Edit Transaction',
@@ -930,6 +992,7 @@ enum DESCRIPTION {
   SWAPS = 'Swaps',
   BRIDGE = 'Bridge',
   STAKE = 'Stake',
+  NOTIFICATIONS = 'Notifications',
 }
 
 const legacyMetaMetricsEvents = {
@@ -1134,6 +1197,7 @@ const legacyMetaMetricsEvents = {
     ACTIONS.WALLET_VIEW,
     DESCRIPTION.WALLET_ADD_COLLECTIBLES,
   ),
+
   // Transactions
   TRANSACTIONS_CONFIRM_STARTED: generateOpt(
     EVENT_NAME.TRANSACTIONS,

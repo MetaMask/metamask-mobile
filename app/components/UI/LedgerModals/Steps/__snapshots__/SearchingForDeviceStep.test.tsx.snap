@@ -38,7 +38,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
       style={
         [
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -101,7 +101,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
       style={
         [
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -140,7 +140,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
       style={
         [
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -181,7 +181,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
       style={
         [
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -222,7 +222,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
       style={
         [
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -263,7 +263,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
       style={
         [
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -304,7 +304,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
       style={
         [
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -346,11 +346,11 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
     onPress={[Function]}
   >
     <Text
-      numerOfLines={2}
+      numberOfLines={2}
       style={
         [
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -379,7 +379,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
           undefined,
           undefined,
           {
-            "color": "#0376C9",
+            "color": "#0376c9",
           },
           undefined,
           undefined,
@@ -438,7 +438,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
       style={
         [
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -501,7 +501,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
       style={
         [
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -540,7 +540,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
       style={
         [
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -581,7 +581,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
       style={
         [
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -622,7 +622,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
       style={
         [
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -663,7 +663,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
       style={
         [
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -704,7 +704,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
       style={
         [
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -746,11 +746,11 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
     onPress={[Function]}
   >
     <Text
-      numerOfLines={2}
+      numberOfLines={2}
       style={
         [
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -779,7 +779,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
           undefined,
           undefined,
           {
-            "color": "#0376C9",
+            "color": "#0376c9",
           },
           undefined,
           undefined,

@@ -95,6 +95,42 @@ describe('Activity utils :: sortTransactions', () => {
     const sortedTxs = sortTransactions(unsortedTxs);
     expect(sortedTxs).toEqual(expectedSortedTxs);
   });
+
+  it('should return correct data when its already sorted', () => {
+    const unsortedTxs = [
+      { id: 'a1', time: 1645406937199 },
+      { id: 'a2', time: 1645322223255 },
+      { id: 'a3', time: 1645104692826 },
+    ];
+
+    const expectedSortedTxs = [
+      { id: 'a1', time: 1645406937199 },
+      { id: 'a2', time: 1645322223255 },
+      { id: 'a3', time: 1645104692826 },
+    ];
+
+    const sortedTxs = sortTransactions(unsortedTxs);
+    expect(sortedTxs).toEqual(expectedSortedTxs);
+  });
+
+  it('should return same array if timestamp is equal', () => {
+    const unsortedTxs = [
+      { id: 'a1', time: 1645406937199 },
+      { id: 'a2', time: 1645406937199 },
+      { id: 'a3', time: 1645406937199 },
+      { id: 'a4', time: 1645406937199 },
+    ];
+
+    const expectedSortedTxs = [
+      { id: 'a1', time: 1645406937199 },
+      { id: 'a2', time: 1645406937199 },
+      { id: 'a3', time: 1645406937199 },
+      { id: 'a4', time: 1645406937199 },
+    ];
+
+    const sortedTxs = sortTransactions(unsortedTxs);
+    expect(sortedTxs).toEqual(expectedSortedTxs);
+  });
 });
 
 describe('Activity utils :: filterByAddressAndNetwork', () => {
@@ -110,6 +146,8 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       isTransfer: false,
       transferInformation: undefined,
     };
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tokens: any[] = [];
 
     const result = filterByAddressAndNetwork(

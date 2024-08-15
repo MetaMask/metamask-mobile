@@ -43,7 +43,6 @@ exports[`CustomGasModal should render correctly 1`] = `
     accessible={true}
     collapsable={false}
     focusable={true}
-    forwardedRef={[Function]}
     onClick={[Function]}
     onResponderGrant={[Function]}
     onResponderMove={[Function]}
@@ -69,7 +68,6 @@ exports[`CustomGasModal should render correctly 1`] = `
     collapsable={false}
     deviceHeight={null}
     deviceWidth={null}
-    forwardedRef={[Function]}
     hideModalContentWhileAnimating={false}
     onBackdropPress={[Function]}
     onModalHide={[Function]}
@@ -130,7 +128,7 @@ exports[`CustomGasModal should render correctly 1`] = `
         <View
           style={
             {
-              "backgroundColor": "#FFFFFF",
+              "backgroundColor": "#ffffff",
               "borderTopLeftRadius": 20,
               "borderTopRightRadius": 20,
               "maxHeight": "95%",
@@ -188,7 +186,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                         style={
                           [
                             {
-                              "color": "#24272A",
+                              "color": "#141618",
                               "fontSize": 24,
                             },
                             undefined,
@@ -208,7 +206,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#24272A",
+                          "color": "#141618",
                           "fontFamily": "Euclid Circular B",
                           "fontSize": 16,
                           "fontWeight": "700",
@@ -224,7 +222,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                       style={
                         [
                           {
-                            "color": "#FFFFFF",
+                            "color": "#ffffff",
                             "fontSize": 24,
                           },
                           undefined,
@@ -269,7 +267,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#24272A",
+                            "color": "#141618",
                             "fontFamily": "Euclid Circular B",
                             "fontSize": 32,
                             "fontWeight": "700",
@@ -291,7 +289,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#535A61",
+                            "color": "#6a737d",
                             "fontFamily": "Euclid Circular B",
                             "fontSize": 16,
                             "fontWeight": "500",
@@ -334,7 +332,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                   "fontFamily": "Euclid Circular B",
                                   "fontSize": 14,
                                   "fontWeight": "700",
@@ -366,7 +364,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                                       "fontSize": 14,
                                     },
                                     {
-                                      "color": "#BBC0C5",
+                                      "color": "#9fa6ae",
                                     },
                                     {
                                       "fontFamily": "Material Design Icons",
@@ -386,7 +384,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "borderColor": "#BBC0C5",
+                              "borderColor": "#bbc0c5",
                               "borderRadius": 6,
                               "borderWidth": 1,
                               "flexDirection": "row",
@@ -416,7 +414,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                               style={
                                 {
                                   "alignItems": "center",
-                                  "borderColor": "#0376C9",
+                                  "borderColor": "#0376c9",
                                   "borderRadius": 100,
                                   "borderWidth": 2,
                                   "height": 20,
@@ -434,7 +432,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                                       "fontSize": 10,
                                     },
                                     {
-                                      "color": "#0376C9",
+                                      "color": "#0376c9",
                                       "paddingLeft": 0.5,
                                       "paddingTop": 1,
                                     },
@@ -467,7 +465,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                               onChangeText={[Function]}
                               style={
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                   "height": 38,
                                   "minWidth": 10,
                                   "paddingRight": 6,
@@ -493,7 +491,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 30,
                                     "fontWeight": "400",
@@ -545,7 +543,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                               style={
                                 {
                                   "alignItems": "center",
-                                  "borderColor": "#0376C9",
+                                  "borderColor": "#0376c9",
                                   "borderRadius": 100,
                                   "borderWidth": 2,
                                   "height": 20,
@@ -563,7 +561,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                                       "fontSize": 10,
                                     },
                                     {
-                                      "color": "#0376C9",
+                                      "color": "#0376c9",
                                       "paddingLeft": 0.5,
                                       "paddingTop": 1,
                                     },
@@ -585,7 +583,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "color": "#D73847",
+                              "color": "#d73847",
                               "flexDirection": "row",
                               "marginTop": 8,
                             }
@@ -600,7 +598,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                                   "fontSize": 14,
                                 },
                                 {
-                                  "color": "#D73847",
+                                  "color": "#d73847",
                                   "paddingRight": 4,
                                 },
                                 {
@@ -618,7 +616,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                             style={
                               [
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 30,
                                   "fontWeight": "400",
@@ -632,7 +630,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                                 undefined,
                                 undefined,
                                 {
-                                  "color": "#D73847",
+                                  "color": "#d73847",
                                 },
                                 undefined,
                                 undefined,
@@ -654,7 +652,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                                   "marginVertical": 0,
                                 },
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                 },
                               ]
                             }
@@ -695,7 +693,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                   "fontFamily": "Euclid Circular B",
                                   "fontSize": 14,
                                   "fontWeight": "700",
@@ -711,7 +709,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#535A61",
+                                  "color": "#6a737d",
                                   "fontFamily": "Euclid Circular B",
                                   "fontSize": 14,
                                   "fontWeight": "400",
@@ -742,7 +740,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                                       "fontSize": 14,
                                     },
                                     {
-                                      "color": "#BBC0C5",
+                                      "color": "#9fa6ae",
                                     },
                                     {
                                       "fontFamily": "Material Design Icons",
@@ -762,7 +760,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "borderColor": "#BBC0C5",
+                              "borderColor": "#bbc0c5",
                               "borderRadius": 6,
                               "borderWidth": 1,
                               "flexDirection": "row",
@@ -792,7 +790,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                               style={
                                 {
                                   "alignItems": "center",
-                                  "borderColor": "#0376C9",
+                                  "borderColor": "#0376c9",
                                   "borderRadius": 100,
                                   "borderWidth": 2,
                                   "height": 20,
@@ -810,7 +808,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                                       "fontSize": 10,
                                     },
                                     {
-                                      "color": "#0376C9",
+                                      "color": "#0376c9",
                                       "paddingLeft": 0.5,
                                       "paddingTop": 1,
                                     },
@@ -843,7 +841,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                               onChangeText={[Function]}
                               style={
                                 {
-                                  "color": "#24272A",
+                                  "color": "#141618",
                                   "height": 38,
                                   "minWidth": 10,
                                   "paddingRight": 6,
@@ -868,7 +866,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#24272A",
+                                    "color": "#141618",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 30,
                                     "fontWeight": "400",
@@ -920,7 +918,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                               style={
                                 {
                                   "alignItems": "center",
-                                  "borderColor": "#0376C9",
+                                  "borderColor": "#0376c9",
                                   "borderRadius": 100,
                                   "borderWidth": 2,
                                   "height": 20,
@@ -938,7 +936,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                                       "fontSize": 10,
                                     },
                                     {
-                                      "color": "#0376C9",
+                                      "color": "#0376c9",
                                       "paddingLeft": 0.5,
                                       "paddingTop": 1,
                                     },
@@ -975,7 +973,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                               "padding": 15,
                             },
                             {
-                              "backgroundColor": "#0376C9",
+                              "backgroundColor": "#0376c9",
                               "minHeight": 50,
                             },
                             undefined,
@@ -1002,7 +1000,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                                 "textAlign": "center",
                               },
                               {
-                                "color": "#FFFFFF",
+                                "color": "#ffffff",
                               },
                               undefined,
                             ],

@@ -12,10 +12,11 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
 jest.mock('../../../../../util/blockaid', () => ({
   isBlockaidFeatureEnabled: jest.fn().mockReturnValue(true),
-  isBlockaidSupportedOnCurrentChain: jest.fn().mockReturnValue(true),
 }));
 
 jest.mock('react-native-gzip', () => ({
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   deflate: (val: any) => val,
 }));
 

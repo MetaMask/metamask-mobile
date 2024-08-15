@@ -4,12 +4,11 @@ import {
   BackHandler,
   NativeScrollEvent,
   NativeSyntheticEvent,
-  Platform,
   ScrollView,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { WebView } from 'react-native-webview';
+import { WebView } from '@metamask/react-native-webview';
 
 // External dependencies.
 import ButtonPrimary from '../../Buttons/Button/variants/ButtonPrimary';
@@ -28,14 +27,13 @@ import {
   WEBVIEW_SCROLL_END_EVENT,
   WEBVIEW_SCROLL_NOT_END_EVENT,
 } from './ModalMandatory.constants';
-import { MandatoryModalProps } from './ModalMandatory.types';
-import stylesheet from './ModalMandatory.styles';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
 import {
-  TERMS_OF_USE_CHECKBOX_ICON_ID,
-  TERMS_OF_USE_SCROLL_END_ARROW_BUTTON_ID,
-  TERMS_OF_USE_WEBVIEW_ID,
-} from '../../../../../wdio/screen-objects/testIDs/Components/TermsOfUse.testIds';
+  BodyWebView,
+  BodyWebViewUri,
+  MandatoryModalProps,
+} from './ModalMandatory.types';
+import stylesheet from './ModalMandatory.styles';
+import { TermsOfUseModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/TermsOfUseModal.selectors';
 
 const ModalMandatory = ({ route }: MandatoryModalProps) => {
   const { colors } = useTheme();
@@ -46,8 +44,6 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
   const [isWebViewLoaded, setIsWebViewLoaded] = useState<boolean>(false);
   const [isScrollEnded, setIsScrollEnded] = useState<boolean>(false);
   const [isCheckboxSelected, setIsCheckboxSelected] = useState<boolean>(false);
-
-  const [isFloatingButton, setIsFloatingButtonBackground] = useState(true);
 
   const scrollRef = useRef<ScrollView>(null);
 
@@ -85,10 +81,22 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
     }
   };
 
+  const isBodyWebViewUri = (
+    webviewBody: BodyWebView,
+  ): webviewBody is BodyWebViewUri =>
+    (webviewBody as BodyWebViewUri).uri !== undefined;
+
   const scrollToEnd = () => {
     if (body.source === 'WebView') {
-      scrollToEndWebView();
-      return;
+      const source = isBodyWebViewUri(body)
+        ? { uri: body.uri }
+        : { html: body.html };
+
+      if (source.uri) {
+        scrollToEndWebView();
+        return;
+      }
+      webViewRef.current?.injectJavaScript(scrollToEndJS);
     }
     scrollRef.current?.scrollToEnd({ animated: true });
   };
@@ -125,10 +133,8 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
   const onMessage = (event: { nativeEvent: { data: string } }) => {
     if (event.nativeEvent.data === WEBVIEW_SCROLL_END_EVENT) {
       setIsScrollEnded(true);
-      setIsFloatingButtonBackground(false);
     } else {
       setIsScrollEnded(false);
-      setIsFloatingButtonBackground(true);
     }
   };
 
@@ -137,30 +143,18 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
       style={[
         styles.scrollToEndButton,
         // eslint-disable-next-line react-native/no-inline-styles
-        !isFloatingButton && {
+        isScrollEnded && {
           display: 'none',
         },
       ]}
     >
       <ButtonIcon
-        {...generateTestId(Platform, TERMS_OF_USE_SCROLL_END_ARROW_BUTTON_ID)}
-        testID={TERMS_OF_USE_SCROLL_END_ARROW_BUTTON_ID}
+        testID={TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON}
         onPress={scrollToEnd}
         iconName={IconName.ArrowDown}
+        hitSlop={12}
       />
     </View>
-  );
-
-  const renderWebView = (uri: string) => (
-    <WebView
-      ref={webViewRef}
-      nestedScrollEnabled
-      source={{ uri }}
-      injectedJavaScript={isScrollEndedJS}
-      onLoad={() => setIsWebViewLoaded(true)}
-      onMessage={onMessage}
-      onShouldStartLoadWithRequest={(req) => uri === req.url}
-    />
   );
 
   const isCloseToBottom = ({
@@ -169,15 +163,37 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
     contentSize,
   }: NativeScrollEvent) => {
     const paddingToBottom = 20;
-
     if (
       layoutMeasurement.height + contentOffset.y >=
       contentSize.height - paddingToBottom
     ) {
-      setIsFloatingButtonBackground(false);
+      setIsScrollEnded(true);
     } else {
-      setIsFloatingButtonBackground(true);
+      setIsScrollEnded(false);
     }
+  };
+
+  const renderWebView = (webviewBody: BodyWebView) => {
+    const source = isBodyWebViewUri(webviewBody)
+      ? { uri: webviewBody.uri }
+      : { html: webviewBody.html };
+
+    return (
+      <WebView
+        ref={webViewRef}
+        nestedScrollEnabled
+        source={source}
+        injectedJavaScript={isScrollEndedJS}
+        onLoad={() => setIsWebViewLoaded(true)}
+        onMessage={onMessage}
+        onScroll={({ nativeEvent }) =>
+          isCloseToBottom(nativeEvent as NativeScrollEvent)
+        }
+        {...(source.uri && {
+          onShouldStartLoadWithRequest: (req) => source.uri === req.url,
+        })}
+      />
+    );
   };
 
   const renderBody = () => {
@@ -216,19 +232,19 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
 
   return (
     <ReusableModal ref={modalRef} style={styles.screen} isInteractable={false}>
-      <View style={styles.modal} {...generateTestId(Platform, containerTestId)}>
+      <View style={styles.modal} testID={containerTestId}>
         {renderHeader()}
         <View
           style={styles.bodyContainer}
-          {...generateTestId(Platform, TERMS_OF_USE_WEBVIEW_ID)}
+          testID={TermsOfUseModalSelectorsIDs.WEBVIEW}
         >
-          {body.source === 'WebView' ? renderWebView(body.uri) : renderBody()}
+          {body.source === 'WebView' ? renderWebView(body) : renderBody()}
         </View>
         <TouchableOpacity
           style={styles.checkboxContainer}
           onPress={handleSelect}
           activeOpacity={1}
-          {...generateTestId(Platform, TERMS_OF_USE_CHECKBOX_ICON_ID)}
+          testID={TermsOfUseModalSelectorsIDs.CHECKBOX}
         >
           <Checkbox onPress={handleSelect} isChecked={isCheckboxSelected} />
           <Text style={styles.checkboxText}>{checkboxText}</Text>
@@ -245,7 +261,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
             ...buttonBackgroundColor(),
           }}
           onPress={onPress}
-          {...generateTestId(Platform, buttonTestId)}
+          testID={buttonTestId}
         />
         {isScrollToEndNeeded && renderScrollEndButton()}
         {footerHelpText ? (

@@ -49,6 +49,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
   it.each`
     quantity | sourceTokenSymbol | destTokenSymbol
     ${'.05'} | ${'ETH'}          | ${'USDT'}
+    ${'100'} | ${'USDT'}         | ${'ETH'}
   `(
     "should Swap $quantity '$sourceTokenSymbol' to '$destTokenSymbol'",
     async ({ quantity, sourceTokenSymbol, destTokenSymbol }) => {
@@ -82,17 +83,17 @@ describe(SmokeSwaps('Swap from Actions'), () => {
       await SwapView.tapIUnderstandPriceWarning();
       await SwapView.swipeToSwap();
       await SwapView.waitForSwapToComplete(sourceTokenSymbol, destTokenSymbol);
+      await Assertions.checkIfVisible(TabBarComponent.tabBarActivityButton);
       await TabBarComponent.tapActivity();
       await ActivitiesView.isVisible();
       await ActivitiesView.tapOnSwapActivity(
         sourceTokenSymbol,
         destTokenSymbol,
       );
-      await Assertions.checkIfElementToHaveText(
-        DetailsModal.title,
-        DetailsModal.generateExpectedTitle(sourceTokenSymbol, destTokenSymbol),
+      await Assertions.checkIfTextIsDisplayed(
+        `Swap ${sourceTokenSymbol} to ${destTokenSymbol}`,
       );
-      await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
+      await Assertions.checkIfTextIsDisplayed(`Confirmed`);
       await DetailsModal.tapOnCloseIcon();
     },
   );

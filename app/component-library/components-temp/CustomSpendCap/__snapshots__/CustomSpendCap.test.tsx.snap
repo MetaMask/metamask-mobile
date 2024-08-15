@@ -4,7 +4,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#F2F4F6",
+      "backgroundColor": "#f2f4f6",
       "borderRadius": 8,
       "padding": 16,
     }
@@ -31,7 +31,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#24272A",
+            "color": "#141618",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "700",
@@ -75,7 +75,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
         onStartShouldSetResponder={[Function]}
       >
         <SvgMock
-          color="#D73847"
+          color="#d73847"
           height={16}
           name="Danger"
           style={
@@ -91,23 +91,23 @@ exports[`CustomSpendCap should match snapshot 1`] = `
     <Text
       accessibilityRole="link"
       accessible={true}
+      labelTextVariant="sBodyMD"
       onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
       style={
         {
           "backgroundColor": "transparent",
-          "color": "#24272A",
+          "color": "#141618",
         }
       }
       suppressHighlighting={true}
-      textVariant="sBodyMD"
     >
       <Text
         accessibilityRole="text"
         style={
           {
-            "color": "#0376C9",
+            "color": "#0376c9",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
@@ -131,7 +131,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
       style={
         [
           {
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "#ffffff",
             "borderRadius": 8,
             "flexDirection": "row",
             "justifyContent": "space-between",
@@ -159,7 +159,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
           style={
             [
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "flexGrow": 1,
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
@@ -171,7 +171,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
                 "paddingTop": 0,
               },
               {
-                "color": "#D73847",
+                "color": "#d73847",
               },
             ]
           }
@@ -184,7 +184,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
         onPress={[Function]}
         style={
           {
-            "color": "#535A61",
+            "color": "#6a737d",
             "fontFamily": "Euclid Circular B",
             "fontSize": 12,
             "fontWeight": "400",
@@ -209,7 +209,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#535A61",
+          "color": "#6a737d",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
           "fontWeight": "400",
@@ -229,7 +229,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
         style={
           {
             "backgroundColor": "transparent",
-            "color": "#24272A",
+            "color": "#141618",
           }
         }
         suppressHighlighting={true}
@@ -238,7 +238,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#0376C9",
+              "color": "#0376c9",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",

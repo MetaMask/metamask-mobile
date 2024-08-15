@@ -71,6 +71,7 @@ Then(/^select account component is displayed$/, async () => {
 
 When(/^I navigate to "([^"]*)"$/, async function (text) {
   await BrowserScreen.tapUrlBar();
+  await AddressBarScreen.tapClearButton();
   switch (text) {
     case 'test-dapp-erc20':
       await AddressBarScreen.editUrlInput(
@@ -400,6 +401,7 @@ When(/^I connect my active wallet to the Uniswap exchange page$/, async () => {
   await ExternalWebsitesScreen.tapUniswapMetaMaskWalletButton();
 });
 When(/^I connect my active wallet to the test dapp$/, async () => {
+  await ExternalWebsitesScreen.isTestDappDisplayed();
   await ExternalWebsitesScreen.tapDappConnectButton();
   await AccountApprovalModal.tapConnectButtonByText();
   await AccountApprovalModal.waitForDisappear();

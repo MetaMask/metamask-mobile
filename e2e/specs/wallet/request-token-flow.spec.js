@@ -14,7 +14,7 @@ import {
 } from '../../fixtures/fixture-helper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import TestHelpers from '../../helpers';
-import WalletView from '../../pages/WalletView';
+import WalletView from '../../pages/wallet/WalletView';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
 import Assertions from '../../utils/Assertions';
@@ -25,7 +25,7 @@ const fixtureServer = new FixtureServer();
 describe(SmokeCore('Request Token Flow with Unprotected Wallet'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
-    const fixture = new FixtureBuilder().build();
+    const fixture = new FixtureBuilder().withKeyringController().build();
     fixture.state.user.seedphraseBackedUp = false;
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
@@ -45,16 +45,16 @@ describe(SmokeCore('Request Token Flow with Unprotected Wallet'), () => {
 
   it('should request asset from Action button', async () => {
     await loginToApp();
-    await WalletView.isVisible();
+    await Assertions.checkIfVisible(WalletView.container);
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapReceiveButton();
     await RequestPaymentModal.tapRequestPaymentButton();
-    await RequestPaymentView.isVisible();
+    await Assertions.checkIfVisible(RequestPaymentView.requestPaymentContainer);
   });
 
   it('should search for SAI by contract', async () => {
     await RequestPaymentView.searchForToken(SAI_CONTRACT_ADDRESS);
-    await RequestPaymentView.isTokenVisibleInSearchResults('SAI');
+    await Assertions.checkIfTextIsDisplayed('SAI');
   });
 
   it('should search DAI', async () => {

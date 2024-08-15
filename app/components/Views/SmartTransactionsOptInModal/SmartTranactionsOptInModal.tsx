@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
-import AsyncStorage from '../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import { CURRENT_APP_VERSION } from '../../../constants/storage';
 import { useTheme } from '../../../util/theme';
 import Text, {
@@ -146,37 +146,38 @@ const SmartTransactionsOptInModal = () => {
     modalRef.current?.dismissModal();
   };
 
-  const optIn = () => {
+  const markOptInModalAsSeen = async () => {
+    const version = await StorageWrapper.getItem(CURRENT_APP_VERSION);
+    dispatch(updateOptInModalAppVersionSeen(version));
+  };
+
+  const optIn = async () => {
     Engine.context.PreferencesController.setSmartTransactionsOptInStatus(true);
     trackEvent(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN, {
       stx_opt_in: true,
       location: 'SmartTransactionsOptInModal',
     });
-
     hasOptedIn.current = true;
+    await markOptInModalAsSeen();
     dismissModal();
   };
 
-  const optOut = () => {
+  const optOut = async () => {
     Engine.context.PreferencesController.setSmartTransactionsOptInStatus(false);
     trackEvent(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN, {
       stx_opt_in: false,
       location: 'SmartTransactionsOptInModal',
     });
-
     hasOptedIn.current = false;
+    await markOptInModalAsSeen();
     dismissModal();
   };
 
   const handleDismiss = async () => {
-    // Opt out of STX if no prior decision made
+    // Opt out of STX if no prior decision made.
     if (hasOptedIn.current === null) {
       optOut();
     }
-
-    // Save the current app version as the last app version seen
-    const version = await AsyncStorage.getItem(CURRENT_APP_VERSION);
-    dispatch(updateOptInModalAppVersionSeen(version));
   };
 
   const Header = () => (
@@ -197,7 +198,7 @@ const SmartTransactionsOptInModal = () => {
         ]}
       />
       <Benefit
-        iconName={IconName.Security}
+        iconName={IconName.Coin}
         text={[
           strings('whats_new.stx.benefit_2_1'),
           strings('whats_new.stx.benefit_2_2'),
@@ -248,11 +249,11 @@ const SmartTransactionsOptInModal = () => {
       onPress={optOut}
       label={
         <Text style={styles.secondaryButtonText}>
-          {strings('whats_new.stx.secondary_button')}
+          {strings('whats_new.stx.no_thanks')}
         </Text>
       }
     >
-      {strings('whats_new.stx.secondary_button')}
+      {strings('whats_new.stx.no_thanks')}
     </Button>
   );
 
@@ -261,6 +262,7 @@ const SmartTransactionsOptInModal = () => {
       ref={modalRef}
       style={styles.screen}
       onDismiss={handleDismiss}
+      isInteractable={false}
     >
       <View
         style={styles.modal}

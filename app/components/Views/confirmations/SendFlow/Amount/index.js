@@ -10,7 +10,6 @@ import {
   FlatList,
   InteractionManager,
   ScrollView,
-  Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
 import {
@@ -76,12 +75,7 @@ import {
 import { gte } from '../../../../../util/lodash';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import Alert, { AlertType } from '../../../../Base/Alert';
-import {
-  FIAT_CONVERSION_WARNING_TEXT,
-  TRANSACTION_AMOUNT_CONVERSION_VALUE,
-  CURRENCY_SWITCH,
-} from '../../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds.js';
-import generateTestId from '../../../../../../wdio/utils/generateTestId';
+
 import {
   selectChainId,
   selectProviderType,
@@ -95,7 +89,7 @@ import {
 import { selectTokens } from '../../../../../selectors/tokensController';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../selectors/tokenBalancesController';
-import { selectSelectedAddress } from '../../../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../../../selectors/accountsController';
 import { PREFIX_HEX_STRING } from '../../../../../constants/transaction';
 import Routes from '../../../../../constants/navigation/Routes';
 import { getRampNetworks } from '../../../../../reducers/fiatOrders';
@@ -108,6 +102,7 @@ import { isNetworkRampNativeTokenSupported } from '../../../../../components/UI/
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
+import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -605,7 +600,8 @@ class Amount extends PureComponent {
     if (selectedAsset.isETH) {
       return !!conversionRate;
     }
-    const exchangeRate = contractExchangeRates[selectedAsset.address];
+    const exchangeRate =
+      contractExchangeRates?.[selectedAsset.address]?.price ?? null;
     return !!exchangeRate;
   };
 
@@ -906,7 +902,9 @@ class Amount extends PureComponent {
         });
       }
     } else {
-      const exchangeRate = contractExchangeRates[selectedAsset.address];
+      const exchangeRate = contractExchangeRates
+        ? contractExchangeRates[selectedAsset.address]?.price
+        : undefined;
       if (internalPrimaryCurrencyIsCrypto || !exchangeRate) {
         input = fromTokenMinimalUnitString(
           contractBalances[selectedAsset.address]?.toString(10),
@@ -971,7 +969,9 @@ class Amount extends PureComponent {
         renderableInputValueConversion = `${inputValueConversion} ${processedTicker}`;
       }
     } else {
-      const exchangeRate = contractExchangeRates[selectedAsset.address];
+      const exchangeRate = contractExchangeRates
+        ? contractExchangeRates[selectedAsset.address]?.price
+        : null;
       hasExchangeRate = !!exchangeRate;
       if (internalPrimaryCurrencyIsCrypto) {
         inputValueConversion = `${balanceToFiatNumber(
@@ -1084,7 +1084,9 @@ class Amount extends PureComponent {
       );
     } else {
       balance = renderFromTokenMinimalUnit(contractBalances[address], decimals);
-      const exchangeRate = contractExchangeRates[address];
+      const exchangeRate = contractExchangeRates
+        ? contractExchangeRates[address]?.price
+        : undefined;
       balanceFiat = balanceToFiat(
         balance,
         conversionRate,
@@ -1253,6 +1255,7 @@ class Amount extends PureComponent {
         params: {
           sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
           destinationToken: selectedAsset.address,
+          sourcePage: 'SendFlow',
         },
       });
     };
@@ -1276,7 +1279,7 @@ class Amount extends PureComponent {
           location: 'insufficient_funds_warning',
           text: 'buy_more',
         });
-        navigation.navigate(Routes.RAMP.BUY);
+        navigation.navigate(...createBuyNavigationDetails());
       }
     };
 
@@ -1298,7 +1301,7 @@ class Amount extends PureComponent {
               placeholder={'0'}
               placeholderTextColor={colors.text.muted}
               keyboardAppearance={themeAppearance}
-              {...generateTestId(Platform, AmountViewSelectorsIDs.AMOUNT_INPUT)}
+              testID={AmountViewSelectorsIDs.AMOUNT_INPUT}
             />
           </View>
         </View>
@@ -1308,15 +1311,14 @@ class Amount extends PureComponent {
               <TouchableOpacity
                 style={styles.actionSwitch}
                 onPress={this.switchCurrency}
-                {...generateTestId(Platform, CURRENCY_SWITCH)}
+                testID={AmountViewSelectorsIDs.CURRENCY_SWITCH}
               >
                 <Text
                   style={styles.textSwitch}
                   numberOfLines={1}
-                  {...generateTestId(
-                    Platform,
-                    TRANSACTION_AMOUNT_CONVERSION_VALUE,
-                  )}
+                  testID={
+                    AmountViewSelectorsIDs.TRANSACTION_AMOUNT_CONVERSION_VALUE
+                  }
                 >
                   {renderableInputValueConversion}
                 </Text>
@@ -1340,7 +1342,7 @@ class Amount extends PureComponent {
         {amountError && (
           <View
             style={styles.errorMessageWrapper}
-            {...generateTestId(Platform, AmountViewSelectorsIDs.AMOUNT_ERROR)}
+            testID={AmountViewSelectorsIDs.AMOUNT_ERROR}
           >
             <TouchableOpacity
               onPress={navigateToBuyOrSwaps}
@@ -1391,7 +1393,7 @@ class Amount extends PureComponent {
         {amountError && (
           <View
             style={styles.errorMessageWrapper}
-            {...generateTestId(Platform, AmountViewSelectorsIDs.AMOUNT_ERROR)}
+            testID={AmountViewSelectorsIDs.AMOUNT_ERROR}
           >
             <ErrorMessage errorMessage={amountError} />
           </View>
@@ -1413,7 +1415,7 @@ class Amount extends PureComponent {
       <SafeAreaView
         edges={['bottom']}
         style={styles.wrapper}
-        {...generateTestId(Platform, AmountViewSelectorsIDs.CONTAINER)}
+        testID={AmountViewSelectorsIDs.CONTAINER}
       >
         <ScrollView style={styles.scrollWrapper}>
           {!hasExchangeRate && !selectedAsset.tokenId ? (
@@ -1434,7 +1436,7 @@ class Amount extends PureComponent {
                   <Text
                     red
                     style={styles.warningText}
-                    {...generateTestId(Platform, FIAT_CONVERSION_WARNING_TEXT)}
+                    testID={AmountViewSelectorsIDs.FIAT_CONVERSION_WARNING_TEXT}
                   >
                     {strings('transaction.fiat_conversion_not_available')}
                   </Text>
@@ -1522,7 +1524,7 @@ const mapStateToProps = (state, ownProps) => ({
   gasFeeEstimates: selectGasFeeEstimates(state),
   providerType: selectProviderType(state),
   primaryCurrency: state.settings.primaryCurrency,
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   ticker: selectTicker(state),
   tokens: selectTokens(state),
   transactionState: ownProps.transaction || state.transaction,

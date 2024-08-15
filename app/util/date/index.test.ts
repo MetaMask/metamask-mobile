@@ -1,4 +1,9 @@
-import { msBetweenDates, msToHours, toDateFormat } from '.';
+import {
+  msBetweenDates,
+  msToHours,
+  toDateFormat,
+  formatTimestampToYYYYMMDD,
+} from '.';
 
 const TZ = 'America/Toronto';
 
@@ -44,6 +49,8 @@ describe('Date util :: msBetweenDates', () => {
           return new DateReal(...args);
         }
         return mockDate;
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
     const todayOneHourEarlier = new Date().getTime() - 1000;
@@ -57,5 +64,13 @@ describe('Date util :: msBetweenDates', () => {
 describe('Date util :: msToHours', () => {
   it('should return 1', () => {
     expect(msToHours(1000 * 60 * 60)).toEqual(1);
+  });
+});
+
+describe('Date util :: formatTimestampToYYYYMMDD', () => {
+  it('should format timestamp', () => {
+    const testTimestamp = 1722432060;
+    const date = new Date(testTimestamp * 1000).getTime();
+    expect(formatTimestampToYYYYMMDD(date)).toEqual('2024-07-31');
   });
 });

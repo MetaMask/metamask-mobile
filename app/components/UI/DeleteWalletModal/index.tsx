@@ -25,6 +25,9 @@ import { DeleteWalletModalSelectorsIDs } from '../../../../e2e/selectors/Modals/
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useDispatch } from 'react-redux';
+import { clearHistory } from '../../../actions/browser';
+import CookieManager from '@react-native-cookies/cookies';
 
 const DELETE_KEYWORD = 'delete';
 
@@ -45,6 +48,7 @@ const DeleteWalletModal = () => {
   const [disableButton, setDisableButton] = useState<boolean>(true);
 
   const [resetWalletState, deleteUser] = useDeleteWallet();
+  const dispatch = useDispatch();
 
   const showConfirmModal = () => {
     setShowConfirm(true);
@@ -85,6 +89,8 @@ const DeleteWalletModal = () => {
   };
 
   const deleteWallet = async () => {
+    await dispatch(clearHistory());
+    await CookieManager.clearAll(true);
     triggerClose();
     await resetWalletState();
     await deleteUser();
@@ -147,12 +153,14 @@ const DeleteWalletModal = () => {
             style={styles.areYouSure}
             testID={DeleteWalletModalSelectorsIDs.CONTAINER}
           >
-            <Icon
-              style={styles.warningIcon}
-              size={46}
-              color={colors.error.default}
-              name="exclamation-triangle"
-            />
+            {
+              <Icon
+                style={styles.warningIcon}
+                size={46}
+                color={colors.error.default}
+                name="exclamation-triangle"
+              />
+            }
             <Text style={[styles.heading, styles.red]}>
               {strings('login.are_you_sure')}
             </Text>

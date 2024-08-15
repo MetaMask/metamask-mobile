@@ -3,6 +3,7 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -26,11 +27,19 @@ import Logger from '../../../util/Logger';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import { safeToChecksumAddress } from '../../../util/address';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import type { MetaMaskKeyring as QRKeyring } from '@keystonehq/metamask-airgapped-keyring';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
+import { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
+import PAGINATION_OPERATIONS from '../../../constants/pagination';
 
 interface IConnectQRHardwareProps {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
 }
-const createStyles = (colors: any) =>
+
+const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -63,7 +72,7 @@ const createStyles = (colors: any) =>
     error: {
       ...fontStyles.normal,
       fontSize: 14,
-      color: colors.red,
+      color: colors.error,
     },
     text: {
       color: colors.text.default,
@@ -72,12 +81,64 @@ const createStyles = (colors: any) =>
     },
   });
 
+/**
+ * Initiate a QR hardware wallet connection
+ *
+ * This returns a tuple containing a set of QR interactions, followed by a Promise representing
+ * the QR connection process overall.
+ *
+ * The QR interactions are returned here to ensure that we get the correct references for the
+ * specific keyring instance we initiated the scan with. This is to ensure that we always resolve
+ * the `connectQRHardware` Promise. There are equivalent methods on the `KeyringController` class
+ * that we could use (e.g. `KeyringController.cancelQRSynchronization` would call
+ * `keyring.cancelSync` for us), but these methods are unsafe to use because they might end up
+ * calling the method on the wrong keyring instance (e.g. if the user had locked and unlocked the
+ * app since initiating the scan). They will be deprecated in a future `KeyringController` version.
+ *
+ * TODO: Refactor the QR Keyring to separate interaction methods from keyring operations, so that
+ * interactions are not affected by our keyring operation locks and by our lock/unlock operations.
+ *
+ * @param page - The page of accounts to request (either 0, 1, or -1), for "first page",
+ * "next page", and "previous page" respectively.
+ * @returns A tuple of QR keyring interactions, and a Promise representing the QR hardware wallet
+ * connection process.
+ */
+async function initiateQRHardwareConnection(
+  page: 0 | 1 | -1,
+): Promise<
+  [
+    Pick<QRKeyring, 'cancelSync' | 'submitCryptoAccount' | 'submitCryptoHDKey'>,
+    ReturnType<
+      (typeof Engine)['context']['KeyringController']['connectQRHardware']
+    >,
+  ]
+> {
+  const KeyringController = Engine.context.KeyringController;
+
+  const qrInteractions = await KeyringController.withKeyring(
+    { type: KeyringTypes.qr },
+    // @ts-expect-error The QR Keyring type is not compatible with our keyring type yet
+    async (keyring: QRKeyring) => ({
+      cancelSync: keyring.cancelSync.bind(keyring),
+      submitCryptoAccount: keyring.submitCryptoAccount.bind(keyring),
+      submitCryptoHDKey: keyring.submitCryptoHDKey.bind(keyring),
+    }),
+    { createIfMissing: true },
+  );
+
+  const connectQRHardwarePromise = KeyringController.connectQRHardware(page);
+
+  return [qrInteractions, connectQRHardwarePromise];
+}
+
 const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
 
   const KeyringController = useMemo(() => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController: keyring } = Engine.context as any;
     return keyring;
   }, []);
@@ -113,20 +174,27 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     });
   }, [KeyringController]);
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const subscribeKeyringState = useCallback((storeValue: any) => {
     setQRState(storeValue);
   }, []);
 
   useEffect(() => {
-    let memStore: any;
-    KeyringController.getQRKeyringState().then((_memStore: any) => {
-      memStore = _memStore;
-      memStore.subscribe(subscribeKeyringState);
-    });
+    // This ensures that a QR keyring gets created if it doesn't already exist.
+    // This is intentionally not awaited (the subscription still gets setup correctly if called
+    // before the keyring is created).
+    // TODO: Stop automatically creating keyrings
+    Engine.context.KeyringController.getOrAddQRKeyring();
+    Engine.controllerMessenger.subscribe(
+      'KeyringController:qrKeyringStateChange',
+      subscribeKeyringState,
+    );
     return () => {
-      if (memStore) {
-        memStore.unsubscribe(subscribeKeyringState);
-      }
+      Engine.controllerMessenger.unsubscribe(
+        'KeyringController:qrKeyringStateChange',
+        subscribeKeyringState,
+      );
     };
   }, [KeyringController, subscribeKeyringState]);
 
@@ -138,54 +206,88 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     }
   }, [QRState.sync, hideScanner, showScanner]);
 
+  const qrInteractionsRef =
+    useRef<
+      Pick<
+        QRKeyring,
+        'cancelSync' | 'submitCryptoAccount' | 'submitCryptoHDKey'
+      >
+    >();
+
   const onConnectHardware = useCallback(async () => {
     trackEvent(MetaMetricsEvents.CONTINUE_QR_HARDWARE_WALLET, {
-      device_type: 'QR Hardware',
+      device_type: HardwareDeviceTypes.QR,
     });
     resetError();
-    const _accounts = await KeyringController.connectQRHardware(0);
-    setAccounts(_accounts);
-  }, [KeyringController, resetError, trackEvent]);
+    const [qrInteractions, connectQRHardwarePromise] =
+      await initiateQRHardwareConnection(PAGINATION_OPERATIONS.GET_FIRST_PAGE);
+
+    qrInteractionsRef.current = qrInteractions;
+    const firstPageAccounts = await connectQRHardwarePromise;
+    delete qrInteractionsRef.current;
+
+    setAccounts(firstPageAccounts);
+  }, [resetError, trackEvent]);
 
   const onScanSuccess = useCallback(
     (ur: UR) => {
       hideScanner();
       trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET_SUCCESS, {
-        device_type: 'QR Hardware',
+        device_type: HardwareDeviceTypes.QR,
       });
+      if (!qrInteractionsRef.current) {
+        const errorMessage = 'Missing QR keyring interactions';
+        setErrorMsg(errorMessage);
+        throw new Error(errorMessage);
+      }
       if (ur.type === SUPPORTED_UR_TYPE.CRYPTO_HDKEY) {
-        KeyringController.submitQRCryptoHDKey(ur.cbor.toString('hex'));
+        qrInteractionsRef.current.submitCryptoHDKey(ur.cbor.toString('hex'));
       } else {
-        KeyringController.submitQRCryptoAccount(ur.cbor.toString('hex'));
+        qrInteractionsRef.current.submitCryptoAccount(ur.cbor.toString('hex'));
       }
       resetError();
     },
-    [KeyringController, hideScanner, resetError, trackEvent],
+    [hideScanner, resetError, trackEvent],
   );
 
   const onScanError = useCallback(
     async (error: string) => {
       hideScanner();
       setErrorMsg(error);
-      const qrKeyring = await KeyringController.getOrAddQRKeyring();
-      qrKeyring.cancelSync();
+      if (qrInteractionsRef.current) {
+        qrInteractionsRef.current.cancelSync();
+      }
     },
-    [hideScanner, KeyringController],
+    [hideScanner],
   );
 
   const nextPage = useCallback(async () => {
     resetError();
-    const _accounts = await KeyringController.connectQRHardware(1);
-    setAccounts(_accounts);
-  }, [KeyringController, resetError]);
+    const [qrInteractions, connectQRHardwarePromise] =
+      await initiateQRHardwareConnection(PAGINATION_OPERATIONS.GET_NEXT_PAGE);
+
+    qrInteractionsRef.current = qrInteractions;
+    const nextPageAccounts = await connectQRHardwarePromise;
+    delete qrInteractionsRef.current;
+
+    setAccounts(nextPageAccounts);
+  }, [resetError]);
 
   const prevPage = useCallback(async () => {
     resetError();
-    const _accounts = await KeyringController.connectQRHardware(-1);
-    setAccounts(_accounts);
-  }, [KeyringController, resetError]);
+    const [qrInteractions, connectQRHardwarePromise] =
+      await initiateQRHardwareConnection(
+        PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE,
+      );
 
-  const onToggle = useCallback(() => {
+    qrInteractionsRef.current = qrInteractions;
+    const previousPageAccounts = await connectQRHardwarePromise;
+    delete qrInteractionsRef.current;
+
+    setAccounts(previousPageAccounts);
+  }, [resetError]);
+
+  const onCheck = useCallback(() => {
     resetError();
   }, [resetError]);
 
@@ -255,7 +357,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
             selectedAccounts={existingAccounts}
             nextPage={nextPage}
             prevPage={prevPage}
-            toggleAccount={onToggle}
+            onCheck={onCheck}
             onUnlock={onUnlock}
             onForget={onForget}
             title={strings('connect_qr_hardware.select_accounts')}
@@ -270,9 +372,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
         hideModal={hideScanner}
       />
       <BlockingActionModal modalVisible={blockingModalVisible} isLoadingAction>
-        <Text style={styles.text}>
-          {strings('connect_qr_hardware.please_wait')}
-        </Text>
+        <Text style={styles.text}>{strings('common.please_wait')}</Text>
       </BlockingActionModal>
     </Fragment>
   );

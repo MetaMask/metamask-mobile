@@ -10,6 +10,9 @@ import EditGasFeeLegacy from '../../../../components/EditGasFeeLegacyUpdate';
 import createStyles from './CustomGasModal.styles';
 import { CustomGasModalProps } from './CustomGasModal.types';
 import { selectGasFeeEstimates } from '../../../../../../../selectors/confirmTransaction';
+import { selectGasFeeControllerEstimateType } from '../../../../../../..//selectors/gasFeeController';
+import { RootState } from '../../../../../../../reducers';
+import { selectPrimaryCurrency } from '../../../../../../..//selectors/settings';
 
 const CustomGasModal = ({
   gasSelected,
@@ -27,21 +30,15 @@ const CustomGasModal = ({
 }: CustomGasModalProps) => {
   const { colors } = useAppThemeFromContext();
   const styles = createStyles();
-  const transaction = useSelector((state: any) => state.transaction);
-  const gasFeeEstimate = useSelector((state: any) =>
-    selectGasFeeEstimates(state),
-  );
-  const primaryCurrency = useSelector(
-    (state: any) => state.settings.primaryCurrency,
-  );
-  const chainId = useSelector((state: any) => selectChainId(state));
+
+  const transaction = useSelector((state: RootState) => state.transaction);
+  const gasFeeEstimate = useSelector(selectGasFeeEstimates);
+  const primaryCurrency = useSelector(selectPrimaryCurrency);
+  const chainId = useSelector(selectChainId);
   const selectedAsset = useSelector(
-    (state: any) => state.transaction.selectedAsset,
+    (state: RootState) => state.transaction.selectedAsset,
   );
-  const gasEstimateType = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.GasFeeController.gasEstimateType,
-  );
+  const gasEstimateType = useSelector(selectGasFeeControllerEstimateType);
 
   const [selectedGas, setSelectedGas] = useState(gasSelected);
   const [eip1559Txn, setEIP1559Txn] = useState(EIP1559GasTxn);

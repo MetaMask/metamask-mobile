@@ -1,16 +1,33 @@
-import AppConstants from '../../core/AppConstants';
 import { MetaMetrics, MetaMetricsEvents } from '../../core/Analytics';
 import { TRUE, USE_TERMS } from '../../constants/storage';
 import Routes from '../../constants/navigation/Routes';
 import { strings } from '../../../locales/i18n';
-import {
-  TERMS_OF_USE_ACCEPT_BUTTON_ID,
-  TERMS_OF_USE_SCREEN_ID,
-} from '../../../wdio/screen-objects/testIDs/Components/TermsOfUse.testIds';
-import AsyncStorage from '../../store/async-storage-wrapper';
+import { TermsOfUseModalSelectorsIDs } from '../../../e2e/selectors/Modals/TermsOfUseModal.selectors';
+import StorageWrapper from '../../store/storage-wrapper';
+import termsOfUse from './termsOfUseContent';
+
+interface TermsOfUseParamsI {
+  screen: string;
+  params: {
+    containerTestId: string;
+    buttonTestId: string;
+    buttonText: string;
+    checkboxText: string;
+    headerTitle: string;
+    onAccept: () => Promise<void>;
+    footerHelpText: string;
+    body: {
+      source: 'WebView';
+      html: string;
+    };
+    onRender: () => void;
+    isScrollToEndNeeded: boolean;
+    scrollEndBottomMargin: number;
+  };
+}
 
 const onConfirmUseTerms = async () => {
-  await AsyncStorage.setItem(USE_TERMS, TRUE);
+  await StorageWrapper.setItem(USE_TERMS, TRUE);
   MetaMetrics.getInstance().trackEvent(MetaMetricsEvents.USER_TERMS_ACCEPTED);
 };
 
@@ -19,15 +36,15 @@ const useTermsDisplayed = () => {
 };
 
 export default async function navigateTermsOfUse(
-  navigate: (key: string, params: any) => void,
+  navigate: (key: string, params: TermsOfUseParamsI) => void,
 ) {
-  const isUseTermsAccepted = await AsyncStorage.getItem(USE_TERMS);
+  const isUseTermsAccepted = await StorageWrapper.getItem(USE_TERMS);
   if (!isUseTermsAccepted) {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.MODAL_MANDATORY,
       params: {
-        containerTestId: TERMS_OF_USE_SCREEN_ID,
-        buttonTestId: TERMS_OF_USE_ACCEPT_BUTTON_ID,
+        containerTestId: TermsOfUseModalSelectorsIDs.CONTAINER,
+        buttonTestId: TermsOfUseModalSelectorsIDs.ACCEPT_BUTTON,
         buttonText: strings('terms_of_use_modal.accept_cta'),
         checkboxText: strings(
           'terms_of_use_modal.terms_of_use_check_description',
@@ -37,7 +54,7 @@ export default async function navigateTermsOfUse(
         footerHelpText: strings('terms_of_use_modal.accept_helper_description'),
         body: {
           source: 'WebView',
-          uri: AppConstants.TERMS_OF_USE.TERMS_OF_USE_URL_WITHOUT_COOKIES,
+          html: termsOfUse,
         },
         onRender: useTermsDisplayed,
         isScrollToEndNeeded: true,
