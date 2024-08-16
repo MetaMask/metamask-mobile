@@ -22,6 +22,8 @@ export const createStyles = ({ colors, typography }: Theme) =>
       zIndex: 999,
       width: '100%',
       height: '100%',
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     menuItemContainer: {
       flexDirection: 'row',
