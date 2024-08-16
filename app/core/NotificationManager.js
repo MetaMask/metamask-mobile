@@ -429,9 +429,9 @@ class NotificationManager {
         .filter(
           (tx) =>
             safeToChecksumAddress(tx.txParams?.to) ===
-            selectedInternalAccountChecksummedAddress &&
+              selectedInternalAccountChecksummedAddress &&
             safeToChecksumAddress(tx.txParams?.from) !==
-            selectedInternalAccountChecksummedAddress &&
+              selectedInternalAccountChecksummedAddress &&
             tx.chainId === chainId &&
             tx.status === 'confirmed' &&
             lastBlock <= parseInt(tx.blockNumber, 10) &&
