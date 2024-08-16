@@ -13,23 +13,6 @@ import renderWithProvider, {
 } from '../../../../../util/test/renderWithProvider';
 import { RootState } from '../../../../../reducers';
 
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    TransactionController: {
-      // Proxy methods
-      handleMethodData: jest.fn(),
-      getNonceLock: jest.fn(),
-      speedUpTransaction: jest.fn(),
-      startIncomingTransactionPolling: jest.fn(),
-      stopIncomingTransactionPolling: jest.fn(),
-      updateIncomingTransactions: jest.fn(),
-      updateSecurityAlertResponse: jest.fn(),
-      updateTransaction: jest.fn(),
-      wipeTransactions: jest.fn(),
-    },
-  },
-}));
-
 jest.mock('../../../../../util/blockaid', () => ({
   isBlockaidFeatureEnabled: jest.fn().mockReturnValue(true),
 }));
