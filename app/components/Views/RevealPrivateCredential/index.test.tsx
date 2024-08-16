@@ -39,6 +39,39 @@ describe('RevealPrivateCredential', () => {
       </Provider>,
     );
 
+  it('renders reveal SRP correctly when the credential is directly passed', () => {
+    const { toJSON } = renderWithProviders(
+      <RevealPrivateCredential
+        route={{
+          params: {
+            credentialName: undefined,
+          },
+        }}
+        navigation={null}
+        cancel={() => null}
+        credentialName={SRP_CREDENTIAL}
+      />,
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders reveal SRP correctly when the credential is passed via the route object', () => {
+    const { toJSON } = renderWithProviders(
+      <RevealPrivateCredential
+        route={{
+          params: {
+            credentialName: SRP_CREDENTIAL,
+          },
+        }}
+        navigation={null}
+        cancel={() => null}
+        // @ts-expect-error - The error is ignored for testing purposes
+        credentialName={undefined}
+      />,
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   it('renders reveal private key correctly', () => {
     const { toJSON } = renderWithProviders(
       <RevealPrivateCredential
@@ -55,21 +88,6 @@ describe('RevealPrivateCredential', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders reveal SRP correctly', () => {
-    const { toJSON } = renderWithProviders(
-      <RevealPrivateCredential
-        route={{
-          params: {
-            credentialName: SRP_CREDENTIAL,
-          },
-        }}
-        navigation={null}
-        cancel={() => null}
-        credentialName={SRP_CREDENTIAL}
-      />,
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
 
   it('shows warning message on incorrect password', async () => {
     const { getByPlaceholderText, getByTestId } = renderWithProviders(
