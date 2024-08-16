@@ -78,6 +78,13 @@ import { ButtonProps } from '../../../component-library/components/Buttons/Butto
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
 import { ExtendedNetwork } from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
+import ListItemSelect from '../../../component-library/components/List/ListItemSelect';
+import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import {
+  LINEA_DEFAULT_RPC_URL,
+  MAINNET_DEFAULT_RPC_URL,
+} from '../../../constants/urls';
 
 const NetworkSelector = () => {
   const [showPopularNetworkModal, setShowPopularNetworkModal] = useState(false);
@@ -119,7 +126,21 @@ const NetworkSelector = () => {
     isReadOnly: false,
   });
 
+  const [showMultiRpcSelectModal, setShowMultiRpcSelectModal] = useState<{
+    isVisible: boolean;
+    chainId: string;
+    rpcUrls: string[];
+    networkName: string;
+  }>({
+    isVisible: false,
+    rpcUrls: [],
+    chainId: CHAIN_IDS.MAINNET,
+    networkName: '',
+  });
+
   const networkMenuSheetRef = useRef<BottomSheetRef>(null);
+
+  const rpcMenuSheetRef = useRef<BottomSheetRef>(null);
 
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
 
@@ -182,6 +203,26 @@ const NetworkSelector = () => {
       });
     }
   };
+
+  const openRpcModal = useCallback(({ rpcUrls, chainId, networkName }) => {
+    setShowMultiRpcSelectModal({
+      isVisible: true,
+      rpcUrls: [...rpcUrls],
+      chainId,
+      networkName,
+    });
+    rpcMenuSheetRef.current?.onOpenBottomSheet();
+  }, []);
+
+  const closeRpcModal = useCallback(() => {
+    setShowMultiRpcSelectModal({
+      isVisible: false,
+      rpcUrls: [],
+      chainId: CHAIN_IDS.MAINNET,
+      networkName: '',
+    });
+    rpcMenuSheetRef.current?.onCloseBottomSheet();
+  }, []);
 
   const openModal = useCallback(
     (chainId, displayEdit, networkTypeOrRpcUrl, isReadOnly) => {
@@ -277,6 +318,7 @@ const NetworkSelector = () => {
           key={chainId}
           variant={CellVariant.SelectWithMenu}
           title={mainnetName}
+          secondaryText={hideKeyFromUrl(MAINNET_DEFAULT_RPC_URL)}
           avatarProps={{
             variant: AvatarVariant.Network,
             name: mainnetName,
@@ -292,6 +334,14 @@ const NetworkSelector = () => {
           onButtonClick={() => {
             openModal(chainId, false, MAINNET, true);
           }}
+          // TODO: Substitute with the new network controller's RPC array.
+          onTextClick={() =>
+            openRpcModal({
+              rpcUrls: [hideKeyFromUrl(MAINNET_DEFAULT_RPC_URL)],
+              chainId,
+              networkName: mainnetName,
+            })
+          }
         />
       );
     }
@@ -337,9 +387,18 @@ const NetworkSelector = () => {
           onPress={() => onNetworkChange(LINEA_MAINNET)}
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
+          secondaryText={hideKeyFromUrl(LINEA_DEFAULT_RPC_URL)}
           onButtonClick={() => {
             openModal(chainId, false, LINEA_MAINNET, true);
           }}
+          // TODO: Substitute with the new network controller's RPC array.
+          onTextClick={() =>
+            openRpcModal({
+              rpcUrls: [LINEA_DEFAULT_RPC_URL],
+              chainId,
+              networkName: lineaMainnetName,
+            })
+          }
         />
       );
     }
@@ -390,9 +449,18 @@ const NetworkSelector = () => {
               onPress={() => onSetRpcTarget(rpcUrl)}
               style={styles.networkCell}
               buttonIcon={IconName.MoreVertical}
+              secondaryText={hideProtocolFromUrl(hideKeyFromUrl(rpcUrl))}
               onButtonClick={() => {
                 openModal(chainId, true, rpcUrl, false);
               }}
+              // TODO: Substitute with the new network controller's RPC array.
+              onTextClick={() =>
+                openRpcModal({
+                  rpcUrls: [hideKeyFromUrl(rpcUrl)],
+                  chainId,
+                  networkName: name,
+                })
+              }
             />
           );
         }
@@ -576,6 +644,7 @@ const NetworkSelector = () => {
     const [, { nickname }] = entry;
 
     closeModal();
+    closeRpcModal();
 
     setShowConfirmDeleteModal({
       isVisible: true,
@@ -611,6 +680,70 @@ const NetworkSelector = () => {
     size: ButtonSize.Lg,
     onPress: () => confirmRemoveRpc(),
   };
+
+  const renderBottomSheetRpc = useCallback(() => {
+    let imageSource;
+
+    if (showMultiRpcSelectModal.chainId === CHAIN_IDS.MAINNET) {
+      imageSource = images.ETHEREUM;
+    } else if (showMultiRpcSelectModal.chainId === CHAIN_IDS.LINEA_MAINNET) {
+      imageSource = images['LINEA-MAINNET'];
+    } else {
+      //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+      imageSource = getNetworkImageSource({
+        chainId: showMultiRpcSelectModal?.chainId?.toString(),
+      });
+    }
+
+    if (!showMultiRpcSelectModal.isVisible) return null;
+
+    return (
+      <BottomSheet
+        ref={rpcMenuSheetRef}
+        onClose={closeRpcModal}
+        shouldNavigateBack={false}
+      >
+        <BottomSheetHeader style={styles.baseHeader}>
+          <Text variant={TextVariant.HeadingMD}>
+            {strings('app_settings.select_rpc_url')}{' '}
+          </Text>
+          <Cell
+            variant={CellVariant.Display}
+            title={Networks.mainnet.name}
+            avatarProps={{
+              variant: AvatarVariant.Network,
+              name: showMultiRpcSelectModal.networkName,
+              imageSource,
+              size: AvatarSize.Sm,
+              style: { marginRight: 0 },
+            }}
+            style={styles.cellBorder}
+          >
+            <Text style={styles.alternativeText} variant={TextVariant.BodyMD}>
+              {showMultiRpcSelectModal.networkName}
+            </Text>
+          </Cell>
+        </BottomSheetHeader>
+        <View style={styles.rpcMenu}>
+          {showMultiRpcSelectModal.rpcUrls.map((rpcUrl) => (
+            <ListItemSelect
+              key={rpcUrl}
+              isSelected
+              isDisabled={false}
+              gap={8}
+              onPress={closeRpcModal}
+            >
+              <View style={styles.rpcText}>
+                <Text style={styles.textCentred}>
+                  {hideProtocolFromUrl(rpcUrl)}
+                </Text>
+              </View>
+            </ListItemSelect>
+          ))}
+        </View>
+      </BottomSheet>
+    );
+  }, [showMultiRpcSelectModal, rpcMenuSheetRef, closeRpcModal, styles]);
 
   const renderBottomSheetContent = () => (
     <>
@@ -714,6 +847,8 @@ const NetworkSelector = () => {
           </View>
         </BottomSheet>
       ) : null}
+
+      {renderBottomSheetRpc()}
 
       {showConfirmDeleteModal.isVisible ? (
         <BottomSheet
