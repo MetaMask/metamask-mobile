@@ -12,7 +12,7 @@ import NetworkSelector from './NetworkSelector';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkListModal.selectors';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
-
+import { updateIncomingTransactions } from 'app/util/transaction-controller';
 const mockEngine = Engine;
 
 const setShowTestNetworksSpy = jest.spyOn(
@@ -23,6 +23,10 @@ const setShowTestNetworksSpy = jest.spyOn(
 // Mock the entire module
 jest.mock('../../../util/networks/isNetworkUiRedesignEnabled', () => ({
   isNetworkUiRedesignEnabled: jest.fn(),
+}));
+
+jest.mock('../../../util/transaction-controller', () => ({
+  updateIncomingTransactions: jest.fn(),
 }));
 
 jest.mock('../../../core/Engine', () => ({
