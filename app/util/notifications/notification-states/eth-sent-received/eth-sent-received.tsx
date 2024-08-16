@@ -1,7 +1,11 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck - Notifications team directory
 import { strings } from '../../../../../locales/i18n';
-import { ModalFieldType, TRIGGER_TYPES } from '../../constants';
+import {
+  ModalFieldType,
+  ModalFooterType,
+  TRIGGER_TYPES,
+} from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
 import {
@@ -78,7 +82,7 @@ const state: NotificationState<NativeSentReceiveNotification> = {
           address: notification.data.to,
         },
         {
-          type: ModalFieldType.TRANSACTION,
+          type: ModalFieldType.ADDRESS,
           label: isSent(notification)
             ? strings('notifications.modal.label_address_from')
             : strings('notifications.modal.label_address_from_you'),
@@ -115,7 +119,7 @@ const state: NotificationState<NativeSentReceiveNotification> = {
         },
       ],
       footer: {
-        type: ModalFieldType.BLOCK_EXPLORER,
+        type: ModalFooterType.BLOCK_EXPLORER,
         chainId: notification.chain_id,
         txHash: notification.tx_hash,
       },

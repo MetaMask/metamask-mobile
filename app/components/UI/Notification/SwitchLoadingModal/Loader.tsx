@@ -21,8 +21,9 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../locales/i18n';
+import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
 
-const createStyles = (colors) =>
+const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     root: {
       backgroundColor: colors.background.default,
