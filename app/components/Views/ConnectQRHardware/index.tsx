@@ -193,7 +193,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     return () => {
       Engine.controllerMessenger.unsubscribe(
         'KeyringController:qrKeyringStateChange',
-        (storeValue) => subscribeKeyringState(storeValue),
+        subscribeKeyringState,
       );
     };
   }, [KeyringController, subscribeKeyringState]);
