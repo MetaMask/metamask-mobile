@@ -120,7 +120,9 @@ describe('Blockaid util', () => {
     });
 
     it('returns empty object when chain id is not in supported chain ids list', () => {
-      jest.spyOn(NetworkControllerMock, 'selectChainId').mockReturnValue('10');
+      jest
+        .spyOn(NetworkControllerMock, 'selectChainId')
+        .mockReturnValue('0x10');
       const result = getBlockaidMetricsParams(undefined);
       expect(result).toStrictEqual({});
     });
