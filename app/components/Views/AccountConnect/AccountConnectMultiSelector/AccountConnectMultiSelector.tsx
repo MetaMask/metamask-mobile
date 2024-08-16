@@ -161,11 +161,13 @@ const AccountConnectMultiSelector = ({
           onBack={onBack}
         />
         <View style={styles.body}>
-          <TagUrl
-            imageSource={favicon}
-            label={urlWithProtocol}
-            iconName={secureIcon}
-          />
+          {!isMutichainVersion1Enabled && (
+            <TagUrl
+              imageSource={favicon}
+              label={urlWithProtocol}
+              iconName={secureIcon}
+            />
+          )}
           <Text style={styles.description}>
             {strings('accounts.connect_description')}
           </Text>
