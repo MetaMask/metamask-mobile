@@ -594,7 +594,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 sudo apt update
-                sudo apt install ccache
+                sudo apt install ccache -y
       - restore-cache@2:
           title: Restore CCache
           inputs:
