@@ -1190,6 +1190,7 @@
     "text": "TEXT",
     "qr_code": "QR CODE",
     "hold_to_reveal_credential": "Hold to reveal {{credentialName}}",
+    "reveal_credential": "Reveal {{credentialName}}",
     "keep_credential_safe": "Keep your {{credentialName}} safe",
     "srp_abbreviation_text": "SRP",
     "srp_text": "Secret Recovery Phrase",
