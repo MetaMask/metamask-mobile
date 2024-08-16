@@ -456,14 +456,23 @@ const buildOVMGasPriceOracleContract = (eth) => {
  *
  * @param {Object} eth
  * @param {Object} txMeta
- * @returns {String}
+ * @returns {String} Hex string gas fee, with no 0x prefix
  */
 export const fetchEstimatedMultiLayerL1Fee = async (eth, txMeta) => {
-  const contract = buildOVMGasPriceOracleContract(eth);
-  const serializedTransaction =
-    buildUnserializedTransaction(txMeta).serialize();
-  const result = await contract.getL1Fee(serializedTransaction);
-  return result?.[0]?.toString(16);
+  const chainId =
+    Engine.context.NetworkController.state?.providerConfig?.chainId;
+
+  const layer1GasFee =
+    await Engine.context.TransactionController.getLayer1GasFee({
+      transactionParams: txMeta.txParams,
+      chainId,
+    });
+
+  const layer1GasFeeNoPrefix = layer1GasFee.startsWith('0x')
+    ? layer1GasFee.slice(2)
+    : layer1GasFee;
+
+  return layer1GasFeeNoPrefix;
 };
 
 /**
