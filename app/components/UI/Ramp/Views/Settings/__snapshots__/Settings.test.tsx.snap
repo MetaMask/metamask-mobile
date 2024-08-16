@@ -54,7 +54,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "#24272a",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -168,7 +168,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                 onLayout={[Function]}
                 style={
                   {
-                    "color": "#0376c9",
+                    "color": "#43aefc",
                     "fontSize": 17,
                     "fontWeight": "600",
                   }
@@ -206,6 +206,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -298,6 +299,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1203,7 +1205,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
             collapsable={false}
             style={
               {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "#24272a",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -1317,7 +1319,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                 onLayout={[Function]}
                 style={
                   {
-                    "color": "#0376c9",
+                    "color": "#43aefc",
                     "fontSize": 17,
                     "fontWeight": "600",
                   }
@@ -1355,6 +1357,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -1447,6 +1450,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1924,7 +1928,7 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "#24272a",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -2038,7 +2042,7 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                 onLayout={[Function]}
                 style={
                   {
-                    "color": "#0376c9",
+                    "color": "#43aefc",
                     "fontSize": 17,
                     "fontWeight": "600",
                   }
@@ -2076,6 +2080,7 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -2168,6 +2173,7 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -2468,7 +2474,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "#24272a",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -2582,7 +2588,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                 onLayout={[Function]}
                 style={
                   {
-                    "color": "#0376c9",
+                    "color": "#43aefc",
                     "fontSize": 17,
                     "fontWeight": "600",
                   }
@@ -2620,6 +2626,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -2712,6 +2719,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -3051,7 +3059,7 @@ exports[`Settings renders correctly 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "#24272a",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -3165,7 +3173,7 @@ exports[`Settings renders correctly 1`] = `
                 onLayout={[Function]}
                 style={
                   {
-                    "color": "#0376c9",
+                    "color": "#43aefc",
                     "fontSize": 17,
                     "fontWeight": "600",
                   }
@@ -3203,6 +3211,7 @@ exports[`Settings renders correctly 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -3295,6 +3304,7 @@ exports[`Settings renders correctly 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -3634,7 +3644,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "#24272a",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -3748,7 +3758,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                 onLayout={[Function]}
                 style={
                   {
-                    "color": "#0376c9",
+                    "color": "#43aefc",
                     "fontSize": 17,
                     "fontWeight": "600",
                   }
@@ -3786,6 +3796,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -3878,6 +3889,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
