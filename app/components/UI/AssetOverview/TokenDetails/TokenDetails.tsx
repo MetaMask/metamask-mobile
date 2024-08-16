@@ -120,9 +120,6 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
         : null,
   };
 
-  console.log('MARKET DETAILS: ', marketDetails);
-  console.log('TOKEN DETAILS: ', tokenDetails);
-
   return (
     <View style={styles.wrapper}>
       {(asset.isETH || tokenMetadata) && (
