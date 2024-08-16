@@ -85,7 +85,6 @@ const RevealPrivateCredential = ({
   const [clipboardPrivateCredential, setClipboardPrivateCredential] =
     useState<string>('');
   const [unlocked, setUnlocked] = useState<boolean>(false);
-  const [isUserUnlocked, setIsUserUnlocked] = useState<boolean>(false);
   const [password, setPassword] = useState<string>('');
   const [warningIncorrectPassword, setWarningIncorrectPassword] =
     useState<string>('');
@@ -143,7 +142,7 @@ const RevealPrivateCredential = ({
           );
         }
 
-        if (privateCredential && (isUserUnlocked || isPrivateKeyReveal)) {
+        if (privateCredential) {
           setClipboardPrivateCredential(privateCredential);
           setUnlocked(true);
         }
@@ -164,7 +163,7 @@ const RevealPrivateCredential = ({
         setWarningIncorrectPassword(msg);
       }
     },
-    [isUserUnlocked, selectedAddress],
+    [selectedAddress],
   );
 
   useEffect(() => {
@@ -284,7 +283,6 @@ const RevealPrivateCredential = ({
   const revealCredential = useCallback(() => {
     const credential = credentialName || route?.params.credentialName;
     tryUnlockWithPassword(password, credential);
-    setIsUserUnlocked(true);
     setIsModalVisible(false);
   }, [
     credentialName,
