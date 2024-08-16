@@ -163,21 +163,28 @@ const AccountConnectMultiSelector = ({
 
     return (
       <View style={styles.ctaButtonsContainer}>
-        <Button
-          variant={ButtonVariants.Secondary}
-          label={strings('accounts.cancel')}
-          onPress={() => onUserAction(USER_INTENT.Cancel)}
-          size={ButtonSize.Lg}
-          style={styles.button}
-        />
-        <View style={styles.buttonSeparator} />
+        {!isMutichainVersion1Enabled && (
+          <Button
+            variant={ButtonVariants.Secondary}
+            label={strings('accounts.cancel')}
+            onPress={() => onUserAction(USER_INTENT.Cancel)}
+            size={ButtonSize.Lg}
+            style={styles.button}
+          />
+        )}
+        {!isMutichainVersion1Enabled && <View style={styles.buttonSeparator} />}
         <Button
           variant={ButtonVariants.Primary}
-          label={strings('accounts.connect_with_count', {
-            countLabel: selectedAddresses.length
-              ? ` (${selectedAddresses.length})`
-              : '',
-          })}
+          label={strings(
+            isMutichainVersion1Enabled
+              ? 'app_settings.fiat_on_ramp.update'
+              : 'accounts.connect_with_count',
+            {
+              countLabel: selectedAddresses.length
+                ? ` (${selectedAddresses.length})`
+                : '',
+            },
+          )}
           onPress={() => onUserAction(USER_INTENT.Confirm)}
           size={ButtonSize.Lg}
           style={{
