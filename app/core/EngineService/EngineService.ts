@@ -140,7 +140,7 @@ class EngineService {
       },
       {
         name: 'PPOMController',
-        key: `${engine.context.PPOMController?.name}:stateChange`,
+        key: `${engine.context.PPOMController.name}:stateChange`,
       },
       {
         name: 'AuthenticationController',
