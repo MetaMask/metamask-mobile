@@ -13,6 +13,7 @@ import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecuri
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import LoginScreen from '../screen-objects/LoginScreen';
 import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
+import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
 import Gestures from '../helpers/Gestures';
 import OnboardingSucessScreen from '../screen-objects/OnboardingSucessScreen.js';
 import ExperienceEnhancerModal from '../screen-objects/Modals/ExperienceEnhancerModal';
