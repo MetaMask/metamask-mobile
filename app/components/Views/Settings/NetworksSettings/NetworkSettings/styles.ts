@@ -1,4 +1,4 @@
-import isNetworkUiRedesignEnabled from '../../../../../util/networks/isNetworkUiRedesignEnabled';
+import { isNetworkUiRedesignEnabled } from '../../../../../util/networks/isNetworkUiRedesignEnabled';
 import { StyleSheet } from 'react-native';
 
 const createStyles = () =>
