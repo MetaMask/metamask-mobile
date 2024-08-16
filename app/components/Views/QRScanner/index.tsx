@@ -280,11 +280,12 @@ const QRScanner = () => {
       strings('qr_scanner.not_allowed_error_desc'),
       [
         {
-          text: strings('qr_scanner.cancel'),
-        },
-        {
           text: strings('qr_scanner.open_settings'),
           onPress: () => Linking.openSettings(),
+        },
+        {
+          text: strings('qr_scanner.cancel'),
+          style: 'cancel',
         },
       ],
     );
