@@ -2,12 +2,16 @@ import React from 'react';
 import { ConnectedComponent } from 'react-redux';
 import { waitFor } from '@testing-library/react-native';
 import Confirm from '.';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import {
+  DeepPartial,
+  renderScreen,
+} from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { TESTID_ACCORDION_CONTENT } from '../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
 import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../../components/BlockaidBanner/BlockaidBanner.constants';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
+import { RootState } from '../../../../../reducers';
 
 const MOCK_ADDRESS = '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58';
 
@@ -15,12 +19,11 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS,
 ]);
 
-const mockInitialState = {
+const mockInitialState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
-        network: '1',
         providerConfig: {
           ticker: 'ETH',
           type: 'mainnet',
@@ -73,7 +76,7 @@ const mockInitialState = {
     networks: [
       {
         active: true,
-        chainId: 1,
+        chainId: '0x1',
         chainName: 'Ethereum Mainnet',
         nativeTokenSupported: true,
       },
