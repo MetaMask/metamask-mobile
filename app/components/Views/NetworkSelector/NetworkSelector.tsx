@@ -86,6 +86,12 @@ import { ExtendedNetwork } from '../Settings/NetworksSettings/NetworkSettings/Cu
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import { Hex } from '@metamask/utils';
 
+interface infuraNetwork {
+  name: string;
+  imageSource: ImageSourcePropType;
+  chainId: Hex;
+}
+
 const NetworkSelector = () => {
   const [showPopularNetworkModal, setShowPopularNetworkModal] = useState(false);
   const [popularNetwork, setPopularNetwork] = useState<ExtendedNetwork>();
@@ -428,29 +434,15 @@ const NetworkSelector = () => {
     );
 
   const renderOtherNetworks = () => {
-    const getOtherNetworks = () => getAllNetworks().slice(2);
-    return getOtherNetworks().map((networkType) => {
-      const {
-        name,
-        imageSource,
-        chainId,
-      }: {
-        name: string;
-        shortName: string;
-        color: string;
-        networkType: string;
-        imageSource: ImageSourcePropType;
-        chainId: Hex;
-      } = Networks[
-        networkType as unknown as keyof typeof Networks
-      ] as unknown as {
-        name: string;
-        shortName: string;
-        color: string;
-        networkType: string;
-        imageSource: ImageSourcePropType;
-        chainId: Hex;
-      };
+    const getAllNetworksTyped =
+      getAllNetworks() as unknown as InfuraNetworkType[];
+    const getOtherNetworks = () => getAllNetworksTyped.slice(2);
+    return getOtherNetworks().map((networkType: InfuraNetworkType) => {
+      const TypedNetworks = Networks as unknown as Record<
+        string,
+        infuraNetwork
+      >;
+      const { name, imageSource, chainId } = TypedNetworks[networkType];
 
       if (isNetworkUiRedesignEnabled() && isNoSearchResults(name)) return null;
 
@@ -467,7 +459,7 @@ const NetworkSelector = () => {
               size: AvatarSize.Sm,
             }}
             isSelected={chainId === providerConfig.chainId}
-            onPress={() => onNetworkChange(networkType as InfuraNetworkType)}
+            onPress={() => onNetworkChange(networkType)}
             style={styles.networkCell}
             buttonIcon={IconName.MoreVertical}
             onButtonClick={() => {
@@ -489,7 +481,7 @@ const NetworkSelector = () => {
             size: avatarSize,
           }}
           isSelected={chainId === providerConfig.chainId}
-          onPress={() => onNetworkChange(networkType as InfuraNetworkType)}
+          onPress={() => onNetworkChange(networkType)}
           style={styles.networkCell}
         />
       );
