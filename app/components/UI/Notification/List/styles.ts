@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import { StyleSheet, TextStyle } from 'react-native';
+import { StyleSheet } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 
 export type NotificationListStyles = ReturnType<typeof createStyles>;
@@ -42,7 +42,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
       borderColor: colors.background.default,
     },
     textStyle: {
-      ...(typography.sBodyMD as TextStyle),
+      ...typography.sBodyMD,
       fontWeight: '500',
     },
     loader: {

@@ -47,7 +47,7 @@ export default function ProfileSyncingComponent({
           {strings('profile_sync.title')}
         </Text>
         <Switch
-          value={isProfileSyncingEnabled}
+          value={isProfileSyncingEnabled ?? undefined}
           onChange={handleSwitchToggle}
           trackColor={{
             true: colors.primary.default,
