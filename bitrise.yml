@@ -1480,7 +1480,7 @@ app:
   envs:
     - opts:
         is_expand: false
-      MM_NOTIFICATIONS_UI_ENABLED: false
+      MM_NOTIFICATIONS_UI_ENABLED: true
     - opts:
         is_expand: false
       MM_NETWORK_UI_REDESIGN_ENABLED: false
@@ -1522,13 +1522,13 @@ app:
       VERSION_NAME: 7.29.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1389
+      VERSION_NUMBER: 1390
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.29.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1389
+      FLASK_VERSION_NUMBER: 1390
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
