@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AccountActions renders correctly 1`] = `
+exports[`AccountConnect renders correctly 1`] = `
 <View
   onLayout={[Function]}
   style={
