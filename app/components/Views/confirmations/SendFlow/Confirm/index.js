@@ -400,7 +400,7 @@ class Confirm extends PureComponent {
       const eth = new Eth(
         Engine.context.NetworkController.getProviderAndBlockTracker().provider,
       );
-      const result = fetchEstimatedMultiLayerL1Fee(eth, {
+      const result = await fetchEstimatedMultiLayerL1Fee(eth, {
         txParams: transaction.transaction,
         chainId,
       });

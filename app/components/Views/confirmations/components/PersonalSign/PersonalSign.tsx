@@ -59,7 +59,7 @@ const PersonalSign = ({
   currentPageInformation,
   toggleExpandedMessage,
   showExpandedMessage,
-}: PersonalSignProps) => {
+}: PersonalSignProps & { onConfirm: () => Promise<void> }) => {
   const navigation = useNavigation();
   const { trackEvent } = useMetrics();
   const [truncateMessage, setTruncateMessage] = useState<boolean>(false);
@@ -156,7 +156,7 @@ const PersonalSign = ({
 
   const confirmSignature = async () => {
     if (!isExternalHardwareAccount(messageParams.from)) {
-      onConfirm();
+      await onConfirm();
       showWalletConnectNotification(true);
       trackEvent(MetaMetricsEvents.SIGNATURE_APPROVED, getAnalyticsParams());
     } else {
