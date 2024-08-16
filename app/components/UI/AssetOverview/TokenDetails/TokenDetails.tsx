@@ -50,7 +50,15 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const currentCurrency = useSelector(selectCurrentCurrency);
   const tokenContractAddress = safeToChecksumAddress(asset.address);
 
-  if (!tokenContractAddress) {
+  let tokenMetadata;
+  let marketData;
+
+  if (asset.isETH) {
+    marketData = tokenExchangeRates[zeroAddress() as `0x${string}`];
+  } else if (!asset.isETH && tokenContractAddress) {
+    tokenMetadata = tokenList[tokenContractAddress.toLowerCase()];
+    marketData = tokenExchangeRates[tokenContractAddress];
+  } else {
     Logger.log('cannot find contract address');
     return null;
   }
@@ -60,9 +68,6 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     return null;
   }
 
-  const tokenMetadata = tokenList[tokenContractAddress.toLowerCase()];
-  const marketData = tokenExchangeRates[tokenContractAddress];
-
   const tokenDetails: TokenDetails = asset.isETH
     ? {
         contractAddress: formatAddress(zeroAddress(), 'short'),
@@ -70,7 +75,8 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
         tokenList: '',
       }
     : {
-        contractAddress: formatAddress(tokenContractAddress, 'short') || null,
+        contractAddress:
+          formatAddress(tokenContractAddress as string, 'short') || null,
         tokenDecimal: tokenMetadata?.decimals || null,
         tokenList: tokenMetadata?.aggregators.join(', ') || null,
       };
@@ -113,6 +119,9 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
         ? localizeLargeNumber(i18n, marketData.dilutedMarketCap)
         : null,
   };
+
+  console.log('MARKET DETAILS: ', marketDetails);
+  console.log('TOKEN DETAILS: ', tokenDetails);
 
   return (
     <View style={styles.wrapper}>
