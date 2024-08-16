@@ -12,7 +12,10 @@ import { ModalFieldNetworkFee } from '../../../../../util/notifications/notifica
 import { NotificationDetailStyles } from '../styles';
 import useStyles from '../useStyles';
 
-type NetworkFeeFieldProps = ModalFieldNetworkFee;
+type NetworkFeeFieldProps = ModalFieldNetworkFee & {
+  isCollapsed: boolean;
+  setIsCollapsed: (newVal: boolean) => void;
+};
 
 type NetworkFee = Awaited<ReturnType<ModalFieldNetworkFee['getNetworkFees']>>;
 
