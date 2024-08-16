@@ -135,7 +135,7 @@ const AssetDetails = (props: Props) => {
       name =
         /*
          * TODO: remove any as soon as NetworkController
-         * removes goerly from provider config types
+         * removes goerli from provider config types
          */
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (Networks as any)[providerConfig.type]?.name ||
