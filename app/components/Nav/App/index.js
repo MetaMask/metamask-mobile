@@ -119,10 +119,10 @@ import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetec
 import NftOptions from '../../../components/Views/NftOptions';
 import ShowTokenIdSheet from '../../../components/Views/ShowTokenIdSheet';
 import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
+import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
-import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesignEnabled';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -304,7 +304,7 @@ const VaultRecoveryFlow = () => (
 );
 
 // eslint-disable-next-line react/prop-types
-const App = ({ userLoggedIn }) => {
+const App = ({ userLoggedIn, isBasicFunctionalityEnabled }) => {
   const animationRef = useRef(null);
   const animationNameRef = useRef(null);
   const opacity = useRef(new Animated.Value(1)).current;
@@ -811,9 +811,11 @@ const App = ({ userLoggedIn }) => {
         {
           ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         }
-        <View>
-          <SnapsExecutionWebView />
-        </View>
+        {isBasicFunctionalityEnabled && (
+          <View>
+            <SnapsExecutionWebView />
+          </View>
+        )}
         {
           ///: END:ONLY_INCLUDE_IF
         }
@@ -950,6 +952,7 @@ const App = ({ userLoggedIn }) => {
 
 const mapStateToProps = (state) => ({
   userLoggedIn: state.user.userLoggedIn,
+  isBasicFunctionalityEnabled: state.settings?.basicFunctionalityEnabled,
 });
 
 export default connect(mapStateToProps)(App);
