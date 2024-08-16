@@ -12,6 +12,7 @@ import {
   NotificationTransactionTypes,
   isNotificationsFeatureEnabled,
   requestPushNotificationsPermission,
+  asyncAlert,
 } from '../util/notifications';
 import { safeToChecksumAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
@@ -253,7 +254,7 @@ class NotificationManager {
 
         Device.isIos() &&
           setTimeout(() => {
-            requestPushNotificationsPermission();
+            requestPushNotificationsPermission(asyncAlert);
           }, 5000);
 
         // Prompt review
@@ -428,9 +429,9 @@ class NotificationManager {
         .filter(
           (tx) =>
             safeToChecksumAddress(tx.txParams?.to) ===
-              selectedInternalAccountChecksummedAddress &&
+            selectedInternalAccountChecksummedAddress &&
             safeToChecksumAddress(tx.txParams?.from) !==
-              selectedInternalAccountChecksummedAddress &&
+            selectedInternalAccountChecksummedAddress &&
             tx.chainId === chainId &&
             tx.status === 'confirmed' &&
             lastBlock <= parseInt(tx.blockNumber, 10) &&
@@ -487,7 +488,7 @@ export default {
     return instance?.gotIncomingTransaction(lastBlock);
   },
   requestPushNotificationsPermission() {
-    return instance?.requestPushNotificationsPermission();
+    return instance?.requestPushNotificationsPermission(asyncAlert);
   },
   showSimpleNotification(data) {
     return instance?.showSimpleNotification(data);

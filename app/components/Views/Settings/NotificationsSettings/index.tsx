@@ -26,7 +26,10 @@ import { NotificationsToggleTypes } from './NotificationsSettings.constants';
 
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 
-import { requestPushNotificationsPermission } from '../../../../util/notifications';
+import {
+  requestPushNotificationsPermission,
+  asyncAlert,
+} from '../../../../util/notifications';
 import Routes from '../../../../constants/navigation/Routes';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import ButtonIcon, {
@@ -83,8 +86,9 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
 
   const toggleNotificationsEnabled = async () => {
     if (!isMetamaskNotificationsEnabled) {
-      const nativeNotificationStatus =
-        await requestPushNotificationsPermission();
+      const nativeNotificationStatus = await requestPushNotificationsPermission(
+        asyncAlert,
+      );
 
       if (nativeNotificationStatus) {
         await enableNotifications();
