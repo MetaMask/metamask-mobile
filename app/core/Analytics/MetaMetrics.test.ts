@@ -126,13 +126,10 @@ describe('MetaMetrics', () => {
       );
       expect(metaMetrics.isEnabled()).toBeFalsy();
     });
-  });
 
-  describe('Tracking', () => {
-    it('tracks regular event', async () => {
+    it('does not track event when disabled', async () => {
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
-      await metaMetrics.enable();
       const event: IMetaMetricsEvent = { category: 'test event' };
       const properties = { regular_prop: 'test value' };
 
@@ -141,14 +138,15 @@ describe('MetaMetrics', () => {
       const { segmentMockClient } =
         global as unknown as GlobalWithSegmentClient;
 
+      expect(StorageWrapper.setItem).not.toHaveBeenCalledWith(
+        METRICS_OPT_IN,
+        AGREED,
+      );
       expect(StorageWrapper.getItem).toHaveBeenCalledWith(METRICS_OPT_IN);
-      expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
-        anonymous: false,
-        ...properties,
-      });
+      expect(segmentMockClient.track).not.toHaveBeenCalled();
     });
 
-    it('tracks event without param', async () => {
+    it('tracks event when enabled', async () => {
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
       await metaMetrics.enable();
@@ -159,132 +157,126 @@ describe('MetaMetrics', () => {
       const { segmentMockClient } =
         global as unknown as GlobalWithSegmentClient;
 
+      // check tracking enabling
+      expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+        METRICS_OPT_IN,
+        AGREED,
+      );
       expect(StorageWrapper.getItem).toHaveBeenCalledWith(METRICS_OPT_IN);
-      expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
-        anonymous: false,
-        ...{},
-      });
-    });
 
-    it('does not track event when disabled', async () => {
-      const metaMetrics = TestMetaMetrics.getInstance();
-      expect(await metaMetrics.configure()).toBeTruthy();
-      const event: IMetaMetricsEvent = { category: 'event1' };
-      const properties = { prop1: 'value1' };
-
-      metaMetrics.trackEvent(event, properties);
-
-      const { segmentMockClient } =
-        global as unknown as GlobalWithSegmentClient;
-
-      expect(StorageWrapper.getItem).toHaveBeenCalledWith(METRICS_OPT_IN);
-      expect(segmentMockClient.track).not.toHaveBeenCalled();
-    });
-
-    it('tracks event without updating dataRecorded status', async () => {
-      const metaMetrics = TestMetaMetrics.getInstance();
-      expect(await metaMetrics.configure()).toBeTruthy();
-      await metaMetrics.enable();
-      const event: IMetaMetricsEvent = { category: 'event1' };
-      const properties = { prop1: 'value1' };
-
-      metaMetrics.trackEvent(event, properties, false);
-
-      const { segmentMockClient } =
-        global as unknown as GlobalWithSegmentClient;
-
-      expect(StorageWrapper.getItem).toHaveBeenCalledWith(METRICS_OPT_IN);
-      expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
-        anonymous: false,
-        ...properties,
-      });
-      expect(metaMetrics.isDataRecorded()).toBeFalsy();
-    });
-
-    it('tracks non-anonymous event when some props are anonymous', async () => {
-      const metaMetrics = TestMetaMetrics.getInstance();
-      await metaMetrics.enable();
-      const event: IMetaMetricsEvent = { category: 'event1' };
-      const nonAnonProp = { non_anon_prop: 'value1' };
-      const someAnonProps = {
-        anon_prop: { anonymous: true, value: 'anonValue2' },
-      };
-      const properties = { ...nonAnonProp, ...someAnonProps };
-
-      metaMetrics.trackEvent(event, properties);
-
-      const { segmentMockClient } =
-        global as unknown as GlobalWithSegmentClient;
-
-      // Only one non-anonymous event should be tracked
+      // check that the tracking was called
       expect(segmentMockClient.track).toHaveBeenCalledTimes(1);
-
-      // When tracking is not anonymous, event should have both non-anonymous and anonymous properties.
-      // This makes no sense and should be fixed in the code as I believe no one should send anonymous properties
-      // in a non-anonymous event. But in case it happens, we should track it this way.
-      expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
-        anonymous: false,
-        ...someAnonProps,
-        ...nonAnonProp,
-      });
     });
+  });
 
-    describe('anonymous event', () => {
-      it('tracks two events when all props are non anonymous', async () => {
+  describe('Tracking', () => {
+    /* This is the matrix of tracking use cases.
+     * How to read it? Here are some examples:
+     * - Test NA1 means non-anonymous tracking (NA) but it has no props at all:
+     *   The result must be only one non-anonymous event without any props (EMPTY) and no anonymous event at all (NONE).
+     * - Test A4 means anonymous tracking (A) and it has both non anonymous and anonymous props:
+     *   The result must be a non-anonymous event with non-anonymous props (NA PROPS) and an anonymous event with all props (NA PROPS + A PROPS).
+     *
+     * |  Test  |  Track  | Non-anon prop | Anon prop | Result non-anon (NA) event | Result anon (A) event |
+     * |--------|---------|---------------|-----------|----------------------------|-----------------------|
+     * | NA1    | NA      | NO            | NO        | EMPTY                      | NONE                  |
+     * | A1     | A       | NO            | NO        | EMPTY                      | NONE                  |
+     * | NA2    | NA      | YES           | NO        | NA PROPS                   | NONE                  |
+     * | A2     | A       | YES           | NO        | EMPTY                      | NA PROPS              |
+     * | NA3    | NA      | NO            | YES       | EMPTY                      | A PROPS               |
+     * | A3     | A       | NO            | YES       | EMPTY                      | A PROPS               |
+     * | NA4    | NA      | YES           | YES       | NA PROPS                   | NA PROPS + A PROPS    |
+     * | A4     | A       | YES           | YES       | NA PROPS                   | NA PROPS + A PROPS    |
+     *
+     * the following test cases include the code (NAX or AX) of the test in the table for reference.
+     *
+     * NOTE: some NAX and AX test cases (all except NA2/A2) have similar result but differ only by calling the
+     * anonymous (trackAnonymousEvent) or non-anonymous tracking (trackEvent).
+     * They are grouped together here and both implementations uses trackEvent under the hood.
+     * Ultimately these duplicates will disappear when we deprecate trackAnonymousEvent.
+     * But that's another issue to address.
+     */
+    describe('tracks non-anonymous event (NA)', () => {
+      it('without properties (NA1)', async () => {
         const metaMetrics = TestMetaMetrics.getInstance();
+        expect(await metaMetrics.configure()).toBeTruthy();
         await metaMetrics.enable();
-        const event: IMetaMetricsEvent = { category: 'event1' };
-        const properties = { prop1: 'value1' };
+        const event: IMetaMetricsEvent = { category: 'test event' };
 
-        metaMetrics.trackAnonymousEvent(event, properties);
+        metaMetrics.trackEvent(event);
 
         const { segmentMockClient } =
           global as unknown as GlobalWithSegmentClient;
 
-        // anonymous event has all the properties
-        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
-          anonymous: true,
-          ...properties,
-        });
-
-        // non-anonymous event has no properties
+        // check if the event was tracked
         expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
           anonymous: false,
+          ...{},
         });
+        expect(segmentMockClient.track).toHaveBeenCalledTimes(1);
       });
 
-      it('tracks two empty events when no props', async () => {
+      it('with non-anonymous properties (NA2)', async () => {
         const metaMetrics = TestMetaMetrics.getInstance();
+        expect(await metaMetrics.configure()).toBeTruthy();
         await metaMetrics.enable();
-        const event: IMetaMetricsEvent = { category: 'event1' };
+        const event: IMetaMetricsEvent = { category: 'test event' };
+        const nonAnonProp = { non_anon_prop: 'test value' };
 
-        metaMetrics.trackAnonymousEvent(event);
+        metaMetrics.trackEvent(event, nonAnonProp);
 
         const { segmentMockClient } =
           global as unknown as GlobalWithSegmentClient;
 
-        // anonymous event has no properties
-        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
-          anonymous: true,
-        });
-
-        // non-anonymous event has no properties
+        // check if the event was tracked
         expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
           anonymous: false,
+          ...nonAnonProp,
         });
+        expect(segmentMockClient.track).toHaveBeenCalledTimes(1);
       });
 
-      it('tracks two events when some props are anonymous', async () => {
+      it('with only anonymous properties (NA3)', async () => {
         const metaMetrics = TestMetaMetrics.getInstance();
         await metaMetrics.enable();
-        const event: IMetaMetricsEvent = { category: 'event1' };
-        const nonAnonProp = { non_anon_prop: 'value1' };
-        const anonProp = {
-          anon_prop: { anonymous: true, value: 'anonValue2' },
+        const event: IMetaMetricsEvent = { category: 'test event' };
+        const anonProperties = {
+          anon_property: { anonymous: true, value: 'anon value' },
         };
-        const properties = { ...nonAnonProp, ...anonProp };
 
-        metaMetrics.trackAnonymousEvent(event, properties);
+        metaMetrics.trackEvent(event, anonProperties);
+
+        const { segmentMockClient } =
+          global as unknown as GlobalWithSegmentClient;
+
+        // check if the event was tracked
+        // non-anonymous event has no properties.
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: false,
+          ...{},
+        });
+
+        // anonymous event has anon properties
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: true,
+          ...anonProperties,
+        });
+
+        // two events should be tracked, one anonymous and one non-anonymous
+        expect(segmentMockClient.track).toHaveBeenCalledTimes(2);
+      });
+
+      it('with anonymous and non-anonymous properties (NA4)', async () => {
+        const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.enable();
+        const event: IMetaMetricsEvent = { category: 'test event' };
+        const nonAnonProperties = { non_anon_prop: 'non anon value' };
+        const anonProperties = {
+          anon_prop: { anonymous: true, value: 'anon value' },
+        };
+        const properties = { ...nonAnonProperties, ...anonProperties };
+
+        metaMetrics.trackEvent(event, properties);
 
         const { segmentMockClient } =
           global as unknown as GlobalWithSegmentClient;
@@ -292,31 +284,144 @@ describe('MetaMetrics', () => {
         // non-anonymous event only has the non-anonymous properties.
         expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
           anonymous: false,
-          ...nonAnonProp,
+          ...nonAnonProperties,
         });
 
         // anonymous event has all properties
         expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
           anonymous: true,
-          ...anonProp,
-          ...nonAnonProp,
+          ...nonAnonProperties,
+          ...anonProperties,
         });
 
         // Only two events should be tracked, one anonymous and one non-anonymous
         expect(segmentMockClient.track).toHaveBeenCalledTimes(2);
       });
+    });
 
-      it('does not track any event if disabled', async () => {
+    describe('tracks anonymous event (A)', () => {
+      it('without properties (A1)', async () => {
         const metaMetrics = TestMetaMetrics.getInstance();
-        const event: IMetaMetricsEvent = { category: 'event1' };
-        const properties = { prop1: 'value1' };
+        expect(await metaMetrics.configure()).toBeTruthy();
+        await metaMetrics.enable();
+        const event: IMetaMetricsEvent = { category: 'test event' };
 
-        metaMetrics.trackAnonymousEvent(event, properties);
+        metaMetrics.trackAnonymousEvent(event);
 
         const { segmentMockClient } =
           global as unknown as GlobalWithSegmentClient;
 
-        expect(segmentMockClient.track).not.toHaveBeenCalled();
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: false,
+          ...{},
+        });
+        expect(segmentMockClient.track).toHaveBeenCalledTimes(1);
+      });
+
+      it('with non-anonymous properties (A2)', async () => {
+        const metaMetrics = TestMetaMetrics.getInstance();
+        expect(await metaMetrics.configure()).toBeTruthy();
+        await metaMetrics.enable();
+        const event: IMetaMetricsEvent = { category: 'test event' };
+        const nonAnonProp = { non_anon_prop: 'test value' };
+
+        metaMetrics.trackAnonymousEvent(event, nonAnonProp);
+
+        const { segmentMockClient } =
+          global as unknown as GlobalWithSegmentClient;
+
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: false,
+          ...{},
+        });
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: true,
+          ...nonAnonProp,
+        });
+        expect(segmentMockClient.track).toHaveBeenCalledTimes(2);
+      });
+
+      it('with only anonymous properties (A3)', async () => {
+        const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.enable();
+        const event: IMetaMetricsEvent = { category: 'test event' };
+        const anonProperties = {
+          anon_property: { anonymous: true, value: 'anon value' },
+        };
+
+        metaMetrics.trackEvent(event, anonProperties);
+
+        const { segmentMockClient } =
+          global as unknown as GlobalWithSegmentClient;
+
+        // non-anonymous event has no properties.
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: false,
+          ...{},
+        });
+
+        // anonymous event has anon properties
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: true,
+          ...anonProperties,
+        });
+
+        // two events should be tracked, one anonymous and one non-anonymous
+        expect(segmentMockClient.track).toHaveBeenCalledTimes(2);
+      });
+
+      it('with anonymous and non-anonymous properties (A4)', async () => {
+        const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.enable();
+        const event: IMetaMetricsEvent = { category: 'test event' };
+        const nonAnonProperties = { non_anon_prop: 'non anon value' };
+        const anonProperties = {
+          anon_prop: { anonymous: true, value: 'anon value' },
+        };
+        const properties = { ...nonAnonProperties, ...anonProperties };
+
+        metaMetrics.trackEvent(event, properties);
+
+        const { segmentMockClient } =
+          global as unknown as GlobalWithSegmentClient;
+
+        // non-anonymous event only has the non-anonymous properties.
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: false,
+          ...nonAnonProperties,
+        });
+
+        // anonymous event has all properties
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: true,
+          ...nonAnonProperties,
+          ...anonProperties,
+        });
+
+        // Only two events should be tracked, one anonymous and one non-anonymous
+        expect(segmentMockClient.track).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    describe('saveDataRecording', () => {
+      it('tracks event without updating dataRecorded status', async () => {
+        const metaMetrics = TestMetaMetrics.getInstance();
+        expect(await metaMetrics.configure()).toBeTruthy();
+        await metaMetrics.enable();
+        const event: IMetaMetricsEvent = { category: 'test event' };
+        const properties = { regular_prop: 'test value' };
+
+        metaMetrics.trackEvent(event, properties, false);
+
+        const { segmentMockClient } =
+          global as unknown as GlobalWithSegmentClient;
+
+        expect(StorageWrapper.getItem).toHaveBeenCalledWith(METRICS_OPT_IN);
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: false,
+          ...properties,
+        });
+        expect(metaMetrics.isDataRecorded()).toBeFalsy();
       });
     });
 
@@ -326,8 +431,8 @@ describe('MetaMetrics', () => {
         expect(await metaMetrics.configure()).toBeTruthy();
         await metaMetrics.enable();
         const event: IMetaMetricsEvent = {
-          category: 'event1',
-          properties: { action: 'action1', name: 'description1' },
+          category: 'test event',
+          properties: { action: 'test action', name: 'test description' },
         };
 
         metaMetrics.trackEvent(event);
@@ -346,10 +451,16 @@ describe('MetaMetrics', () => {
         expect(await metaMetrics.configure()).toBeTruthy();
         await metaMetrics.enable();
         const event: IMetaMetricsEvent = {
-          category: 'event1',
-          properties: { action: 'action1', name: 'description1' },
+          category: 'test event',
+          properties: {
+            action: 'legacy test action',
+            name: 'legacy test description',
+          },
         };
-        const properties = { action: 'action2', name: 'description2' };
+        const properties = {
+          action: 'overriding test action',
+          name: 'overriding test description',
+        };
 
         metaMetrics.trackEvent(event, properties);
 
