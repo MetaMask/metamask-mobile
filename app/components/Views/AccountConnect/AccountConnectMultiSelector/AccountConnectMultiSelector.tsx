@@ -29,6 +29,7 @@ import {
   AccountConnectMultiSelectorProps,
   AccountConnectMultiSelectorScreens,
 } from './AccountConnectMultiSelector.types';
+import { isMutichainVersion1Enabled } from '../../../../util/networks';
 
 const AccountConnectMultiSelector = ({
   accounts,
@@ -152,7 +153,11 @@ const AccountConnectMultiSelector = ({
     () => (
       <View style={styles.container}>
         <SheetHeader
-          title={strings('accounts.connect_accounts_title')}
+          title={
+            isMutichainVersion1Enabled
+              ? strings('accounts.edit_accounts_title')
+              : strings('accounts.connect_accounts_title')
+          }
           onBack={onBack}
         />
         <View style={styles.body}>
