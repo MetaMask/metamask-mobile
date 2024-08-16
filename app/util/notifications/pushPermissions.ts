@@ -48,7 +48,7 @@ const defaultButtons = (resolve: (value: boolean) => void): AlertButton[] => [
   },
 ];
 
-const AsyncAlert = (
+export const asyncAlert = (
   title: string,
   msg: string,
   getButtons: (
@@ -61,16 +61,16 @@ const AsyncAlert = (
     });
   });
 
-export const requestPushNotificationsPermission = async (): Promise<
-  NotificationSettings | undefined
-> => {
+export const requestPushNotificationsPermission = async (
+  alertFunction: typeof asyncAlert = asyncAlert,
+): Promise<NotificationSettings | undefined> => {
   const permissionStatus = await notifee.getNotificationSettings();
 
   if (permissionStatus.authorizationStatus === AuthorizationStatus.AUTHORIZED) {
     return permissionStatus;
   }
   try {
-    await AsyncAlert(
+    await alertFunction(
       strings('notifications.prompt_title'),
       strings('notifications.prompt_desc'),
     );
