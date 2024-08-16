@@ -111,7 +111,7 @@ const ProfileSyncingModal = () => {
           <Button
             variant={ButtonVariants.Primary}
             isDisabled={isProfileSyncingEnabled ? !isChecked : false}
-            isDanger={isProfileSyncingEnabled}
+            isDanger={isProfileSyncingEnabled ?? false}
             size={ButtonSize.Lg}
             style={styles.button}
             accessibilityRole={'button'}
