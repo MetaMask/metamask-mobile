@@ -100,6 +100,7 @@ const QRAccountDisplay = (props: { accountAddress: string }) => {
           variant={ButtonVariants.Link}
           startIconName={IconName.Copy}
           size={ButtonSize.Lg}
+          testID="qr-account-display-copy-button"
           label={strings('receive_request.copy_address')}
           onPress={handleCopyButton}
           style={styles.copyButton}

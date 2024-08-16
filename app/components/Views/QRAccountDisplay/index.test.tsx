@@ -46,13 +46,13 @@ describe('QRAccountDisplay', () => {
   });
 
   it('copies address to clipboard when copy button is pressed', async () => {
-    const { getByText } = renderScreen(
+    const { getByTestId } = renderScreen(
       TestWrapper,
       { name: 'QRAccountDisplay' },
       { state: initialState },
     );
 
-    const copyButton = getByText('Copy Address');
+    const copyButton = getByTestId('qr-account-display-copy-button');
     fireEvent.press(copyButton);
 
     expect(copyButton).toBeTruthy();
