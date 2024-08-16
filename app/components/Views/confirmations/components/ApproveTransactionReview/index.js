@@ -6,7 +6,6 @@ import {
   Linking,
   ScrollView,
 } from 'react-native';
-import Eth from 'ethjs-query';
 import ActionView, { ConfirmButtonState } from '../../../../UI/ActionView';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../../UI/Navbar';
@@ -321,10 +320,7 @@ class ApproveTransactionReview extends PureComponent {
       return;
     }
     try {
-      const eth = new Eth(
-        Engine.context.NetworkController.getProviderAndBlockTracker().provider,
-      );
-      const result = await fetchEstimatedMultiLayerL1Fee(eth, {
+      const result = await fetchEstimatedMultiLayerL1Fee({
         txParams: transaction.transaction,
         chainId,
       });

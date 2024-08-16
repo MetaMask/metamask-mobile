@@ -1,5 +1,4 @@
 import { withNavigation } from '@react-navigation/compat';
-import Eth from 'ethjs-query';
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import { Animated, ScrollView, StyleSheet, View } from 'react-native';
@@ -288,10 +287,7 @@ class TransactionReview extends PureComponent {
       return;
     }
     try {
-      const eth = new Eth(
-        Engine.context.NetworkController.getProviderAndBlockTracker().provider,
-      );
-      const result = await fetchEstimatedMultiLayerL1Fee(eth, {
+      const result = await fetchEstimatedMultiLayerL1Fee({
         txParams: transaction.transaction,
         chainId,
       });
