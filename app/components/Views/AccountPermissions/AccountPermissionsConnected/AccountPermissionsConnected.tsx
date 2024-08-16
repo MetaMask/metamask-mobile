@@ -88,6 +88,7 @@ const AccountPermissionsConnected = ({
         ],
         accountAddress: address,
         accountAvatarType,
+        hasNoTimeout: false,
       });
     },
     [
