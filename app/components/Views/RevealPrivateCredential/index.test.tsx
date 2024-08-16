@@ -88,7 +88,6 @@ describe('RevealPrivateCredential', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-
   it('shows warning message on incorrect password', async () => {
     const { getByPlaceholderText, getByTestId } = renderWithProviders(
       <RevealPrivateCredential
