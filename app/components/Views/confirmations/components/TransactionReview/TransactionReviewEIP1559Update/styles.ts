@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Confirmations team or Transactions team
 import { StyleSheet } from 'react-native';
 
 // TODO: Replace "any" with type

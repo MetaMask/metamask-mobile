@@ -207,7 +207,7 @@ import {
   networkIdWillUpdate,
 } from '../core/redux/slices/inpageProvider';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
-import { NETWORKS_CHAIN_ID } from '../../app/constants/network';
+import { getAllowedSmartTransactionsChainIds } from '../../app/constants/smartTransactions';
 import { selectShouldUseSmartTransaction } from '../selectors/smartTransactionsController';
 import { selectSwapsChainFeatureFlags } from '../reducers/swaps';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
@@ -1257,11 +1257,7 @@ class Engine {
         trackMetaMetricsEvent: smartTransactionsControllerTrackMetaMetricsEvent,
       },
       {
-        supportedChainIds: [
-          NETWORKS_CHAIN_ID.MAINNET,
-          NETWORKS_CHAIN_ID.GOERLI,
-          NETWORKS_CHAIN_ID.SEPOLIA,
-        ],
+        supportedChainIds: getAllowedSmartTransactionsChainIds(),
       },
       initialState.SmartTransactionsController,
     );
