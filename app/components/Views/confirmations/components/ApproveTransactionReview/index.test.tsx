@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Confirmations team or Transactions team
 import ApproveTransactionModal from '.';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
