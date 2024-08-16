@@ -10,7 +10,10 @@ import React, { useCallback, useRef, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
 import { useNavigation } from '@react-navigation/native';
-import { ProviderConfig } from '@metamask/network-controller';
+import {
+  NetworkConfiguration,
+  ProviderConfig,
+} from '@metamask/network-controller';
 
 // External dependencies.
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
@@ -92,6 +95,12 @@ interface infuraNetwork {
   chainId: Hex;
 }
 
+interface ShowConfirmDeleteModalState {
+  isVisible: boolean;
+  networkName: string;
+  entry?: [string, NetworkConfiguration & { id: string }];
+}
+
 const NetworkSelector = () => {
   const [showPopularNetworkModal, setShowPopularNetworkModal] = useState(false);
   const [popularNetwork, setPopularNetwork] = useState<ExtendedNetwork>();
@@ -118,11 +127,12 @@ const NetworkSelector = () => {
   const buttonLabelAddNetwork = isNetworkUiRedesignEnabled()
     ? 'app_settings.network_add_custom_network'
     : 'app_settings.network_add_network';
-  const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState({
-    isVisible: false,
-    networkName: '',
-    entry: {},
-  });
+  const [showConfirmDeleteModal, setShowConfirmDeleteModal] =
+    useState<ShowConfirmDeleteModalState>({
+      isVisible: false,
+      networkName: '',
+      entry: undefined,
+    });
 
   const [showNetworkMenuModal, setNetworkMenuModal] = useState({
     isVisible: false,
@@ -225,7 +235,7 @@ const NetworkSelector = () => {
     setShowConfirmDeleteModal(() => ({
       networkName: '',
       isVisible: false,
-      entry: {},
+      entry: undefined,
     }));
     networkMenuSheetRef.current?.onCloseBottomSheet();
   }, []);
@@ -605,7 +615,7 @@ const NetworkSelector = () => {
   };
 
   const confirmRemoveRpc = () => {
-    if (Array.isArray(showConfirmDeleteModal.entry)) {
+    if (showConfirmDeleteModal.entry) {
       const [networkConfigurationId] = showConfirmDeleteModal.entry;
 
       const { NetworkController } = Engine.context;
@@ -615,7 +625,7 @@ const NetworkSelector = () => {
       setShowConfirmDeleteModal({
         isVisible: false,
         networkName: '',
-        entry: {},
+        entry: undefined,
       });
     }
   };
