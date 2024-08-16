@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Notifications team directory
 import { NotificationMenuItem } from '../../../../util/notifications/notification-states/types/NotificationMenuItem';
 import React, { useMemo } from 'react';
 import useStyles from '../List/useStyles';

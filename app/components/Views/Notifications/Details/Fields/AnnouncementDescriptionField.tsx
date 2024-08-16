@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Notifications team directory
 import React, { useState } from 'react';
 import { View } from 'react-native';
 import Html, { MixedStyleDeclaration } from 'react-native-render-html';

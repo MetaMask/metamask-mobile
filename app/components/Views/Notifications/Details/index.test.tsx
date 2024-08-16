@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Notifications team directory
 import React from 'react';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { render } from '@testing-library/react-native';

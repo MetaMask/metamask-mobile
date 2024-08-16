@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Notifications team directory
 import React from 'react';
 import NotificationsList from './';
 import renderWithProvider from '../../../../util/test/renderWithProvider';

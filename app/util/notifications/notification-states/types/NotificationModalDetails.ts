@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Notifications team directory
 import { ImageSourcePropType } from 'react-native';
 import { NotificationServicesController } from '@metamask/notification-services-controller';
 import { getNetworkFees } from '../../methods/common';
