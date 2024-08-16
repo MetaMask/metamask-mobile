@@ -11,8 +11,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import NetworkSelector from './NetworkSelector';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkListModal.selectors';
-// eslint-disable-next-line import/no-namespace
-import * as networkUtils from '../../../util/networks/isNetworkUiRedesignEnabled';
+import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 
 const mockEngine = Engine;
 
@@ -131,17 +130,13 @@ const renderComponent = (state: any = {}) =>
 
 describe('Network Selector', () => {
   it('renders correctly', () => {
-    (networkUtils.isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(
-      () => false,
-    );
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
     const { toJSON } = renderComponent(initialState);
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('changes network when another network cell is pressed', async () => {
-    (networkUtils.isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(
-      () => false,
-    );
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
     const { getByText } = renderComponent(initialState);
     const polygonCell = getByText('Polygon Mainnet');
 
@@ -151,9 +146,7 @@ describe('Network Selector', () => {
   });
 
   it('toggles the test networks switch correctly', () => {
-    (networkUtils.isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(
-      () => false,
-    );
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
     const { getByTestId } = renderComponent(initialState);
     const testNetworksSwitch = getByTestId(
       NetworkListModalSelectorsIDs.TEST_NET_TOGGLE,
@@ -165,9 +158,7 @@ describe('Network Selector', () => {
   });
 
   it('toggle test network is disabled and is on when a testnet is selected', () => {
-    (networkUtils.isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(
-      () => false,
-    );
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
     const { getByTestId } = renderComponent({
       navigation: { currentBottomNavRoute: 'Wallet' },
       settings: {
@@ -197,9 +188,7 @@ describe('Network Selector', () => {
   });
 
   it('renders the multi-RPC selection modal correctly', async () => {
-    (networkUtils.isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(
-      () => true,
-    );
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
     const { getByText } = renderComponent(initialState);
     const polygonCell = getByText('Polygon Mainnet');
 
@@ -213,9 +202,7 @@ describe('Network Selector', () => {
   });
 
   it('switches RPC URL when a different RPC URL is selected', async () => {
-    (networkUtils.isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(
-      () => true,
-    );
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
     const { getByText } = renderComponent(initialState);
     const polygonCell = getByText('Polygon Mainnet');
 
@@ -230,9 +217,7 @@ describe('Network Selector', () => {
   });
 
   it('renders correctly with no network configurations', async () => {
-    (networkUtils.isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(
-      () => true,
-    );
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
     const stateWithNoNetworkConfigurations = {
       ...initialState,
       engine: {

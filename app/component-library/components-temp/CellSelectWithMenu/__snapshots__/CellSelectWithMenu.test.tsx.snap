@@ -42,7 +42,6 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
       }
     >
       <View
-        collapsable={false}
         style={
           {
             "flexDirection": "row",
@@ -192,7 +191,6 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
           </View>
         </View>
         <View
-          collapsable={false}
           style={
             {
               "alignItems": "flex-start",

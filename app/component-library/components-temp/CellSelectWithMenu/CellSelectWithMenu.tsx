@@ -2,7 +2,7 @@
 
 // Third library dependencies.
 import React from 'react';
-import { TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../hooks';
@@ -12,7 +12,6 @@ import styleSheet from './CellSelectWithMenu.styles';
 import { CellSelectWithMenuProps } from './CellSelectWithMenu.types';
 import { CellModalSelectorsIDs } from '../../../../e2e/selectors/Modals/CellModal.selectors';
 import ListItemMultiSelectButton from '../ListItemMultiSelectButton/ListItemMultiSelectButton';
-import { View } from 'react-native-animatable';
 import Avatar from '../../../component-library/components/Avatars/Avatar';
 import Text from '../../../component-library/components/Texts/Text';
 import {
