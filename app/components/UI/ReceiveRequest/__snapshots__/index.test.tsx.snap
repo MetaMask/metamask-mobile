@@ -607,6 +607,7 @@ exports[`ReceiveRequest render correctly 1`] = `
                                 "paddingHorizontal": 16,
                               }
                             }
+                            testID="qr-account-display-copy-button"
                             variant="Link"
                           >
                             <SvgMock
@@ -1354,6 +1355,7 @@ exports[`ReceiveRequest render correctly with different ticker 1`] = `
                                 "paddingHorizontal": 16,
                               }
                             }
+                            testID="qr-account-display-copy-button"
                             variant="Link"
                           >
                             <SvgMock
@@ -2101,6 +2103,7 @@ exports[`ReceiveRequest render correctly without buy 1`] = `
                                 "paddingHorizontal": 16,
                               }
                             }
+                            testID="qr-account-display-copy-button"
                             variant="Link"
                           >
                             <SvgMock

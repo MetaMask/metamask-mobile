@@ -379,6 +379,7 @@ exports[`QRAccountDisplay renders correctly 1`] = `
                             "paddingHorizontal": 16,
                           }
                         }
+                        testID="qr-account-display-copy-button"
                         variant="Link"
                       >
                         <SvgMock
