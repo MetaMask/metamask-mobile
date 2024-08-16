@@ -1,0 +1,17 @@
+diff --git a/node_modules/@metamask/smart-transactions-controller/dist/SmartTransactionsController.js b/node_modules/@metamask/smart-transactions-controller/dist/SmartTransactionsController.js
+index 0ae0b26..38cc032 100644
+--- a/node_modules/@metamask/smart-transactions-controller/dist/SmartTransactionsController.js
++++ b/node_modules/@metamask/smart-transactions-controller/dist/SmartTransactionsController.js
+@@ -75,8 +75,10 @@ class SmartTransactionsController extends polling_controller_1.StaticIntervalPol
+         this.trackMetaMetricsEvent = trackMetaMetricsEvent;
+         this.getNetworkClientById = getNetworkClientById;
+         this.initializeSmartTransactionsForChainId();
+-        onNetworkStateChange(({ providerConfig: newProvider }) => {
+-            const { chainId } = newProvider;
++        onNetworkStateChange((state) => {
++            const { chainId } = this.getNetworkClientById(
++            state.selectedNetworkClientId,
++            ).configuration;
+             this.configure({ chainId });
+             this.initializeSmartTransactionsForChainId();
+             this.checkPoll(this.state);

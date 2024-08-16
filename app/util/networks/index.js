@@ -392,7 +392,7 @@ export const getNetworkNameFromProviderConfig = (providerConfig) => {
     name = providerConfig.nickname;
   } else {
     const networkType = providerConfig.type;
-    name = NetworkList?.[networkType]?.name || NetworkList.rpc.name;
+    name = NetworkList?.[networkType]?.name || NetworkList[RPC].name;
   }
   return name;
 };

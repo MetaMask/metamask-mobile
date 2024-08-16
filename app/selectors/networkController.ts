@@ -1,15 +1,56 @@
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
-import { ProviderConfig, NetworkState } from '@metamask/network-controller';
+import { NetworkState, NetworkClientType } from '@metamask/network-controller';
 import { createDeepEqualSelector } from './util';
+import Engine from '../core/Engine';
+import { Hex } from '@metamask/utils';
+import { NetworkList } from '../util/networks';
+
+export interface ProviderConfig {
+  chainId: Hex;
+  ticker: string;
+  rpcUrl: string;
+  type: NetworkClientType;
+  nickname: string | undefined;
+  network?: string;
+}
 
 const selectNetworkControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.NetworkController;
 
 export const selectProviderConfig = createDeepEqualSelector(
   selectNetworkControllerState,
-  (networkControllerState: NetworkState) =>
-    networkControllerState?.providerConfig,
+  (networkControllerState: NetworkState) => {
+    console.log(
+      'networkControllerState ---',
+      JSON.stringify(networkControllerState),
+    );
+    const { NetworkController } = Engine.context;
+
+    const builtInNetwork =
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      NetworkList[networkControllerState?.selectedNetworkClientId];
+
+    const networkConfiguration = NetworkController.getNetworkClientById(
+      networkControllerState?.selectedNetworkClientId,
+    ).configuration;
+
+    return builtInNetwork
+      ? {
+          ...builtInNetwork,
+          type: networkControllerState?.selectedNetworkClientId,
+          rpcPrefs: { blockExplorerUrl: builtInNetwork.blockExplorerUrl },
+        }
+      : {
+          ...networkConfiguration,
+          type: 'rpc',
+          nickname:
+            networkControllerState?.networkConfigurations[
+              networkControllerState?.selectedNetworkClientId
+            ]?.nickname,
+        };
+  },
 );
 
 export const selectTicker = createSelector(

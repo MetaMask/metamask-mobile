@@ -553,7 +553,7 @@ exports[`AccountRightButton should render correctly 1`] = `
                                   }
                                 }
                               >
-                                P
+                                E
                               </Text>
                             </View>
                           </View>

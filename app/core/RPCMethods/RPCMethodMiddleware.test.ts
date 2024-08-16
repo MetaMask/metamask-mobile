@@ -7,7 +7,6 @@ import {
   JsonRpcSuccess,
 } from 'json-rpc-engine';
 import type { TransactionParams } from '@metamask/transaction-controller';
-import type { ProviderConfig } from '@metamask/network-controller';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import Engine from '../Engine';
 import { store } from '../../store';
@@ -39,6 +38,8 @@ import {
   NUMBER_OF_REJECTIONS_THRESHOLD,
   OriginThrottlingState,
 } from '../redux/slices/originThrottling';
+import { ProviderConfig } from '../../selectors/networkController';
+import { NetworkType } from '@metamask/controller-utils';
 
 jest.mock('./spam');
 
@@ -57,8 +58,32 @@ jest.mock('../Engine', () => ({
       getPermissions: jest.fn(),
     },
     NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          chainId: '0x1',
+          ticker: 'ETH',
+          nickname: 'Ethereum mainnet',
+          rpcPrefs: {
+            blockExplorerUrl: 'https://etherscan.com',
+          },
+        },
+      }),
       state: {
-        providerConfig: { chainId: '0x1' },
+        networkConfigurations: {
+          '673a4523-3c49-47cd-8d48-68dfc8a47a9c': {
+            id: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
+            rpcUrl: 'https://mainnet.infura.io/v3',
+            chainId: '0x1',
+            ticker: 'ETH',
+            nickname: 'Ethereum mainnet',
+            rpcPrefs: {
+              blockExplorerUrl: 'https://etherscan.com',
+            },
+          },
+        },
+        selectedNetworkClientId: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
+        networkMetadata: {},
       },
     },
   },
@@ -305,6 +330,9 @@ function setupSignature() {
       chainId: '0x1',
       type: RPC,
       ticker: 'ETH',
+      rpcUrl: 'https://mainnet.infura.io/v3',
+      nickname: 'test',
+      network: NetworkType.rpc,
     },
     selectedAddress: addressMock,
     permittedAccounts: { [hostMock]: [addressMock] },
@@ -656,6 +684,8 @@ describe('getRpcMethodMiddleware', () => {
             chainId: '0x1',
             type: RPC,
             ticker: 'ETH',
+            rpcUrl: 'https://mainnet.infura.io/v3',
+            nickname: 'test',
           },
         });
         const middleware = getRpcMethodMiddleware({
@@ -691,6 +721,8 @@ describe('getRpcMethodMiddleware', () => {
             chainId: '0x1',
             type: RPC,
             ticker: 'ETH',
+            rpcUrl: 'https://mainnet.infura.io/v3',
+            nickname: 'test',
           },
         });
         const middleware = getRpcMethodMiddleware({
@@ -730,6 +762,8 @@ describe('getRpcMethodMiddleware', () => {
             chainId: '0x1',
             type: RPC,
             ticker: 'ETH',
+            rpcUrl: 'https://mainnet.infura.io/v3',
+            nickname: 'test',
           },
         });
         const middleware = getRpcMethodMiddleware({
@@ -770,6 +804,8 @@ describe('getRpcMethodMiddleware', () => {
             chainId: '0x1',
             type: RPC,
             ticker: 'ETH',
+            rpcUrl: 'https://mainnet.infura.io/v3',
+            nickname: 'test',
           },
           selectedAddress: mockAddress,
         });
@@ -803,6 +839,8 @@ describe('getRpcMethodMiddleware', () => {
             chainId: '0x1',
             type: RPC,
             ticker: 'ETH',
+            rpcUrl: 'https://mainnet.infura.io/v3',
+            nickname: 'test',
           },
           selectedAddress: differentMockAddress,
         });
@@ -845,6 +883,8 @@ describe('getRpcMethodMiddleware', () => {
             chainId: '0x1',
             type: RPC,
             ticker: 'ETH',
+            rpcUrl: 'https://mainnet.infura.io/v3',
+            nickname: 'test',
           },
           selectedAddress: mockAddress,
         });
@@ -878,6 +918,8 @@ describe('getRpcMethodMiddleware', () => {
             chainId: '0x1',
             type: RPC,
             ticker: 'ETH',
+            rpcUrl: 'https://mainnet.infura.io/v3',
+            nickname: 'test',
           },
           selectedAddress: differentMockAddress,
         });
@@ -916,6 +958,8 @@ describe('getRpcMethodMiddleware', () => {
           chainId: '0x1',
           type: RPC,
           ticker: 'ETH',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          nickname: 'test',
         },
       });
       const middleware = getRpcMethodMiddleware({

@@ -100,10 +100,32 @@ describe('handleConnectionMessage', () => {
     (Engine.context as unknown) = {
       KeyringController: {} as unknown as KeyringController,
       NetworkController: {
-        state: {
-          providerConfig: {
+        getNetworkClientById: () => ({
+          configuration: {
+            rpcUrl: 'https://mainnet.infura.io/v3',
             chainId: '0x1',
+            ticker: 'ETH',
+            nickname: 'Ethereum mainnet',
+            rpcPrefs: {
+              blockExplorerUrl: 'https://etherscan.com',
+            },
           },
+        }),
+        state: {
+          networkConfigurations: {
+            '673a4523-3c49-47cd-8d48-68dfc8a47a9c': {
+              id: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
+              rpcUrl: 'https://mainnet.infura.io/v3',
+              chainId: '0x1',
+              ticker: 'ETH',
+              nickname: 'Ethereum mainnet',
+              rpcPrefs: {
+                blockExplorerUrl: 'https://etherscan.com',
+              },
+            },
+          },
+          selectedNetworkClientId: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
+          networkMetadata: {},
         },
       } as unknown as NetworkController,
       AccountsController: {
@@ -243,7 +265,9 @@ describe('handleConnectionMessage', () => {
         connection,
         selectedAddress: toChecksumHexAddress(MOCK_ADDRESS),
         selectedChainId:
-          Engine.context.NetworkController.state.providerConfig.chainId,
+          Engine.context.NetworkController.state.networkConfigurations[
+            Engine.context.NetworkController.state.selectedNetworkClientId
+          ].chainId,
         rpc: {
           method: message.method,
           params: message.params,

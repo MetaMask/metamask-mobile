@@ -41,37 +41,56 @@ export default function migrate(state: unknown) {
     return state;
   }
 
-  if (!networkControllerState.providerConfig) {
+  if (
+    !networkControllerState.networkConfigurations[
+      networkControllerState.selectedNetworkClientId
+    ]
+  ) {
     captureException(
       new Error(
         `FATAL ERROR: Migration 46: NetworkController providerConfig not found: '${JSON.stringify(
-          networkControllerState.providerConfig,
+          networkControllerState.networkConfigurations[
+            networkControllerState.selectedNetworkClientId
+          ],
         )}'`,
       ),
     );
     return state;
   }
 
-  if (!networkControllerState.providerConfig.chainId) {
+  if (
+    !networkControllerState.networkConfigurations[
+      networkControllerState.selectedNetworkClientId
+    ].chainId
+  ) {
     captureException(
       new Error(
         `FATAL ERROR: Migration 46: NetworkController providerConfig chainId not found: '${JSON.stringify(
-          networkControllerState.providerConfig.chainId,
+          networkControllerState.networkConfigurations[
+            networkControllerState.selectedNetworkClientId
+          ].chainId,
         )}'`,
       ),
     );
     return state;
   }
-  const chainId = networkControllerState.providerConfig.chainId;
+  const chainId =
+    networkControllerState.networkConfigurations[
+      networkControllerState.selectedNetworkClientId
+    ].chainId;
   // If user on linea goerli, fallback to linea Sepolia
   if (chainId === CHAIN_IDS.LINEA_GOERLI) {
-    networkControllerState.providerConfig = {
+    networkControllerState.networkConfigurations[
+      networkControllerState.selectedNetworkClientId
+    ] = {
+      id: 'linea-sepolia',
       chainId: CHAIN_IDS.LINEA_SEPOLIA,
       ticker: CHAINLIST_CURRENCY_SYMBOLS_MAP.LINEA_GOERLI,
       rpcPrefs: {
         blockExplorerUrl: LINEA_SEPOLIA_BLOCK_EXPLORER,
       },
-      type: NetworkType['linea-sepolia'],
+      rpcUrl:
+        networkControllerState.networkConfigurations['linea-sepolia'].rpcUrl,
     };
     networkControllerState.selectedNetworkClientId =
       NetworkType['linea-sepolia'];

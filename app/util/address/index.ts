@@ -624,7 +624,7 @@ export const getTokenDecimal = async (
 };
 
 export const shouldShowBlockExplorer = (
-  providerType: NetworkType,
+  providerType: NetworkClientType,
   providerRpcTarget: string,
   networkConfigurations: NetworkState['networkConfigurations'],
 ) => {

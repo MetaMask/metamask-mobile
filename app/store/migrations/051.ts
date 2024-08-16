@@ -14,7 +14,6 @@ export default function migrate(state: unknown) {
   }
 
   const networkControllerState = state.engine.backgroundState.NetworkController;
-
   if (!isObject(networkControllerState)) {
     captureException(
       new Error(

@@ -291,13 +291,14 @@ const Wallet = ({
    * Callback to trigger when pressing the navigation title.
    */
   const onTitlePress = useCallback(() => {
+    console.log('HERE ....', networkName);
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.NETWORK_SELECTOR,
     });
     trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
       chain_id: getDecimalChainId(providerConfig.chainId),
     });
-  }, [navigate, providerConfig.chainId, trackEvent]);
+  }, [navigate, providerConfig.chainId, trackEvent, networkName]);
 
   const checkNftAutoDetectionModal = useCallback(() => {
     const isOnMainnet = isMainNet(providerConfig.chainId);

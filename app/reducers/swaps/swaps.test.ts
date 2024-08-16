@@ -7,6 +7,7 @@ import reducer, {
   SWAPS_SET_HAS_ONBOARDED,
   swapsSmartTxFlagEnabled,
 } from './index';
+import { NetworkClientType } from '@metamask/network-controller';
 
 const emptyAction = { type: null };
 
@@ -175,7 +176,30 @@ describe('swaps reducer', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: { chainId: '0x1' },
+              getNetworkClientById: () => ({
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                configuration: {
+                  rpcUrl: 'https://mainnet.infura.io/v3',
+                  chainId: '0x1',
+                  ticker: 'ETH',
+                  type: NetworkClientType.Custom,
+                },
+              }),
+              networkConfigurations: {
+                '673a4523-3c49-47cd-8d48-68dfc8a47a9c': {
+                  id: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
+                  rpcUrl: 'https://mainnet.infura.io/v3',
+                  chainId: '0x1',
+                  ticker: 'ETH',
+                  nickname: 'Ethereum mainnet',
+                  rpcPrefs: {
+                    blockExplorerUrl: 'https://etherscan.com',
+                  },
+                },
+              },
+              selectedNetworkClientId: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
+              networksMetadata: {},
             },
           },
         },
