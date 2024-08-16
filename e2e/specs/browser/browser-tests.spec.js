@@ -66,7 +66,7 @@ describe(SmokeCore('Browser Tests'), () => {
     await Assertions.checkIfNotVisible(AddBookmarkView.container);
   });
 
-  it.skip('should tap on the test dapp in favorites on the home page', async () => {
+  it('should tap on the test dapp in favorites on the home page', async () => {
     await Browser.tapHomeButton();
     // Wait for page to load
     await TestHelpers.delay(3000);
