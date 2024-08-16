@@ -72,7 +72,7 @@ const createStyles = (colors: ThemeColors) =>
     error: {
       ...fontStyles.normal,
       fontSize: 14,
-      color: colors.error,
+      color: colors.error.default,
     },
     text: {
       color: colors.text.default,
@@ -188,7 +188,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     Engine.context.KeyringController.getOrAddQRKeyring();
     Engine.controllerMessenger.subscribe(
       'KeyringController:qrKeyringStateChange',
-      (storeValue) => subscribeKeyringState(storeValue),
+      subscribeKeyringState,
     );
     return () => {
       Engine.controllerMessenger.unsubscribe(
@@ -321,16 +321,14 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     navigation.pop(2);
   }, [KeyringController, navigation, resetError]);
 
-  const renderAlert = () => {
-    const { color, ...errorStyles } = styles.error;
-    return errorMsg !== '' ? (
+  const renderAlert = () =>
+    errorMsg !== '' ? (
       <Alert type={AlertType.Error} onPress={resetError}>
-        <Text style={errorStyles}>{errorMsg}</Text>
+        <Text style={styles.error}>{errorMsg}</Text>
       </Alert>
     ) : (
       <></>
     );
-  };
 
   return (
     <Fragment>
