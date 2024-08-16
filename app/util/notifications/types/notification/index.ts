@@ -1,7 +1,5 @@
+import { NotificationServicesController } from '@metamask/notification-services-controller';
 import type { FC } from 'react';
-import type { FeatureAnnouncementRawNotification } from '../featureAnnouncement';
-import type { HalRawNotification } from '../halNotification';
-import type { Compute } from '../type-utils';
 import { TRIGGER_TYPES } from '../../constants';
 
 /**
@@ -10,23 +8,7 @@ import { TRIGGER_TYPES } from '../../constants';
  * - `type` field (declared in the Raw shapes)
  * - `data` field (declared in the Raw shapes)
  */
-export type Notification = Compute<
-  (FeatureAnnouncementRawNotification | HalRawNotification) & {
-    id: string;
-    createdAt: Date;
-    isRead: boolean;
-  }
->;
-
-// NFT
-export interface NFT {
-  token_id: string;
-  image: string;
-  collection?: {
-    name: string;
-    image: string;
-  };
-}
+export type Notification = NotificationServicesController.Types.INotification;
 
 /**
  * NotificationFC is the shared component interface for all notification components
