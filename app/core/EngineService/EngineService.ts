@@ -73,7 +73,10 @@ class EngineService {
         key: `${engine.context.TokenBalancesController.name}:stateChange`,
       },
       { name: 'TokenRatesController' },
-      { name: 'TransactionController' },
+      {
+        name: 'TransactionController',
+        key: `${engine.context.TransactionController.name}:stateChange`,
+      },
       { name: 'SmartTransactionsController' },
       { name: 'SwapsController' },
       {
@@ -101,6 +104,18 @@ class EngineService {
         name: 'SubjectMetadataController',
         key: `${engine.context.SubjectMetadataController.name}:stateChange`,
       },
+      {
+        name: 'AuthenticationController',
+        key: 'AuthenticationController:stateChange',
+      },
+      {
+        name: 'UserStorageController',
+        key: 'UserStorageController:stateChange',
+      },
+      {
+        name: 'NotificationServicesController',
+        key: 'NotificationServicesController:stateChange',
+      },
       ///: END:ONLY_INCLUDE_IF
       {
         name: 'PermissionController',
@@ -117,6 +132,18 @@ class EngineService {
       {
         name: 'PPOMController',
         key: `${engine.context.PPOMController.name}:stateChange`,
+      },
+      {
+        name: 'AuthenticationController',
+        key: `AuthenticationController:stateChange`,
+      },
+      {
+        name: 'UserStorageController',
+        key: `UserStorageController:stateChange`,
+      },
+      {
+        name: 'NotificationServicesController',
+        key: `NotificationServicesController:stateChange`,
       },
     ];
 
