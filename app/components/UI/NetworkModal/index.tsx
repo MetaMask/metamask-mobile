@@ -34,7 +34,18 @@ import NetworkVerificationInfo from '../NetworkVerificationInfo';
 import createNetworkModalStyles from './index.styles';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { toHex } from '@metamask/controller-utils';
-import { ethers } from 'ethers';
+import {
+  rpcIdentifierUtility,
+  useSafeChains,
+} from '../../../components/hooks/useSafeChains';
+// import { ethers } from 'ethers';
+
+export interface SafeChain {
+  chainId: string;
+  name: string;
+  nativeCurrency: { symbol: string };
+  rpc: string[];
+}
 
 interface NetworkProps {
   isVisible: boolean;
@@ -82,6 +93,7 @@ const NetworkModals = (props: NetworkProps) => {
   const isCustomNetwork = true;
   const showDetailsModal = () => setShowDetails(!showDetails);
   const showCheckNetworkModal = () => setShowCheckNetwork(!showCheckNetwork);
+  const { safeChains } = useSafeChains();
 
   const { colors } = useTheme();
   const styles = createNetworkModalStyles(colors);
@@ -95,23 +107,23 @@ const NetworkModals = (props: NetworkProps) => {
 
   const addNetwork = async () => {
     const validUrl = validateRpcUrl(rpcUrl);
-
-    if (showPopularNetworkModal) {
+    if (!showPopularNetworkModal && safeChains) {
+      // emit custom network
+      trackAnonymousEvent(MetaMetricsEvents.NETWORK_ADDED, {
+        chain_id: toHex(chainId), // prefixed chainId
+        source: 'Custom network form',
+        symbol: ticker,
+        rpcUrl: rpcIdentifierUtility(rpcUrl, safeChains),
+      });
+    } else {
       // emit popular network
       trackEvent(MetaMetricsEvents.NETWORK_ADDED, {
         chain_id: toHex(chainId),
         source: 'Popular network list',
         symbol: ticker,
       });
-    } else {
-      // emit custom network
-      trackAnonymousEvent(MetaMetricsEvents.NETWORK_ADDED, {
-        chain_id: toHex(chainId),
-        source: 'Custom network form',
-        symbol: ticker,
-        rpcUrl: ethers.utils.sha256(ethers.utils.toUtf8Bytes(rpcUrl)),
-      });
     }
+
     setNetworkAdded(validUrl);
   };
 
