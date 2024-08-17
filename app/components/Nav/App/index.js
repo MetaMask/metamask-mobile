@@ -116,7 +116,10 @@ import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctional
 import SmartTransactionsOptInModal from '../../Views/SmartTransactionsOptInModal/SmartTranactionsOptInModal';
 import ProfileSyncingModal from '../../UI/ProfileSyncing/ProfileSyncingModal/ProfileSyncingModal';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
+import NftOptions from '../../../components/Views/NftOptions';
+import ShowTokenIdSheet from '../../../components/Views/ShowTokenIdSheet';
 import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
+import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
@@ -682,6 +685,7 @@ const App = ({ userLoggedIn }) => {
       />
       <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
       <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
+      <Stack.Screen name={'NftOptions'} component={NftOptions} />
       <Stack.Screen
         name={Routes.MODAL.UPDATE_NEEDED}
         component={UpdateNeeded}
@@ -715,6 +719,11 @@ const App = ({ userLoggedIn }) => {
         name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}
         component={NFTAutoDetectionModal}
       />
+      <Stack.Screen
+        name={Routes.SHEET.SHOW_TOKEN_ID}
+        component={ShowTokenIdSheet}
+      />
+
       <Stack.Screen
         name={Routes.SHEET.ORIGIN_SPAM_MODAL}
         component={OriginSpamModal}
@@ -916,6 +925,14 @@ const App = ({ userLoggedIn }) => {
               component={AddNetworkFlow}
               options={{ animationEnabled: true }}
             />
+            {isNetworkUiRedesignEnabled() ? (
+              <Stack.Screen
+                name={Routes.EDIT_NETWORK}
+                component={AddNetworkFlow}
+                options={{ animationEnabled: true }}
+              />
+            ) : null}
+
             <Stack.Screen
               name={Routes.LOCK_SCREEN}
               component={LockScreen}

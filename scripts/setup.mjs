@@ -1,6 +1,8 @@
+/* eslint-disable import/no-nodejs-modules */
 import fs from 'fs';
 import { $ } from 'execa';
 import { Listr } from 'listr2';
+import path from 'path';
 
 const IS_OSX = process.platform === 'darwin';
 // iOS builds are enabled by default on macOS only but can be enabled explicitly
@@ -13,36 +15,7 @@ const rendererOptions = {
   collapseSubtasks: false
 };
 
-/*
- * FIXME: We shouldn't be making system wide installs without user consent.
- * Should make it optional on non-CI environments
-*/
-const detoxGlobalInstallTask = {
-  title: 'Install Detox utils',
-  task: (_, task) => task.newListr([
-    {
-      title: 'Install detox-cli globally',
-      task: async () => {
-        await $`yarn global add detox-cli`;
-      }
-    },
-    {
-      title: 'Install applesimutils globally',
-      task: async (_, appSimTask) => {
-        if (!IS_OSX) {
-          appSimTask.skip('Not macOS.');
-        } else {
-          await $`brew tap wix/brew`;
-          await $`brew install applesimutils`;
-        }
-      }
-    }
-  ],
-    {
-     rendererOptions
-    }
-  )
-};
+
 
 /*
  * TODO: parse example env file and add missing variables to existing .js.env
@@ -148,7 +121,6 @@ const mainSetupTask = {
       },
     },
     copyEnvVarsTask,
-    detoxGlobalInstallTask
   ],
     {
       exitOnError: false,
@@ -224,12 +196,50 @@ const sourceEnvs = {
   }
 };
 
+const downloadTermsOfUseTask = {
+  title: 'Download Terms of Use',
+  task: async () => {
+    try {
+      await $`curl -o ./docs/assets/termsOfUse.html https://legal.consensys.io/plain/terms-of-use/`;
+    } catch (error) {
+      throw new Error('Failed to download Terms of Use');
+    }
+  }
+};
+
+const generateTermsOfUseContentTask = {
+  title: 'Generate Terms of Use Content',
+  task: async () => {
+    const termsOfUsePath = path.resolve('./docs/assets/termsOfUse.html');
+    const outputDir = path.resolve('./app/util/termsOfUse');
+    const outputPath = path.join(outputDir, 'termsOfUseContent.js'); 
+
+    let termsOfUse = '';
+    try {
+      termsOfUse = fs.readFileSync(termsOfUsePath, 'utf8');
+    } catch (error) {
+      throw new Error('Failed to read Terms of Use file');
+    }
+
+    const outputContent = `export default ${JSON.stringify(termsOfUse)};`;
+
+    try {
+      fs.mkdirSync(outputDir, { recursive: true });
+      fs.writeFileSync(outputPath, outputContent, 'utf8');
+    } catch (error) {
+      throw new Error('Failed to write Terms of Use content file');
+    }
+  }
+};
+
 const tasks = new Listr([
   gemInstallTask,
   patchModulesTask,
   mainSetupTask,
   ppomBuildTask,
-  sourceEnvs
+  sourceEnvs,
+  downloadTermsOfUseTask,
+  generateTermsOfUseContentTask
 ],
   {
     exitOnError: true,
