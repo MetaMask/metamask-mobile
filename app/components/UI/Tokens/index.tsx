@@ -96,6 +96,9 @@ import { zeroAddress } from 'ethereumjs-util';
 import PercentageChange from '../../../component-library/components-temp/Price/PercentageChange';
 import AggregatedPercentage from '../../../component-library/components-temp/Price/AggregatedPercentage';
 import { RootState } from 'app/reducers';
+import { Asset } from '../../hooks/useAddressBalance/useAddressBalance.types';
+import { Hex } from '@metamask/utils';
+import { MarketDataDetails } from '@metamask/assets-controllers/dist/types/TokenRatesController';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors } = useTheme();
@@ -168,7 +171,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     setShowScamWarningModal(false);
   };
 
-  const renderScamWarningIcon = (asset) => {
+  const renderScamWarningIcon = (asset: Asset) => {
     if (!isOriginalNativeTokenSymbol && asset.isETH) {
       return (
         <ButtonIcon
@@ -310,13 +313,13 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const handleBalance = (asset: TokenI) => {
     const itemAddress: string = safeToChecksumAddress(asset.address) || '';
 
-    // When the exchange rate of a token is not found, the return is undefined
-    // We fallback to the TOKEN_RATE_UNDEFINED to handle it properly
-    const tokenMarketData = tokenExchangeRates
-      ? itemAddress in tokenExchangeRates
-        ? tokenExchangeRates[itemAddress] || TOKEN_RATE_UNDEFINED
-        : undefined
-      : undefined;
+    let tokenMarketData: MarketDataDetails | 'tokenRateUndefined' | undefined;
+    if (tokenExchangeRates) {
+      if (tokenExchangeRates[itemAddress as Hex]) {
+        tokenMarketData =
+          tokenExchangeRates[itemAddress as Hex] || TOKEN_RATE_UNDEFINED;
+      }
+    }
 
     const balance =
       asset.balance ||
@@ -365,7 +368,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     const pricePercentChange1d = itemAddress
       ? tokenExchangeRates?.[itemAddress as `0x${string}`]?.pricePercentChange1d
-      : tokenExchangeRates?.[zeroAddress()]?.pricePercentChange1d;
+      : tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
 
     // render balances according to primary currency
     let mainBalance, secondaryBalance;
@@ -449,7 +452,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             <NetworkMainAssetLogo style={styles.ethLogo} />
           ) : (
             <AvatarToken
-              variant={AvatarVariant.Token}
               name={asset.symbol}
               imageSource={{ uri: asset.image }}
               size={AvatarSize.Md}

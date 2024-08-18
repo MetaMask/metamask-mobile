@@ -18,6 +18,10 @@ export const TILDE_ICON_SIZE_BY_TEXT_VARIANT: TildeIconSizeByTextVariant = {
   [TextVariant.BodySM]: IconSize.Xss,
   [TextVariant.BodySMBold]: IconSize.Xss,
   [TextVariant.BodyXS]: IconSize.Xss,
+  // needs review from design system(?) team
+  [TextVariant.BodySMMedium]: IconSize.Xss,
+  [TextVariant.BodyXSMedium]: IconSize.Xss,
+  [TextVariant.BodyMDMedium]: IconSize.Xs,
 };
 
 export const TEST_SAMPLE_TEXT = 'Sample Text';

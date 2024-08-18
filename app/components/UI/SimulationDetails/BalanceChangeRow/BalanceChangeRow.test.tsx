@@ -15,6 +15,7 @@ const balanceChangeMock = {
     address: '0xabc123',
   },
   amount: new BigNumber(100),
+  fiatAmount: 0, // Add the fiatAmount property with a default value
 } as BalanceChange;
 
 jest.mock('../AmountPill/AmountPill', () => 'AmountPill');
