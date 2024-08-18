@@ -1635,9 +1635,7 @@ class Engine {
         toChecksumHexAddress(selectedInternalAccount.address);
       const { currentCurrency } = CurrencyRateController.state;
       const { chainId, ticker } = NetworkController.state.providerConfig;
-      const {
-        settings: { showFiatOnTestnets },
-      } = store.getState();
+      const { settings: { showFiatOnTestnets } = {} } = store.getState();
 
       if (isTestNet(chainId) && !showFiatOnTestnets) {
         return { ethFiat: 0, tokenFiat: 0, ethFiat1dAgo: 0, tokenFiat1dAgo: 0 };
