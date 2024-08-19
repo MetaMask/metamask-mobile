@@ -36,6 +36,7 @@ jobs:
           else
             echo "SonarCloud Quality Gate result not found in comments."
             exit 1
+          fi
 
       - name: Fail if Quality Gate did not pass
         if: steps.check-quality-gate.outputs.quality_gate_passed == 'false'
