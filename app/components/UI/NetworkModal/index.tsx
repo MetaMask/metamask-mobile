@@ -38,7 +38,6 @@ import {
   rpcIdentifierUtility,
   useSafeChains,
 } from '../../../components/hooks/useSafeChains';
-// import { ethers } from 'ethers';
 
 export interface SafeChain {
   chainId: string;
