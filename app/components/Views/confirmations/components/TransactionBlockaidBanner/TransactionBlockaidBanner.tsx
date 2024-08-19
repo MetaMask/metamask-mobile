@@ -10,17 +10,11 @@ const TransactionBlockaidBanner = (
 ) => {
   const { transactionId, ...rest } = bannerProps;
 
-  const securityAlertResponses = useSelector(
+  const securityAlertResponse = useSelector(
     selectCurrentTransactionSecurityAlertResponse,
   );
 
-  if (!transactionId) {
-    return null;
-  }
-
-  const securityAlertResponse = securityAlertResponses?.[transactionId];
-
-  if (!securityAlertResponse) {
+  if (!transactionId || !securityAlertResponse) {
     return null;
   }
 

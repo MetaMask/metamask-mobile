@@ -31,6 +31,7 @@ const mockState = {
     },
   },
   transaction: {
+    id: 123,
     securityAlertResponses: {
       123: {
         result_type: ResultType.Warning,
