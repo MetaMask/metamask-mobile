@@ -4,9 +4,6 @@ import Matchers from '../../utils/Matchers';
 
 class AdvancedSettingsView {
   async tapEthSignSwitch() {
-    // Add delay
-    await new Promise(resolve => setTimeout(resolve, 2500));
-
     // Scroll to the element
     await Gestures.scrollToElement(
       this.ethSignSwitch,
