@@ -139,7 +139,6 @@
   },
   "dependencies": {
     "@consensys/on-ramp-sdk": "1.28.3",
-    "@ethereumjs/tx": "^3.2.1",
     "@ethersproject/abi": "^5.7.0",
     "@keystonehq/bc-ur-registry-eth": "^0.19.1",
     "@keystonehq/metamask-airgapped-keyring": "^0.13.1",
@@ -541,7 +540,7 @@
   },
   "lavamoat": {
     "allowScripts": {
-      "@ethereumjs/tx>ethereumjs-util>ethereum-cryptography>keccak": true,
+      "ethereumjs-abi>ethereumjs-util>ethereum-cryptography>keccak": true,
       "@sentry/react-native>@sentry/cli": true,
       "@storybook/manager-webpack5>@storybook/core-common>webpack>watchpack>watchpack-chokidar2>chokidar>fsevents": false,
       "@storybook/addon-controls>@storybook/core-common>esbuild": false,
