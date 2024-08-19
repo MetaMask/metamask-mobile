@@ -304,7 +304,7 @@ const VaultRecoveryFlow = () => (
 );
 
 // eslint-disable-next-line react/prop-types
-const App = ({ userLoggedIn, isBasicFunctionalityEnabled }) => {
+const App = ({ userLoggedIn }) => {
   const animationRef = useRef(null);
   const animationNameRef = useRef(null);
   const opacity = useRef(new Animated.Value(1)).current;
@@ -811,11 +811,9 @@ const App = ({ userLoggedIn, isBasicFunctionalityEnabled }) => {
         {
           ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         }
-        {isBasicFunctionalityEnabled && (
-          <View>
-            <SnapsExecutionWebView />
-          </View>
-        )}
+        <View>
+          <SnapsExecutionWebView />
+        </View>
         {
           ///: END:ONLY_INCLUDE_IF
         }
@@ -952,7 +950,6 @@ const App = ({ userLoggedIn, isBasicFunctionalityEnabled }) => {
 
 const mapStateToProps = (state) => ({
   userLoggedIn: state.user.userLoggedIn,
-  isBasicFunctionalityEnabled: state.settings?.basicFunctionalityEnabled,
 });
 
 export default connect(mapStateToProps)(App);

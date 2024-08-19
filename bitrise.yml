@@ -1169,7 +1169,7 @@ workflows:
 
                 # Check if BROWSERSTACK_UPLOADED_APPS_LIST is empty or does not exist
                 if [ ! -s "$BROWSERSTACK_UPLOADED_APPS_LIST" ]; then
-                  # If the file is empty or does not exist, use the existing BROWSERSTACK_APP_URL. 
+                  # If the file is empty or does not exist, use the existing BROWSERSTACK_APP_URL.
                   # This is incase an engineer wants to kick off the tests with an existing browserstack url
                   echo "BROWSERSTACK_UPLOADED_APPS_LIST is empty or does not exist. Using existing BROWSERSTACK_APP_URL."
                 else
@@ -1181,7 +1181,7 @@ workflows:
                 if [ "$TEST_TYPE" = "upgrade" ]; then
                   TEST_TYPE="--upgrade"
 
-                # Check if TEST_TYPE is set to performance  
+                # Check if TEST_TYPE is set to performance
                 elif [ "$TEST_TYPE" = "performance" ]; then
                   TEST_TYPE="--performance"
                 fi
@@ -1486,16 +1486,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.28.0
+      VERSION_NAME: 7.28.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1375
+      VERSION_NUMBER: 1386
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.28.0
+      FLASK_VERSION_NAME: 7.28.1
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1375
+      FLASK_VERSION_NUMBER: 1386
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
