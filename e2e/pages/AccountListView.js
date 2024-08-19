@@ -12,6 +12,10 @@ import Matchers from '../utils/Matchers';
 import Gestures from '../utils/Gestures';
 
 class AccountListView {
+  get accountList() {
+    return Matchers.getElementByID(ACCOUNT_LIST_ID);
+  }
+
   get accountTypeLabel() {
     return Matchers.getElementByID(
       AccountListViewSelectorsIDs.ACCOUNT_TYPE_LABEL,
@@ -75,7 +79,7 @@ class AccountListView {
   async swipeToDismissAccountsModal() {
     const element =
       device.getPlatform() === 'android'
-        ? await Matchers.getElementByID(ACCOUNT_LIST_ID)
+        ? await this.accountList
         : await Matchers.getElementByText('Accounts');
     await Gestures.swipe(element, 'down', 'fast', 0.6);
   }
@@ -85,12 +89,6 @@ class AccountListView {
       Matchers.getElementByText(
         AccountListViewSelectorsText.REMOVE_IMPORTED_ACCOUNT,
       ),
-    );
-  }
-
-  async isVisible() {
-    return Matchers.checkIfVisible(
-      await Matchers.getElementByID(ACCOUNT_LIST_ID),
     );
   }
 
