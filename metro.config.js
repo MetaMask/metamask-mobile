@@ -18,6 +18,7 @@ module.exports = function (baseConfig) {
     resolver: {
       assetExts: assetExts.filter((ext) => ext !== 'svg'),
       sourceExts: [...sourceExts, 'svg', 'cjs'],
+      resolverMainFields: ['sbmodern', 'react-native', 'browser', 'main'],
     },
     transformer: {
       babelTransformerPath: require.resolve('./metro.transform.js'),
