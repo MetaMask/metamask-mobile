@@ -90,7 +90,7 @@ describe('favicon utility getFaviconURLFromHtml() function', () => {
 
     // Ensure fetch credentials is set to 'omit'
     // non regression test for https://github.com/MetaMask/mobile-planning/issues/1561
-    expect(global.fetch.mock.calls[0][1]).toEqual(
+    expect((global.fetch as jest.Mock).mock.calls[0][1]).toEqual(
       expect.objectContaining({ credentials: 'omit' }),
     );
   });
