@@ -12,8 +12,7 @@ jobs:
   check-sonarcloud-comment:
     name: Check SonarCloud Quality Gate Comment
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request_target' || contains(github.event.comment.html_url, '/pull/')
-
+    # if: github.event_name == 'pull_request_target' || contains(github.event.comment.html_url, '/pull/')
     steps:
       - name: Check out the code
         uses: actions/checkout@v3
