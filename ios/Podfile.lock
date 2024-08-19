@@ -538,8 +538,8 @@ PODS:
     - Base64
     - GZIP
     - React-Core
-  - react-native-in-app-review (4.3.3):
-    - React-Core
+  - react-native-in-app-review (3.2.3):
+    - React
   - react-native-launch-arguments (4.0.1):
     - React
   - react-native-mmkv (2.11.0):
@@ -1214,11 +1214,11 @@ SPEC CHECKSUMS:
   react-native-blur: 507cf3dd4434eb9d5ca5f183e49d8bcccdd66826
   react-native-branch: 4e42fda662d96893afbbd02839806931398e3d2e
   react-native-camera: b8cc03e2feec0c04403d0998e37cf519d8fd4c6f
-  react-native-compat: dcf61cf5a7377da0e34d4b7879dc8942cc0b5602
+  react-native-compat: 24c27f0076c5d094ac54a7c803aa5fd4f582444d
   react-native-cookies: f54fcded06bb0cda05c11d86788020b43528a26c
   react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
   react-native-gzip: c5e87ee9e359f02350e3a2ee52eb35eddc398868
-  react-native-in-app-review: db8bb167a5f238e7ceca5c242d6b36ce8c4404a4
+  react-native-in-app-review: 23f4f5b9fcd94339dd5d93c6230557f9c67c7dda
   react-native-launch-arguments: 4e0fd58e56dcc7f52eedef9dc8eff81eb73ced7a
   react-native-mmkv: e97c0c79403fb94577e5d902ab1ebd42b0715b43
   react-native-netinfo: 48c5f79a84fbc3ba1d28a8b0d04adeda72885fa8
@@ -1269,7 +1269,7 @@ SPEC CHECKSUMS:
   RNOS: 6f2f9a70895bbbfbdad7196abd952e7b01d45027
   RNPermissions: 4e3714e18afe7141d000beae3755e5b5fb2f5e05
   RNReanimated: f8379347f71248607d530a21e31e4140c5910c25
-  RNScreens: ea4cd3a853063cda19a4e3c28d2e52180c80f4eb
+  RNScreens: 68fd1060f57dd1023880bf4c05d74784b5392789
   RNSensors: c363d486c879e181905dea84a2535e49af1c2d25
   RNSentry: 0aefd4f23b45e3c00577c3a18af79b8f8193bcdb
   RNShare: f116bbb04f310c665ca483d0bd1e88cf59b3b334
