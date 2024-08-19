@@ -375,6 +375,33 @@
     "accept": "Sumasang-ayon ako",
     "cancel": "Huwag na lang"
   },
+  "nft_details": {
+    "bought_for": "Binili para sa/kay",
+    "highest_floor_price": "Pinakamataas na floor price",
+    "data_unavailable": "hindi available ang data",
+    "price_unavailable": "hindi available ang presyo",
+    "rank": "Rank",
+    "contract_address": "Address ng kontrata",
+    "token_id": "ID ng Token",
+    "token_symbol": "Simbolo ng token",
+    "token_standard": "Pamantayan ng token",
+    "date_created": "Petsa ng paggawa",
+    "unique_token_holders": "Natatanging mga holder ng token",
+    "tokens_in_collection": "Mga token sa koleksyon",
+    "creator_address": "Address ng creator",
+    "last_sold": "Huling naibenta",
+    "highest_current_bid": "Pinakamataas na kasalukuyang bid",
+    "options": {
+      "view_on_os": "Tingnan sa OpenSea",
+      "remove_nft": "Alisin ang NFT"
+    },
+    "attributes": "Mga Attribute",
+    "disclaimer": "Disclaimer: Kinukuha ng MetaMask ang media file mula sa pinagmulang URL. Ang URL na ito kung minsan ay pinapalitan ng marketplace kung saan nai-mint ang NFT."
+  },
+  "qr_tab_switcher": {
+    "scanner_tab": "Mag-scan ng QR code",
+    "receive_tab": "Iyong QR code"
+  },
   "wallet": {
     "title": "Wallet",
     "tokens": "Mga Token",
@@ -611,10 +638,10 @@
     "remove_account_message": "Gusto mo ba talagang alisin ang account na ito?",
     "no": "Hindi",
     "yes_remove_it": "Oo, alisin ito",
-    "remove_hardware_account": "Remove hardware account",
-    "remove_hw_account_alert_description": "Are you sure you want to remove this hardware wallet account? You’ll have to resync your hardware wallet if you want to use this account again with MetaMask Mobile.",
-    "remove_account_alert_remove_btn": "Remove",
-    "remove_account_alert_cancel_btn": "Nevermind",
+    "remove_hardware_account": "Alisin ang account ng hardware",
+    "remove_hw_account_alert_description": "Sigurado ka bang gusto mong alisin ang account ng wallet na hardware na ito? Kailangan mong i-resync ang iyong wallet na hardware kung gusto mo uling gamitin ang account na ito sa MetaMask Mobile.",
+    "remove_account_alert_remove_btn": "Alisin",
+    "remove_account_alert_cancel_btn": "Huwag na",
     "accounts_title": "Mga Account",
     "connect_account_title": "Ikonekta ang account",
     "connect_accounts_title": "Ikonekta ang mga account",
@@ -683,11 +710,11 @@
     "forget": "Kalimutan ang device na ito"
   },
   "app_settings": {
-    "enabling_notifications": "Enabling notifications...",
-    "disabling_notifications": "Disabling notifications...",
-    "enabling_profile_sync": "Enabling profile syncing...",
-    "disabling_profile_sync": "Disabling profile syncing...",
-    "notifications_dismiss_modal": "Dismiss",
+    "enabling_notifications": "Pinapagana ang mga notipikasyon...",
+    "disabling_notifications": "Hindi pinapagana ang mga notipikasyon...",
+    "enabling_profile_sync": "Pinapagana ang pag-sync ng profile...",
+    "disabling_profile_sync": "Hindi pinapagana ang pag-sync ng profile...",
+    "notifications_dismiss_modal": "I-dismiss",
     "title": "Mga Setting",
     "current_conversion": "Batayang Currency",
     "current_language": "Kasalukuyang Wika",
@@ -734,7 +761,7 @@
     "protect_cta": "Protektahan",
     "protect_title": "Protektahan ang iyong wallet",
     "video_failed": "Nabigong Mag-load ang Video.",
-    "protect_desc": "Protektahan ang iyong wallet sa pamamagitan ng pag-save ng iyong Lihim na Parirala sa Pagbawi sa iba't ibang lugar gaya sa isang piraso ng papel, password manager at/o sa cloud.",
+    "protect_desc": "Protekatahan ang iyong wallet sa pamamagitan ng pag-save ng iyong Lihim na Parirala sa Pagbawi sa isang lugar na tanging ikaw lang ang makaka-access at hindi mo makakalimutan. Tiyakin na itago ito offline para sa lubos na kaligtasan.",
     "protect_desc_no_backup": "Ito ang pariralang may 12 salita ng wallet mo. Magagamit ang pariralang ito para makontrol ang lahat ng iyong account sa kasalukuyan at hinaharap, pati na ang kakayahang magpadala ng mga pondo sa iyong wallet. Panatilihing ligtas ang pagkakatago ng pariralang ito, HUWAG itong ibahagi sa kahit sino. Hindi ka matutulungan ng MetaMask na mabawi ang key na ito.",
     "learn_more": "Matuto pa.",
     "seedphrase_not_backed_up": "Mahalaga! Hindi na-back up ang Lihim na Parirala sa Pagbawi",
@@ -1256,7 +1283,8 @@
     "unrecognized_address_qr_code_title": "Hindi nakikilalang QR Code",
     "unrecognized_address_qr_code_desc": "Paumanhin, ang QR code na ito ay hindi nauugnay sa isang address ng account o isang address ng kontrata.",
     "url_redirection_alert_title": "Bibisitahin mo ang isang panlabas na link",
-    "url_redirection_alert_desc": "Maaaring gamitin ang mga link upang subukang manlinlang o mag-phish ng mga tao, kaya siguraduhing bisitahin lamang ang mga website na pinagkakatiwalaan mo."
+    "url_redirection_alert_desc": "Maaaring gamitin ang mga link upang subukang manlinlang o mag-phish ng mga tao, kaya siguraduhing bisitahin lamang ang mga website na pinagkakatiwalaan mo.",
+    "label": "Mag-scan ng QR code"
   },
   "action_view": {
     "cancel": "Kanselahin",
@@ -1665,6 +1693,7 @@
     "search": "Maghanap ng mga dati nang idinagdag na network",
     "search-short": "Maghanap",
     "add": "Idagdag",
+    "continue": "Magpatuloy",
     "cancel": "Kanselahin",
     "approve": "Aprubahan",
     "edit_network_details": "I-edit ang mga detalye ng network",
@@ -1961,8 +1990,9 @@
     "staked": "Nai-stake",
     "received": "Natanggap",
     "unstaked": "Na-unstake",
+    "mark_all_as_read": "Mark all as read",
     "to": "Sa/Kay",
-    "rate": "Rate (fees included)",
+    "rate": "Halaga (kasama ang bayarin)",
     "unstaking_requested": "Hiniling ang pag-unstake",
     "stake_completed": "Nakumpleto ang pag-stake",
     "withdrawal_completed": "Nakumpleto ang pag-withdraw",
@@ -1974,46 +2004,46 @@
     "sent": "Ipinadala sa {{address}}",
     "menu_item_title": {
       "metamask_swap_completed": "Swapped {{symbol1}} for {{symbol2}}",
-      "erc20_sent": "Sent to {{address}}",
-      "erc20_received": "Received from {{address}}",
-      "eth_sent": "Sent to {{address}}",
-      "eth_received": "Received from {{address}}",
-      "erc721_sent": "Sent NFT to {{address}}",
-      "erc1155_sent": "Sent NFT to {{address}}",
-      "erc721_received": "Received NFT from {{address}}",
-      "erc1155_received": "Received NFT from {{address}}",
-      "rocketpool_stake_completed": "Staked",
-      "rocketpool_unstake_completed": "Unstaking complete",
-      "lido_stake_completed": "Staked",
-      "lido_withdrawal_requested": "Unstaking requested",
-      "lido_withdrawal_completed": "Unstaking complete",
-      "lido_stake_ready_to_be_withdrawn": "Withdrawal requested"
+      "erc20_sent": "Ipinadala sa {{address}}",
+      "erc20_received": "Natanggap mula sa {{address}}",
+      "eth_sent": "Ipinadala sa {{address}}",
+      "eth_received": "Natanggap mula sa {{address}}",
+      "erc721_sent": "Ipinadala ang NFT sa {{address}}",
+      "erc1155_sent": "Ipinadala ang NFT sa {{address}}",
+      "erc721_received": "Natanggap ang NFT mula sa {{address}}",
+      "erc1155_received": "Natanggap ang NFT mula sa {{address}}",
+      "rocketpool_stake_completed": "Nai-stake",
+      "rocketpool_unstake_completed": "Nakumpleto ang pag-unstake",
+      "lido_stake_completed": "Nai-stake",
+      "lido_withdrawal_requested": "Hiniling ang pag-unstake",
+      "lido_withdrawal_completed": "Nakumpleto ang pag-unstake",
+      "lido_stake_ready_to_be_withdrawn": "Hiniling ang pag-withdraw"
     },
     "menu_item_description": {
-      "lido_withdrawal_requested": "Your request to unstake {{amount}} {{symbol}} has been sent",
-      "lido_stake_ready_to_be_withdrawn": "You can now withdraw your unstaked {{symbol}}"
+      "lido_withdrawal_requested": "Ang iyong hiling na i-unstake ang {{amount}} {{symbol}} ay naipadala na",
+      "lido_stake_ready_to_be_withdrawn": "Maaari mo ng i-withdraw ang iyong in-unstake na {{symbol}}"
     },
     "modal": {
-      "title_sent": "Sent {{symbol}}",
-      "title_received": "Received {{symbol}}",
-      "title_unstake_requested": "Unstaking requested",
-      "title_untake_ready": "Withdrawl ready",
-      "title_stake": "Staked {{symbol}}",
-      "title_unstake_completed": "Unstaking completed",
+      "title_sent": "Nagpadala ng {{symbol}}",
+      "title_received": "Nakatanggap ng {{symbol}}",
+      "title_unstake_requested": "Hiniling ang pag-unstake",
+      "title_untake_ready": "Handa na ang pag-withdraw",
+      "title_stake": "Nag-stake ng {{symbol}}",
+      "title_unstake_completed": "Nakumpleto ang pag-unstake",
       "title_swapped": "Swapped {{symbol1}} to {{symbol2}}",
-      "label_address_to": "To",
-      "label_address_from": "From",
-      "label_address_to_you": "To (You)",
-      "label_address_from_you": "From (You)",
+      "label_address_to": "Sa/Kay",
+      "label_address_from": "Mula sa/kay",
+      "label_address_to_you": "Sa (Iyo)",
+      "label_address_from_you": "Mula sa (Iyo)",
       "label_asset": "Asset",
       "label_account": "Account",
-      "label_unstaking_requested": "Unstaking Requested",
-      "label_unstake_ready": "Withdrawl ready",
-      "label_staked": "Staked",
-      "label_received": "Received",
-      "label_unstaking_confirmed": "Unstaking Confirmed",
-      "label_swapped": "Swapped",
-      "label_to": "To"
+      "label_unstaking_requested": "Hiniling ang Pag-unstake",
+      "label_unstake_ready": "Handa na ang pag-withdraw",
+      "label_staked": "Nai-stake",
+      "label_received": "Natanggap",
+      "label_unstaking_confirmed": "Nakumpirma ang Pag-unstake",
+      "label_swapped": "Nai-swap",
+      "label_to": "Sa/Kay"
     },
     "received_from": "Natanggap mula sa {{address}}",
     "nft_sent": "Ipinadala ang NFT sa {{address}}",
@@ -2048,8 +2078,8 @@
     "received_message": "Mag-tap para tingnan ang transaksyong ito",
     "received_payment_message": "Nakatanggap ka ng {{amount}} DAI",
     "prompt_title": "Paganahin ang Mga Push Notification",
-    "notifications_enabled_error_title": "Something went wrong",
-    "notifications_enabled_error_desc": "We couldn't enable notifications. Please try again later.",
+    "notifications_enabled_error_title": "Nagkaproblema",
+    "notifications_enabled_error_desc": "Hindi namin mapagana ang mga notipikasyon. Mangyaring subukan muli mamaya.",
     "prompt_desc": "Paganahin ang mga notification para maipaalam sa iyo ng MetaMask kapag nakatanggap ka ng ETH o kapag nakumpirma na ang iyong mga transaksyon.",
     "prompt_ok": "Oo",
     "prompt_cancel": "Huwag na lang",
@@ -2074,7 +2104,7 @@
       "1": "Wallet",
       "2": "Mga anunsiyo"
     },
-    "copied_to_clipboard": "Copied to clipboard",
+    "copied_to_clipboard": "Nakopya sa clipboard",
     "address_copied_to_clipboard": "Nakopya ang address sa clipboard",
     "transaction_id_copied_to_clipboard": "Nakopya ang ID ng transaksyon sa clipboard",
     "activation_card": {
@@ -2138,7 +2168,8 @@
     "coming_soon": "Paparating na...",
     "request_payment": "Humiling ng Bayad",
     "copy": "Kopyahin",
-    "scan_address": "I-scan ang address para matanggap ang bayad"
+    "scan_address": "I-scan ang address para matanggap ang bayad",
+    "copy_address": "Kopyahin ang address"
   },
   "experimental_settings": {
     "wallet_connect_dapps": "Mga Session ng WalletConnect",
@@ -2706,7 +2737,7 @@
       "header": "Pinahusay na Proteksyon sa Transaksyon",
       "description_1": "I-unlock ang mas mataas na tiyansa ng tagumpay, proteksyon sa frontrunning, at mas mahusay na visibility sa mga Smart Transaction.",
       "description_2": "Available lamang sa Ethereum. I-enable o i-disable anumang oras sa mga setting.",
-      "no_thanks": "No thanks",
+      "no_thanks": "Salamat na lang",
       "primary_button": "I-enable",
       "learn_more": "Matuto pa.",
       "benefit_1_1": "99.5% tagumpay",
@@ -2906,13 +2937,13 @@
     "enable_remember_me_description": "Kapag naka-on ang tandaan ako, sinumang may access sa iyong telepono ay makaka-access sa iyong MetaMask account."
   },
   "profile_sync": {
-    "title": "Profile Sync",
-    "disable_warning": "If you turn off profile sync, you won’t be able to receive notifications.",
-    "enable_description": "Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. ",
-    "enable_description2": " to learn more.",
-    "enable_privacy_link": "Learn how we protect your privacy",
-    "bottomSheetTurnOn": "Turning on Profile Sync",
-    "bottomSheetTurnOff": "Turning off Profile Sync"
+    "title": "Pag-sync ng Profile",
+    "disable_warning": "Kapag in-off mo ang pag-sync ng profile, hindi ka makakatanggap ng mga notipikasyon.",
+    "enable_description": "Lilikha ng profile na gagamitin ng MetaMask upang i-sync ang ilang mga setting sa iyong mga device. Kailangan ito para makakuha ng mga notipikasyon. ",
+    "enable_description2": " upang matuto pa.",
+    "enable_privacy_link": "Matutunan kung paano namin protektahan ang iyong pagkapribado",
+    "bottomSheetTurnOn": "I-on ang Profile Sync",
+    "bottomSheetTurnOff": "I-off ang Profile Sync"
   },
   "turn_off_remember_me": {
     "title": "Ilagay ang iyong password para i-off ang Tandaan ako",
@@ -3186,7 +3217,16 @@
     "tooltip_description": "Ang tinatayang mga pagbabago ay ang maaaring mangyari kung magpapatuloy ka sa transaksyon ito. Ito ay isang hula lamang, hindi isang garantiya.",
     "total_fiat": "Kabuuan = {{currency}}"
   },
+  "spam_filter": {
+    "block_origin_requests_for_1_minute": "Pansamantalang i-block ang site na ito",
+    "cancel": "Kanselahin",
+    "description": "Kung ikaw ay na-spam ng maraming hiling, maaari mong pansamantalang i-block ang site.",
+    "got_it": "Nakuha ko",
+    "site_blocked_description": "Ang site ay iba-block ng 1 minuto.",
+    "site_blocked_title": "Pansamantala mong nai-block ang site na ito",
+    "title": "Napansin namin ang maraming hiling"
+  },
   "common": {
-    "please_wait": "Please wait"
+    "please_wait": "Mangyaring maghintay"
   }
 }

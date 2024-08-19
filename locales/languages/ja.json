@@ -375,6 +375,33 @@
     "accept": "同意する",
     "cancel": "いいえ、結構です"
   },
+  "nft_details": {
+    "bought_for": "購入価格:",
+    "highest_floor_price": "最高フロア価格",
+    "data_unavailable": "データが利用できません",
+    "price_unavailable": "価格が利用できません",
+    "rank": "ランキング",
+    "contract_address": "コントラクトアドレス",
+    "token_id": "トークンID",
+    "token_symbol": "トークンシンボル",
+    "token_standard": "トークン規格",
+    "date_created": "作成日",
+    "unique_token_holders": "一意のトークン保有者",
+    "tokens_in_collection": "コレクションのトークン",
+    "creator_address": "クリエイターのアドレス",
+    "last_sold": "前回の売却",
+    "highest_current_bid": "現在の最高入札額",
+    "options": {
+      "view_on_os": "OpenSeaで表示",
+      "remove_nft": "NFTを削除"
+    },
+    "attributes": "属性",
+    "disclaimer": "開示事項: MetaMaskはソースURLからメディアファイルを取得します。このURLは、NFTがミントされたマーケットプレイスによって変更されることがあります。"
+  },
+  "qr_tab_switcher": {
+    "scanner_tab": "QRコードをスキャン",
+    "receive_tab": "QRコード"
+  },
   "wallet": {
     "title": "ウォレット",
     "tokens": "トークン",
@@ -611,10 +638,10 @@
     "remove_account_message": "このアカウントを削除してよろしいですか？",
     "no": "いいえ",
     "yes_remove_it": "はい、削除します",
-    "remove_hardware_account": "Remove hardware account",
-    "remove_hw_account_alert_description": "Are you sure you want to remove this hardware wallet account? You’ll have to resync your hardware wallet if you want to use this account again with MetaMask Mobile.",
-    "remove_account_alert_remove_btn": "Remove",
-    "remove_account_alert_cancel_btn": "Nevermind",
+    "remove_hardware_account": "ハードウェアアカウントを削除",
+    "remove_hw_account_alert_description": "このハードウェアウォレットアカウントを削除してよろしいですか？このアカウントをMetaMask Mobileで再び使用するには、ハードウェアウォレットを同期し直す必要があります。",
+    "remove_account_alert_remove_btn": "削除",
+    "remove_account_alert_cancel_btn": "取り消し",
     "accounts_title": "アカウント",
     "connect_account_title": "アカウントの接続",
     "connect_accounts_title": "アカウントの接続",
@@ -683,11 +710,11 @@
     "forget": "このデバイスの登録を解除"
   },
   "app_settings": {
-    "enabling_notifications": "Enabling notifications...",
-    "disabling_notifications": "Disabling notifications...",
-    "enabling_profile_sync": "Enabling profile syncing...",
-    "disabling_profile_sync": "Disabling profile syncing...",
-    "notifications_dismiss_modal": "Dismiss",
+    "enabling_notifications": "通知を有効にしています...",
+    "disabling_notifications": "通知を無効にしています...",
+    "enabling_profile_sync": "プロファイルの同期を有効にしています...",
+    "disabling_profile_sync": "プロファイルの同期を無効にしています...",
+    "notifications_dismiss_modal": "閉じる",
     "title": "設定",
     "current_conversion": "ベース通貨",
     "current_language": "現在の言語",
@@ -734,7 +761,7 @@
     "protect_cta": "保護",
     "protect_title": "ウォレットを保護",
     "video_failed": "動画を読み込めませんでした。",
-    "protect_desc": "紙やパスワードマネージャー、クラウドなど、さまざまな場所にシークレットリカバリーフレーズを保管して、ウォレットを守りましょう。",
+    "protect_desc": "自分だけがアクセスでき、忘れない場所にシークレットリカバリーフレーズを保管して、ウォレットを守りましょう。安全性を最大限に高めるため、オフラインで保管してください。",
     "protect_desc_no_backup": "これは12の単語からなるウォレット専用のフレーズです。このフレーズはウォレットの資金の送金を含む、現在と未来のすべてのアカウントのコントロールに使用できます。このフレーズを安全に保管し、他人に絶対に教えないでください。MetaMaskはこのキーの復元をお手伝いできません。",
     "learn_more": "詳細。",
     "seedphrase_not_backed_up": "重要！シークレットリカバリーフレーズがバックアップされていません",
@@ -1256,7 +1283,8 @@
     "unrecognized_address_qr_code_title": "認識されないQRコード",
     "unrecognized_address_qr_code_desc": "申し訳ございませんが、このQRコードはアカウントアドレスまたはコントラクトアドレスに関連付けられていません。",
     "url_redirection_alert_title": "外部リンクにアクセスしようとしています。",
-    "url_redirection_alert_desc": "リンクは詐欺やフィッシングに利用される場合があるため、信頼できるWebサイトにのみアクセスするようにしてください。"
+    "url_redirection_alert_desc": "リンクは詐欺やフィッシングに利用される場合があるため、信頼できるWebサイトにのみアクセスするようにしてください。",
+    "label": "QRコードをスキャン"
   },
   "action_view": {
     "cancel": "キャンセル",
@@ -1665,6 +1693,7 @@
     "search": "以前追加されたネットワークを検索",
     "search-short": "検索",
     "add": "追加",
+    "continue": "続行",
     "cancel": "キャンセル",
     "approve": "承認",
     "edit_network_details": "ネットワークの詳細を編集",
@@ -1961,8 +1990,9 @@
     "staked": "ステーキングしました",
     "received": "受け取りました",
     "unstaked": "ステーキングが解除されました",
+    "mark_all_as_read": "Mark all as read",
     "to": "送り先",
-    "rate": "Rate (fees included)",
+    "rate": "レート (手数料込み)",
     "unstaking_requested": "ステーキングの解除がリクエストされました",
     "stake_completed": "ステーキングが完了しました",
     "withdrawal_completed": "出金が完了しました",
@@ -1974,46 +2004,46 @@
     "sent": "{{address}}に送りました",
     "menu_item_title": {
       "metamask_swap_completed": "Swapped {{symbol1}} for {{symbol2}}",
-      "erc20_sent": "Sent to {{address}}",
-      "erc20_received": "Received from {{address}}",
-      "eth_sent": "Sent to {{address}}",
-      "eth_received": "Received from {{address}}",
-      "erc721_sent": "Sent NFT to {{address}}",
-      "erc1155_sent": "Sent NFT to {{address}}",
-      "erc721_received": "Received NFT from {{address}}",
-      "erc1155_received": "Received NFT from {{address}}",
-      "rocketpool_stake_completed": "Staked",
-      "rocketpool_unstake_completed": "Unstaking complete",
-      "lido_stake_completed": "Staked",
-      "lido_withdrawal_requested": "Unstaking requested",
-      "lido_withdrawal_completed": "Unstaking complete",
-      "lido_stake_ready_to_be_withdrawn": "Withdrawal requested"
+      "erc20_sent": "{{address}}に送りました",
+      "erc20_received": "{{address}}から受け取りました",
+      "eth_sent": "{{address}}に送りました",
+      "eth_received": "{{address}}から受け取りました",
+      "erc721_sent": "{{address}}にNFTを送りました",
+      "erc1155_sent": "{{address}}にNFTを送りました",
+      "erc721_received": "{{address}}からNFTを受け取りました",
+      "erc1155_received": "{{address}}からNFTを受け取りました",
+      "rocketpool_stake_completed": "ステーキングしました",
+      "rocketpool_unstake_completed": "ステーキングの解除が完了しました",
+      "lido_stake_completed": "ステーキングしました",
+      "lido_withdrawal_requested": "ステーキングの解除がリクエストされました",
+      "lido_withdrawal_completed": "ステーキングの解除が完了しました",
+      "lido_stake_ready_to_be_withdrawn": "出金がリクエストされました"
     },
     "menu_item_description": {
-      "lido_withdrawal_requested": "Your request to unstake {{amount}} {{symbol}} has been sent",
-      "lido_stake_ready_to_be_withdrawn": "You can now withdraw your unstaked {{symbol}}"
+      "lido_withdrawal_requested": "{{amount}} {{symbol}}のステーキングを解除するリクエストが送信されました",
+      "lido_stake_ready_to_be_withdrawn": "ステーキングが解除された{{symbol}}を引き出せるようになりました"
     },
     "modal": {
-      "title_sent": "Sent {{symbol}}",
-      "title_received": "Received {{symbol}}",
-      "title_unstake_requested": "Unstaking requested",
-      "title_untake_ready": "Withdrawl ready",
-      "title_stake": "Staked {{symbol}}",
-      "title_unstake_completed": "Unstaking completed",
+      "title_sent": "{{symbol}}を送りました",
+      "title_received": "{{symbol}}を受け取りました",
+      "title_unstake_requested": "ステーキングの解除がリクエストされました",
+      "title_untake_ready": "出金準備ができました",
+      "title_stake": "{{symbol}}をステーキングしました",
+      "title_unstake_completed": "ステーキングの解除が完了しました",
       "title_swapped": "Swapped {{symbol1}} to {{symbol2}}",
-      "label_address_to": "To",
-      "label_address_from": "From",
-      "label_address_to_you": "To (You)",
-      "label_address_from_you": "From (You)",
-      "label_asset": "Asset",
-      "label_account": "Account",
-      "label_unstaking_requested": "Unstaking Requested",
-      "label_unstake_ready": "Withdrawl ready",
-      "label_staked": "Staked",
-      "label_received": "Received",
-      "label_unstaking_confirmed": "Unstaking Confirmed",
-      "label_swapped": "Swapped",
-      "label_to": "To"
+      "label_address_to": "送り先",
+      "label_address_from": "送り元",
+      "label_address_to_you": "(あなた) へ",
+      "label_address_from_you": "(あなた) から",
+      "label_asset": "アセット",
+      "label_account": "アカウント",
+      "label_unstaking_requested": "ステーキングの解除がリクエストされました",
+      "label_unstake_ready": "出金準備ができました",
+      "label_staked": "ステーキングしました",
+      "label_received": "受け取りました",
+      "label_unstaking_confirmed": "ステーキングの解除が確定しました",
+      "label_swapped": "スワップしました",
+      "label_to": "送り先"
     },
     "received_from": "{{address}}から受け取りました",
     "nft_sent": "{{address}}にNFTを送りました",
@@ -2048,8 +2078,8 @@
     "received_message": "このトランザクションを表示するにはタップしてください",
     "received_payment_message": "{{amount}}DAI受け取りました",
     "prompt_title": "プッシュ通知を有効にする",
-    "notifications_enabled_error_title": "Something went wrong",
-    "notifications_enabled_error_desc": "We couldn't enable notifications. Please try again later.",
+    "notifications_enabled_error_title": "問題が発生しました",
+    "notifications_enabled_error_desc": "通知を有効にできませんでした。後ほどもう一度お試しください。",
     "prompt_desc": "ETHを受け取ったり、トランザクションが確認された際にMetaMaskが通知できるよう、通知を有効にしてください。",
     "prompt_ok": "はい",
     "prompt_cancel": "いいえ、結構です",
@@ -2074,7 +2104,7 @@
       "1": "ウォレット",
       "2": "お知らせ"
     },
-    "copied_to_clipboard": "Copied to clipboard",
+    "copied_to_clipboard": "クリップボードにコピーしました",
     "address_copied_to_clipboard": "アドレスがクリップボードにコピーされました",
     "transaction_id_copied_to_clipboard": "トランザクションIDがクリップボードにコピーされました",
     "activation_card": {
@@ -2138,7 +2168,8 @@
     "coming_soon": "近日追加予定...",
     "request_payment": "支払いをリクエスト",
     "copy": "コピー",
-    "scan_address": "支払いを受け取るにはアドレスをスキャンしてください"
+    "scan_address": "支払いを受け取るにはアドレスをスキャンしてください",
+    "copy_address": "アドレスをコピー"
   },
   "experimental_settings": {
     "wallet_connect_dapps": "WalletConnectセッション",
@@ -2706,7 +2737,7 @@
       "header": "強化されたトランザクション保護",
       "description_1": "スマートトランザクションで、成功率を上げ、フロントランニングを防ぎ、可視性を高めましょう。",
       "description_2": "イーサリアムでのみご利用いただけ、いつでも設定で有効・無効を切り替えられます。",
-      "no_thanks": "No thanks",
+      "no_thanks": "いいえ、結構です",
       "primary_button": "有効にする",
       "learn_more": "詳細。",
       "benefit_1_1": "99.5%の",
@@ -2906,13 +2937,13 @@
     "enable_remember_me_description": "認証情報の保存を有効にすると、携帯にアクセスできる人は誰でもMetaMaskアカウントにアクセスできるようになります。"
   },
   "profile_sync": {
-    "title": "Profile Sync",
-    "disable_warning": "If you turn off profile sync, you won’t be able to receive notifications.",
-    "enable_description": "Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. ",
-    "enable_description2": " to learn more.",
-    "enable_privacy_link": "Learn how we protect your privacy",
-    "bottomSheetTurnOn": "Turning on Profile Sync",
-    "bottomSheetTurnOff": "Turning off Profile Sync"
+    "title": "プロファイルの同期",
+    "disable_warning": "プロファイルの同期をオフにすると、通知を受け取ることができなくなります。",
+    "enable_description": "MetaMaskが一部の設定をデバイス間で同期するために使用するプロファイルを作成します。これは通知の受取に必要です。",
+    "enable_description2": "をお読みください。",
+    "enable_privacy_link": "当社がどのようにユーザーのプライバシーを保護するのか、ご覧ください",
+    "bottomSheetTurnOn": "プロファイルの同期をオンにしています",
+    "bottomSheetTurnOff": "プロファイルの同期をオフにしています"
   },
   "turn_off_remember_me": {
     "title": "認証情報の保存を無効にするには、パスワードを入力してください",
@@ -3186,7 +3217,16 @@
     "tooltip_description": "予測される増減額は、このトランザクションを実行すると発生する可能性がある増減額です。これは単に予測に過ぎず、保証されたものではありません。",
     "total_fiat": "合計 = {{currency}}"
   },
+  "spam_filter": {
+    "block_origin_requests_for_1_minute": "このサイトを一時的にブロックする",
+    "cancel": "キャンセル",
+    "description": "複数の要求が殺到している場合、一時的にサイトをブロックできます。",
+    "got_it": "了解",
+    "site_blocked_description": "このサイトは1分間ブロックされます。",
+    "site_blocked_title": "このサイトを一時的にブロックしました",
+    "title": "複数の要求が検出されました"
+  },
   "common": {
-    "please_wait": "Please wait"
+    "please_wait": "お待ちください"
   }
 }
