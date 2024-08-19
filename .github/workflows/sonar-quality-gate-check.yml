@@ -24,7 +24,9 @@ jobs:
           COMMENTS=$(gh pr view "$PR_NUMBER" --json comments --jq '.comments[].body')
           echo "$COMMENTS" > comments.txt
           echo "comments=$COMMENTS" >> "$GITHUB_OUTPUT"
-
+        env:
+          GH_TOKEN: ${{ github.token }}
+          
       - name: Check for SonarCloud Quality Gate Pass
         id: check-quality-gate
         run: |
