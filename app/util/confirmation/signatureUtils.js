@@ -23,12 +23,11 @@ export const getAnalyticsParams = (
   signType,
   securityAlertResponse,
 ) => {
+  const { currentPageInformation, meta } = messageParams;
+  const pageInfo = meta || currentPageInformation || {};
+
   try {
-    const { currentPageInformation, meta } = messageParams;
-    const pageInfo = meta || currentPageInformation || {};
-
     const chainId = selectChainId(store.getState());
-
     const url = pageInfo.url && new URL(pageInfo?.url);
 
     let blockaidParams = {};
@@ -46,7 +45,13 @@ export const getAnalyticsParams = (
       ...blockaidParams,
     };
   } catch (error) {
-    return {};
+    return {
+      account_type: getAddressAccountType(messageParams.from),
+      dapp_host_name: pageInfo.url || 'N/A',
+      signature_type: signType,
+      version: messageParams?.version,
+      ...pageInfo?.analytics,
+    };
   }
 };
 

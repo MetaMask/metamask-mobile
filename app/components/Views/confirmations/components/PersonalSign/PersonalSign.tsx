@@ -83,10 +83,11 @@ const PersonalSign = ({
   }
 
   const getAnalyticsParams = useCallback((): AnalyticsParams => {
+    const pageInfo = currentPageInformation || messageParams.meta;
+
     try {
       const chainId = selectChainId(store.getState());
-      const pageInfo = currentPageInformation || messageParams.meta;
-      const url = new URL(pageInfo.url);
+      const url = new URL(pageInfo?.url) || { host: 'N/A' };
 
       let blockaidParams = {};
 
@@ -105,7 +106,12 @@ const PersonalSign = ({
         ...blockaidParams,
       };
     } catch (error) {
-      return {};
+      return {
+        account_type: getAddressAccountType(messageParams.from),
+        dapp_host_name: pageInfo?.url || 'N/A',
+        signature_type: 'personal_sign',
+        ...pageInfo?.analytics,
+      };
     }
   }, [currentPageInformation, messageParams, securityAlertResponse]);
 
