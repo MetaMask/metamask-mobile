@@ -370,7 +370,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                             },
                             {
                               "address": "0x01",
-                              "balanceFiat": "$0",
+                              "balanceFiat": 0,
                               "decimals": 18,
                               "iconUrl": "",
                               "name": "Bat",
@@ -1172,7 +1172,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     }
                                   }
                                 >
-                                  $NaN
+                                  $0.00
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -1637,7 +1637,7 @@ exports[`Tokens should render correctly 1`] = `
                             },
                             {
                               "address": "0x01",
-                              "balanceFiat": "$0",
+                              "balanceFiat": 0,
                               "decimals": 18,
                               "iconUrl": "",
                               "name": "Bat",
@@ -2439,7 +2439,7 @@ exports[`Tokens should render correctly 1`] = `
                                     }
                                   }
                                 >
-                                  $NaN
+                                  $0.00
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -2904,7 +2904,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                             },
                             {
                               "address": "0x01",
-                              "balanceFiat": "$0",
+                              "balanceFiat": 0,
                               "decimals": 18,
                               "iconUrl": "",
                               "name": "Bat",
@@ -2912,7 +2912,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                             },
                             {
                               "address": "0x02",
-                              "balanceFiat": "$0",
+                              "balanceFiat": 0,
                               "decimals": 18,
                               "iconUrl": "",
                               "name": "Link",
@@ -3714,7 +3714,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     }
                                   }
                                 >
-                                  $NaN
+                                  $0.00
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -3979,7 +3979,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     }
                                   }
                                 >
-                                  $NaN
+                                  $0.00
                                 </Text>
                               </View>
                             </TouchableOpacity>
