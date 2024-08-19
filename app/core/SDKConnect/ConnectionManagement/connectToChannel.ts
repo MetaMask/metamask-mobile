@@ -15,6 +15,7 @@ import DevLogger from '../utils/DevLogger';
 import { SDKConnect } from './../SDKConnect';
 import { wait } from '../utils/wait.util';
 import Logger from '../../../util/Logger';
+import AppConstants from '../../AppConstants';
 
 async function connectToChannel({
   id,
@@ -181,9 +182,15 @@ async function connectToChannel({
         type: MessageType.WALLET_INIT,
         data,
       });
-      DevLogger.log(`send account / chainId to dapp - done`);
+      DevLogger.log(
+        `send account / chainId to dapp - done - trigger: ${connected.trigger}`,
+      );
 
-      if (initialConnection) {
+      if (
+        initialConnection &&
+        connected.trigger === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK &&
+        connected.origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
+      ) {
         await wait(100); // Add delay for connect modal to be fully closed
         await instance.updateSDKLoadingState({ channelId: id, loading: false });
         if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
