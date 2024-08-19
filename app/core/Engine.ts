@@ -1762,11 +1762,17 @@ class Engine {
       TokenBalancesController,
       TokenRatesController,
       PermissionController,
+      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+      SnapController,
+      ///: END:ONLY_INCLUDE_IF
       LoggingController,
     } = this.context;
 
     // Remove all permissions.
     PermissionController?.clearState?.();
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    SnapController.clearState();
+    ///: END:ONLY_INCLUDE_IF
 
     //Clear assets info
     TokensController.update({
@@ -1842,7 +1848,6 @@ class Engine {
     requestData?: Record<string, Json>,
     opts: AcceptOptions & { handleErrors?: boolean } = {
       waitForResult: false,
-      deleteAfterResult: false,
       handleErrors: true,
     },
   ) {
@@ -1851,7 +1856,6 @@ class Engine {
     try {
       return await ApprovalController.accept(id, requestData, {
         waitForResult: opts.waitForResult,
-        deleteAfterResult: opts.deleteAfterResult,
       });
     } catch (err) {
       if (opts.handleErrors === false) {
