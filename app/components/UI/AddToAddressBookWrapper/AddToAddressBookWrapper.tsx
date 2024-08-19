@@ -44,9 +44,10 @@ export const AddToAddressBookWrapper = ({
   const styles = createStyles(colors);
 
   const onSaveToAddressBook = () => {
+    if (!alias) return;
     const { AddressBookController } = Engine.context;
     AddressBookController.set(address, alias, chainId);
-    !!alias && setToAddressName?.(alias);
+    setToAddressName?.(alias);
     setAlias(undefined);
   };
 

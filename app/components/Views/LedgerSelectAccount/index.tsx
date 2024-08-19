@@ -174,7 +174,9 @@ const LedgerSelectAccount = () => {
             setForgetDevice(true);
             setBlockingModalVisible(true);
           }}
-          title={strings('connect_qr_hardware.select_accounts')}
+          title={strings('ledger.select_accounts')}
+          subMsg={strings('ledger.select_accounts_sub_msg')}
+          warningMsg={strings('ledger.select_accounts_warning')}
         />
       </View>
       <BlockingActionModal
