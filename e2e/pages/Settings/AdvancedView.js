@@ -4,27 +4,17 @@ import Matchers from '../../utils/Matchers';
 
 class AdvancedSettingsView {
   async tapEthSignSwitch() {
-    if (device.getPlatform() === 'android') {
-      await Gestures.swipe(
-        Matchers.getElementByLabel('Show Hex Data'),
-        'up',
-        'slow',
-        0.5
-      );
-      await Gestures.waitAndTap(
-        Matchers.getElementByID(AdvancedViewSelectorsIDs.ETH_SIGN_SWITCH)
-      );
-    } else {
-      await Gestures.swipe(
-        Matchers.getElementByID(AdvancedViewSelectorsIDs.CONTAINER),
-        'up',
-        'slow',
-        0.2
-      );
-      await Gestures.waitAndTap(
-        Matchers.getElementByID(AdvancedViewSelectorsIDs.ETH_SIGN_SWITCH)
-      );
-    }
+    // Add delay
+    await new Promise(resolve => setTimeout(resolve, 2500));
+
+    // Scroll to the element
+    await Gestures.scrollToElement(
+      this.ethSignSwitch,
+      this.scrollViewIdentifier
+    );
+
+    // Wait and tap the element
+    await Gestures.waitAndTap(this.ethSignSwitch);
   }
 
   get scrollViewIdentifier() {
