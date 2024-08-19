@@ -724,11 +724,15 @@ export function weiToIntlDenomination(
   conversionRate = null,
   decimalsToShow = 5,
 ) {
+  console.log('THIS ONE IS FAILING');
   if (!conversionRate) return undefined;
   if (!wei || !isBN(wei) || !conversionRate) {
     return addCurrencySymbol(0, currencyCode);
   }
   const value = weiToFiatNumber(wei, conversionRate, decimalsToShow);
+  if (isNaN(value) || isNaN(decimalsToShow)) {
+    return value;
+  }
   return renderIntlDenomination(value, currencyCode);
 }
 
@@ -746,6 +750,9 @@ export function renderIntlDenomination(
   currencyCode,
   decimalsToShow = 5,
 ) {
+  if (isNaN(value) || isNaN(decimalsToShow)) {
+    return value;
+  }
   const supportedFiatCurrency = currencySymbols[currencyCode.toLowerCase()];
   const lowestDenomination = currencyDenominations[currencyCode.toLowerCase()];
 

@@ -39,7 +39,7 @@ const initialState = {
             decimals: 18,
             isETH: true,
 
-            balanceFiat: 0.001,
+            balanceFiat: '< $0.01',
             iconUrl: '',
           },
           {
@@ -47,7 +47,7 @@ const initialState = {
             symbol: 'BAT',
             address: '0x01',
             decimals: 18,
-            balanceFiat: 0,
+            balanceFiat: '$0',
             iconUrl: '',
           },
           {
@@ -55,7 +55,7 @@ const initialState = {
             symbol: 'LINK',
             address: '0x02',
             decimals: 18,
-            balanceFiat: 0,
+            balanceFiat: '$0',
             iconUrl: '',
           },
         ],
