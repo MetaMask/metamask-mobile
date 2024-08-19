@@ -1,12 +1,16 @@
-import { renderScreen } from '../../../../util/test/renderWithProvider';
+import {
+  DeepPartial,
+  renderScreen,
+} from '../../../../util/test/renderWithProvider';
 import Send from '.';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_1,
 } from '../../../../util/test/accountsControllerTestUtils';
 import { MOCK_KEYRING_CONTROLLER } from '../../../../selectors/keyringController/testUtils';
+import { RootState } from '../../../../reducers';
 
-const initialState = {
+const initialState: DeepPartial<RootState> = {
   transaction: {
     transaction: {
       value: '',
@@ -40,9 +44,6 @@ const initialState = {
             },
           },
         },
-        _U: 0,
-        _V: 1,
-        _X: null,
       },
       AddressBookController: {
         addressBook: {},
@@ -51,7 +52,7 @@ const initialState = {
         contractBalances: {},
       },
       TokenListController: {
-        tokenList: [],
+        tokenList: { '0x1': {} },
       },
       PreferencesController: {
         featureFlags: {},
@@ -67,51 +68,30 @@ const initialState = {
           eth_sign: false,
         },
         showTestNetworks: true,
-        _U: 0,
-        _V: 1,
-        _W: {
-          featureFlags: {},
-          frequentRpcList: [],
-          ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',
-          lostIdentities: {},
-          selectedAddress: MOCK_ADDRESS_1,
-          useTokenDetection: true,
-          useNftDetection: false,
-          displayNftMedia: true,
-          useSafeChainsListValidation: false,
-          isMultiAccountBalancesEnabled: true,
-          disabledRpcMethodPreferences: {
-            eth_sign: false,
-          },
-          showTestNetworks: true,
-          showIncomingTransactions: {
-            '0x1': true,
-            '0x5': true,
-            '0x38': true,
-            '0x61': true,
-            '0xa': true,
-            '0xa869': true,
-            '0x1a4': true,
-            '0x89': true,
-            '0x13881': true,
-            '0xa86a': true,
-            '0xfa': true,
-            '0xfa2': true,
-            '0xaa36a7': true,
-            '0xe704': true,
-            '0xe708': true,
-            '0x504': true,
-            '0x507': true,
-            '0x505': true,
-            '0x64': true,
-          },
+        showIncomingTransactions: {
+          '0x1': true,
+          '0x5': true,
+          '0x38': true,
+          '0x61': true,
+          '0xa': true,
+          '0xa869': true,
+          '0x89': true,
+          '0x13881': true,
+          '0xa86a': true,
+          '0xfa': true,
+          '0xfa2': true,
+          '0xaa36a7': true,
+          '0xe704': true,
+          '0xe708': true,
+          '0x504': true,
+          '0x507': true,
+          '0x505': true,
+          '0x64': true,
         },
-        _X: null,
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       KeyringController: MOCK_KEYRING_CONTROLLER,
       NetworkController: {
-        network: '1',
         providerConfig: {
           ticker: 'ETH',
           type: 'mainnet',
@@ -127,8 +107,6 @@ const initialState = {
       TransactionController: {
         methodData: {},
         transactions: [],
-        internalTransactions: [],
-        swapsTransactions: {},
       },
       SmartTransactionsController: {
         smartTransactionsState: {

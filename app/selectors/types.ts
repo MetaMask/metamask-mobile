@@ -16,7 +16,7 @@ import { BaseState } from '@metamask/base-controller';
 import { KeyringControllerMemState } from '@metamask/keyring-controller';
 import { PreferencesState } from '@metamask/preferences-controller';
 import { PhishingControllerState } from '@metamask/phishing-controller';
-import { TransactionState } from '@metamask/transaction-controller';
+import { TransactionControllerState } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import { PPOMState } from '@metamask/ppom-validator';
 import { ApprovalControllerState } from '@metamask/approval-controller';
@@ -40,7 +40,7 @@ export interface EngineState {
       PPOMController: PPOMState;
       TokenBalancesController: TokenBalancesControllerState;
       TokenRatesController: TokenRatesState;
-      TransactionController: TransactionState;
+      TransactionController: TransactionControllerState;
       SwapsController: SwapsController;
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController: SnapController;
