@@ -224,7 +224,7 @@ describe('Tokens', () => {
                 symbol: 'LINK',
                 address: '0x02',
                 decimals: 18,
-                balanceFiat: 0,
+                balanceFiat: '$0',
                 iconUrl: '',
               },
             ],

@@ -877,7 +877,21 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   }
                                 }
                               >
-                                NaN
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                   ETH
+                                </Text>
                                 <Text
                                   accessibilityRole="text"
                                   style={
@@ -893,7 +907,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     }
                                   }
                                 >
-                                   ETH
+                                  &lt; $0.01
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -1128,7 +1142,21 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   }
                                 }
                               >
-                                NaN
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  &lt; 0.00001 BAT
+                                </Text>
                                 <Text
                                   accessibilityRole="text"
                                   style={
@@ -1144,7 +1172,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     }
                                   }
                                 >
-                                  &lt; 0.00001 BAT
+                                  &lt; $0.01
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -2116,7 +2144,21 @@ exports[`Tokens should render correctly 1`] = `
                                   }
                                 }
                               >
-                                NaN
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                   ETH
+                                </Text>
                                 <Text
                                   accessibilityRole="text"
                                   style={
@@ -2132,7 +2174,7 @@ exports[`Tokens should render correctly 1`] = `
                                     }
                                   }
                                 >
-                                   ETH
+                                  &lt; $0.01
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -2367,7 +2409,21 @@ exports[`Tokens should render correctly 1`] = `
                                   }
                                 }
                               >
-                                NaN
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  &lt; 0.00001 BAT
+                                </Text>
                                 <Text
                                   accessibilityRole="text"
                                   style={
@@ -2383,7 +2439,7 @@ exports[`Tokens should render correctly 1`] = `
                                     }
                                   }
                                 >
-                                  &lt; 0.00001 BAT
+                                  &lt; $0.01
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -3363,7 +3419,21 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   }
                                 }
                               >
-                                NaN
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                   ETH
+                                </Text>
                                 <Text
                                   accessibilityRole="text"
                                   style={
@@ -3379,7 +3449,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     }
                                   }
                                 >
-                                   ETH
+                                  &lt; $0.01
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -3614,7 +3684,21 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   }
                                 }
                               >
-                                NaN
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  &lt; 0.00001 BAT
+                                </Text>
                                 <Text
                                   accessibilityRole="text"
                                   style={
@@ -3630,7 +3714,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     }
                                   }
                                 >
-                                  &lt; 0.00001 BAT
+                                  &lt; $0.01
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -3865,7 +3949,21 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   }
                                 }
                               >
-                                NaN
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  0 LINK
+                                </Text>
                                 <Text
                                   accessibilityRole="text"
                                   style={
@@ -3881,7 +3979,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     }
                                   }
                                 >
-                                  0 LINK
+                                  &lt; $0.01
                                 </Text>
                               </View>
                             </TouchableOpacity>

@@ -15,6 +15,7 @@ import {
   renderFromTokenMinimalUnit,
   balanceToFiatNumber,
   renderIntlDenomination,
+  addCurrencySymbol,
 } from '../../../util/number';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
@@ -349,10 +350,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         balanceToFiatNumber(balance, conversionRate, tokenMarketData.price),
     );
 
-    const balanceFiat = renderIntlDenomination(
-      balanceFiatCalculation,
-      currentCurrency,
-    );
+    const balanceFiat =
+      balanceFiatCalculation >= 0.01 || balanceFiatCalculation === 0
+        ? renderIntlDenomination(balanceFiatCalculation, currentCurrency)
+        : `< ${addCurrencySymbol('0.01', currentCurrency)}`;
 
     return { balanceFiat, balanceValueFormatted };
   };
