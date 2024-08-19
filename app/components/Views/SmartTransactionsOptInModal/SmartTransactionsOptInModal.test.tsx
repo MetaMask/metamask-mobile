@@ -30,7 +30,7 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 const VERSION = '1.0.0';
-jest.mock('../../../store/async-storage-wrapper', () => ({
+jest.mock('../../../store/storage-wrapper', () => ({
   getItem: jest.fn(() => VERSION),
   setItem: jest.fn(),
   removeItem: jest.fn(),

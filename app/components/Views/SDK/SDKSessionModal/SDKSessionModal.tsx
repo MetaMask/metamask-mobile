@@ -2,8 +2,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 // External dependencies
-import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
-import { ThemeTypography } from '@metamask/design-tokens/dist/js/typography';
+import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
+import type { ThemeTypography } from '@metamask/design-tokens/dist/types/js/typography';
 import { useNavigation } from '@react-navigation/native';
 import { StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -33,6 +33,7 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
+import { selectPermissionControllerState } from '../../../../selectors/snaps/permissionController';
 
 const createStyles = (
   _colors: ThemeColors,
@@ -91,11 +92,7 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography, safeAreaInsets);
   const { navigate } = useNavigation();
-  const permittedAccountsList = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.engine.backgroundState.PermissionController,
-  );
+  const permittedAccountsList = useSelector(selectPermissionControllerState);
 
   const [permittedAccountsAddresses, setPermittedAccountsAddresses] = useState<
     string[]

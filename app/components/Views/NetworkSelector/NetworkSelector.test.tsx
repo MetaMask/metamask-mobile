@@ -1,7 +1,7 @@
 // Third party dependencies
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 // External dependencies
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
@@ -9,9 +9,9 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 
 // Internal dependencies
 import NetworkSelector from './NetworkSelector';
-import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkListModal.selectors';
-
+import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 const mockEngine = Engine;
 
 const setShowTestNetworksSpy = jest.spyOn(
@@ -19,15 +19,28 @@ const setShowTestNetworksSpy = jest.spyOn(
   'setShowTestNetworks',
 );
 
+// Mock the entire module
+jest.mock('../../../util/networks/isNetworkUiRedesignEnabled', () => ({
+  isNetworkUiRedesignEnabled: jest.fn(),
+}));
+
+jest.mock('../../../util/transaction-controller', () => ({
+  updateIncomingTransactions: jest.fn(),
+}));
+
 jest.mock('../../../core/Engine', () => ({
   init: () => mockEngine.init({}),
   getTotalFiatAccountBalance: jest.fn(),
   context: {
-    NetworkController: { setActiveNetwork: jest.fn() },
+    NetworkController: {
+      setActiveNetwork: jest.fn(),
+      setProviderType: jest.fn(),
+    },
     PreferencesController: {
       setShowTestNetworks: jest.fn(),
     },
     CurrencyRateController: { updateExchangeRate: jest.fn() },
+    AccountTrackerController: { refresh: jest.fn() },
   },
 }));
 
@@ -124,11 +137,13 @@ const renderComponent = (state: any = {}) =>
 
 describe('Network Selector', () => {
   it('renders correctly', () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
     const { toJSON } = renderComponent(initialState);
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('changes network when another network cell is pressed', async () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
     const { getByText } = renderComponent(initialState);
     const polygonCell = getByText('Polygon Mainnet');
 
@@ -136,7 +151,9 @@ describe('Network Selector', () => {
 
     expect(mockEngine.context.NetworkController.setActiveNetwork).toBeCalled();
   });
+
   it('toggles the test networks switch correctly', () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
     const { getByTestId } = renderComponent(initialState);
     const testNetworksSwitch = getByTestId(
       NetworkListModalSelectorsIDs.TEST_NET_TOGGLE,
@@ -146,7 +163,9 @@ describe('Network Selector', () => {
 
     expect(setShowTestNetworksSpy).toBeCalled();
   });
+
   it('toggle test network is disabled and is on when a testnet is selected', () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
     const { getByTestId } = renderComponent({
       navigation: { currentBottomNavRoute: 'Wallet' },
       settings: {
@@ -173,5 +192,85 @@ describe('Network Selector', () => {
 
     expect(testNetworksSwitch.props.value).toBeTruthy();
     expect(testNetworksSwitch.props.disabled).toBeTruthy();
+  });
+  it('changes to non infura network when another network cell is pressed', async () => {
+    const { getByText } = renderComponent(initialState);
+    const gnosisCell = getByText('Gnosis Chain');
+
+    fireEvent.press(gnosisCell);
+
+    expect(mockEngine.context.NetworkController.setActiveNetwork).toBeCalled();
+  });
+
+  it('changes to test network when another network cell is pressed', async () => {
+    const { getByText } = renderComponent({
+      navigation: { currentBottomNavRoute: 'Wallet' },
+      settings: {
+        primaryCurrency: 'usd',
+      },
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          PreferencesController: {
+            showTestNetworks: true,
+          },
+        },
+      },
+    });
+
+    const sepoliaCell = getByText('Sepolia');
+
+    fireEvent.press(sepoliaCell);
+
+    expect(mockEngine.context.NetworkController.setActiveNetwork).toBeCalled();
+  });
+  it('renders correctly with no network configurations', async () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    const stateWithNoNetworkConfigurations = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          NetworkController: {
+            ...initialState.engine.backgroundState.NetworkController,
+            networkConfigurations: {},
+          },
+        },
+      },
+    };
+
+    const { getByText } = renderComponent(stateWithNoNetworkConfigurations);
+
+    await waitFor(() => {
+      const mainnetCell = getByText('Ethereum Main Network');
+      expect(mainnetCell).toBeTruthy();
+    });
+  });
+
+  it('renders the multi-RPC selection modal correctly', async () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    const { getByText } = renderComponent(initialState);
+    const polygonCell = getByText('Polygon Mainnet');
+
+    fireEvent.press(polygonCell);
+
+    // Assuming the modal opens after a slight delay
+    await waitFor(() => {
+      const rpcOption = getByText('polygon-mainnet.infura.io/v3');
+      expect(rpcOption).toBeTruthy();
+    });
+  });
+
+  it('switches RPC URL when a different RPC URL is selected', async () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    const { getByText } = renderComponent(initialState);
+    const polygonCell = getByText('Polygon Mainnet');
+
+    fireEvent.press(polygonCell);
+
+    await waitFor(() => {
+      const rpcOption = getByText('polygon-mainnet.infura.io/v3');
+      fireEvent.press(rpcOption);
+    });
   });
 });

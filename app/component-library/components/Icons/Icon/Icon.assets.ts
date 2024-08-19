@@ -142,7 +142,7 @@ import Square from './assets/square.svg';
 import Star from './assets/star.svg';
 import Student from './assets/student.svg';
 import SwapHorizontal from './assets/swap-horizontal.svg';
-import SwapVertival from './assets/swap-vertival.svg';
+import SwapVertical from './assets/swap-vertical.svg';
 import Tag from './assets/tag.svg';
 import Tilde from './assets/tilde.svg';
 import Timer from './assets/timer.svg';
@@ -310,7 +310,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Star]: Star,
   [IconName.Student]: Student,
   [IconName.SwapHorizontal]: SwapHorizontal,
-  [IconName.SwapVertival]: SwapVertival,
+  [IconName.SwapVertical]: SwapVertical,
   [IconName.Tag]: Tag,
   [IconName.Tilde]: Tilde,
   [IconName.Timer]: Timer,
