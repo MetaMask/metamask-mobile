@@ -1,50 +1,60 @@
-import TestHelpers from '../../helpers';
 import { AdvancedViewSelectorsIDs } from '../../selectors/Settings/AdvancedView.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 
-export default class AdvancedSettingsView {
-  static async tapEthSignSwitch() {
-    await TestHelpers.delay(2500);
-
+class AdvancedSettingsView {
+  async tapEthSignSwitch() {
     if (device.getPlatform() === 'android') {
-      await TestHelpers.swipeByLabel('Show Hex Data', 'up', 'slow', 0.5);
-      await TestHelpers.delay(2500);
-
-      await TestHelpers.waitAndTap(AdvancedViewSelectorsIDs.ETH_SIGN_SWITCH);
-    } else {
-      await TestHelpers.swipe(
-        AdvancedViewSelectorsIDs.CONTAINER,
+      await Gestures.swipe(
+        Matchers.getElementByLabel('Show Hex Data'),
         'up',
         'slow',
-        0.2,
+        0.5
       );
-      await TestHelpers.waitAndTap(AdvancedViewSelectorsIDs.ETH_SIGN_SWITCH);
+      await Gestures.waitAndTap(
+        Matchers.getElementByID(AdvancedViewSelectorsIDs.ETH_SIGN_SWITCH)
+      );
+    } else {
+      await Gestures.swipe(
+        Matchers.getElementByID(AdvancedViewSelectorsIDs.CONTAINER),
+        'up',
+        'slow',
+        0.2
+      );
+      await Gestures.waitAndTap(
+        Matchers.getElementByID(AdvancedViewSelectorsIDs.ETH_SIGN_SWITCH)
+      );
     }
   }
 
-  static get scrollViewIdentifier() {
+  get scrollViewIdentifier() {
     return Matchers.getIdentifier(
-      AdvancedViewSelectorsIDs.ADVANCED_SETTINGS_SCROLLVIEW,
+      AdvancedViewSelectorsIDs.ADVANCED_SETTINGS_SCROLLVIEW
     );
   }
 
-  static get showFiatOnTestnetsToggle() {
+  get showFiatOnTestnetsToggle() {
     return Matchers.getElementByID(
-      AdvancedViewSelectorsIDs.SHOW_FIAT_ON_TESTNETS,
+      AdvancedViewSelectorsIDs.SHOW_FIAT_ON_TESTNETS
     );
   }
 
-  static async tapShowFiatOnTestnetsSwitch() {
-    await TestHelpers.waitAndTap(
-      AdvancedViewSelectorsIDs.SHOW_FIAT_ON_TESTNETS,
+  get ethSignSwitch() {
+    return Matchers.getElementByID(AdvancedViewSelectorsIDs.ETH_SIGN_SWITCH);
+  }
+
+  async tapShowFiatOnTestnetsSwitch() {
+    await Gestures.waitAndTap(
+      this.showFiatOnTestnetsToggle
     );
   }
 
-  static async scrollToShowFiatOnTestnetsToggle() {
+  async scrollToShowFiatOnTestnetsToggle() {
     await Gestures.scrollToElement(
       this.showFiatOnTestnetsToggle,
-      this.scrollViewIdentifier,
+      this.scrollViewIdentifier
     );
   }
 }
+
+export default new AdvancedSettingsView();
