@@ -755,7 +755,7 @@ PODS:
     - React-RCTText
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNScreens (3.22.0):
+  - RNScreens (3.19.0):
     - React-Core
     - React-RCTImage
   - RNSensors (5.3.0):

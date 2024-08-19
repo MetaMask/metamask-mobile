@@ -39,6 +39,15 @@ class EngineService {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private updateControllers = (store: any, engine: any) => {
+    if (!engine.context) {
+      Logger.error(
+        new Error(
+          'Engine context does not exists. Redux will not be updated from controller state updates!',
+        ),
+      );
+      return;
+    }
+
     const controllers = [
       { name: 'AddressBookController' },
       { name: 'AssetsContractController' },

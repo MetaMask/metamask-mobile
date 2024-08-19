@@ -72,7 +72,7 @@ const createStyles = (colors: ThemeColors) =>
     error: {
       ...fontStyles.normal,
       fontSize: 14,
-      color: colors.error,
+      color: colors.error.default,
     },
     text: {
       color: colors.text.default,
@@ -322,10 +322,12 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   }, [KeyringController, navigation, resetError]);
 
   const renderAlert = () =>
-    errorMsg !== '' && (
+    errorMsg !== '' ? (
       <Alert type={AlertType.Error} onPress={resetError}>
         <Text style={styles.error}>{errorMsg}</Text>
       </Alert>
+    ) : (
+      <></>
     );
 
   return (
