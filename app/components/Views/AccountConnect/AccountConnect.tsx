@@ -235,15 +235,18 @@ const AccountConnect = (props: AccountConnectProps) => {
     inappBrowserOrigin || (!isChannelId ? channelIdOrHostname : ''),
   );
 
-  const actualIcon = useMemo(
-    () =>
-      faviconSource?.uri
-        ? faviconSource
-        : dappIconUrl
-        ? { uri: dappIconUrl }
-        : { uri: '' },
-    [dappIconUrl, faviconSource],
-  );
+  const actualIcon = useMemo(() => {
+    // Priority to dappIconUrl
+    if (dappIconUrl) {
+      return { uri: dappIconUrl };
+    }
+
+    if (faviconSource?.uri) {
+      return faviconSource;
+    }
+
+    return { uri: '' };
+  }, [dappIconUrl, faviconSource]);
 
   const secureIcon = useMemo(
     () =>
