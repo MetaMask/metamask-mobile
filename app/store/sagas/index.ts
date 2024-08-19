@@ -11,6 +11,7 @@ import {
   LOGIN,
 } from '../../actions/user';
 import { Task } from 'redux-saga';
+import HeartService from '../../core/HeartService';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import LockManagerService from '../../core/LockManagerService';
@@ -53,6 +54,10 @@ export function* authStateMachine() {
     yield take(LOGIN);
     const appLockStateMachineTask: Task<void> = yield fork(appLockStateMachine);
     LockManagerService.startListening();
+    console.log('LOGGED IN');
+    const reduxState = HeartService.store.getState?.();
+    const state = reduxState?.engine?.backgroundState || {};
+    Engine.init(state, HeartService.context);
     // Listen to app lock behavior.
     yield take(LOGOUT);
     LockManagerService.stopListening();

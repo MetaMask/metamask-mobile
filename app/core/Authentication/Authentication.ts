@@ -1,5 +1,6 @@
 import SecureKeychain from '../SecureKeychain';
-import Engine from '../Engine';
+import Engine from '../HeartService';
+// import Engine from '../Engine';
 import {
   EXISTING_USER,
   BIOMETRY_CHOICE_DISABLED,

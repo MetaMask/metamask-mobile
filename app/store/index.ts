@@ -4,7 +4,8 @@ import { persistStore, persistReducer } from 'redux-persist';
 import createSagaMiddleware from 'redux-saga';
 import { rootSaga } from './sagas';
 import rootReducer, { RootState } from '../reducers';
-import EngineService from '../core/EngineService';
+// import EngineService from '../core/EngineService';
+import HeartService from '../core/HeartService';
 import { Authentication } from '../core';
 import LockManagerService from '../core/LockManagerService';
 import ReadOnlyNetworkStore from '../util/test/network-store';
@@ -66,7 +67,8 @@ const createStoreAndPersistor = async () => {
       basicFunctionalityEnabled:
         store.getState().settings.basicFunctionalityEnabled,
     });
-    EngineService.initalizeEngine(store);
+    HeartService.initialize(store);
+    // EngineService.initalizeEngine(store);
     Authentication.init(store);
     LockManagerService.init(store);
   };

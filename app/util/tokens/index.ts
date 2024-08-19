@@ -3,7 +3,7 @@ import { TokenListMap } from '@metamask/assets-controllers';
 /**
  * Convert token list object to token list array
  */
-export const tokenListToArray = (tokenList: TokenListMap) =>
+export const tokenListToArray = (tokenList: TokenListMap = {}) =>
   Object.values(tokenList).map((tokenData) => tokenData);
 
 /**

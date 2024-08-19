@@ -439,9 +439,10 @@ class Engine {
   // eslint-disable-next-line @typescript-eslint/default-param-last
   constructor(
     initialState: Partial<EngineState> = {},
-    initialKeyringState?: KeyringControllerState | null,
+    heartContext: Record<string, any>,
+    // initialKeyringState?: KeyringControllerState | null,
   ) {
-    this.controllerMessenger = new ExtendedControllerMessenger();
+    this.controllerMessenger = heartContext.ControllerMessenger; //new ExtendedControllerMessenger();
 
     /**
      * Subscribes a listener to the state change events of Preferences Controller.
@@ -474,22 +475,7 @@ class Engine {
       ],
     });
 
-    const preferencesController = new PreferencesController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'PreferencesController',
-        allowedActions: [],
-        allowedEvents: ['KeyringController:stateChange'],
-      }),
-      state: {
-        ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL,
-        useTokenDetection:
-          initialState?.PreferencesController?.useTokenDetection ?? true,
-        useNftDetection: true, // set this to true to enable nft detection by default to new users
-        displayNftMedia: true,
-        securityAlertsEnabled: true,
-        ...initialState.PreferencesController,
-      },
-    });
+    const preferencesController = heartContext.PreferencesController;
 
     const networkControllerOpts = {
       infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
@@ -690,32 +676,7 @@ class Engine {
     });
     phishingController.maybeUpdateState();
 
-    const qrKeyringBuilder = () => {
-      const keyring = new QRHardwareKeyring();
-      // to fix the bug in #9560, forgetDevice will reset all keyring properties to default.
-      keyring.forgetDevice();
-      return keyring;
-    };
-    qrKeyringBuilder.type = QRHardwareKeyring.type;
-
-    const bridge = new LedgerMobileBridge(new LedgerTransportMiddleware());
-    const ledgerKeyringBuilder = () => new LedgerKeyring({ bridge });
-    ledgerKeyringBuilder.type = LedgerKeyring.type;
-
-    const keyringController = new KeyringController({
-      removeIdentity: preferencesController.removeIdentity.bind(
-        preferencesController,
-      ),
-      encryptor,
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'KeyringController',
-        allowedActions: [],
-        allowedEvents: [],
-      }),
-      state: initialKeyringState || initialState.KeyringController,
-      // @ts-expect-error To Do: Update the type of QRHardwareKeyring to Keyring<Json>
-      keyringBuilders: [qrKeyringBuilder, ledgerKeyringBuilder],
-    });
+    const keyringController = heartContext.KeyringController;
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     /**
@@ -1935,6 +1896,7 @@ let instance: Engine | null;
 
 export default {
   get context() {
+    console.log('GET CONTEXT');
     assertEngineExists(instance);
     return instance.context;
   },
@@ -2050,8 +2012,11 @@ export default {
     instance = null;
   },
 
-  init(state: Record<string, never> | undefined, keyringState = null) {
-    instance = Engine.instance || new Engine(state, keyringState);
+  init(
+    state: Record<string, never> | undefined,
+    heartContext: Record<string, any>,
+  ) {
+    instance = Engine.instance || new Engine(state, heartContext);
     Object.freeze(instance);
     return instance;
   },
