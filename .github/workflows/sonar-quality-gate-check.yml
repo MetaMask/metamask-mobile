@@ -1,6 +1,8 @@
 name: Check SonarCloud Quality Gate Comment
 
 on:
+  push:
+    branches: 10689-enable-merge-queues-gh-action-to-check-for-passfail-sonarquality-gate
   pull_request:
     types: [opened, synchronize, reopened]
   issue_comment:
