@@ -432,7 +432,7 @@ describe('network-utils', () => {
         }
       }
 
-      const layer1GasFee = await fetchEstimatedMultiLayerL1Fee(txMeta);
+      const layer1GasFee = await fetchEstimatedMultiLayerL1Fee({}, txMeta);
 
       expect(layer1GasFee.startsWith('0x')).toEqual(false);
       expect(layer1GasFee).toEqual('0a25339d61');
