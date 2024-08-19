@@ -85,6 +85,7 @@ import {
 import { selectTokenList } from '../../../../../selectors/tokenListController';
 import { selectTokensLength } from '../../../../../selectors/tokensController';
 import { selectAccountsLength } from '../../../../../selectors/accountTrackerController';
+import { selectCurrentTransactionSecurityAlertResponse } from '../../../../../selectors/confirmTransaction';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -283,6 +284,10 @@ class ApproveTransactionReview extends PureComponent {
      * Boolean that indicates if smart transaction should be used
      */
     shouldUseSmartTransaction: PropTypes.bool,
+    /**
+     * Object containing blockaid validation response for confirmation
+     */
+    securityAlertResponse: PropTypes.object,
   };
 
   state = {
@@ -731,10 +736,8 @@ class ApproveTransactionReview extends PureComponent {
   };
 
   getConfirmButtonState() {
-    const { transaction } = this.props;
-    const { id, transactionSecurityAlertResponses } = transaction;
+    const { securityAlertResponse } = this.props;
     let confirmButtonState = ConfirmButtonState.Normal;
-    const securityAlertResponse = transactionSecurityAlertResponses?.[id];
 
     if (securityAlertResponse) {
       if (securityAlertResponse.result_type === ResultType.Malicious) {
@@ -1298,6 +1301,7 @@ const mapStateToProps = (state) => ({
     getRampNetworks(state),
   ),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+  securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

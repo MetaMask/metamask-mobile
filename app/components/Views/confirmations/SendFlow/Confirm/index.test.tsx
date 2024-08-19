@@ -53,7 +53,7 @@ const mockInitialState = {
     showHexData: true,
   },
   transaction: {
-    transactionSecurityAlertResponses: {
+    securityAlertResponses: {
       1: {
         result_type: 'Malicious',
         reason: 'blur_farming',

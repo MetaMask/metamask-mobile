@@ -10,7 +10,10 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import AppConstants from '../../../../../core/AppConstants';
 import Engine from '../../../../../core/Engine';
 import { SDKConnect } from '../../../../../core/SDKConnect/SDKConnect';
-import { selectCurrentTransactionMetadata } from '../../../../../selectors/confirmTransaction';
+import {
+  selectCurrentTransactionMetadata,
+  selectCurrentTransactionSecurityAlertResponse,
+} from '../../../../../selectors/confirmTransaction';
 import {
   selectConversionRate,
   selectCurrentCurrency,
@@ -269,6 +272,10 @@ class TransactionReview extends PureComponent {
      * Boolean that indicates if transaction simulations should be enabled
      */
     useTransactionSimulations: PropTypes.bool,
+    /**
+     * Object containing blockaid validation response for confirmation
+     */
+    securityAlertResponse: PropTypes.object,
   };
 
   state = {
@@ -358,10 +365,7 @@ class TransactionReview extends PureComponent {
   };
 
   onContactUsClicked = () => {
-    const { transaction, metrics } = this.props;
-    const { id, transactionSecurityAlertResponses } = transaction;
-    const securityAlertResponse = transactionSecurityAlertResponses?.[id];
-
+    const { securityAlertResponse, metrics } = this.props;
     const additionalParams = {
       ...getBlockaidMetricsParams(securityAlertResponse),
       external_link_clicked: 'security_alert_support_link',
@@ -472,10 +476,8 @@ class TransactionReview extends PureComponent {
   }
 
   getConfirmButtonState() {
-    const { transaction } = this.props;
-    const { id, transactionSecurityAlertResponses } = transaction;
+    const { securityAlertResponse } = this.props;
     let confirmButtonState = ConfirmButtonState.Normal;
-    const securityAlertResponse = transactionSecurityAlertResponses?.[id];
 
     if (securityAlertResponse) {
       if (securityAlertResponse?.result_type === ResultType.Malicious) {
@@ -702,6 +704,7 @@ const mapStateToProps = (state) => ({
   transactionSimulationData:
     selectCurrentTransactionMetadata(state)?.simulationData,
   useTransactionSimulations: selectUseTransactionSimulations(state),
+  securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
 });
 
 TransactionReview.contextType = ThemeContext;

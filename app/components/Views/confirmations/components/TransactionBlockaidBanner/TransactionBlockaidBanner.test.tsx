@@ -31,7 +31,7 @@ const mockState = {
     },
   },
   transaction: {
-    transactionSecurityAlertResponses: {
+    securityAlertResponses: {
       123: {
         result_type: ResultType.Warning,
         reason: Reason.approvalFarming,
@@ -65,14 +65,14 @@ describe('TransactionBlockaidBanner', () => {
     expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
   });
 
-  it('should not render if transactionSecurityAlertResponses.id is undefined', async () => {
+  it('should not render if securityAlertResponses.id is undefined', async () => {
     const wrapper = renderWithProvider(
       <TransactionBlockaidBanner transactionId="123" />,
       {
         state: {
           ...mockState,
           transaction: {
-            transactionSecurityAlertResponses: {},
+            securityAlertResponses: {},
           },
         },
       },

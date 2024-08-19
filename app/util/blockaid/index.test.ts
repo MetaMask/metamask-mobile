@@ -51,7 +51,7 @@ describe('Blockaid util', () => {
         txParams: {
           from: '0x1',
         },
-        transactionSecurityAlertResponses: {
+        securityAlertResponses: {
           2: {
             result_type: ResultType.Malicious,
             reason: Reason.notApplicable,
@@ -77,7 +77,7 @@ describe('Blockaid util', () => {
         txParams: {
           from: '0x1',
         },
-        transactionSecurityAlertResponses: {
+        securityAlertResponses: {
           1: {
             result_type: ResultType.Malicious,
             reason: Reason.notApplicable,

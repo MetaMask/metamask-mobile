@@ -161,7 +161,7 @@ jest.mock('react-redux', () => {
         ...mockState,
         transaction: {
           ...mockState.transaction,
-          transactionSecurityAlertResponses: {
+          securityAlertResponses: {
             123: securityAlertResponse,
           },
         },
@@ -233,7 +233,7 @@ describe('TransactionReview', () => {
             ...mockState.transaction,
             id: '123',
             securityAlertResponse,
-            transactionSecurityAlertResponses: {
+            securityAlertResponses: {
               123: securityAlertResponse,
             },
           },

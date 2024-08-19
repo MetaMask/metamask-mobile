@@ -114,6 +114,7 @@ import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics
 import {
   selectTransactionGasFeeEstimates,
   selectCurrentTransactionMetadata,
+  selectCurrentTransactionSecurityAlertResponse,
 } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
@@ -265,6 +266,10 @@ class Confirm extends PureComponent {
      * Indicates whether the transaction simulations feature is enabled
      */
     useTransactionSimulations: PropTypes.bool,
+    /**
+     * Object containing blockaid validation response for confirmation
+     */
+    securityAlertResponse: PropTypes.object,
   };
 
   state = {
@@ -1172,11 +1177,9 @@ class Confirm extends PureComponent {
   };
 
   getConfirmButtonStyles() {
-    const { transaction } = this.props;
-    const { transactionSecurityAlertResponses, id } = transaction;
+    const { securityAlertResponse } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-    const securityAlertResponse = transactionSecurityAlertResponses?.[id];
 
     let confirmButtonStyle = {};
     if (securityAlertResponse) {
@@ -1477,6 +1480,7 @@ const mapStateToProps = (state) => ({
   transactionSimulationData:
     selectCurrentTransactionMetadata(state)?.simulationData,
   useTransactionSimulations: selectUseTransactionSimulations(state),
+  securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

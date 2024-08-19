@@ -28,7 +28,7 @@ const initialState = {
   type: undefined,
   proposedNonce: undefined,
   nonce: undefined,
-  transactionSecurityAlertResponses: {},
+  securityAlertResponses: {},
 };
 
 const getAssetType = (selectedAsset) => {
@@ -133,8 +133,8 @@ const transactionReducer = (state = initialState, action) => {
       const { transactionId, securityAlertResponse } = action;
       return {
         ...state,
-        transactionSecurityAlertResponses: {
-          ...state.transactionSecurityAlertResponses,
+        securityAlertResponses: {
+          ...state.securityAlertResponses,
           [transactionId]: securityAlertResponse,
         },
       };

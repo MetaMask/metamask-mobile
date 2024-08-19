@@ -1,25 +1,24 @@
 import React from 'react';
-import { TransactionBlockaidBannerProps } from './TransactionBlockaidBanner.types';
-import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
 import { useSelector } from 'react-redux';
+
+import { selectCurrentTransactionSecurityAlertResponse } from '../../../../../selectors/confirmTransaction';
+import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
+import { TransactionBlockaidBannerProps } from './TransactionBlockaidBanner.types';
 
 const TransactionBlockaidBanner = (
   bannerProps: TransactionBlockaidBannerProps,
 ) => {
   const { transactionId, ...rest } = bannerProps;
 
-  const transactionSecurityAlertResponses = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.transaction.transactionSecurityAlertResponses,
+  const securityAlertResponses = useSelector(
+    selectCurrentTransactionSecurityAlertResponse,
   );
 
   if (!transactionId) {
     return null;
   }
 
-  const securityAlertResponse =
-    transactionSecurityAlertResponses?.[transactionId];
+  const securityAlertResponse = securityAlertResponses?.[transactionId];
 
   if (!securityAlertResponse) {
     return null;
