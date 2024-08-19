@@ -142,7 +142,6 @@ exports[`ImportPrivateKey should render correctly 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -235,7 +234,6 @@ exports[`ImportPrivateKey should render correctly 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -307,7 +305,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                     <View
                       style={
                         {
-                          "backgroundColor": "#24272a",
+                          "backgroundColor": "#ffffff",
                           "flex": 1,
                         }
                       }
@@ -351,7 +349,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                         showsVerticalScrollIndicator={true}
                         style={
                           {
-                            "backgroundColor": "#43aefc26",
+                            "backgroundColor": "#0376c91a",
                             "flex": 1,
                           }
                         }
@@ -388,7 +386,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                                       "fontSize": 15,
                                     },
                                     {
-                                      "color": "#ffffff",
+                                      "color": "#141618",
                                       "fontSize": 28,
                                     },
                                     {
@@ -421,7 +419,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                                       "fontSize": 12,
                                     },
                                     {
-                                      "color": "#bbc0c5",
+                                      "color": "#6a737d",
                                       "fontSize": 50,
                                       "marginLeft": 0,
                                       "marginTop": 0,
@@ -441,7 +439,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#ffffff",
+                                    "color": "#141618",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 32,
                                     "fontWeight": "400",
@@ -464,7 +462,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                                 <Text
                                   style={
                                     {
-                                      "color": "#ffffff",
+                                      "color": "#141618",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -486,7 +484,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                                   onPress={[Function]}
                                   style={
                                     {
-                                      "color": "#ffffff",
+                                      "color": "#141618",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -501,7 +499,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#24272a",
+                                  "backgroundColor": "#ffffff",
                                   "padding": 30,
                                   "width": "100%",
                                 }
@@ -510,7 +508,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                               <View
                                 style={
                                   {
-                                    "color": "#ffffff",
+                                    "color": "#141618",
                                     "fontFamily": "EuclidCircularB-Bold",
                                     "fontSize": 18,
                                     "fontWeight": "600",
@@ -520,7 +518,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                                 <Text
                                   style={
                                     {
-                                      "color": "#ffffff",
+                                      "color": "#141618",
                                       "fontFamily": "EuclidCircularB-Bold",
                                       "fontSize": 18,
                                       "fontWeight": "600",
@@ -539,16 +537,16 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                                 onChangeText={[Function]}
                                 onSubmitEditing={[Function]}
                                 placeholder="e.g. 3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266"
-                                placeholderTextColor="#848c96"
+                                placeholderTextColor="#9fa6ae"
                                 returnKeyType="next"
                                 style={
                                   [
                                     {
-                                      "backgroundColor": "#24272a",
-                                      "borderColor": "#848c96",
+                                      "backgroundColor": "#ffffff",
+                                      "borderColor": "#bbc0c5",
                                       "borderRadius": 4,
                                       "borderWidth": 0.5,
-                                      "color": "#ffffff",
+                                      "color": "#141618",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 15,
                                       "fontWeight": "400",
@@ -581,7 +579,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                                   <Text
                                     style={
                                       {
-                                        "color": "#43aefc",
+                                        "color": "#0376c9",
                                         "fontSize": 14,
                                       }
                                     }
@@ -595,7 +593,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                           <View
                             style={
                               {
-                                "backgroundColor": "#24272a",
+                                "backgroundColor": "#ffffff",
                                 "flex": 1,
                                 "justifyContent": "flex-end",
                                 "padding": 20,
