@@ -1,10 +1,13 @@
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../util/test/renderWithProvider';
 import SDKSessionAccountListItem from './SDKSessionAccountListItem';
+import { RootState } from '../../../../reducers';
 
-const mockInitialState = {
+const mockInitialState: DeepPartial<RootState> = {
   settings: {},
   engine: {
     backgroundState: {
@@ -12,10 +15,10 @@ const mockInitialState = {
       AccountTrackerController: {
         accounts: {
           '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': {
-            balance: 200,
+            balance: '200',
           },
           '0x519d2CE57898513F676a5C3b66496c3C394c9CC7': {
-            balance: 200,
+            balance: '200',
           },
         },
       },
@@ -91,6 +94,7 @@ describe('SDKSessionAccountListItem', () => {
         url: 'url',
         title: 'faketitle',
         platform: 'platform',
+        dappId: '1',
       },
     },
     connected: true,

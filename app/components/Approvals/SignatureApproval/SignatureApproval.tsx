@@ -9,6 +9,7 @@ const SignatureApproval = () => {
   const onSignConfirm = useCallback(async () => {
     await onConfirm({
       waitForResult: true,
+      //@ts-expect-error - this is added via patch of approval controller
       deleteAfterResult: true,
       handleErrors: false,
     });

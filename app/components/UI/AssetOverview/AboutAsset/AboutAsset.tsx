@@ -22,7 +22,6 @@ const AboutAsset = ({ asset, chainId }: AboutAssetProps) => {
   const { styles } = useStyles(styleSheet, {});
   const locale: keyof TokenDescriptions = i18n.locale;
   const skeletonProps = {
-    width: '100%',
     height: 18,
     borderRadius: 6,
     marginBottom: 8,

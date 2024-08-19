@@ -1,13 +1,16 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
-import renderWithProvider from '../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { resetOriginSpamState } from '../../../core/redux/slices/originThrottling';
 import OriginSpamModal, {
   BLOCK_BUTTON_TEST_ID,
   CONTINUE_BUTTON_TEST_ID,
 } from './OriginSpamModal';
+import { RootState } from '../../../reducers';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -33,10 +36,10 @@ const NAVIGATION_PARAMS_MOCK = {
   },
 };
 
-const mockInitialState = {
+const mockInitialState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
     },
   },
 };

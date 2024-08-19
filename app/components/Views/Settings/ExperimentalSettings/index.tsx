@@ -108,7 +108,6 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
               true: colors.primary.default,
               false: colors.border.muted,
             }}
-            thumbColor={importedColors.white}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
           />

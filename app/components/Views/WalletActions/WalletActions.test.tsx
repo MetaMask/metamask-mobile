@@ -1,22 +1,25 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../util/test/renderWithProvider';
 
 import WalletActions from './WalletActions';
 import { WalletActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/WalletActionsModal.selectors';
 import Engine from '../../../core/Engine';
 import { backgroundState } from '../../../util/test/initial-root-state';
+import { RootState } from '../../../reducers';
 
 const mockEngine = Engine;
 
-const mockInitialState = {
+const mockInitialState: DeepPartial<RootState> = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
   fiatOrders: {
     networks: [
       {
         active: true,
-        chainId: 1,
+        chainId: '1',
         chainName: 'Ethereum Mainnet',
         nativeTokenSupported: true,
       },
@@ -96,13 +99,13 @@ describe('WalletActions', () => {
   });
 
   it('should not show the buy button and swap button if the chain does not allow buying', () => {
-    const mockState = {
+    const mockState: DeepPartial<RootState> = {
       swaps: { '0x1': { isLive: false }, hasOnboarded: false, isLive: true },
       fiatOrders: {
         networks: [
           {
             active: true,
-            chainId: 1,
+            chainId: '1',
             chainName: 'Ethereum Mainnet',
             nativeTokenSupported: true,
           },
@@ -114,7 +117,7 @@ describe('WalletActions', () => {
           NetworkController: {
             providerConfig: {
               type: 'mainnet',
-              chainId: '0',
+              chainId: '0x1asdscxds',
               ticker: 'eth',
             },
           },

@@ -95,7 +95,7 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { zeroAddress } from 'ethereumjs-util';
 import PercentageChange from '../../../component-library/components-temp/Price/PercentageChange';
 import AggregatedPercentage from '../../../component-library/components-temp/Price/AggregatedPercentage';
-import { RootState } from 'app/reducers';
+import { RootState } from '../../../reducers';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors } = useTheme();
@@ -111,7 +111,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
   const [isNetworkRampSupported, isNativeTokenRampSupported] = useRampNetwork();
 
-  const actionSheet = useRef<ActionSheet>();
+  const actionSheet = useRef<typeof ActionSheet>();
 
   const networkName = useSelector(selectNetworkName);
   const { type, rpcUrl } = useSelector(selectProviderConfig);
@@ -121,9 +121,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate);
   const primaryCurrency = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.settings.primaryCurrency,
+    (state: RootState) => state.settings.primaryCurrency,
   );
   const { data: tokenBalances } = useTokenBalancesController();
   const tokenExchangeRates = useSelector(selectContractExchangeRates);

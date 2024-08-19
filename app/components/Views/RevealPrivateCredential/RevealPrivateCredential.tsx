@@ -150,7 +150,7 @@ const RevealPrivateCredential = ({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
         let msg = strings('reveal_credential.warning_incorrect_password');
-        if (isHardwareAccount(selectedAddress)) {
+        if (selectedAddress && isHardwareAccount(selectedAddress)) {
           msg = strings('reveal_credential.hardware_error');
         } else if (
           e.toString().toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()

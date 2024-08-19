@@ -3,19 +3,20 @@ import { render } from '@testing-library/react-native';
 import { BigNumber } from 'bignumber.js';
 
 import BalanceChangeRow from './BalanceChangeRow';
-import { BalanceChange } from '../types';
+import { AssetType, BalanceChange } from '../types';
 
 jest.mock('../FiatDisplay/FiatDisplay', () => ({
   IndividualFiatDisplay: 'IndividualFiatDisplay',
 }));
 
-const balanceChangeMock = {
+const balanceChangeMock: BalanceChange = {
   asset: {
-    type: 'ERC20',
+    type: AssetType.ERC20,
     address: '0xabc123',
   },
   amount: new BigNumber(100),
-} as BalanceChange;
+  fiatAmount: 10,
+};
 
 jest.mock('../AmountPill/AmountPill', () => 'AmountPill');
 jest.mock('../AssetPill/AssetPill', () => 'AssetPill');

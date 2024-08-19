@@ -6,8 +6,11 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 // Mock the HOC
 jest.mock('../../hooks/useFavicon/withFaviconAwareness', () => ({
   __esModule: true,
-  default: (Component) => (props) =>
-    <Component {...props} faviconSource="mockedFaviconSource.png" />,
+  default: (Component) => (props: Record<string, unknown>) =>
+    (
+      //@ts-expect-error This is just for mocking purposes
+      <Component {...props} faviconSource="mockedFaviconSource.png" />
+    ),
 }));
 
 describe('WebsiteIcon', () => {

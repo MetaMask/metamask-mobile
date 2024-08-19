@@ -46,9 +46,10 @@ export function calculateTotalFiat(fiatAmounts: FiatAmount[]): number {
  * @param props - Properties object.
  * @param props.fiatAmount - The fiat amount to display.
  */
-export const IndividualFiatDisplay: React.FC<{ fiatAmount: FiatAmount }> = ({
-  fiatAmount,
-}) => {
+export const IndividualFiatDisplay: React.FC<{
+  fiatAmount: FiatAmount;
+  testID: string;
+}> = ({ fiatAmount }) => {
   const hideFiatForTestnet = useHideFiatForTestnet();
   const { styles } = useStyles(styleSheet, {});
   const fiatFormatter = useFiatFormatter();

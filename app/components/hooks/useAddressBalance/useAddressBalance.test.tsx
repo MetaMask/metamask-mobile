@@ -8,6 +8,7 @@ import { Asset } from './useAddressBalance.types';
 import useAddressBalance from './useAddressBalance';
 import backgroundState from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
+import { BN } from 'ethereumjs-util';
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
 
@@ -60,13 +61,16 @@ const Wrapper = ({ children }: any) => (
 );
 
 describe('useAddressBalance', () => {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let mockGetERC20BalanceOf: any;
+  let mockGetERC20BalanceOf: (
+    address: string,
+    selectedAddress: string,
+    networkClientId?: string | undefined,
+  ) => Promise<BN>;
   beforeEach(() => {
     mockGetERC20BalanceOf = jest
       .fn()
       .mockReturnValue(Promise.resolve(0x0186a0));
+    //@ts-expect-error - for test purposes is not needed to add the other properties of AssetsContractController
     Engine.context.AssetsContractController = {
       getERC20BalanceOf: mockGetERC20BalanceOf,
     };
