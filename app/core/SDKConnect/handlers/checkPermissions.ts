@@ -125,7 +125,6 @@ export const checkPermissions = async ({
       !connection.initialConnection &&
       AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
     ) {
-      DevLogger.log(`checkPermissions revalidate channel`);
       connection.revalidate({ channelId: connection.channelId });
     }
 
