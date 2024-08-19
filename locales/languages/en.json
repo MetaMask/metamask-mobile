@@ -745,6 +745,7 @@
     "enabling_profile_sync": "Enabling profile syncing...",
     "disabling_profile_sync": "Disabling profile syncing...",
     "notifications_dismiss_modal": "Dismiss",
+    "select_rpc_url": "Select RPC URL",
     "title": "Settings",
     "current_conversion": "Base Currency",
     "current_language": "Current Language",
@@ -844,7 +845,7 @@
     "notifications_title": "Notifications",
     "notifications_desc": "Manage your notifications",
     "allow_notifications": "Allow notifications",
-    "allow_notifications_desc": "Stay in the loop on what’s happening in your wallet with notifications. To use notifications, we use a profile to sync some settings across your devices. Learn how we protect your privacy while using this feature.",
+    "allow_notifications_desc": "Stay in the loop on what’s happening in your wallet with notifications. To use notifications, we use a profile to sync some settings across your devices.",
     "notifications_opts": {
       "customize_session_title": "Customize your notifications",
       "customize_session_desc": "Turn on the types of notifications you want to receive:",
@@ -1189,6 +1190,7 @@
     "text": "TEXT",
     "qr_code": "QR CODE",
     "hold_to_reveal_credential": "Hold to reveal {{credentialName}}",
+    "reveal_credential": "Reveal {{credentialName}}",
     "keep_credential_safe": "Keep your {{credentialName}} safe",
     "srp_abbreviation_text": "SRP",
     "srp_text": "Secret Recovery Phrase",
@@ -2042,7 +2044,7 @@
     "swap": "Swapped",
     "sent": "Sent to {{address}}",
     "menu_item_title": {
-      "metamask_swap_completed": "Swapped {{symbol1}} for {{symbol2}}",
+      "metamask_swap_completed": "Swapped {{symbolIn}} for {{symbolOut}}",
       "erc20_sent": "Sent to {{address}}",
       "erc20_received": "Received from {{address}}",
       "eth_sent": "Sent to {{address}}",
@@ -2069,7 +2071,7 @@
       "title_untake_ready": "Withdrawl ready",
       "title_stake": "Staked {{symbol}}",
       "title_unstake_completed": "Unstaking completed",
-      "title_swapped": "Swapped {{symbol1}} to {{symbol2}}",
+      "title_swapped": "Swapped {{symbolIn}} to {{symbolOut}}",
       "label_address_to": "To",
       "label_address_from": "From",
       "label_address_to_you": "To (You)",
@@ -2801,8 +2803,13 @@
   },
   "switch_custom_network": {
     "title_existing_network": "This site would like to switch the network",
+    "title_enabled_network": "This site wants to:",
     "title_new_network": "New network added",
     "switch_warning": "This will switch the selected network within MetaMask to a previously added network:",
+    "use_enabled_networks": "Use your enabled networks",
+    "wants_to_see_your_accounts": "See your accounts and suggest transactions",
+    "requesting_for": "Requesting for ",
+    "edit": "Edit",
     "add_network_and_give_dapp_permission_warning": "You're adding this network to MetaMask and giving {{dapp_origin}} permission to use it.",
     "available": "is now available in the network selector.",
     "cancel": "Cancel",
@@ -3164,7 +3171,10 @@
     "error_during_connection_message": "There's been a slight problem connecting your Ledger Nano X, tap 'Retry' below to give this another go. Sometimes this occurs due to the ETH app on your Ledger Nano X being open at the start of the pairing process with MetaMask Mobile.",
     "how_to_install_eth_webview_title": "How to install the Ethereum App",
     "nonce_too_low": "Nonce too low",
-    "nonce_too_low_error": "The set nonce is too low"
+    "nonce_too_low_error": "The set nonce is too low",
+    "select_accounts": "Select an Account",
+    "select_accounts_warning": "Note: these accounts might be different to what you're used to.",
+    "select_accounts_sub_msg": "These accounts are derived using the BIP44 derivation path, which is different to the default Ledger Live derivation path on MetaMask Extension, Different derivation paths for Ledger will be available on MetaMask Mobile soon."
   },
   "account_actions": {
     "edit_name": "Edit account name",

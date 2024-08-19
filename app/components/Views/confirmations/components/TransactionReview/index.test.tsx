@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Confirmations team or Transactions team
 import React from 'react';
 import TransactionReview from '.';
 import configureMockStore from 'redux-mock-store';
@@ -7,13 +9,16 @@ import { Provider } from 'react-redux';
 import * as TransactionUtils from '../../../../../util/transactions';
 // eslint-disable-next-line import/no-namespace
 import * as BlockaidUtils from '../../../../../util/blockaid';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { TESTID_ACCORDION_CONTENT } from '../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
 import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../BlockaidBanner/BlockaidBanner.constants';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
+import { RootState } from '../../../../../reducers';
 
 jest.mock('../../../../../util/transactions', () => ({
   ...jest.requireActual('../../../../../util/transactions'),
@@ -94,7 +99,7 @@ jest.mock('react-native-gzip', () => ({
   deflate: (val: any) => val,
 }));
 
-const mockState = {
+const mockState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
       ...backgroundState,
