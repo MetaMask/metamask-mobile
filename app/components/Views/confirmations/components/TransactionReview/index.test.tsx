@@ -161,6 +161,7 @@ jest.mock('react-redux', () => {
         ...mockState,
         transaction: {
           ...mockState.transaction,
+          id: 123,
           securityAlertResponses: {
             123: securityAlertResponse,
           },
@@ -208,6 +209,7 @@ describe('TransactionReview', () => {
       block: 123,
       req: {},
       chainId: '0x1',
+      features: ['test', 'test'],
     };
 
     const blockaidMetricsParamsSpy = jest

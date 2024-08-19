@@ -567,7 +567,7 @@ class TransactionReview extends PureComponent {
               confirmDisabled={
                 transactionConfirmed || Boolean(error) || isAnimating
               }
-              confirmButtonState={this.getConfirmButtonState()}
+              confirmButtonState={this.getConfirmButtonState.bind(this)()}
             >
               <View style={styles.actionViewChildren}>
                 <ScrollView nestedScrollEnabled>
