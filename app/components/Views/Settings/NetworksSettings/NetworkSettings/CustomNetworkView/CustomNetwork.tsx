@@ -18,6 +18,7 @@ import {
 import AvatarNetwork from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import { isNetworkUiRedesignEnabled } from '../../../../../../util/networks/isNetworkUiRedesignEnabled';
+import { useSafeChains } from '../../../../../../components/hooks/useSafeChains';
 
 const CustomNetwork = ({
   showPopularNetworkModal,
@@ -37,6 +38,7 @@ const CustomNetwork = ({
 }: CustomNetworkProps) => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const selectedChainId = useSelector(selectChainId);
+  const { safeChains } = useSafeChains();
 
   const supportedNetworkList = (customNetworksList ?? PopularList).map(
     (networkConfiguration: Network) => {
@@ -77,6 +79,7 @@ const CustomNetwork = ({
           navigation={navigation}
           shouldNetworkSwitchPopToWallet={shouldNetworkSwitchPopToWallet}
           onNetworkSwitch={onNetworkSwitch}
+          safeChains={safeChains}
         />
       )}
       {filteredPopularList.map((networkConfiguration, index) => (

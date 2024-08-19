@@ -34,10 +34,7 @@ import NetworkVerificationInfo from '../NetworkVerificationInfo';
 import createNetworkModalStyles from './index.styles';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { toHex } from '@metamask/controller-utils';
-import {
-  rpcIdentifierUtility,
-  useSafeChains,
-} from '../../../components/hooks/useSafeChains';
+import { rpcIdentifierUtility } from '../../../components/hooks/useSafeChains';
 
 export interface SafeChain {
   chainId: string;
@@ -58,6 +55,7 @@ interface NetworkProps {
   shouldNetworkSwitchPopToWallet: boolean;
   onNetworkSwitch?: () => void;
   showPopularNetworkModal: boolean;
+  safeChains?: SafeChain[];
 }
 
 const NetworkModals = (props: NetworkProps) => {
@@ -76,6 +74,7 @@ const NetworkModals = (props: NetworkProps) => {
     showPopularNetworkModal,
     shouldNetworkSwitchPopToWallet,
     onNetworkSwitch,
+    safeChains,
   } = props;
   const { trackEvent, trackAnonymousEvent } = useMetrics();
   const [showDetails, setShowDetails] = React.useState(false);
@@ -92,7 +91,6 @@ const NetworkModals = (props: NetworkProps) => {
   const isCustomNetwork = true;
   const showDetailsModal = () => setShowDetails(!showDetails);
   const showCheckNetworkModal = () => setShowCheckNetwork(!showCheckNetwork);
-  const { safeChains } = useSafeChains();
 
   const { colors } = useTheme();
   const styles = createNetworkModalStyles(colors);
@@ -110,7 +108,7 @@ const NetworkModals = (props: NetworkProps) => {
       // emit custom network
       trackAnonymousEvent(MetaMetricsEvents.NETWORK_ADDED, {
         chain_id: toHex(chainId), // prefixed chainId
-        source: 'Custom network form',
+        source: 'Custom Network Added',
         symbol: ticker,
         rpcUrl: rpcIdentifierUtility(rpcUrl, safeChains),
       });
