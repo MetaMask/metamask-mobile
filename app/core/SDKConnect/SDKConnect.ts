@@ -115,7 +115,7 @@ export class SDKConnect {
     disabledHosts: {},
     rpcqueueManager: new RPCQueueManager(),
     appStateListener: undefined,
-    socketServerUrl: 'https://socketdev.siteed.net',
+    socketServerUrl: AppConstants.MM_SDK.SERVER_URL,
   };
 
   private SDKConnect() {
