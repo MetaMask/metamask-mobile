@@ -1,8 +1,4 @@
 import URL from 'url-parse';
-import { utils } from 'ethers';
-import EthContract from 'ethjs-contract';
-import { getContractFactory } from '@eth-optimism/contracts/dist/contract-defs';
-import { predeploys } from '@eth-optimism/contracts/dist/predeploys';
 import networksWithImages from 'images/image-icons';
 import {
   MAINNET,
@@ -24,7 +20,6 @@ import { isStrictHexString } from '@metamask/utils';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
-import buildUnserializedTransaction from '../transactions/optimismTransaction';
 import handleNetworkSwitch from './handleNetworkSwitch';
 import { regex } from '../../../app/util/regex';
 
@@ -436,18 +431,6 @@ export const getNetworkImageSource = ({ networkType, chainId }) => {
     return network.rpcPrefs.imageSource;
   }
   return getTestNetImage(networkType);
-};
-
-// The code in this file is largely drawn from https://community.optimism.io/docs/developers/l2/new-fees.html#for-frontend-and-wallet-developers
-const buildOVMGasPriceOracleContract = (eth) => {
-  const OVMGasPriceOracle = getContractFactory('OVM_GasPriceOracle').attach(
-    predeploys.OVM_GasPriceOracle,
-  );
-  const abi = JSON.parse(
-    OVMGasPriceOracle.interface.format(utils.FormatTypes.json),
-  );
-  const contract = new EthContract(eth);
-  return contract(abi).at(OVMGasPriceOracle.address);
 };
 
 /**
