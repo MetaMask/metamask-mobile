@@ -2,7 +2,7 @@
   "extends": "./tsconfig.json",
   // TODO: Fix type errors and uncomment all directories
   "include": [
-    "app/declarations.d.ts",
+    "app/declarations/index.d.ts",
     // "app/**/*",
     "app/__mocks__/**/*",
     "app/actions/**/*",

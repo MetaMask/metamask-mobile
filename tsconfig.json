@@ -41,7 +41,8 @@
     "resolveJsonModule": true /* Allows importing JSON files */,
     "baseUrl": "." /* Base directory to resolve non-absolute module names. */,
     "paths": {
-      "images/*": ["./app/images/*"]
+      "images/*": ["./app/images/*"],
+      "@keystonehq/ur-decoder": ["app/declarations/@keystonehq/ur-decoder.ts"]
     } /* A series of entries which re-map imports to lookup locations relative to the 'baseUrl'. */,
     // "rootDirs": [],                        /* List of root folders whose combined content represents the structure of the project at runtime. */
     // "typeRoots": [],                       /* List of folders to include type definitions from. */
@@ -64,7 +65,8 @@
   "include": [
     "app/**/*",
     "node_modules/expect-webdriverio",
-    "node_modules/expect-webdriverio/jest"
+    "node_modules/expect-webdriverio/jest",
+    "app/components/UI/QRHardware/AnimatedQRScanner.tsx"
   ],
   "exclude": [
     "node_modules",
