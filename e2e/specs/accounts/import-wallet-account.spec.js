@@ -23,7 +23,7 @@ describe(SmokeAccounts('Import account via private to wallet'), () => {
 
   it('should be able to import account', async () => {
     await WalletView.tapIdenticon();
-    await AccountListView.isVisible();
+    await Assertions.checkIfVisible(AccountListView.accountList);
     await AccountListView.tapAddAccountButton();
     await AccountListView.tapImportAccountButton();
     await ImportAccountView.isVisible();

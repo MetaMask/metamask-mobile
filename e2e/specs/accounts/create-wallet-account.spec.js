@@ -3,6 +3,7 @@ import { SmokeAccounts } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import AccountListView from '../../pages/AccountListView';
+import Assertions from '../../utils/Assertions';
 
 describe(SmokeAccounts('Create wallet account'), () => {
   beforeAll(async () => {
@@ -16,7 +17,7 @@ describe(SmokeAccounts('Create wallet account'), () => {
 
   it('should be able to add new accounts', async () => {
     await WalletView.tapIdenticon();
-    await AccountListView.isVisible();
+    await Assertions.checkIfVisible(AccountListView.accountList);
     await AccountListView.tapAddAccountButton();
     // Tap on Create New Account
     await AccountListView.tapCreateAccountButton();
