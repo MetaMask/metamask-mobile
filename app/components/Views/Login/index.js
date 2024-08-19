@@ -10,12 +10,13 @@ import {
   Image,
   InteractionManager,
   BackHandler,
-  TouchableWithoutFeedback,
+  TouchableOpacity,
 } from 'react-native';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import StorageWrapper from '../../../store/storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from '@metamask/react-native-button';
 import StyledButton from '../../UI/StyledButton';
@@ -43,7 +44,6 @@ import Routes from '../../../constants/navigation/Routes';
 import { passwordRequirementsMet } from '../../../util/password';
 import ErrorBoundary from '../ErrorBoundary';
 import { toLowerCaseEquals } from '../../../util/general';
-import StorageWrapper from '../../../store/async-storage-wrapper';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -193,6 +193,7 @@ const WRONG_PASSWORD_ERROR_ANDROID =
   'Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
 const VAULT_ERROR = 'Cannot unlock without a previous vault.';
 const DENY_PIN_ERROR_ANDROID = 'Error: Error: Cancel';
+const JSON_PARSE_ERROR_UNEXPECTED_TOKEN = 'Error: JSON Parse error';
 
 /**
  * View where returning users can authenticate
@@ -406,7 +407,10 @@ class Login extends PureComponent {
           strings('login.security_alert_desc'),
         );
         this.setState({ loading: false });
-      } else if (containsErrorMessage(error, VAULT_ERROR)) {
+      } else if (
+        containsErrorMessage(error, VAULT_ERROR) ||
+        containsErrorMessage(error, JSON_PARSE_ERROR_UNEXPECTED_TOKEN)
+      ) {
         try {
           await this.handleVaultCorruption();
         } catch (e) {
@@ -515,23 +519,23 @@ class Login extends PureComponent {
             style={styles.wrapper}
           >
             <View testID={LoginViewSelectors.CONTAINER}>
-              <TouchableWithoutFeedback
-                onLongPress={this.handleDownloadStateLogs}
-                delayLongPress={10 * 1000} // 10 seconds
+              <TouchableOpacity
                 style={styles.foxWrapper}
+                delayLongPress={10 * 1000} // 10 seconds
+                onLongPress={this.handleDownloadStateLogs}
+                activeOpacity={1}
               >
-                <View style={styles.foxWrapper}>
-                  {Device.isAndroid() ? (
-                    <Image
-                      source={require('../../../images/fox.png')}
-                      style={styles.image}
-                      resizeMethod={'auto'}
-                    />
-                  ) : (
-                    <AnimatedFox bgColor={colors.background.default} />
-                  )}
-                </View>
-              </TouchableWithoutFeedback>
+                {Device.isAndroid() ? (
+                  <Image
+                    source={require('../../../images/fox.png')}
+                    style={styles.image}
+                    resizeMethod={'auto'}
+                  />
+                ) : (
+                  <AnimatedFox bgColor={colors.background.default} />
+                )}
+              </TouchableOpacity>
+
               <Text
                 style={styles.title}
                 testID={LoginViewSelectors.LOGIN_VIEW_TITLE_ID}

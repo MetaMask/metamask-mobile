@@ -2,7 +2,7 @@
 import * as Sentry from '@sentry/react-native';
 import { Dedupe, ExtraErrorData } from '@sentry/integrations';
 import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
-import StorageWrapper from '../../store/async-storage-wrapper';
+import StorageWrapper from '../../store/storage-wrapper';
 import { regex } from '../regex';
 import { AGREED, METRICS_OPT_IN } from '../../constants/storage';
 import { isTest } from '../test/utils';

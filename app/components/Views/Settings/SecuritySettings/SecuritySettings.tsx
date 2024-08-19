@@ -10,7 +10,7 @@ import {
   Platform,
   Linking,
 } from 'react-native';
-import AsyncStorage from '../../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../../store/storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
@@ -105,7 +105,7 @@ import Networks, {
   toggleUseSafeChainsListValidation,
 } from '../../../../util/networks';
 import images from 'images/image-icons';
-import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller/dist/constants';
+import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 import Text, {
   TextVariant,
@@ -118,10 +118,15 @@ import Button, {
 } from '../../../../component-library/components/Buttons/Button';
 import trackErrorAsAnalytics from '../../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
+import ProfileSyncingComponent from '../../../UI/ProfileSyncing/ProfileSyncing';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetrics } from '../../../../core/Analytics';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { selectIsProfileSyncingEnabled } from '../../../../selectors/notifications';
+import { useProfileSyncing } from '../../../../util/notifications/hooks/useProfileSyncing';
+import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
+import { RootState } from '../../../../reducers';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -151,6 +156,16 @@ const Settings: React.FC = () => {
   const [hintText, setHintText] = useState('');
   const [onlineIpfsGateways, setOnlineIpfsGateways] = useState<Gateway[]>([]);
   const [gotAvailableGateways, setGotAvailableGateways] = useState(false);
+  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+  const isBasicFunctionalityEnabled = useSelector(
+    (state: RootState) => state?.settings?.basicFunctionalityEnabled,
+  );
+  const {
+    enableProfileSyncing,
+    disableProfileSyncing,
+    loading: profileSyncLoading,
+    error: profileSyncError,
+  } = useProfileSyncing();
 
   const scrollViewRef = useRef<ScrollView>(null);
   const detectNftComponentRef = useRef<View>(null);
@@ -232,7 +247,7 @@ const Settings: React.FC = () => {
   }, [isIpfsGatewayEnabled]);
 
   const handleHintText = useCallback(async () => {
-    const currentSeedphraseHints = await AsyncStorage.getItem(
+    const currentSeedphraseHints = await StorageWrapper.getItem(
       SEED_PHRASE_HINTS,
     );
     const parsedHints =
@@ -254,6 +269,10 @@ const Settings: React.FC = () => {
     isEnabled,
     trackEvent,
   ]);
+
+  useEffect(() => {
+    !isBasicFunctionalityEnabled && disableProfileSyncing();
+  }, [disableProfileSyncing, isBasicFunctionalityEnabled]);
 
   const scrollToDetectNFTs = useCallback(() => {
     if (detectNftComponentRef.current) {
@@ -299,12 +318,12 @@ const Settings: React.FC = () => {
   const saveHint = async () => {
     if (!hintText) return;
     toggleHint();
-    const currentSeedphraseHints = await AsyncStorage.getItem(
+    const currentSeedphraseHints = await StorageWrapper.getItem(
       SEED_PHRASE_HINTS,
     );
     if (currentSeedphraseHints) {
       const parsedHints = JSON.parse(currentSeedphraseHints);
-      await AsyncStorage.setItem(
+      await StorageWrapper.setItem(
         SEED_PHRASE_HINTS,
         JSON.stringify({ ...parsedHints, manualBackup: hintText }),
       );
@@ -321,15 +340,15 @@ const Settings: React.FC = () => {
 
       await Engine.context.KeyringController.exportSeedPhrase(password);
 
-      await AsyncStorage.setItem(EXISTING_USER, TRUE);
+      await StorageWrapper.setItem(EXISTING_USER, TRUE);
 
       if (!enabled) {
         setLoading(false);
         if (authChoice === PASSCODE_CHOICE_STRING) {
-          await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
         } else if (authChoice === BIOMETRY_CHOICE_STRING) {
-          await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-          await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+          await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
         }
 
         return;
@@ -973,6 +992,16 @@ const Settings: React.FC = () => {
     );
   };
 
+  const toggleProfileSyncing = async () => {
+    if (isProfileSyncingEnabled) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.PROFILE_SYNCING,
+      });
+    } else {
+      await enableProfileSyncing();
+    }
+  };
+
   const toggleBasicFunctionality = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY,
@@ -986,6 +1015,10 @@ const Settings: React.FC = () => {
       </View>
     );
   }
+
+  const profileSyncModalMessage = !isProfileSyncingEnabled
+    ? strings('app_settings.enabling_profile_sync')
+    : strings('app_settings.disabling_profile_sync');
 
   return (
     <ScrollView
@@ -1024,6 +1057,7 @@ const Settings: React.FC = () => {
             handleSwitchToggle={toggleBasicFunctionality}
           />
         </View>
+        <ProfileSyncingComponent handleSwitchToggle={toggleProfileSyncing} />
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}
@@ -1087,6 +1121,11 @@ const Settings: React.FC = () => {
         <DeleteWalletData />
         {renderHint()}
       </View>
+      <SwitchLoadingModal
+        loading={profileSyncLoading}
+        loadingText={profileSyncModalMessage}
+        error={profileSyncError}
+      />
     </ScrollView>
   );
 };

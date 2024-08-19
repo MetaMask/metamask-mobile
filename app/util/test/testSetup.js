@@ -265,8 +265,6 @@ jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
   setDeadline: jest.fn(),
 }));
 
-jest.mock('../../images/static-logos.js', () => ({}));
-
 jest.mock('@react-native-clipboard/clipboard', () => mockClipboard);
 
 jest.mock('../theme', () => ({
@@ -313,7 +311,7 @@ jest.mock('redux-persist', () => ({
   createMigrate: jest.fn(),
 }));
 
-jest.mock('../../store/async-storage-wrapper', () => ({
+jest.mock('../../store/storage-wrapper', () => ({
   getItem: jest.fn(),
   setItem: jest.fn(),
 }));

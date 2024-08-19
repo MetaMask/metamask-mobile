@@ -1,10 +1,13 @@
 import React from 'react';
 
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
 import ApproveTransactionHeader from '.';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { APPROVE_TRANSACTION_ORIGIN_PILL } from './ApproveTransactionHeader.constants';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
+import { RootState } from '../../../../../reducers';
 
 const MOCK_ADDRESS_1 = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const MOCK_ADDRESS_2 = '0xd018538C87232FF95acbCe4870629b75640a78E7';
@@ -27,7 +30,7 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-const mockInitialState = {
+const mockInitialState: DeepPartial<RootState> = {
   settings: {},
   engine: {
     backgroundState: {
