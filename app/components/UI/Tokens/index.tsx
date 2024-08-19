@@ -98,7 +98,32 @@ import AggregatedPercentage from '../../../component-library/components-temp/Pri
 import { RootState } from 'app/reducers';
 import { Asset } from '../../hooks/useAddressBalance/useAddressBalance.types';
 import { Hex } from '@metamask/utils';
-import { MarketDataDetails } from '@metamask/assets-controllers/dist/types/TokenRatesController';
+
+// this will be imported from TokenRatesController when it is exported from there
+// PR: https://github.com/MetaMask/core/pull/4622
+type MarketDataDetails = {
+  tokenAddress: `0x${string}`;
+  value: number;
+  currency: string;
+  allTimeHigh: number;
+  allTimeLow: number;
+  circulatingSupply: number;
+  dilutedMarketCap: number;
+  high1d: number;
+  low1d: number;
+  marketCap: number;
+  marketCapPercentChange1d: number;
+  price: number;
+  priceChange1d: number;
+  pricePercentChange1d: number;
+  pricePercentChange1h: number;
+  pricePercentChange1y: number;
+  pricePercentChange7d: number;
+  pricePercentChange14d: number;
+  pricePercentChange30d: number;
+  pricePercentChange200d: number;
+  totalVolume: number;
+};
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors } = useTheme();
@@ -114,7 +139,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
   const [isNetworkRampSupported, isNativeTokenRampSupported] = useRampNetwork();
 
-  const actionSheet = useRef<ActionSheet>();
+  const actionSheet = useRef<typeof ActionSheet>();
 
   const networkName = useSelector(selectNetworkName);
   const { type, rpcUrl } = useSelector(selectProviderConfig);
@@ -737,7 +762,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     >
       {tokens?.length ? renderList() : renderEmpty()}
       <ActionSheet
-        ref={actionSheet as LegacyRef<ActionSheet>}
+        ref={actionSheet as LegacyRef<typeof ActionSheet>}
         title={strings('wallet.remove_token_title')}
         options={[strings('wallet.remove'), strings('wallet.cancel')]}
         cancelButtonIndex={1}
