@@ -19,8 +19,8 @@ jobs:
       - name: Get PR comments
         id: get-comments
         run: |
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          COMMENTS=$(gh pr view $PR_NUMBER --json comments --jq '.comments[].body')
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          COMMENTS=$(gh pr view "$PR_NUMBER" --json comments --jq '.comments[].body')
           echo "$COMMENTS" > comments.txt
           echo "comments=$COMMENTS" >> $GITHUB_OUTPUT
 
