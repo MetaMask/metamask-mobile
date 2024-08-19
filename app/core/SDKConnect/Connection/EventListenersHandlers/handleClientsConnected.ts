@@ -10,7 +10,6 @@ function handleClientsConnected(instance: Connection) {
     DevLogger.log(
       `Connection::CLIENTS_CONNECTED id=${instance.channelId} receivedDisconnect=${instance.receivedDisconnect} origin=${instance.origin}`,
     );
-    instance.setLoading(true);
     instance.receivedDisconnect = false;
 
     try {
@@ -20,14 +19,6 @@ function handleClientsConnected(instance: Connection) {
       ).KeyringController;
 
       await waitForKeychainUnlocked({ keyringController });
-      setTimeout(() => {
-        if (instance._loading) {
-          DevLogger.log(
-            `Connection::CLIENTS_CONNECTED auto-hide loading after 4s`,
-          );
-          instance.setLoading(false);
-        }
-      }, 4000);
     } catch (error) {
       Logger.log(
         error as Error,

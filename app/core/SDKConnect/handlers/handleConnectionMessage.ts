@@ -118,6 +118,9 @@ export const handleConnectionMessage = async ({
   // It will wait until user accept/reject the connection request.
   try {
     await checkPermissions({ message, connection, engine });
+    DevLogger.log(
+      `[handleConnectionMessage] checkPermissions passed -- hasRelayPersistence=${connection.remote.hasRelayPersistence()}`,
+    );
     if (!connection.remote.hasRelayPersistence()) {
       if (!connection.receivedDisconnect) {
         await waitForConnectionReadiness({ connection });

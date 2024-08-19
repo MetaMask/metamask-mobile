@@ -13,7 +13,7 @@ async function connect({
   DevLogger.log(
     `Connection::connect() id=${instance.channelId} withKeyExchange=${withKeyExchange} authorized=${authorized}`,
   );
-  instance.remote.connectToChannel({
+  await instance.remote.connectToChannel({
     channelId: instance.channelId,
     authorized,
     withKeyExchange,
