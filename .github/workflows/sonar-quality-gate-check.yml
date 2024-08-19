@@ -22,20 +22,21 @@ jobs:
           PR_NUMBER="${{ github.event.pull_request.number }}"
           COMMENTS=$(gh pr view "$PR_NUMBER" --json comments --jq '.comments[].body')
           echo "$COMMENTS" > comments.txt
-          echo "comments=$COMMENTS" >> $GITHUB_OUTPUT
+          echo "comments=$COMMENTS" >> "$GITHUB_OUTPUT"
 
       - name: Check for SonarCloud Quality Gate Pass
         id: check-quality-gate
         run: |
           if grep -q "Quality Gate passed" comments.txt; then
             echo "Quality Gate passed found in comments."
-            echo "quality_gate_passed=true" >> $GITHUB_OUTPUT
+            echo "quality_gate_passed=true" >> "$GITHUB_OUTPUT"
           elif grep -q "Quality Gate failed" comments.txt; then
             echo "Quality Gate failed found in comments."
-            echo "quality_gate_passed=false" >> $GITHUB_OUTPUT
+            echo "quality_gate_passed=false" >> "$GITHUB_OUTPUT"
           else
             echo "SonarCloud Quality Gate result not found in comments."
             exit 1
+          fi
 
       - name: Fail if Quality Gate did not pass
         if: steps.check-quality-gate.outputs.quality_gate_passed == 'false'
