@@ -37,8 +37,7 @@ function useHandleSuccessfulOrder() {
       if (!token) return;
 
       const { address, symbol, decimals, network, name } = token;
-      // TODO(ramp, chainId-string): remove once chainId is a string
-      const chainId = `${network?.chainId}`;
+      const chainId = network?.chainId;
 
       if (chainId !== selectedChainId || address === NATIVE_ADDRESS) {
         return;
@@ -47,8 +46,8 @@ function useHandleSuccessfulOrder() {
       const { TokensController } = Engine.context;
 
       if (
-        !TokensController.state.tokens.find((t: Token) =>
-          toLowerCaseEquals(t.address, address),
+        !TokensController.state.tokens.find((stateToken: Token) =>
+          toLowerCaseEquals(stateToken.address, address),
         )
       ) {
         await TokensController.addToken({ address, symbol, decimals, name });

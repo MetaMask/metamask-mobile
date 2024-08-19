@@ -67,7 +67,7 @@ const mockedNetworksDetails = [
   },
 ];
 
-function render(Component: React.ComponentType, chainId?: Hex) {
+function render(Component: React.ComponentType, chainId?: `0x${string}`) {
   return renderScreen(
     Component,
     {

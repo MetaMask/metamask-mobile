@@ -227,7 +227,7 @@ describe('aggregatorOrderToFiatOrder', () => {
       fiatAmount: 123,
       cryptoCurrency: {
         network: {
-          chainId: 1,
+          chainId: '1',
         },
       },
       status: 'COMPLETED',

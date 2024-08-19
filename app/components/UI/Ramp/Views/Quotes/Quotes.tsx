@@ -327,6 +327,7 @@ function Quotes() {
           processing_fee: quote.providerFee ?? 0,
           exchange_rate:
             ((quote.amountIn ?? 0) - totalFee) / (quote.amountOut ?? 0),
+          amount: params.amount,
         };
 
         if (isBuy) {
@@ -503,6 +504,22 @@ function Quotes() {
           },
         );
 
+        const averageOut = totals.amountOut / quotesWithoutError.length;
+        const providerList = quotesWithoutError.map(
+          ({ provider }) => provider.name,
+        );
+        const providerFirst = quotesWithoutError[0]?.provider?.name;
+        const providerLast =
+          quotesWithoutError.length > 1
+            ? quotesWithoutError[quotesWithoutError.length - 1]?.provider?.name
+            : undefined;
+        const amountList = quotesWithoutError.map(({ amountOut }) => amountOut);
+        const amountFirst = quotesWithoutError[0]?.amountOut;
+        const amountLast =
+          quotesWithoutError.length > 1
+            ? quotesWithoutError[quotesWithoutError.length - 1]?.amountOut
+            : undefined;
+
         const payload = {
           amount: params.amount,
           payment_method_id: selectedPaymentMethodId as string,
@@ -514,17 +531,10 @@ function Quotes() {
             totals.totalProcessingFee / quotesWithoutError.length,
           average_total_fee_of_amount:
             totals.feeAmountRatio / quotesWithoutError.length,
+          quotes_amount_list: amountList as number[],
+          quotes_amount_first: amountFirst as number,
+          quotes_amount_last: amountLast as number,
         };
-
-        const averageOut = totals.amountOut / quotesWithoutError.length;
-        const providerList = quotesWithoutError.map(
-          ({ provider }) => provider.name,
-        );
-        const providerFirst = quotesWithoutError[0]?.provider?.name;
-        const providerLast =
-          quotesWithoutError.length > 1
-            ? quotesWithoutError[quotesWithoutError.length - 1]?.provider?.name
-            : undefined;
 
         if (isBuy) {
           trackEvent('ONRAMP_QUOTES_RECEIVED', {
