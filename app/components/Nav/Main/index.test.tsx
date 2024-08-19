@@ -3,13 +3,92 @@ import React from 'react';
 import { shallow } from 'enzyme';
 // eslint-disable-next-line import/named
 import { NavigationContainer } from '@react-navigation/native';
-import EventEmitter from 'events';
 import Main from './';
 import { useSwapConfirmedEvent } from './RootRPCMethodsUI';
-import { renderHook, act } from '@testing-library/react-hooks';
+import { act } from '@testing-library/react-hooks';
 import { MetaMetricsEvents } from '../../hooks/useMetrics';
+import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
+import Engine from '../../../core/Engine';
+
+jest.mock('../../../core/Engine.ts', () => ({
+  controllerMessenger: {
+    subscribeOnceIf: jest.fn(),
+  },
+}));
+
+const TRANSACTION_META_ID_MOCK = '04541dc0-2e69-11ef-b995-33aef2c88d1e';
+
+const SWAP_TRANSACTIONS_MOCK = {
+  [TRANSACTION_META_ID_MOCK]: {
+    action: 'swap',
+    analytics: {
+      available_quotes: 5,
+      best_quote_source: 'oneInchV5',
+      chain_id: '1',
+      custom_slippage: false,
+      network_fees_ETH: '0.00337',
+      network_fees_USD: '$12.04',
+      other_quote_selected: false,
+      request_type: 'Order',
+      token_from: 'ETH',
+      token_from_amount: '0.001254',
+      token_to: 'USDC',
+      token_to_amount: '4.440771',
+    },
+    destinationAmount: '4440771',
+    destinationToken: {
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      decimals: 6,
+    },
+    paramsForAnalytics: {
+      approvalTransactionMetaId: {},
+      ethAccountBalance: '0xedfffbea734a07',
+      gasEstimate: '0x33024',
+      sentAt: '0x66732203',
+    },
+    sourceAmount: '1254000000000000',
+    sourceAmountInFiat: '$4.47',
+    sourceToken: {
+      address: '0x0000000000000000000000000000000000000000',
+      decimals: 18,
+    },
+  },
+};
+
+function renderUseSwapConfirmedEventHook({
+  swapsTransactions,
+  trackSwaps,
+}: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  swapsTransactions: any;
+  trackSwaps?: jest.Func;
+}) {
+  const finalTrackSwaps = trackSwaps || jest.fn();
+
+  const { result } = renderHookWithProvider(
+    () =>
+      useSwapConfirmedEvent({
+        trackSwaps: finalTrackSwaps,
+      }),
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            TransactionController: { swapsTransactions },
+          },
+        },
+      },
+    },
+  );
+
+  return result;
+}
 
 describe('Main', () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
+  });
+
   it('should render correctly', () => {
     const MainAppContainer = () => (
       <NavigationContainer>
@@ -21,127 +100,88 @@ describe('Main', () => {
   });
 
   describe('useSwapConfirmedEvent', () => {
-    const txMetaId = '04541dc0-2e69-11ef-b995-33aef2c88d1e';
-    const swapsTransactions = {
-      [txMetaId]: {
-        action: 'swap',
-        analytics: {
-          available_quotes: 5,
-          best_quote_source: 'oneInchV5',
-          chain_id: '1',
-          custom_slippage: false,
-          network_fees_ETH: '0.00337',
-          network_fees_USD: '$12.04',
-          other_quote_selected: false,
-          request_type: 'Order',
-          token_from: 'ETH',
-          token_from_amount: '0.001254',
-          token_to: 'USDC',
-          token_to_amount: '4.440771',
-        },
-        destinationAmount: '4440771',
-        destinationToken: {
-          address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-          decimals: 6,
-        },
-        paramsForAnalytics: {
-          approvalTransactionMetaId: {},
-          ethAccountBalance: '0xedfffbea734a07',
-          gasEstimate: '0x33024',
-          sentAt: '0x66732203',
-        },
-        sourceAmount: '1254000000000000',
-        sourceAmountInFiat: '$4.47',
-        sourceToken: {
-          address: '0x0000000000000000000000000000000000000000',
-          decimals: 18,
-        },
-      },
-    };
-
     it('queues transactionMeta ids correctly', () => {
-      const eventEmitter = new EventEmitter();
-
-      const { result } = renderHook(() =>
-        useSwapConfirmedEvent({
-          TransactionController: {
-            hub: eventEmitter,
-          },
-          swapsTransactions: {}, // This has to be empty object, otherwise test fails
-          trackSwaps: jest.fn(),
-        }),
-      );
-      act(() => {
-        result.current.addTransactionMetaIdForListening(txMetaId);
+      const result = renderUseSwapConfirmedEventHook({
+        swapsTransactions: {},
       });
 
-      expect(result.current.transactionMetaIdsForListening).toEqual([txMetaId]);
+      act(() => {
+        result.current.addTransactionMetaIdForListening(
+          TRANSACTION_META_ID_MOCK,
+        );
+      });
+
+      expect(result.current.transactionMetaIdsForListening).toEqual([
+        TRANSACTION_META_ID_MOCK,
+      ]);
     });
+
     it('adds a listener for transaction confirmation on the TransactionController', () => {
-      const eventEmitter = new EventEmitter();
-
-      const { result } = renderHook(() =>
-        useSwapConfirmedEvent({
-          TransactionController: {
-            hub: eventEmitter,
-          },
-          swapsTransactions,
-          trackSwaps: jest.fn(),
-        }),
-      );
-      act(() => {
-        result.current.addTransactionMetaIdForListening(txMetaId);
+      const result = renderUseSwapConfirmedEventHook({
+        swapsTransactions: SWAP_TRANSACTIONS_MOCK,
       });
 
-      expect(eventEmitter.listenerCount(`${txMetaId}:confirmed`)).toBe(1);
+      act(() => {
+        result.current.addTransactionMetaIdForListening(
+          TRANSACTION_META_ID_MOCK,
+        );
+      });
+
+      expect(Engine.controllerMessenger.subscribeOnceIf).toHaveBeenCalledTimes(
+        1,
+      );
     });
+
     it('tracks Swap Confirmed after transaction confirmed', () => {
-      const eventEmitter = new EventEmitter();
       const trackSwaps = jest.fn();
+
       const txMeta = {
-        id: txMetaId,
+        id: TRANSACTION_META_ID_MOCK,
       };
 
-      const { result } = renderHook(() =>
-        useSwapConfirmedEvent({
-          TransactionController: {
-            hub: eventEmitter,
-          },
-          swapsTransactions,
-          trackSwaps,
-        }),
-      );
-      act(() => {
-        result.current.addTransactionMetaIdForListening(txMetaId);
+      const result = renderUseSwapConfirmedEventHook({
+        swapsTransactions: SWAP_TRANSACTIONS_MOCK,
+        trackSwaps,
       });
-      eventEmitter.emit(`${txMetaId}:confirmed`, txMeta);
+
+      act(() => {
+        result.current.addTransactionMetaIdForListening(
+          TRANSACTION_META_ID_MOCK,
+        );
+      });
+
+      jest
+        .mocked(Engine.controllerMessenger.subscribeOnceIf)
+        .mock.calls[0][1](txMeta as never);
 
       expect(trackSwaps).toHaveBeenCalledWith(
         MetaMetricsEvents.SWAP_COMPLETED,
         txMeta,
-        swapsTransactions,
+        SWAP_TRANSACTIONS_MOCK,
       );
     });
+
     it('removes transactionMeta id after tracking', () => {
-      const eventEmitter = new EventEmitter();
       const trackSwaps = jest.fn();
+
       const txMeta = {
-        id: txMetaId,
+        id: TRANSACTION_META_ID_MOCK,
       };
 
-      const { result } = renderHook(() =>
-        useSwapConfirmedEvent({
-          TransactionController: {
-            hub: eventEmitter,
-          },
-          swapsTransactions,
-          trackSwaps,
-        }),
-      );
-      act(() => {
-        result.current.addTransactionMetaIdForListening(txMetaId);
+      const result = renderUseSwapConfirmedEventHook({
+        swapsTransactions: SWAP_TRANSACTIONS_MOCK,
+        trackSwaps,
       });
-      eventEmitter.emit(`${txMetaId}:confirmed`, txMeta);
+
+      act(() => {
+        result.current.addTransactionMetaIdForListening(
+          TRANSACTION_META_ID_MOCK,
+        );
+      });
+
+      jest
+        .mocked(Engine.controllerMessenger.subscribeOnceIf)
+        .mock.calls[0][1](txMeta as never);
 
       expect(result.current.transactionMetaIdsForListening).toEqual([]);
     });

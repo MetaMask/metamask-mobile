@@ -53,7 +53,6 @@ export function useListNotifications(): ListNotificationsReturn {
 
   return {
     listNotifications,
-    // @ts-expect-error TODO: fix type mismatch
     notificationsData: notifications,
     isLoading: loading,
     error,
