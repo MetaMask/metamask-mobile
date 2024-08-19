@@ -123,6 +123,7 @@ interface RampProviderSelected {
   gas_fee: number;
   processing_fee: number;
   exchange_rate: number;
+  amount: number | string;
 }
 
 interface OnRampProviderSelected extends RampProviderSelected {
