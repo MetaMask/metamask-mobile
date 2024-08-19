@@ -39,7 +39,7 @@ const initialState = {
             decimals: 18,
             isETH: true,
 
-            balanceFiat: 0.01,
+            balanceFiat: 0.001,
             iconUrl: '',
           },
           {
