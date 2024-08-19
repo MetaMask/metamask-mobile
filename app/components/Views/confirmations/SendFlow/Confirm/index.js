@@ -11,6 +11,7 @@ import {
 import { connect } from 'react-redux';
 import { getSendFlowTitle } from '../../../../UI/Navbar';
 import PropTypes from 'prop-types';
+import Eth from 'ethjs-query';
 import {
   renderFromWei,
   renderFromTokenMinimalUnit,
@@ -396,7 +397,10 @@ class Confirm extends PureComponent {
       return;
     }
     try {
-      const result = await fetchEstimatedMultiLayerL1Fee({
+      const eth = new Eth(
+        Engine.context.NetworkController.getProviderAndBlockTracker().provider,
+      );
+      const result = await fetchEstimatedMultiLayerL1Fee(eth, {
         txParams: transaction.transaction,
         chainId,
       });
