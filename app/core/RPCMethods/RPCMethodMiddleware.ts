@@ -866,7 +866,7 @@ export const getRpcMethodMiddleware = ({
       },
 
       /**
-       * This method is used by the inpage provider to get its state on
+       * This method is used by the inpage provider or sdk to get its state on
        * initialization.
        */
       metamask_getProviderState: async () => {
