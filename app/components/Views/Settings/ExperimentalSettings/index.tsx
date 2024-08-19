@@ -3,7 +3,6 @@ import { Linking, ScrollView, Switch, View } from 'react-native';
 
 import { MMKV } from 'react-native-mmkv';
 import { strings } from '../../../../../locales/i18n';
-import { colors as importedColors } from '../../../../styles/common';
 import { useTheme } from '../../../../util/theme';
 import Text, {
   TextVariant,
