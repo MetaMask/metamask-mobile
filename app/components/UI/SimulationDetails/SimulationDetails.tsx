@@ -27,8 +27,6 @@ import { useSimulationMetrics } from './useSimulationMetrics';
 export interface SimulationDetailsProps {
   simulationData?: SimulationData;
   transactionId: string;
-  // need to decide whether to include enableMetrics on all
-  // instances or to make it an optional prop
   enableMetrics: boolean;
 }
 

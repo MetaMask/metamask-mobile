@@ -11,7 +11,7 @@ import {
 import Logger from '../../../util/Logger';
 import useInterval from '../../hooks/useInterval';
 import { isSwapsAllowed } from './utils';
-import { RootState } from 'app/reducers';
+import { RootState } from '../../../reducers';
 
 const POLLING_FREQUENCY = AppConstants.SWAPS.LIVENESS_POLLING_FREQUENCY;
 
