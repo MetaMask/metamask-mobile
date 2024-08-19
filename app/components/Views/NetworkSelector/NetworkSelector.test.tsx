@@ -12,7 +12,6 @@ import NetworkSelector from './NetworkSelector';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkListModal.selectors';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
-
 const mockEngine = Engine;
 
 const setShowTestNetworksSpy = jest.spyOn(
@@ -25,15 +24,23 @@ jest.mock('../../../util/networks/isNetworkUiRedesignEnabled', () => ({
   isNetworkUiRedesignEnabled: jest.fn(),
 }));
 
+jest.mock('../../../util/transaction-controller', () => ({
+  updateIncomingTransactions: jest.fn(),
+}));
+
 jest.mock('../../../core/Engine', () => ({
   init: () => mockEngine.init({}),
   getTotalFiatAccountBalance: jest.fn(),
   context: {
-    NetworkController: { setActiveNetwork: jest.fn() },
+    NetworkController: {
+      setActiveNetwork: jest.fn(),
+      setProviderType: jest.fn(),
+    },
     PreferencesController: {
       setShowTestNetworks: jest.fn(),
     },
     CurrencyRateController: { updateExchangeRate: jest.fn() },
+    AccountTrackerController: { refresh: jest.fn() },
   },
 }));
 
@@ -186,6 +193,59 @@ describe('Network Selector', () => {
     expect(testNetworksSwitch.props.value).toBeTruthy();
     expect(testNetworksSwitch.props.disabled).toBeTruthy();
   });
+  it('changes to non infura network when another network cell is pressed', async () => {
+    const { getByText } = renderComponent(initialState);
+    const gnosisCell = getByText('Gnosis Chain');
+
+    fireEvent.press(gnosisCell);
+
+    expect(mockEngine.context.NetworkController.setActiveNetwork).toBeCalled();
+  });
+
+  it('changes to test network when another network cell is pressed', async () => {
+    const { getByText } = renderComponent({
+      navigation: { currentBottomNavRoute: 'Wallet' },
+      settings: {
+        primaryCurrency: 'usd',
+      },
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          PreferencesController: {
+            showTestNetworks: true,
+          },
+        },
+      },
+    });
+
+    const sepoliaCell = getByText('Sepolia');
+
+    fireEvent.press(sepoliaCell);
+
+    expect(mockEngine.context.NetworkController.setActiveNetwork).toBeCalled();
+  });
+  it('renders correctly with no network configurations', async () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    const stateWithNoNetworkConfigurations = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          NetworkController: {
+            ...initialState.engine.backgroundState.NetworkController,
+            networkConfigurations: {},
+          },
+        },
+      },
+    };
+
+    const { getByText } = renderComponent(stateWithNoNetworkConfigurations);
+
+    await waitFor(() => {
+      const mainnetCell = getByText('Ethereum Main Network');
+      expect(mainnetCell).toBeTruthy();
+    });
+  });
 
   it('renders the multi-RPC selection modal correctly', async () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
@@ -211,31 +271,6 @@ describe('Network Selector', () => {
     await waitFor(() => {
       const rpcOption = getByText('polygon-mainnet.infura.io/v3');
       fireEvent.press(rpcOption);
-    });
-
-    expect(mockEngine.context.NetworkController.setActiveNetwork).toBeCalled();
-  });
-
-  it('renders correctly with no network configurations', async () => {
-    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
-    const stateWithNoNetworkConfigurations = {
-      ...initialState,
-      engine: {
-        backgroundState: {
-          ...initialState.engine.backgroundState,
-          NetworkController: {
-            ...initialState.engine.backgroundState.NetworkController,
-            networkConfigurations: {},
-          },
-        },
-      },
-    };
-
-    const { getByText } = renderComponent(stateWithNoNetworkConfigurations);
-
-    await waitFor(() => {
-      const mainnetCell = getByText('Ethereum Main Network');
-      expect(mainnetCell).toBeTruthy();
     });
   });
 });
