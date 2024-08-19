@@ -437,10 +437,11 @@ export const getNetworkImageSource = ({ networkType, chainId }) => {
  * It returns an estimated L1 fee for a multi layer network.
  * Currently only for the Optimism network, but can be extended to other networks.
  *
+ * @param {Object} eth
  * @param {Object} txMeta
  * @returns {String} Hex string gas fee, with no 0x prefix
  */
-export const fetchEstimatedMultiLayerL1Fee = async (txMeta) => {
+export const fetchEstimatedMultiLayerL1Fee = async (eth, txMeta) => {
   const chainId =
     Engine.context.NetworkController.state?.providerConfig?.chainId;
 
