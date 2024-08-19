@@ -12,44 +12,68 @@ import Matchers from '../utils/Matchers';
 import Gestures from '../utils/Gestures';
 
 class AccountListView {
-  async accountTypeLabel() {
+  async getAccountTypeLabel() {
     return Matchers.getElementByID(
       AccountListViewSelectorsIDs.ACCOUNT_TYPE_LABEL,
     );
   }
 
-  async tapAccountIndex(index) {
-    const element = await Matchers.getElementByID(
-      CellModalSelectorsIDs.MULTISELECT,
-      index,
+  async getAddAccountButton() {
+    return Matchers.getElementByID(ACCOUNT_LIST_ADD_BUTTON_ID);
+  }
+
+  async getMultiselectElement(index) {
+    return Matchers.getElementByID(CellModalSelectorsIDs.MULTISELECT, index);
+  }
+
+  async getImportAccountButton() {
+    return Matchers.getElementByText(
+      AccountListViewSelectorsText.IMPORT_ACCOUNT,
     );
+  }
+
+  async getCreateAccountButton() {
+    return Matchers.getElementByText(
+      AccountListViewSelectorsText.CREATE_ACCOUNT,
+    );
+  }
+
+  async getSelectElement(index) {
+    return Matchers.getElementByID(CellModalSelectorsIDs.SELECT, index);
+  }
+
+  async getConnectAccountsButton() {
+    return Matchers.getElementByID(
+      ConnectAccountModalSelectorsIDs.SELECT_MULTI_BUTTON,
+    );
+  }
+
+  async getAccountElementAtIndex(index) {
+    return Matchers.getElementByID(CellModalSelectorsIDs.BASE_TITLE, index);
+  }
+
+  async tapAccountIndex(index) {
+    const element = await this.getMultiselectElement(index);
     await Gestures.tap(element);
   }
 
   async tapAddAccountButton() {
-    const element = await Matchers.getElementByID(ACCOUNT_LIST_ADD_BUTTON_ID);
+    const element = await this.getAddAccountButton();
     await Gestures.waitAndTap(element);
   }
 
   async tapImportAccountButton() {
-    const element = await Matchers.getElementByText(
-      AccountListViewSelectorsText.IMPORT_ACCOUNT,
-    );
+    const element = await this.getImportAccountButton();
     await Gestures.tap(element);
   }
 
   async tapCreateAccountButton() {
-    const element = await Matchers.getElementByText(
-      AccountListViewSelectorsText.CREATE_ACCOUNT,
-    );
+    const element = await this.getCreateAccountButton();
     await Gestures.tap(element);
   }
 
   async longPressImportedAccount() {
-    const element = await Matchers.getElementByID(
-      CellModalSelectorsIDs.SELECT,
-      1,
-    );
+    const element = await this.getSelectElement(1);
     await Gestures.tapAndLongPress(element);
   }
 
@@ -73,14 +97,8 @@ class AccountListView {
     return Matchers.checkIfVisible(element);
   }
 
-  async getAccountElementAtIndex(index) {
-    return Matchers.getElementByID(CellModalSelectorsIDs.BASE_TITLE, index);
-  }
-
   async connectAccountsButton() {
-    const element = await Matchers.getElementByID(
-      ConnectAccountModalSelectorsIDs.SELECT_MULTI_BUTTON,
-    );
+    const element = await this.getConnectAccountsButton();
     await Gestures.waitAndTap(element);
   }
 }
