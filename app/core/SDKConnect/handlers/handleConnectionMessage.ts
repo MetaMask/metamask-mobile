@@ -12,6 +12,7 @@ import Engine from '../../Engine';
 import { Connection } from '../Connection';
 import DevLogger from '../utils/DevLogger';
 import {
+  waitForCondition,
   waitForConnectionReadiness,
   waitForKeychainUnlocked,
 } from '../utils/wait.util';
@@ -119,7 +120,9 @@ export const handleConnectionMessage = async ({
   try {
     await checkPermissions({ message, connection, engine });
     DevLogger.log(
-      `[handleConnectionMessage] checkPermissions passed -- hasRelayPersistence=${connection.remote.hasRelayPersistence()}`,
+      `[handleConnectionMessage] checkPermissions passed -- method=${
+        message.method
+      } -- hasRelayPersistence=${connection.remote.hasRelayPersistence()}`,
     );
     if (!connection.remote.hasRelayPersistence()) {
       if (!connection.receivedDisconnect) {
@@ -174,6 +177,19 @@ export const handleConnectionMessage = async ({
       method: processedRpc?.method ?? message.method,
     });
 
+    if (!connection.backgroundBridge) {
+      await waitForCondition({
+        fn() {
+          DevLogger.log(
+            `[handleConnectionMessage] waiting for backgroundBridge`,
+            connection.backgroundBridge,
+          );
+          return connection.backgroundBridge !== undefined;
+        },
+        context: 'handleConnectionMessage',
+        waitTime: 1000,
+      });
+    }
     connection.backgroundBridge?.onMessage({
       name: 'metamask-provider',
       data: processedRpc,
