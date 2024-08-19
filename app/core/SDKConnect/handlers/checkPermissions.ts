@@ -125,6 +125,7 @@ export const checkPermissions = async ({
       !connection.initialConnection &&
       AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
     ) {
+      DevLogger.log(`checkPermissions revalidate channel`);
       connection.revalidate({ channelId: connection.channelId });
     }
 
@@ -150,7 +151,8 @@ export const checkPermissions = async ({
       );
     }
 
-    await connection.approvalPromise;
+    const res = await connection.approvalPromise;
+    DevLogger.log(`checkPermissions approvalPromise completed`, res);
     // Clear previous permissions if already approved.
     connection.revalidate({ channelId: connection.channelId });
     return true;

@@ -3,6 +3,7 @@ import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
 import { waitForCondition } from '../utils/wait.util';
 import Logger from '../../../util/Logger';
+import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 
 const QRCODE_PARAM_PATTERN = '&t=q';
 
@@ -11,6 +12,7 @@ const handleDeeplink = async ({
   channelId,
   origin,
   url,
+  originatorInfo,
   protocolVersion,
   otherPublicKey,
   context,
@@ -19,6 +21,7 @@ const handleDeeplink = async ({
   channelId: string;
   origin: string;
   url: string;
+  originatorInfo?: OriginatorInfo;
   protocolVersion: number;
   otherPublicKey: string;
   context: string;
@@ -61,14 +64,11 @@ const handleDeeplink = async ({
     `handleDeeplink:: channel=${channelId} exists=${channelExists}`,
   );
 
-  // First display the loading modal to give user feedback
-  sdkConnect.updateSDKLoadingState({ channelId, loading: true }).catch(() => {
-    // Ignore error --- We don't want to block while state is being updated.
-  });
-
-  DevLogger.log(`handleDeeplink:: channel=${channelId} loading=true`);
-
   try {
+    // First display the loading modal to give user feedback
+    await sdkConnect.updateSDKLoadingState({ channelId, loading: true });
+    DevLogger.log(`handleDeeplink:: channel=${channelId} loading=true`);
+
     if (channelExists) {
       if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
         // Automatically re-approve hosts.
@@ -89,6 +89,8 @@ const handleDeeplink = async ({
       await sdkConnect.connectToChannel({
         id: channelId,
         origin,
+        originatorInfo,
+        initialConnection: true,
         protocolVersion,
         trigger: 'deeplink',
         otherPublicKey,

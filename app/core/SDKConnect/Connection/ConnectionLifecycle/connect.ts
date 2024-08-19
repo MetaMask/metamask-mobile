@@ -1,22 +1,24 @@
 import DevLogger from '../../utils/DevLogger';
 import { Connection } from '../Connection';
 
-function connect({
+async function connect({
   withKeyExchange,
   instance,
+  authorized,
 }: {
   withKeyExchange: boolean;
   instance: Connection;
+  authorized: boolean;
 }) {
   DevLogger.log(
-    `Connection::connect() withKeyExchange=${withKeyExchange} id=${instance.channelId}`,
+    `Connection::connect() id=${instance.channelId} withKeyExchange=${withKeyExchange} authorized=${authorized}`,
   );
   instance.remote.connectToChannel({
     channelId: instance.channelId,
+    authorized,
     withKeyExchange,
   });
   instance.receivedDisconnect = false;
-  instance.setLoading(true);
 }
 
 export default connect;

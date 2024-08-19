@@ -8,6 +8,8 @@ import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import Logger from '../../../util/Logger';
 import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
+import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+import parseOriginatorInfo from '../parseOriginatorInfo';
 
 function handleUniversalLink({
   instance,
@@ -60,12 +62,20 @@ function handleUniversalLink({
           `handleUniversalLink:: deeplink_scheme protocolVersion=${protocolVersion} v=${params.v}`,
         );
 
+        let originatorInfo: OriginatorInfo | undefined;
+        if (params.originatorInfo) {
+          originatorInfo = parseOriginatorInfo({
+            base64OriginatorInfo: params.originatorInfo,
+          });
+        }
+
         handleDeeplink({
           protocolVersion,
           channelId: params.channelId,
           origin,
           context: 'deeplink_universal',
           url,
+          originatorInfo,
           otherPublicKey: params.pubkey,
           sdkConnect: SDKConnect.getInstance(),
         }).catch((err: unknown) => {

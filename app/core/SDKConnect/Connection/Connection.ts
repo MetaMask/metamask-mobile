@@ -273,8 +273,18 @@ export class Connection extends EventEmitter2 {
     );
   }
 
-  public connect({ withKeyExchange }: { withKeyExchange: boolean }) {
-    return connect({ instance: this, withKeyExchange });
+  public connect({
+    withKeyExchange,
+    authorized,
+  }: {
+    authorized: boolean;
+    withKeyExchange: boolean;
+  }) {
+    return connect({
+      instance: this,
+      withKeyExchange,
+      authorized,
+    });
   }
 
   sendAuthorized(force?: boolean) {

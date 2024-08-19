@@ -1,3 +1,4 @@
+import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
 import Logger from '../../../util/Logger';
 import { Minimizer } from '../../NativeModules';
@@ -7,6 +8,7 @@ import DevLogger from '../../SDKConnect/utils/DevLogger';
 import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
+import parseOriginatorInfo from '../parseOriginatorInfo';
 
 export function handleMetaMaskDeeplink({
   instance,
@@ -62,12 +64,20 @@ export function handleMetaMaskDeeplink({
             params.v
           }`,
         );
+
+        let originatorInfo: OriginatorInfo | undefined;
+        if (params.originatorInfo) {
+          originatorInfo = parseOriginatorInfo({
+            base64OriginatorInfo: params.originatorInfo,
+          });
+        }
         handleDeeplink({
           channelId: params.channelId,
           origin,
           url,
           protocolVersion,
           context: 'deeplink_scheme',
+          originatorInfo,
           otherPublicKey: params.pubkey,
           sdkConnect: SDKConnect.getInstance(),
         }).catch((err) => {
