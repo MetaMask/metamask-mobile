@@ -581,13 +581,6 @@ workflows:
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
-      # - script@1:
-      #     title: Download cmake 3.22.1 with sdkmanager
-      #     is_always_run: false
-      #     inputs:
-      #       - content: |-
-      #           #!/usr/bin/env bash
-      #           "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
       - script@1:
           title: Install CCache & symlink
           inputs:
@@ -674,13 +667,6 @@ workflows:
           title: Restore cache node_modules
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
-      # - script@1:
-      #     title: Download cmake 3.22.1 with sdkmanager
-      #     is_always_run: false
-      #     inputs:
-      #       - content: |-
-      #           #!/usr/bin/env bash
-      #           "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
       - avd-manager@1:
           inputs:
             - api_level: '34'
@@ -1027,13 +1013,6 @@ workflows:
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
-      # - script@1:
-      #     inputs:
-      #       - content: |-
-      #           #!/usr/bin/env bash
-      #           "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
-      #     title: Download cmake 3.22.1 with sdkmanager
-      #     is_always_run: false
       - script@1:
           inputs:
             - content: |-
@@ -1103,13 +1082,7 @@ workflows:
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
-      # - script@1:
-      #     inputs:
-      #       - content: |-
-      #           #!/usr/bin/env bash
-      #           "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
-      #     title: Download cmake 3.22.1 with sdkmanager
-      #     is_always_run: false
+
       - script@1:
           inputs:
             - content: |-
@@ -1420,13 +1393,7 @@ workflows:
           inputs:
             - ndk_revision: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
-      # - script@1:
-      #     inputs:
-      #       - content: |-
-      #           #!/usr/bin/env bash
-      #           "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
-      #     title: Download cmake 3.22.1 with sdkmanager
-      #     is_always_run: false
+
       - script@1:
           inputs:
             - content: |-
