@@ -1522,13 +1522,13 @@ app:
       VERSION_NAME: 7.29.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1390
+      VERSION_NUMBER: 1391
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.29.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1390
+      FLASK_VERSION_NUMBER: 1391
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
