@@ -724,7 +724,6 @@ export function weiToIntlDenomination(
   conversionRate = null,
   decimalsToShow = 5,
 ) {
-  console.log('THIS ONE IS FAILING');
   if (!conversionRate) return undefined;
   if (!wei || !isBN(wei) || !conversionRate) {
     return addCurrencySymbol(0, currencyCode);
