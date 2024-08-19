@@ -96,14 +96,16 @@ const NotificationsView = ({
             web3Notifications={announcementNotifications}
             loading={isLoading}
           />
-          <Button
-            variant={ButtonVariants.Primary}
-            label={strings('notifications.mark_all_as_read')}
-            onPress={handleMarkAllAsRead}
-            size={ButtonSize.Lg}
-            style={styles.stickyButton}
-            disabled={loading}
-          />
+          {!isLoading && (
+            <Button
+              variant={ButtonVariants.Primary}
+              label={strings('notifications.mark_all_as_read')}
+              onPress={handleMarkAllAsRead}
+              size={ButtonSize.Lg}
+              style={styles.stickyButton}
+              disabled={loading}
+            />
+          )}
         </>
       ) : (
         <Empty

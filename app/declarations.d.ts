@@ -281,3 +281,8 @@ declare module './util/termsOfUse/termsOfUseContent' {
   const content: string;
   export default content;
 }
+
+declare module 'react-native-emoji' {
+  const emoji: React.JSX;
+  export default emoji;
+}
