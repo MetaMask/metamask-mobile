@@ -53,28 +53,23 @@ class AccountListView {
   }
 
   async tapAccountIndex(index) {
-    const element = await this.getMultiselectElement(index);
-    await Gestures.tap(element);
+    await Gestures.tap(this.getMultiselectElement(index));
   }
 
   async tapAddAccountButton() {
-    const element = await this.addAccountButton;
-    await Gestures.waitAndTap(element);
+    await Gestures.waitAndTap(this.addAccountButton);
   }
 
   async tapImportAccountButton() {
-    const element = await this.importAccountButton;
-    await Gestures.tap(element);
+    await Gestures.tap(this.importAccountButton);
   }
 
   async tapCreateAccountButton() {
-    const element = await this.createAccountButton;
-    await Gestures.tap(element);
+    await Gestures.tap(this.createAccountButton);
   }
 
   async longPressImportedAccount() {
-    const element = await this.getSelectElement(1);
-    await Gestures.tapAndLongPress(element);
+    await Gestures.tapAndLongPress(this.getSelectElement(1));
   }
 
   async swipeToDismissAccountsModal() {
@@ -86,20 +81,21 @@ class AccountListView {
   }
 
   async tapYesToRemoveImportedAccountAlertButton() {
-    const element = await Matchers.getElementByText(
-      AccountListViewSelectorsText.REMOVE_IMPORTED_ACCOUNT,
+    await Gestures.tap(
+      Matchers.getElementByText(
+        AccountListViewSelectorsText.REMOVE_IMPORTED_ACCOUNT,
+      ),
     );
-    await Gestures.tap(element);
   }
 
   async isVisible() {
-    const element = await Matchers.getElementByID(ACCOUNT_LIST_ID);
-    return Matchers.checkIfVisible(element);
+    return Matchers.checkIfVisible(
+      await Matchers.getElementByID(ACCOUNT_LIST_ID),
+    );
   }
 
   async tapConnectAccountsButton() {
-    const element = await this.connectAccountsButton;
-    await Gestures.waitAndTap(element);
+    await Gestures.waitAndTap(this.connectAccountsButton);
   }
 }
 
