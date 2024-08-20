@@ -305,14 +305,36 @@ class Confirm extends PureComponent {
   };
 
   getAnalyticsParams = (transactionMeta) => {
+    const {
+      selectedAsset,
+      gasEstimateType,
+      chainId,
+      shouldUseSmartTransaction,
+    } = this.props;
+    const { gasSelected, fromSelectedAddress } = this.state;
+
+    // Define baseParams with safe fallback values
+    const baseParams = {
+      active_currency: {
+        value: selectedAsset?.symbol || 'N/A',
+        anonymous: true,
+      },
+      account_type: fromSelectedAddress
+        ? getAddressAccountType(fromSelectedAddress)
+        : 'unknown',
+      chain_id: chainId ? getDecimalChainId(chainId) : 'unknown',
+      gas_estimate_type: gasEstimateType || 'unknown',
+      gas_mode: gasSelected ? 'Basic' : 'Advanced',
+      speed_set: gasSelected || undefined,
+      request_source: this.originIsMMSDKRemoteConn
+        ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
+        : this.originIsWalletConnect
+        ? AppConstants.REQUEST_SOURCES.WC
+        : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+      is_smart_transaction: shouldUseSmartTransaction || false,
+    };
+
     try {
-      const {
-        selectedAsset,
-        gasEstimateType,
-        chainId,
-        shouldUseSmartTransaction,
-      } = this.props;
-      const { gasSelected, fromSelectedAddress } = this.state;
       const { SmartTransactionsController } = Engine.context;
 
       const smartTransactionMetricsProperties =
@@ -321,24 +343,15 @@ class Confirm extends PureComponent {
           transactionMeta,
         );
 
+      // Merge baseParams with the additional smart transaction properties
       return {
-        active_currency: { value: selectedAsset?.symbol, anonymous: true },
-        account_type: getAddressAccountType(fromSelectedAddress),
-        chain_id: getDecimalChainId(chainId),
-        gas_estimate_type: gasEstimateType,
-        gas_mode: gasSelected ? 'Basic' : 'Advanced',
-        speed_set: gasSelected || undefined,
-        request_source: this.originIsMMSDKRemoteConn
-          ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
-          : this.originIsWalletConnect
-          ? AppConstants.REQUEST_SOURCES.WC
-          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
-
-        is_smart_transaction: shouldUseSmartTransaction,
+        ...baseParams,
         ...smartTransactionMetricsProperties,
       };
     } catch (error) {
-      return {};
+      // Log the error and return the baseParams
+      console.error('Error in getAnalyticsParams:', error);
+      return baseParams;
     }
   };
 

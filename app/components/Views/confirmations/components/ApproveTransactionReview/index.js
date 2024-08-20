@@ -541,46 +541,60 @@ class ApproveTransactionReview extends PureComponent {
   };
 
   getAnalyticsParams = () => {
+    const {
+      chainId,
+      transaction,
+      onSetAnalyticsParams,
+      shouldUseSmartTransaction,
+    } = this.props;
+
+    const {
+      token: { tokenSymbol } = {},
+      originalApproveAmount,
+      encodedHexAmount,
+    } = this.state || {};
+
+    const baseParams = {
+      account_type: transaction?.from
+        ? getAddressAccountType(transaction.from)
+        : 'unknown',
+      dapp_host_name: transaction?.origin || 'unknown',
+      chain_id: chainId ? getDecimalChainId(chainId) : 'unknown',
+      active_currency: { value: tokenSymbol || 'N/A', anonymous: true },
+      number_tokens_requested: {
+        value: originalApproveAmount || '0',
+        anonymous: true,
+      },
+      unlimited_permission_requested:
+        encodedHexAmount === UINT256_HEX_MAX_VALUE,
+      referral_type: 'unknown',
+      request_source: this.originIsMMSDKRemoteConn
+        ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
+        : this.originIsWalletConnect
+        ? AppConstants.REQUEST_SOURCES.WC
+        : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+      is_smart_transaction: shouldUseSmartTransaction || false,
+    };
+
     try {
-      const {
-        chainId,
-        transaction,
-        onSetAnalyticsParams,
-        shouldUseSmartTransaction,
-      } = this.props;
-      const {
-        token: { tokenSymbol },
-        originalApproveAmount,
-        encodedHexAmount,
-      } = this.state;
       const isDapp = !Object.values(AppConstants.DEEPLINKS).includes(
         transaction?.origin,
       );
-      const unlimited = encodedHexAmount === UINT256_HEX_MAX_VALUE;
+
       const params = {
-        account_type: getAddressAccountType(transaction?.from),
-        dapp_host_name: transaction?.origin,
-        chain_id: getDecimalChainId(chainId),
-        active_currency: { value: tokenSymbol, anonymous: true },
-        number_tokens_requested: {
-          value: originalApproveAmount,
-          anonymous: true,
-        },
-        unlimited_permission_requested: unlimited,
+        ...baseParams,
         referral_type: isDapp ? 'dapp' : transaction?.origin,
-        request_source: this.originIsMMSDKRemoteConn
-          ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
-          : this.originIsWalletConnect
-          ? AppConstants.REQUEST_SOURCES.WC
-          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
-        is_smart_transaction: shouldUseSmartTransaction,
       };
+
       // Send analytics params to parent component so it's available when cancelling and confirming
-      onSetAnalyticsParams && onSetAnalyticsParams(params);
+      if (onSetAnalyticsParams) {
+        onSetAnalyticsParams(params);
+      }
 
       return params;
     } catch (error) {
-      return {};
+      console.error('Error in getAnalyticsParams:', error);
+      return baseParams;
     }
   };
 
