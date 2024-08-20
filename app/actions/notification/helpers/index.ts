@@ -45,7 +45,6 @@ export const enableProfileSyncing = async () => {
 
 export const disableProfileSyncing = async () => {
   try {
-    await Engine.context.NotificationServicesController.disableNotificationServices();
     await Engine.context.UserStorageController.disableProfileSyncing();
   } catch (error) {
     return getErrorMessage(error);
