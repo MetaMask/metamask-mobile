@@ -207,7 +207,7 @@ import {
   networkIdWillUpdate,
 } from '../core/redux/slices/inpageProvider';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
-import { NETWORKS_CHAIN_ID } from '../../app/constants/network';
+import { getAllowedSmartTransactionsChainIds } from '../../app/constants/smartTransactions';
 import { selectShouldUseSmartTransaction } from '../selectors/smartTransactionsController';
 import { selectSwapsChainFeatureFlags } from '../reducers/swaps';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
@@ -1049,15 +1049,18 @@ class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'AuthenticationController',
         allowedActions: [
+          'KeyringController:getState',
+          'KeyringController:getAccounts',
+
           'SnapController:handleRequest',
-          'UserStorageController:disableProfileSyncing',
+          'UserStorageController:enableProfileSyncing',
         ],
-        allowedEvents: [],
+        allowedEvents: ['KeyringController:unlock', 'KeyringController:lock'],
       }),
-      // TODO: Fix this by (await MetaMetrics.getInstance().getMetaMetricsId()) before go live
       metametrics: {
         agent: 'mobile',
-        getMetaMetricsId: async () => Promise.resolve(''),
+        getMetaMetricsId: async () =>
+          (await MetaMetrics.getInstance().getMetaMetricsId()) || '',
       },
     });
 
@@ -1070,6 +1073,7 @@ class Engine {
         name: 'UserStorageController',
         allowedActions: [
           'SnapController:handleRequest',
+          'KeyringController:getState',
           'AuthenticationController:getBearerToken',
           'AuthenticationController:getSessionProfile',
           'AuthenticationController:isSignedIn',
@@ -1078,7 +1082,7 @@ class Engine {
           'NotificationServicesController:disableNotificationServices',
           'NotificationServicesController:selectIsNotificationServicesEnabled',
         ],
-        allowedEvents: [],
+        allowedEvents: ['KeyringController:unlock', 'KeyringController:lock'],
       }),
     });
 
@@ -1089,6 +1093,7 @@ class Engine {
         messenger: this.controllerMessenger.getRestricted({
           name: 'NotificationServicesController',
           allowedActions: [
+            'KeyringController:getState',
             'KeyringController:getAccounts',
             'AuthenticationController:getBearerToken',
             'AuthenticationController:isSignedIn',
@@ -1097,7 +1102,11 @@ class Engine {
             'UserStorageController:performGetStorage',
             'UserStorageController:performSetStorage',
           ],
-          allowedEvents: ['KeyringController:stateChange'],
+          allowedEvents: [
+            'KeyringController:unlock',
+            'KeyringController:lock',
+            'KeyringController:stateChange',
+          ],
         }),
         state: initialState.NotificationServicesController,
         env: {
@@ -1223,12 +1232,12 @@ class Engine {
           this.transactionController.confirmExternalTransaction.bind(
             this.transactionController,
           ),
+        // @ts-expect-error Need to make sure types match.
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
         getNonceLock: this.transactionController.getNonceLock.bind(
           this.transactionController,
         ),
-        // @ts-expect-error Older TransactionController version in SmartTransactionsController means TransactionMeta types don't match.
         getTransactions: this.transactionController.getTransactions.bind(
           this.transactionController,
         ),
@@ -1244,13 +1253,10 @@ class Engine {
           networkController.getProviderAndBlockTracker().provider as any,
 
         trackMetaMetricsEvent: smartTransactionsControllerTrackMetaMetricsEvent,
+        getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
       },
       {
-        supportedChainIds: [
-          NETWORKS_CHAIN_ID.MAINNET,
-          NETWORKS_CHAIN_ID.GOERLI,
-          NETWORKS_CHAIN_ID.SEPOLIA,
-        ],
+        supportedChainIds: getAllowedSmartTransactionsChainIds(),
       },
       initialState.SmartTransactionsController,
     );
@@ -1617,100 +1623,110 @@ class Engine {
       TokensController,
       NetworkController,
     } = this.context;
-    const selectedInternalAccount = AccountsController.getSelectedAccount();
-    const selectSelectedInternalAccountChecksummedAddress =
-      toChecksumHexAddress(selectedInternalAccount.address);
-    const { currentCurrency } = CurrencyRateController.state;
-    const { chainId, ticker } = NetworkController.state.providerConfig;
-    const {
-      settings: { showFiatOnTestnets },
-    } = store.getState();
 
-    if (isTestNet(chainId) && !showFiatOnTestnets) {
-      return { ethFiat: 0, tokenFiat: 0, ethFiat1dAgo: 0, tokenFiat1dAgo: 0 };
-    }
+    const selectedInternalAccount = AccountsController.getAccount(
+      AccountsController.state.internalAccounts.selectedAccount,
+    );
 
-    const conversionRate =
-      CurrencyRateController.state?.currencyRates?.[ticker]?.conversionRate ??
-      0;
+    if (selectedInternalAccount) {
+      const selectSelectedInternalAccountChecksummedAddress =
+        toChecksumHexAddress(selectedInternalAccount.address);
+      const { currentCurrency } = CurrencyRateController.state;
+      const { chainId, ticker } = NetworkController.state.providerConfig;
+      const { settings: { showFiatOnTestnets } = {} } = store.getState();
 
-    const { accountsByChainId } = AccountTrackerController.state;
-    const { tokens } = TokensController.state;
-    const { marketData: tokenExchangeRates } = TokenRatesController.state;
+      if (isTestNet(chainId) && !showFiatOnTestnets) {
+        return { ethFiat: 0, tokenFiat: 0, ethFiat1dAgo: 0, tokenFiat1dAgo: 0 };
+      }
 
-    let ethFiat = 0;
-    let ethFiat1dAgo = 0;
-    let tokenFiat = 0;
-    let tokenFiat1dAgo = 0;
-    const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
-    if (
-      accountsByChainId?.[toHexadecimal(chainId)]?.[
-        selectSelectedInternalAccountChecksummedAddress
-      ]
-    ) {
-      ethFiat = weiToFiatNumber(
-        accountsByChainId[toHexadecimal(chainId)][
-          selectSelectedInternalAccountChecksummedAddress
-        ].balance,
-        conversionRate,
-        decimalsToShow,
-      );
-    }
+      const conversionRate =
+        CurrencyRateController.state?.currencyRates?.[ticker]?.conversionRate ??
+        0;
 
-    ethFiat1dAgo =
-      ethFiat +
-        (ethFiat *
-          tokenExchangeRates?.[toHexadecimal(chainId)]?.[
-            zeroAddress() as `0x${string}`
-          ]?.pricePercentChange1d) /
-          100 || ethFiat;
-
-    if (tokens.length > 0) {
-      const { contractBalances: tokenBalances } = TokenBalancesController.state;
+      const { accountsByChainId } = AccountTrackerController.state;
+      const { tokens } = TokensController.state;
       const { marketData } = TokenRatesController.state;
-      const tokenExchangeRates = marketData[chainId];
-      tokens.forEach(
-        (item: { address: string; balance?: string; decimals: number }) => {
-          const exchangeRate =
-            tokenExchangeRates && item.address in tokenExchangeRates
-              ? tokenExchangeRates[item.address as Hex]?.price
-              : undefined;
+      const tokenExchangeRates = marketData?.[toHexadecimal(chainId)];
 
-          const tokenBalance =
-            item.balance ||
-            (item.address in tokenBalances
-              ? renderFromTokenMinimalUnit(
-                  tokenBalances[item.address],
-                  item.decimals,
-                )
-              : undefined);
-          const tokenBalanceFiat = balanceToFiatNumber(
-            // TODO: Fix this by handling or eliminating the undefined case
-            // @ts-expect-error This variable can be `undefined`, which would break here.
-            tokenBalance,
-            conversionRate,
-            exchangeRate,
-            decimalsToShow,
-          );
+      let ethFiat = 0;
+      let ethFiat1dAgo = 0;
+      let tokenFiat = 0;
+      let tokenFiat1dAgo = 0;
+      const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
+      if (
+        accountsByChainId?.[toHexadecimal(chainId)]?.[
+          selectSelectedInternalAccountChecksummedAddress
+        ]
+      ) {
+        ethFiat = weiToFiatNumber(
+          accountsByChainId[toHexadecimal(chainId)][
+            selectSelectedInternalAccountChecksummedAddress
+          ].balance,
+          conversionRate,
+          decimalsToShow,
+        );
+      }
 
-          const tokenBalance1dAgo =
-            tokenBalanceFiat +
-              (tokenBalanceFiat *
-                tokenExchangeRates?.[item.address as `0x${string}`]
-                  ?.pricePercentChange1d) /
-                100 || tokenBalanceFiat;
+      const ethPricePercentChange1d =
+        tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
 
-          tokenFiat += tokenBalanceFiat;
-          tokenFiat1dAgo += tokenBalance1dAgo;
-        },
-      );
+      ethFiat1dAgo =
+        ethPricePercentChange1d !== undefined
+          ? ethFiat / (1 + ethPricePercentChange1d / 100)
+          : ethFiat;
+
+      if (tokens.length > 0) {
+        const { contractBalances: tokenBalances } =
+          TokenBalancesController.state;
+        tokens.forEach(
+          (item: { address: string; balance?: string; decimals: number }) => {
+            const exchangeRate =
+              tokenExchangeRates?.[item.address as Hex]?.price;
+
+            const tokenBalance =
+              item.balance ||
+              (item.address in tokenBalances
+                ? renderFromTokenMinimalUnit(
+                    tokenBalances[item.address],
+                    item.decimals,
+                  )
+                : undefined);
+            const tokenBalanceFiat = balanceToFiatNumber(
+              // TODO: Fix this by handling or eliminating the undefined case
+              // @ts-expect-error This variable can be `undefined`, which would break here.
+              tokenBalance,
+              conversionRate,
+              exchangeRate,
+              decimalsToShow,
+            );
+
+            const tokenPricePercentChange1d =
+              tokenExchangeRates?.[item.address as Hex]?.pricePercentChange1d;
+
+            const tokenBalance1dAgo =
+              tokenPricePercentChange1d !== undefined
+                ? tokenBalanceFiat / (1 + tokenPricePercentChange1d / 100)
+                : tokenBalanceFiat;
+
+            tokenFiat += tokenBalanceFiat;
+            tokenFiat1dAgo += tokenBalance1dAgo;
+          },
+        );
+      }
+
+      return {
+        ethFiat: ethFiat ?? 0,
+        ethFiat1dAgo: ethFiat1dAgo ?? 0,
+        tokenFiat: tokenFiat ?? 0,
+        tokenFiat1dAgo: tokenFiat1dAgo ?? 0,
+      };
     }
-
+    // if selectedInternalAccount is undefined, return default 0 value.
     return {
-      ethFiat: ethFiat ?? 0,
-      ethFiat1dAgo: ethFiat1dAgo ?? 0,
-      tokenFiat: tokenFiat ?? 0,
-      tokenFiat1dAgo: tokenFiat1dAgo ?? 0,
+      ethFiat: 0,
+      tokenFiat: 0,
+      ethFiat1dAgo: 0,
+      tokenFiat1dAgo: 0,
     };
   };
 
@@ -1759,11 +1775,17 @@ class Engine {
       TokenBalancesController,
       TokenRatesController,
       PermissionController,
+      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+      SnapController,
+      ///: END:ONLY_INCLUDE_IF
       LoggingController,
     } = this.context;
 
     // Remove all permissions.
     PermissionController?.clearState?.();
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    SnapController.clearState();
+    ///: END:ONLY_INCLUDE_IF
 
     //Clear assets info
     TokensController.update({
@@ -1839,7 +1861,6 @@ class Engine {
     requestData?: Record<string, Json>,
     opts: AcceptOptions & { handleErrors?: boolean } = {
       waitForResult: false,
-      deleteAfterResult: false,
       handleErrors: true,
     },
   ) {
@@ -1848,7 +1869,6 @@ class Engine {
     try {
       return await ApprovalController.accept(id, requestData, {
         waitForResult: opts.waitForResult,
-        deleteAfterResult: opts.deleteAfterResult,
       });
     } catch (err) {
       if (opts.handleErrors === false) {
