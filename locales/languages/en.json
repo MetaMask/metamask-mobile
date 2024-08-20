@@ -393,7 +393,7 @@
     "creator_address": "Creator address",
     "last_sold": "Last sold",
     "highest_current_bid": "Highest current bid",
-    "options" :{
+    "options": {
       "view_on_os": "View on OpenSea",
       "remove_nft": "Remove NFT"
     },
@@ -522,7 +522,7 @@
     "creator_address": "Creator address",
     "last_sold": "Last sold",
     "highest_current_bid": "Highest current bid",
-    "options" :{
+    "options": {
       "view_on_os": "View on OpenSea",
       "remove_nft": "Remove NFT"
     },
@@ -2152,9 +2152,9 @@
     "transaction_id_copied_to_clipboard": "Transaction ID copied to clipboard",
     "activation_card": {
       "title": "Turn on notifications",
-      "description_1": "Stay in the loop on what's happening in your wallet with notifications. ",
+      "description_1": "Stay in the loop on what's happening in your wallet with notifications.",
       "description_2": "To use this feature, we’ll generate an anonymous ID for your account. It’s used only for syncing your data in MetaMask and doesn't link to your activities or other identifiers, ensuring your privacy.",
-      "learn_more": "Learn how we protect your privacy while using this feature. ",
+      "learn_more": "Learn how we protect your privacy while using this feature.",
       "manage_preferences_1": "You can turn off notifications at any time in ",
       "manage_preferences_2": "Settings > Notifications.",
       "cancel": "Cancel",
@@ -3248,7 +3248,7 @@
       "title_off": "Turn off basic functionality",
       "description_off": "This means you won't fully optimize your time on MetaMask. Basic features (like token details, optimal gas settings, and others) won't be available to you.",
       "title_on": "Turn on basic functionality",
-      "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, and others) are important to the web3 experience.",
+      "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, notifications, and others) are important to the web3 experience.",
       "checkbox_label": "I understand and want to continue",
       "buttons": {
         "cancel": "Cancel",
