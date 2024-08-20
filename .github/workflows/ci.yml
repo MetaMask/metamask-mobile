@@ -1,10 +1,8 @@
 name: ci
-
 on:
   push:
     branches: main
   pull_request:
-
 jobs:
   setup:
     runs-on: ubuntu-20.04
@@ -33,38 +31,7 @@ jobs:
           if ! git diff --exit-code; then
             echo "Working tree dirty at end of job"
             exit 1
-
-      - name: Get SonarCloud Quality Gate Status
-        id: sonar-status
-        if: github.event_name == 'pull_request_target' || contains(github.event.comment.html_url, '/pull/')
-        run: |
-          sleep 30
-
-          PROJECT_KEY="metamask-mobile"
-          PR_NUMBER="${{ github.event.pull_request.number }}"
-          SONAR_TOKEN="${{ secrets.SONAR_TOKEN }}"
-
-          if [ -z "$PR_NUMBER" ]; then
-            echo "No pull request number found. Failing the check."
-            exit 1
           fi
-
-          RESPONSE=$(curl -s -u "$SONAR_TOKEN:" \
-            "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT_KEY&pullRequest=$PR_NUMBER")
-          echo "SonarCloud API Response: $RESPONSE"
-
-          STATUS=$(echo "$RESPONSE" | jq -r '.projectStatus.status')
-
-          if [[ "$STATUS" == "ERROR" ]]; then
-            echo "Quality Gate failed."
-            exit 1
-          elif [[ "$STATUS" == "OK" ]]; then
-            echo "Quality Gate passed."
-          else
-            echo "Could not determine Quality Gate status."
-            exit 1
-          fi
-
   dedupe:
     runs-on: ubuntu-20.04
     needs: setup
@@ -83,7 +50,7 @@ jobs:
           if ! git diff --exit-code; then
             echo "Duplicate dependencies detected; run 'yarn deduplicate' to remove them"
             exit 1
-
+          fi
   scripts:
     runs-on: ubuntu-20.04
     needs: setup
@@ -109,7 +76,7 @@ jobs:
           if ! git diff --exit-code; then
             echo "Working tree dirty at end of job"
             exit 1
-
+          fi
   unit-tests:
     runs-on: ubuntu-20.04
     needs: setup
@@ -143,7 +110,7 @@ jobs:
           if ! git diff --exit-code; then
             echo "Working tree dirty at end of job"
             exit 1
-
+          fi
   merge-unit-tests:
     runs-on: ubuntu-20.04
     needs: unit-tests
@@ -174,7 +141,7 @@ jobs:
           if ! git diff --exit-code; then
             echo "Working tree dirty at end of job"
             exit 1
-
+          fi
   sonar-cloud:
     runs-on: ubuntu-20.04
     needs: merge-unit-tests
@@ -202,6 +169,38 @@ jobs:
           if ! git diff --exit-code; then
             echo "Working tree dirty at end of job"
             exit 1
+          fi
+
+      - name: Get SonarCloud Quality Gate Status
+        id: sonar-status
+        if: github.event_name == 'pull_request_target' || contains(github.event.comment.html_url, '/pull/')
+        run: |
+          sleep 30
+
+          PROJECT_KEY="metamask-mobile"
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          SONAR_TOKEN="${{ secrets.SONAR_TOKEN }}"
+
+          if [ -z "$PR_NUMBER" ]; then
+            echo "No pull request number found. Failing the check."
+            exit 1
+          fi
+
+          RESPONSE=$(curl -s -u "$SONAR_TOKEN:" \
+            "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT_KEY&pullRequest=$PR_NUMBER")
+          echo "SonarCloud API Response: $RESPONSE"
+
+          STATUS=$(echo "$RESPONSE" | jq -r '.projectStatus.status')
+
+          if [[ "$STATUS" == "ERROR" ]]; then
+            echo "Quality Gate failed."
+            exit 1
+          elif [[ "$STATUS" == "OK" ]]; then
+            echo "Quality Gate passed."
+          else
+            echo "Could not determine Quality Gate status."
+            exit 1
+          fi
 
   check-workflows:
     name: Check workflows
@@ -215,7 +214,6 @@ jobs:
       - name: Check workflow files
         run: ${{ steps.download-actionlint.outputs.executable }} -color
         shell: bash
-
   all-jobs-pass:
     name: All jobs pass
     runs-on: ubuntu-20.04
