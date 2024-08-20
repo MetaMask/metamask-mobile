@@ -2,6 +2,11 @@
 
 ## Current Main Branch
 
+## 7.28.1 - Aug 15, 2024
+### Fixed
+- [#10637](https://github.com/MetaMask/metamask-mobile/pull/10637): fix: swap button blocked by SwapsController polling issue (#10637)
+- [#10654](https://github.com/MetaMask/metamask-mobile/pull/10654): fix: hot fix for ledger account select screen to provide disclaimer copy information. (#10654)
+
 ## 7.28.0 - Jul 19, 2024
 ### Added
 - [#10252](https://github.com/MetaMask/metamask-mobile/pull/10252): feat: regression label (#10252)

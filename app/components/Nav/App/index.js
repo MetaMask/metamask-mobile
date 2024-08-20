@@ -27,7 +27,6 @@ import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportFromSecretRecoveryPhrase from '../../Views/ImportFromSecretRecoveryPhrase';
 import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
-import WhatsNewModal from '../../UI/WhatsNewModal/WhatsNewModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
 import MetaMaskAnimation from '../../UI/MetaMaskAnimation';
@@ -119,10 +118,10 @@ import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetec
 import NftOptions from '../../../components/Views/NftOptions';
 import ShowTokenIdSheet from '../../../components/Views/ShowTokenIdSheet';
 import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
+import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
-import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesignEnabled';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -614,7 +613,6 @@ const App = ({ userLoggedIn }) => {
         name={Routes.MODAL.MODAL_MANDATORY}
         component={ModalMandatory}
       />
-      <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
       <Stack.Screen
         name={Routes.MODAL.SMART_TRANSACTIONS_OPT_IN}
         component={SmartTransactionsOptInModal}

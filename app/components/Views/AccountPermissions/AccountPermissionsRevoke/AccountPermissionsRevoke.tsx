@@ -171,6 +171,7 @@ const AccountPermissionsRevoke = ({
                     labelOptions,
                     accountAddress: nextActiveAddress,
                     accountAvatarType,
+                    hasNoTimeout: false,
                   });
                 } else {
                   // Just disconnect
@@ -178,6 +179,7 @@ const AccountPermissionsRevoke = ({
                   toastRef?.current?.showToast({
                     variant: ToastVariants.Plain,
                     labelOptions,
+                    hasNoTimeout: false,
                   });
                 }
                 trackEvent(MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS, {
