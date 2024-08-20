@@ -71,7 +71,7 @@ export default class ConfirmationsRejectRule {
             } catch {
               /* eslint-disable no-console */
 
-              console.log('The whats new modal is not visible');
+              console.log('The spam modal is not visible');
             }
           }
 
