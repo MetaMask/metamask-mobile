@@ -596,7 +596,7 @@ const App = ({ userLoggedIn }) => {
     </Stack.Navigator>
   );
 
-  const RootModalFlow = () => (
+  const RootModalFlow = (props) => (
     <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
       <Stack.Screen
         name={Routes.MODAL.WALLET_ACTIONS}
@@ -662,6 +662,7 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.BASIC_FUNCTIONALITY}
         component={BasicFunctionalityModal}
+        {...props}
       />
       <Stack.Screen
         name={Routes.SHEET.PROFILE_SYNCING}
