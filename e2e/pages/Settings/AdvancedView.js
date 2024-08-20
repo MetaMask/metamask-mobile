@@ -7,7 +7,7 @@ class AdvancedSettingsView {
     // Scroll to the element
     await Gestures.scrollToElement(
       this.ethSignSwitch,
-      this.scrollViewIdentifier
+      this.scrollViewIdentifier,
     );
 
     // Wait and tap the element
@@ -16,13 +16,13 @@ class AdvancedSettingsView {
 
   get scrollViewIdentifier() {
     return Matchers.getIdentifier(
-      AdvancedViewSelectorsIDs.ADVANCED_SETTINGS_SCROLLVIEW
+      AdvancedViewSelectorsIDs.ADVANCED_SETTINGS_SCROLLVIEW,
     );
   }
 
   get showFiatOnTestnetsToggle() {
     return Matchers.getElementByID(
-      AdvancedViewSelectorsIDs.SHOW_FIAT_ON_TESTNETS
+      AdvancedViewSelectorsIDs.SHOW_FIAT_ON_TESTNETS,
     );
   }
 
@@ -31,15 +31,13 @@ class AdvancedSettingsView {
   }
 
   async tapShowFiatOnTestnetsSwitch() {
-    await Gestures.waitAndTap(
-      this.showFiatOnTestnetsToggle
-    );
+    await Gestures.waitAndTap(this.showFiatOnTestnetsToggle);
   }
 
   async scrollToShowFiatOnTestnetsToggle() {
     await Gestures.scrollToElement(
       this.showFiatOnTestnetsToggle,
-      this.scrollViewIdentifier
+      this.scrollViewIdentifier,
     );
   }
 }
