@@ -14,6 +14,7 @@ export interface DeeplinkUrlParams {
   pubkey: string;
   scheme?: string;
   v?: string;
+  rpc?: string;
   sdkVersion?: string;
   message?: string;
   originatorInfo?: string;
@@ -34,6 +35,7 @@ function extractURLParams(url: string) {
     redirect: '',
     v: '',
     sdkVersion: '',
+    rpc: '',
     originatorInfo: '',
     channelId: '',
     comm: '',

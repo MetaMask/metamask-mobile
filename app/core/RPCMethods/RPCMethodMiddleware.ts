@@ -151,6 +151,7 @@ export const checkActiveAccountAndChainId = async ({
     const normalizedAccounts = accounts.map(safeToChecksumAddress);
 
     if (!normalizedAccounts.includes(formattedAddress)) {
+      DevLogger.log(`invalid accounts ${formattedAddress}`, normalizedAccounts);
       isInvalidAccount = true;
       if (accounts.length > 0) {
         // Permissions issue --- requesting incorrect address

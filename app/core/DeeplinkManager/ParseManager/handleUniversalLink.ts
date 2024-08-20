@@ -75,6 +75,7 @@ function handleUniversalLink({
           origin,
           context: 'deeplink_universal',
           url,
+          rpc: params.rpc,
           originatorInfo,
           otherPublicKey: params.pubkey,
           sdkConnect: SDKConnect.getInstance(),

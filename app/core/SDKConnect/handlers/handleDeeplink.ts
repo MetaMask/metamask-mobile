@@ -1,9 +1,14 @@
+import {
+  CommunicationLayerMessage,
+  OriginatorInfo,
+} from '@metamask/sdk-communication-layer';
+import Logger from '../../../util/Logger';
 import AppConstants from '../../AppConstants';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
 import { waitForCondition } from '../utils/wait.util';
-import Logger from '../../../util/Logger';
-import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+import handleConnectionMessage from './handleConnectionMessage';
+import Engine from '../../Engine';
 
 const QRCODE_PARAM_PATTERN = '&t=q';
 
@@ -13,6 +18,7 @@ const handleDeeplink = async ({
   origin,
   url,
   originatorInfo,
+  rpc,
   protocolVersion,
   otherPublicKey,
   context,
@@ -22,6 +28,7 @@ const handleDeeplink = async ({
   origin: string;
   url: string;
   originatorInfo?: OriginatorInfo;
+  rpc?: string;
   protocolVersion: number;
   otherPublicKey: string;
   context: string;
@@ -57,8 +64,6 @@ const handleDeeplink = async ({
   DevLogger.log(`handleDeeplink:: url=${url}`);
   const connections = sdkConnect.getConnections();
   const channelExists = connections[channelId] !== undefined;
-  // TODO:  or like this? Need to compare...
-  // const channelExists = sdkConnect.getApprovedHosts()[params.channelId];
 
   DevLogger.log(
     `handleDeeplink:: channel=${channelId} exists=${channelExists}`,
@@ -85,6 +90,35 @@ const handleDeeplink = async ({
         trigger: 'deeplink',
         updateKey: true,
       });
+
+      DevLogger.log(
+        `handleDeeplink:: channel=${channelId} reconnected -- handle rcp`,
+      );
+      // If msg contains rpc calls, handle them
+      if (rpc) {
+        const connection = sdkConnect.getConnected()[channelId];
+        if (!connection) {
+          DevLogger.log(`handleDeeplink:: connection not found`);
+          return;
+        }
+
+        // Decode rpc and directly process it - simulate network reception
+        const decodedRPC = Buffer.from(rpc, 'base64').toString('utf-8');
+
+        DevLogger.log(`decoded rpc`, decodedRPC);
+        // Decode rpc and directly process it - simulate network reception
+        const clearRPC = connection.remote.decrypt(decodedRPC);
+        DevLogger.log(`handleDeeplink:: clearRPC rpc`, clearRPC);
+
+        const message = JSON.parse(clearRPC) as CommunicationLayerMessage;
+        DevLogger.log(`handleDeeplink:: message`, message);
+
+        await handleConnectionMessage({
+          message,
+          connection,
+          engine: Engine,
+        });
+      }
     } else {
       await sdkConnect.connectToChannel({
         id: channelId,

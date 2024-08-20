@@ -78,6 +78,7 @@ export function handleMetaMaskDeeplink({
           protocolVersion,
           context: 'deeplink_scheme',
           originatorInfo,
+          rpc: params.rpc,
           otherPublicKey: params.pubkey,
           sdkConnect: SDKConnect.getInstance(),
         }).catch((err) => {

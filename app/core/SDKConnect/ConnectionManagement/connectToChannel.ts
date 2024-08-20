@@ -13,7 +13,7 @@ import checkPermissions from '../handlers/checkPermissions';
 import { DEFAULT_SESSION_TIMEOUT_MS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
 import { SDKConnect } from './../SDKConnect';
-import { wait } from '../utils/wait.util';
+import { wait, waitForCondition } from '../utils/wait.util';
 import Logger from '../../../util/Logger';
 import AppConstants from '../../AppConstants';
 
@@ -113,6 +113,7 @@ async function connectToChannel({
   const privateKey = connected.remote.getKeyInfo()?.ecies.private;
   instance.state.connections[id].privateKey = privateKey;
   instance.state.connections[id].protocolVersion = protocolVersion ?? 1;
+  instance.state.connections[id].originatorInfo = originatorInfo;
   instance.state.connected[id] = connected;
 
   let authorized = false;
@@ -182,17 +183,28 @@ async function connectToChannel({
         type: MessageType.WALLET_INIT,
         data,
       });
+
+      const currentRouteName = connected.navigation?.getCurrentRoute()?.name;
       DevLogger.log(
-        `send account / chainId to dapp - done - trigger: ${connected.trigger}`,
+        `connectToChannel:: sendMessage done - origin: ${connected.origin} trigger: ${connected.trigger} routeName: ${currentRouteName}`,
       );
 
+      // Make sure connect modal has enough time to fully close.
+      await waitForCondition({
+        fn: () => {
+          const checkRoute = connected.navigation?.getCurrentRoute()?.name;
+          return checkRoute !== Routes.SHEET.ACCOUNT_CONNECT;
+        },
+        context: 'connectToChannel',
+        waitTime: 100,
+      });
+
+      await instance.updateSDKLoadingState({ channelId: id, loading: false });
       if (
         initialConnection &&
         connected.trigger === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK &&
         connected.origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
       ) {
-        await wait(100); // Add delay for connect modal to be fully closed
-        await instance.updateSDKLoadingState({ channelId: id, loading: false });
         if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
           DevLogger.log(`[handleSendMessage] display RETURN_TO_DAPP_MODAL`);
           connected.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {

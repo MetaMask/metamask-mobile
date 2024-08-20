@@ -139,6 +139,7 @@ async function reconnect({
   );
 
   const connection = instance.state.connections[channelId];
+  DevLogger.log(`SDKConnect::reconnect - connection`, connection);
   instance.state.connecting[channelId] = true;
   instance.state.connected[channelId] = new Connection({
     ...connection,
@@ -162,6 +163,7 @@ async function reconnect({
   });
   instance.state.connected[channelId].connect({
     withKeyExchange: true,
+    authorized: connection.originatorInfo !== undefined,
   });
 
   instance.watchConnection(instance.state.connected[channelId]);
