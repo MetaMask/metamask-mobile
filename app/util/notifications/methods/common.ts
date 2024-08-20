@@ -54,7 +54,11 @@ const isSameYear = (currentDate: Date, dateToCheck: Date) =>
  * @param date - The date to be formatted.
  * @returns The formatted date.
  */
-export function formatMenuItemDate(date: Date) {
+export function formatMenuItemDate(date?: Date) {
+  if (!date) {
+    return 'Unknown';
+  }
+
   const currentDate = new Date();
 
   // E.g. 12:21
