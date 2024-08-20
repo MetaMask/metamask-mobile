@@ -168,7 +168,7 @@ describe('LedgerConnect', () => {
     (
       useBluetoothDevices as jest.MockedFunction<() => UseBluetoothDevicesHook>
     ).mockReturnValue({
-      devices: [{ id: '1', name: 'Ledger Nano X' }],
+      devices: [{ id: '1', name: 'Ledger device' }],
       deviceScanError: false,
     });
 
