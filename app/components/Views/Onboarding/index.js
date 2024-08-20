@@ -47,7 +47,6 @@ import AnimatedFox from '../../Base/AnimatedFox';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
 
 import Routes from '../../../constants/navigation/Routes';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 
 const createStyles = (colors) =>
@@ -185,11 +184,6 @@ class Onboarding extends PureComponent {
     existingUser: false,
   };
 
-  seedwords = null;
-  importedAccounts = null;
-  channelName = null;
-  incomingDataStr = '';
-  dataToSync = null;
   mounted = false;
 
   warningCallback = () => true;
@@ -479,7 +473,6 @@ class Onboarding extends PureComponent {
 Onboarding.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  accounts: selectAccounts(state),
   passwordSet: state.user.passwordSet,
   loading: state.user.loadingSet,
   loadingMsg: state.user.loadingMsg,
