@@ -931,7 +931,7 @@ class Confirm extends PureComponent {
         throw transactionMeta.error;
       }
 
-      InteractionManager.runAfterInteractions(async () => {
+      InteractionManager.runAfterInteractions(() => {
         NotificationManager.watchSubmittedTransaction({
           ...transactionMeta,
           assetType,

@@ -13,7 +13,7 @@ import renderWithProvider, {
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import { TESTID_ACCORDION_CONTENT } from '../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
 import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../BlockaidBanner/BlockaidBanner.constants';
 import { AccountsControllerState } from '@metamask/accounts-controller';
@@ -227,7 +227,6 @@ describe('TransactionReview', () => {
           security_alert_provider_requests_count: providerRequestsCount,
         }),
       );
-
     const { queryByText, queryByTestId, getByText } = renderWithProvider(
       <TransactionReview
         EIP1559GasData={{}}
@@ -248,7 +247,6 @@ describe('TransactionReview', () => {
         },
       },
     );
-
     expect(await queryByText('See details')).toBeDefined();
     expect(
       await queryByText(

@@ -147,6 +147,7 @@ const PersonalSign = ({
         });
     });
   };
+
   const rejectSignature = async () => {
     await onReject();
     showWalletConnectNotification(false);
