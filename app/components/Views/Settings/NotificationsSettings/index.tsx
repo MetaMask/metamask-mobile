@@ -51,6 +51,9 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     () => accounts.map((a) => a.address),
     [accounts],
   );
+  const basicFunctionalityEnabled = useSelector(
+    (state: RootState) => state.settings.basicFunctionalityEnabled,
+  );
   const accountSettingsProps = useAccountSettingsProps(accountAddresses);
   const {
     enableNotifications,
@@ -84,8 +87,23 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
       : AvatarAccountType.JazzIcon,
   );
 
-  const toggleNotificationsEnabled = async () => {
-    if (!isMetamaskNotificationsEnabled) {
+  /**
+   * Initializes the notifications feature.
+   * If the notifications are disabled and the basic functionality is enabled,
+   * it will request the push notifications permission and enable the notifications
+   * if the permission is granted.
+   */
+  const toggleNotificationsEnabled = useCallback(async () => {
+    if (!basicFunctionalityEnabled) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.BASIC_FUNCTIONALITY,
+        params: {
+          caller: Routes.SETTINGS.NOTIFICATIONS,
+        },
+      });
+    } else if (isMetamaskNotificationsEnabled) {
+      await disableNotifications();
+    } else {
       const nativeNotificationStatus = await requestPushNotificationsPermission(
         asyncAlert,
       );
@@ -93,10 +111,14 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
       if (nativeNotificationStatus) {
         await enableNotifications();
       }
-    } else {
-      await disableNotifications();
     }
-  };
+  }, [
+    basicFunctionalityEnabled,
+    disableNotifications,
+    enableNotifications,
+    isMetamaskNotificationsEnabled,
+    navigation,
+  ]);
 
   const goToLearnMore = () => {
     Linking.openURL(CONSENSYS_PRIVACY_POLICY);
@@ -113,6 +135,10 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
       ),
     );
   }, [colors, isFullScreenModal, navigation]);
+
+  const loadingText = !isMetamaskNotificationsEnabled
+    ? strings('app_settings.enabling_notifications')
+    : strings('app_settings.disabling_notifications');
 
   const MainNotificationSettings: FC = () => (
     <>
@@ -137,7 +163,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
       </Pressable>
       <View style={styles.setting}>
         <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-          {strings('app_settings.allow_notifications_desc')}
+          {strings('app_settings.allow_notifications_desc')}{' '}
           <Text
             variant={TextVariant.BodyMD}
             color={TextColor.Info}
@@ -203,11 +229,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
       )}
       <SwitchLoadingModal
         loading={loading}
-        loadingText={
-          !isMetamaskNotificationsEnabled
-            ? strings('app_settings.enabling_notifications')
-            : strings('app_settings.disabling_notifications')
-        }
+        loadingText={loadingText}
         error={errorText}
       />
     </ScrollView>

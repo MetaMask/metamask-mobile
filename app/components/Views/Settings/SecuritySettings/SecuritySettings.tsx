@@ -123,10 +123,14 @@ import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetrics } from '../../../../core/Analytics';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import { selectIsProfileSyncingEnabled } from '../../../../selectors/notifications';
+import {
+  selectIsMetamaskNotificationsEnabled,
+  selectIsProfileSyncingEnabled,
+} from '../../../../selectors/notifications';
 import { useProfileSyncing } from '../../../../util/notifications/hooks/useProfileSyncing';
 import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
 import { RootState } from '../../../../reducers';
+import { useDisableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -167,6 +171,12 @@ const Settings: React.FC = () => {
     error: profileSyncError,
   } = useProfileSyncing();
 
+  const {
+    disableNotifications,
+    loading: disableNotificationsLoading,
+    error: disableNotificationsError,
+  } = useDisableNotifications();
+
   const scrollViewRef = useRef<ScrollView>(null);
   const detectNftComponentRef = useRef<View>(null);
 
@@ -188,6 +198,9 @@ const Settings: React.FC = () => {
   );
   const useTransactionSimulations = useSelector(
     selectUseTransactionSimulations,
+  );
+  const isNotificationEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
   );
 
   const useNftDetection = useSelector(selectUseNftDetection);
@@ -271,8 +284,20 @@ const Settings: React.FC = () => {
   ]);
 
   useEffect(() => {
-    !isBasicFunctionalityEnabled && disableProfileSyncing();
-  }, [disableProfileSyncing, isBasicFunctionalityEnabled]);
+    const triggerCascadeBasicFunctionalityDisable = async () => {
+      if (!isBasicFunctionalityEnabled) {
+        isNotificationEnabled && (await disableNotifications());
+        isProfileSyncingEnabled && (await disableProfileSyncing());
+      }
+    };
+    triggerCascadeBasicFunctionalityDisable();
+  }, [
+    disableNotifications,
+    disableProfileSyncing,
+    isBasicFunctionalityEnabled,
+    isNotificationEnabled,
+    isProfileSyncingEnabled,
+  ]);
 
   const scrollToDetectNFTs = useCallback(() => {
     if (detectNftComponentRef.current) {
@@ -1020,6 +1045,9 @@ const Settings: React.FC = () => {
     ? strings('app_settings.enabling_profile_sync')
     : strings('app_settings.disabling_profile_sync');
 
+  const modalLoading = profileSyncLoading || disableNotificationsLoading;
+  const modalError = profileSyncError || disableNotificationsError;
+
   return (
     <ScrollView
       style={styles.wrapper}
@@ -1126,9 +1154,9 @@ const Settings: React.FC = () => {
         {renderHint()}
       </View>
       <SwitchLoadingModal
-        loading={profileSyncLoading}
+        loading={modalLoading}
         loadingText={profileSyncModalMessage}
-        error={profileSyncError}
+        error={modalError}
       />
     </ScrollView>
   );
