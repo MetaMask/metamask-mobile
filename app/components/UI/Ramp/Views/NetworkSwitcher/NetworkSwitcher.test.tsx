@@ -11,7 +11,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Engine from '../../../../../core/Engine';
 import { RampType } from '../../../../../reducers/fiatOrders/types';
-import { Hex } from '@metamask/utils';
 
 const mockedRampNetworksValues: AggregatorNetwork[] = [
   {

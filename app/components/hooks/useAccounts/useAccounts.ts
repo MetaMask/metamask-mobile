@@ -51,9 +51,7 @@ const useAccounts = ({
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const ticker = useSelector(selectTicker);
-  const internalAccounts = useSelector(
-    selectInternalAccounts,
-  );
+  const internalAccounts = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
   const isMultiAccountBalancesEnabled = useSelector(
