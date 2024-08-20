@@ -31,7 +31,7 @@ export interface CreateNotificationsReturn {
   error?: string;
 }
 export interface EnableNotificationsReturn {
-  enableNotifications: () => Promise<string | boolean>;
+  enableNotifications: () => Promise<string | undefined>;
   loading: boolean;
   error?: string;
 }
@@ -42,7 +42,7 @@ export type AccountType = InternalAccount & {
 };
 
 export interface DisableNotificationsReturn {
-  disableNotifications: () => Promise<string | boolean>;
+  disableNotifications: () => Promise<string | undefined>;
   loading: boolean;
   error?: string;
 }
