@@ -502,6 +502,7 @@
     "lists": "Token Lists",
     "hide_cta": "Hide token",
     "options": {
+      "view_on_portfolio": "View on Portfolio",
       "view_on_block": "View on block explorer",
       "token_details": "Token details",
       "remove_token": "Remove token"

@@ -23,8 +23,11 @@ import styleSheet from './AssetOptions.styles';
 import { selectTokenList } from '../../../selectors/tokenListController';
 import Logger from '../../../util/Logger';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import AppConstants from '../../../core/AppConstants';
 import { getDecimalChainId } from '../../../util/networks';
-
+import { isPortfolioUrl } from '../../../util/url';
+import { BrowserTab } from '../../../components/UI/Tokens/types';
+import { RootState } from '../../../reducers';
 interface Option {
   label: string;
   onPress: () => void;
@@ -50,8 +53,13 @@ const AssetOptions = (props: Props) => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const tokenList = useSelector(selectTokenList);
   const chainId = useSelector(selectChainId);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const browserTabs = useSelector((state: any) => state.browser.tabs);
+  const isDataCollectionForMarketingEnabled = useSelector(
+    (state: RootState) => state.security.dataCollectionForMarketing,
+  );
   const explorer = useBlockExplorer(providerConfig, networkConfigurations);
-  const { trackEvent } = useMetrics();
+  const { trackEvent, isEnabled } = useMetrics();
 
   const goToBrowserUrl = (url: string, title: string) => {
     modalRef.current?.dismissModal(() => {
@@ -81,6 +89,47 @@ const AssetOptions = (props: Props) => {
   const openTokenDetails = () => {
     modalRef.current?.dismissModal(() => {
       navigation.navigate('AssetDetails');
+    });
+  };
+
+  const openPortfolio = () => {
+    const existingPortfolioTab = browserTabs.find(({ url }: BrowserTab) =>
+      isPortfolioUrl(url),
+    );
+
+    let existingTabId;
+    let newTabUrl;
+    if (existingPortfolioTab) {
+      existingTabId = existingPortfolioTab.id;
+    } else {
+      const analyticsEnabled = isEnabled();
+      const portfolioUrl = new URL(AppConstants.PORTFOLIO.URL);
+
+      portfolioUrl.searchParams.append('metamaskEntry', 'mobile');
+
+      // Append user's privacy preferences for metrics + marketing on user navigation to Portfolio.
+      portfolioUrl.searchParams.append(
+        'metricsEnabled',
+        String(analyticsEnabled),
+      );
+      portfolioUrl.searchParams.append(
+        'marketingEnabled',
+        String(!!isDataCollectionForMarketingEnabled),
+      );
+
+      newTabUrl = portfolioUrl.href;
+    }
+    const params = {
+      ...(newTabUrl && { newTabUrl }),
+      ...(existingTabId && { existingTabId, newTabUrl: undefined }),
+      timestamp: Date.now(),
+    };
+    navigation.navigate(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params,
+    });
+    trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
+      portfolioUrl: AppConstants.PORTFOLIO.URL,
     });
   };
 
@@ -122,6 +171,11 @@ const AssetOptions = (props: Props) => {
 
   const renderOptions = () => {
     const options: Option[] = [];
+    options.push({
+      label: strings('asset_details.options.view_on_portfolio'),
+      onPress: openPortfolio,
+      icon: IconName.Export,
+    });
     Boolean(explorer.baseUrl) &&
       options.push({
         label: strings('asset_details.options.view_on_block'),
