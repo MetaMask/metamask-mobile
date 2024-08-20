@@ -86,6 +86,7 @@ import {
 } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { selectIsMetamaskNotificationsEnabled } from '../../../selectors/notifications';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -274,9 +275,7 @@ const Wallet = ({
   );
 
   const isNotificationEnabled = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.notification?.notificationsSettings?.isEnabled,
+    selectIsMetamaskNotificationsEnabled,
   );
 
   const networkName = useSelector(selectNetworkName);
