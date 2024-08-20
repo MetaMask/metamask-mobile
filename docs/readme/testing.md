@@ -1,149 +1,216 @@
-### Running Tests
+## E2E Tests Overview
 
-#### Unit Tests
+Our end-to-end (E2E) testing strategy leverages a combination of technologies to ensure robust test coverage for our mobile applications. We use Wix/Detox for the majority of our automation tests, Appium for specific non-functional testing like app upgrades and launch times, and Bitrise as our CI platform. All tests are written in JavaScript using Jest and Cucumber frameworks.
 
-```bash
-yarn test:unit
-```
+### Wix/Detox Tests
 
-#### E2E Tests
+Detox serves as our primary mobile automation framework, with most of our tests written using it. Learn more about Wix/Detox [here](https://wix.github.io/Detox/).
 
-##### Platforms
+**Supported Platforms**: iOS and Android  
+**Test Location**: `e2e/specs`
 
-For both iOS and Android platforms, our chosen E2E test framework is Detox. We also utilize Appium for Android (wdio folder).
+#### Setup and Execution
 
-##### Test wallet
+- **Test Wallet**: Requires a wallet with access to testnet and mainnet. On Bitrise CI, this wallet is created using a secret recovery phrase from environment variables. For local testing, retrieve the phrase from the `.e2e.env` file.
+- **Environment Variable**: Set `IS_TEST='true'` to enable the test environment. Refer to the `.e2e.env` file in the mobile 1Password vault for the complete list of environment variables.
+- **Warning Logs**: Warning logs may sometimes cause test failures by interfering with automation interactions. To prevent this, disable warning logs during test execution.
 
-E2E tests use a wallet able to access testnet and mainnet.
-On Bitrise CI, the wallet is created using the secret recovery phrase from secret env var.
-For local testing, the wallet is created using the secret recovery phrase from the `.e2e.env` file.
+#### Default Devices
 
-##### Detox
+- **iOS**: iPhone 15 Pro
+- **Android**: Pixel 5 API 34
 
-All tests live within the e2e/specs folder.
+Ensure that these devices are set up. You can change the default devices at any time by updating the `device.type` in the Detox config located at `e2e/.detoxrc.js`.
 
-### iOS
+#### Commands
 
-Prerequisites for running tests
+- **Start Metro Server**: Ensure the Metro server is running before executing tests:
 
-- Before running tests:
-    - Homebrew is a pre-requisite for `applesimutils`, please ensure that homebrew is installed. Read more [here](environment.md#package-manager).
+    ```bash
+    yarn watch:clean
+    ```
 
-    -  Ensure that the `applesimutils` is installed on your machine by typing `applesimutils` command in your terminal. Please note that `applesimutils` is essential for running the iOS tests. If you don't have `applesimutils` installed, please use the guidelines provided [here](https://github.com/wix/AppleSimulatorUtils) to install it.
+- **Build the Apps for Testing**:
+  - **iOS Debug**: 
 
-    - To ensure that the detox-cli is properly installed, please verify its presence by running the command `detox` in your terminal. The detox-cli serves as a convenient script that facilitates running commands through a local Detox executable located at node_modules/.bin/detox. Its purpose is to simplify the operation of Detox from the command line. For example, you can execute commands like `detox test -c ios.sim.debug` with ease using detox-cli. In case the detox-cli is not installed, please refer to the instructions provided [here](https://wix.github.io/Detox/docs/introduction/environment-setup/#1-command-line-tools-detox-cli) for detailed guidance. 
-- The default device for iOS is the iPhone 13 Pro and Android the Pixel 5. Ensure you have these set up. You can change the default devices at anytime by updating the `device.type` in the detox config `e2e/.detoxrc.js`
-- Make sure that Metro is running. Use this command to launch the metro server:
+    ```bash
+    yarn test:e2e:ios:debug:build
+    ```
 
-```bash
-yarn watch
-```
+  - **Android Debug**: 
 
-You can trigger the tests against a `release` or `debug` build. It recommended that you trigger the tests against a debug build.
+    ```bash
+    yarn test:e2e:android:debug:build
+    ```
 
-To build the app for testing on an iOS debug build run this command:
+- **Run All Tests Locally**:
+  - **iOS Debug**:
 
-```bash
-yarn test:e2e:ios:debug:build
-```
+    ```bash
+    yarn test:e2e:ios:debug:run
+    ```
 
-To build the app for testing on an android debug build run this command:
+  - **Android Debug**:
 
-```bash
-yarn test:e2e:android:debug:build
-```
+    ```bash
+    yarn test:e2e:android:debug:run
+    ```
 
-To run the tests on a debug build run this command:
+- **Run Specific Tests**:
+  - **iOS**:
 
-For iOS
+    ```bash
+    yarn test:e2e:ios:debug:run e2e/specs/TEST_NAME.spec.js
+    ```
 
-```bash
-yarn test:e2e:ios:debug:run
-```
+  - **Android**:
 
+    ```bash
+    yarn test:e2e:android:debug:run e2e/specs/TEST_NAME.spec.js
+    ```
 
-and on Android:
+- **Run Tests by Tag (e.g., Smoke)**:
+  - **iOS**:
 
-```bash
-yarn test:e2e:android:debug:run
-```
+    ```bash
+    yarn test:e2e:ios:debug:run --testNamePattern="Smoke"
+    ```
 
-If you choose to run tests against a release build, you can do so by running this command:
+  - **Android**:
 
-For iOS
+    ```bash
+    yarn test:e2e:android:debug:run --testNamePattern="Smoke"
+    ```
 
-```bash
-yarn test:e2e:ios
-```
+### Appium Tests
 
-and on Android:
+**Platform**: Android  
+**Test Location**: `wdio`
 
-```bash
-yarn test:e2e:android
-```
+#### Setup and Execution
 
-If you have already built the application for Detox and want to run a specific test from the test folder, you can use this command:
+- **Default Emulator**:
+  - **Name**: Android 11 - Pixel 4a API 31
+  - **API Level**: 30 (Android 11)
+- **Configuring Emulator**: Update `deviceName` and `platformVersion` in `wdio/config/android.config.debug.js` to match your emulator configuration.
 
-For iOS
+#### Commands
 
-```bash
-yarn test:e2e:ios:debug:run e2e/specs/TEST_NAME.spec.js
-```
+1. **Create a Test Build**:
 
-and on Android:
+    ```bash
+    yarn start:android:qa
+    ```
 
-```bash
-yarn test:e2e:android:debug:run e2e/specs/TEST_NAME.spec.js
-```
+2. **Run All Tests**:
 
-To run tests associated with a certain tag, you can do so using the `--testNamePattern` flag. For example:
+    ```bash
+    yarn test:wdio:android
+    ```
 
-```bash
-yarn test:e2e:ios:debug:run --testNamePattern="Smoke"
-```
+3. **Run Specific Tests**:
 
-```bash
-yarn test:e2e:android:debug:run --testNamePattern="Smoke"
-```
+    ```bash
+    yarn test:wdio:android --spec ./wdio/features/Onboarding/CreateNewWallet.feature
+    ```
 
-This runs all tests that are tagged "Smoke"
+### API Spec Tests
 
-##### Appium
+**Platform**: iOS  
+**Test Location**: `e2e/api-specs/json-rpc-coverage.js`
 
-The appium tests lives within the wdio/feature folder.
+The API Spec tests use the `@open-rpc/test-coverage` tool to generate tests from our [api-specs](https://github.com/MetaMask/api-specs) OpenRPC Document. These tests are currently executed only on iOS and use the same build as the Detox tests for iOS.
 
-By default the tests use an avd named `Android 11 - Pixel 4a API 31`, with API `Level 30` (Android 11). You can modify the emulator and platform version by navigating to `wdio/config/android.config.debug.js` and adjusting the values of `deviceName` to match your emulator's name, and `platformVersion` to match your operating system's version. Make sure to verify that the config file accurately represents your emulator settings before executing any tests.
+- **Test Coverage Tool**: The `test-coverage` tool uses `Rules` and `Reporters` to generate and report test results. These are passed as parameters in the test coverage tool call located in [e2e/api-specs/json-rpc-coverage.js](../../e2e/api-specs/json-rpc-coverage.js). For more details on `Rules` and `Reporters`, refer to the [OpenRPC test coverage documentation](https://github.com/open-rpc/test-coverage?tab=readme-ov-file#extending-with-a-rule).
 
-The sequence in which you should run tests:
+#### Commands
 
-create a test build using this command:
+1. **Build the App**:
 
-```bash
-yarn start:android:qa
-```
+    ```bash
+    yarn test:e2e:ios:debug:build
+    ```
 
-Then run tests using this command:
+2. **Run API Spec Tests**:
 
-```bash
-yarn test:wdio:android
-```
+    ```bash
+    yarn test:api-specs
+    ```
 
-If you want to run a specific test, you can include the `--spec` flag in the aforementioned command. For example:
+### Bitrise Pipelines Overview
 
-```bash
-yarn test:wdio:android --spec ./wdio/features/Onboarding/CreateNewWallet.feature
-```
+Our CI/CD process is automated through various Bitrise pipelines, each designed to streamline and optimize different aspects of our E2E testing.
 
-##### API Spec Tests
+#### **1. PR_Smoke_e2e_Pipeline**
 
-The API Spec tests use the `@open-rpc/test-coverage` tool to generate tests from our [api-specs](https://github.com/MetaMask/api-specs) OpenRPC Document.
-Currently, the API Spec tests only run on iOS and uses the same build as the Detox tests for iOS.
+- **Triggers**: 
+  - **When "Run Smoke E2E" label is applied to a Pull request**: Automatically runs smoke tests.
+- **Manual Trigger**: Select the desired branch in the Bitrise dashboard and choose `pr_smoke_e2e_pipeline` from the pipeline dropdown menu.
 
-The `test-coverage` tool uses `Rules` and `Reporters` to generate tests and report the results. The `Rules` and `Reporters` are passed in via params to the test coverage tool call in [e2e/api-specs/json-rpc-coverage.js](../../e2e/api-specs/json-rpc-coverage.js). You can read more about the `Rules` and `Reporters` [here](https://github.com/open-rpc/test-coverage?tab=readme-ov-file#extending-with-a-rule).
+#### **2. PR_Regression_e2e_Pipeline**
 
-To run the API Spec tests, run these commands:
+- **Triggers**: 
+  - **Nightly**: Automatically runs all regression tests against main branch.
+- **Manual Trigger**: Select the main branch (or another branch of choice) in the Bitrise dashboard and choose `pr_regression_e2e_pipeline` from the pipeline dropdown menu.
 
-```bash
-yarn test:e2e:ios:debug:build
-yarn test:api-specs
-````
+#### **3. Release_e2e_Pipeline**
+
+- **Workflows**:
+  - **Build**: Creates iOS and Android artifacts.
+  - **Test**: Executes regression tests across both platforms.
+- **Manual Trigger**: Typically run on release branches but can be manually triggered in the Bitrise dashboard.
+
+#### **4. App Launch Times Pipeline**
+
+- **Function**: Measures and monitors app launch times on real devices using BrowserStack to ensure consistent performance over time.
+- **Nightly**: Automatically runs on the main branch.
+- **Manual Trigger**: Select the desired branch in the Bitrise dashboard and choose `app_upgrade_pipeline` from the pipeline dropdown menu. 
+
+#### **5. App Upgrade Pipeline**
+
+- **Function**: Automates testing of app upgrades to verify smooth transitions between versions.
+- **Configuration**: Requires the `PRODUCTION_APP_URL` environment variable to be set with the current production build's BrowserStack URL.You would need to search and update `PRODUCTION_APP_URL` in the bitrise.yml with the production browserstack build URL. 
+- **Manual Trigger**: Select the desired branch in the Bitrise dashboard and choose `app_upgrade_pipeline` from the pipeline dropdown menu. 
+
+### Test Reports in Bitrise
+
+- **Detox Tests**: Test reports are displayed directly in the Bitrise UI, offering a visual representation of test results and execution details. Screenshots on test failures are also captured and stored in a zip file. You can download these screenshots from the `Artifacts` tab in Bitrise.
+- **API Spec and Appium Tests**: HTML reporters generate and display test results. Access these HTML reports through the Bitrise build artifacts section for detailed analysis.
+
+### Debugging Failed Tests
+
+- **Example**:
+    ```
+    FAIL e2e/specs/swaps/swap-action-smoke.spec.js (232.814 s)
+      SmokeSwaps Swap from Actions
+        ✓ should Swap .05 'ETH' to 'USDT' (90488 ms)
+        ✕ should Swap 100 'USDT' to 'ETH' (50549 ms)
+      ● SmokeSwaps Swap from Actions › should Swap 100 'USDT' to 'ETH'
+        Test Failed: Timed out while waiting for expectation: TOBEVISIBLE WITH MATCHER(id == “swap-quote-summary”) TIMEOUT(15s)
+        HINT: To print view hierarchy on failed actions/matches, use log-level verbose or higher.
+          163 |     return await waitFor(element(by.id(elementId)))
+          164 |       .toBeVisible()
+        > 165 |       .withTimeout(15000);
+            |        ^
+          166 |   }
+          167 |
+          168 |   static async checkIfNotVisible(elementId) {
+        at Function.withTimeout (e2e/helpers.js:165:8)
+        ...
+    ```
+    In this example, the test failed because the `swap-quote-summary` ID was not found. This issue could be due to a changed testID or the swap quotes not being visible. 
+    To confirm whether either case is true, we then look at the screenshots on failure. 
+
+    [Here](https://app.screencast.com/H2vVLK5jP4NHe) we can see that the swaps quotes in fact did not load hence why the tests failed. 
+    
+
+### Smoke Tests Breakdown
+
+- **Per Team**: Smoke tests are divided by team, allowing targeted verification of core functionalities pertinent to each team's responsibilities.
+- **Benefits**:
+  - **Faster Feedback**: Running a subset of tests on PRs provides quicker feedback, ensuring critical functionalities are validated without the overhead of executing all tests.
+  - **Efficient Resource Use**: Limits resource consumption and test execution time, optimizing CI/CD pipeline performance.
+
+### Best Practices
+
+For more guidelines and best practices, refer to our [Best Practices Document](https://github.com/MetaMask/contributor-docs/blob/main/docs/e2e-testing.md).
