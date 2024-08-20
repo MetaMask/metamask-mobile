@@ -1,7 +1,3 @@
-import {
-  ACCOUNT_LIST_ID,
-  ACCOUNT_LIST_ADD_BUTTON_ID,
-} from '../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
 import { CellModalSelectorsIDs } from '../selectors/Modals/CellModal.selectors';
 import {
   AccountListViewSelectorsIDs,
@@ -13,7 +9,7 @@ import Gestures from '../utils/Gestures';
 
 class AccountListView {
   get accountList() {
-    return Matchers.getElementByID(ACCOUNT_LIST_ID);
+    return Matchers.getElementByID(AccountListViewSelectorsIDs.ACCOUNT_LIST_ID);
   }
 
   get accountTypeLabel() {
@@ -23,27 +19,15 @@ class AccountListView {
   }
 
   get addAccountButton() {
-    return Matchers.getElementByID(ACCOUNT_LIST_ADD_BUTTON_ID);
-  }
-
-  getMultiselectElement(index) {
-    return Matchers.getElementByID(CellModalSelectorsIDs.MULTISELECT, index);
-  }
-
-  get importAccountButton() {
-    return Matchers.getElementByText(
-      AccountListViewSelectorsText.IMPORT_ACCOUNT,
+    return Matchers.getElementByID(
+      AccountListViewSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
     );
   }
 
-  get createAccountButton() {
+  get removeAccountAlertText() {
     return Matchers.getElementByText(
-      AccountListViewSelectorsText.CREATE_ACCOUNT,
+      AccountListViewSelectorsText.REMOVE_IMPORTED_ACCOUNT,
     );
-  }
-
-  getSelectElement(index) {
-    return Matchers.getElementByID(CellModalSelectorsIDs.SELECT, index);
   }
 
   get connectAccountsButton() {
@@ -56,6 +40,13 @@ class AccountListView {
     return Matchers.getElementByID(CellModalSelectorsIDs.BASE_TITLE, index);
   }
 
+  getSelectElement(index) {
+    return Matchers.getElementByID(CellModalSelectorsIDs.SELECT, index);
+  }
+  getMultiselectElement(index) {
+    return Matchers.getElementByID(CellModalSelectorsIDs.MULTISELECT, index);
+  }
+
   async tapAccountIndex(index) {
     await Gestures.tap(this.getMultiselectElement(index));
   }
@@ -64,32 +55,16 @@ class AccountListView {
     await Gestures.waitAndTap(this.addAccountButton);
   }
 
-  async tapImportAccountButton() {
-    await Gestures.tap(this.importAccountButton);
-  }
-
-  async tapCreateAccountButton() {
-    await Gestures.tap(this.createAccountButton);
-  }
-
   async longPressImportedAccount() {
     await Gestures.tapAndLongPress(this.getSelectElement(1));
   }
 
   async swipeToDismissAccountsModal() {
-    const element =
-      device.getPlatform() === 'android'
-        ? await this.accountList
-        : await Matchers.getElementByText('Accounts');
-    await Gestures.swipe(element, 'down', 'fast', 0.6);
+    await Gestures.swipe(this.accountList, 'down', 'fast', 0.6);
   }
 
   async tapYesToRemoveImportedAccountAlertButton() {
-    await Gestures.tap(
-      Matchers.getElementByText(
-        AccountListViewSelectorsText.REMOVE_IMPORTED_ACCOUNT,
-      ),
-    );
+    await Gestures.waitAndTap(this.removeAccountAlertText);
   }
 
   async tapConnectAccountsButton() {

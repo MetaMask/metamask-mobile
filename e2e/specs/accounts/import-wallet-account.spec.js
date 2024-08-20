@@ -5,6 +5,7 @@ import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import AccountListView from '../../pages/AccountListView';
 import ImportAccountView from '../../pages/ImportAccountView';
 import Assertions from '../../utils/Assertions';
+import AddAccountModal from '../../pages/modals/AddAccountModal';
 
 describe(SmokeAccounts('Import account via private to wallet'), () => {
   // This key is for testing private key import only
@@ -25,7 +26,7 @@ describe(SmokeAccounts('Import account via private to wallet'), () => {
     await WalletView.tapIdenticon();
     await Assertions.checkIfVisible(AccountListView.accountList);
     await AccountListView.tapAddAccountButton();
-    await AccountListView.tapImportAccountButton();
+    await AddAccountModal.tapImportAccount();
     await ImportAccountView.isVisible();
     // Tap on import button to make sure alert pops up
     await ImportAccountView.tapImportButton();
@@ -33,7 +34,7 @@ describe(SmokeAccounts('Import account via private to wallet'), () => {
     await ImportAccountView.enterPrivateKey(TEST_PRIVATE_KEY);
     await ImportAccountView.isImportSuccessSreenVisible();
     await ImportAccountView.tapCloseButtonOnImportSuccess();
-    await AccountListView.swipeToDimssAccountsModal();
+    await AccountListView.swipeToDismissAccountsModal();
     await Assertions.checkIfVisible(WalletView.container);
     await Assertions.checkIfElementNotToHaveText(
       WalletView.accountName,

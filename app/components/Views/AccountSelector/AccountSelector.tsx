@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Platform, View } from 'react-native';
+import {View } from 'react-native';
 
 // External dependencies.
 import AccountSelectorList from '../../UI/AccountSelectorList';
@@ -18,7 +18,6 @@ import UntypedEngine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
 import { useAccounts } from '../../hooks/useAccounts';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -26,10 +25,8 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import AddAccountActions from '../AddAccountActions';
 import {
-  ACCOUNT_LIST_ID,
-  ACCOUNT_LIST_ADD_BUTTON_ID,
-} from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
-
+  AccountListViewSelectorsIDs,
+} from '../../../../e2e/selectors/AccountListView.selectors';
 // Internal dependencies.
 import {
   AccountSelectorProps,
@@ -97,7 +94,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
           accounts={accounts}
           ensByAccountAddress={ensByAccountAddress}
           isRemoveAccountEnabled
-          {...generateTestId(Platform, ACCOUNT_LIST_ID)}
+          testID={AccountListViewSelectorsIDs.ACCOUNT_LIST_ID}
         />
         <View style={styles.sheet}>
           <Button
@@ -106,7 +103,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
             onPress={() => setScreen(AccountSelectorScreens.AddAccountActions)}
-            {...generateTestId(Platform, ACCOUNT_LIST_ADD_BUTTON_ID)}
+            testID={AccountListViewSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID}
           />
         </View>
       </Fragment>
