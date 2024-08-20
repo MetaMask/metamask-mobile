@@ -16,7 +16,6 @@ import SettingsView from '../../pages/Settings/SettingsView';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import OnboardingWizardModal from '../../pages/modals/OnboardingWizardModal';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
-import WhatsNewModal from '../../pages/modals/WhatsNewModal';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 
 import TestHelpers from '../../helpers';
@@ -82,17 +81,6 @@ describe('Adding Contract Nickname', () => {
       await Assertions.checkIfNotVisible(
         OnboardingWizardModal.stepOneContainer,
       );
-    } catch {
-      //
-    }
-  });
-
-  it('should tap on "Got it" Button in the whats new modal', async () => {
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(2500);
-    try {
-      await Assertions.checkIfVisible(WhatsNewModal.container);
-      await WhatsNewModal.tapCloseButton();
     } catch {
       //
     }
