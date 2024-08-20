@@ -1057,7 +1057,11 @@ const Settings: React.FC = () => {
             handleSwitchToggle={toggleBasicFunctionality}
           />
         </View>
-        <ProfileSyncingComponent handleSwitchToggle={toggleProfileSyncing} />
+        <ProfileSyncingComponent
+          handleSwitchToggle={toggleProfileSyncing}
+          isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
+          isProfileSyncingEnabled={isProfileSyncingEnabled}
+        />
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}
