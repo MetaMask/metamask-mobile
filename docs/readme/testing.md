@@ -1,3 +1,11 @@
+ ### Running Tests
+
+ ## Unit Tests
+
+ ```bash
+ yarn test:unit
+ ```
+
 ## E2E Tests Overview
 
 Our end-to-end (E2E) testing strategy leverages a combination of technologies to ensure robust test coverage for our mobile applications. We use Wix/Detox for the majority of our automation tests, Appium for specific non-functional testing like app upgrades and launch times, and Bitrise as our CI platform. All tests are written in JavaScript using Jest and Cucumber frameworks.
