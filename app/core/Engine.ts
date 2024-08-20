@@ -219,7 +219,7 @@ import { getPermittedAccounts } from './Permissions';
 import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
 import EthQuery from '@metamask/eth-query';
 import { TransactionControllerOptions } from '@metamask/transaction-controller/dist/types/TransactionController';
-
+import { GAS_BASE_URL } from '../../e2e/mocks/config';
 const NON_EMPTY = 'NON_EMPTY';
 
 const encryptor = new Encryptor({
@@ -677,8 +677,7 @@ class Engine {
       clientId: AppConstants.SWAPS.CLIENT_ID,
       legacyAPIEndpoint:
         'https://gas.api.cx.metamask.io/networks/<chain_id>/gasPrices',
-      EIP1559APIEndpoint:
-        'https://gas.api.cx.metamask.io/networks/<chain_id>/suggestedGasFees',
+      EIP1559APIEndpoint: `${GAS_BASE_URL}/networks/<chain_id>/suggestedGasFees`,
     });
 
     const phishingController = new PhishingController({

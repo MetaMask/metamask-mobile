@@ -61,6 +61,7 @@ class SendView {
 
   async inputAddress(address) {
     await Gestures.replaceTextInField(this.addressInputField, address);
+    // await Gestures.typeTextAndHideKeyboard(this.addressInputField, address);
   }
 
   async tapAddAddressToAddressBook() {

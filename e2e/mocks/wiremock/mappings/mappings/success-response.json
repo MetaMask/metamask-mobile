@@ -1,0 +1,19 @@
+{
+    "request": {
+      "method": "GET",
+      "url": "/networks/1/suggestedGasFees",
+      "headers": {
+        "x-client-id": {
+          "equalTo": "mobile"  // Ensure this matches the value used in the request
+        }
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": "{\"suggestedGasFees\":{\"low\":\"20000000000\",\"medium\":\"50000000000\",\"high\":\"100000000000\"}}"
+    }
+  }
+  
