@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {View } from 'react-native';
+import { View } from 'react-native';
 
 // External dependencies.
 import AccountSelectorList from '../../UI/AccountSelectorList';
@@ -24,9 +24,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import AddAccountActions from '../AddAccountActions';
-import {
-  AccountListViewSelectorsIDs,
-} from '../../../../e2e/selectors/AccountListView.selectors';
+import { AccountListViewSelectorsIDs } from '../../../../e2e/selectors/AccountListView.selectors';
 // Internal dependencies.
 import {
   AccountSelectorProps,

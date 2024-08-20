@@ -9,7 +9,8 @@ export const AccountListViewSelectorsIDs = {
 };
 
 export const AccountListViewSelectorsText = {
-  IMPORT_ACCOUNT: enContent.accounts.import_account,
+  ACCOUNTS_LIST_TITLE: enContent.accounts.accounts_title,
   CREATE_ACCOUNT: enContent.accounts.create_account,
-  REMOVE_IMPORTED_ACCOUNT: enContent.accounts.remove_imported_account,
+  REMOVE_IMPORTED_ACCOUNT: enContent.accounts.yes_remove_it,
+  ACCOUNT_TYPE_LABEL_TEXT: enContent.accounts.imported,
 };

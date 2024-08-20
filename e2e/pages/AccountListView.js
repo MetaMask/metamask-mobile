@@ -18,6 +18,12 @@ class AccountListView {
     );
   }
 
+  get title() {
+    return Matchers.getElementByText(
+      AccountListViewSelectorsText.ACCOUNTS_LIST_TITLE,
+    );
+  }
+
   get addAccountButton() {
     return Matchers.getElementByID(
       AccountListViewSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
@@ -60,7 +66,7 @@ class AccountListView {
   }
 
   async swipeToDismissAccountsModal() {
-    await Gestures.swipe(this.accountList, 'down', 'fast', 0.6);
+    await Gestures.swipe(this.title, 'down', 'fast', 0.6);
   }
 
   async tapYesToRemoveImportedAccountAlertButton() {
