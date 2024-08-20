@@ -122,5 +122,8 @@ post_install do |installer|
     # necessary for Mac Catalyst builds
     :mac_catalyst_enabled => false
   )
+
+  `patch -p1 < ../patches/@react-native-community+datetimepicker+7.5.0.patch`
+  
   __apply_Xcode_12_5_M1_post_install_workaround(installer)
 end
