@@ -21,7 +21,7 @@ jobs:
       - name: Get SonarCloud Quality Gate Status
         id: sonar-status
         run: |
-          PROJECT_KEY="your-sonar-project-key"
+          PROJECT_KEY="metamask-mobile"
           PR_NUMBER="${{ github.event.pull_request.number }}"
           SONAR_TOKEN="${{ secrets.SONAR_TOKEN }}"
 
