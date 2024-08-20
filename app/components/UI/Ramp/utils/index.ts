@@ -129,10 +129,8 @@ export function isNetworkRampSupported(
   networks: AggregatorNetwork[],
 ) {
   return (
-    networks?.find(
-      // TODO(ramp, chainId-string): remove once chainId is a string
-      (network) => `${network.chainId}` === getDecimalChainId(chainId),
-    )?.active ?? false
+    networks?.find((network) => network.chainId === getDecimalChainId(chainId))
+      ?.active ?? false
   );
 }
 
@@ -141,8 +139,7 @@ export function isNetworkRampNativeTokenSupported(
   networks: AggregatorNetwork[],
 ) {
   const network = networks?.find(
-    // TODO(ramp, chainId-string): remove once chainId is a string
-    (_network) => `${_network.chainId}` === getDecimalChainId(chainId),
+    (_network) => _network.chainId === getDecimalChainId(chainId),
   );
   return (network?.active && network.nativeTokenSupported) ?? false;
 }
