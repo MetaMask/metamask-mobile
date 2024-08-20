@@ -37,7 +37,7 @@ export default class TokenOverview {
   }
 
   static async isVisible() {
-    await TestHelpers.checkIfVisible(TOKEN_ASSET_OVERVIEW);
+    await TestHelpers.checkIfVisible(TOKEN_OVERVIEW_SEND_BUTTON);
   }
 
   static async selectChart(chartPeriod) {
