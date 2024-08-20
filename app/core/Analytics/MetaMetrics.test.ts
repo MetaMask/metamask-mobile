@@ -182,7 +182,7 @@ describe('MetaMetrics', () => {
      * | NA1    | NA      | NO            | NO        | EMPTY                      | NONE                  |
      * | A1     | A       | NO            | NO        | EMPTY                      | NONE                  |
      * | NA2    | NA      | YES           | NO        | NA PROPS                   | NONE                  |
-     * | A2     | A       | YES           | NO        | EMPTY                      | NA PROPS              |
+     * | A2     | A       | YES           | NO        | NA PROPS                   | NONE                  |
      * | NA3    | NA      | NO            | YES       | EMPTY                      | A PROPS               |
      * | A3     | A       | NO            | YES       | EMPTY                      | A PROPS               |
      * | NA4    | NA      | YES           | YES       | NA PROPS                   | NA PROPS + A PROPS    |
@@ -190,11 +190,11 @@ describe('MetaMetrics', () => {
      *
      * the following test cases include the code (NAX or AX) of the test in the table for reference.
      *
-     * NOTE: some NAX and AX test cases (all except NA2/A2) have similar result but differ only by calling the
+     * NOTE: NAX and AX test cases have similar result but differ only by calling the
      * anonymous (trackAnonymousEvent) or non-anonymous tracking (trackEvent).
      * They are grouped together here and both implementations uses trackEvent under the hood.
      * Ultimately these duplicates will disappear when we deprecate trackAnonymousEvent.
-     * But that's another issue to address.
+     * But that's another issue to address, for now let's keep it simple and double test.
      */
     describe('tracks non-anonymous event (NA)', () => {
       it('without properties (NA1)', async () => {
@@ -330,15 +330,12 @@ describe('MetaMetrics', () => {
         const { segmentMockClient } =
           global as unknown as GlobalWithSegmentClient;
 
+        // check if the event was tracked
         expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
           anonymous: false,
-          ...{},
-        });
-        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
-          anonymous: true,
           ...nonAnonProp,
         });
-        expect(segmentMockClient.track).toHaveBeenCalledTimes(2);
+        expect(segmentMockClient.track).toHaveBeenCalledTimes(1);
       });
 
       it('with only anonymous properties (A3)', async () => {
