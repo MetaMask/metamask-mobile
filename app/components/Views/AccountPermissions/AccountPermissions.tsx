@@ -353,6 +353,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         onUserAction={setUserIntent}
         favicon={faviconSource}
         urlWithProtocol={urlWithProtocol}
+        hostname={hostname}
         secureIcon={secureIcon}
         isAutoScrollEnabled={false}
         onBack={() => setPermissionsScreen(AccountPermissionsScreens.Connected)}
@@ -367,6 +368,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       faviconSource,
       urlWithProtocol,
       secureIcon,
+      hostname,
     ],
   );
 

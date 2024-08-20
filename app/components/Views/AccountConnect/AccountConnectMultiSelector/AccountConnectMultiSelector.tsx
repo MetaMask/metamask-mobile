@@ -19,6 +19,9 @@ import Text, {
 import { useStyles } from '../../../../component-library/hooks';
 import { USER_INTENT } from '../../../../constants/permissions';
 import AccountSelectorList from '../../../UI/AccountSelectorList';
+import HelpText, {
+  HelpTextSeverity,
+} from '../../../../component-library/components/Form/HelpText';
 
 // Internal dependencies.
 import { ConnectAccountModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
@@ -31,6 +34,8 @@ import {
 } from './AccountConnectMultiSelector.types';
 import { isMutichainVersion1Enabled } from '../../../../util/networks';
 import Checkbox from '../../../../component-library/components/Checkbox';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../../constants/navigation/Routes';
 
 const AccountConnectMultiSelector = ({
   accounts,
@@ -43,10 +48,12 @@ const AccountConnectMultiSelector = ({
   secureIcon,
   isAutoScrollEnabled = true,
   urlWithProtocol,
+  hostname,
   connection,
   onBack,
 }: AccountConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
+  const { navigate } = useNavigation();
   const [screen, setScreen] = useState<AccountConnectMultiSelectorScreens>(
     AccountConnectMultiSelectorScreens.AccountMultiSelector,
   );
@@ -67,6 +74,19 @@ const AccountConnectMultiSelector = ({
     },
     [accounts, selectedAddresses, onSelectAddress],
   );
+
+  const toggleRevokeAllAccountPermissionsModal = useCallback(() => {
+    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
+      params: {
+        hostInfo: {
+          metadata: {
+            origin: urlWithProtocol && new URL(urlWithProtocol).hostname,
+          },
+        },
+      },
+    });
+  }, [navigate, urlWithProtocol]);
 
   const renderSelectAllButton = useCallback(
     () =>
@@ -116,8 +136,10 @@ const AccountConnectMultiSelector = ({
     .map(({ address }) => address)
     .every((address) => selectedAddresses.includes(address));
 
+  const areAnyAccountsSelected = selectedAddresses?.length !== 0;
+  const areNoAccountsSelected = selectedAddresses?.length === 0;
+
   const renderSelectAllCheckbox = useCallback((): React.JSX.Element | null => {
-    const areAnyAccountsSelected = selectedAddresses?.length !== 0;
     const areSomeSelectedButNotAll =
       areAnyAccountsSelected && !areAllAccountsSelected;
 
@@ -151,10 +173,10 @@ const AccountConnectMultiSelector = ({
     );
   }, [
     areAllAccountsSelected,
+    areAnyAccountsSelected,
     accounts,
     isLoading,
     onSelectAddress,
-    selectedAddresses?.length,
     styles.selectAll,
   ]);
 
@@ -163,43 +185,81 @@ const AccountConnectMultiSelector = ({
 
     return (
       <View style={styles.ctaButtonsContainer}>
-        {!isMutichainVersion1Enabled && (
-          <Button
-            variant={ButtonVariants.Secondary}
-            label={strings('accounts.cancel')}
-            onPress={() => onUserAction(USER_INTENT.Cancel)}
-            size={ButtonSize.Lg}
-            style={styles.button}
-          />
+        <View style={styles.connectOrUpdateButtonContainer}>
+          {!isMutichainVersion1Enabled && (
+            <Button
+              variant={ButtonVariants.Secondary}
+              label={strings('accounts.cancel')}
+              onPress={() => onUserAction(USER_INTENT.Cancel)}
+              size={ButtonSize.Lg}
+              style={styles.button}
+            />
+          )}
+          {!isMutichainVersion1Enabled && (
+            <View style={styles.buttonSeparator} />
+          )}
+          {areAnyAccountsSelected && (
+            <Button
+              variant={ButtonVariants.Primary}
+              label={strings(
+                isMutichainVersion1Enabled
+                  ? 'app_settings.fiat_on_ramp.update'
+                  : 'accounts.connect_with_count',
+                {
+                  countLabel: selectedAddresses.length
+                    ? ` (${selectedAddresses.length})`
+                    : '',
+                },
+              )}
+              onPress={() => onUserAction(USER_INTENT.Confirm)}
+              size={ButtonSize.Lg}
+              style={{
+                ...styles.button,
+                ...(isConnectDisabled && styles.disabled),
+              }}
+              disabled={isConnectDisabled}
+              {...generateTestId(
+                Platform,
+                ConnectAccountModalSelectorsIDs.SELECT_MULTI_BUTTON,
+              )}
+            />
+          )}
+        </View>
+        {isMutichainVersion1Enabled && areNoAccountsSelected && (
+          <View style={styles.disconnectAllContainer}>
+            <View style={styles.helpTextContainer}>
+              <HelpText severity={HelpTextSeverity.Error}>
+                {strings('accounts.disconnect_you_from', {
+                  dappUrl: hostname,
+                })}
+              </HelpText>
+            </View>
+            <View style={styles.disconnectAllButtonContainer}>
+              <Button
+                variant={ButtonVariants.Primary}
+                label={strings('accounts.disconnect')}
+                onPress={toggleRevokeAllAccountPermissionsModal}
+                isDanger
+                size={ButtonSize.Lg}
+                style={{
+                  ...styles.button,
+                }}
+              />
+            </View>
+          </View>
         )}
-        {!isMutichainVersion1Enabled && <View style={styles.buttonSeparator} />}
-        <Button
-          variant={ButtonVariants.Primary}
-          label={strings(
-            isMutichainVersion1Enabled
-              ? 'app_settings.fiat_on_ramp.update'
-              : 'accounts.connect_with_count',
-            {
-              countLabel: selectedAddresses.length
-                ? ` (${selectedAddresses.length})`
-                : '',
-            },
-          )}
-          onPress={() => onUserAction(USER_INTENT.Confirm)}
-          size={ButtonSize.Lg}
-          style={{
-            ...styles.button,
-            ...(isConnectDisabled && styles.disabled),
-          }}
-          disabled={isConnectDisabled}
-          {...generateTestId(
-            Platform,
-            ConnectAccountModalSelectorsIDs.SELECT_MULTI_BUTTON,
-          )}
-        />
       </View>
     );
-  }, [isLoading, onUserAction, selectedAddresses, styles]);
+  }, [
+    areAnyAccountsSelected,
+    isLoading,
+    onUserAction,
+    selectedAddresses,
+    styles,
+    areNoAccountsSelected,
+    hostname,
+    toggleRevokeAllAccountPermissionsModal,
+  ]);
 
   const renderAccountConnectMultiSelector = useCallback(
     () => (
