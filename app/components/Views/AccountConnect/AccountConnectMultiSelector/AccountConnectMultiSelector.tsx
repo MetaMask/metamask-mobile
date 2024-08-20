@@ -29,6 +29,8 @@ import {
   AccountConnectMultiSelectorProps,
   AccountConnectMultiSelectorScreens,
 } from './AccountConnectMultiSelector.types';
+import { isMutichainVersion1Enabled } from '../../../../util/networks';
+import Checkbox from '../../../../component-library/components/Checkbox';
 
 const AccountConnectMultiSelector = ({
   accounts,
@@ -68,7 +70,8 @@ const AccountConnectMultiSelector = ({
 
   const renderSelectAllButton = useCallback(
     () =>
-      Boolean(accounts.length) && (
+      Boolean(accounts.length) &&
+      !isMutichainVersion1Enabled && (
         <Button
           variant={ButtonVariants.Link}
           onPress={() => {
@@ -91,7 +94,8 @@ const AccountConnectMultiSelector = ({
 
   const renderUnselectAllButton = useCallback(
     () =>
-      Boolean(accounts.length) && (
+      Boolean(accounts.length) &&
+      !isMutichainVersion1Enabled && (
         <Button
           variant={ButtonVariants.Link}
           onPress={() => {
@@ -108,26 +112,79 @@ const AccountConnectMultiSelector = ({
     [accounts, isLoading, onSelectAddress, styles],
   );
 
+  const areAllAccountsSelected = accounts
+    .map(({ address }) => address)
+    .every((address) => selectedAddresses.includes(address));
+
+  const renderSelectAllCheckbox = useCallback((): React.JSX.Element | null => {
+    const areAnyAccountsSelected = selectedAddresses?.length !== 0;
+    const areSomeSelectedButNotAll =
+      areAnyAccountsSelected && !areAllAccountsSelected;
+
+    const selectAll = () => {
+      if (isLoading) return;
+      const allSelectedAccountAddresses = accounts.map(
+        ({ address }) => address,
+      );
+      onSelectAddress(allSelectedAccountAddresses);
+    };
+
+    const unselectAll = () => {
+      if (isLoading) return;
+      onSelectAddress([]);
+    };
+
+    const onPress = () => {
+      areAllAccountsSelected ? unselectAll() : selectAll();
+    };
+
+    return (
+      <View>
+        <Checkbox
+          style={styles.selectAll}
+          label={strings('accounts.select_all')}
+          isIndeterminate={areSomeSelectedButNotAll}
+          isChecked={areAllAccountsSelected}
+          onPress={onPress}
+        ></Checkbox>
+      </View>
+    );
+  }, [
+    areAllAccountsSelected,
+    accounts,
+    isLoading,
+    onSelectAddress,
+    selectedAddresses?.length,
+    styles.selectAll,
+  ]);
+
   const renderCtaButtons = useCallback(() => {
     const isConnectDisabled = Boolean(!selectedAddresses.length) || isLoading;
 
     return (
       <View style={styles.ctaButtonsContainer}>
-        <Button
-          variant={ButtonVariants.Secondary}
-          label={strings('accounts.cancel')}
-          onPress={() => onUserAction(USER_INTENT.Cancel)}
-          size={ButtonSize.Lg}
-          style={styles.button}
-        />
-        <View style={styles.buttonSeparator} />
+        {!isMutichainVersion1Enabled && (
+          <Button
+            variant={ButtonVariants.Secondary}
+            label={strings('accounts.cancel')}
+            onPress={() => onUserAction(USER_INTENT.Cancel)}
+            size={ButtonSize.Lg}
+            style={styles.button}
+          />
+        )}
+        {!isMutichainVersion1Enabled && <View style={styles.buttonSeparator} />}
         <Button
           variant={ButtonVariants.Primary}
-          label={strings('accounts.connect_with_count', {
-            countLabel: selectedAddresses.length
-              ? ` (${selectedAddresses.length})`
-              : '',
-          })}
+          label={strings(
+            isMutichainVersion1Enabled
+              ? 'app_settings.fiat_on_ramp.update'
+              : 'accounts.connect_with_count',
+            {
+              countLabel: selectedAddresses.length
+                ? ` (${selectedAddresses.length})`
+                : '',
+            },
+          )}
           onPress={() => onUserAction(USER_INTENT.Confirm)}
           size={ButtonSize.Lg}
           style={{
@@ -144,26 +201,31 @@ const AccountConnectMultiSelector = ({
     );
   }, [isLoading, onUserAction, selectedAddresses, styles]);
 
-  const areAllAccountsSelected = accounts
-    .map(({ address }) => address)
-    .every((address) => selectedAddresses.includes(address));
-
   const renderAccountConnectMultiSelector = useCallback(
     () => (
       <View style={styles.container}>
         <SheetHeader
-          title={strings('accounts.connect_accounts_title')}
+          title={
+            isMutichainVersion1Enabled
+              ? strings('accounts.edit_accounts_title')
+              : strings('accounts.connect_accounts_title')
+          }
           onBack={onBack}
         />
         <View style={styles.body}>
-          <TagUrl
-            imageSource={favicon}
-            label={urlWithProtocol}
-            iconName={secureIcon}
-          />
+          {!isMutichainVersion1Enabled && (
+            <TagUrl
+              imageSource={favicon}
+              label={urlWithProtocol}
+              iconName={secureIcon}
+            />
+          )}
           <Text style={styles.description}>
-            {strings('accounts.connect_description')}
+            {isMutichainVersion1Enabled
+              ? strings('accounts.select_accounts_description')
+              : strings('accounts.connect_description')}
           </Text>
+          {isMutichainVersion1Enabled && renderSelectAllCheckbox()}
           {areAllAccountsSelected
             ? renderUnselectAllButton()
             : renderSelectAllButton()}
@@ -224,6 +286,7 @@ const AccountConnectMultiSelector = ({
       styles.container,
       styles.sdkInfoDivier,
       onBack,
+      renderSelectAllCheckbox,
     ],
   );
 
