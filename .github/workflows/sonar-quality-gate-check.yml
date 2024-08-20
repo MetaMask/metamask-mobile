@@ -25,9 +25,16 @@ jobs:
           PR_NUMBER="${{ github.event.pull_request.number }}"
           SONAR_TOKEN="${{ secrets.SONAR_TOKEN }}"
 
-          # Query SonarCloud API for the quality gate status
-          STATUS=$(curl -s -u "$SONAR_TOKEN:" \
-            "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT_KEY&pullRequest=$PR_NUMBER" | jq -r '.projectStatus.status')
+          if [ -z "$PR_NUMBER" ]; then
+            echo "No pull request number found. Skipping SonarCloud Quality Gate check."
+            exit 0
+          fi
+
+          RESPONSE=$(curl -s -u "$SONAR_TOKEN:" \
+            "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT_KEY&pullRequest=$PR_NUMBER")
+          echo "SonarCloud API Response: $RESPONSE"
+
+          STATUS=$(echo "$RESPONSE" | jq -r '.projectStatus.status')
 
           if [[ "$STATUS" == "ERROR" ]]; then
             echo "Quality Gate failed."
