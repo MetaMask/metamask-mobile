@@ -48,3 +48,16 @@ export function msBetweenDates(date) {
 export function msToHours(milliseconds) {
   return milliseconds / (60 * 60 * 1000);
 }
+
+/**
+ * this function will convert a timestamp to the 'yyyy-MM-dd' format
+ * @param {*} timestamp timestamp you wish to convert in milliseconds
+ * @returns formatted date yyyy-MM-dd
+ */
+export const formatTimestampToYYYYMMDD = (timestamp) => {
+  const date = new Date(timestamp);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
