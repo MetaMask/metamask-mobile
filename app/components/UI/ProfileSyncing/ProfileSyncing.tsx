@@ -1,8 +1,6 @@
 import React, { useEffect } from 'react';
-import { useSelector } from 'react-redux';
 
 import { View, Switch, Linking } from 'react-native';
-import { RootState } from '../../../reducers';
 
 import Text, {
   TextVariant,
@@ -13,19 +11,16 @@ import { strings } from '../../../../locales/i18n';
 import styles from './ProfileSyncing.styles';
 import { ProfileSyncingComponentProps } from './ProfileSyncing.types';
 import AppConstants from '../../../core/AppConstants';
-import { selectIsProfileSyncingEnabled } from '../../../selectors/notifications';
 import { useProfileSyncing } from '../../../util/notifications/hooks/useProfileSyncing';
 
 export default function ProfileSyncingComponent({
   handleSwitchToggle,
+  isBasicFunctionalityEnabled,
+  isProfileSyncingEnabled,
 }: Readonly<ProfileSyncingComponentProps>) {
   const theme = useTheme();
   const { colors } = theme;
   const { disableProfileSyncing } = useProfileSyncing();
-  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
-  const isBasicFunctionalityEnabled = useSelector(
-    (state: RootState) => state?.settings?.basicFunctionalityEnabled,
-  );
 
   const handleLink = () => {
     Linking.openURL(AppConstants.URLS.PRIVACY_POLICY_2024);
