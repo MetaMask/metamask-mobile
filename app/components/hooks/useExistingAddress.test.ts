@@ -21,8 +21,19 @@ const mockInitialState: DeepPartial<RootState> = {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
-        providerConfig: {
-          chainId: '0x1',
+        selectedNetworkClientId: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
+        networksMetadata: {},
+        networkConfigurations: {
+          '673a4523-3c49-47cd-8d48-68dfc8a47a9c': {
+            id: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
+            rpcUrl: 'http://localhost/v3/',
+            chainId: '0x1',
+            ticker: 'ETH',
+            nickname: 'Ethereum chain',
+            rpcPrefs: {
+              blockExplorerUrl: 'https://etherscan.com',
+            },
+          },
         },
       },
       AddressBookController: {
@@ -45,6 +56,40 @@ jest.mock('react-redux', () => ({
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   useSelector: (fn: any) => fn(mockInitialState),
+}));
+
+jest.mock('../../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          chainId: '0x1',
+          ticker: 'ETH',
+          nickname: 'Ethereum mainnet',
+          rpcPrefs: {
+            blockExplorerUrl: 'https://etherscan.com',
+          },
+        },
+      }),
+      state: {
+        networkConfigurations: {
+          '673a4523-3c49-47cd-8d48-68dfc8a47a9c': {
+            id: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
+            rpcUrl: 'https://mainnet.infura.io/v3',
+            chainId: '0x1',
+            ticker: 'ETH',
+            nickname: 'Ethereum mainnet',
+            rpcPrefs: {
+              blockExplorerUrl: 'https://etherscan.com',
+            },
+          },
+        },
+        selectedNetworkClientId: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
+        networkMetadata: {},
+      },
+    },
+  },
 }));
 
 describe('useExistingAddress', () => {

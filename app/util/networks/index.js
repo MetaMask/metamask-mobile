@@ -39,7 +39,14 @@ import {
   getEtherscanBaseUrl,
   getEtherscanTransactionUrl,
 } from '../etherscan';
-import { LINEA_FAUCET, SEPOLIA_FAUCET } from '../../constants/urls';
+import {
+  LINEA_FAUCET,
+  LINEA_MAINNET_BLOCK_EXPLORER,
+  LINEA_SEPOLIA_BLOCK_EXPLORER,
+  MAINNET_BLOCK_EXPLORER,
+  SEPOLIA_BLOCK_EXPLORER,
+  SEPOLIA_FAUCET,
+} from '../../constants/urls';
 import { getNonceLock } from '../../util/transaction-controller';
 
 /**
@@ -60,6 +67,7 @@ export const NetworkList = {
     color: '#3cc29e',
     networkType: 'mainnet',
     imageSource: ethLogo,
+    blockExplorerUrl: MAINNET_BLOCK_EXPLORER,
   },
   [LINEA_MAINNET]: {
     name: 'Linea Main Network',
@@ -71,6 +79,7 @@ export const NetworkList = {
     color: '#121212',
     networkType: 'linea-mainnet',
     imageSource: lineaMainnetLogo,
+    blockExplorerUrl: LINEA_MAINNET_BLOCK_EXPLORER,
   },
   [SEPOLIA]: {
     name: 'Sepolia',
@@ -82,6 +91,7 @@ export const NetworkList = {
     color: '#cfb5f0',
     networkType: 'sepolia',
     imageSource: sepoliaLogo,
+    blockExplorerUrl: SEPOLIA_BLOCK_EXPLORER,
   },
   [LINEA_SEPOLIA]: {
     name: 'Linea Sepolia',
@@ -93,6 +103,7 @@ export const NetworkList = {
     color: '#61dfff',
     networkType: 'linea-sepolia',
     imageSource: lineaTestnetLogo,
+    blockExplorerUrl: LINEA_SEPOLIA_BLOCK_EXPLORER,
   },
   [RPC]: {
     name: 'Private Network',

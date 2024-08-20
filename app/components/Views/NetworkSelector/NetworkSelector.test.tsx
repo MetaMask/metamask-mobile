@@ -62,12 +62,8 @@ const initialState = {
         },
       },
       NetworkController: {
-        providerConfig: {
-          type: 'mainnet',
-          nickname: 'Ethereum mainnet',
-          ticket: 'eth',
-          chainId: '0x1',
-        },
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {},
         networkConfigurations: {
           networkId1: {
             chainId: '0xa86a',
@@ -176,11 +172,19 @@ describe('Network Selector', () => {
           ...initialState.engine.backgroundState,
           NetworkController: {
             ...initialState.engine.backgroundState.NetworkController,
-            providerConfig: {
-              type: 'mainnet',
-              nickname: 'Sepolia mainnet',
-              ticket: 'eth',
-              chainId: CHAIN_IDS.SEPOLIA,
+            selectedNetworkClientId: 'mainnet',
+            networksMetadata: {},
+            networkConfigurations: {
+              sepolia: {
+                id: 'mainnet',
+                rpcUrl: 'http://localhost/v3/',
+                chainId: CHAIN_IDS.SEPOLIA,
+                ticker: 'ETH',
+                nickname: 'Sepolia network',
+                rpcPrefs: {
+                  blockExplorerUrl: 'https://etherscan.com',
+                },
+              },
             },
           },
         },

@@ -31,6 +31,12 @@ export const selectAccountBalanceByChainId = createDeepEqualSelector(
   selectChainId,
   selectSelectedInternalAccountChecksummedAddress,
   (accountsByChainId, chainId, selectedInternalAccountChecksummedAddress) => {
+    console.log(
+      'HERE ++++',
+      selectedInternalAccountChecksummedAddress,
+      accountsByChainId,
+      chainId,
+    );
     const accountsBalance = selectedInternalAccountChecksummedAddress
       ? accountsByChainId?.[chainId]?.[
           selectedInternalAccountChecksummedAddress

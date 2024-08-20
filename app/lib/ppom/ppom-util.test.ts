@@ -33,7 +33,20 @@ jest.mock('../../core/Engine', () => ({
     },
     NetworkController: {
       state: {
-        providerConfig: { chainId: CHAIN_ID_MOCK },
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {},
+        networkConfigurations: {
+          mainnet: {
+            id: 'mainnet',
+            rpcUrl: 'https://mainnet.infura.io/v3',
+            chainId: CHAIN_ID_MOCK,
+            ticker: 'ETH',
+            nickname: 'Sepolia network',
+            rpcPrefs: {
+              blockExplorerUrl: 'https://etherscan.com',
+            },
+          },
+        },
       },
     },
     AccountsController: {
@@ -45,8 +58,19 @@ jest.mock('../../core/Engine', () => ({
   },
   backgroundState: {
     NetworkController: {
-      providerConfig: {
-        chainId: 0x1,
+      selectedNetworkClientId: 'mainnet',
+      networksMetadata: {},
+      networkConfigurations: {
+        mainnet: {
+          id: 'mainnet',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          chainId: '0x1',
+          ticker: 'ETH',
+          nickname: 'Sepolia network',
+          rpcPrefs: {
+            blockExplorerUrl: 'https://etherscan.com',
+          },
+        },
       },
     },
   },

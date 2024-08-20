@@ -21,7 +21,20 @@ jest.mock('../../core/Engine', () => ({
     },
     NetworkController: {
       state: {
-        providerConfig: { chainId: '0x1' },
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {},
+        networkConfigurations: {
+          sepolia: {
+            id: 'mainnet',
+            rpcUrl: 'http://localhost/v3/',
+            chainId: '0x1',
+            ticker: 'ETH',
+            nickname: 'Sepolia network',
+            rpcPrefs: {
+              blockExplorerUrl: 'https://etherscan.com',
+            },
+          },
+        },
       },
     },
     AccountsController: {

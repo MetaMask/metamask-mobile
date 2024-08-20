@@ -175,10 +175,8 @@ describe('Migration #27', () => {
       engine: {
         backgroundState: {
           NetworkController: {
-            providerConfig: {
-              chainId: '5',
-              type: 'goerli',
-            },
+            selectedNetworkClientId: '1-2-3',
+            networksMetadata: {},
             networkConfigurations: {
               '1-2-3': {
                 chainId: '5',

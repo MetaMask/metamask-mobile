@@ -7,14 +7,59 @@ import { selectAccountBalanceByChainId } from './accountTrackerController';
 
 const MOCK_CHAIN_ID = '0x1';
 
+// jest.mock('../core/Engine.ts', () => ({
+//   context: {
+//     NetworkController: {
+//       getNetworkClientById: () => ({
+//         configuration: {
+//           rpcUrl: 'https://mainnet.infura.io/v3',
+//           chainId: '0x1',
+//           ticker: 'ETH',
+//           nickname: 'Ethereum mainnet',
+//           rpcPrefs: {
+//             blockExplorerUrl: 'https://etherscan.com',
+//           },
+//         },
+//       }),
+//       state: {
+//         networkConfigurations: {
+//           '673a4523-3c49-47cd-8d48-68dfc8a47a9c': {
+//             id: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
+//             rpcUrl: 'https://mainnet.infura.io/v3',
+//             chainId: '0x1',
+//             ticker: 'ETH',
+//             nickname: 'Ethereum mainnet',
+//             rpcPrefs: {
+//               blockExplorerUrl: 'https://etherscan.com',
+//             },
+//           },
+//         },
+//         selectedNetworkClientId: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
+//         networkMetadata: {},
+//       },
+//     },
+//   },
+// }));
+
 describe('selectAccountBalanceByChainId', () => {
   it('returns account balance for chain id', () => {
     const result = selectAccountBalanceByChainId({
       engine: {
         backgroundState: {
           NetworkController: {
-            providerConfig: {
-              chainId: MOCK_CHAIN_ID,
+            selectedNetworkClientId: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
+            networksMetadata: {},
+            networkConfigurations: {
+              '673a4523-3c49-47cd-8d48-68dfc8a47a9c': {
+                id: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
+                rpcUrl: 'https://bsc-dataseed1.binance.org/',
+                chainId: MOCK_CHAIN_ID,
+                ticker: 'ETH',
+                nickname: 'Ethereum chain',
+                rpcPrefs: {
+                  blockExplorerUrl: 'https://etherscan.com',
+                },
+              },
             },
             // TODO: Replace "any" with type
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,7 +84,9 @@ describe('selectAccountBalanceByChainId', () => {
       engine: {
         backgroundState: {
           NetworkController: {
-            providerConfig: {},
+            selectedNetworkClientId: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
+            networksMetadata: {},
+            networkConfigurations: {},
             // TODO: Replace "any" with type
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } as any,

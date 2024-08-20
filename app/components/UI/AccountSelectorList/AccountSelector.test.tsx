@@ -32,10 +32,19 @@ const initialState = {
       ...backgroundState,
       NetworkController: {
         network: '1',
-        providerConfig: {
-          ticker: 'ETH',
-          type: 'mainnet',
-          chainId: '0x1',
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {},
+        networkConfigurations: {
+          mainnet: {
+            id: 'mainnet',
+            rpcUrl: 'http://localhost/v3/',
+            chainId: '0x1',
+            ticker: 'ETH',
+            nickname: 'mainnet',
+            rpcPrefs: {
+              blockExplorerUrl: 'https://etherscan.com',
+            },
+          },
         },
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,

@@ -1211,7 +1211,7 @@ exports[`NftDetails should render correctly 1`] = `
                                     }
                                   }
                                 >
-                                  0.0626ETH
+                                  0.0626undefined
                                 </Text>
                                 <RNGestureHandlerButton
                                   collapsable={false}

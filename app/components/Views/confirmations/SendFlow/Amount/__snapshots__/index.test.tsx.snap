@@ -3224,6 +3224,81 @@ exports[`Amount should display correct balance 1`] = `
                         <View>
                           <View
                             style={
+                              [
+                                {
+                                  "borderRadius": 8,
+                                  "borderWidth": 1,
+                                  "flexDirection": "row",
+                                  "paddingHorizontal": 12,
+                                  "paddingVertical": 8,
+                                },
+                                {
+                                  "paddingVertical": 8,
+                                },
+                                {
+                                  "backgroundColor": "#bf52081a",
+                                  "borderColor": "#bf5208",
+                                },
+                                {
+                                  "marginHorizontal": 20,
+                                  "marginTop": 20,
+                                },
+                              ]
+                            }
+                          >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                }
+                              }
+                            >
+                              <Text
+                                allowFontScaling={false}
+                                style={
+                                  [
+                                    {
+                                      "color": "#bf5208",
+                                      "fontSize": 20,
+                                    },
+                                    undefined,
+                                    {
+                                      "fontFamily": "Material Design Icons",
+                                      "fontStyle": "normal",
+                                      "fontWeight": "normal",
+                                    },
+                                    {},
+                                  ]
+                                }
+                              >
+                                
+                              </Text>
+                            </View>
+                            <View
+                              style={
+                                {
+                                  "lineHeight": 20,
+                                  "paddingLeft": 10,
+                                  "paddingRight": 10,
+                                }
+                              }
+                            >
+                              <Text
+                                red={true}
+                                style={
+                                  {
+                                    "color": "#141618",
+                                    "lineHeight": 20,
+                                  }
+                                }
+                                testID="amount-screen-fiat-conversion-warning-text"
+                              >
+                                Fiat conversions are not available at this moment
+                              </Text>
+                            </View>
+                          </View>
+                          <View
+                            style={
                               {
                                 "flex": 1,
                                 "marginHorizontal": 24,
@@ -3376,86 +3451,6 @@ exports[`Amount should display correct balance 1`] = `
                                     }
                                     testID="txn-amount-input"
                                   />
-                                </View>
-                              </View>
-                              <View
-                                style={
-                                  {
-                                    "flexDirection": "row",
-                                  }
-                                }
-                              >
-                                <View
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "flex": 1,
-                                    }
-                                  }
-                                >
-                                  <TouchableOpacity
-                                    onPress={[Function]}
-                                    style={
-                                      {
-                                        "borderColor": "#6a737d",
-                                        "borderRadius": 8,
-                                        "borderWidth": 1,
-                                        "flexDirection": "row",
-                                        "paddingHorizontal": 8,
-                                        "paddingVertical": 2,
-                                        "right": -2,
-                                      }
-                                    }
-                                    testID="amount-screen-currency-switch"
-                                  >
-                                    <Text
-                                      numberOfLines={1}
-                                      style={
-                                        {
-                                          "color": "#6a737d",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 14,
-                                          "fontWeight": "400",
-                                          "textTransform": "uppercase",
-                                        }
-                                      }
-                                      testID="txn-amount-conversion-value"
-                                    >
-                                      $0.00
-                                    </Text>
-                                    <View
-                                      styles={
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        }
-                                      }
-                                    >
-                                      <Text
-                                        allowFontScaling={false}
-                                        style={
-                                          [
-                                            {
-                                              "color": "#0376c9",
-                                              "fontSize": 16,
-                                            },
-                                            {
-                                              "flex": 1,
-                                              "marginTop": 0,
-                                            },
-                                            {
-                                              "fontFamily": "Material Design Icons",
-                                              "fontStyle": "normal",
-                                              "fontWeight": "normal",
-                                            },
-                                            {},
-                                          ]
-                                        }
-                                      >
-                                        
-                                      </Text>
-                                    </View>
-                                  </TouchableOpacity>
                                 </View>
                               </View>
                               <View
@@ -3939,6 +3934,81 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                         <View>
                           <View
                             style={
+                              [
+                                {
+                                  "borderRadius": 8,
+                                  "borderWidth": 1,
+                                  "flexDirection": "row",
+                                  "paddingHorizontal": 12,
+                                  "paddingVertical": 8,
+                                },
+                                {
+                                  "paddingVertical": 8,
+                                },
+                                {
+                                  "backgroundColor": "#bf52081a",
+                                  "borderColor": "#bf5208",
+                                },
+                                {
+                                  "marginHorizontal": 20,
+                                  "marginTop": 20,
+                                },
+                              ]
+                            }
+                          >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                }
+                              }
+                            >
+                              <Text
+                                allowFontScaling={false}
+                                style={
+                                  [
+                                    {
+                                      "color": "#bf5208",
+                                      "fontSize": 20,
+                                    },
+                                    undefined,
+                                    {
+                                      "fontFamily": "Material Design Icons",
+                                      "fontStyle": "normal",
+                                      "fontWeight": "normal",
+                                    },
+                                    {},
+                                  ]
+                                }
+                              >
+                                
+                              </Text>
+                            </View>
+                            <View
+                              style={
+                                {
+                                  "lineHeight": 20,
+                                  "paddingLeft": 10,
+                                  "paddingRight": 10,
+                                }
+                              }
+                            >
+                              <Text
+                                red={true}
+                                style={
+                                  {
+                                    "color": "#141618",
+                                    "lineHeight": 20,
+                                  }
+                                }
+                                testID="amount-screen-fiat-conversion-warning-text"
+                              >
+                                Fiat conversions are not available at this moment
+                              </Text>
+                            </View>
+                          </View>
+                          <View
+                            style={
                               {
                                 "flex": 1,
                                 "marginHorizontal": 24,
@@ -4091,86 +4161,6 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                     }
                                     testID="txn-amount-input"
                                   />
-                                </View>
-                              </View>
-                              <View
-                                style={
-                                  {
-                                    "flexDirection": "row",
-                                  }
-                                }
-                              >
-                                <View
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "flex": 1,
-                                    }
-                                  }
-                                >
-                                  <TouchableOpacity
-                                    onPress={[Function]}
-                                    style={
-                                      {
-                                        "borderColor": "#6a737d",
-                                        "borderRadius": 8,
-                                        "borderWidth": 1,
-                                        "flexDirection": "row",
-                                        "paddingHorizontal": 8,
-                                        "paddingVertical": 2,
-                                        "right": -2,
-                                      }
-                                    }
-                                    testID="amount-screen-currency-switch"
-                                  >
-                                    <Text
-                                      numberOfLines={1}
-                                      style={
-                                        {
-                                          "color": "#6a737d",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 14,
-                                          "fontWeight": "400",
-                                          "textTransform": "uppercase",
-                                        }
-                                      }
-                                      testID="txn-amount-conversion-value"
-                                    >
-                                      0 LINK
-                                    </Text>
-                                    <View
-                                      styles={
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        }
-                                      }
-                                    >
-                                      <Text
-                                        allowFontScaling={false}
-                                        style={
-                                          [
-                                            {
-                                              "color": "#0376c9",
-                                              "fontSize": 16,
-                                            },
-                                            {
-                                              "flex": 1,
-                                              "marginTop": 0,
-                                            },
-                                            {
-                                              "fontFamily": "Material Design Icons",
-                                              "fontStyle": "normal",
-                                              "fontWeight": "normal",
-                                            },
-                                            {},
-                                          ]
-                                        }
-                                      >
-                                        
-                                      </Text>
-                                    </View>
-                                  </TouchableOpacity>
                                 </View>
                               </View>
                               <View

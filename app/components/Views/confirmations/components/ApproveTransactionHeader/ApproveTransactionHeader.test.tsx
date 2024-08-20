@@ -47,10 +47,19 @@ const mockInitialState: DeepPartial<RootState> = {
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       NetworkController: {
-        providerConfig: {
-          chainId: '0xaa36a7',
-          type: 'sepolia',
-          nickname: 'Sepolia',
+        selectedNetworkClientId: 'sepolia',
+        networksMetadata: {},
+        networkConfigurations: {
+          sepolia: {
+            id: 'sepolia',
+            rpcUrl: 'http://localhost/v3/',
+            chainId: '0xaa36a7',
+            ticker: 'ETH',
+            nickname: 'Sepolia',
+            rpcPrefs: {
+              blockExplorerUrl: 'https://etherscan.com',
+            },
+          },
         },
       },
     },

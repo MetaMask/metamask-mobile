@@ -84,10 +84,20 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            providerConfig: {
-              ticker: 'ETH',
-              type: 'mainnet',
-              chainId: '0x1',
+            network: '1',
+            selectedNetworkClientId: 'mainnet',
+            networksMetadata: {},
+            networkConfigurations: {
+              mainnet: {
+                id: 'mainnet',
+                rpcUrl: 'http://localhost/v3/',
+                chainId: '0x1',
+                ticker: 'ETH',
+                nickname: 'mainnet',
+                rpcPrefs: {
+                  blockExplorerUrl: 'https://etherscan.com',
+                },
+              },
             },
           },
           AccountTrackerController: {
@@ -200,10 +210,20 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            providerConfig: {
-              ticker: 'ETH',
-              type: 'mainnet',
-              chainId: '0x1',
+            network: '1',
+            selectedNetworkClientId: 'mainnet',
+            networksMetadata: {},
+            networkConfigurations: {
+              mainnet: {
+                id: 'mainnet',
+                rpcUrl: 'http://localhost/v3/',
+                chainId: '0x1',
+                ticker: 'ETH',
+                nickname: 'mainnet',
+                rpcPrefs: {
+                  blockExplorerUrl: 'https://etherscan.com',
+                },
+              },
             },
           },
           AccountTrackerController: {
@@ -310,10 +330,20 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            providerConfig: {
-              ticker: 'ETH',
-              type: 'mainnet',
-              chainId: '0x1',
+            network: '1',
+            selectedNetworkClientId: 'mainnet',
+            networksMetadata: {},
+            networkConfigurations: {
+              mainnet: {
+                id: 'mainnet',
+                rpcUrl: 'http://localhost/v3/',
+                chainId: '0x1',
+                ticker: 'ETH',
+                nickname: 'mainnet',
+                rpcPrefs: {
+                  blockExplorerUrl: 'https://etherscan.com',
+                },
+              },
             },
           },
           AccountTrackerController: {
@@ -421,10 +451,20 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            providerConfig: {
-              ticker: 'ETH',
-              type: 'mainnet',
-              chainId: '0x1',
+            network: '1',
+            selectedNetworkClientId: 'mainnet',
+            networksMetadata: {},
+            networkConfigurations: {
+              mainnet: {
+                id: 'mainnet',
+                rpcUrl: 'http://localhost/v3/',
+                chainId: '0x1',
+                ticker: 'ETH',
+                nickname: 'mainnet',
+                rpcPrefs: {
+                  blockExplorerUrl: 'https://etherscan.com',
+                },
+              },
             },
           },
           AccountTrackerController: {
@@ -494,10 +534,20 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            providerConfig: {
-              ticker: 'ETH',
-              type: 'mainnet',
-              chainId: '0x1',
+            network: '1',
+            selectedNetworkClientId: 'mainnet',
+            networksMetadata: {},
+            networkConfigurations: {
+              mainnet: {
+                id: 'mainnet',
+                rpcUrl: 'http://localhost/v3/',
+                chainId: '0x1',
+                ticker: 'ETH',
+                nickname: 'mainnet',
+                rpcPrefs: {
+                  blockExplorerUrl: 'https://etherscan.com',
+                },
+              },
             },
           },
           AccountTrackerController: {
@@ -547,10 +597,20 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            providerConfig: {
-              ticker: 'ETH',
-              type: 'mainnet',
-              chainId: '0x1',
+            network: '1',
+            selectedNetworkClientId: 'mainnet',
+            networksMetadata: {},
+            networkConfigurations: {
+              mainnet: {
+                id: 'mainnet',
+                rpcUrl: 'http://localhost/v3/',
+                chainId: '0x1',
+                ticker: 'ETH',
+                nickname: 'mainnet',
+                rpcPrefs: {
+                  blockExplorerUrl: 'https://etherscan.com',
+                },
+              },
             },
           },
           AccountTrackerController: {

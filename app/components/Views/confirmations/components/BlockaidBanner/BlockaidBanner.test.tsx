@@ -26,7 +26,22 @@ jest.mock('react-native-gzip', () => ({
 const mockState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
-      NetworkController: { providerConfig: { chainId: '0x1' } },
+      NetworkController: {
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {},
+        networkConfigurations: {
+          sepolia: {
+            id: 'mainnet',
+            rpcUrl: 'http://localhost/v3/',
+            chainId: '0x1',
+            ticker: 'ETH',
+            nickname: 'Ethereum mainnet',
+            rpcPrefs: {
+              blockExplorerUrl: 'https://etherscan.com',
+            },
+          },
+        },
+      },
       PreferencesController: { securityAlertsEnabled: true },
     },
   },
@@ -170,7 +185,22 @@ describe('BlockaidBanner', () => {
     const mockStateNetwork: DeepPartial<RootState> = {
       engine: {
         backgroundState: {
-          NetworkController: { providerConfig: { chainId: '0xfa' } },
+          NetworkController: {
+            selectedNetworkClientId: 'mainnet',
+            networksMetadata: {},
+            networkConfigurations: {
+              sepolia: {
+                id: 'mainnet',
+                rpcUrl: 'http://localhost/v3/',
+                chainId: '0xfa',
+                ticker: 'ETH',
+                nickname: 'Ethereum mainnet',
+                rpcPrefs: {
+                  blockExplorerUrl: 'https://etherscan.com',
+                },
+              },
+            },
+          },
           PreferencesController: { securityAlertsEnabled: true },
         },
       },
@@ -189,7 +219,22 @@ describe('BlockaidBanner', () => {
     const mockStateNetwork: DeepPartial<RootState> = {
       engine: {
         backgroundState: {
-          NetworkController: { providerConfig: { chainId: '0x1' } },
+          NetworkController: {
+            selectedNetworkClientId: 'mainnet',
+            networksMetadata: {},
+            networkConfigurations: {
+              sepolia: {
+                id: 'mainnet',
+                rpcUrl: 'http://localhost/v3/',
+                chainId: '0x1',
+                ticker: 'ETH',
+                nickname: 'Sepolia network',
+                rpcPrefs: {
+                  blockExplorerUrl: 'https://etherscan.com',
+                },
+              },
+            },
+          },
           PreferencesController: { securityAlertsEnabled: false },
         },
       },

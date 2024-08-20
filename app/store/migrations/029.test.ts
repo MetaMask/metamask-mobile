@@ -9,17 +9,22 @@ const oldState = {
   engine: {
     backgroundState: {
       NetworkController: {
-        providerConfig: {
-          chainId: '1',
-          rpcTarget: 'https://api.avax.network/ext/bc/C/rpc',
+        selectedNetworkClientId: 'network1',
+        networksMetadata: {},
+        networkConfigurations: {
+          network1: {
+            id: 'network1',
+            rpcUrl: 'https://mainnet.infura.io/v3',
+            chainId: '0x1',
+            ticker: 'ETH',
+            nickname: 'Sepolia network',
+            rpcPrefs: {
+              blockExplorerUrl: 'https://etherscan.com',
+            },
+          },
         },
         networkDetails: {
           isEIP1559Compatible: true,
-        },
-        networkConfigurations: {
-          network1: {
-            chainId: '1',
-          },
         },
       },
       AddressBookController: {
@@ -106,18 +111,23 @@ const expectedNewState = {
   engine: {
     backgroundState: {
       NetworkController: {
-        providerConfig: {
-          chainId: '0x1',
-          rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
+        selectedNetworkClientId: 'network1',
+        networksMetadata: {},
+        networkConfigurations: {
+          network1: {
+            id: 'network1',
+            rpcUrl: 'https://mainnet.infura.io/v3',
+            chainId: '0x1',
+            ticker: 'ETH',
+            nickname: 'Sepolia network',
+            rpcPrefs: {
+              blockExplorerUrl: 'https://etherscan.com',
+            },
+          },
         },
         networkDetails: {
           EIPS: {
             1559: true,
-          },
-        },
-        networkConfigurations: {
-          network1: {
-            chainId: '0x1',
           },
         },
       },
@@ -244,7 +254,11 @@ describe('Migration #29', () => {
       state: merge({}, initialRootState, {
         engine: {
           backgroundState: {
-            NetworkController: { providerConfig: null },
+            NetworkController: {
+              selectedNetworkClientId: null,
+              networksMetadata: {},
+              networkConfigurations: {},
+            },
           },
         },
       }),

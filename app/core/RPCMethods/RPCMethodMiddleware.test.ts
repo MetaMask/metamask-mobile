@@ -258,13 +258,18 @@ function setupGlobalState({
   activeTab,
   addTransactionResult,
   permittedAccounts,
-  providerConfig,
+  selectedNetworkClientId,
+  networksMetadata,
+  networkConfigurations,
   selectedAddress,
   originThrottling,
 }: {
   activeTab?: number;
   addTransactionResult?: Promise<string>;
   permittedAccounts?: Record<string, string[]>;
+  selectedNetworkClientId: string;
+  networksMetadata?: Record<string, object>;
+  networkConfigurations?: Record<string, object>;
   providerConfig?: ProviderConfig;
   selectedAddress?: string;
   originThrottling?: OriginThrottlingState;
@@ -284,9 +289,11 @@ function setupGlobalState({
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            providerConfig: providerConfig || {},
+            selectedNetworkClientId: selectedNetworkClientId || '',
+            networksMetadata: networksMetadata || {},
           },
           PreferencesController: selectedAddress ? { selectedAddress } : {},
+          networkConfigurations: networkConfigurations || {},
         },
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -326,13 +333,19 @@ const signatureMock = '0x1234567890';
 function setupSignature() {
   setupGlobalState({
     activeTab: 1,
-    providerConfig: {
-      chainId: '0x1',
-      type: RPC,
-      ticker: 'ETH',
-      rpcUrl: 'https://mainnet.infura.io/v3',
-      nickname: 'test',
-      network: NetworkType.rpc,
+    selectedNetworkClientId: 'mainnet',
+    networksMetadata: {},
+    networkConfigurations: {
+      mainnet: {
+        id: 'mainnet',
+        rpcUrl: 'https://mainnet.infura.io/v3',
+        chainId: '0x1',
+        ticker: 'ETH',
+        nickname: 'Sepolia network',
+        rpcPrefs: {
+          blockExplorerUrl: 'https://etherscan.com',
+        },
+      },
     },
     selectedAddress: addressMock,
     permittedAccounts: { [hostMock]: [addressMock] },
@@ -680,12 +693,19 @@ describe('getRpcMethodMiddleware', () => {
           addTransactionResult: Promise.resolve('fake-hash'),
           permittedAccounts: { 'example.metamask.io': [mockAddress] },
           // Set minimal network controller state to support validation
-          providerConfig: {
-            chainId: '0x1',
-            type: RPC,
-            ticker: 'ETH',
-            rpcUrl: 'https://mainnet.infura.io/v3',
-            nickname: 'test',
+          selectedNetworkClientId: 'mainnet',
+          networksMetadata: {},
+          networkConfigurations: {
+            mainnet: {
+              id: 'mainnet',
+              rpcUrl: 'https://mainnet.infura.io/v3',
+              chainId: '0x1',
+              ticker: 'ETH',
+              nickname: 'Sepolia network',
+              rpcPrefs: {
+                blockExplorerUrl: 'https://etherscan.com',
+              },
+            },
           },
         });
         const middleware = getRpcMethodMiddleware({
@@ -717,12 +737,19 @@ describe('getRpcMethodMiddleware', () => {
           addTransactionResult: Promise.resolve('fake-hash'),
           permittedAccounts: { 'example.metamask.io': [mockAddress] },
           // Set minimal network controller state to support validation
-          providerConfig: {
-            chainId: '0x1',
-            type: RPC,
-            ticker: 'ETH',
-            rpcUrl: 'https://mainnet.infura.io/v3',
-            nickname: 'test',
+          selectedNetworkClientId: 'mainnet',
+          networksMetadata: {},
+          networkConfigurations: {
+            mainnet: {
+              id: 'mainnet',
+              rpcUrl: 'https://mainnet.infura.io/v3',
+              chainId: '0x1',
+              ticker: 'ETH',
+              nickname: 'Sepolia network',
+              rpcPrefs: {
+                blockExplorerUrl: 'https://etherscan.com',
+              },
+            },
           },
         });
         const middleware = getRpcMethodMiddleware({
@@ -758,12 +785,19 @@ describe('getRpcMethodMiddleware', () => {
           // Note that no accounts are permitted
           permittedAccounts: {},
           // Set minimal network controller state to support validation
-          providerConfig: {
-            chainId: '0x1',
-            type: RPC,
-            ticker: 'ETH',
-            rpcUrl: 'https://mainnet.infura.io/v3',
-            nickname: 'test',
+          selectedNetworkClientId: 'mainnet',
+          networksMetadata: {},
+          networkConfigurations: {
+            mainnet: {
+              id: 'mainnet',
+              rpcUrl: 'https://mainnet.infura.io/v3',
+              chainId: '0x1',
+              ticker: 'ETH',
+              nickname: 'Sepolia network',
+              rpcPrefs: {
+                blockExplorerUrl: 'https://etherscan.com',
+              },
+            },
           },
         });
         const middleware = getRpcMethodMiddleware({
@@ -800,12 +834,19 @@ describe('getRpcMethodMiddleware', () => {
           addTransactionResult: Promise.resolve('fake-hash'),
           permittedAccounts: { 'example.metamask.io': [mockAddress] },
           // Set minimal network controller state to support validation
-          providerConfig: {
-            chainId: '0x1',
-            type: RPC,
-            ticker: 'ETH',
-            rpcUrl: 'https://mainnet.infura.io/v3',
-            nickname: 'test',
+          selectedNetworkClientId: 'mainnet',
+          networksMetadata: {},
+          networkConfigurations: {
+            mainnet: {
+              id: 'mainnet',
+              rpcUrl: 'https://mainnet.infura.io/v3',
+              chainId: '0x1',
+              ticker: 'ETH',
+              nickname: 'Sepolia network',
+              rpcPrefs: {
+                blockExplorerUrl: 'https://etherscan.com',
+              },
+            },
           },
           selectedAddress: mockAddress,
         });
@@ -835,12 +876,19 @@ describe('getRpcMethodMiddleware', () => {
           addTransactionResult: Promise.resolve('fake-hash'),
           // Set minimal network controller state to support validation
           permittedAccounts: { 'example.metamask.io': [] },
-          providerConfig: {
-            chainId: '0x1',
-            type: RPC,
-            ticker: 'ETH',
-            rpcUrl: 'https://mainnet.infura.io/v3',
-            nickname: 'test',
+          selectedNetworkClientId: 'mainnet',
+          networksMetadata: {},
+          networkConfigurations: {
+            mainnet: {
+              id: 'mainnet',
+              rpcUrl: 'https://mainnet.infura.io/v3',
+              chainId: '0x1',
+              ticker: 'ETH',
+              nickname: 'Sepolia network',
+              rpcPrefs: {
+                blockExplorerUrl: 'https://etherscan.com',
+              },
+            },
           },
           selectedAddress: differentMockAddress,
         });
@@ -879,12 +927,19 @@ describe('getRpcMethodMiddleware', () => {
             '70a863a4-a756-4660-8c72-dc367d02f625': [mockAddress],
           },
           // Set minimal network controller state to support validation
-          providerConfig: {
-            chainId: '0x1',
-            type: RPC,
-            ticker: 'ETH',
-            rpcUrl: 'https://mainnet.infura.io/v3',
-            nickname: 'test',
+          selectedNetworkClientId: 'mainnet',
+          networksMetadata: {},
+          networkConfigurations: {
+            mainnet: {
+              id: 'mainnet',
+              rpcUrl: 'https://mainnet.infura.io/v3',
+              chainId: '0x1',
+              ticker: 'ETH',
+              nickname: 'Sepolia network',
+              rpcPrefs: {
+                blockExplorerUrl: 'https://etherscan.com',
+              },
+            },
           },
           selectedAddress: mockAddress,
         });
@@ -914,12 +969,19 @@ describe('getRpcMethodMiddleware', () => {
         setupGlobalState({
           addTransactionResult: Promise.resolve('fake-hash'),
           // Set minimal network controller state to support validation
-          providerConfig: {
-            chainId: '0x1',
-            type: RPC,
-            ticker: 'ETH',
-            rpcUrl: 'https://mainnet.infura.io/v3',
-            nickname: 'test',
+          selectedNetworkClientId: 'mainnet',
+          networksMetadata: {},
+          networkConfigurations: {
+            mainnet: {
+              id: 'mainnet',
+              rpcUrl: 'https://mainnet.infura.io/v3',
+              chainId: '0x1',
+              ticker: 'ETH',
+              nickname: 'Sepolia network',
+              rpcPrefs: {
+                blockExplorerUrl: 'https://etherscan.com',
+              },
+            },
           },
           selectedAddress: differentMockAddress,
         });
@@ -954,12 +1016,19 @@ describe('getRpcMethodMiddleware', () => {
       setupGlobalState({
         addTransactionResult: Promise.resolve('fake-hash'),
         // Set minimal network controller state to support validation
-        providerConfig: {
-          chainId: '0x1',
-          type: RPC,
-          ticker: 'ETH',
-          rpcUrl: 'https://mainnet.infura.io/v3',
-          nickname: 'test',
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {},
+        networkConfigurations: {
+          mainnet: {
+            id: 'mainnet',
+            rpcUrl: 'https://mainnet.infura.io/v3',
+            chainId: '0x1',
+            ticker: 'ETH',
+            nickname: 'Sepolia network',
+            rpcPrefs: {
+              blockExplorerUrl: 'https://etherscan.com',
+            },
+          },
         },
       });
       const middleware = getRpcMethodMiddleware({

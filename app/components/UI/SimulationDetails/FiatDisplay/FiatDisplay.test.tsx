@@ -20,8 +20,19 @@ const mockStateWithTestnet = merge({}, mockInitialState, {
   engine: {
     backgroundState: {
       NetworkController: {
-        providerConfig: {
-          chainId: NETWORKS_CHAIN_ID.SEPOLIA,
+        selectedNetworkClientId: 'sepolia',
+        networksMetadata: {},
+        networkConfigurations: {
+          sepolia: {
+            id: 'sepolia',
+            rpcUrl: 'http://localhost/v3/',
+            chainId: NETWORKS_CHAIN_ID.SEPOLIA,
+            ticker: 'ETH',
+            nickname: 'Sepolia network',
+            rpcPrefs: {
+              blockExplorerUrl: 'https://etherscan.com',
+            },
+          },
         },
       },
     },

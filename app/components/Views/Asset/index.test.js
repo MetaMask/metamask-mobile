@@ -7,6 +7,8 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsContr
 
 const mockedEngine = Engine;
 
+console.log('HERE +++++', mockedEngine.context.state);
+
 const mockInitialState = {
   engine: {
     backgroundState: {
@@ -32,6 +34,35 @@ jest.mock('../../../core/Engine.ts', () => {
               accounts: [MOCK_ADDRESS_1],
             },
           ],
+        },
+      },
+      NetworkController: {
+        getNetworkClientById: () => ({
+          configuration: {
+            rpcUrl: 'https://mainnet.infura.io/v3',
+            chainId: '0x1',
+            ticker: 'ETH',
+            nickname: 'Ethereum mainnet',
+            rpcPrefs: {
+              blockExplorerUrl: 'https://etherscan.com',
+            },
+          },
+        }),
+        state: {
+          networkConfigurations: {
+            '673a4523-3c49-47cd-8d48-68dfc8a47a9c': {
+              id: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
+              rpcUrl: 'https://mainnet.infura.io/v3',
+              chainId: '0x1',
+              ticker: 'ETH',
+              nickname: 'Ethereum mainnet',
+              rpcPrefs: {
+                blockExplorerUrl: 'https://etherscan.com',
+              },
+            },
+          },
+          selectedNetworkClientId: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
+          networkMetadata: {},
         },
       },
     },

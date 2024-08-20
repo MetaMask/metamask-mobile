@@ -15,8 +15,13 @@ export interface ProviderConfig {
   network?: string;
 }
 
-const selectNetworkControllerState = (state: RootState) =>
-  state?.engine?.backgroundState?.NetworkController;
+const selectNetworkControllerState = (state: RootState) => {
+  console.log(
+    'state?.engine?.backgroundState ---',
+    state?.engine?.backgroundState,
+  );
+  return state?.engine?.backgroundState?.NetworkController;
+};
 
 export const selectProviderConfig = createDeepEqualSelector(
   selectNetworkControllerState,
@@ -25,14 +30,15 @@ export const selectProviderConfig = createDeepEqualSelector(
       'networkControllerState ---',
       JSON.stringify(networkControllerState),
     );
-    const { NetworkController } = Engine.context;
+
+    const { NetworkController } = Engine?.context || {};
 
     const builtInNetwork =
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       NetworkList[networkControllerState?.selectedNetworkClientId];
 
-    const networkConfiguration = NetworkController.getNetworkClientById(
+    const networkConfiguration = NetworkController?.getNetworkClientById(
       networkControllerState?.selectedNetworkClientId,
     ).configuration;
 
@@ -40,13 +46,15 @@ export const selectProviderConfig = createDeepEqualSelector(
       ? {
           ...builtInNetwork,
           type: networkControllerState?.selectedNetworkClientId,
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           rpcPrefs: { blockExplorerUrl: builtInNetwork.blockExplorerUrl },
         }
       : {
           ...networkConfiguration,
           type: 'rpc',
           nickname:
-            networkControllerState?.networkConfigurations[
+            networkControllerState?.networkConfigurations?.[
               networkControllerState?.selectedNetworkClientId
             ]?.nickname,
         };

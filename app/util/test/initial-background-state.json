@@ -57,11 +57,17 @@
     }
   },
   "NetworkController": {
-    "networkConfigurations": {},
-    "providerConfig": {
-      "type": "mainnet",
-      "chainId": "0x1",
-      "ticker": "ETH"
+    "networkConfigurations": {
+      "mainnet": {
+        "id": "mainnet",
+        "rpcUrl": "https://bsc-dataseed1.binance.org/",
+        "chainId": "0x1",
+        "ticker": "ETH",
+        "nickname": "Ethereum chain",
+        "rpcPrefs": {
+          "blockExplorerUrl": "https://bscscan.com"
+        }
+      }
     },
     "networksMetadata": {
       "mainnet": {

@@ -116,10 +116,20 @@ function render(Component: React.ReactElement, orders = testOrders) {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            providerConfig: {
-              ticker: 'ETH',
-              type: 'mainnet',
-              chainId: '0x1',
+            network: '1',
+            selectedNetworkClientId: 'mainnet',
+            networksMetadata: {},
+            networkConfigurations: {
+              mainnet: {
+                id: 'mainnet',
+                rpcUrl: 'http://localhost/v3/',
+                chainId: '0x1',
+                ticker: 'ETH',
+                nickname: 'Ethereum mainnet',
+                rpcPrefs: {
+                  blockExplorerUrl: 'https://etherscan.com',
+                },
+              },
             },
           },
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,

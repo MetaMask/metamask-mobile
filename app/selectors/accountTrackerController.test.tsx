@@ -41,9 +41,27 @@ const MOCK_BALANCE_3 = '0x33';
 jest.mock('../core/Engine', () => ({
   state: {
     NetworkController: {
-      providerConfig: {
-        chainId: '0x1',
-      } as Partial<NetworkController['state']['providerConfig']>,
+      networkConfigurations: {
+        mainnet: {
+          id: 'mainnet',
+          rpcUrl: 'https://ethereum-rpc',
+          chainId: '0x1',
+          ticker: 'ETH',
+          nickname: 'Ethereum chain',
+          rpcPrefs: {
+            blockExplorerUrl: 'https://etherscan.com',
+          },
+        },
+      } as Partial<NetworkController['state']['networkConfigurations']>,
+      selectedNetworkClientId: 'mainnet',
+      networksMetadata: {
+        mainnet: {
+          status: 'available',
+          EIPS: {
+            '1559': true,
+          },
+        },
+      },
     } as Partial<NetworkController['state']>,
     AccountsController: {
       internalAccounts: {
@@ -116,9 +134,20 @@ describe('selectAccountBalanceByChainId', () => {
       engine: {
         backgroundState: {
           NetworkController: {
-            providerConfig: {
-              chainId: MOCK_CHAIN_ID,
-            } as Partial<NetworkController['state']['providerConfig']>,
+            selectedNetworkClientId: 'mainnet',
+            networksMetadata: {},
+            networkConfigurations: {
+              mainnet: {
+                id: 'mainnet',
+                rpcUrl: 'https://mainnet.infura.io/v3',
+                chainId: MOCK_CHAIN_ID,
+                ticker: 'ETH',
+                nickname: 'Sepolia network',
+                rpcPrefs: {
+                  blockExplorerUrl: 'https://etherscan.com',
+                },
+              },
+            },
           } as Partial<NetworkController['state']>,
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           AccountTrackerController: {

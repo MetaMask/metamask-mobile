@@ -79,18 +79,28 @@ function render(Component: React.ComponentType, chainId?: `0x${string}`) {
             ...backgroundState,
             NetworkController: {
               ...backgroundState.NetworkController,
-              providerConfig: {
-                chainId: chainId ?? '0x38',
-                ticker: 'BNB',
-                nickname: 'BNB Smart Chain',
-              },
+              selectedNetworkClientId: 'networkId2',
+              networksMetadata: {},
               networkConfigurations: {
                 networkId1: {
-                  chainId: '0x89',
-                  nickname: 'Polygon Mainnet',
-                  rpcPrefs: { blockExplorerUrl: 'https://polygonscan.com' },
+                  id: 'networkId1',
                   rpcUrl: 'https://polygon-mainnet.infura.io/v3/12345',
+                  chainId: '0x89',
                   ticker: 'MATIC',
+                  nickname: 'Polygon Mainnet',
+                  rpcPrefs: {
+                    blockExplorerUrl: 'https://etherscan.com',
+                  },
+                },
+                networkId2: {
+                  id: 'networkId2',
+                  rpcUrl: 'http://localhost/v3/',
+                  chainId: chainId ?? '0x38',
+                  ticker: 'BNB',
+                  nickname: 'BNB Smart Chain',
+                  rpcPrefs: {
+                    blockExplorerUrl: 'https://etherscan.com',
+                  },
                 },
               },
             },

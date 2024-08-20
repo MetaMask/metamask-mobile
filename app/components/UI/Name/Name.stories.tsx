@@ -23,8 +23,19 @@ const storeMock = configureStore({
     engine: {
       backgroundState: {
         NetworkController: {
-          providerConfig: {
-            chainId: SELECTED_CHAIN_ID,
+          selectedNetworkClientId: 'sepolia',
+          networksMetadata: {},
+          networkConfigurations: {
+            sepolia: {
+              id: 'sepolia',
+              rpcUrl: 'http://localhost/v3/',
+              chainId: SELECTED_CHAIN_ID,
+              ticker: 'ETH',
+              nickname: 'Sepolia',
+              rpcPrefs: {
+                blockExplorerUrl: 'https://etherscan.com',
+              },
+            },
           },
         },
         PreferencesController: {

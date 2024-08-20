@@ -12,9 +12,19 @@ const mockInitialState = {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
-        providerConfig: {
-          type: LINEA_GOERLI,
-          rpcUrl: 'https://mainnet.infura.io/v3/1234567890abcdef',
+        selectedNetworkClientId: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
+        networksMetadata: {},
+        networkConfigurations: {
+          '673a4523-3c49-47cd-8d48-68dfc8a47a9c': {
+            id: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
+            rpcUrl: 'https://mainnet.infura.io/v3/1234567890abcdef',
+            chainId: '0xe708',
+            ticker: 'ETH',
+            nickname: 'Ethereum chain',
+            rpcPrefs: {
+              blockExplorerUrl: 'https://etherscan.com',
+            },
+          },
         },
       } as unknown as NetworkController['state'],
     },
@@ -64,10 +74,19 @@ describe('useBlockExplorer', () => {
           backgroundState: {
             ...backgroundState,
             NetworkController: {
-              providerConfig: {
-                type: RPC,
-                rpcUrl: 'http://localhost/v3/',
-              },
+              selectedNetworkClientId: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
+              networksMetadata: {},
+              networkConfigurations: {
+                '673a4523-3c49-47cd-8d48-68dfc8a47a9c': {
+                  id: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
+                  rpcUrl: 'http://localhost/v3/',
+                  chainId: '0xe708',
+                  ticker: 'ETH',
+                  nickname: 'Ethereum chain',
+                  rpcPrefs: {
+                    blockExplorerUrl: 'https://etherscan.com',
+                  },
+                },
             } as NetworkController['state'],
           },
         },

@@ -29,7 +29,20 @@ const mockInitialState: DeepPartial<RootState> = {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
-        providerConfig: { type: 'mainnet', chainId: '0x1', ticker: 'ETH' },
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {},
+        networkConfigurations: {
+          sepolia: {
+            id: 'mainnet',
+            rpcUrl: 'http://localhost/v3/',
+            chainId: '0x1',
+            ticker: 'ETH',
+            nickname: 'Sepolia network',
+            rpcPrefs: {
+              blockExplorerUrl: 'https://etherscan.com',
+            },
+          },
+        },
       },
     },
   },
@@ -115,10 +128,19 @@ describe('WalletActions', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            providerConfig: {
-              type: 'mainnet',
-              chainId: '0x1asdscxds',
-              ticker: 'eth',
+            selectedNetworkClientId: 'mainnet',
+            networksMetadata: {},
+            networkConfigurations: {
+              sepolia: {
+                id: 'mainnet',
+                rpcUrl: 'http://localhost/v3/',
+                chainId: '0',
+                ticker: 'ETH',
+                nickname: 'Sepolia network',
+                rpcPrefs: {
+                  blockExplorerUrl: 'https://etherscan.com',
+                },
+              },
             },
           },
         },
