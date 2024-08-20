@@ -37,6 +37,7 @@ import { selectNetworkName } from '../../../selectors/networkInfos';
 import { BadgeAnchorElementShape } from '../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
 import useSvgUriViewBox from '../../hooks/useSvgUriViewBox';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
+import Logger from '../../../util/Logger';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -112,7 +113,7 @@ const RemoteImage = (props) => {
         setDimensions({ width: calculatedWidth, height: calculatedHeight });
       },
       () => {
-        console.error('Failed to get image dimensions');
+        Logger.log('Failed to get image dimensions');
       },
     );
   }, [uri]);
