@@ -45,10 +45,7 @@ import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrap
 import { BadgeVariant } from '../../../component-library/components/Badges/Badge/Badge.types';
 
 import images from 'images/image-icons';
-import {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../component-library/components/Avatars/Avatar';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Text, {
   TextColor,
@@ -101,7 +98,7 @@ import { Hex } from '@metamask/utils';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
-type MarketDataDetails = {
+interface MarketDataDetails {
   tokenAddress: `0x${string}`;
   value: number;
   currency: string;
@@ -123,7 +120,7 @@ type MarketDataDetails = {
   pricePercentChange30d: number;
   pricePercentChange200d: number;
   totalVolume: number;
-};
+}
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors } = useTheme();

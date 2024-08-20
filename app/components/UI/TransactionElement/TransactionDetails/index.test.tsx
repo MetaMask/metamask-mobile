@@ -22,7 +22,7 @@ describe('TransactionDetails', () => {
     const wrapper = shallow(
       <Provider store={store}>
         <TransactionDetails
-        //@ts-expect-error - TransactionDetails needs to be converted to typescript
+          // @ts-expect-error - TransactionDetails needs to be converted to typescript
           transactionObject={{
             networkID: '1',
             status: 'confirmed',
