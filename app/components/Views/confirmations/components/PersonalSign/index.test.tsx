@@ -40,11 +40,6 @@ jest.mock('../../../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(),
 }));
 
-jest.mock('../../../../../lib/ppom/ppom-util', () => ({
-  ...jest.requireActual('../../../../../lib/ppom/ppom-util'),
-  isChainSupported: jest.fn().mockResolvedValue(true),
-}));
-
 jest.mock('@react-navigation/native');
 
 const messageParamsMock = {
@@ -207,7 +202,6 @@ describe('PersonalSign', () => {
       });
     });
   });
-
   describe('trackEvent', () => {
     it('tracks event for rejected requests', async () => {
       const wrapper = createWrapper().dive();

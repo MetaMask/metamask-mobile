@@ -698,7 +698,7 @@ class Send extends PureComponent {
    *
    * @return {object} - Object containing view, network type, activeCurrency and assetType
    */
-  getTrackingParams = async () => {
+  getTrackingParams = () => {
     const {
       networkType,
       transaction,
@@ -714,7 +714,7 @@ class Send extends PureComponent {
           (selectedAsset.symbol || selectedAsset.contractName)) ||
         'ETH',
       assetType,
-      ...(await getBlockaidTransactionMetricsParams(transaction)),
+      ...getBlockaidTransactionMetricsParams(transaction),
       is_smart_transaction: shouldUseSmartTransaction,
     };
   };

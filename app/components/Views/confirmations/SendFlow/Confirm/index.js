@@ -902,7 +902,7 @@ class Confirm extends PureComponent {
                 assetType,
                 {
                   ...this.getAnalyticsParams(),
-                  ...(await getBlockaidTransactionMetricsParams(transaction)),
+                  ...getBlockaidTransactionMetricsParams(transaction),
                   ...this.getTransactionMetrics(),
                 },
               ),
@@ -941,7 +941,7 @@ class Confirm extends PureComponent {
           MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
           {
             ...this.getAnalyticsParams(transactionMeta),
-            ...(await getBlockaidTransactionMetricsParams(transaction)),
+            ...getBlockaidTransactionMetricsParams(transaction),
             ...this.getTransactionMetrics(),
           },
         );
@@ -1161,11 +1161,11 @@ class Confirm extends PureComponent {
     });
   };
 
-  onContactUsClicked = async () => {
+  onContactUsClicked = () => {
     const { transaction } = this.props;
     const analyticsParams = {
       ...this.getAnalyticsParams(),
-      ...(await getBlockaidTransactionMetricsParams(transaction)),
+      ...getBlockaidTransactionMetricsParams(transaction),
       external_link_clicked: 'security_alert_support_link',
     };
     this.props.metrics.trackEvent(

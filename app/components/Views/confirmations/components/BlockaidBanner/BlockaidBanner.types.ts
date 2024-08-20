@@ -44,7 +44,7 @@ export interface SecurityAlertResponse {
 type BlockaidBannerAllProps = BannerAlertProps & {
   securityAlertResponse?: SecurityAlertResponse;
   onToggleShowDetails?: () => void;
-  onContactUsClicked?: () => Promise<void>;
+  onContactUsClicked?: () => void;
 };
 
 export type BlockaidBannerProps = Omit<BlockaidBannerAllProps, 'severity'>;

@@ -31,12 +31,12 @@ export const isBlockaidPreferenceEnabled = (): boolean => {
 export const isBlockaidFeatureEnabled = async (): Promise<boolean> =>
   (await isBlockaidSupportedOnCurrentChain()) && isBlockaidPreferenceEnabled();
 
-export const getBlockaidMetricsParams = async (
+export const getBlockaidMetricsParams = (
   securityAlertResponse?: SecurityAlertResponse,
-): Promise<Record<string, unknown>> => {
+): Record<string, unknown> => {
   const additionalParams: Record<string, unknown> = {};
 
-  if (securityAlertResponse && (await isBlockaidFeatureEnabled())) {
+  if (securityAlertResponse) {
     const { result_type, reason, providerRequestsCount, source } =
       securityAlertResponse;
 
@@ -63,9 +63,9 @@ export const getBlockaidMetricsParams = async (
   return additionalParams;
 };
 
-export const getBlockaidTransactionMetricsParams = async (
+export const getBlockaidTransactionMetricsParams = (
   transaction: TransactionType,
-): Promise<Record<string, unknown>> => {
+): Record<string, unknown> => {
   let blockaidParams = {};
 
   if (!transaction) {
@@ -75,7 +75,7 @@ export const getBlockaidTransactionMetricsParams = async (
   if (
     transaction.id === transaction?.currentTransactionSecurityAlertResponse?.id
   ) {
-    blockaidParams = await getBlockaidMetricsParams(
+    blockaidParams = getBlockaidMetricsParams(
       transaction.currentTransactionSecurityAlertResponse?.response,
     );
   }

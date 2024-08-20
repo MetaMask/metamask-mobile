@@ -87,27 +87,18 @@ const MessageSign = ({
   const styles = createStyles(colors);
 
   useEffect(() => {
-    const trackSignatureRequested = async () => {
-      const analyticsParams = await getAnalyticsParams(
-        messageParams,
-        'eth_sign',
-      );
-      trackEvent(MetaMetricsEvents.SIGNATURE_REQUESTED, analyticsParams);
-    };
-
-    trackSignatureRequested();
+    trackEvent(
+      MetaMetricsEvents.SIGNATURE_REQUESTED,
+      getAnalyticsParams(messageParams, 'eth_sign'),
+    );
 
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const onSignatureError = async ({ error }: any) => {
+    const onSignatureError = ({ error }: any) => {
       if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
-        const analyticsParams = await getAnalyticsParams(
-          messageParams,
-          'eth_sign',
-        );
         trackEvent(
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-          analyticsParams,
+          getAnalyticsParams(messageParams, 'eth_sign'),
         );
       }
     };

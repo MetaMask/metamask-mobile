@@ -18,7 +18,7 @@ export const typedSign = {
   V4: 'eth_signTypedData_v4',
 };
 
-export const getAnalyticsParams = async (
+export const getAnalyticsParams = (
   messageParams,
   signType,
   securityAlertResponse,
@@ -33,7 +33,7 @@ export const getAnalyticsParams = async (
 
     let blockaidParams = {};
     if (securityAlertResponse) {
-      blockaidParams = await getBlockaidMetricsParams(securityAlertResponse);
+      blockaidParams = getBlockaidMetricsParams(securityAlertResponse);
     }
 
     return {
@@ -94,16 +94,11 @@ export const handleSignatureAction = async (
 ) => {
   await onAction();
   showWalletConnectNotification(messageParams, confirmation);
-  const analyticsParams = await getAnalyticsParams(
-    messageParams,
-    signType,
-    securityAlertResponse,
-  );
   MetaMetrics.getInstance().trackEvent(
     confirmation
       ? MetaMetricsEvents.SIGNATURE_APPROVED
       : MetaMetricsEvents.SIGNATURE_REJECTED,
-    analyticsParams,
+    getAnalyticsParams(messageParams, signType, securityAlertResponse),
   );
 };
 

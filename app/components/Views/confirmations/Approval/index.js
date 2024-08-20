@@ -43,7 +43,6 @@ import { providerErrors } from '@metamask/rpc-errors';
 import { getDeviceId } from '../../../../core/Ledger/Ledger';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
-import { getBlockaidTransactionMetricsParams } from '../../../../util/blockaid';
 import { getDecimalChainId } from '../../../../util/networks';
 
 import { updateTransaction } from '../../../../util/transaction-controller';
@@ -372,8 +371,7 @@ class Approval extends PureComponent {
     });
   };
 
-  onCancel = async () => {
-    const { transaction } = this.props;
+  onCancel = () => {
     this.props.hideModal();
     this.state.mode === REVIEW && this.trackOnCancel();
     this.showWalletConnectNotification();
@@ -381,7 +379,7 @@ class Approval extends PureComponent {
       MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED,
       {
         ...this.getAnalyticsParams(),
-        ...(await getBlockaidTransactionMetricsParams(transaction)),
+        ...this.getBlockaidMetricsParams(),
         ...this.getTransactionMetrics(),
       },
     );
@@ -538,7 +536,7 @@ class Approval extends PureComponent {
           gasEstimateType,
           gasSelected,
         }),
-        ...(await getBlockaidTransactionMetricsParams(transaction)),
+        ...this.getBlockaidMetricsParams(),
         ...this.getTransactionMetrics(),
       },
     );

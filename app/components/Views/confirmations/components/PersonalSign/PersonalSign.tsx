@@ -82,7 +82,7 @@ const PersonalSign = ({
     [key: string]: string | undefined;
   }
 
-  const getAnalyticsParams = useCallback(async (): Promise<AnalyticsParams> => {
+  const getAnalyticsParams = useCallback((): AnalyticsParams => {
     try {
       const chainId = selectChainId(store.getState());
       const pageInfo = currentPageInformation || messageParams.meta;
@@ -91,7 +91,7 @@ const PersonalSign = ({
       let blockaidParams = {};
 
       if (securityAlertResponse) {
-        blockaidParams = await getBlockaidMetricsParams(
+        blockaidParams = getBlockaidMetricsParams(
           securityAlertResponse as SecurityAlertResponse,
         );
       }
@@ -110,11 +110,11 @@ const PersonalSign = ({
   }, [currentPageInformation, messageParams, securityAlertResponse]);
 
   useEffect(() => {
-    const onSignatureError = async ({ error }: { error: Error }) => {
+    const onSignatureError = ({ error }: { error: Error }) => {
       if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
         trackEvent(
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-          await getAnalyticsParams(),
+          getAnalyticsParams(),
         );
       }
     };
@@ -147,24 +147,17 @@ const PersonalSign = ({
         });
     });
   };
-
   const rejectSignature = async () => {
     await onReject();
     showWalletConnectNotification(false);
-    trackEvent(
-      MetaMetricsEvents.SIGNATURE_REJECTED,
-      await getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.SIGNATURE_REJECTED, getAnalyticsParams());
   };
 
   const confirmSignature = async () => {
     if (!isExternalHardwareAccount(messageParams.from)) {
       await onConfirm();
       showWalletConnectNotification(true);
-      trackEvent(
-        MetaMetricsEvents.SIGNATURE_APPROVED,
-        await getAnalyticsParams(),
-      );
+      trackEvent(MetaMetricsEvents.SIGNATURE_APPROVED, getAnalyticsParams());
     } else {
       navigation.navigate(
         ...(await createExternalSignModelNav(

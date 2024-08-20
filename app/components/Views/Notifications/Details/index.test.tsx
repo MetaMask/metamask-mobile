@@ -17,10 +17,6 @@ const mockInitialState = {
   },
 };
 
-jest.mock('../../../../lib/ppom/ppom-util', () => ({
-  isChainSupported: jest.fn().mockResolvedValue(true),
-}));
-
 jest.mock('../../../../actions/alert', () => ({
   showAlert: jest.fn(),
 }));

@@ -41,12 +41,6 @@ jest.mock('react-native-keyboard-aware-scroll-view', () => {
   return { KeyboardAwareScrollView };
 });
 
-jest.mock('../../../../../lib/ppom/ppom-util', () => ({
-  ...jest.requireActual('../../../../../lib/ppom/ppom-util'),
-  isChainSupported: jest.fn().mockResolvedValue(true),
-  validateRequest: jest.fn(),
-}));
-
 jest.mock(
   '../../../../../components/UI/QRHardware/withQRHardwareAwareness',
   // TODO: Replace "any" with type
@@ -227,12 +221,11 @@ describe('TransactionReview', () => {
       .mockImplementation(
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ({ result_type, reason, providerRequestsCount }: any) =>
-          Promise.resolve({
-            security_alert_response: result_type,
-            security_alert_reason: reason,
-            security_alert_provider_requests_count: providerRequestsCount,
-          }),
+        ({ result_type, reason, providerRequestsCount }: any) => ({
+          security_alert_response: result_type,
+          security_alert_reason: reason,
+          security_alert_provider_requests_count: providerRequestsCount,
+        }),
       );
 
     const { queryByText, queryByTestId, getByText } = renderWithProvider(
@@ -256,7 +249,7 @@ describe('TransactionReview', () => {
       },
     );
 
-    await waitFor(() => expect(queryByText('See details')).toBeDefined());
+    expect(await queryByText('See details')).toBeDefined();
     expect(
       await queryByText(
         'If you approve this request, someone can steal your assets listed on Blur.',

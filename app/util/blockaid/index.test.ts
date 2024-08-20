@@ -71,7 +71,7 @@ describe('Blockaid util', () => {
           },
         },
       };
-      const result = await getBlockaidTransactionMetricsParams(
+      const result = getBlockaidTransactionMetricsParams(
         transaction as unknown as TransactionType,
       );
       expect(result).toStrictEqual({});
@@ -101,7 +101,7 @@ describe('Blockaid util', () => {
         },
       };
 
-      const result = await getBlockaidTransactionMetricsParams(
+      const result = getBlockaidTransactionMetricsParams(
         transaction as unknown as TransactionType,
       );
       expect(result).toEqual({
@@ -126,7 +126,7 @@ describe('Blockaid util', () => {
     });
 
     it('returns empty object when securityAlertResponse is not defined', async () => {
-      const result = await getBlockaidMetricsParams(undefined);
+      const result = getBlockaidMetricsParams(undefined);
       expect(result).toStrictEqual({});
     });
 
@@ -134,7 +134,7 @@ describe('Blockaid util', () => {
       jest
         .spyOn(NetworkControllerMock, 'selectChainId')
         .mockReturnValue('0x10');
-      const result = await getBlockaidMetricsParams(undefined);
+      const result = getBlockaidMetricsParams(undefined);
       expect(result).toStrictEqual({});
     });
 
@@ -150,7 +150,7 @@ describe('Blockaid util', () => {
         features: [],
       };
 
-      const result = await getBlockaidMetricsParams(securityAlertResponse);
+      const result = getBlockaidMetricsParams(securityAlertResponse);
       expect(result).toEqual({
         ui_customizations: ['flagged_as_malicious'],
         security_alert_response: ResultType.Malicious,
@@ -169,7 +169,7 @@ describe('Blockaid util', () => {
         providerRequestsCount: {},
       };
 
-      const result = await getBlockaidMetricsParams(securityAlertResponse);
+      const result = getBlockaidMetricsParams(securityAlertResponse);
       expect(result).toEqual({
         ui_customizations: ['flagged_as_malicious'],
         security_alert_response: ResultType.Malicious,
@@ -185,7 +185,7 @@ describe('Blockaid util', () => {
         providerRequestsCount: undefined,
       };
 
-      const result = await getBlockaidMetricsParams(securityAlertResponse);
+      const result = getBlockaidMetricsParams(securityAlertResponse);
       expect(result).toEqual({
         ui_customizations: ['flagged_as_malicious'],
         security_alert_response: ResultType.Malicious,
