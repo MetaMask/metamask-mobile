@@ -1527,6 +1527,9 @@ app:
     - opts:
         is_expand: false
       COREPACK_VERSION: 0.28.0
+    - opts:
+        is_expand: false
+      NO_FLIPPER: 1
 meta:
   bitrise.io:
     stack: osx-xcode-16.0.x-edge
