@@ -1,6 +1,7 @@
 import type { JsonMap, UserTraits } from '@segment/analytics-react-native';
 import {
   DataDeleteDate,
+  EventProperties,
   IDeleteRegulationResponse,
   IDeleteRegulationStatus,
   IMetaMetricsEvent,
@@ -18,14 +19,9 @@ export interface IUseMetricsHook {
   isEnabled(): boolean;
   enable(enable?: boolean): Promise<void>;
   addTraitsToUser(userTraits: UserTraits): Promise<void>;
-  trackAnonymousEvent(
-    event: IMetaMetricsEvent,
-    properties?: JsonMap,
-    saveDataRecording?: boolean,
-  ): void;
   trackEvent(
     event: IMetaMetricsEvent,
-    properties?: JsonMap,
+    properties?: JsonMap | EventProperties, // EventProperties is the new type, direct JsonMap is for retro compatibility
     saveDataRecording?: boolean,
   ): void;
   createDataDeletionTask(): Promise<IDeleteRegulationResponse>;

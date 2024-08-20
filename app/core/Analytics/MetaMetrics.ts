@@ -24,6 +24,7 @@ import {
   DataDeleteRegulationId,
   DataDeleteResponseStatus,
   DataDeleteStatus,
+  EventProperties,
   IDeleteRegulationResponse,
   IDeleteRegulationStatus,
   IDeleteRegulationStatusResponse,
@@ -606,20 +607,21 @@ class MetaMetrics implements IMetaMetrics {
     return Promise.resolve();
   };
 
-  handleEvent = (
+  #handleEvent = (
     event: IMetaMetricsEvent,
-    params: JsonMap,
+    properties: JsonMap | EventProperties,
     saveDataRecording: boolean,
-    anon?: boolean,
   ) => {
-    if (!params || Object.keys(params).length === 0) {
+    if (!properties || Object.keys(properties).length === 0) {
       this.#trackEvent(
         event?.category,
-        { anonymous: anon || false, ...event?.properties },
+        { anonymous: false, ...event?.properties },
         saveDataRecording,
       );
     }
-    const [userParams, anonymousParams] = preProcessAnalyticsEvent(params);
+
+    //TODO refactor
+    const [userParams, anonymousParams] = preProcessAnalyticsEvent(properties);
 
     // Log all non-anonymous properties
     if (Object.keys(userParams).length) {
@@ -642,41 +644,19 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
-   * Track an anonymous event
-   *
-   * This will track the event twice: once with the anonymous ID and once with the user ID
-   *
-   * - The anynomous event has properties set so you can know *what* but not *who*
-   * - The non-anonymous event has no properties so you can know *who* but not *what*
-   *
-   * @param event - Analytics event name
-   * @param properties - Object containing any event relevant traits or properties (optional)
-   * @param saveDataRecording - param to skip saving the data recording flag (optional)
-   */
-  trackAnonymousEvent(
-    event: IMetaMetricsEvent,
-    properties: JsonMap = {},
-    saveDataRecording = true,
-  ): void {
-    if (this.enabled) {
-      this.handleEvent(event, properties, saveDataRecording, true);
-    }
-  }
-
-  /**
    * Track an event - the regular way
    *
    * @param event - Analytics event name
-   * @param properties - Object containing any event relevant traits or properties (optional)
+   * @param properties - Object containing any event relevant traits or properties (optional).
    * @param saveDataRecording - param to skip saving the data recording flag (optional)
    */
   trackEvent = (
     event: IMetaMetricsEvent,
-    properties: JsonMap = {},
+    properties: JsonMap | EventProperties = {},
     saveDataRecording = true,
   ): void => {
     if (this.enabled) {
-      this.handleEvent(event, properties, saveDataRecording);
+      this.#handleEvent(event, properties, saveDataRecording);
     }
   };
 

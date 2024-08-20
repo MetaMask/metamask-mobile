@@ -170,7 +170,9 @@ describe('MetaMetrics', () => {
   });
 
   describe('Tracking', () => {
-    /* This is the matrix of tracking use cases.
+    /* This is the matrix of tracking use cases based on extension behaviour.
+     * it's also retro compatible with our individual anonymous events.
+     *
      * How to read it? Here are some examples:
      * - Test A means non-anonymous tracking (NA) and it has no props at all:
      *   The result must be only one non-anonymous event without any props (EMPTY) and no anonymous event at all (NONE).
@@ -181,10 +183,16 @@ describe('MetaMetrics', () => {
      * |------|---------|---------------|-----------|----------------------------|-----------------------|
      * | A    | NA      | NO            | NO        | EMPTY                      | NONE                  |
      * | B    | NA      | YES           | NO        | NA PROPS                   | NONE                  |
-     * | C    | NA      | NO            | YES       | EMPTY                      | A PROPS               |
+     * | C0   | NA      | NO            | YES(indiv)| EMPTY                      | A PROPS               |
+     * | C1   | NA      | NO            | YES(group)| EMPTY                      | A PROPS               |
+     * | C2   | NA      | NO            | YES(mixed)| EMPTY                      | A PROPS               |
      * | D    | NA      | YES           | YES       | NA PROPS                   | NA PROPS + A PROPS    |
      *
-     * the following test cases include the code (A,B, C and D) of the test in the table for reference.
+     * For C0/C1:
+     * - individual prop is one that is mixed with others but is of the form `prop = { anonymous: true, value: 'anon value' }`
+     * - group anonymous props are of the form `prop = 'anon value'` but are grouped in an object implementing the SensitiveProperties interface.
+     *
+     * The following test cases include the code (A,B, C0/C1 and D) of the test in the table for reference.
      */
     describe('tracks event', () => {
       it('without properties (test A)', async () => {
@@ -226,15 +234,17 @@ describe('MetaMetrics', () => {
         expect(segmentMockClient.track).toHaveBeenCalledTimes(1);
       });
 
-      it('with only anonymous properties (test C)', async () => {
+      it('with only individual anonymous properties (test C0)', async () => {
         const metaMetrics = TestMetaMetrics.getInstance();
         await metaMetrics.enable();
         const event: IMetaMetricsEvent = { category: 'test event' };
-        const anonProperties = {
-          anon_property: { anonymous: true, value: 'anon value' },
+
+        const individualAnonProperties = {
+          individual_anon_property: { anonymous: true, value: 'anon value' },
         };
 
-        metaMetrics.trackEvent(event, anonProperties);
+        // this call is backward-compatible with the previous system
+        metaMetrics.trackEvent(event, individualAnonProperties);
 
         const { segmentMockClient } =
           global as unknown as GlobalWithSegmentClient;
@@ -246,10 +256,86 @@ describe('MetaMetrics', () => {
           ...{},
         });
 
-        // anonymous event has anon properties
+        // anonymous event has individual anon properties
+        // the prop value must be extracted and passed directly as a value.
+        // the original anonymous prop of the prop is discarded.
         expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
           anonymous: true,
-          ...anonProperties,
+          ...{
+            individual_anon_property:
+              individualAnonProperties.individual_anon_property.value,
+          },
+        });
+
+        // two events should be tracked, one anonymous and one non-anonymous
+        expect(segmentMockClient.track).toHaveBeenCalledTimes(2);
+      });
+
+      it('with only anonymous properties group (test C1)', async () => {
+        const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.enable();
+        const event: IMetaMetricsEvent = { category: 'test event' };
+
+        const groupAnonProperties = { group_anon_property: 'group anon value' };
+        const properties = {
+          sensitiveProperties: { ...groupAnonProperties },
+        };
+
+        metaMetrics.trackEvent(event, properties);
+
+        const { segmentMockClient } =
+          global as unknown as GlobalWithSegmentClient;
+
+        // check if the event was tracked
+        // non-anonymous event has no properties.
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: false,
+          ...{},
+        });
+
+        // anonymous event has group anon properties
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: true,
+          ...groupAnonProperties,
+        });
+
+        // two events should be tracked, one anonymous and one non-anonymous
+        expect(segmentMockClient.track).toHaveBeenCalledTimes(2);
+      });
+
+      it('with mixed (group and individual) anonymous properties (test C2)', async () => {
+        const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.enable();
+        const event: IMetaMetricsEvent = { category: 'test event' };
+
+        const individualAnonProperties = {
+          anon_prop: { anonymous: true, value: 'anon value' },
+        };
+        const groupAnonProperties = { group_anon_property: 'group anon value' };
+        const properties = {
+          properties: { ...individualAnonProperties },
+          sensitiveProperties: { ...groupAnonProperties },
+        };
+
+        metaMetrics.trackEvent(event, properties);
+
+        const { segmentMockClient } =
+          global as unknown as GlobalWithSegmentClient;
+
+        // check if the event was tracked
+        // non-anonymous event has no properties.
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: false,
+          ...{},
+        });
+
+        // anonymous event has both individual and group anon properties
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: true,
+          ...{
+            individual_anon_property: individualAnonProperties.anon_prop.value,
+          },
+          ...groupAnonProperties,
         });
 
         // two events should be tracked, one anonymous and one non-anonymous
@@ -260,11 +346,21 @@ describe('MetaMetrics', () => {
         const metaMetrics = TestMetaMetrics.getInstance();
         await metaMetrics.enable();
         const event: IMetaMetricsEvent = { category: 'test event' };
+
         const nonAnonProperties = { non_anon_prop: 'non anon value' };
-        const anonProperties = {
+        const individualAnonProperties = {
           anon_prop: { anonymous: true, value: 'anon value' },
         };
-        const properties = { ...nonAnonProperties, ...anonProperties };
+        const groupAnonProperties = { group_anon_property: 'group anon value' };
+
+        // Testing only the mixed non-anon/individual-anon/group-anon properties case as it covers all other cases.
+        const properties = {
+          properties: {
+            ...nonAnonProperties,
+            ...individualAnonProperties,
+          },
+          sensitiveProperties: { ...groupAnonProperties },
+        };
 
         metaMetrics.trackEvent(event, properties);
 
@@ -281,7 +377,8 @@ describe('MetaMetrics', () => {
         expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
           anonymous: true,
           ...nonAnonProperties,
-          ...anonProperties,
+          ...{ anon_prop: individualAnonProperties.anon_prop.value },
+          ...groupAnonProperties,
         });
 
         // Only two events should be tracked, one anonymous and one non-anonymous

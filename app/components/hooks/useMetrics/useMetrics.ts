@@ -3,6 +3,7 @@ import { IMetaMetricsEvent, MetaMetrics } from '../../../core/Analytics';
 import { JsonMap } from '@segment/analytics-react-native';
 import { IUseMetricsHook } from './useMetrics.types';
 import { useCallback } from 'react';
+import { EventProperties } from '../../../core/Analytics/MetaMetrics.types';
 
 /**
  * Hook to use MetaMetrics
@@ -23,7 +24,6 @@ import { useCallback } from 'react';
  * @example a full destructuration of the hook:
  * const {
  *   trackEvent,
- *   trackAnonymousEvent,
  *   enable,
  *   addTraitsToUser,
  *   createDataDeletionTask,
@@ -36,40 +36,6 @@ import { useCallback } from 'react';
  * } = useMetrics();
  */
 const useMetrics = (): IUseMetricsHook => {
-  /**
-   * Track an anonymous event
-   *
-   * This will track the event twice: once with the anonymous ID and once with the user ID
-   *
-   * - The anynomous event has properties set so you can know *what* but not *who*
-   * - The non-anonymous event has no properties so you can know *who* but not *what*
-   *
-   * @param event - IMetaMetricsEvent event
-   * @param properties - Object containing any event relevant traits or properties (optional)
-   * @param saveDataRecording - param to skip saving the data recording flag (optional)
-   *
-   * @example
-   * const { trackAnonymousEvent } = useMetrics();
-   * trackAnonymousEvent(MetaMetricsEvents.SWAP_COMPLETED);
-   *
-   * @see MetaMetrics.trackAnonymousEvent
-   */
-  const trackAnonymousEvent = useCallback(
-    (
-      event: IMetaMetricsEvent,
-      properties: JsonMap = {},
-      saveDataRecording = true,
-    ) => {
-      InteractionManager.runAfterInteractions(async () => {
-        MetaMetrics.getInstance().trackAnonymousEvent(
-          event,
-          properties,
-          saveDataRecording,
-        );
-      });
-    },
-    [],
-  );
   /**
    * Track an event - the regular way
    *
@@ -93,7 +59,7 @@ const useMetrics = (): IUseMetricsHook => {
   const trackEvent = useCallback(
     (
       event: IMetaMetricsEvent,
-      properties: JsonMap = {},
+      properties: JsonMap | EventProperties = {},
       saveDataRecording = true,
     ) => {
       InteractionManager.runAfterInteractions(async () => {
@@ -109,7 +75,6 @@ const useMetrics = (): IUseMetricsHook => {
 
   return {
     trackEvent,
-    trackAnonymousEvent,
     enable: MetaMetrics.getInstance().enable,
     addTraitsToUser: MetaMetrics.getInstance().addTraitsToUser,
     createDataDeletionTask: MetaMetrics.getInstance().createDataDeletionTask,
