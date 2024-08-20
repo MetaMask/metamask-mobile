@@ -6,7 +6,7 @@ import {
   LedgerKeyring,
   LedgerMobileBridge,
 } from '@metamask/eth-ledger-bridge-keyring';
-import LEDGER_HD_PATH from './constants';
+import { LEDGER_LIVE_PAH } from './constants';
 import PAGINATION_OPERATIONS from '../../constants/pagination';
 
 /**
@@ -48,7 +48,7 @@ export const connectLedgerHardware = async (
 ): Promise<string> => {
   const appAndVersion = await withLedgerKeyring(
     async (keyring: LedgerKeyring) => {
-      keyring.setHdPath(LEDGER_HD_PATH);
+      keyring.setHdPath(LEDGER_LIVE_PAH);
       keyring.setDeviceId(deviceId);
 
       const bridge = keyring.bridge as LedgerMobileBridge;
