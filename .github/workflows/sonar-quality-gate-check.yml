@@ -1,4 +1,4 @@
-name: Check SonarCloud Quality Gate Comment
+name: Check SonarCloud Quality Gate Status
 
 on:
   push:
@@ -9,44 +9,43 @@ on:
     types: [created]
 
 jobs:
-  check-sonarcloud-comment:
-    name: Check SonarCloud Quality Gate Comment
+  check-sonarcloud-status:
+    name: Check SonarCloud Quality Gate Status
     runs-on: ubuntu-latest
     # if: github.event_name == 'pull_request_target' || contains(github.event.comment.html_url, '/pull/')
+
     steps:
       - name: Check out the code
         uses: actions/checkout@v3
 
-      - name: Get PR comments
-        id: get-comments
+      - name: Get SonarCloud Quality Gate Status
+        id: sonar-status
         run: |
+          PROJECT_KEY="your-sonar-project-key"
           PR_NUMBER="${{ github.event.pull_request.number }}"
-          COMMENTS=$(gh pr view "$PR_NUMBER" --json comments --jq '.comments[].body')
-          echo "$COMMENTS" > comments.txt
-          echo "comments=$COMMENTS" >> "$GITHUB_OUTPUT"
-        env:
-          GH_TOKEN: ${{ github.token }}
-          
-      - name: Check for SonarCloud Quality Gate Pass
-        id: check-quality-gate
-        run: |
-          if grep -q "Quality Gate passed" comments.txt; then
-            echo "Quality Gate passed found in comments."
-            echo "quality_gate_passed=true" >> "$GITHUB_OUTPUT"
-          elif grep -q "Quality Gate failed" comments.txt; then
-            echo "Quality Gate failed found in comments."
+          SONAR_TOKEN="${{ secrets.SONAR_TOKEN }}"
+
+          # Query SonarCloud API for the quality gate status
+          STATUS=$(curl -s -u "$SONAR_TOKEN:" \
+            "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT_KEY&pullRequest=$PR_NUMBER" | jq -r '.projectStatus.status')
+
+          if [[ "$STATUS" == "ERROR" ]]; then
+            echo "Quality Gate failed."
             echo "quality_gate_passed=false" >> "$GITHUB_OUTPUT"
+          elif [[ "$STATUS" == "OK" ]]; then
+            echo "Quality Gate passed."
+            echo "quality_gate_passed=true" >> "$GITHUB_OUTPUT"
           else
-            echo "SonarCloud Quality Gate result not found in comments."
+            echo "Could not determine Quality Gate status."
             exit 1
           fi
 
       - name: Fail if Quality Gate did not pass
-        if: steps.check-quality-gate.outputs.quality_gate_passed == 'false'
+        if: steps.sonar-status.outputs.quality_gate_passed == 'false'
         run: |
           echo "SonarCloud Quality Gate did not pass. Failing the check."
           exit 1
 
       - name: Success if Quality Gate passed
-        if: steps.check-quality-gate.outputs.quality_gate_passed == 'true'
+        if: steps.sonar-status.outputs.quality_gate_passed == 'true'
         run: echo "SonarCloud Quality Gate passed. Marking the check as successful."
