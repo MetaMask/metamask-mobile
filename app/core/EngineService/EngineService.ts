@@ -7,6 +7,7 @@ import {
   NO_VAULT_IN_BACKUP_ERROR,
   VAULT_CREATION_ERROR,
 } from '../../constants/error';
+import HeartService from '../HeartService';
 
 interface InitializeEngineResult {
   success: boolean;
@@ -26,7 +27,8 @@ class EngineService {
 
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  initalizeEngine = (store: any) => {
+  initalizeEngine = () => {
+    const { store } = HeartService;
     const reduxState = store.getState?.();
     const state = reduxState?.engine?.backgroundState || {};
     // TODO: Replace "any" with type

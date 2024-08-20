@@ -11,12 +11,12 @@ import {
   LOGIN,
 } from '../../actions/user';
 import { Task } from 'redux-saga';
-import HeartService from '../../core/HeartService';
-import Engine from '../../core/Engine';
+// import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import LockManagerService from '../../core/LockManagerService';
 import AppConstants from '../../../app/core/AppConstants';
 import { XMLHttpRequest as _XMLHttpRequest } from 'xhr2';
+import EngineService from '../../core/EngineService';
 
 if (typeof global.XMLHttpRequest === 'undefined') {
   global.XMLHttpRequest = _XMLHttpRequest;
@@ -55,9 +55,10 @@ export function* authStateMachine() {
     const appLockStateMachineTask: Task<void> = yield fork(appLockStateMachine);
     LockManagerService.startListening();
     console.log('LOGGED IN');
-    const reduxState = HeartService.store.getState?.();
-    const state = reduxState?.engine?.backgroundState || {};
-    Engine.init(state, HeartService.context);
+    // const reduxState = HeartService.store.getState?.();
+    // const state = reduxState?.engine?.backgroundState || {};
+    // Engine.init(state, HeartService.context);
+    EngineService.initalizeEngine();
     // Listen to app lock behavior.
     yield take(LOGOUT);
     LockManagerService.stopListening();

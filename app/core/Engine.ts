@@ -219,6 +219,7 @@ import { getPermittedAccounts } from './Permissions';
 import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
 import EthQuery from '@metamask/eth-query';
 import { TransactionControllerOptions } from '@metamask/transaction-controller/dist/types/TransactionController';
+import HeartService from './HeartService';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -439,10 +440,9 @@ class Engine {
   // eslint-disable-next-line @typescript-eslint/default-param-last
   constructor(
     initialState: Partial<EngineState> = {},
-    heartContext: Record<string, any>,
     // initialKeyringState?: KeyringControllerState | null,
   ) {
-    this.controllerMessenger = heartContext.ControllerMessenger; //new ExtendedControllerMessenger();
+    this.controllerMessenger = HeartService.context.ControllerMessenger; //new ExtendedControllerMessenger();
 
     /**
      * Subscribes a listener to the state change events of Preferences Controller.
@@ -475,7 +475,7 @@ class Engine {
       ],
     });
 
-    const preferencesController = heartContext.PreferencesController;
+    const preferencesController = HeartService.context.PreferencesController;
 
     const networkControllerOpts = {
       infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
@@ -676,7 +676,7 @@ class Engine {
     });
     phishingController.maybeUpdateState();
 
-    const keyringController = heartContext.KeyringController;
+    const keyringController = HeartService.context.KeyringController;
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     /**
@@ -2012,11 +2012,8 @@ export default {
     instance = null;
   },
 
-  init(
-    state: Record<string, never> | undefined,
-    heartContext: Record<string, any>,
-  ) {
-    instance = Engine.instance || new Engine(state, heartContext);
+  init(state: Record<string, never> | undefined) {
+    instance = Engine.instance || new Engine(state);
     Object.freeze(instance);
     return instance;
   },
