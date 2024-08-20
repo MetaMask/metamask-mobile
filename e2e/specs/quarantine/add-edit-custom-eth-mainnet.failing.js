@@ -19,8 +19,6 @@ import SettingsView from '../../pages/Settings/SettingsView';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import OnboardingWizardModal from '../../pages/modals/OnboardingWizardModal';
 import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
-import WhatsNewModal from '../../pages/modals/WhatsNewModal';
-import TestHelpers from '../../helpers';
 import ExperienceEnhancerModal from '../../pages/modals/ExperienceEnhancerModal';
 
 const validAccount = Accounts.getValidAccount();
@@ -75,17 +73,6 @@ describe(Regression('Add custom default ETH Mainnet'), () => {
       WalletView.navbarNetworkText,
       CustomNetworks.EthereumMainCustom.providerConfig.nickname,
     );
-  });
-
-  it('should tap to close the whats new modal if displayed', async () => {
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(2500);
-    try {
-      await Assertions.checkIfVisible(WhatsNewModal.container);
-      await WhatsNewModal.tapCloseButton();
-    } catch {
-      //
-    }
   });
 
   it('should navigate to Settings > Networks', async () => {
