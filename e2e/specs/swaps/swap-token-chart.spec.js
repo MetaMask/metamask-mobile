@@ -22,7 +22,7 @@ import Assertions from '../../utils/Assertions';
 const fixtureServer = new FixtureServer();
 
 describe(Regression('Swap from Token view'), () => {
-  const swapOnboarded = false; // TODO: Set it to false once we show the onboarding page again.
+  const swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
@@ -52,17 +52,17 @@ describe(Regression('Swap from Token view'), () => {
     await TokenOverview.scrollOnScreen();
     await TokenOverview.isVisible();
     await TokenOverview.tapSwapButton();
-    // if (!swapOnboarded) await Onboarding.tapStartSwapping();
-    // await QuoteView.isVisible();
-    // await QuoteView.tapOnSelectSourceToken();
-    // await QuoteView.selectToken('USDC');
-    // await QuoteView.enterSwapAmount('5');
-    // await QuoteView.tapOnSelectDestToken();
-    // await QuoteView.selectToken('DAI');
-    // await QuoteView.tapOnGetQuotes();
-    // await SwapView.isVisible();
-    // await SwapView.tapIUnderstandPriceWarning();
-    // await SwapView.swipeToSwap();
-    // await SwapView.waitForSwapToComplete('USDC', 'DAI');
+    if (!swapOnboarded) await Onboarding.tapStartSwapping();
+    await QuoteView.isVisible();
+    await QuoteView.tapOnSelectSourceToken();
+    await QuoteView.selectToken('USDT');
+    await QuoteView.enterSwapAmount('5');
+    await QuoteView.tapOnSelectDestToken();
+    await QuoteView.selectToken('DAI');
+    await QuoteView.tapOnGetQuotes();
+    await SwapView.isVisible();
+    await SwapView.tapIUnderstandPriceWarning();
+    await SwapView.swipeToSwap();
+    await SwapView.waitForSwapToComplete('USDT', 'DAI');
   });
 });
