@@ -420,7 +420,7 @@ describe('network-utils', () => {
   });
 
   describe('fetchEstimatedMultiLayerL1Fee', () => {
-    it.only('returns a non-0x prefixed hex string', async () => {
+    it('returns a non-0x prefixed hex string', async () => {
       const txMeta = {
         chainId: '0xa',
         txParams: {
