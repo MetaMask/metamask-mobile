@@ -18,14 +18,15 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 
 // Internal dependencies
 import WalletAccount from './WalletAccount';
+import { Hex } from '@metamask/utils';
 
-const MOCK_CHAIN_ID = '0x1';
+const MOCK_CHAIN_ID: Hex = '0x1';
 
 const MOCK_ENS_CACHED_NAME = 'fox.eth';
 
 const mockAccount: Account = {
   name: internalAccount2.metadata.name,
-  address: internalAccount2.address,
+  address: internalAccount2.address as Hex,
   type: internalAccount2.metadata.keyring.type as KeyringTypes,
   yOffset: 0,
   isSelected: true,
