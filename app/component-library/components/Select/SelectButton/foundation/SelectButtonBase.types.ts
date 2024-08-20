@@ -7,7 +7,7 @@ import { TouchableOpacityProps } from 'react-native';
  */
 export interface SelectButtonBaseProps
   extends Omit<SelectValueProps, 'style'>,
-    TouchableOpacityProps {
+    Omit<TouchableOpacityProps, 'hitSlop'> {
   /**
    * Optional enum to replace the caret Icon.
    */
