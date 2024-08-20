@@ -138,14 +138,14 @@
     "socket.io-client/engine.io-client/ws": "^8.17.1"
   },
   "dependencies": {
-    "@consensys/on-ramp-sdk": "1.28.1",
+    "@consensys/on-ramp-sdk": "1.28.3",
     "@eth-optimism/contracts": "0.0.0-2021919175625",
     "@ethereumjs/tx": "^3.2.1",
     "@ethersproject/abi": "^5.7.0",
     "@keystonehq/bc-ur-registry-eth": "^0.19.1",
     "@keystonehq/metamask-airgapped-keyring": "^0.13.1",
     "@keystonehq/ur-decoder": "^0.12.2",
-    "@ledgerhq/react-native-hw-transport-ble": "^6.32.3",
+    "@ledgerhq/react-native-hw-transport-ble": "^6.33.2",
     "@metamask/accounts-controller": "^14.0.0",
     "@metamask/address-book-controller": "^4.0.1",
     "@metamask/approval-controller": "^7.0.1",
