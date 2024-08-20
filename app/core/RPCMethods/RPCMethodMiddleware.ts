@@ -613,6 +613,7 @@ export const getRpcMethodMiddleware = ({
         const pageMeta = {
           meta: {
             url: url.current,
+            channelId,
             title: title.current,
             icon: icon.current,
             analytics: {
