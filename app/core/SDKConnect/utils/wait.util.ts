@@ -63,6 +63,28 @@ export const waitForCondition = async ({
   }
 };
 
+/**
+ * Similar to `waitForCondition`, but for asynchronous conditions that return a promise.
+ */
+export const waitForAsyncCondition = async ({
+  fn,
+  context,
+  waitTime = 1000,
+}: {
+  fn: () => Promise<boolean>;
+  waitTime?: number;
+  context?: string;
+}) => {
+  let i = 0;
+  while (!(await fn())) {
+    i += 1;
+    if (i > 5 && i % 10 === 0) {
+      DevLogger.log(`Waiting for fn context=${context} to return true`);
+    }
+    await wait(waitTime);
+  }
+};
+
 export const waitForConnectionReadiness = async ({
   connection,
 }: {
