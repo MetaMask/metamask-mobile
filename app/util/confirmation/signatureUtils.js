@@ -23,36 +23,40 @@ export const getAnalyticsParams = (
   signType,
   securityAlertResponse,
 ) => {
-  const { currentPageInformation, meta } = messageParams;
-  const pageInfo = meta || currentPageInformation || {};
+  if (!messageParams || typeof messageParams !== 'object') {
+    throw new Error('Invalid messageParams provided');
+  }
+
+  const { currentPageInformation = {}, meta = {} } = messageParams;
+  const pageInfo = { ...currentPageInformation, ...meta };
+
+  const analyticsParams = {
+    account_type: getAddressAccountType(messageParams.from),
+    dapp_host_name: 'N/A',
+    chain_id: null,
+    signature_type: signType,
+    version: messageParams?.version || 'N/A',
+    ...pageInfo.analytics,
+  };
 
   try {
     const chainId = selectChainId(store.getState());
-    const url = pageInfo.url && new URL(pageInfo?.url);
+    analyticsParams.chain_id = getDecimalChainId(chainId);
 
-    let blockaidParams = {};
-    if (securityAlertResponse) {
-      blockaidParams = getBlockaidMetricsParams(securityAlertResponse);
+    if (pageInfo.url) {
+      const url = new URL(pageInfo.url);
+      analyticsParams.dapp_host_name = url.host;
     }
 
-    return {
-      account_type: getAddressAccountType(messageParams.from),
-      dapp_host_name: url && url?.host,
-      chain_id: getDecimalChainId(chainId),
-      signature_type: signType,
-      version: messageParams?.version,
-      ...pageInfo?.analytics,
-      ...blockaidParams,
-    };
+    if (securityAlertResponse) {
+      const blockaidParams = getBlockaidMetricsParams(securityAlertResponse);
+      Object.assign(analyticsParams, blockaidParams);
+    }
   } catch (error) {
-    return {
-      account_type: getAddressAccountType(messageParams.from),
-      dapp_host_name: pageInfo.url || 'N/A',
-      signature_type: signType,
-      version: messageParams?.version,
-      ...pageInfo?.analytics,
-    };
+    console.error('Error processing analytics parameters:', error);
   }
+
+  return analyticsParams;
 };
 
 export const walletConnectNotificationTitle = (confirmation, isError) => {

@@ -83,36 +83,36 @@ const PersonalSign = ({
   }
 
   const getAnalyticsParams = useCallback((): AnalyticsParams => {
-    const pageInfo = currentPageInformation || messageParams.meta;
+    const pageInfo = currentPageInformation || messageParams.meta || {};
 
-    try {
-      const chainId = selectChainId(store.getState());
-      const url = new URL(pageInfo?.url) || { host: 'N/A' };
+    const chainId = selectChainId(store.getState());
+    const fallbackUrl = 'N/A';
 
-      let blockaidParams = {};
-
-      if (securityAlertResponse) {
-        blockaidParams = getBlockaidMetricsParams(
-          securityAlertResponse as SecurityAlertResponse,
-        );
+    let urlHost = fallbackUrl;
+    if (pageInfo.url) {
+      try {
+        const url = new URL(pageInfo.url);
+        urlHost = url.host || fallbackUrl;
+      } catch (error) {
+        console.error('Error processing analytics parameters:', error);
       }
-
-      return {
-        account_type: getAddressAccountType(messageParams.from),
-        dapp_host_name: url?.host,
-        chain_id: getDecimalChainId(chainId),
-        signature_type: 'personal_sign',
-        ...pageInfo?.analytics,
-        ...blockaidParams,
-      };
-    } catch (error) {
-      return {
-        account_type: getAddressAccountType(messageParams.from),
-        dapp_host_name: pageInfo?.url || 'N/A',
-        signature_type: 'personal_sign',
-        ...pageInfo?.analytics,
-      };
     }
+
+    let blockaidParams: Record<string, string> = {};
+    if (securityAlertResponse) {
+      blockaidParams = getBlockaidMetricsParams(
+        securityAlertResponse as SecurityAlertResponse,
+      );
+    }
+
+    return {
+      account_type: getAddressAccountType(messageParams.from),
+      dapp_host_name: urlHost,
+      chain_id: chainId ? getDecimalChainId(chainId) : 'N/A',
+      signature_type: 'personal_sign',
+      ...pageInfo.analytics,
+      ...blockaidParams,
+    };
   }, [currentPageInformation, messageParams, securityAlertResponse]);
 
   useEffect(() => {

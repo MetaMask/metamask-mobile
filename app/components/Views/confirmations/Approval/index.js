@@ -325,6 +325,16 @@ class Approval extends PureComponent {
     const { chainId, transaction, selectedAddress, shouldUseSmartTransaction } =
       this.props;
 
+    const baseParams = {
+      dapp_host_name: transaction?.origin || 'N/A',
+      asset_type: { value: transaction?.assetType, anonymous: true },
+      request_source: this.originIsMMSDKRemoteConn
+        ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
+        : this.originIsWalletConnect
+        ? AppConstants.REQUEST_SOURCES.WC
+        : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+    };
+
     try {
       const { selectedAsset } = transaction;
       const { TransactionController, SmartTransactionsController } =
@@ -341,34 +351,18 @@ class Approval extends PureComponent {
         );
 
       return {
+        ...baseParams,
         account_type: getAddressAccountType(selectedAddress),
-        dapp_host_name: transaction?.origin,
         chain_id: getDecimalChainId(chainId),
         active_currency: { value: selectedAsset?.symbol, anonymous: true },
-        asset_type: { value: transaction?.assetType, anonymous: true },
         gas_estimate_type: gasEstimateType,
         gas_mode: gasSelected ? 'Basic' : 'Advanced',
         speed_set: gasSelected || undefined,
-        request_source: this.originIsMMSDKRemoteConn
-          ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
-          : this.originIsWalletConnect
-          ? AppConstants.REQUEST_SOURCES.WC
-          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
         is_smart_transaction: shouldUseSmartTransaction,
         ...smartTransactionMetricsProperties,
       };
     } catch (error) {
-      return {
-        account_type: getAddressAccountType(selectedAddress),
-        dapp_host_name: transaction?.origin,
-        chain_id: getDecimalChainId(chainId),
-        asset_type: { value: transaction?.assetType, anonymous: true },
-        request_source: this.originIsMMSDKRemoteConn
-          ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
-          : this.originIsWalletConnect
-          ? AppConstants.REQUEST_SOURCES.WC
-          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
-      };
+      return baseParams;
     }
   };
 
