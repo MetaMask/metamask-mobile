@@ -1,11 +1,9 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { View, StyleSheet, TextStyle } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import Modal from 'react-native-modal';
 import type { Theme } from '@metamask/design-tokens';
-import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
 import { colors as importedColors } from '../../../styles/common';
-
 import Step1 from './Step1';
 import Step2 from './Step2';
 import Step3 from './Step3';
@@ -79,16 +77,10 @@ interface OnboardingWizardProps {
   coachmarkRef: React.RefObject<any> | null;
 }
 
-interface DrawerRef {
-  dismissDrawer: () => void;
-  showDrawer: () => void;
-}
-
 const OnboardingWizard = ({
   navigation,
   coachmarkRef,
 }: OnboardingWizardProps) => {
-  const { drawerRef } = useContext(DrawerContext);
   const theme = useTheme();
   const dispatch = useDispatch();
   const { trackEvent } = useMetrics();
@@ -106,7 +98,6 @@ const OnboardingWizard = ({
   const closeOnboardingWizard = async () => {
     await StorageWrapper.setItem(ONBOARDING_WIZARD, EXPLORED);
     dispatch(setOnboardingWizardStep(0));
-    drawerRef?.current?.dismissDrawer?.();
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_SKIPPED, {
       tutorial_step_count: step,
       tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[step],
@@ -146,13 +137,7 @@ const OnboardingWizard = ({
     } else if (step === 6) {
       dispatch(setOnboardingWizardStep(5));
       navigation.navigate(Routes.WALLET.HOME);
-      (
-        drawerRef as unknown as React.RefObject<DrawerRef>
-      )?.current?.dismissDrawer?.();
     } else if (step === 7) {
-      (
-        drawerRef as unknown as React.RefObject<DrawerRef>
-      )?.current?.showDrawer?.();
       dispatch(setOnboardingWizardStep(6));
     }
     return setOnboardingWizardStep(step - 1);

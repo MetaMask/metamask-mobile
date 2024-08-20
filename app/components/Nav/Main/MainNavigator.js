@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
@@ -48,7 +48,7 @@ import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
-import Drawer from '../../UI/Drawer';
+import DrawerView from '../../UI/DrawerView';
 
 import RampRoutes from '../../UI/Ramp/routes';
 import { RampType } from '../../UI/Ramp/types';
@@ -217,8 +217,6 @@ const BrowserFlow = () => (
   </Stack.Navigator>
 );
 
-export const DrawerContext = React.createContext({ drawerRef: null });
-
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 const SnapsSettingsStack = () => (
   <Stack.Navigator>
@@ -380,7 +378,6 @@ const SettingsFlow = () => (
 
 const HomeTabs = () => {
   const { trackEvent } = useMetrics();
-  const drawerRef = useRef(null);
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const accountsLength = useSelector(selectAccountsLength);
@@ -478,49 +475,47 @@ const HomeTabs = () => {
   }, []);
 
   return (
-    <DrawerContext.Provider value={{ drawerRef }}>
-      <Drawer ref={drawerRef}>
-        <Tab.Navigator
-          initialRouteName={Routes.WALLET.HOME}
-          tabBar={({ state, descriptors, navigation }) =>
-            isKeyboardHidden ? (
-              <TabBar
-                state={state}
-                descriptors={descriptors}
-                navigation={navigation}
-              />
-            ) : null
-          }
-        >
-          <Tab.Screen
-            name={Routes.WALLET.HOME}
-            options={options.home}
-            component={WalletTabModalFlow}
-          />
-          <Tab.Screen
-            name={Routes.TRANSACTIONS_VIEW}
-            options={options.activity}
-            component={TransactionsHome}
-          />
-          <Tab.Screen
-            name={Routes.MODAL.WALLET_ACTIONS}
-            options={options.actions}
-            component={WalletTabModalFlow}
-          />
-          <Tab.Screen
-            name={Routes.BROWSER.HOME}
-            options={options.browser}
-            component={BrowserFlow}
-          />
+    <DrawerView>
+      <Tab.Navigator
+        initialRouteName={Routes.WALLET.HOME}
+        tabBar={({ state, descriptors, navigation }) =>
+          isKeyboardHidden ? (
+            <TabBar
+              state={state}
+              descriptors={descriptors}
+              navigation={navigation}
+            />
+          ) : null
+        }
+      >
+        <Tab.Screen
+          name={Routes.WALLET.HOME}
+          options={options.home}
+          component={WalletTabModalFlow}
+        />
+        <Tab.Screen
+          name={Routes.TRANSACTIONS_VIEW}
+          options={options.activity}
+          component={TransactionsHome}
+        />
+        <Tab.Screen
+          name={Routes.MODAL.WALLET_ACTIONS}
+          options={options.actions}
+          component={WalletTabModalFlow}
+        />
+        <Tab.Screen
+          name={Routes.BROWSER.HOME}
+          options={options.browser}
+          component={BrowserFlow}
+        />
 
-          <Tab.Screen
-            name={Routes.SETTINGS_VIEW}
-            options={options.settings}
-            component={SettingsFlow}
-          />
-        </Tab.Navigator>
-      </Drawer>
-    </DrawerContext.Provider>
+        <Tab.Screen
+          name={Routes.SETTINGS_VIEW}
+          options={options.settings}
+          component={SettingsFlow}
+        />
+      </Tab.Navigator>
+    </DrawerView>
   );
 };
 
