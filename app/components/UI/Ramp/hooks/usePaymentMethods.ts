@@ -42,8 +42,7 @@ function usePaymentMethods() {
             if (
               cryptoCurrencies?.some(
                 (cryptoCurrency) =>
-                  // TODO(ramp, chainId-string): remove once chainId is a string
-                  `${cryptoCurrency.network.chainId}` === selectedChainId,
+                  cryptoCurrency.network.chainId === selectedChainId,
               )
             ) {
               allowed.push(method.id);
