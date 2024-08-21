@@ -123,6 +123,7 @@ describe('Connection', () => {
     it('should initiate connection with or without key exchange', () => {
       connection.connect({
         withKeyExchange: true,
+        authorized: false,
       });
 
       expect(mockConnect).toHaveBeenCalledTimes(1);
