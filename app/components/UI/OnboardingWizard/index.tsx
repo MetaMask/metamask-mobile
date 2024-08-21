@@ -106,7 +106,6 @@ const OnboardingWizard = ({
   const closeOnboardingWizard = async () => {
     await StorageWrapper.setItem(ONBOARDING_WIZARD, EXPLORED);
     dispatch(setOnboardingWizardStep(0));
-    drawerRef?.current?.dismissDrawer?.();
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_SKIPPED, {
       tutorial_step_count: step,
       tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[step],
