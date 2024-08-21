@@ -71,10 +71,6 @@ const handleDeeplink = async ({
   );
 
   try {
-    // First display the loading modal to give user feedback
-    await sdkConnect.updateSDKLoadingState({ channelId, loading: true });
-    DevLogger.log(`handleDeeplink:: channel=${channelId} loading=true`);
-
     if (channelExists) {
       if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
         // Automatically re-approve hosts.
