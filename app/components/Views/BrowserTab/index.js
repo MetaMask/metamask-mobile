@@ -268,6 +268,7 @@ export const BrowserTab = (props) => {
   const [blockedUrl, setBlockedUrl] = useState(undefined);
   const [ipfsBannerVisible, setIpfsBannerVisible] = useState(false);
   const [isResolvedIpfsUrl, setIsResolvedIpfsUrl] = useState(false);
+  const [previousChainId, setPreviousChainId] = useState('0x1');
   const webviewRef = useRef(null);
   const blockListType = useRef('');
   const allowList = useRef([]);
@@ -709,9 +710,15 @@ export const BrowserTab = (props) => {
   }, [goBack, isTabActive, props.navigation]);
 
   useEffect(() => {
-    // Stops the loading and execution of JS if the tab is not active
-    handleWebViewFocus({ webviewRef, isFocused });
-  }, [isFocused]);
+    handleWebViewFocus({
+      webviewRef,
+      isFocused,
+      chainId: props.chainId,
+      previousChainId,
+    });
+    setPreviousChainId(props.chainId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [webviewRef, isFocused, props.chainId]);
 
   /**
    * Inject home page scripts to get the favourites and set analytics key
