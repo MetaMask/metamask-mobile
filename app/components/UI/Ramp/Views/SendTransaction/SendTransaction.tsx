@@ -1,6 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Ramps team ownership
-
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -159,6 +156,9 @@ function SendTransaction() {
     try {
       trackEvent(
         'OFFRAMP_SEND_TRANSACTION_INVOKED',
+        //@ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
+        // transactionAnalyticsPayload expecting chain_id_source to be a string
+        // but RampTransaction type / interface expecting it to be a number
         transactionAnalyticsPayload,
       );
       const response = await addTransaction(transactionParams, {
@@ -172,12 +172,18 @@ function SendTransaction() {
         navigation.goBack();
         trackEvent(
           'OFFRAMP_SEND_TRANSACTION_CONFIRMED',
+          //@ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
+          // transactionAnalyticsPayload expecting chain_id_source to be a string
+          // but RampTransaction type / interface expecting it to be a number
           transactionAnalyticsPayload,
         );
       }
     } catch (error) {
       trackEvent(
         'OFFRAMP_SEND_TRANSACTION_REJECTED',
+        //@ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
+        // transactionAnalyticsPayload expecting chain_id_source to be a string
+        // but RampTransaction type / interface expecting it to be a number
         transactionAnalyticsPayload,
       );
     }
