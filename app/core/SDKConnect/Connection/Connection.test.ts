@@ -130,6 +130,7 @@ describe('Connection', () => {
       expect(mockConnect).toHaveBeenCalledWith({
         instance: connection,
         withKeyExchange: true,
+        authorized: false,
       });
     });
   });

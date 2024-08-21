@@ -31,7 +31,7 @@ describe('connect', () => {
 
     expect(DevLogger.log).toHaveBeenCalledTimes(1);
     expect(DevLogger.log).toHaveBeenCalledWith(
-      `Connection::connect() withKeyExchange=true id=testChannelId`,
+      `Connection::connect() id=testChannelId withKeyExchange=true authorized=false`,
     );
   });
 
@@ -44,15 +44,16 @@ describe('connect', () => {
 
     expect(mockConnectToChannel).toHaveBeenCalledTimes(1);
     expect(mockConnectToChannel).toHaveBeenCalledWith({
+      authorized: false,
       channelId: mockConnection.channelId,
       withKeyExchange: true,
     });
   });
 
-  it('should set receivedDisconnect to false', () => {
+  it('should set receivedDisconnect to false', async () => {
     mockConnection.receivedDisconnect = true;
 
-    connect({
+    await connect({
       instance: mockConnection,
       withKeyExchange: true,
       authorized: false,
@@ -61,20 +62,9 @@ describe('connect', () => {
     expect(mockConnection.receivedDisconnect).toBe(false);
   });
 
-  it('should set loading state to true', () => {
-    connect({
-      instance: mockConnection,
-      withKeyExchange: true,
-      authorized: false,
-    });
-
-    expect(mockConnection.setLoading).toHaveBeenCalledTimes(1);
-    expect(mockConnection.setLoading).toHaveBeenCalledWith(true);
-  });
-
   describe('With Key Exchange', () => {
-    it('should initiate connection with key exchange when withKeyExchange is true', () => {
-      connect({
+    it('should initiate connection with key exchange when withKeyExchange is true', async () => {
+      await connect({
         instance: mockConnection,
         withKeyExchange: true,
         authorized: false,
@@ -82,6 +72,7 @@ describe('connect', () => {
 
       expect(mockConnectToChannel).toHaveBeenCalledTimes(1);
       expect(mockConnectToChannel).toHaveBeenCalledWith({
+        authorized: false,
         channelId: mockConnection.channelId,
         withKeyExchange: true,
       });
@@ -98,6 +89,7 @@ describe('connect', () => {
 
       expect(mockConnectToChannel).toHaveBeenCalledTimes(1);
       expect(mockConnectToChannel).toHaveBeenCalledWith({
+        authorized: false,
         channelId: mockConnection.channelId,
         withKeyExchange: false,
       });

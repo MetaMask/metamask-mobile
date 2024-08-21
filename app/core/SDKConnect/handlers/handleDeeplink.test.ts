@@ -93,7 +93,9 @@ describe('handleDeeplink', () => {
 
     expect(sdkConnect.connectToChannel).toHaveBeenCalledWith({
       id: channelId,
+      initialConnection: true,
       origin: modifiedOrigin,
+      originatorInfo: undefined,
       protocolVersion,
       trigger: 'deeplink',
       otherPublicKey,
@@ -141,7 +143,9 @@ describe('handleDeeplink', () => {
 
     expect(sdkConnect.connectToChannel).toHaveBeenCalledWith({
       id: channelId,
+      initialConnection: true,
       origin,
+      originatorInfo: undefined,
       protocolVersion,
       trigger: 'deeplink',
       otherPublicKey,
