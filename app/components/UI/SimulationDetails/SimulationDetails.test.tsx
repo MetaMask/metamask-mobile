@@ -176,7 +176,6 @@ describe('SimulationDetails', () => {
           amount: new BigNumber('0x1', 16).times(-1),
           fiatAmount: 10,
           asset: { type: AssetType.Native },
-          fiatAmount: 1,
         },
         {
           amount: new BigNumber('0x123456', 16).times(1),

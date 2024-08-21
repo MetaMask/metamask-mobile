@@ -30,6 +30,7 @@ import {
   UseAccounts,
   UseAccountsParams,
 } from './useAccounts.types';
+import { Hex } from '@metamask/utils';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -131,7 +132,8 @@ const useAccounts = ({
             keyring: { type },
           },
         } = internalAccount;
-        const checksummedAddress = toChecksumHexAddress(address);
+        // This should be changed at controller-utils core package
+        const checksummedAddress = toChecksumHexAddress(address) as Hex;
         const isSelected = selectedInternalAccount?.address === address;
         if (isSelected) {
           selectedIndex = index;
