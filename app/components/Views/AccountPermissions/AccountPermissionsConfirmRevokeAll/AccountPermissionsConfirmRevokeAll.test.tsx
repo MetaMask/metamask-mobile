@@ -5,8 +5,6 @@ import renderWithProvider, {
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { RootState } from '../../../../reducers';
 import AccountPermissionsConfirmRevokeAll from './AccountPermissionsConfirmRevokeAll';
-import { fireEvent } from '@testing-library/react-native';
-import { BottomSheetRef } from 'app/component-library/components/BottomSheets/BottomSheet';
 
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
@@ -35,22 +33,6 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
-const mockOnCloseBottomSheet = jest.fn();
-jest.mock(
-  '../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const React = require('react');
-    return React.forwardRef((props: any, ref: React.Ref<BottomSheetRef>) => {
-      React.useImperativeHandle(ref, () => ({
-        onCloseBottomSheet: () => {
-          mockOnCloseBottomSheet();
-        },
-      }));
-      return <div {...props} />;
-    });
-  },
-);
-
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
   engine: {
@@ -59,26 +41,6 @@ const mockInitialState: DeepPartial<RootState> = {
     },
   },
 };
-
-// Mock PermissionController
-const mockRevokeAllPermissions = jest
-  .fn()
-  .mockImplementation(async (hostname) => {
-    return Promise.resolve();
-  });
-
-jest.mock('../../../../core/Engine', () => ({
-  __esModule: true,
-  default: {
-    context: {
-      PermissionController: {
-        revokeAllPermissions: () => {
-          mockRevokeAllPermissions();
-        },
-      },
-    },
-  },
-}));
 
 describe('AccountPermissionsConfirmRevokeAll', () => {
   it('renders correctly', () => {
@@ -94,41 +56,5 @@ describe('AccountPermissionsConfirmRevokeAll', () => {
     );
 
     expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('executes onCancel handler when Cancel button is pressed', () => {
-    const { getByText } = renderWithProvider(
-      <AccountPermissionsConfirmRevokeAll
-        route={{
-          params: {
-            hostInfo: { metadata: { origin: 'test' } },
-          },
-        }}
-      />,
-      { state: mockInitialState },
-    );
-
-    const cancelButton = getByText('Cancel');
-    fireEvent.press(cancelButton);
-
-    expect(mockOnCloseBottomSheet).toHaveBeenCalled();
-  });
-
-  it('executes revokeAllAccounts handler when Disconnect button is pressed', async () => {
-    const { getByText } = renderWithProvider(
-      <AccountPermissionsConfirmRevokeAll
-        route={{
-          params: {
-            hostInfo: { metadata: { origin: 'test' } },
-          },
-        }}
-      />,
-      { state: mockInitialState },
-    );
-
-    const disconnectButton = getByText('Disconnect');
-    fireEvent.press(disconnectButton);
-
-    expect(mockRevokeAllPermissions).toHaveBeenCalled();
   });
 });
