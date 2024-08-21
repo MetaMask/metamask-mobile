@@ -30,6 +30,7 @@ import {
   UseAccounts,
   UseAccountsParams,
 } from './useAccounts.types';
+import { InternalAccountTypes } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
 
 /**
@@ -124,7 +125,7 @@ const useAccounts = ({
     let yOffset = 0;
     let selectedIndex = 0;
     const flattenedAccounts: Account[] = internalAccounts.map(
-      (internalAccount, index) => {
+      (internalAccount: InternalAccountTypes, index: number) => {
         const {
           address,
           metadata: {

@@ -70,7 +70,7 @@ describe('useGasPriceEstimation', () => {
   });
 
   it('should call stopPolling if there is no poll token', async () => {
-    Engine.context.GasFeeController.getGasFeeEstimatesAndStartPolling.mockResolvedValueOnce(
+    Engine.context.GasFeeController.getGasFeeEstimatesAndStartPolling(
       undefined,
     );
     const { result, unmount } = renderHookWithProvider(
