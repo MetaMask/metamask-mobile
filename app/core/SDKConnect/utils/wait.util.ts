@@ -18,6 +18,7 @@ export const waitForReadyClient = async (
   connectedClients: {
     [clientId: string]: DappClient;
   },
+  waitTime = 200,
 ) => {
   let i = 0;
   while (!connectedClients[id]) {
@@ -26,7 +27,7 @@ export const waitForReadyClient = async (
       console.warn(`RPC queue not empty after ${MAX_QUEUE_LOOP} seconds`);
       break;
     }
-    await wait(1000);
+    await wait(waitTime);
   }
 };
 
@@ -87,8 +88,10 @@ export const waitForAsyncCondition = async ({
 
 export const waitForConnectionReadiness = async ({
   connection,
+  waitTime = 1000,
 }: {
   connection: Connection;
+  waitTime?: number;
 }) => {
   let i = 0;
   while (!connection.isReady) {
@@ -96,16 +99,18 @@ export const waitForConnectionReadiness = async ({
     if (i > MAX_QUEUE_LOOP) {
       throw new Error('Connection timeout - ready state not received');
     }
-    await wait(1000);
+    await wait(waitTime);
   }
 };
 
 export const waitForKeychainUnlocked = async ({
   context,
   keyringController,
+  waitTime = 1000,
 }: {
   keyringController: KeyringController;
   context?: string;
+  waitTime?: number;
 }) => {
   // Disable during e2e tests otherwise Detox fails
   if (isE2E) {
@@ -122,7 +127,7 @@ export const waitForKeychainUnlocked = async ({
     `wait:: waitForKeyChainUnlocked[${context}] unlocked: ${unlocked}`,
   );
   while (!unlocked) {
-    await wait(1000);
+    await wait(waitTime);
     if (i % 5 === 0) {
       DevLogger.log(
         `SDKConnect [${context}] Waiting for keychain unlock... attempt ${i}`,
@@ -137,7 +142,9 @@ export const waitForKeychainUnlocked = async ({
 
 export const waitForUserLoggedIn = async ({
   context,
+  waitTime = 1000,
 }: {
+  waitTime?: number;
   context?: string;
 }) => {
   let i = 1;
@@ -154,7 +161,7 @@ export const waitForUserLoggedIn = async ({
     `wait:: waitForUserLoggedIn[${context}] isLoggedIn: ${isLoggedIn}`,
   );
   while (!isLoggedIn) {
-    await wait(1000);
+    await wait(waitTime);
     if (i % 60 === 0) {
       DevLogger.log(
         `[wait.util] [${context}] Waiting for userLoggedIn... attempt ${i}`,
@@ -167,10 +174,10 @@ export const waitForUserLoggedIn = async ({
   return isLoggedIn;
 };
 
-export const waitForAndroidServiceBinding = async () => {
+export const waitForAndroidServiceBinding = async (waitTime = 500) => {
   let i = 1;
   while (SDKConnect.getInstance().isAndroidSDKBound() === false) {
-    await wait(500);
+    await wait(waitTime);
     i += 1;
     if (i > 5 && i % 10 === 0) {
       console.warn(`Waiting for Android service binding...`);
@@ -178,7 +185,10 @@ export const waitForAndroidServiceBinding = async () => {
   }
 };
 
-export const waitForEmptyRPCQueue = async (manager: RPCQueueManager) => {
+export const waitForEmptyRPCQueue = async (
+  manager: RPCQueueManager,
+  waitTime = 1000,
+) => {
   let i = 0;
   let queue = Object.keys(manager.get());
   while (queue.length > 0) {
@@ -187,6 +197,6 @@ export const waitForEmptyRPCQueue = async (manager: RPCQueueManager) => {
       console.warn(`RPC queue not empty after ${MAX_QUEUE_LOOP} seconds`);
       break;
     }
-    await wait(1000);
+    await wait(waitTime);
   }
 };
