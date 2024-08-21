@@ -23,7 +23,7 @@ import { RootState } from '../../../reducers';
 // Internal dependencies
 import WalletAccount from './WalletAccount';
 
-const MOCK_CHAIN_ID = '0x1';
+const MOCK_CHAIN_ID: Hex = '0x1';
 
 const MOCK_ENS_CACHED_NAME = 'fox.eth';
 

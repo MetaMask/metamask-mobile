@@ -45,10 +45,7 @@ import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrap
 import { BadgeVariant } from '../../../component-library/components/Badges/Badge/Badge.types';
 
 import images from 'images/image-icons';
-import {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../component-library/components/Avatars/Avatar';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Text, {
   TextColor,
@@ -96,6 +93,33 @@ import { zeroAddress } from 'ethereumjs-util';
 import PercentageChange from '../../../component-library/components-temp/Price/PercentageChange';
 import AggregatedPercentage from '../../../component-library/components-temp/Price/AggregatedPercentage';
 import { RootState } from '../../../reducers';
+import { Hex } from '@metamask/utils';
+
+// this will be imported from TokenRatesController when it is exported from there
+// PR: https://github.com/MetaMask/core/pull/4622
+interface MarketDataDetails {
+  tokenAddress: `0x${string}`;
+  value: number;
+  currency: string;
+  allTimeHigh: number;
+  allTimeLow: number;
+  circulatingSupply: number;
+  dilutedMarketCap: number;
+  high1d: number;
+  low1d: number;
+  marketCap: number;
+  marketCapPercentChange1d: number;
+  price: number;
+  priceChange1d: number;
+  pricePercentChange1d: number;
+  pricePercentChange1h: number;
+  pricePercentChange1y: number;
+  pricePercentChange7d: number;
+  pricePercentChange14d: number;
+  pricePercentChange30d: number;
+  pricePercentChange200d: number;
+  totalVolume: number;
+}
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors } = useTheme();
@@ -166,7 +190,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     setShowScamWarningModal(false);
   };
 
-  const renderScamWarningIcon = (asset) => {
+  const renderScamWarningIcon = (asset: TokenI) => {
     if (!isOriginalNativeTokenSymbol && asset.isETH) {
       return (
         <ButtonIcon
@@ -308,13 +332,13 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const handleBalance = (asset: TokenI) => {
     const itemAddress: string = safeToChecksumAddress(asset.address) || '';
 
-    // When the exchange rate of a token is not found, the return is undefined
-    // We fallback to the TOKEN_RATE_UNDEFINED to handle it properly
-    const tokenMarketData = tokenExchangeRates
-      ? itemAddress in tokenExchangeRates
-        ? tokenExchangeRates[itemAddress] || TOKEN_RATE_UNDEFINED
-        : undefined
-      : undefined;
+    let tokenMarketData: MarketDataDetails | 'tokenRateUndefined' | undefined;
+    if (tokenExchangeRates) {
+      if (tokenExchangeRates[itemAddress as Hex]) {
+        tokenMarketData =
+          tokenExchangeRates[itemAddress as Hex] || TOKEN_RATE_UNDEFINED;
+      }
+    }
 
     const balance =
       asset.balance ||
@@ -363,7 +387,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     const pricePercentChange1d = itemAddress
       ? tokenExchangeRates?.[itemAddress as `0x${string}`]?.pricePercentChange1d
-      : tokenExchangeRates?.[zeroAddress()]?.pricePercentChange1d;
+      : tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
 
     // render balances according to primary currency
     let mainBalance, secondaryBalance;
@@ -447,7 +471,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             <NetworkMainAssetLogo style={styles.ethLogo} />
           ) : (
             <AvatarToken
-              variant={AvatarVariant.Token}
               name={asset.symbol}
               imageSource={{ uri: asset.image }}
               size={AvatarSize.Md}
@@ -733,7 +756,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     >
       {tokens?.length ? renderList() : renderEmpty()}
       <ActionSheet
-        ref={actionSheet as LegacyRef<ActionSheet>}
+        ref={actionSheet as LegacyRef<typeof ActionSheet>}
         title={strings('wallet.remove_token_title')}
         options={[strings('wallet.remove'), strings('wallet.cancel')]}
         cancelButtonIndex={1}
