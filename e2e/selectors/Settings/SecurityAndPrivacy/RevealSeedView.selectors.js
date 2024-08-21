@@ -1,4 +1,4 @@
-// eslint-disable-next-line import/prefer-default-export
+ 
 export const RevealSeedViewSelectorsIDs = {
   SECRET_RECOVERY_PHRASE_CONTAINER_ID: 'reveal-private-credential-screen',
   PASSWORD_INPUT: 'login-password-input',

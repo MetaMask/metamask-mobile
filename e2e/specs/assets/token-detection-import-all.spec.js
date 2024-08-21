@@ -33,7 +33,7 @@ describe(SmokeAssets('Import all tokens detected'), () => {
             6000,
           );
         } catch (e) {
-          // eslint-disable-next-line no-console
+           
           console.log(
             `Toast message is slow to appear or did not appear: ${e}`,
           );

@@ -1,4 +1,4 @@
-/* eslint-disable import/no-nodejs-modules */
+ 
 import http from 'http';
 import path from 'path';
 import serveHandler from 'serve-handler';

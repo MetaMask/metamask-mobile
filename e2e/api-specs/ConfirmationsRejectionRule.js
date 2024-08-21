@@ -8,7 +8,7 @@ import ConnectModal from '../pages/modals/ConnectModal';
 import AssetWatchModal from '../pages/modals/AssetWatchModal';
 import SpamFilterModal from '../pages/modals/SpamFilterModal';
 
-// eslint-disable-next-line import/no-nodejs-modules
+ 
 import fs from 'fs';
 
 import Assertions from '../utils/Assertions';
@@ -69,7 +69,7 @@ export default class ConfirmationsRejectRule {
               await SpamFilterModal.tapCloseButton();
               await Assertions.checkIfNotVisible(SpamFilterModal.title);
             } catch {
-              /* eslint-disable no-console */
+               
 
               console.log('The spam modal is not visible');
             }

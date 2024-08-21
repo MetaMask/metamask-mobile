@@ -147,7 +147,7 @@ describe(Regression('Custom RPC Tests'), () => {
       await Assertions.checkIfVisible(ToastModal.container);
       await Assertions.checkIfNotVisible(ToastModal.container);
     } catch {
-      // eslint-disable-next-line no-console
+       
       console.log('Toast is not visible');
     }
   });
@@ -169,7 +169,7 @@ describe(Regression('Custom RPC Tests'), () => {
       await Assertions.checkIfVisible(ToastModal.container);
       await Assertions.checkIfNotVisible(ToastModal.container);
     } catch {
-      // eslint-disable-next-line no-console
+       
       console.log('Toast is not visible');
     }
     await TabBarComponent.tapWallet();

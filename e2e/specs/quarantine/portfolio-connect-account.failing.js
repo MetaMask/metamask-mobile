@@ -47,7 +47,7 @@ describe(SmokeCore('Connect account to Portfolio'), () => {
     try {
       await PortfolioHomePage.closePrivacyModal();
     } catch {
-      /* eslint-disable no-console */
+       
       console.log('The Portfolio privacy modal is not visible');
     }
     await device.disableSynchronization();

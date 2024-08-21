@@ -1,4 +1,4 @@
-/* eslint-disable no-undef */
+ 
 
 import { getGanachePort } from './utils';
 import { merge } from 'lodash';
