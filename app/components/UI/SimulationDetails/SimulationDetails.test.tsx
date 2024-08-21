@@ -185,7 +185,6 @@ describe('SimulationDetails', () => {
             tokenId: undefined,
             type: AssetType.ERC20,
           },
-          fiatAmount: 1,
         },
         {
           amount: new BigNumber('0x123456789', 16).times(1),
@@ -195,7 +194,6 @@ describe('SimulationDetails', () => {
             tokenId: undefined,
             type: AssetType.ERC20,
           },
-          fiatAmount: 1,
         },
       ],
     });

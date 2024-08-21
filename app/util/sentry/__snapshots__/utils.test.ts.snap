@@ -213,7 +213,6 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
   "transactionMetrics": "object",
   "user": {
     "ambiguousAddressEntries": "object",
-    "appTheme": "os",
     "backUpSeedphraseVisible": false,
     "gasEducationCarouselSeen": false,
     "initialScreen": "",
