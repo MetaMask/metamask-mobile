@@ -333,7 +333,7 @@ workflows:
           is_always_run: false
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: standard
 
   # Send a Slack message when workflow succeeds
@@ -438,7 +438,7 @@ workflows:
   android_build_regression_tests:
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE: 'Regression'
@@ -447,7 +447,7 @@ workflows:
   android_run_regression_tests:
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE: 'Regression'
@@ -456,7 +456,7 @@ workflows:
   run_tag_upgrade_android:
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
       - PRODUCTION_APP_URL: 'bs://f0eefdd04dd0b913eb8b6494e4990e3e9f1c2bd3' # Last production's QA build
@@ -473,7 +473,7 @@ workflows:
       - TEST_TYPE: 'performance'
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     after_run:
       - wdio_android_e2e_test
@@ -488,7 +488,7 @@ workflows:
   run_tag_smoke_accounts_android:
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/accounts/*'
@@ -504,7 +504,7 @@ workflows:
   run_tag_smoke_assets_android:
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/assets/*'
@@ -520,7 +520,7 @@ workflows:
   run_tag_smoke_confirmations_android:
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/confirmations/*'
@@ -536,7 +536,7 @@ workflows:
   run_tag_smoke_swaps_android:
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/swaps/*'
@@ -555,7 +555,7 @@ workflows:
   run_tag_smoke_core_android:
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE_FOLDER: './e2e/spec/*/**/*'
@@ -582,19 +582,12 @@ workflows:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
       - script@1:
-          title: Download cmake 3.22.1 with sdkmanager
-          is_always_run: false
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
-      - script@1:
           title: Install CCache & symlink
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 sudo apt update
-                sudo apt install ccache
+                sudo apt install ccache -y
       - restore-cache@2:
           title: Restore CCache
           inputs:
@@ -643,7 +636,7 @@ workflows:
     meta:
       bitrise.io:
         machine_type_id: elite-xl
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
   android_e2e_test:
     before_run:
       - setup
@@ -674,13 +667,6 @@ workflows:
           title: Restore cache node_modules
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
-      - script@1:
-          title: Download cmake 3.22.1 with sdkmanager
-          is_always_run: false
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
       - avd-manager@1:
           inputs:
             - api_level: '34'
@@ -743,7 +729,7 @@ workflows:
     meta:
       bitrise.io:
         machine_type_id: elite-xl
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
   ios_api_specs:
     before_run:
       - setup
@@ -1031,13 +1017,6 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
-          title: Download cmake 3.22.1 with sdkmanager
-          is_always_run: false
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
                 node -v
                 METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle
           title: Build Android Pre-Release Bundle
@@ -1080,7 +1059,7 @@ workflows:
           title: Bitrise Deploy Sourcemaps
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
   build_android_qa:
     before_run:
@@ -1103,13 +1082,7 @@ workflows:
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
-          title: Download cmake 3.22.1 with sdkmanager
-          is_always_run: false
+
       - script@1:
           inputs:
             - content: |-
@@ -1151,7 +1124,7 @@ workflows:
           title: Bitrise Deploy Sourcemaps
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
   _upload_apk_to_browserstack:
     steps:
@@ -1231,7 +1204,7 @@ workflows:
           title: Deploy test report
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: standard
   deploy_android_to_store:
     steps:
@@ -1420,13 +1393,7 @@ workflows:
           inputs:
             - ndk_revision: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
-          title: Download cmake 3.22.1 with sdkmanager
-          is_always_run: false
+
       - script@1:
           inputs:
             - content: |-
@@ -1473,7 +1440,7 @@ workflows:
           title: Bitrise Deploy Sourcemaps
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
 
 app:
