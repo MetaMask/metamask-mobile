@@ -457,7 +457,6 @@ class Engine {
     };
 
     const approvalController = new ApprovalController({
-      // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted({
         name: 'ApprovalController',
         allowedEvents: [],
@@ -475,6 +474,7 @@ class Engine {
     });
 
     const preferencesController = new PreferencesController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'PreferencesController',
         allowedActions: [],
@@ -498,7 +498,7 @@ class Engine {
         name: 'NetworkController',
         allowedEvents: [],
         allowedActions: [],
-      }) as unknown as NetworkControllerMessenger,
+      }),
       // Metrics event tracking is handled in this repository instead
       // TODO: Use events for controller metric events
       trackMetaMetricsEvent: () => {
@@ -570,6 +570,7 @@ class Engine {
     );
 
     const loggingController = new LoggingController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted<
         'LoggingController',
         never,
@@ -581,7 +582,7 @@ class Engine {
       }),
       state: initialState.LoggingController,
     });
-
+    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     const accountsControllerMessenger: AccountsControllerMessenger =
       this.controllerMessenger.getRestricted({
         name: 'AccountsController',
@@ -638,6 +639,7 @@ class Engine {
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
           listener,
         ),
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'TokenListController',
         allowedActions: [],
@@ -657,7 +659,6 @@ class Engine {
       networkController.state.selectedNetworkClientId,
     );
     const gasFeeController = new GasFeeController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'GasFeeController',
         allowedActions: [
@@ -688,6 +689,7 @@ class Engine {
     });
 
     const phishingController = new PhishingController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'PhishingController',
         allowedActions: [],
@@ -713,6 +715,7 @@ class Engine {
         preferencesController,
       ),
       encryptor,
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'KeyringController',
         allowedActions: [],
@@ -835,6 +838,7 @@ class Engine {
         networkController.getNetworkClientById.bind(networkController),
     });
     const permissionController = new PermissionController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'PermissionController',
         allowedActions: [
@@ -1185,7 +1189,6 @@ class Engine {
       },
       isSimulationEnabled: () =>
         preferencesController.state.useTransactionSimulations,
-      // @ts-expect-error TransactionController is using later BaseController version
       // but only breaking change is Node version
       messenger: this.controllerMessenger.getRestricted({
         name: 'TransactionController',
@@ -1277,6 +1280,7 @@ class Engine {
       tokensController,
       tokenListController,
       new TokenDetectionController({
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenDetectionController',
           allowedActions: [
@@ -1342,6 +1346,7 @@ class Engine {
       phishingController,
       preferencesController,
       new TokenBalancesController({
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenBalancesController',
           allowedActions: ['PreferencesController:getState'],
@@ -1404,6 +1409,7 @@ class Engine {
       approvalController,
       permissionController,
       new SignatureController({
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'SignatureController',
           allowedActions: [
