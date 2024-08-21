@@ -1,38 +1,61 @@
 import handleWebViewFocus from './webViewFocus';
 
 describe('handleWebViewFocus', () => {
-  it('should inject JavaScript to set isTabActive to true when focused', () => {
-    const injectJavaScript = jest.fn();
+  it('should stop loading when not focused', () => {
     const stopLoading = jest.fn();
-    const webviewRef = { current: { injectJavaScript, stopLoading } };
+    const reload = jest.fn();
+    const webviewRef = { current: { stopLoading, reload } };
 
-    handleWebViewFocus({ webviewRef, isFocused: true });
+    handleWebViewFocus({ webviewRef, isFocused: false, chainId: '1' });
 
-    const injectedScript = injectJavaScript.mock.calls[0][0].trim();
-    expect(injectedScript).toBe('window.isTabActive = true;');
+    expect(stopLoading).toHaveBeenCalled();
+    expect(reload).not.toHaveBeenCalled();
+  });
+
+  it('should reload the webview if chainId has changed', () => {
+    const stopLoading = jest.fn();
+    const reload = jest.fn();
+    const webviewRef = { current: { stopLoading, reload } };
+
+    handleWebViewFocus({
+      webviewRef,
+      isFocused: true,
+      chainId: '2',
+      previousChainId: '1',
+    });
+
+    expect(reload).toHaveBeenCalled();
     expect(stopLoading).not.toHaveBeenCalled();
   });
 
-  it('should inject JavaScript to set isTabActive to false and stop loading when not focused', () => {
-    const injectJavaScript = jest.fn();
+  it('should not reload the webview if chainId has not changed', () => {
     const stopLoading = jest.fn();
-    const webviewRef = { current: { injectJavaScript, stopLoading } };
+    const reload = jest.fn();
+    const webviewRef = { current: { stopLoading, reload } };
 
-    handleWebViewFocus({ webviewRef, isFocused: false });
+    handleWebViewFocus({
+      webviewRef,
+      isFocused: true,
+      chainId: '1',
+      previousChainId: '1',
+    });
 
-    const injectedScript = injectJavaScript.mock.calls[0][0].trim();
-    expect(injectedScript).toBe('window.isTabActive = false;');
-    expect(stopLoading).toHaveBeenCalled();
+    expect(reload).not.toHaveBeenCalled();
+    expect(stopLoading).not.toHaveBeenCalled();
   });
 
   it('should do nothing if webviewRef.current is null', () => {
-    const injectJavaScript = jest.fn();
     const stopLoading = jest.fn();
+    const reload = jest.fn();
     const webviewRef = { current: null };
 
-    handleWebViewFocus({ webviewRef, isFocused: true });
+    handleWebViewFocus({
+      webviewRef,
+      isFocused: true,
+      chainId: '1',
+    });
 
-    expect(injectJavaScript).not.toHaveBeenCalled();
     expect(stopLoading).not.toHaveBeenCalled();
+    expect(reload).not.toHaveBeenCalled();
   });
 });
