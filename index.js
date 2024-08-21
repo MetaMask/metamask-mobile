@@ -27,6 +27,7 @@ import { isNotificationsFeatureEnabled } from './app/util/notifications';
 import { Performance } from './app/core/Performance';
 Performance.setupPerformanceObservers();
 
+LogBox.ignoreAllLogs();
 // List of warnings that we're ignoring
 LogBox.ignoreLogs([
   '{}',
