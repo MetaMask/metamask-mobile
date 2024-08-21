@@ -1,4 +1,4 @@
-// eslint-disable-next-line import/no-commonjs
+ 
 module.exports = {
   root: true,
   parser: 'babel-eslint',
