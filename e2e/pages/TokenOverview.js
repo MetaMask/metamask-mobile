@@ -1,4 +1,6 @@
 import TestHelpers from '../helpers';
+import Assertions from '../utils/Assertions';
+import Matchers from '../utils/Matchers';
 import {
   TOKEN_PRICE,
   TOKEN_ASSET_OVERVIEW,
@@ -36,10 +38,6 @@ export default class TokenOverview {
     await TestHelpers.waitAndTap(ASSET_BACK_BUTTON);
   }
 
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(TOKEN_ASSET_OVERVIEW);
-  }
-
   static async selectChart(chartPeriod) {
     await TestHelpers.tapByText(chartPeriod);
   }
@@ -47,38 +45,19 @@ export default class TokenOverview {
   static async checkIfChartIsVisible() {
     for (const period of chartTimePeriod) {
       await this.selectChart(period);
-      await TestHelpers.checkIfElementWithTextIsNotVisible(
-        enContent.asset_overview.no_chart_data.title,
-      );
+      await Assertions.checkIfNotVisible(Matchers.getElementByText(enContent.asset_overview.no_chart_data.title));
     }
   }
 
   static async TokenQuoteIsNotZero() {
-    await TestHelpers.checkIfElementNotToHaveText(TOKEN_PRICE, '$0');
+    await Assertions.checkIfElementNotToHaveText(Matchers.getElementByID(TOKEN_PRICE), '$0');
   }
 
   static async TokenQuoteIsZero() {
-    await TestHelpers.checkIfHasText(TOKEN_PRICE, '$0');
+    await Assertions.checkIfElementToHaveText(Matchers.getElementByID(TOKEN_PRICE), '$0');
   }
 
   static async ChartNotVisible() {
-    await TestHelpers.checkIfElementWithTextIsVisible(
-      enContent.asset_overview.no_chart_data.title,
-    );
-  }
-  static async isReceiveButtonVisible() {
-    await TestHelpers.checkIfExists(TOKEN_OVERVIEW_RECEIVE_BUTTON);
-  }
-
-  static async isSendButtonVisible() {
-    await TestHelpers.checkIfExists(TOKEN_OVERVIEW_SEND_BUTTON);
-  }
-
-  static async isBuyButtonVisible() {
-    await TestHelpers.checkIfExists(TOKEN_OVERVIEW_BUY_BUTTON);
-  }
-
-  static async isSwapButtonVisible() {
-    await TestHelpers.checkIfExists(TOKEN_OVERVIEW_SWAP_BUTTON);
+    await Assertions.checkIfVisible(Matchers.getElementByText(enContent.asset_overview.no_chart_data.title));
   }
 }
