@@ -580,7 +580,10 @@
       "@metamask/sdk-communication-layer>bufferutil": false,
       "@metamask/sdk-communication-layer>utf-8-validate": false,
       "detox>ws>bufferutil": false,
-      "@metamask/notification-services-controller>firebase>@firebase/firestore>@grpc/proto-loader>protobufjs": false
+      "@metamask/notification-services-controller>firebase>@firebase/firestore>@grpc/proto-loader>protobufjs": false,
+      "@metamask/sdk-communication-layer>eciesjs>secp256k1": false,
+      "detox>ws>utf-8-validate": false,
+      "ganache>@trufflesuite/uws-js-unofficial>utf-8-validate": false
     }
   },
   "packageManager": "yarn@1.22.22"
