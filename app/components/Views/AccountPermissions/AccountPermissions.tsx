@@ -15,7 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import UntypedEngine from '../../../core/Engine';
+import Engine from '../../../core/Engine';
 import {
   addPermittedAccounts,
   getPermittedAccountsByHostname,
@@ -51,21 +51,17 @@ import URLParse from 'url-parse';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
+import { RootState } from '../../../reducers';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const navigation = useNavigation();
   const { trackEvent } = useMetrics();
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const Engine = UntypedEngine as any;
   const {
     hostInfo: {
       metadata: { origin: hostname },
     },
   } = props.route.params;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const accountAvatarType = useSelector((state: any) =>
+  const accountAvatarType = useSelector((state: RootState) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
@@ -74,9 +70,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const accountsLength = useSelector(selectAccountsLength);
 
   const nonTestnetNetworks = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => Object.keys(selectNetworkConfigurations(state)).length + 1,
+    (state: RootState) =>
+      Object.keys(selectNetworkConfigurations(state)).length + 1,
   );
 
   const origin: string = useSelector(getActiveTabUrl, isEqual);
@@ -132,6 +127,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       toastRef?.current?.showToast({
         variant: ToastVariants.Plain,
         labelOptions: [{ label: strings('toast.disconnected_all') }],
+        hasNoTimeout: false,
       });
       previousPermittedAccounts.current = permittedAccountsByHostname.length;
     }
@@ -186,10 +182,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           source: metricsSource,
           number_of_accounts: accounts?.length,
         });
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (e: any) {
-        Logger.error(e, 'Error while trying to add a new account.');
+      } catch (e) {
+        Logger.error(e as Error, 'Error while trying to add a new account.');
       } finally {
         setIsLoading(false);
       }
@@ -198,10 +192,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     [setIsLoading],
   );
 
-  const handleConnect = useCallback(async () => {
+  const handleConnect = useCallback(() => {
     try {
       setIsLoading(true);
-      const newActiveAddress = await addPermittedAccounts(
+      const newActiveAddress = addPermittedAccounts(
         hostname,
         selectedAddresses,
       );
@@ -232,6 +226,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         labelOptions,
         accountAddress: newActiveAddress,
         accountAvatarType,
+        hasNoTimeout: false,
       });
       const totalAccounts = accountsLength;
       // TODO: confirm this value is the newly added accounts or total connected accounts
@@ -241,10 +236,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         number_of_accounts_connected: connectedAccounts,
         number_of_networks: nonTestnetNetworks,
       });
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (e: any) {
-      Logger.error(e, 'Error while trying to connect to a dApp.');
+    } catch (e) {
+      Logger.error(e as Error, 'Error while trying to connect to a dApp.');
     } finally {
       setIsLoading(false);
     }

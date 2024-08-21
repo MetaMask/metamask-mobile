@@ -83,6 +83,7 @@ describe('SimulationDetails', () => {
       <SimulationDetails
         simulationData={simulationDataMock}
         transactionId={mockTransactionId}
+        enableMetrics={false}
       />,
     );
 
@@ -99,6 +100,7 @@ describe('SimulationDetails', () => {
               error: { code: SimulationErrorCode.ChainNotSupported },
             }}
             transactionId={mockTransactionId}
+            enableMetrics={false}
           />,
         ).toJSON(),
       ).toBeNull();
@@ -113,6 +115,7 @@ describe('SimulationDetails', () => {
               error: { code: SimulationErrorCode.Disabled },
             }}
             transactionId={mockTransactionId}
+            enableMetrics={false}
           />,
         ).toJSON(),
       ).toBeNull();
@@ -128,6 +131,7 @@ describe('SimulationDetails', () => {
             error: { code: SimulationErrorCode.Reverted },
           }}
           transactionId={mockTransactionId}
+          enableMetrics={false}
         />,
       );
 
@@ -142,6 +146,7 @@ describe('SimulationDetails', () => {
             error: { code: SimulationErrorCode.InvalidResponse },
           }}
           transactionId={mockTransactionId}
+          enableMetrics={false}
         />,
       );
 
@@ -156,6 +161,7 @@ describe('SimulationDetails', () => {
       <SimulationDetails
         simulationData={simulationDataMock}
         transactionId={mockTransactionId}
+        enableMetrics={false}
       />,
     );
 
@@ -169,6 +175,7 @@ describe('SimulationDetails', () => {
         {
           amount: new BigNumber('0x1', 16).times(-1),
           asset: { type: AssetType.Native },
+          fiatAmount: 1,
         },
         {
           amount: new BigNumber('0x123456', 16).times(1),
@@ -177,6 +184,7 @@ describe('SimulationDetails', () => {
             tokenId: undefined,
             type: AssetType.ERC20,
           },
+          fiatAmount: 1,
         },
         {
           amount: new BigNumber('0x123456789', 16).times(1),
@@ -185,6 +193,7 @@ describe('SimulationDetails', () => {
             tokenId: undefined,
             type: AssetType.ERC20,
           },
+          fiatAmount: 1,
         },
       ],
     });
@@ -193,6 +202,7 @@ describe('SimulationDetails', () => {
       <SimulationDetails
         simulationData={simulationDataMock}
         transactionId={mockTransactionId}
+        enableMetrics={false}
       />,
     );
 

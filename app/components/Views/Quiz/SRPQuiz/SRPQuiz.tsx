@@ -53,7 +53,7 @@ const SRPQuiz = () => {
   };
 
   const wrongAnswerIcon = useCallback(
-    (): Element => (
+    (): React.ReactElement => (
       <Icon
         size={IconSize.Xl}
         name={IconName.Danger}
@@ -64,7 +64,7 @@ const SRPQuiz = () => {
   );
 
   const rightAnswerIcon = useCallback(
-    (): Element => (
+    (): React.ReactElement => (
       <Icon
         size={IconSize.Xl}
         name={IconName.Confirmation}
@@ -115,14 +115,14 @@ const SRPQuiz = () => {
     );
   }, [trackEvent]);
 
-  const questionOne = useCallback((): Element => {
+  const questionOne = useCallback((): React.ReactElement => {
     trackEvent(MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_SEEN, {});
     return (
       <QuizContent
         header={`1 ${strings('srp_security_quiz.of')} 2`}
         title={{
           content: strings('srp_security_quiz.question_one.question'),
-          testId: SecurityQuizQuestionOneModalSelectorsText.QUIZ_QUESTION_ONE,
+          testID: SecurityQuizQuestionOneModalSelectorsText.QUIZ_QUESTION_ONE,
         }}
         buttons={[
           {
@@ -150,7 +150,7 @@ const SRPQuiz = () => {
     );
   }, [trackEvent]);
 
-  const rightAnswerQuestionOne = useCallback((): Element => {
+  const rightAnswerQuestionOne = useCallback((): React.ReactElement => {
     trackEvent(MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_RIGHT_ASNWER, {});
     return (
       <QuizContent
@@ -184,7 +184,7 @@ const SRPQuiz = () => {
     );
   }, [rightAnswerIcon, styles.rightText, trackEvent]);
 
-  const wrongAnswerQuestionOne = useCallback((): Element => {
+  const wrongAnswerQuestionOne = useCallback((): React.ReactElement => {
     trackEvent(MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_WRONG_ANSWER, {});
     return (
       <QuizContent
@@ -218,7 +218,7 @@ const SRPQuiz = () => {
     );
   }, [styles.wrongText, wrongAnswerIcon, trackEvent]);
 
-  const questionTwo = useCallback((): Element => {
+  const questionTwo = useCallback((): React.ReactElement => {
     trackEvent(MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_SEEN, {});
     return (
       <QuizContent
@@ -252,7 +252,7 @@ const SRPQuiz = () => {
     );
   }, [trackEvent]);
 
-  const rightAnswerQuestionTwo = useCallback((): Element => {
+  const rightAnswerQuestionTwo = useCallback((): React.ReactElement => {
     trackEvent(MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_RIGHT_ASNWER, {});
     return (
       <QuizContent
@@ -291,7 +291,7 @@ const SRPQuiz = () => {
     trackEvent,
   ]);
 
-  const wrongAnswerQuestionTwo = useCallback((): Element => {
+  const wrongAnswerQuestionTwo = useCallback((): React.ReactElement => {
     trackEvent(MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_WRONG_ANSWER, {});
     return (
       <QuizContent

@@ -104,6 +104,7 @@ import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAs
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { useIsFocused } from '@react-navigation/native';
 import handleWebViewFocus from '../../../util/browser/webViewFocus';
+import { isTest } from '../../../util/test/utils.js';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -1545,6 +1546,7 @@ export const BrowserTab = (props) => {
                 testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
                 applicationNameForUserAgent={'WebView MetaMaskMobile'}
                 onFileDownload={handleOnFileDownload}
+                webviewDebuggingEnabled={isTest}
               />
               {ipfsBannerVisible && renderIpfsBanner()}
             </>

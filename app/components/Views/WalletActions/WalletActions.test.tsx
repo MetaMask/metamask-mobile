@@ -16,7 +16,7 @@ const mockInitialState = {
     networks: [
       {
         active: true,
-        chainId: 1,
+        chainId: '1',
         chainName: 'Ethereum Mainnet',
         nativeTokenSupported: true,
       },
