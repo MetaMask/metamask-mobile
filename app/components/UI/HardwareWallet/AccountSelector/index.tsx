@@ -28,8 +28,6 @@ interface ISelectQRAccountsProps {
   onUnlock: (accountIndex: number[]) => void;
   onForget: () => void;
   title: string;
-  warningMsg?: string;
-  subMsg?: string;
 }
 
 const AccountSelector = (props: ISelectQRAccountsProps) => {
@@ -42,8 +40,6 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
     onForget,
     onUnlock,
     title,
-    warningMsg,
-    subMsg,
   } = props;
 
   const { colors } = useTheme();
@@ -89,8 +85,6 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{title}</Text>
-      {warningMsg && <Text style={styles.warning}>{warningMsg}</Text>}
-      {subMsg && <Text style={styles.subMsg}>{subMsg}</Text>}
       <FlatList
         data={formattedAccounts}
         keyExtractor={(item) => `address-${item.index}`}

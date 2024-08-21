@@ -3173,9 +3173,7 @@
     "how_to_install_eth_webview_title": "How to install the Ethereum App",
     "nonce_too_low": "Nonce too low",
     "nonce_too_low_error": "The set nonce is too low",
-    "select_accounts": "Select an Account",
-    "select_accounts_warning": "Note: these accounts might be different to what you're used to.",
-    "select_accounts_sub_msg": "These accounts are derived using the BIP44 derivation path, which is different to the default Ledger Live derivation path on MetaMask Extension, Different derivation paths for Ledger will be available on MetaMask Mobile soon."
+    "select_accounts": "Select an Account"
   },
   "account_actions": {
     "edit_name": "Edit account name",
