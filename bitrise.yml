@@ -576,9 +576,6 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 ./scripts/cache/set-cache-envs.sh android
-      - set-java-version@1:
-          inputs:
-          - set_java_version: 17
       - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
@@ -648,9 +645,6 @@ workflows:
     after_run:
       - notify_failure
     steps:
-      - set-java-version@1:
-          inputs:
-          - set_java_version: $OPENJDK_VERSION
       - restore-gradle-cache@2: {}
       - pull-intermediate-files@1:
           inputs:
@@ -1005,9 +999,6 @@ workflows:
     after_run:
       - notify_failure
     steps:
-      - set-java-version@1:
-          inputs:
-          - set_java_version: $OPENJDK_VERSION
       - change-android-versioncode-and-versionname@1:
           inputs:
             - new_version_name: $VERSION_NAME
@@ -1473,9 +1464,6 @@ app:
     - opts:
         is_expand: false
       NDK_VERSION: 24.0.8215888
-    - opts:
-        is_expand: false
-      OPENJDK_VERSION: 8
     - opts:
         is_expand: false
       QA_APK_NAME: app-qa-release
