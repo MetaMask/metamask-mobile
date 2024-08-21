@@ -274,7 +274,7 @@ interface RampError {
   currency_destination?: string;
 }
 
-export interface RampTransaction {
+interface RampTransaction {
   crypto_amount: string;
   chain_id_source: number;
   fiat_out: number;
