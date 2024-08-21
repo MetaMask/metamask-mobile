@@ -114,6 +114,7 @@ import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics
 import {
   selectTransactionGasFeeEstimates,
   selectCurrentTransactionMetadata,
+  selectCurrentTransactionSecurityAlertResponse,
 } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
@@ -265,6 +266,10 @@ class Confirm extends PureComponent {
      * Indicates whether the transaction simulations feature is enabled
      */
     useTransactionSimulations: PropTypes.bool,
+    /**
+     * Object containing blockaid validation response for confirmation
+     */
+    securityAlertResponse: PropTypes.object,
   };
 
   state = {
@@ -1172,27 +1177,15 @@ class Confirm extends PureComponent {
   };
 
   getConfirmButtonStyles() {
-    const { transactionMeta } = this.state;
-    const { transaction } = this.props;
-    const { currentTransactionSecurityAlertResponse } = transaction;
+    const { securityAlertResponse } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
     let confirmButtonStyle = {};
-    if (
-      transactionMeta.id &&
-      currentTransactionSecurityAlertResponse?.id &&
-      currentTransactionSecurityAlertResponse.id === transactionMeta.id
-    ) {
-      if (
-        currentTransactionSecurityAlertResponse?.response?.result_type ===
-        ResultType.Malicious
-      ) {
+    if (securityAlertResponse) {
+      if (securityAlertResponse?.result_type === ResultType.Malicious) {
         confirmButtonStyle = styles.confirmButtonError;
-      } else if (
-        currentTransactionSecurityAlertResponse?.response?.result_type ===
-        ResultType.Warning
-      ) {
+      } else if (securityAlertResponse?.result_type === ResultType.Warning) {
         confirmButtonStyle = styles.confirmButtonWarning;
       }
     }
@@ -1478,8 +1471,6 @@ const mapStateToProps = (state) => ({
   gasFeeEstimates: selectTransactionGasFeeEstimates(state),
   gasEstimateType: selectGasFeeControllerEstimateType(state),
   isPaymentRequest: state.transaction.paymentRequest,
-  securityAlertResponse:
-    state.transaction.currentTransactionSecurityAlertResponse,
   isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
     selectChainId(state),
     getRampNetworks(state),
@@ -1489,6 +1480,7 @@ const mapStateToProps = (state) => ({
   transactionSimulationData:
     selectCurrentTransactionMetadata(state)?.simulationData,
   useTransactionSimulations: selectUseTransactionSimulations(state),
+  securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
