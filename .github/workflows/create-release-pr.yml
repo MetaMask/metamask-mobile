@@ -7,13 +7,13 @@ on:
         description: 'The base branch, tag, or SHA for git operations and the pull request.'
         required: true
       semver-version:
-        description: 'A semantic version. eg: x.x.x'
+        description: 'A semantic version of release. eg: x.x.x'
         required: true
       version-number:
-        description: 'A natural version number. eg: 862'
+        description: 'A natural version build number. eg: 862'
         required: true
       previous-version-tag:
-        description: 'Previous release version tag. eg: v7.7.0'
+        description: 'Previous release version tag for changelog. eg: vx.x.x'
         required: true
 jobs:
   create-release-pr:
@@ -47,8 +47,8 @@ jobs:
         id: set-versions
         shell: bash
         run: SEMVER_VERSION=${{ github.event.inputs.semver-version }} VERSION_NUMBER=${{ github.event.inputs.version-number }} yarn set-version
-      - name: Create Release PR
-        id: create-release-pr
+      - name: Create Release Changelog PR
+        id: create-release-changelog-pr
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
