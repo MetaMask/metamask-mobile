@@ -1,6 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck issue with TS cli finding error but not VS Code plugin
-
 import React, {
   Fragment,
   useCallback,
