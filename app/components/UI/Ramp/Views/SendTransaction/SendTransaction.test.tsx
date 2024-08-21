@@ -91,8 +91,6 @@ const mockOrder = {
       idv2: '/currencies/crypto/1/0x0000000000000000000000000000000000000000',
       network: {
         active: true,
-        // type FiatOrder.Order.Cryptocurrency.Network.chainId should be type string
-        // according to api.d.ts Network interface
         chainId: '1',
         chainName: 'Ethereum Mainnet',
         shortName: 'Ethereum',
