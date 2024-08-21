@@ -80,7 +80,6 @@ function render(Component: React.ComponentType, chainId?: `0x${string}`) {
             NetworkController: {
               ...backgroundState.NetworkController,
               providerConfig: {
-                // according to ProviderConfig type chainId should be Hex
                 chainId: chainId ?? '0x38',
                 ticker: 'BNB',
                 nickname: 'BNB Smart Chain',
