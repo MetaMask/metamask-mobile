@@ -15,7 +15,6 @@ import LoginView from '../../pages/LoginView';
 import SkipAccountSecurityModal from '../../pages/modals/SkipAccountSecurityModal';
 import OnboardingWizardModal from '../../pages/modals/OnboardingWizardModal';
 import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
-import WhatsNewModal from '../../pages/modals/WhatsNewModal';
 import { acceptTermOfUse } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import CommonView from '../../pages/CommonView';
@@ -77,18 +76,6 @@ describe(
       }
     });
 
-    it('should tap on "Got it" Button in the whats new modal', async () => {
-      // dealing with flakiness on bitrise.
-      await TestHelpers.delay(2500);
-      try {
-        await Assertions.checkIfVisible(WhatsNewModal.container);
-        await WhatsNewModal.tapCloseButton();
-      } catch {
-        /* eslint-disable no-console */
-
-        console.log('The whats new modal is not visible');
-      }
-    });
     it('should dismiss the marketing consent bottom sheet', async () => {
       // dealing with flakiness on bitrise.
       await TestHelpers.delay(1000);
@@ -96,15 +83,9 @@ describe(
         await Assertions.checkIfVisible(ExperienceEnhancerModal.container);
         await ExperienceEnhancerModal.tapIagree();
       } catch {
-        console.log('The marketing consent sheet is not visible');
-      }
-      try {
-        await Assertions.checkIfVisible(WhatsNewModal.container);
-        await WhatsNewModal.tapCloseButton();
-      } catch {
         /* eslint-disable no-console */
 
-        console.log('The whats new modal is not visible');
+        console.log('The marketing consent sheet is not visible');
       }
     });
 

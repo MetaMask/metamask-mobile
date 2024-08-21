@@ -1,11 +1,14 @@
 import React from 'react';
 
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
 import { TESTID_ACCORDION_CONTENT } from '../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
 import { TESTID_ACCORDIONHEADER } from '../../../../../component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.constants';
 
 import { ResultType, Reason } from '../BlockaidBanner/BlockaidBanner.types';
 import TransactionBlockaidBanner from './TransactionBlockaidBanner';
+import { RootState } from '../../../../../reducers';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -23,7 +26,7 @@ jest.mock('react-native-gzip', () => ({
   deflate: (val: any) => val,
 }));
 
-const mockState = {
+const mockState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
       NetworkController: { providerConfig: { chainId: '0x1' } },
@@ -31,7 +34,8 @@ const mockState = {
     },
   },
   transaction: {
-    transactionSecurityAlertResponses: {
+    id: 123,
+    securityAlertResponses: {
       123: {
         result_type: ResultType.Warning,
         reason: Reason.approvalFarming,
@@ -65,14 +69,14 @@ describe('TransactionBlockaidBanner', () => {
     expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
   });
 
-  it('should not render if transactionSecurityAlertResponses.id is undefined', async () => {
+  it('should not render if securityAlertResponses.id is undefined', async () => {
     const wrapper = renderWithProvider(
       <TransactionBlockaidBanner transactionId="123" />,
       {
         state: {
           ...mockState,
           transaction: {
-            transactionSecurityAlertResponses: {},
+            securityAlertResponses: {},
           },
         },
       },

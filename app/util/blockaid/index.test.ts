@@ -51,7 +51,7 @@ describe('Blockaid util', () => {
         txParams: {
           from: '0x1',
         },
-        transactionSecurityAlertResponses: {
+        securityAlertResponses: {
           2: {
             result_type: ResultType.Malicious,
             reason: Reason.notApplicable,
@@ -77,7 +77,7 @@ describe('Blockaid util', () => {
         txParams: {
           from: '0x1',
         },
-        transactionSecurityAlertResponses: {
+        securityAlertResponses: {
           1: {
             result_type: ResultType.Malicious,
             reason: Reason.notApplicable,
@@ -118,7 +118,9 @@ describe('Blockaid util', () => {
     });
 
     it('returns empty object when chain id is not in supported chain ids list', () => {
-      jest.spyOn(NetworkControllerMock, 'selectChainId').mockReturnValue('10');
+      jest
+        .spyOn(NetworkControllerMock, 'selectChainId')
+        .mockReturnValue('0x10');
       const result = getBlockaidMetricsParams(undefined);
       expect(result).toStrictEqual({});
     });

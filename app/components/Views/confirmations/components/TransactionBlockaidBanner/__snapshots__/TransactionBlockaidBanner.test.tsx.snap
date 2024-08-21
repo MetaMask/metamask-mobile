@@ -2,7 +2,7 @@
 
 exports[`TransactionBlockaidBanner should not render if transactionId passed is undefined 1`] = `null`;
 
-exports[`TransactionBlockaidBanner should not render if transactionSecurityAlertResponses.id is undefined 1`] = `null`;
+exports[`TransactionBlockaidBanner should not render if securityAlertResponses.id is undefined 1`] = `null`;
 
 exports[`TransactionBlockaidBanner should render correctly 1`] = `
 <View
