@@ -333,7 +333,7 @@ describe('MetaMetrics', () => {
         expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
           anonymous: true,
           ...{
-            individual_anon_property: individualAnonProperties.anon_prop.value,
+            anon_prop: individualAnonProperties.anon_prop.value,
           },
           ...groupAnonProperties,
         });

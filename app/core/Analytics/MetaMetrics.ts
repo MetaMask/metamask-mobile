@@ -37,8 +37,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { Config } from '@segment/analytics-react-native/lib/typescript/src/types';
 import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
 import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
-import preProcessAnalyticsEvent from '../../util/events/preProcessAnalyticsEvent';
 import { isE2E } from '../../util/test/utils';
+import convertLegacyProperties from '../../util/events/convertLegacyProperties';
 
 /**
  * MetaMetrics using Segment as the analytics provider.
@@ -607,44 +607,8 @@ class MetaMetrics implements IMetaMetrics {
     return Promise.resolve();
   };
 
-  #handleEvent = (
-    event: IMetaMetricsEvent,
-    properties: JsonMap | EventProperties,
-    saveDataRecording: boolean,
-  ) => {
-    if (!properties || Object.keys(properties).length === 0) {
-      this.#trackEvent(
-        event?.category,
-        { anonymous: false, ...event?.properties },
-        saveDataRecording,
-      );
-    }
-
-    //TODO refactor
-    const [userParams, anonymousParams] = preProcessAnalyticsEvent(properties);
-
-    // Log all non-anonymous properties
-    if (Object.keys(userParams).length) {
-      this.#trackEvent(
-        event?.category,
-        { anonymous: false, ...event?.properties, ...userParams },
-        saveDataRecording,
-      );
-    }
-
-    // Log all anonymous properties
-    if (Object.keys(anonymousParams).length) {
-      this.#trackEvent(
-        event.category,
-        { anonymous: true, ...anonymousParams },
-        saveDataRecording,
-      );
-      this.#trackEvent(event.category, { anonymous: true }, saveDataRecording);
-    }
-  };
-
   /**
-   * Track an event - the regular way
+   * Track an event
    *
    * @param event - Analytics event name
    * @param properties - Object containing any event relevant traits or properties (optional).
@@ -655,8 +619,47 @@ class MetaMetrics implements IMetaMetrics {
     properties: JsonMap | EventProperties = {},
     saveDataRecording = true,
   ): void => {
-    if (this.enabled) {
-      this.#handleEvent(event, properties, saveDataRecording);
+    if (!this.enabled) {
+      return;
+    }
+
+    // if event does not have properties, only send the non-anonymous empty event
+    // and return to prevent any additional processing
+    if (!properties || Object.keys(properties).length === 0) {
+      this.#trackEvent(
+        event?.category,
+        // pass the IMetaMetricsEvent properties in the tracking props in case they exist(if it's a legacy event)
+        { anonymous: false, ...event?.properties },
+        saveDataRecording,
+      );
+      return;
+    }
+
+    // if event has properties, convert then to EventProperties,
+    const convertedProperties = convertLegacyProperties(properties);
+
+    // Log all non-anonymous properties, or an empty event if there's no non-anon props.
+    // In any case, there's a non-anon event tracked, see MetaMetrics.test.ts Tracking table.
+    this.#trackEvent(
+      event?.category,
+      { anonymous: false, ...convertedProperties.properties },
+      saveDataRecording,
+    );
+
+    // Track all anonymous properties in an anonymous event
+    if (
+      convertedProperties.sensitiveProperties &&
+      Object.keys(convertedProperties.sensitiveProperties).length
+    ) {
+      this.#trackEvent(
+        event.category,
+        {
+          anonymous: true,
+          ...convertedProperties.sensitiveProperties,
+          ...convertedProperties.properties,
+        },
+        saveDataRecording,
+      );
     }
   };
 
