@@ -1,18 +1,17 @@
 import { KeyringController } from '@metamask/keyring-controller';
-import { store } from '../../../../app/store/index';
 import { DappClient } from '../AndroidSDK/dapp-sdk-types';
 import { Connection } from '../Connection';
 import RPCQueueManager from '../RPCQueueManager';
 import { SDKConnect } from '../SDKConnect';
 import {
-  waitForReadyClient,
-  waitForCondition,
-  waitForAsyncCondition,
-  waitForConnectionReadiness,
-  waitForKeychainUnlocked,
-  waitForUserLoggedIn,
   waitForAndroidServiceBinding,
+  waitForAsyncCondition,
+  waitForCondition,
+  waitForConnectionReadiness,
   waitForEmptyRPCQueue,
+  waitForKeychainUnlocked,
+  waitForReadyClient,
+  waitForUserLoggedIn,
 } from './wait.util';
 
 jest.mock('../../../../app/store/index', () => ({
