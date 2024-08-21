@@ -10,7 +10,10 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import AppConstants from '../../../../../core/AppConstants';
 import Engine from '../../../../../core/Engine';
 import { SDKConnect } from '../../../../../core/SDKConnect/SDKConnect';
-import { selectCurrentTransactionMetadata } from '../../../../../selectors/confirmTransaction';
+import {
+  selectCurrentTransactionMetadata,
+  selectCurrentTransactionSecurityAlertResponse,
+} from '../../../../../selectors/confirmTransaction';
 import {
   selectConversionRate,
   selectCurrentCurrency,
@@ -269,6 +272,10 @@ class TransactionReview extends PureComponent {
      * Boolean that indicates if transaction simulations should be enabled
      */
     useTransactionSimulations: PropTypes.bool,
+    /**
+     * Object containing blockaid validation response for confirmation
+     */
+    securityAlertResponse: PropTypes.object,
   };
 
   state = {
@@ -358,13 +365,12 @@ class TransactionReview extends PureComponent {
   };
 
   onContactUsClicked = () => {
-    const { transaction, metrics } = this.props;
+    const { securityAlertResponse, metrics } = this.props;
     const additionalParams = {
-      ...getBlockaidMetricsParams(
-        transaction?.currentTransactionSecurityAlertResponse,
-      ),
+      ...getBlockaidMetricsParams(securityAlertResponse),
       external_link_clicked: 'security_alert_support_link',
     };
+
     metrics.trackEvent(
       MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
       additionalParams,
@@ -470,23 +476,13 @@ class TransactionReview extends PureComponent {
   }
 
   getConfirmButtonState() {
-    const { transaction } = this.props;
-    const { id, currentTransactionSecurityAlertResponse } = transaction;
+    const { securityAlertResponse } = this.props;
     let confirmButtonState = ConfirmButtonState.Normal;
-    if (
-      id &&
-      currentTransactionSecurityAlertResponse?.id &&
-      currentTransactionSecurityAlertResponse.id === id
-    ) {
-      if (
-        currentTransactionSecurityAlertResponse?.response?.result_type ===
-        ResultType.Malicious
-      ) {
+
+    if (securityAlertResponse) {
+      if (securityAlertResponse?.result_type === ResultType.Malicious) {
         confirmButtonState = ConfirmButtonState.Error;
-      } else if (
-        currentTransactionSecurityAlertResponse?.response?.result_type ===
-        ResultType.Warning
-      ) {
+      } else if (securityAlertResponse?.result_type === ResultType.Warning) {
         confirmButtonState = ConfirmButtonState.Warning;
       }
     }
@@ -571,7 +567,7 @@ class TransactionReview extends PureComponent {
               confirmDisabled={
                 transactionConfirmed || Boolean(error) || isAnimating
               }
-              confirmButtonState={this.getConfirmButtonState()}
+              confirmButtonState={this.getConfirmButtonState.bind(this)()}
             >
               <View style={styles.actionViewChildren}>
                 <ScrollView nestedScrollEnabled>
@@ -708,6 +704,7 @@ const mapStateToProps = (state) => ({
   transactionSimulationData:
     selectCurrentTransactionMetadata(state)?.simulationData,
   useTransactionSimulations: selectUseTransactionSimulations(state),
+  securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
 });
 
 TransactionReview.contextType = ThemeContext;

@@ -38,6 +38,7 @@ Android
 iOS
 
 - Run the app in debug mode (for example, in a simulator)
+- Make sure the value of `webviewDebuggingEnabled` prop on the Webview component is `true`
 - Open Safari on your desktop
 - Go to the menu Develop -> [Your device] -> [Website]
 

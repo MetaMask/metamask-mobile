@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Snaps team directory
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { Status } from '@metamask/snaps-utils';
