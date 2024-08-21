@@ -3,17 +3,6 @@ import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 
 class AdvancedSettingsView {
-  async tapEthSignSwitch() {
-    // Scroll to the element
-    await Gestures.scrollToElement(
-      this.ethSignSwitch,
-      this.scrollViewIdentifier,
-    );
-
-    // Wait and tap the element
-    await Gestures.waitAndTap(this.ethSignSwitch);
-  }
-
   get scrollViewIdentifier() {
     return Matchers.getIdentifier(
       AdvancedViewSelectorsIDs.ADVANCED_SETTINGS_SCROLLVIEW,
@@ -32,6 +21,14 @@ class AdvancedSettingsView {
 
   async tapShowFiatOnTestnetsSwitch() {
     await Gestures.waitAndTap(this.showFiatOnTestnetsToggle);
+  }
+
+  async tapEthSignSwitch() {
+    await Gestures.scrollToElement(
+      this.ethSignSwitch,
+      this.scrollViewIdentifier,
+    );
+    await Gestures.waitAndTap(this.ethSignSwitch);
   }
 
   async scrollToShowFiatOnTestnetsToggle() {
