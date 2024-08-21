@@ -117,7 +117,10 @@ async function connectToChannel({
   instance.state.connected[id] = connected;
 
   let authorized = false;
-  DevLogger.log(`SDKConnect::connectToChannel - originatorInfo`, originatorInfo);
+  DevLogger.log(
+    `SDKConnect::connectToChannel - originatorInfo`,
+    originatorInfo,
+  );
   // Check permissions first
   if (originatorInfo) {
     // Only check permissions if we have originatorInfo with the deeplink (not available in protocol V1)
@@ -198,7 +201,9 @@ async function connectToChannel({
       await instance.updateSDKLoadingState({ channelId: id, loading: false });
 
       const currentRouteName = connected.navigation?.getCurrentRoute()?.name;
-      DevLogger.log(`connectToChannel:: initialConnection=${initialConnection} trigger=${trigger} origin=${origin}  routeName: ${currentRouteName}`);
+      DevLogger.log(
+        `connectToChannel:: initialConnection=${initialConnection} trigger=${trigger} origin=${origin}  routeName: ${currentRouteName}`,
+      );
       if (
         initialConnection &&
         connected.trigger === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK &&
