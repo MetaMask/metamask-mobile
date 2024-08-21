@@ -1,8 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
 import Wallet from './';
-import { Provider } from 'react-redux';
-import configureMockStore from 'redux-mock-store';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { screen } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
@@ -94,9 +91,6 @@ const mockInitialState = {
   },
 };
 
-const mockStore = configureMockStore();
-const store = mockStore(mockInitialState);
-
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest
@@ -131,14 +125,12 @@ const render = (Component: React.ComponentType) =>
 
 describe('Wallet', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <Wallet />
-      </Provider>,
-    );
-    expect(wrapper).toMatchSnapshot();
+    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
+    const wrapper = render(Wallet);
+    expect(wrapper.toJSON()).toMatchSnapshot();
   });
   it('should render scan qr icon', () => {
+    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     render(Wallet);
     const scanButton = screen.getByTestId(
       WalletViewSelectorsIDs.WALLET_SCAN_BUTTON,
@@ -146,10 +138,12 @@ describe('Wallet', () => {
     expect(scanButton).toBeDefined();
   });
   it('should render ScrollableTabView', () => {
+    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     render(Wallet);
     expect(ScrollableTabView).toHaveBeenCalled();
   });
   it('should render fox icon', () => {
+    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     render(Wallet);
     const foxIcon = screen.getByTestId(CommonSelectorsIDs.FOX_ICON);
     expect(foxIcon).toBeDefined();
