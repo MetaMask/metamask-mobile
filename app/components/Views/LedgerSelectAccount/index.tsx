@@ -24,9 +24,12 @@ import createStyles from './index.styles';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PAGINATION_OPERATIONS from '../../../constants/pagination';
+import { Device as LedgerDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
+import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
 
 const LedgerSelectAccount = () => {
   const navigation = useNavigation<StackNavigationProp<never>>();
+  const [selectedDevice, setSelectedDevice] = useState<LedgerDevice>(null);
   const dispatch = useDispatch();
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
@@ -35,6 +38,13 @@ const LedgerSelectAccount = () => {
     ledgerDeviceLightImage,
     ledgerDeviceDarkImage,
   );
+
+  const {
+    isSendingLedgerCommands,
+    isAppLaunchConfirmationNeeded,
+    ledgerLogicToRun,
+    error: ledgerError,
+  } = useLedgerBluetooth(selectedDevice?.id);
 
   const keyringController = useMemo(() => {
     const { KeyringController: controller } = Engine.context as {
@@ -74,17 +84,21 @@ const LedgerSelectAccount = () => {
   }, [trackEvent]);
 
   const nextPage = useCallback(async () => {
+    setBlockingModalVisible(true);
     const _accounts = await getLedgerAccountsByOperation(
       PAGINATION_OPERATIONS.GET_NEXT_PAGE,
     );
     setAccounts(_accounts);
+    setBlockingModalVisible(false);
   }, []);
 
   const prevPage = useCallback(async () => {
+    setBlockingModalVisible(true);
     const _accounts = await getLedgerAccountsByOperation(
       PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE,
     );
     setAccounts(_accounts);
+    setBlockingModalVisible(false);
   }, []);
 
   const onUnlock = useCallback(
@@ -143,7 +157,15 @@ const LedgerSelectAccount = () => {
   ]);
 
   return accounts.length <= 0 ? (
-    <LedgerConnect onConnectLedger={onConnectHardware} />
+    <LedgerConnect
+      onConnectLedger={onConnectHardware}
+      selectedDevice={selectedDevice}
+      setSelectedDevice={setSelectedDevice}
+      ledgerLogicToRun={ledgerLogicToRun}
+      isAppLaunchConfirmationNeeded={isAppLaunchConfirmationNeeded}
+      isSendingLedgerCommands={isSendingLedgerCommands}
+      ledgerError={ledgerError}
+    />
   ) : (
     <>
       <View style={styles.container}>
