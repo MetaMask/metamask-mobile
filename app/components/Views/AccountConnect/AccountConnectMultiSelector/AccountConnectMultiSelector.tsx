@@ -280,13 +280,6 @@ const AccountConnectMultiSelector = ({
               iconName={secureIcon}
             />
           )}
-          {!isMutichainVersion1Enabled && (
-            <TagUrl
-              imageSource={favicon}
-              label={urlWithProtocol}
-              iconName={secureIcon}
-            />
-          )}
           <Text style={styles.description}>
             {isMutichainVersion1Enabled
               ? strings('accounts.select_accounts_description')
@@ -295,7 +288,6 @@ const AccountConnectMultiSelector = ({
               ? strings('accounts.select_accounts_description')
               : strings('accounts.connect_description')}
           </Text>
-          {isMutichainVersion1Enabled && renderSelectAllCheckbox()}
           {isMutichainVersion1Enabled && renderSelectAllCheckbox()}
           {areAllAccountsSelected
             ? renderUnselectAllButton()

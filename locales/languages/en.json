@@ -713,6 +713,7 @@
     "accounts_connected": "accounts connected.",
     "disconnected": "disconnected.",
     "disconnected_all": "All accounts disconnected.",
+    "disconnected_from": "Disconnected from {{dappHostName}}",
     "nft_detection_enabled": "NFT autodetection enabled"
   },
   "connect_qr_hardware": {

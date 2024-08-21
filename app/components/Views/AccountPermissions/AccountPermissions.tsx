@@ -52,6 +52,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { RootState } from '../../../reducers';
+import { isMutichainVersion1Enabled } from '../../../util/networks';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const navigation = useNavigation();
@@ -124,14 +125,39 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     ) {
       // TODO - Figure out better UX instead of auto dismissing. However, we cannot be in this state as long as accounts are not connected.
       hideSheet();
-      toastRef?.current?.showToast({
+
+      const plainToastProps: ToastOptions = {
         variant: ToastVariants.Plain,
         labelOptions: [{ label: strings('toast.disconnected_all') }],
         hasNoTimeout: false,
-      });
+      };
+
+      const networkToastProps: ToastOptions = {
+        variant: ToastVariants.Network,
+        labelOptions: [
+          {
+            label: strings('toast.disconnected_from', {
+              dappHostName: hostname,
+            }),
+          },
+        ],
+        hasNoTimeout: false,
+        networkImageSource: faviconSource,
+      };
+
+      toastRef?.current?.showToast(
+        isMutichainVersion1Enabled ? networkToastProps : plainToastProps,
+      );
+
       previousPermittedAccounts.current = permittedAccountsByHostname.length;
     }
-  }, [permittedAccountsByHostname, hideSheet, toastRef]);
+  }, [
+    permittedAccountsByHostname,
+    hideSheet,
+    toastRef,
+    hostname,
+    faviconSource,
+  ]);
 
   // Refreshes selected addresses based on the addition and removal of accounts.
   useEffect(() => {
