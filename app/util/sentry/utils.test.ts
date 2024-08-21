@@ -380,7 +380,6 @@ describe('captureSentryFeedback', () => {
       },
       user: {
         ambiguousAddressEntries: {},
-        appTheme: 'os',
         backUpSeedphraseVisible: false,
         gasEducationCarouselSeen: false,
         initialScreen: '',
