@@ -48,7 +48,8 @@ export enum ModalFieldType {
 
 export enum ModalFooterType {
   BLOCK_EXPLORER = 'ModalFooter-BlockExplorer',
-  ANNOUNCEMENT_CTA = 'ModalFooter-AnnouncementCta',
+  EXTERNAL_LINK = 'ModalFooter-ExternalLink',
+  MOBILE_LINK = 'ModalFooter-MobileLink',
 }
 
 export enum ModalHeaderType {

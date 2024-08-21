@@ -195,14 +195,24 @@ export interface ModalFooterBlockExplorer {
   txHash: string;
 }
 
-export interface ModalFooterAnnouncementCta {
-  type: ModalFooterType.ANNOUNCEMENT_CTA;
+export interface ModalFooterMobileLink {
+  type: ModalFooterType.MOBILE_LINK;
 
   // We currently to not support a mobile link
-  mobileLink?: FeatureAnnouncementRawNotification['data']['extensionLink'];
+  mobileLink?: FeatureAnnouncementRawNotification['data']['mobileLink'];
 }
 
-export type ModalFooter = ModalFooterBlockExplorer | ModalFooterAnnouncementCta;
+export interface ModalFooterExternalLink {
+  type: ModalFooterType.EXTERNAL_LINK;
+
+  // We currently to not support a mobile link
+  externalLink?: FeatureAnnouncementRawNotification['data']['externalLink'];
+}
+
+export type ModalFooter =
+  | ModalFooterBlockExplorer
+  | ModalFooterMobileLink
+  | ModalFooterExternalLink;
 
 export interface NotificationModalDetails {
   /**
