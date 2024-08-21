@@ -228,16 +228,12 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   const actualIcon = useMemo(() => {
-    // Priority to dappIconUrl
-    if (dappIconUrl) {
-      return { uri: dappIconUrl };
-    }
-
-    if (faviconSource?.uri) {
+    const favicon = faviconSource as ImageURISource;
+    if ('uri' in favicon) {
       return faviconSource;
     }
 
-    return { uri: '' };
+    return { uri: dappIconUrl ?? '' };
   }, [dappIconUrl, faviconSource]);
 
   const secureIcon = useMemo(

@@ -93,9 +93,14 @@ const ApproveTransactionHeader = ({
   const domainTitle = useMemo(() => {
     let title = '';
 
-    if (origin?.startsWith('https://')) {
-      const urlObj = getUrlObj(origin);
-      title = prefixUrlWithProtocol(urlObj.hostname);
+    if (isOriginWalletConnect) {
+      title = getUrlObj(
+        (origin as string).split(WALLET_CONNECT_ORIGIN)[1],
+      ).origin;
+    } else if (isOriginMMSDKRemoteConn) {
+      title = getUrlObj(
+        (origin as string).split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1],
+      ).origin;
     } else if (url || currentEnsName) {
       title = prefixUrlWithProtocol(currentEnsName || url || '');
     } else {
@@ -103,7 +108,13 @@ const ApproveTransactionHeader = ({
     }
 
     return title;
-  }, [currentEnsName, origin, url]);
+  }, [
+    currentEnsName,
+    origin,
+    isOriginWalletConnect,
+    isOriginMMSDKRemoteConn,
+    url,
+  ]);
 
   const faviconUpdatedOrigin = useMemo(() => {
     let newOrigin = origin as string;
