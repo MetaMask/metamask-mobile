@@ -270,11 +270,6 @@ const AccountConnectMultiSelector = ({
               ? strings('accounts.edit_accounts_title')
               : strings('accounts.connect_accounts_title')
           }
-          title={
-            isMutichainVersion1Enabled
-              ? strings('accounts.edit_accounts_title')
-              : strings('accounts.connect_accounts_title')
-          }
           onBack={onBack}
         />
         <View style={styles.body}>
@@ -362,7 +357,6 @@ const AccountConnectMultiSelector = ({
       styles.container,
       styles.sdkInfoDivier,
       onBack,
-      renderSelectAllCheckbox,
       renderSelectAllCheckbox,
     ],
   );
