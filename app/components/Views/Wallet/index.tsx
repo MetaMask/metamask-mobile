@@ -80,7 +80,7 @@ import {
 import { getCurrentRoute } from '../../../reducers/navigation';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { selectIsMetamaskNotificationsEnabled } from '../../../selectors/notifications';
-import { ButtonVariants } from 'app/component-library/components/Buttons/Button';
+import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
