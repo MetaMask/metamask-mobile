@@ -1,6 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Ramps team ownership
-
 import React, {
   useState,
   useCallback,
@@ -255,7 +252,7 @@ export const RampSDKProvider = ({
 
       intent,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-nocheck - Ramps team ownership"
+      // @ts-expect-error - Ramps team ownership"
       setIntent,
 
       selectedRegion,
@@ -275,7 +272,8 @@ export const RampSDKProvider = ({
 
       getStarted,
       setGetStarted: setGetStartedCallback,
-
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error - Ramps team ownership"
       selectedAddress,
       selectedChainId,
       selectedNetworkName,
