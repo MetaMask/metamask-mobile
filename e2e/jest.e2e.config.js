@@ -1,4 +1,4 @@
- 
+/* eslint-disable import/no-commonjs */
 require('dotenv').config({ path: '.e2e.env' });
 module.exports = {
   rootDir: '..',

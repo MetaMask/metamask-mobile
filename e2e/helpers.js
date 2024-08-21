@@ -261,7 +261,7 @@ export default class TestHelpers {
         if (attempt === maxAttempts) {
           throw error;
         } else {
-           
+          // eslint-disable-next-line no-console
           console.log('Test attempt failed', {
             attempt,
             error,

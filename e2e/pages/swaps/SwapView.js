@@ -35,7 +35,7 @@ export default class SwapView {
         100000,
       );
     } catch (e) {
-       
+      // eslint-disable-next-line no-console
       console.log(`Toast message is slow to appear or did not appear: ${e}`);
     }
 
@@ -47,7 +47,7 @@ export default class SwapView {
     try {
       await TestHelpers.tapByText('I understand');
     } catch (e) {
-       
+      // eslint-disable-next-line no-console
       console.log(`Price warning not displayed: ${e}`);
     }
   }

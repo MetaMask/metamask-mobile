@@ -1,4 +1,4 @@
- 
+// eslint-disable-next-line import/prefer-default-export
 import enContent from '../../locales/languages/en.json';
 
 export const ConfirmAddAssetSelectorsIDs = {

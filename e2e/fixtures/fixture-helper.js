@@ -1,4 +1,4 @@
- 
+/* eslint-disable no-console, import/no-nodejs-modules */
 import FixtureServer, { DEFAULT_FIXTURE_SERVER_PORT } from './fixture-server';
 import FixtureBuilder from './fixture-builder';
 import Ganache from '../../app/util/test/ganache';

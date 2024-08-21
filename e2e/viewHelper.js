@@ -53,7 +53,7 @@ have to have all these workarounds in the tests
     await OnboardingWizardModal.tapNoThanksButton();
     await Assertions.checkIfNotVisible(OnboardingWizardModal.stepOneContainer);
   } catch {
-     
+    /* eslint-disable no-console */
 
     console.log('The onboarding modal is not visible');
   }
@@ -73,7 +73,7 @@ have to have all these workarounds in the tests
     await ToastModal.tapToastCloseButton();
     await Assertions.checkIfNotVisible(ToastModal.container);
   } catch {
-     
+    /* eslint-disable no-undef */
 
     console.log('The marketing toast is not visible');
   }
@@ -195,7 +195,7 @@ export const switchToSepoliaNetwork = async () => {
     await Assertions.checkIfVisible(ToastModal.container);
     await Assertions.checkIfNotVisible(ToastModal.container);
   } catch {
-     
+    // eslint-disable-next-line no-console
     console.log('Toast is not visible');
   }
 };

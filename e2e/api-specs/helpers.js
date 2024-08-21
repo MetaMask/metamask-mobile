@@ -27,7 +27,7 @@ export const addToQueue = ({ task, resolve, reject, name }) => {
 
 const pollResult = async (driver, generatedKey) => {
   let result;
-   
+  // eslint-disable-next-line no-loop-func
   await new Promise((resolve, reject) => {
     addToQueue({
       name: 'pollResult',
