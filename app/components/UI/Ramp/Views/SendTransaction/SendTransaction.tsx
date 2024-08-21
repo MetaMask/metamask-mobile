@@ -111,6 +111,9 @@ function SendTransaction() {
   useEffect(() => {
     trackEvent(
       'OFFRAMP_SEND_CRYPTO_PROMPT_VIEWED',
+      //@ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
+      // transactionAnalyticsPayload expecting chain_id_source to be a string
+      // but RampTransaction type / interface expecting it to be a number
       transactionAnalyticsPayload,
     );
   }, [trackEvent, transactionAnalyticsPayload]);
@@ -153,6 +156,9 @@ function SendTransaction() {
     try {
       trackEvent(
         'OFFRAMP_SEND_TRANSACTION_INVOKED',
+        //@ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
+        // transactionAnalyticsPayload expecting chain_id_source to be a string
+        // but RampTransaction type / interface expecting it to be a number
         transactionAnalyticsPayload,
       );
       const response = await addTransaction(transactionParams, {
@@ -166,12 +172,18 @@ function SendTransaction() {
         navigation.goBack();
         trackEvent(
           'OFFRAMP_SEND_TRANSACTION_CONFIRMED',
+          //@ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
+          // transactionAnalyticsPayload expecting chain_id_source to be a string
+          // but RampTransaction type / interface expecting it to be a number
           transactionAnalyticsPayload,
         );
       }
     } catch (error) {
       trackEvent(
         'OFFRAMP_SEND_TRANSACTION_REJECTED',
+        //@ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
+        // transactionAnalyticsPayload expecting chain_id_source to be a string
+        // but RampTransaction type / interface expecting it to be a number
         transactionAnalyticsPayload,
       );
     }
