@@ -116,6 +116,7 @@ exports[`NotificationsSettings should render correctly 1`] = `
         }
       >
         Stay in the loop on what’s happening in your wallet with notifications. To use notifications, we use a profile to sync some settings across your devices.
+         
         <Text
           accessibilityRole="text"
           onPress={[Function]}
@@ -130,7 +131,7 @@ exports[`NotificationsSettings should render correctly 1`] = `
             }
           }
         >
-          Learn how we protect your privacy while using this feature. 
+          Learn how we protect your privacy while using this feature.
         </Text>
       </Text>
     </View>
