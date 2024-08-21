@@ -166,9 +166,9 @@ jest.mock('react-redux', () => {
         ...mockState,
         transaction: {
           ...mockState.transaction,
-          currentTransactionSecurityAlertResponse: {
-            id: '123',
-            response: securityAlertResponse,
+          id: 123,
+          securityAlertResponses: {
+            123: securityAlertResponse,
           },
         },
       }),
@@ -214,6 +214,7 @@ describe('TransactionReview', () => {
       block: 123,
       req: {},
       chainId: '0x1',
+      features: ['test', 'test'],
     };
 
     const blockaidMetricsParamsSpy = jest
@@ -239,9 +240,8 @@ describe('TransactionReview', () => {
             ...mockState.transaction,
             id: '123',
             securityAlertResponse,
-            currentTransactionSecurityAlertResponse: {
-              id: '123',
-              response: securityAlertResponse,
+            securityAlertResponses: {
+              123: securityAlertResponse,
             },
           },
         },
@@ -266,17 +266,9 @@ describe('TransactionReview', () => {
     fireEvent.press(await getByText('Report an issue'));
 
     expect(blockaidMetricsParamsSpy).toHaveBeenCalledTimes(1);
-    expect(blockaidMetricsParamsSpy).toHaveBeenCalledWith({
-      id: '123',
-      response: {
-        providerRequestsCount: {},
-        reason: 'blur_farming',
-        result_type: 'Malicious',
-        block: 123,
-        req: {},
-        chainId: '0x1',
-      },
-    });
+    expect(blockaidMetricsParamsSpy).toHaveBeenCalledWith(
+      securityAlertResponse,
+    );
   });
 
   it('should have enabled confirm button if from account has balance', async () => {

@@ -34,9 +34,9 @@ const mockState: DeepPartial<RootState> = {
     },
   },
   transaction: {
-    currentTransactionSecurityAlertResponse: {
-      id: '123',
-      response: {
+    id: 123,
+    securityAlertResponses: {
+      123: {
         result_type: ResultType.Warning,
         reason: Reason.approvalFarming,
         block: 123,
@@ -69,23 +69,18 @@ describe('TransactionBlockaidBanner', () => {
     expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
   });
 
-  it('should not render if currentTransactionSecurityAlertResponse.id is undefined', async () => {
-    const wrapper = renderWithProvider(<TransactionBlockaidBanner />, {
-      state: {
-        ...mockState,
-        transaction: {
-          currentTransactionSecurityAlertResponse: {
-            response: {
-              result_type: ResultType.Warning,
-              reason: Reason.approvalFarming,
-              block: 123,
-              req: {},
-              chainId: '0x1',
-            },
+  it('should not render if securityAlertResponses.id is undefined', async () => {
+    const wrapper = renderWithProvider(
+      <TransactionBlockaidBanner transactionId="123" />,
+      {
+        state: {
+          ...mockState,
+          transaction: {
+            securityAlertResponses: {},
           },
         },
       },
-    });
+    );
 
     expect(wrapper).toMatchSnapshot();
     expect(await wrapper.queryByTestId(TESTID_ACCORDIONHEADER)).toBeNull();
