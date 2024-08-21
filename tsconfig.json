@@ -63,16 +63,8 @@
   },
   "include": [
     "app/**/*",
-    "wdio/**/*",
     "node_modules/expect-webdriverio",
-    "node_modules/expect-webdriverio/jest",
-    "ppom/**/*",
-    "storybook/**/*",
-    ".github/**/*",
-    "scripts/**/*",
-    "e2e/**/*",
-    "locales/**/*",
-    ".storybook/**/*"
+    "node_modules/expect-webdriverio/jest"
   ],
   "exclude": [
     "node_modules",
