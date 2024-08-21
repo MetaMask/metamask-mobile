@@ -6,7 +6,7 @@ import {
   LedgerKeyring,
   LedgerMobileBridge,
 } from '@metamask/eth-ledger-bridge-keyring';
-import { LEDGER_HD_PATH, LEDGER_LEGACY_PATH, LEDGER_LIVE_PATH } from './constants';
+import { LEDGER_LIVE_PATH } from './constants';
 import PAGINATION_OPERATIONS from '../../constants/pagination';
 
 /**

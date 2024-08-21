@@ -73,6 +73,12 @@ const LedgerSelectAccount = () => {
     });
   }, [keyringController]);
 
+  useEffect(() => {
+    if (ledgerError) {
+      setBlockingModalVisible(false);
+    }
+  }, [ledgerError]);
+
   const onConnectHardware = useCallback(async () => {
     trackEvent(MetaMetricsEvents.CONTINUE_LEDGER_HARDWARE_WALLET, {
       device_type: HardwareDeviceTypes.LEDGER,
@@ -156,7 +162,7 @@ const LedgerSelectAccount = () => {
     unlockAccounts.trigger,
   ]);
 
-  return accounts.length <= 0 ? (
+  return ledgerError || accounts.length <= 0 ? (
     <LedgerConnect
       onConnectLedger={onConnectHardware}
       selectedDevice={selectedDevice}
