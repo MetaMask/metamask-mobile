@@ -122,9 +122,11 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
   const styles = createStyles(colors);
 
   const incrementDecrementNonce = (decrement) => {
-    let newValue = nonce;
-    newValue = decrement ? --newValue : ++newValue;
-    onChangeText(newValue > 1 ? newValue : 1);
+    const currentNonce = Number(nonce) ?? 0;
+    const updatedValue = decrement ? currentNonce - 1 : currentNonce + 1;
+    const clampedValue = Math.max(updatedValue, 0);
+
+    onChangeText(clampedValue);
   };
 
   const saveAndClose = () => {
@@ -192,6 +194,7 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
               <TouchableOpacity
                 style={styles.incrementHit}
                 onPress={() => incrementDecrementNonce(true)}
+                testID={'decrement-nonce'}
               >
                 <EvilIcons
                   name="minus"
@@ -202,6 +205,7 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
               <TouchableOpacity
                 style={styles.incrementHit}
                 onPress={() => incrementDecrementNonce(false)}
+                testID={'increment-nonce'}
               >
                 <EvilIcons
                   name="plus"
