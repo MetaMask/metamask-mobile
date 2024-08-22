@@ -72,11 +72,10 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
-  const [uiNotificationStatus, setUiNotificationStatus] = React.useState(false);
-
   const basicFunctionalityEnabled = useSelector(
     (state: RootState) => state.settings.basicFunctionalityEnabled,
   );
+  const [uiNotificationStatus, setUiNotificationStatus] = React.useState(false);
 
   const loading = enableLoading || disableLoading;
   const errorText = enablingError || disablingError;
@@ -181,10 +180,6 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     </>
   );
 
-  const refetchAccountSettings = useCallback(async () => {
-    await accountSettingsProps.update(accountAddresses);
-  }, [accountSettingsProps, accountAddresses]);
-
   const renderAccounts = useCallback(
     () =>
       accounts.map((account) => (
@@ -199,9 +194,8 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
             account.address,
           )}
           isEnabled={
-            accountSettingsProps.data?.[account.address.toLowerCase()] ?? true
+            !!accountSettingsProps.data?.[account.address.toLowerCase()]
           }
-          refetchAccountSettings={refetchAccountSettings}
         />
       )),
     [
@@ -210,7 +204,6 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
       accountSettingsProps.initialLoading,
       accountSettingsProps.accountsBeingUpdated,
       accountSettingsProps.data,
-      refetchAccountSettings,
     ],
   );
 
