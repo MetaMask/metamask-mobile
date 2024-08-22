@@ -1,4 +1,6 @@
 import WalletConnect2Session from './WalletConnect2Session';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Ignoring the import error for testing purposes
 import { Client } from '@walletconnect/se-sdk';
 import { NavigationContainerRef } from '@react-navigation/native';
 import { SessionTypes } from '@walletconnect/types';
