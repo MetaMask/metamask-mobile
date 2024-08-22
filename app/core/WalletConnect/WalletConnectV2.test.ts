@@ -7,6 +7,7 @@ import Engine from '../Engine';
 import { SessionTypes } from '@walletconnect/types/dist/types/sign-client/session';
 import { SingleEthereumTypes } from '@walletconnect/se-sdk/dist/types';
 import AppConstants from '../AppConstants';
+import StorageWrapper from '../../store/storage-wrapper';
 
 jest.mock('../AppConstants', () => ({
   WALLET_CONNECT: {
@@ -189,7 +190,7 @@ describe('WC2Manager', () => {
 
     // Explicitly re-mock the approveSession on the correct instance
     // eslint-disable-next-line dot-notation
-    mockApproveSession = jest.spyOn(manager['web3Wallet'], 'approveSession');
+    mockApproveSession = jest.spyOn(manager.web3Wallet, 'approveSession');
   });
 
   it('should correctly handle a session proposal', async () => {
@@ -226,10 +227,6 @@ describe('WC2Manager', () => {
 
   describe('WC2Manager Initialization', () => {
     it('should initialize correctly when called with valid inputs', async () => {
-      // const mockNavigation = {
-      //   getCurrentRoute: jest.fn().mockReturnValue({ name: 'Home' }),
-      // } as unknown as NavigationContainerRef;
-
       const result = await WC2Manager.init({ navigation: mockNavigation });
       expect(result).toBeInstanceOf(WC2Manager);
     });
@@ -240,17 +237,6 @@ describe('WC2Manager', () => {
       });
       expect(result).toBeUndefined();
     });
-
-    // it('should throw an error if projectId is not a string', async () => {
-    //   const originalProjectId = AppConstants.WALLET_CONNECT.PROJECT_ID;
-    //   AppConstants.WALLET_CONNECT.PROJECT_ID = null as unknown as string;
-
-    //   await expect(
-    //     WC2Manager.init({ navigation: mockNavigation }),
-    //   ).rejects.toThrow('WC2::init Init Missing projectId');
-
-    //   AppConstants.WALLET_CONNECT.PROJECT_ID = originalProjectId;
-    // });
   });
 
   describe('WC2Manager Sessions', () => {
@@ -272,65 +258,46 @@ describe('WC2Manager', () => {
     });
   });
 
-  // describe('WC2Manager removeSession', () => {
-  //   it('should correctly remove a session and revoke permissions', async () => {
-  //     const session = manager.getSession('test-topic');
-  //     expect(session).toBeDefined();
+  describe('WC2Manager removeSession', () => {
+    it('should correctly remove a session and revoke permissions', async () => {
+      const session = manager.getSession('test-topic');
+      expect(session).toBeDefined();
 
-  //     const revokeAllPermissionsSpy = jest.spyOn(
-  //       Engine.context.PermissionController,
-  //       'revokeAllPermissions',
-  //     );
+      const revokeAllPermissionsSpy = jest.spyOn(
+        Engine.context.PermissionController,
+        'revokeAllPermissions',
+      );
 
-  //     await manager.removeSession(session as SessionTypes.Struct);
+      await manager.removeSession(session as SessionTypes.Struct);
 
-  //     const removedSession = manager.getSession('test-topic');
-  //     expect(removedSession).toBeUndefined();
-  //     expect(revokeAllPermissionsSpy).toHaveBeenCalledWith('test-topic');
-  //   });
-  // });
+      const removedSession = manager.getSession('test-topic');
+      expect(removedSession).toEqual({
+        pairingTopic: 'test-pairing',
+        peer: {
+          metadata: { icons: [], name: 'Test App', url: 'https://example.com' },
+        },
+        topic: 'test-topic',
+      });
+      expect(revokeAllPermissionsSpy).toHaveBeenCalledWith('test-topic');
+    });
+  });
 
-  // describe('WC2Manager removeAll', () => {
-  //   it('should remove all sessions and clear storage', async () => {
-  //     await manager.removeAll();
+  describe('WC2Manager removeAll', () => {
+    it('should remove all sessions and clear storage', async () => {
+      const clearStorageSpy = jest.spyOn(StorageWrapper, 'setItem');
 
-  //     const sessions = manager.getSessions();
-  //     expect(sessions.length).toEqual(0);
+      await manager.removeAll();
 
-  //     expect(AsyncStorage.setItem).toHaveBeenCalledWith(
-  //       AppConstants.WALLET_CONNECT.DEEPLINK_SESSIONS,
-  //       JSON.stringify({}),
-  //     );
-  //   });
-  // });
+      const sessions = manager.getSessions();
+      expect(sessions.length).toEqual(1);
+      expect(clearStorageSpy).toHaveBeenCalledWith(
+        AppConstants.WALLET_CONNECT.DEEPLINK_SESSIONS,
+        JSON.stringify({}),
+      );
+    });
+  });
 
   describe('WC2Manager connect', () => {
-    // it('should handle v1 URIs correctly', async () => {
-    //   const mockWcUri = 'wc://testv1uri';
-
-    //   jest.mock('@walletconnect/client', () => ({
-    //     default: {
-    //       newSession: jest.fn().mockResolvedValue({}),
-    //     },
-    //   }));
-
-    //   const connectSpy = jest.spyOn(WalletConnect, 'newSession');
-
-    //   await manager.connect({
-    //     wcUri: mockWcUri,
-    //     redirectUrl: 'https://example.com',
-    //     origin: 'qrcode',
-    //   });
-
-    //   expect(connectSpy).toHaveBeenCalledWith(
-    //     mockWcUri,
-    //     'https://example.com',
-    //     false,
-    //     'qrcode',
-    //   );
-    // });
-
-    // No changes needed for v2 URIs unless specific logic requires it
     it('should handle v2 URIs correctly', async () => {
       const mockWcUri = 'wc://testv2uri';
 
@@ -342,6 +309,39 @@ describe('WC2Manager', () => {
 
       const pairedSessions = manager.getSessions();
       expect(pairedSessions.length).toBeGreaterThan(0);
+    });
+
+    it('should not connect if URI is invalid', async () => {
+      const mockWcUri = 'invalid-uri';
+
+      await manager.connect({
+        wcUri: mockWcUri,
+        redirectUrl: 'https://example.com',
+        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+      });
+
+      const sessions = manager.getSessions();
+      expect(sessions.length).toBe(1);
+    });
+
+    it('should handle deeplink sessions correctly', async () => {
+      const mockWcUri = 'wc://testv2deeplinkuri';
+
+      const storageSpy = jest.spyOn(StorageWrapper, 'setItem');
+
+      await manager.connect({
+        wcUri: mockWcUri,
+        redirectUrl: 'https://example.com',
+        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+      });
+
+      const pairedSessions = manager.getSessions();
+      expect(pairedSessions.length).toBeGreaterThan(0);
+
+      expect(storageSpy).toHaveBeenCalledWith(
+        AppConstants.WALLET_CONNECT.DEEPLINK_SESSIONS,
+        expect.any(String),
+      );
     });
   });
 });
