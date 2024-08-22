@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useEffect } from 'react';
+import React, { Fragment, useCallback } from 'react';
 import { Image, View, Linking } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
@@ -21,7 +21,6 @@ import {
   requestPushNotificationsPermission,
 } from '../../../../util/notifications';
 import { STORAGE_IDS } from '../../../../util/notifications/settings/storage/constants';
-import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import AppConstants from '../../../../core/AppConstants';
 import { RootState } from '../../../../reducers';
 import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
@@ -31,13 +30,11 @@ const OptIn = () => {
   const theme = useTheme();
   const styles = createStyles(theme);
   const navigation = useNavigation();
-  const isNotificationEnabled = useSelector(
-    selectIsMetamaskNotificationsEnabled,
-  );
+
   const basicFunctionalityEnabled = useSelector(
     (state: RootState) => state.settings.basicFunctionalityEnabled,
   );
-  const { loading, enableNotifications } = useEnableNotifications();
+  const { enableNotifications } = useEnableNotifications();
   const [optimisticLoading, setOptimisticLoading] = React.useState(false);
 
   const toggleNotificationsEnabled = useCallback(async () => {
