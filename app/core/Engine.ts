@@ -51,7 +51,6 @@ import {
   NetworkController,
   NetworkControllerActions,
   NetworkControllerEvents,
-  NetworkControllerMessenger,
   NetworkState,
   NetworkStatus,
 } from '@metamask/network-controller';
