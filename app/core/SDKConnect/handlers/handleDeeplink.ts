@@ -5,10 +5,9 @@ import {
 import Logger from '../../../util/Logger';
 import AppConstants from '../../AppConstants';
 import Engine from '../../Engine';
-import { getPermittedAccounts } from '../../Permissions';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
-import { waitForAsyncCondition, waitForCondition } from '../utils/wait.util';
+import { waitForCondition } from '../utils/wait.util';
 import handleConnectionMessage from './handleConnectionMessage';
 
 const QRCODE_PARAM_PATTERN = '&t=q';
@@ -93,20 +92,6 @@ const handleDeeplink = async ({
       );
       // If msg contains rpc calls, handle them
       if (rpc) {
-        // wait for accounts to be loaded
-        await waitForAsyncCondition({
-          fn: async () => {
-            const accounts = await getPermittedAccounts(channelId);
-            DevLogger.log(
-              `handleDeeplink::waitForAsyncCondition accounts`,
-              accounts,
-            );
-            return accounts.length > 0;
-          },
-          context: 'deeplink',
-          waitTime: 500,
-        });
-
         const connection = sdkConnect.getConnected()[channelId];
         if (!connection) {
           DevLogger.log(`handleDeeplink:: connection not found`);
@@ -129,6 +114,9 @@ const handleDeeplink = async ({
           connection,
           engine: Engine,
         });
+      } else {
+        // network call to connect to channel
+        sdkConnect.updateSDKLoadingState({ channelId, loading: true });
       }
     } else {
       await sdkConnect.connectToChannel({
