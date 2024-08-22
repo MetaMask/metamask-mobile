@@ -46,13 +46,10 @@ import AppConstants from '../../../../core/AppConstants';
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const { accounts } = useAccounts();
-
+  const theme = useTheme();
   const accountAddresses = useMemo(
     () => accounts.map((a) => a.address),
     [accounts],
-  );
-  const basicFunctionalityEnabled = useSelector(
-    (state: RootState) => state.settings.basicFunctionalityEnabled,
   );
   const accountSettingsProps = useAccountSettingsProps(accountAddresses);
   const {
@@ -66,26 +63,32 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     loading: disableLoading,
     error: disablingError,
   } = useDisableNotifications();
-
-  const loading = enableLoading || disableLoading;
-  const errorText = enablingError || disablingError;
-  const theme = useTheme();
   // Selectors
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
+  const accountAvatarType = useSelector((state: RootState) =>
+    state.settings.useBlockieIcon
+      ? AvatarAccountType.Blockies
+      : AvatarAccountType.JazzIcon,
+  );
+  const [uiNotificationStatus, setUiNotificationStatus] = React.useState(false);
+
+  const basicFunctionalityEnabled = useSelector(
+    (state: RootState) => state.settings.basicFunctionalityEnabled,
+  );
+
+  const loading = enableLoading || disableLoading;
+  const errorText = enablingError || disablingError;
+  const loadingText = !uiNotificationStatus
+    ? strings('app_settings.disabling_notifications')
+    : strings('app_settings.enabling_notifications');
 
   // Params
   const isFullScreenModal = route?.params?.isFullScreenModal;
   // Style
   const { colors } = theme;
   const { styles } = useStyles(styleSheet, {});
-
-  const accountAvatarType = useSelector((state: RootState) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
 
   /**
    * Initializes the notifications feature.
@@ -102,14 +105,20 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
         },
       });
     } else if (isMetamaskNotificationsEnabled) {
-      await disableNotifications();
+      disableNotifications();
+      setUiNotificationStatus(false);
     } else {
       const nativeNotificationStatus = await requestPushNotificationsPermission(
         asyncAlert,
       );
 
       if (nativeNotificationStatus) {
-        await enableNotifications();
+        /**
+         * Although this is an async function, we are dispatching an action (firing & forget)
+         * to emulate optimistic UI.
+         */
+        enableNotifications();
+        setUiNotificationStatus(true);
       }
     }
   }, [
@@ -135,10 +144,6 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
       ),
     );
   }, [colors, isFullScreenModal, navigation]);
-
-  const loadingText = !isMetamaskNotificationsEnabled
-    ? strings('app_settings.enabling_notifications')
-    : strings('app_settings.disabling_notifications');
 
   const MainNotificationSettings: FC = () => (
     <>
