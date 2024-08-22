@@ -27,6 +27,7 @@ import WalletAction from '../../../components/UI/WalletAction';
 import { useStyles } from '../../../component-library/hooks';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import useRampNetwork from '../../UI/Ramp/hooks/useRampNetwork';
+import Routes from '../../../constants/navigation/Routes';
 import { getDecimalChainId } from '../../../util/networks';
 import { WalletActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/WalletActionsModal.selectors';
 
