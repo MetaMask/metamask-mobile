@@ -9,10 +9,7 @@ import type { TransactionMeta } from '@metamask/transaction-controller';
 import PPOMUtils from '../../lib/ppom/ppom-util';
 
 interface TransactionSecurityAlertResponseType {
-  currentTransactionSecurityAlertResponse: {
-    id: string;
-    response: SecurityAlertResponse;
-  };
+  securityAlertResponses: Record<string, SecurityAlertResponse>;
 }
 
 export type TransactionType = TransactionMeta &
@@ -72,12 +69,10 @@ export const getBlockaidTransactionMetricsParams = (
     return blockaidParams;
   }
 
-  if (
-    transaction.id === transaction?.currentTransactionSecurityAlertResponse?.id
-  ) {
-    blockaidParams = getBlockaidMetricsParams(
-      transaction.currentTransactionSecurityAlertResponse?.response,
-    );
+  const { securityAlertResponses, id } = transaction;
+  const securityAlertResponse = securityAlertResponses?.[id];
+  if (securityAlertResponse) {
+    blockaidParams = getBlockaidMetricsParams(securityAlertResponse);
   }
 
   return blockaidParams;

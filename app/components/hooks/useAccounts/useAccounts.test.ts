@@ -5,6 +5,7 @@ import useAccounts from './useAccounts';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { Account } from './useAccounts.types';
+import { Hex } from '@metamask/utils';
 
 const MOCK_ENS_CACHED_NAME = 'fox.eth';
 
@@ -16,7 +17,7 @@ const MOCK_ACCOUNT_ADDRESSES = Object.values(
 
 const MOCK_ACCOUNT_1: Account = {
   name: 'Account 1',
-  address: toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[0]),
+  address: toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[0]) as Hex,
   type: KeyringTypes.hd,
   yOffset: 0,
   isSelected: false,
@@ -27,7 +28,7 @@ const MOCK_ACCOUNT_1: Account = {
 };
 const MOCK_ACCOUNT_2: Account = {
   name: 'Account 2',
-  address: toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[1]),
+  address: toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[1]) as Hex,
   type: KeyringTypes.hd,
   yOffset: 78,
   isSelected: true,

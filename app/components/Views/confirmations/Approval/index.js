@@ -50,6 +50,7 @@ import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../../util/smart-transactions';
 import { selectTransactionMetrics } from '../../../../core/redux/slices/transactionMetrics';
+import { selectCurrentTransactionSecurityAlertResponse } from '../../../../selectors/confirmTransaction';
 import { selectTransactions } from '../../../../selectors/transactionController';
 import { selectShowCustomNonce } from '../../../../selectors/settings';
 import { buildTransactionParams } from '../../../../util/confirmation/transactions';
@@ -129,6 +130,11 @@ class Approval extends PureComponent {
      * Object containing transaction metrics by id
      */
     transactionMetricsById: PropTypes.object,
+
+    /**
+     * Object containing blockaid validation response for confirmation
+     */
+    securityAlertResponse: PropTypes.object,
   };
 
   state = {
@@ -302,6 +308,13 @@ class Approval extends PureComponent {
       assetType,
       is_smart_transaction: shouldUseSmartTransaction,
     };
+  };
+
+  getBlockaidMetricsParams = () => {
+    const { securityAlertResponse } = this.props;
+    return securityAlertResponse
+      ? getBlockaidMetricsParams(securityAlertResponse)
+      : {};
   };
 
   getAnalyticsParams = ({ gasEstimateType, gasSelected } = {}) => {
@@ -646,6 +659,7 @@ const mapStateToProps = (state) => ({
   activeTabUrl: getActiveTabUrl(state),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
   transactionMetricsById: selectTransactionMetrics(state),
+  securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
