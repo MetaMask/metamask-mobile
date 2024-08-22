@@ -23,6 +23,7 @@ const ShowTokenIdSheet = () => {
   return (
     <BottomSheet ref={sheetRef}>
       <SheetHeader
+        style={styles.header}
         title={strings('nft_details.token_id')}
       />
       <View style={styles.textContent}>
