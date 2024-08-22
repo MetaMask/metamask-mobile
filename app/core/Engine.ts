@@ -215,7 +215,6 @@ import { submitSmartTransactionHook } from '../util/smart-transactions/smart-pub
 import { SmartTransactionsControllerState } from '@metamask/smart-transactions-controller/dist/SmartTransactionsController';
 import { zeroAddress } from 'ethereumjs-util';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
-import { getPermittedAccounts } from './Permissions';
 import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
 import EthQuery from '@metamask/eth-query';
 import { TransactionControllerOptions } from '@metamask/transaction-controller/dist/types/TransactionController';
@@ -1146,7 +1145,6 @@ class Engine {
       getNetworkClientRegistry:
         networkController.getNetworkClientRegistry.bind(networkController),
       getNetworkState: () => networkController.state,
-      getPermittedAccounts: (origin) => getPermittedAccounts(origin as string),
       hooks: {
         publish: (transactionMeta) => {
           const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
