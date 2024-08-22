@@ -19,15 +19,15 @@ CHANGELOG_BRANCH_NAME="chore/${NEW_VERSION}-Changelog"
 git config user.name metamaskbot
 git config user.email metamaskbot@users.noreply.github.com
 
-git fetch "${RELEASE_BRANCH_NAME}"
+git fetch 
 
-git checkout "${RELEASE_BRANCH_NAME}"
+# git checkout "${RELEASE_BRANCH_NAME}"
 
-if ! (git add . && git commit -m "${NEW_VERSION}");
-then
-    echo "Error: No changes detected."
-    exit 1
-fi
+# if ! (git add . && git commit -m "${NEW_VERSION}");
+# then
+#     echo "Error: No changes detected."
+#     exit 1
+# fi
 
 git checkout -b "${CHANGELOG_BRANCH_NAME}"
 
