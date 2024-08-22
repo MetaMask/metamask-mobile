@@ -33,6 +33,16 @@ describe('handleDeeplink', () => {
   const mockRevalidateChannel = jest.fn();
   const mockReconnect = jest.fn();
   const mockConnectToChannel = jest.fn();
+  const mockDecrypt = jest
+    .fn()
+    .mockReturnValue('{"jsonrpc":"2.0","method":"eth_accounts"}');
+  const mockGetConnected = jest.fn().mockReturnValue({
+    [channelId]: {
+      remote: {
+        decrypt: mockDecrypt,
+      },
+    },
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -54,6 +64,7 @@ describe('handleDeeplink', () => {
       revalidateChannel: mockRevalidateChannel,
       reconnect: mockReconnect,
       connectToChannel: mockConnectToChannel,
+      getConnected: mockGetConnected,
     } as unknown as SDKConnect;
 
     mockGetConnections.mockReturnValue(fakeConnections);
@@ -171,5 +182,53 @@ describe('handleDeeplink', () => {
       error,
       'Failed to connect to channel',
     );
+  });
+
+  it('should handle rpc calls when rpc has values and connection is valid', async () => {
+    const rpc = Buffer.from(
+      '{"jsonrpc":"2.0","method":"eth_accounts"}',
+    ).toString('base64');
+    const decodedRPC = '{"jsonrpc":"2.0","method":"eth_accounts"}';
+
+    (sdkConnect.getConnections as jest.Mock).mockReturnValue({
+      [channelId]: {},
+    });
+
+    await handleDeeplink({
+      sdkConnect: sdkConnect as SDKConnect,
+      channelId,
+      origin,
+      url,
+      otherPublicKey,
+      protocolVersion,
+      context,
+      rpc,
+    });
+
+    expect(mockGetConnected()[channelId].remote.decrypt).toHaveBeenCalledWith(
+      decodedRPC,
+    );
+  });
+
+  it('should not handle rpc calls when rpc has values and connection is not found', async () => {
+    const rpc = Buffer.from(
+      '{"jsonrpc":"2.0","method":"eth_accounts"}',
+    ).toString('base64');
+    (sdkConnect.getConnections as jest.Mock).mockReturnValue({
+      [channelId]: undefined,
+    });
+
+    await handleDeeplink({
+      sdkConnect: sdkConnect as SDKConnect,
+      channelId,
+      origin,
+      url,
+      otherPublicKey,
+      protocolVersion,
+      context,
+      rpc,
+    });
+
+    expect(mockGetConnected()[channelId].remote.decrypt).not.toHaveBeenCalled();
   });
 });
