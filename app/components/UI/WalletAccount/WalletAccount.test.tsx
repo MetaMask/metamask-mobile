@@ -2,9 +2,12 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { Hex } from '@metamask/utils';
 
 // External dependencies
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../util/test/renderWithProvider';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -15,10 +18,10 @@ import {
   expectedUuid2,
 } from '../../../util/test/accountsControllerTestUtils';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { RootState } from '../../../reducers';
 
 // Internal dependencies
 import WalletAccount from './WalletAccount';
-import { Hex } from '@metamask/utils';
 
 const MOCK_CHAIN_ID: Hex = '0x1';
 
@@ -32,7 +35,7 @@ const mockAccount: Account = {
   isSelected: true,
 };
 
-const mockInitialState = {
+const mockInitialState: DeepPartial<RootState> = {
   settings: {
     useBlockieIcon: false,
   },
@@ -152,6 +155,7 @@ describe('WalletAccount', () => {
   });
   it('displays custom account name when ENS is defined but account name is not the default', async () => {
     const customAccountName = 'Custom Account Name';
+    //@ts-expect-error - for testing purposes we will assume that this is not possibly undefined
     mockInitialState.engine.backgroundState.AccountsController.internalAccounts.accounts[
       expectedUuid2
     ].metadata.name = customAccountName;
