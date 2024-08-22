@@ -65,7 +65,7 @@ const TabThumbnail = ({
         <View style={styles.tabHeader}>
           <View style={styles.titleButton}>
             {isHomepage ? (
-              <Image style={styles.tabFavicon} source={METAMASK_FOX} />
+              <Image style={styles.tabFavicon} source={{ uri: METAMASK_FOX }} />
             ) : (
               <WebsiteIcon
                 transparent
