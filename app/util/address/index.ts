@@ -60,7 +60,7 @@ export function renderFullAddress(address: string) {
  * @param {String} type - Format  type
  * @returns {String} Formatted address
  */
-type FormatAddressType = 'short' | 'mid';
+type FormatAddressType = 'short' | 'mid' | 'full';
 export const formatAddress = (rawAddress: string, type: FormatAddressType) => {
   let formattedAddress = rawAddress;
 
@@ -582,8 +582,8 @@ export async function getAddress(
 
 export const getTokenDetails = async (
   tokenAddress: string,
-  userAddress: string,
-  tokenId: string,
+  userAddress?: string,
+  tokenId?: string,
 ) => {
   const { AssetsContractController } = Engine.context;
   const tokenData = await AssetsContractController.getTokenStandardAndDetails(

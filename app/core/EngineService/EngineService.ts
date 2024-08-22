@@ -39,6 +39,15 @@ class EngineService {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private updateControllers = (store: any, engine: any) => {
+    if (!engine.context) {
+      Logger.error(
+        new Error(
+          'Engine context does not exists. Redux will not be updated from controller state updates!',
+        ),
+      );
+      return;
+    }
+
     const controllers = [
       { name: 'AddressBookController' },
       { name: 'AssetsContractController' },
@@ -103,6 +112,18 @@ class EngineService {
       {
         name: 'SubjectMetadataController',
         key: `${engine.context.SubjectMetadataController.name}:stateChange`,
+      },
+      {
+        name: 'AuthenticationController',
+        key: 'AuthenticationController:stateChange',
+      },
+      {
+        name: 'UserStorageController',
+        key: 'UserStorageController:stateChange',
+      },
+      {
+        name: 'NotificationServicesController',
+        key: 'NotificationServicesController:stateChange',
       },
       ///: END:ONLY_INCLUDE_IF
       {

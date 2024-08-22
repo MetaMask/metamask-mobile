@@ -46,7 +46,7 @@ const ListItemMultiSelectButton: React.FC<ListItemMultiSelectButtonProps> = ({
         onLongPress={props.onPress}
         {...props}
       >
-        <ListItem gap={gap} style={styles.listItem}>
+        <ListItem gap={gap} style={styles.containerColumn}>
           {children}
         </ListItem>
         {isSelected && (

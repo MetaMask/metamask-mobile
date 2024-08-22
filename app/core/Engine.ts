@@ -207,7 +207,7 @@ import {
   networkIdWillUpdate,
 } from '../core/redux/slices/inpageProvider';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
-import { NETWORKS_CHAIN_ID } from '../../app/constants/network';
+import { getAllowedSmartTransactionsChainIds } from '../../app/constants/smartTransactions';
 import { selectShouldUseSmartTransaction } from '../selectors/smartTransactionsController';
 import { selectSwapsChainFeatureFlags } from '../reducers/swaps';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
@@ -1050,15 +1050,18 @@ class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'AuthenticationController',
         allowedActions: [
+          'KeyringController:getState',
+          'KeyringController:getAccounts',
+
           'SnapController:handleRequest',
-          'UserStorageController:disableProfileSyncing',
+          'UserStorageController:enableProfileSyncing',
         ],
-        allowedEvents: [],
+        allowedEvents: ['KeyringController:unlock', 'KeyringController:lock'],
       }),
-      // TODO: Fix this by (await MetaMetrics.getInstance().getMetaMetricsId()) before go live
       metametrics: {
         agent: 'mobile',
-        getMetaMetricsId: async () => Promise.resolve(''),
+        getMetaMetricsId: async () =>
+          (await MetaMetrics.getInstance().getMetaMetricsId()) || '',
       },
     });
 
@@ -1071,6 +1074,7 @@ class Engine {
         name: 'UserStorageController',
         allowedActions: [
           'SnapController:handleRequest',
+          'KeyringController:getState',
           'AuthenticationController:getBearerToken',
           'AuthenticationController:getSessionProfile',
           'AuthenticationController:isSignedIn',
@@ -1079,7 +1083,7 @@ class Engine {
           'NotificationServicesController:disableNotificationServices',
           'NotificationServicesController:selectIsNotificationServicesEnabled',
         ],
-        allowedEvents: [],
+        allowedEvents: ['KeyringController:unlock', 'KeyringController:lock'],
       }),
     });
 
@@ -1090,6 +1094,7 @@ class Engine {
         messenger: this.controllerMessenger.getRestricted({
           name: 'NotificationServicesController',
           allowedActions: [
+            'KeyringController:getState',
             'KeyringController:getAccounts',
             'AuthenticationController:getBearerToken',
             'AuthenticationController:isSignedIn',
@@ -1098,7 +1103,11 @@ class Engine {
             'UserStorageController:performGetStorage',
             'UserStorageController:performSetStorage',
           ],
-          allowedEvents: ['KeyringController:stateChange'],
+          allowedEvents: [
+            'KeyringController:unlock',
+            'KeyringController:lock',
+            'KeyringController:stateChange',
+          ],
         }),
         state: initialState.NotificationServicesController,
         env: {
@@ -1223,12 +1232,12 @@ class Engine {
           this.transactionController.confirmExternalTransaction.bind(
             this.transactionController,
           ),
+        // @ts-expect-error Need to make sure types match.
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
         getNonceLock: this.transactionController.getNonceLock.bind(
           this.transactionController,
         ),
-        // @ts-expect-error Older TransactionController version in SmartTransactionsController means TransactionMeta types don't match.
         getTransactions: this.transactionController.getTransactions.bind(
           this.transactionController,
         ),
@@ -1244,13 +1253,10 @@ class Engine {
           networkController.getProviderAndBlockTracker().provider as any,
 
         trackMetaMetricsEvent: smartTransactionsControllerTrackMetaMetricsEvent,
+        getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
       },
       {
-        supportedChainIds: [
-          NETWORKS_CHAIN_ID.MAINNET,
-          NETWORKS_CHAIN_ID.GOERLI,
-          NETWORKS_CHAIN_ID.SEPOLIA,
-        ],
+        supportedChainIds: getAllowedSmartTransactionsChainIds(),
       },
       initialState.SmartTransactionsController,
     );
@@ -1770,11 +1776,17 @@ class Engine {
       TokenBalancesController,
       TokenRatesController,
       PermissionController,
+      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+      SnapController,
+      ///: END:ONLY_INCLUDE_IF
       LoggingController,
     } = this.context;
 
     // Remove all permissions.
     PermissionController?.clearState?.();
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    SnapController.clearState();
+    ///: END:ONLY_INCLUDE_IF
 
     //Clear assets info
     TokensController.update({
@@ -1850,7 +1862,6 @@ class Engine {
     requestData?: Record<string, Json>,
     opts: AcceptOptions & { handleErrors?: boolean } = {
       waitForResult: false,
-      deleteAfterResult: false,
       handleErrors: true,
     },
   ) {
@@ -1859,7 +1870,6 @@ class Engine {
     try {
       return await ApprovalController.accept(id, requestData, {
         waitForResult: opts.waitForResult,
-        deleteAfterResult: opts.deleteAfterResult,
       });
     } catch (err) {
       if (opts.handleErrors === false) {

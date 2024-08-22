@@ -4,7 +4,9 @@ import { useSelector } from 'react-redux';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import AddCustomToken from '../../UI/AddCustomToken';
 import SearchTokenAutocomplete from '../../UI/SearchTokenAutocomplete';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
+import ScrollableTabView, {
+  TabBarProps,
+} from 'react-native-scrollable-tab-view';
 import { strings } from '../../../../locales/i18n';
 import AddCustomCollectible from '../../UI/AddCustomCollectible';
 import {
@@ -83,7 +85,7 @@ const AddAsset = () => {
     });
   };
 
-  const renderTabBar = (props) => (
+  const renderTabBar = (props: TabBarProps) => (
     <View style={styles.base}>
       <DefaultTabBar
         underlineStyle={styles.tabUnderlineStyle}
@@ -135,7 +137,6 @@ const AddAsset = () => {
                 ? {
                     variant: ButtonVariants.Link,
                     onPress: goToSecuritySettings,
-                    textVariant: TextVariant.BodyMD,
                     label: strings('wallet.display_nft_media_cta'),
                   }
                 : undefined

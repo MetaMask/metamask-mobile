@@ -50,8 +50,8 @@ class Matchers {
    * @param {string} label - Match elements with the specified accessibility label (iOS) or content description (Android)
    * @return {Promise<Detox.IndexableNativeElement>} - Resolves to the located element
    */
-  static async getElementByLabel(label) {
-    return element(by.label(label));
+  static async getElementByLabel(label, index = 0) {
+    return element(by.label(label)).atIndex(index);
   }
 
   /**
