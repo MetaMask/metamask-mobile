@@ -148,7 +148,7 @@ class NotificationManager {
         title,
         body: message,
         android: {
-          lightUpScreen: false,
+          lightUpScreen: true,
           channelId,
           smallIcon: 'ic_notification_small',
           largeIcon: 'ic_notification',
@@ -159,11 +159,11 @@ class NotificationManager {
         },
         ios: {
           foregroundPresentationOptions: {
-            alert: false,
-            sound: false,
-            badge: false,
-            banner: false,
-            list: false,
+            alert: true,
+            sound: true,
+            badge: true,
+            banner: true,
+            list: true,
           },
         },
       };
@@ -429,9 +429,9 @@ class NotificationManager {
         .filter(
           (tx) =>
             safeToChecksumAddress(tx.txParams?.to) ===
-              selectedInternalAccountChecksummedAddress &&
+            selectedInternalAccountChecksummedAddress &&
             safeToChecksumAddress(tx.txParams?.from) !==
-              selectedInternalAccountChecksummedAddress &&
+            selectedInternalAccountChecksummedAddress &&
             tx.chainId === chainId &&
             tx.status === 'confirmed' &&
             lastBlock <= parseInt(tx.blockNumber, 10) &&
