@@ -22,6 +22,7 @@ const AddChainApproval = () => {
           customNetworkInformation={approvalRequest?.requestData}
           onReject={onReject}
           onConfirm={onConfirm}
+          isMissmatchingRPCUrl
         />
       </View>
     </BottomSheet>

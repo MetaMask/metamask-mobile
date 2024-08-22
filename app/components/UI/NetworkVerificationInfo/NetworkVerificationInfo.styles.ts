@@ -55,6 +55,16 @@ const styleSheet = (params: { theme: Theme }) => {
 
     networkSection: { marginBottom: 16 },
     nestedScrollContent: { paddingBottom: 24 },
+    networkUrlLabelRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    tagContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
   });
 };
 export default styleSheet;

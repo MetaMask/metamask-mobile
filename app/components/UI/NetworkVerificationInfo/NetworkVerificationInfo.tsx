@@ -1,14 +1,21 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, Linking } from 'react-native';
+import { View, Linking, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../component-library/components/Texts/Text';
-
+import TagColored from '../../../component-library/components-temp/TagColored/TagColored';
+import { TagColor } from '../../../component-library/components-temp/TagColored/TagColored.types';
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
 import Accordion from '../../../component-library/components/Accordions/Accordion';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../component-library/components/Icons/Icon';
 import Banner, {
   BannerAlertSeverity,
   BannerVariant,
@@ -51,11 +58,13 @@ const NetworkVerificationInfo = ({
   onReject,
   onConfirm,
   isCustomNetwork = false,
+  isMissmatchingRPCUrl = false,
 }: {
   customNetworkInformation: CustomNetworkInformation;
   onReject: () => void;
   onConfirm: () => void;
   isCustomNetwork?: boolean;
+  isMissmatchingRPCUrl?: boolean;
 }) => {
   const [networkInfoMaxHeight, setNetworkInfoMaxHeight] = useState<
     number | null
@@ -159,17 +168,47 @@ const NetworkVerificationInfo = ({
 
       {!isMutichainVersion1Enabled && renderChainId()}
 
-      <Text
-        variant={
-          !isMutichainVersion1Enabled
-            ? TextVariant.BodyMDBold
-            : TextVariant.BodyMDMedium
-        }
-      >
-        {isMutichainVersion1Enabled
-          ? strings('networks.network_rpc_url_label')
-          : strings('add_custom_network.network_url')}
-      </Text>
+      <View style={styles.networkUrlLabelRow}>
+        <Text
+          color={
+            isMutichainVersion1Enabled && isMissmatchingRPCUrl
+              ? TextColor.Primary
+              : TextColor.Default
+          }
+          variant={
+            !isMutichainVersion1Enabled
+              ? TextVariant.BodyMDBold
+              : TextVariant.BodyMDMedium
+          }
+        >
+          {isMutichainVersion1Enabled
+            ? strings('networks.network_rpc_url_label')
+            : strings('add_custom_network.network_url')}
+        </Text>
+        <TouchableOpacity
+          onPress={() => {
+            console.log('Pressed! navigate to details!');
+          }}
+        >
+          <TagColored style={{ height: 20 }} color={TagColor.Info}>
+            <View style={styles.tagContent}>
+              <Icon
+                size={IconSize.Sm}
+                name={IconName.Info}
+                color={IconColor.Primary}
+              />
+              <Text variant={TextVariant.BodySM} color={TextColor.Primary}>
+                {strings('networks.review')}
+              </Text>
+              <Icon
+                size={IconSize.Xs}
+                name={IconName.ArrowRight}
+                color={IconColor.Primary}
+              />
+            </View>
+          </TagColored>
+        </TouchableOpacity>
+      </View>
       <Text style={styles.textSection}>
         {hideKeyFromUrl(customNetworkInformation.rpcUrl)}
       </Text>

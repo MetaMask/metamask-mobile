@@ -1726,6 +1726,7 @@
     "network_chain_id": "Chain ID",
     "network_rpc_url": "Network URL",
     "network_rpc_url_label": "Network RPC URL",
+    "review": "Review",
     "view_details": "View details",
     "network_details": "Network details",
     "network_select_confirm_use_safe_check": "Selecting Confirm turns on Network details check. You can turn off Network details check in ",
