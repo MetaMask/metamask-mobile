@@ -1,0 +1,110 @@
+Commit Message,Author,PR Link,Team,Change Type
+feat: Add yarn flipper script (#10748),Cal Leung,https://github.com/MetaMask/metamask-mobile/pull/10748,team-mobile-platform,Added
+chore: fix another batch of TS errors (#10746),Kylan Hurt,https://github.com/MetaMask/metamask-mobile/pull/10746,team-mobile-platform,Changed
+feat: Feat/add redux debugger (#10739),Cal Leung,https://github.com/MetaMask/metamask-mobile/pull/10739,team-mobile-platform,Added
+chore: Add E2E folders to sonar exclusion list (#10735),Curtis David,https://github.com/MetaMask/metamask-mobile/pull/10735,team-mobile-platform,Changed
+chore: Add more typescript fixes (#10697),tommasini,https://github.com/MetaMask/metamask-mobile/pull/10697,team-mobile-platform,Changed
+chore: bump verions number 1397 for RC 5 (#10737),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/10737,team-mobile-platform,Ops
+chore: New Crowdin translations by Github Action (#10549),MetaMask Bot,https://github.com/MetaMask/metamask-mobile/pull/10549,team-mobile-platform,Changed
+chore: ignore errors that are fixed on TS v5 (#10732),tommasini,https://github.com/MetaMask/metamask-mobile/pull/10732,team-mobile-platform,Changed
+chore: remove tsc issues of node_modules (#10710),tommasini,https://github.com/MetaMask/metamask-mobile/pull/10710,team-mobile-platform,Changed
+chore: Implement TypeScript for Ramp folder (#10670),Kylan Hurt,https://github.com/MetaMask/metamask-mobile/pull/10670,team-mobile-platform,Changed
+chore: enable webview debugging for all builds but prod (#10285),João Loureiro,https://github.com/MetaMask/metamask-mobile/pull/10285,team-mobile-platform,Changed
+chore: Ignore TS issues on snaps directory (#10698),tommasini,https://github.com/MetaMask/metamask-mobile/pull/10698,team-mobile-platform,Changed
+test: Update ios simulator to iphone 15 (#10636),SamuelSalas,https://github.com/MetaMask/metamask-mobile/pull/10636,team-mobile-platform,Changed
+chore: Fix TS errors in batch of components/UI folder (#10707),Kylan Hurt,https://github.com/MetaMask/metamask-mobile/pull/10707,team-mobile-platform,Changed
+test: disable sonar on E2E folder (#10720),Curtis David,https://github.com/MetaMask/metamask-mobile/pull/10720,team-mobile-platform,Changed
+chore: reverting chainID 1338 (#10603),Curtis David,https://github.com/MetaMask/metamask-mobile/pull/10603,team-mobile-platform,Changed
+chore: version bump 1393 rc4 (#10713),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/10713,team-mobile-platform,Ops
+chore: cherry-pick fix android build (#10711),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/10711,team-mobile-platform,Ops
+chore: Bump version 1398 RC3 (#10709),Daniel Cross,https://github.com/MetaMask/metamask-mobile/pull/10709,team-mobile-platform,Changed
+chore(deps): bump rexml from 3.2.8 to 3.3.3 in the bundler group across 1 directory (#10705),dependabot[bot],https://github.com/MetaMask/metamask-mobile/pull/10705,team-mobile-platform,Ops
+chore: cherry picked and fixed conflicts 7.28.1 release (#10702),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/10702,team-mobile-platform,Ops
+chore: removing unused component (#10700),tommasini,https://github.com/MetaMask/metamask-mobile/pull/10700,team-mobile-platform,Changed
+feat: 7.28.1 (#10602),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/10602,team-mobile-platform,Added
+chore: Prevent crash when engine is not initialized (#10690),Cal Leung,https://github.com/MetaMask/metamask-mobile/pull/10690,team-mobile-platform,Changed
+chore: Typescript Views folder part 3 - 1 (#10587),devin-ai-integration[bot],https://github.com/MetaMask/metamask-mobile/pull/10587,team-mobile-platform,Changed
+chore: TS coverage on views folder part 3 - 2 (#10672),tommasini,https://github.com/MetaMask/metamask-mobile/pull/10672,team-mobile-platform,Changed
+chore: Views directory ts coverage - part 1 (#10665),João Loureiro,https://github.com/MetaMask/metamask-mobile/pull/10665,team-mobile-platform,Changed
+chore: typescript no check on notifications directory (#10675),tommasini,https://github.com/MetaMask/metamask-mobile/pull/10675,team-mobile-platform,Changed
+chore: Typescript Views folder part 3 - 3 (#10594),devin-ai-integration[bot],https://github.com/MetaMask/metamask-mobile/pull/10594,team-mobile-platform,Changed
+chore: blockaid and fav icon test files ts errors (#10681),tommasini,https://github.com/MetaMask/metamask-mobile/pull/10681,team-mobile-platform,Changed
+fix: Update test dapp favorite selector (#10649),SamuelSalas,https://github.com/MetaMask/metamask-mobile/pull/10649,team-mobile-platform,Changed
+chore: 10311 transactions simulation dir (#10561),Aslau Mario-Daniel,https://github.com/MetaMask/metamask-mobile/pull/10561,team-mobile-platform,Changed
+chore: Update axios to v1.7.4 (#10663),tommasini,https://github.com/MetaMask/metamask-mobile/pull/10663,team-mobile-platform,Changed
+chore: confirmations directory ts coverage (#10645),tommasini,https://github.com/MetaMask/metamask-mobile/pull/10645,team-mobile-platform,Changed
+chore: skip flakey test (#10653),Curtis David,https://github.com/MetaMask/metamask-mobile/pull/10653,team-mobile-platform,Changed
+test: Bump Detox version from v20.20.3 to v20.23.1 (#10557),SamuelSalas,https://github.com/MetaMask/metamask-mobile/pull/10557,team-mobile-platform,Changed
+fix: Add missing pod lock changes (#10641),Cal Leung,https://github.com/MetaMask/metamask-mobile/pull/10641,team-mobile-platform,Fixed
+feat: Feat/10521 react-native-performance mvp for measuring app start + JS bundle load times (#10589),Cal Leung,https://github.com/MetaMask/metamask-mobile/pull/10589,team-mobile-platform,Added
+chore: Cherry pick new terms of use (#10609),tommasini,https://github.com/MetaMask/metamask-mobile/pull/10609,team-mobile-platform,Changed
+fix: useBlockExplorer hook (#10613),tommasini,https://github.com/MetaMask/metamask-mobile/pull/10613,team-mobile-platform,Fixed
+chore: TS coverage UI folder part 1 (#10537),tommasini,https://github.com/MetaMask/metamask-mobile/pull/10537,team-mobile-platform,Changed
+chore: Update terms of use modal (#10538),tommasini,https://github.com/MetaMask/metamask-mobile/pull/10538,team-mobile-platform,Changed
+chore: Create app launch times pipeline (#10559),Curtis David,https://github.com/MetaMask/metamask-mobile/pull/10559,team-mobile-platform,Changed
+fix: App crashes when deleting browser favorites on android devices (#10598),Daniel Cross,https://github.com/MetaMask/metamask-mobile/pull/10598,team-mobile-platform,Fixed
+chore: enable sonar on E2E (#10575),Curtis David,https://github.com/MetaMask/metamask-mobile/pull/10575,team-mobile-platform,Changed
+fix: url change bug (#10489),Nico MASSART,https://github.com/MetaMask/metamask-mobile/pull/10489,team-mobile-platform,Fixed
+chore: Fix some TS errors in component library (#10307),Kylan Hurt,https://github.com/MetaMask/metamask-mobile/pull/10307,team-mobile-platform,Changed
+chore: bump version 1378 RC 2 (#10581),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/10581,team-mobile-platform,Ops
+chore: audit override (#10578),tommasini,https://github.com/MetaMask/metamask-mobile/pull/10578,team-mobile-platform,Changed
+chore: merge 7.28.0 (#10576),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/10576,team-mobile-platform,Changed
+chore: update Android SDK to API Level 34 (#10510),João Loureiro,https://github.com/MetaMask/metamask-mobile/pull/10510,team-mobile-platform,Changed
+chore: move detox setup into its own script (#10553),Curtis David,https://github.com/MetaMask/metamask-mobile/pull/10553,team-mobile-platform,Changed
+feat: 7.28.0 (#10353),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/10353,team-mobile-platform,Added
+chore: New Crowdin translations by Github Action (#10354),MetaMask Bot,https://github.com/MetaMask/metamask-mobile/pull/10354,team-mobile-platform,Changed
+chore: add runway bot to CLA allow list (#10546),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/10546,team-mobile-platform,Changed
+chore: Optimize/10528 remove generated svgs (#10535),Cal Leung,https://github.com/MetaMask/metamask-mobile/pull/10535,team-mobile-platform,Changed
+chore: chore/7.29.0-Changelog (#10534),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/10534,team-mobile-platform,Changed
+fix: bump micromatch to 4.0.7 (#10741),legobeat,https://github.com/MetaMask/metamask-mobile/pull/10741,team-security,Ops
+test: Refactor AdvancedView.js (#10712),devin-ai-integration[bot],https://github.com/MetaMask/metamask-mobile/pull/10712,team-ai,Changed
+test: Refactor RequestPaymentView page object (#10536),devin-ai-integration[bot],https://github.com/MetaMask/metamask-mobile/pull/10536,team-ai,Changed
+chore(runway): cherry-pick fix: remove duplicate origin validation in transaction controller (#10734),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/10734,"team-confirmations,team-runway-bot",Ops
+fix: remove duplicate origin validation in transaction controller (#10733),Matthew Walsh,https://github.com/MetaMask/metamask-mobile/pull/10733,team-confirmations,Fixed
+fix: issue in blockaid spinner for batched confirmations (#10658),Jyoti Puri,https://github.com/MetaMask/metamask-mobile/pull/10658,team-confirmations,Fixed
+feat: Update @blockaid/ppom_release to release 1.5.2 (#10696),Jyoti Puri,https://github.com/MetaMask/metamask-mobile/pull/10696,team-confirmations,Added
+feat: update add team label workflow (#10718),Norbert Elter,https://github.com/MetaMask/metamask-mobile/pull/10718,team-extension-platform,Added
+chore: bump linux build machine version (#10708),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/10708,team-mobile-delivery,Ops
+chore: updated in-app review to comply with SDK 14 on Android (#10647),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/10647,team-mobile-delivery,Changed
+fix: disabled what's new modal (#10588),Vince Howard,https://github.com/MetaMask/metamask-mobile/pull/10588,team-wallet-ux,Fixed
+feat: 2794 account edit permission multichain bottomsheet UI changes only (#10682),EtherWizard33,https://github.com/MetaMask/metamask-mobile/pull/10682,team-wallet-ux,Added
+"feat: bottom sheet displaying dapp permission summary for multichain, UI changes only and feature flagged ttemp (#10679)",EtherWizard33,https://github.com/MetaMask/metamask-mobile/pull/10679,team-wallet-ux,Added
+fix: settings toggle extra large paddings when biometrics hidden (#10547),Vince Howard,https://github.com/MetaMask/metamask-mobile/pull/10547,team-wallet-ux,Fixed
+fix: sets data marketing to false in case of non-selection (#10154),Jony Bursztyn,https://github.com/MetaMask/metamask-mobile/pull/10154,team-wallet-ux,Fixed
+fix: replaced incorrect icons on wallet bottom sheet with correct icons (#10532),Vince Howard,https://github.com/MetaMask/metamask-mobile/pull/10532,team-wallet-ux,Fixed
+fix: replaced incorrect export icon with correct icon (#10548),Vince Howard,https://github.com/MetaMask/metamask-mobile/pull/10548,team-wallet-ux,Fixed
+feat: add warning banner to custom network bottom sheet (#10542),EtherWizard33,https://github.com/MetaMask/metamask-mobile/pull/10542,team-wallet-ux,Added
+feat: multichain popular network dapp connection confirmation bottomsheet (#10519),EtherWizard33,https://github.com/MetaMask/metamask-mobile/pull/10519,team-wallet-ux,Added
+chore: Bump @metamask/smart-transactions-controller from 10.1.1 to 11.0.0 (#10437),Daniel,https://github.com/MetaMask/metamask-mobile/pull/10437,team-transactions,Changed
+chore: Enable smart transactions only for ETH mainnet in production and for ETH mainnet and Sepolia in non-prod (#10565),Daniel,https://github.com/MetaMask/metamask-mobile/pull/10565,team-transactions,Changed
+chore: cherry pick d147d8f (#10453) (#10706),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/10706,team-accounts,Ops
+chore: add test variant for credential reveal (#10608),Gustavo Antunes,https://github.com/MetaMask/metamask-mobile/pull/10608,team-accounts,Changed
+fix: hold to reveal UI/UX (#10607),Gustavo Antunes,https://github.com/MetaMask/metamask-mobile/pull/10607,team-accounts,Fixed
+feat(ramp): add property to provider selected event (#10393),Pedro Pablo Aste Kompen,https://github.com/MetaMask/metamask-mobile/pull/10393,team-ramp,Added
+feat(ramp): add amounts to quotes received event (#10395),Pedro Pablo Aste Kompen,https://github.com/MetaMask/metamask-mobile/pull/10395,team-ramp,Added
+chore(ramp): upgrade sdk to 1.28.3 and remove chainId casting (#10262),Pedro Pablo Aste Kompen,https://github.com/MetaMask/metamask-mobile/pull/10262,team-ramp,Changed
+fix: upgrade @ledgerhq/react-native-hw-transport-ble library and copyright changes. (#10453),Xiaoming Wang,https://github.com/MetaMask/metamask-mobile/pull/10453,"team-accounts,team-hardware-wallets",Fixed
+feat: QR-based add NGRAVE ZERO Hardware (#9950),Xavier,https://github.com/MetaMask/metamask-mobile/pull/9950,"team-accounts,team-hardware-wallets",Added
+chore: notification second round fixes (#10693),Jonathan Ferreira,https://github.com/MetaMask/metamask-mobile/pull/10693,"team-notifications,team-snaps-platform",Changed
+fix: notifications first round of tests (#10668),Jonathan Ferreira,https://github.com/MetaMask/metamask-mobile/pull/10668,"team-notifications,team-snaps-platform",Changed
+Fix/notification small fixes (#10640),Jonathan Ferreira,https://github.com/MetaMask/metamask-mobile/pull/10640,"team-notifications,team-snaps-platform",Fixed
+chore: Notifications Settings Polishing (#10457),Jonathan Ferreira,https://github.com/MetaMask/metamask-mobile/pull/10457,"team-notifications,team-snaps-platform",Changed
+perf: add parallel fetching for the network fee dropdown (#10692),Prithpal Sooriya,https://github.com/MetaMask/metamask-mobile/pull/10692,team-notifications,Unknown
+refactor(notification types): fix notification types (#10680),Prithpal Sooriya,https://github.com/MetaMask/metamask-mobile/pull/10680,team-notifications,Changed
+fix: remove snap webview flag (#10683),Jonathan Ferreira,https://github.com/MetaMask/metamask-mobile/pull/10683,team-snaps-platform,Fixed
+feat: select multi rpc UI (#10596),salimtb,https://github.com/MetaMask/metamask-mobile/pull/10596,team-assets,Added
+chore: chery pick fix for harmony network image (#10639),Brian Bergeron,https://github.com/MetaMask/metamask-mobile/pull/10639,team-assets,Changed
+chore: cherry pick fix for aggregated balance calculation (#10638),Brian Bergeron,https://github.com/MetaMask/metamask-mobile/pull/10638,team-assets,Ops
+fix: harmony network image (#10600),Brian Bergeron,https://github.com/MetaMask/metamask-mobile/pull/10600,team-assets,Fixed
+fix: aggregated balance calculation (#10404),Brian Bergeron,https://github.com/MetaMask/metamask-mobile/pull/10404,team-assets,Fixed
+chore: Add primary currency to user object in MetaMetrics (#10490),Nick Gambino,https://github.com/MetaMask/metamask-mobile/pull/10490,team-assets,Changed
+feat: improve add network fields checkers (#10123),salimtb,https://github.com/MetaMask/metamask-mobile/pull/10123,team-assets,Added
+chore(runway): cherry-pick fix: App crashes when deleting browser favorites on android devices (#10651),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/10651,team-runway-bot,Ops
+chore(runway): cherry-pick chore: audit override (#10579),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/10579,team-runway-bot,Ops
+chore(runway): cherry-pick chore: update Android SDK to API Level 34 (#10577),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/10577,team-runway-bot,Ops
+chore(runway): cherry-pick New Crowdin translations by Github Action (#10566),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/10566,team-runway-bot,Ops
+fix: switch chain with walletconnect (#10394),Ignacio Santise,https://github.com/MetaMask/metamask-mobile/pull/10394,team-sdk,Fixed
+chore: enhance Source Detection Logic in Analytics Parameters (#10539),Omri Dan,https://github.com/MetaMask/metamask-mobile/pull/10539,team-sdk,Changed
+fix: swap button blocked by SwapsController polling issue (#10637),infiniteflower,https://github.com/MetaMask/metamask-mobile/pull/10637,team-swaps,Fixed
+fix: fix alignment issues in onboarding success (#10361),Brian August Nguyen,https://github.com/MetaMask/metamask-mobile/pull/10361,team-design-system,Fixed
+chore: added stories files to sonarcloud exclusions (#10479),Brian August Nguyen,https://github.com/MetaMask/metamask-mobile/pull/10479,team-design-system,Changed
