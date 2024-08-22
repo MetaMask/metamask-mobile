@@ -47,6 +47,7 @@ const CustomNetwork = ({
       );
       return {
         ...networkConfiguration,
+        name: networkConfiguration.nickname, // Add name property
         isAdded,
       };
     },
