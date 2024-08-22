@@ -200,7 +200,7 @@ function SendTransaction() {
     return null;
   }
 
-  let tokenIcon: ImageSourcePropType | undefined;
+  let tokenIcon: ImageSourcePropType;
   const symbol = orderData.cryptoCurrency.symbol;
   if (symbol === 'ETH') {
     tokenIcon = imageIcons.ETHEREUM as ImageSourcePropType;
