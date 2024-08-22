@@ -57,7 +57,12 @@ const BasicFunctionalityModal = ({ route }: Props) => {
     );
 
     if (nativeNotificationStatus) {
-      await enableNotifications();
+      /**
+       * Although this is an async function, we are dispatching an action (firing & forget)
+       * to emulate optimistic UI.
+       *
+       */
+      enableNotifications();
     }
   }, [enableNotifications]);
 
@@ -66,7 +71,10 @@ const BasicFunctionalityModal = ({ route }: Props) => {
       dispatch(toggleBasicFunctionality(!isEnabled)),
     );
 
-    if (route.params.caller === Routes.SETTINGS.NOTIFICATIONS) {
+    if (
+      route.params.caller === Routes.SETTINGS.NOTIFICATIONS ||
+      route.params.caller === Routes.NOTIFICATIONS.OPT_IN
+    ) {
       await enableNotificationsFromModal();
     }
   };
