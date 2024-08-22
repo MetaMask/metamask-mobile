@@ -60,10 +60,21 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       gap: 8,
     },
+    tag: { height: 20 },
     tagContent: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 4,
+    },
+    defautlUrlChangedContainer: {
+      marginHorizontal: 16,
+    },
+    titleDefaultUrl: {
+      marginBottom: 16,
+      alignItems: 'center',
+    },
+    headerStyle: {
+      width: '100%',
     },
   });
 };

@@ -75,10 +75,13 @@ const NetworkVerificationInfo = ({
     selectUseSafeChainsListValidation,
   );
   const [showCheckNetwork, setShowCheckNetwork] = React.useState(false);
+  const [showReviewDefaultRpcUrlChanges, setShowReviewDefaultRpcUrlChanges] =
+    React.useState(false);
   const { alerts: alertsFromProps } = customNetworkInformation;
   const [alerts, setAlerts] = React.useState<Alert[]>([]);
-
   const showCheckNetworkModal = () => setShowCheckNetwork(!showCheckNetwork);
+  const showReviewDefaultRpcUrlChangesModal = () =>
+    setShowReviewDefaultRpcUrlChanges(!showReviewDefaultRpcUrlChanges);
 
   const goToLearnMore = () => {
     Linking.openURL(
@@ -187,10 +190,10 @@ const NetworkVerificationInfo = ({
         </Text>
         <TouchableOpacity
           onPress={() => {
-            console.log('Pressed! navigate to details!');
+            showReviewDefaultRpcUrlChangesModal();
           }}
         >
-          <TagColored style={{ height: 20 }} color={TagColor.Info}>
+          <TagColored style={styles.tag} color={TagColor.Info}>
             <View style={styles.tagContent}>
               <Icon
                 size={IconSize.Sm}
@@ -279,6 +282,45 @@ const NetworkVerificationInfo = ({
     </View>
   );
 
+  const renderReviewDefaultNetworkRpcUrlChange = () => (
+    <View>
+      <BottomSheetHeader
+        style={styles.headerStyle}
+        onBack={() => {
+          showReviewDefaultRpcUrlChangesModal();
+        }}
+      >
+        <Icon
+          size={IconSize.Xl}
+          name={IconName.Info}
+          color={IconColor.Primary}
+        />
+      </BottomSheetHeader>
+
+      <View style={styles.defautlUrlChangedContainer}>
+        <View style={styles.titleDefaultUrl}>
+          <Text variant={TextVariant.HeadingMD}>
+            {strings('networks.new_default_network_url')}
+          </Text>
+        </View>
+        <View>
+          <Text variant={TextVariant.BodyMDBold}>
+            {strings('networks.current_label')}
+          </Text>
+          <Text style={styles.textSection}>
+            {customNetworkInformation.rpcUrl}
+          </Text>
+          <Text variant={TextVariant.BodyMDBold}>
+            {strings('networks.new_label')}
+          </Text>
+          <Text style={styles.textSection}>
+            {'https://flashbots.polygon-mainnet.com'}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+
   const renderAlerts = useCallback(() => {
     if (!safeChainsListValidationEnabled) return null;
     if (!alerts.length) return null;
@@ -309,7 +351,9 @@ const NetworkVerificationInfo = ({
     );
   }, [alerts, styles.textSection, safeChainsListValidationEnabled]);
 
-  return showCheckNetwork ? (
+  return showReviewDefaultRpcUrlChanges ? (
+    renderReviewDefaultNetworkRpcUrlChange()
+  ) : showCheckNetwork ? (
     <View>
       <View style={styles.textContainer}>
         <Text style={styles.title}>
