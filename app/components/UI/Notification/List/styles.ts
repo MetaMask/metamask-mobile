@@ -11,11 +11,37 @@ export const createStyles = ({ colors, typography }: Theme) =>
       backgroundColor: colors.background.default,
       marginHorizontal: 8,
     },
+    itemContainer: {
+      flex: 1,
+      paddingVertical: 10,
+      paddingHorizontal: 8,
+    },
+    unreadItemContainer: {
+      flex: 1,
+      paddingVertical: 10,
+      paddingHorizontal: 8,
+      backgroundColor: colors.info.muted,
+    },
+    unreadDot: {
+      width: 4,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.info.default,
+      alignSelf: 'flex-start',
+      marginTop: 14,
+    },
+    readDot: {
+      width: 4,
+      height: 4,
+      borderRadius: 2,
+      alignSelf: 'flex-start',
+    },
     wrapper: {
       flex: 1,
       paddingVertical: 10,
       justifyContent: 'center',
       borderRadius: 10,
+      backgroundColor: colors.primary.default,
     },
     loaderContainer: {
       position: 'absolute',

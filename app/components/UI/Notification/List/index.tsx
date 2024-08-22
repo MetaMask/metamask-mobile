@@ -89,8 +89,9 @@ function NotificationsListItem(props: NotificationsListItemProps) {
       handleOnPress={() => onNotificationClick(props.notification)}
       styles={styles}
       simultaneousHandlers={undefined}
+      isRead={props.notification.isRead}
     >
-      <NotificationMenuItem.Icon {...menuItemState} />
+      <NotificationMenuItem.Icon isRead={props.notification.isRead} {...menuItemState}/>
       <NotificationMenuItem.Content {...menuItemState} />
     </NotificationMenuItem.Root>
   );
