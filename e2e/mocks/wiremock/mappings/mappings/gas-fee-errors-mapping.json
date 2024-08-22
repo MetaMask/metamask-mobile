@@ -10,7 +10,7 @@
     },
     "response": {
       "status": 500,
-      "body": "Internal Server Error",
+      "body": "Internal Server Error HI SAMUEL",
       "headers": {
         "Content-Type": "text/plain"
       }

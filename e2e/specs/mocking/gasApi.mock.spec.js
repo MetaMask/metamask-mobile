@@ -53,7 +53,7 @@ describe(
     });
 
     afterAll(async () => {
-      // stopWireMockServer();
+      stopWireMockServer();
     });
   },
 );

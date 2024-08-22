@@ -1,7 +1,7 @@
 {
     "request": {
       "method": "GET",
-      "url": "/networks/1/suggestedGasFees",
+      "url": "/networks/1/suggestedGasFees1",
       "headers": {
         "x-client-id": {
           "equalTo": "mobile"  // Ensure this matches the value used in the request
