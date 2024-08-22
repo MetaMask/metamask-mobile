@@ -2,7 +2,7 @@ import { render } from '@testing-library/react-native';
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getPermittedAccounts } from '../../../../core/Permissions';
-import SDKSessionItem from './SDKSessionItem';
+import SDKSessionItem, { SDKSessionViewProps } from './SDKSessionItem';
 
 // Mock external hooks and functions
 jest.mock('react-native-safe-area-context', () => ({
@@ -52,7 +52,7 @@ describe('SDKSessionItem', () => {
   const mockUseSafeAreaInsets = useSafeAreaInsets as jest.Mock;
   const mockGetPermittedAccounts = getPermittedAccounts as jest.Mock;
 
-  const defaultProps = {
+  const defaultProps: SDKSessionViewProps = {
     connection: {
       id: '1',
       originatorInfo: {
@@ -60,8 +60,9 @@ describe('SDKSessionItem', () => {
         url: 'http://test.com',
         icon: 'http://icon-url.com',
         platform: 'test',
-        connected: true,
+        dappId: 'test-dapp-id', // Added missing dappId property
       },
+      connected: true,
     },
     trigger: 0,
   };
