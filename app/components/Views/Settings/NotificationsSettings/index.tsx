@@ -142,6 +142,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
         null,
       ),
     );
+    accountSettingsProps.update(accountAddresses);
   }, [colors, isFullScreenModal, navigation]);
 
   const MainNotificationSettings: FC = () => (
@@ -190,11 +191,8 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           title={account.name}
           address={account.address}
           disabledSwitch={accountSettingsProps.initialLoading}
-          isLoading={accountSettingsProps.accountsBeingUpdated.includes(
-            account.address,
-          )}
           isEnabled={
-            !!accountSettingsProps.data?.[account.address.toLowerCase()]
+            accountSettingsProps.data?.[account.address.toLowerCase()]
           }
         />
       )),
@@ -202,7 +200,6 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
       accounts,
       accountAvatarType,
       accountSettingsProps.initialLoading,
-      accountSettingsProps.accountsBeingUpdated,
       accountSettingsProps.data,
     ],
   );
