@@ -46,20 +46,14 @@ const AccountPermissionsConfirmRevokeAll = (
 
   const sheetRef = useRef<BottomSheetRef>(null);
 
-  const revokeAllAccounts = useCallback(
-    async () => {
-      try {
-        await Engine.context.PermissionController.revokeAllPermissions(
-          hostname,
-        );
-        sheetRef.current?.onCloseBottomSheet();
-      } catch (e) {
-        Logger.log(`Failed to revoke all accounts for ${hostname}`, e);
-      }
-    },
-    /* eslint-disable-next-line */
-    [hostname],
-  );
+  const revokeAllAccounts = useCallback(async () => {
+    try {
+      await Engine.context.PermissionController.revokeAllPermissions(hostname);
+      sheetRef.current?.onCloseBottomSheet();
+    } catch (e) {
+      Logger.log(`Failed to revoke all accounts for ${hostname}`, e);
+    }
+  }, [hostname, Engine.context.PermissionController]);
 
   const onCancel = () => {
     sheetRef.current?.onCloseBottomSheet();
