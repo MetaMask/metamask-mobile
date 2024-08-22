@@ -52,6 +52,7 @@ import Price from './Price';
 import styleSheet from './AssetOverview.styles';
 import { useStyles } from '../../../component-library/hooks';
 import { RootState } from '../../../reducers';
+import type SwapsController from '@metamask/swaps-controller';
 
 interface AssetOverviewProps {
   navigation: {
@@ -92,9 +93,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { SwapsController } = Engine.context as { SwapsController: any };
+    const { SwapsController } = Engine.context as {
+      SwapsController: SwapsController;
+    };
     const fetchTokenWithCache = async () => {
       try {
         await SwapsController.fetchTokenWithCache();
