@@ -98,10 +98,6 @@ export const SnapsExecutionWebView: React.FC = () => {
     }
   }, [basicFunctionalityEnabled]);
 
-  if (!basicFunctionalityEnabled) {
-    return null;
-  }
-
   return (
     <ScrollView testID={'load-snap-webview'}>
       <View style={styles.webview}>
