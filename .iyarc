@@ -2,6 +2,6 @@
 
 GHSA-c2qf-rxjj-qqgw
 
-# Waiting on version with patch - https://github.com/advisories/GHSA-952p-6rrq-rcjv
+# micromatch ReDoS
 
 GHSA-952p-6rrq-rcjv
