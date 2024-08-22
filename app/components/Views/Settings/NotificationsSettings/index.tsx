@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/display-name */
 import React, { FC, useEffect, useMemo, useCallback } from 'react';
-import { Pressable, ScrollView, Switch, View, Linking } from 'react-native';
+import { Pressable, ScrollView, Switch, View, Linking, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
@@ -132,6 +132,9 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     Linking.openURL(AppConstants.URLS.PROFILE_SYNC);
   };
 
+  const reFetchingAccountSettings = async () => {
+    await accountSettingsProps.update(accountAddresses);
+  }
   useEffect(() => {
     navigation.setOptions(
       getNavigationOptionsTitle(
@@ -142,7 +145,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
         null,
       ),
     );
-    accountSettingsProps.update(accountAddresses);
+    reFetchingAccountSettings();
   }, [colors, isFullScreenModal, navigation]);
 
   const MainNotificationSettings: FC = () => (
@@ -219,7 +222,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
             )}
             styles={styles}
           />
-          {renderAccounts()}
+          {accountSettingsProps.initialLoading ? <ActivityIndicator /> : renderAccounts()}
         </>
       )}
       <SwitchLoadingModal
