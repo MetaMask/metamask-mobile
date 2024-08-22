@@ -185,24 +185,24 @@ class OptinMetrics extends PureComponent {
 
   actionsList = isPastPrivacyPolicyDate
     ? [1, 2, 3].map((value) => ({
-      action: value,
-      prefix: strings(`privacy_policy.action_description_${value}_prefix`),
-      description: strings(
-        `privacy_policy.action_description_${value}_description`,
-      ),
-    }))
-    : [1, 2, 3, 4, 5].map((value) => {
-      const actionVal = value <= 2 ? 0 : 1;
-      return {
-        action: actionVal,
-        prefix: actionVal
-          ? `${strings('privacy_policy.action_description_never_legacy')} `
-          : '',
+        action: value,
+        prefix: strings(`privacy_policy.action_description_${value}_prefix`),
         description: strings(
-          `privacy_policy.action_description_${value}_legacy`,
+          `privacy_policy.action_description_${value}_description`,
         ),
-      };
-    });
+      }))
+    : [1, 2, 3, 4, 5].map((value) => {
+        const actionVal = value <= 2 ? 0 : 1;
+        return {
+          action: actionVal,
+          prefix: actionVal
+            ? `${strings('privacy_policy.action_description_never_legacy')} `
+            : '',
+          description: strings(
+            `privacy_policy.action_description_${value}_legacy`,
+          ),
+        };
+      });
 
   updateNavBar = () => {
     const { navigation } = this.props;
