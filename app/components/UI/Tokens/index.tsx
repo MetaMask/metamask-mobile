@@ -92,8 +92,7 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { zeroAddress } from 'ethereumjs-util';
 import PercentageChange from '../../../component-library/components-temp/Price/PercentageChange';
 import AggregatedPercentage from '../../../component-library/components-temp/Price/AggregatedPercentage';
-import { RootState } from 'app/reducers';
-import { Asset } from '../../hooks/useAddressBalance/useAddressBalance.types';
+import { RootState } from '../../../reducers';
 import { Hex } from '@metamask/utils';
 
 // this will be imported from TokenRatesController when it is exported from there
@@ -146,9 +145,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate);
   const primaryCurrency = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.settings.primaryCurrency,
+    (state: RootState) => state.settings.primaryCurrency,
   );
   const { data: tokenBalances } = useTokenBalancesController();
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
@@ -193,7 +190,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     setShowScamWarningModal(false);
   };
 
-  const renderScamWarningIcon = (asset: Asset) => {
+  const renderScamWarningIcon = (asset: TokenI) => {
     if (!isOriginalNativeTokenSymbol && asset.isETH) {
       return (
         <ButtonIcon
