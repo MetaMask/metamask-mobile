@@ -177,7 +177,7 @@ class FixtureBuilder {
               networkConfigurations: {
                 networkId1: {
                   rpcUrl: `http://localhost:${getGanachePort()}`,
-                  chainId: '1338',
+                  chainId: '1337',
                   ticker: 'ETH',
                   nickname: 'Localhost',
                 },
@@ -569,7 +569,7 @@ class FixtureBuilder {
             },
             {
               active: true,
-              chainId: 1338,
+              chainId: 1337,
               chainName: 'Localhost',
               shortName: 'Localhost',
               nativeTokenSupported: true,
@@ -711,7 +711,7 @@ class FixtureBuilder {
       isCustomNetwork: true,
       providerConfig: {
         type: 'rpc',
-        chainId: '0x53a',
+        chainId: '0x539',
         rpcUrl: `http://localhost:${getGanachePort()}`,
         nickname: 'Localhost',
         ticker: 'ETH',
