@@ -2,8 +2,7 @@
 
 ## Current Main Branch
 
-## release/7.30.0 - <Date>
-
+## 7.30.0 - Aug 22, 2024
 ### Added
 - [#10748](https://github.com/MetaMask/metamask-mobile/pull/10748): feat: Add yarn flipper script (#10748)
 - [#10739](https://github.com/MetaMask/metamask-mobile/pull/10739): feat: Feat/add redux debugger (#10739)
@@ -19,6 +18,7 @@
 - [#10395](https://github.com/MetaMask/metamask-mobile/pull/10395): feat(ramp): add amounts to quotes received event (#10395)
 - [#10596](https://github.com/MetaMask/metamask-mobile/pull/10596): feat: select multi rpc UI (#10596)
 - [#10123](https://github.com/MetaMask/metamask-mobile/pull/10123): feat: improve add network fields checkers (#10123)
+- [#9950](https://github.com/MetaMask/metamask-mobile/pull/9950): feat: QR-based add NGRAVE ZERO Hardware (#9950)
 
 ### Changed
 - [#10746](https://github.com/MetaMask/metamask-mobile/pull/10746): chore: fix another batch of TS errors (#10746)
@@ -43,7 +43,6 @@
 - [#10675](https://github.com/MetaMask/metamask-mobile/pull/10675): chore: typescript no check on notifications directory (#10675)
 - [#10594](https://github.com/MetaMask/metamask-mobile/pull/10594): chore: Typescript Views folder part 3 - 3 (#10594)
 - [#10681](https://github.com/MetaMask/metamask-mobile/pull/10681): chore: blockaid and fav icon test files ts errors (#10681)
-- [#10649](https://github.com/MetaMask/metamask-mobile/pull/10649): fix: Update test dapp favorite selector (#10649)
 - [#10561](https://github.com/MetaMask/metamask-mobile/pull/10561): chore: 10311 transactions simulation dir (#10561)
 - [#10663](https://github.com/MetaMask/metamask-mobile/pull/10663): chore: Update axios to v1.7.4 (#10663)
 - [#10645](https://github.com/MetaMask/metamask-mobile/pull/10645): chore: confirmations directory ts coverage (#10645)
@@ -73,9 +72,12 @@
 - [#10680](https://github.com/MetaMask/metamask-mobile/pull/10680): refactor(notification types): fix notification types (#10680)
 - [#10639](https://github.com/MetaMask/metamask-mobile/pull/10639): chore: chery pick fix for harmony network image (#10639)
 - [#10490](https://github.com/MetaMask/metamask-mobile/pull/10490): chore: Add primary currency to user object in MetaMetrics (#10490)
+- [#10457](https://github.com/MetaMask/metamask-mobile/pull/10457): chore: Notifications Settings Polishing (#10457)
+- [#10692](https://github.com/MetaMask/metamask-mobile/pull/10692): perf: add parallel fetching for the network fee dropdown (#10692)
 - [#10539](https://github.com/MetaMask/metamask-mobile/pull/10539): chore: enhance Source Detection Logic in Analytics Parameters (#10539)
 
 ### Fixed
+- [#10649](https://github.com/MetaMask/metamask-mobile/pull/10649): fix: Update test dapp favorite selector (#10649)
 - [#10641](https://github.com/MetaMask/metamask-mobile/pull/10641): fix: Add missing pod lock changes (#10641)
 - [#10613](https://github.com/MetaMask/metamask-mobile/pull/10613): fix: useBlockExplorer hook (#10613)
 - [#10598](https://github.com/MetaMask/metamask-mobile/pull/10598): fix: App crashes when deleting browser favorites on android devices (#10598)
@@ -94,32 +96,10 @@
 - [#10394](https://github.com/MetaMask/metamask-mobile/pull/10394): fix: switch chain with walletconnect (#10394)
 - [#10637](https://github.com/MetaMask/metamask-mobile/pull/10637): fix: swap button blocked by SwapsController polling issue (#10637)
 - [#10361](https://github.com/MetaMask/metamask-mobile/pull/10361): fix: fix alignment issues in onboarding success (#10361)
-
-### Other
-- [#10737](https://github.com/MetaMask/metamask-mobile/pull/10737): chore: bump verions number 1397 for RC 5 (#10737)
-- [#10713](https://github.com/MetaMask/metamask-mobile/pull/10713): chore: version bump 1393 rc4 (#10713)
-- [#10711](https://github.com/MetaMask/metamask-mobile/pull/10711): chore: cherry-pick fix android build (#10711)
-- [#10705](https://github.com/MetaMask/metamask-mobile/pull/10705): chore(deps): bump rexml from 3.2.8 to 3.3.3 in the bundler group across 1 directory (#10705)
-- [#10702](https://github.com/MetaMask/metamask-mobile/pull/10702): chore: cherry picked and fixed conflicts 7.28.1 release (#10702)
-- [#10581](https://github.com/MetaMask/metamask-mobile/pull/10581): chore: bump version 1378 RC 2 (#10581)
 - [#10741](https://github.com/MetaMask/metamask-mobile/pull/10741): fix: bump micromatch to 4.0.7 (#10741)
-- [#10734](https://github.com/MetaMask/metamask-mobile/pull/10734): chore(runway): cherry-pick fix: remove duplicate origin validation in transaction controller (#10734)
-- [#10708](https://github.com/MetaMask/metamask-mobile/pull/10708): chore: bump linux build machine version (#10708)
-- [#EtherWizard33](EtherWizard33): "feat: bottom sheet displaying dapp permission summary for multichain
-- [#10706](https://github.com/MetaMask/metamask-mobile/pull/10706): chore: cherry pick d147d8f (#10453) (#10706)
-- [#10453](https://github.com/MetaMask/metamask-mobile/pull/10453): fix: upgrade @ledgerhq/react-native-hw-transport-ble library and copyright changes. (#10453)
-- [#9950](https://github.com/MetaMask/metamask-mobile/pull/9950): feat: QR-based add NGRAVE ZERO Hardware (#9950)
-- [#10693](https://github.com/MetaMask/metamask-mobile/pull/10693): chore: notification second round fixes (#10693)
 - [#10668](https://github.com/MetaMask/metamask-mobile/pull/10668): fix: notifications first round of tests (#10668)
-- [#10640](https://github.com/MetaMask/metamask-mobile/pull/10640): Fix/notification small fixes (#10640)
-- [#10457](https://github.com/MetaMask/metamask-mobile/pull/10457): chore: Notifications Settings Polishing (#10457)
-- [#10692](https://github.com/MetaMask/metamask-mobile/pull/10692): perf: add parallel fetching for the network fee dropdown (#10692)
-- [#10638](https://github.com/MetaMask/metamask-mobile/pull/10638): chore: cherry pick fix for aggregated balance calculation (#10638)
-- [#10651](https://github.com/MetaMask/metamask-mobile/pull/10651): chore(runway): cherry-pick fix: App crashes when deleting browser favorites on android devices (#10651)
-- [#10579](https://github.com/MetaMask/metamask-mobile/pull/10579): chore(runway): cherry-pick chore: audit override (#10579)
-- [#10577](https://github.com/MetaMask/metamask-mobile/pull/10577): chore(runway): cherry-pick chore: update Android SDK to API Level 34 (#10577)
-- [#10566](https://github.com/MetaMask/metamask-mobile/pull/10566): chore(runway): cherry-pick New Crowdin translations by Github Action (#10566)
-
+- [#10640](https://github.com/MetaMask/metamask-mobile/pull/10640): fix: notification small fixes (#10640)
+- [#10693](https://github.com/MetaMask/metamask-mobile/pull/10693): fix: notification second round fixes (#10693)
 
 ## 7.28.1 - Aug 15, 2024
 ### Fixed
