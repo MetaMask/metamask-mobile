@@ -133,6 +133,7 @@ const useAccounts = ({
             keyring: { type },
           },
         } = internalAccount;
+        // This should be changed at controller-utils core package
         const checksummedAddress = toChecksumHexAddress(address) as Hex;
         const isSelected = selectedInternalAccount?.address === address;
         if (isSelected) {
