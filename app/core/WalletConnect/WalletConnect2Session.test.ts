@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import WalletConnect2Session from './WalletConnect2Session';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Ignoring the import error for testing purposes
@@ -115,6 +116,62 @@ describe('WalletConnect2Session', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (session as any).topicByRequestId = { '1': mockSession.topic };
   });
+
+  it('should initialize correctly in constructor', () => {
+    expect(session).toBeTruthy();
+    expect((session as any).topicByRequestId).toEqual({
+      '1': mockSession.topic,
+    });
+  });
+
+  it('should set deeplink correctly', () => {
+    session.setDeeplink(false);
+    expect((session as any).deeplink).toBe(false);
+  });
+
+  it('should handle request correctly and reject invalid chainId', async () => {
+    const mockRejectRequest = jest
+      .spyOn(mockClient, 'rejectRequest')
+      .mockResolvedValue(undefined);
+    const requestEvent = {
+      id: '1',
+      topic: 'test-topic',
+      params: {
+        chainId: '0x2',
+        request: {
+          method: 'eth_sendTransaction',
+          params: [],
+        },
+      },
+      verifyContext: {},
+    };
+
+    (store.getState as jest.Mock).mockReturnValue({
+      inpageProvider: {
+        networkId: '1',
+      },
+    });
+
+    await session.handleRequest(requestEvent as any);
+
+    expect(mockRejectRequest).toHaveBeenCalledWith({
+      id: '1',
+      topic: mockSession.topic,
+      error: { code: 1, message: 'Invalid chainId' },
+    });
+  });
+
+  it('should remove listeners correctly', async () => {
+    const mockOnDisconnect = jest.spyOn(
+      (session as any).backgroundBridge,
+      'onDisconnect',
+    );
+
+    await session.removeListeners();
+
+    expect(mockOnDisconnect).toHaveBeenCalled();
+  });
+
   it('should approve a request correctly', async () => {
     const mockApproveRequest = jest
       .spyOn(mockClient, 'approveRequest')
