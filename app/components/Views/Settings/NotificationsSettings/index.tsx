@@ -40,9 +40,9 @@ import {
   useDisableNotifications,
   useEnableNotifications,
 } from '../../../../util/notifications/hooks/useNotifications';
-import { CONSENSYS_PRIVACY_POLICY } from '../../../../constants/urls';
 import { useAccountSettingsProps } from '../../../../util/notifications/hooks/useSwitchNotifications';
 import styleSheet from './NotificationsSettings.styles';
+import AppConstants from '../../../../core/AppConstants';
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const { accounts } = useAccounts();
@@ -121,7 +121,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   ]);
 
   const goToLearnMore = () => {
-    Linking.openURL(CONSENSYS_PRIVACY_POLICY);
+    Linking.openURL(AppConstants.URLS.PROFILE_SYNC);
   };
 
   useEffect(() => {
@@ -194,7 +194,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
             account.address,
           )}
           isEnabled={
-            accountSettingsProps.data?.[account.address.toLowerCase()] ?? false
+            accountSettingsProps.data?.[account.address.toLowerCase()] ?? true
           }
           refetchAccountSettings={refetchAccountSettings}
         />

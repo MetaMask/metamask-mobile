@@ -23,7 +23,7 @@ export default function ProfileSyncingComponent({
   const { disableProfileSyncing } = useProfileSyncing();
 
   const handleLink = () => {
-    Linking.openURL(AppConstants.URLS.PRIVACY_POLICY_2024);
+    Linking.openURL(AppConstants.URLS.PROFILE_SYNC);
   };
 
   useEffect(() => {
