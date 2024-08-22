@@ -1,5 +1,12 @@
 import React, { memo, useEffect, useState, useCallback } from 'react';
-import { TextInput, View, StyleSheet, Platform, TextStyle } from 'react-native';
+import {
+  TextInput,
+  View,
+  StyleSheet,
+  Platform,
+  TextStyle,
+  DimensionValue,
+} from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Fuse from 'fuse.js';
@@ -102,7 +109,7 @@ interface Props {
 // eslint-disable-next-line react/display-name
 const AssetSearch = memo(({ onSearch, onFocus, onBlur }: Props) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [inputDimensions, setInputDimensions] = useState('85%');
+  const [inputDimensions, setInputDimensions] = useState<DimensionValue>('85%');
   const [isFocus, setIsFocus] = useState(false);
   const tokenList = useSelector(selectTokenListArray);
   const { colors, themeAppearance } = useTheme();
