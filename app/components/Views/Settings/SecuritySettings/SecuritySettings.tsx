@@ -104,7 +104,6 @@ import Networks, {
   toggleUseSafeChainsListValidation,
 } from '../../../../util/networks';
 import images from 'images/image-icons';
-import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 import Text, {
   TextVariant,
@@ -203,7 +202,7 @@ const Settings: React.FC = () => {
   );
   const ipfsGateway = useSelector(selectIpfsGateway);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
-  const myNetworks = ETHERSCAN_SUPPORTED_NETWORKS;
+  const myNetworks = useSelector(selectShowIncomingTransactionNetworks);
   const isMainnet = type === MAINNET;
 
   const updateNavBar = useCallback(() => {
@@ -910,7 +909,7 @@ const Settings: React.FC = () => {
               key={chainId}
               variant={CellVariant.Display}
               title={name}
-              secondaryText={myNetworks[chainId].domain}
+              secondaryText={showIncomingTransactionsNetworks[chainId] ? "Enabled" : "Disabled"}
               avatarProps={{
                 variant: AvatarVariant.Network,
                 name,
@@ -950,7 +949,7 @@ const Settings: React.FC = () => {
             key={chainId}
             variant={CellVariant.Display}
             title={name}
-            secondaryText={myNetworks[chainId]?.domain}
+            secondaryText={showIncomingTransactionsNetworks[chainId] ? "Enabled" : "Disabled"}
             avatarProps={{
               variant: AvatarVariant.Network,
               name,
@@ -961,7 +960,9 @@ const Settings: React.FC = () => {
             <Switch
               value={showIncomingTransactionsNetworks[chainId]}
               onValueChange={(value) => {
-                chainId && toggleEnableIncomingTransactions(chainId, value);
+                if (chainId) {
+                  toggleEnableIncomingTransactions(chainId as EtherscanSupportedHexChainId, value);
+                }
               }}
               trackColor={{
                 true: colors.primary.default,
