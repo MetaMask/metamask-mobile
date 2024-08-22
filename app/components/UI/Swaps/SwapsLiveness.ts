@@ -11,13 +11,12 @@ import {
 import Logger from '../../../util/Logger';
 import useInterval from '../../hooks/useInterval';
 import { isSwapsAllowed } from './utils';
-import { RootState } from '../../../reducers';
 
 const POLLING_FREQUENCY = AppConstants.SWAPS.LIVENESS_POLLING_FREQUENCY;
 
 function SwapLiveness() {
   const isLive = useSelector(swapsLivenessSelector);
-  const chainId = useSelector((state: RootState) => selectChainId(state));
+  const chainId = useSelector(selectChainId);
   const dispatch = useDispatch();
   const setLiveness = useCallback(
     (_chainId, featureFlags) => {
