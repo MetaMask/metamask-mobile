@@ -1,5 +1,6 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
+import notifee from '@notifee/react-native';
 import { ActivityIndicator, FlatList, FlatListProps, View } from 'react-native';
 import ScrollableTabView, {
   DefaultTabBar,
@@ -70,6 +71,14 @@ function NotificationsListItem(props: NotificationsListItemProps) {
           notification: item,
         });
       }
+    const unreadedCount = async () => await notifee.getBadgeCount();
+    unreadedCount().then((count) => {
+      if (count > 0) {
+        notifee.setBadgeCount(count - 1);
+      } else {
+        notifee.setBadgeCount(0);
+      }
+    })
     },
     [markNotificationAsRead, props.navigation],
   );

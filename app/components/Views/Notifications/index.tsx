@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
+import notifee from '@notifee/react-native';
 import { NotificationsViewSelectorsIDs } from '../../../../e2e/selectors/NotificationsView.selectors';
 import styles from './styles';
 import Notifications from '../../UI/Notification/List';
@@ -49,6 +50,7 @@ const NotificationsView = ({
 
   const handleMarkAllAsRead = useCallback(() => {
     markNotificationAsRead(notifications);
+    notifee.setBadgeCount(0);
   }, [markNotificationAsRead, notifications]);
 
   const allNotifications = useMemo(() => {
