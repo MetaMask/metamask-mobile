@@ -2,14 +2,14 @@ import { JsonMap } from '@segment/analytics-react-native';
 import preProcessAnalyticsEvent from './preProcessAnalyticsEvent';
 
 describe('preProcessAnalyticsEvent', () => {
-  it('should correctly process empty input', () => {
+  it('processes empty input', () => {
     const [nonAnonymousProperties, anonymousProperties] =
       preProcessAnalyticsEvent({});
     expect(nonAnonymousProperties).toEqual({});
     expect(anonymousProperties).toEqual({});
   });
 
-  it('should return empty objects for both nonAnonymousProperties and anonymousProperties when properties is undefined', () => {
+  it('returns empty objects for both nonAnonymousProperties and anonymousProperties when properties is undefined', () => {
     // Simulate calling the function with undefined by casting undefined to any
     const [nonAnonymousProperties, anonymousProperties] =
       preProcessAnalyticsEvent(undefined as unknown as JsonMap);
@@ -18,7 +18,7 @@ describe('preProcessAnalyticsEvent', () => {
     expect(anonymousProperties).toEqual({});
   });
 
-  it('should process non-object properties correctly', () => {
+  it('processes non-object properties', () => {
     const properties = {
       prop1: 'value1',
       prop2: 123,
@@ -27,7 +27,7 @@ describe('preProcessAnalyticsEvent', () => {
     expect(nonAnonymousProperties).toEqual(properties);
   });
 
-  it('should separate anonymous and non-anonymous object properties', () => {
+  it('separates anonymous and non-anonymous object properties', () => {
     const properties = {
       account_type: 'Imported',
       active_currency: { anonymous: true, value: 'FOXY' },
@@ -52,7 +52,7 @@ describe('preProcessAnalyticsEvent', () => {
     });
   });
 
-  it('should ignore arrays and add them to non-anonymous properties', () => {
+  it('ignores arrays and add them to non-anonymous properties', () => {
     const properties = {
       arrayProp: [1, 2, 3],
     };
@@ -60,7 +60,7 @@ describe('preProcessAnalyticsEvent', () => {
     expect(nonAnonymousProperties).toEqual(properties);
   });
 
-  it('should handle mixed types of properties correctly', () => {
+  it('handles mixed types of properties', () => {
     const properties = {
       account_type: 'Imported',
       active_currency: { anonymous: true, value: 'FOXY' },
