@@ -71,14 +71,14 @@ function NotificationsListItem(props: NotificationsListItemProps) {
           notification: item,
         });
       }
-    const unreadedCount = async () => await notifee.getBadgeCount();
-    unreadedCount().then((count) => {
-      if (count > 0) {
-        notifee.setBadgeCount(count - 1);
-      } else {
-        notifee.setBadgeCount(0);
-      }
-    })
+      const unreadedCount = async () => await notifee.getBadgeCount();
+      unreadedCount().then((count) => {
+        if (count > 0) {
+          notifee.setBadgeCount(count - 1);
+        } else {
+          notifee.setBadgeCount(0);
+        }
+      });
     },
     [markNotificationAsRead, props.navigation],
   );
@@ -100,7 +100,10 @@ function NotificationsListItem(props: NotificationsListItemProps) {
       simultaneousHandlers={undefined}
       isRead={props.notification.isRead}
     >
-      <NotificationMenuItem.Icon isRead={props.notification.isRead} {...menuItemState}/>
+      <NotificationMenuItem.Icon
+        isRead={props.notification.isRead}
+        {...menuItemState}
+      />
       <NotificationMenuItem.Content {...menuItemState} />
     </NotificationMenuItem.Root>
   );
