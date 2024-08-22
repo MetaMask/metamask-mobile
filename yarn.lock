@@ -4979,7 +4979,19 @@
     fastest-levenshtein "^1.0.16"
     punycode "^2.1.1"
 
-"@metamask/phishing-controller@^9.0.0", "@metamask/phishing-controller@^9.0.1":
+"@metamask/phishing-controller@^11.0.0":
+  version "11.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-11.0.0.tgz#0e9ccf19470c9984d61af03ba2e717155be9a578"
+  integrity sha512-4nCQBUE4U7HsExomNpz3466gQuVKPI+mSUQqfnhNVFu8ixzmhIXCdy8ImjwfPSkaVncysKG5AuzWJvYrb0Bc+Q==
+  dependencies:
+    "@metamask/base-controller" "^6.0.2"
+    "@metamask/controller-utils" "^11.0.2"
+    "@types/punycode" "^2.1.0"
+    eth-phishing-detect "^1.2.0"
+    fastest-levenshtein "^1.0.16"
+    punycode "^2.1.1"
+
+"@metamask/phishing-controller@^9.0.1":
   version "9.0.2"
   resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-9.0.2.tgz#d140b6a8a05947c59b04bf161a0d9055e6b711b2"
   integrity sha512-eZRbym8o7isHbu741GVztxD2rzKvNQvB+XbmAq6qJD6eMKSSYKC9r/nDaxzaVz9qO93XCE8WnvSUmJx4m8RtaA==
