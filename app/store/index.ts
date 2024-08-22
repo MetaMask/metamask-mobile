@@ -40,6 +40,7 @@ const createStoreAndPersistor = async () => {
     // Add redux flipper middleware for debugging Redux with Flipper
     // Flipper's client side plugin is https://github.com/jk-gan/flipper-plugin-redux-debugger, which needs to be added as a plugin
     // flipper-plugin-redux-debugger is named redux-debugger in Flipper's plugin list
+    /* eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
     const createReduxFlipperDebugger = require('redux-flipper').default;
     middlewares.push(createReduxFlipperDebugger());
   }
