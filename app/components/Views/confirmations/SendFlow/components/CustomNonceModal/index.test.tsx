@@ -55,6 +55,7 @@ describe('CustomNonceModal', () => {
       String(proposedNonce - 1),
     );
   });
+
   it('does not decrement the nonce value below 0 when the current nonce is 0', () => {
     const wrapper = createWrapper();
     wrapper.setProps({ proposedNonce: 0, nonceValue: 0 });
@@ -63,5 +64,4 @@ describe('CustomNonceModal', () => {
     decrementButton.simulate('press');
     expect(wrapper.find('TextInput').prop('value')).toBe(String(0));
   });
-
 });

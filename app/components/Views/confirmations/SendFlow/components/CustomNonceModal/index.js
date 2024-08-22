@@ -122,7 +122,7 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
   const styles = createStyles(colors);
 
   const incrementDecrementNonce = (decrement) => {
-    const currentNonce = Number(nonce) ?? 0;
+    const currentNonce = Number(nonce);
     const updatedValue = decrement ? currentNonce - 1 : currentNonce + 1;
     const clampedValue = Math.max(updatedValue, 0);
 
