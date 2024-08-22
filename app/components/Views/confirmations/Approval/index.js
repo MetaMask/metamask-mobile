@@ -43,6 +43,7 @@ import { providerErrors } from '@metamask/rpc-errors';
 import { getDeviceId } from '../../../../core/Ledger/Ledger';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
+import { getBlockaidMetricsParams } from '../../../../util/blockaid';
 import { getDecimalChainId } from '../../../../util/networks';
 
 import { updateTransaction } from '../../../../util/transaction-controller';
