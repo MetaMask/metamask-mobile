@@ -100,6 +100,16 @@ export const getDeviceId = async (): Promise<string> =>
   );
 
 /**
+ * Set HD Path for Ledger Keyring
+ * @param path - The HD Path to set
+ */
+export const setHDPath = async (path: string) => {
+  await withLedgerKeyring(async (keyring: LedgerKeyring) => {
+    keyring.setHdPath(path);
+  });
+};
+
+/**
  * Unlock Ledger Accounts by page
  * @param operation - the operation number, <br> 0: Get First Page<br> 1: Get Next Page <br> -1: Get Previous Page
  * @return The Ledger Accounts

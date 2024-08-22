@@ -12,6 +12,7 @@ import ledgerDeviceDarkImage from 'images/ledger-device-dark.png';
 import {
   forgetLedger,
   getLedgerAccountsByOperation,
+  setHDPath,
   unlockLedgerWalletAccount,
 } from '../../../core/Ledger/Ledger';
 import LedgerConnect from '../LedgerConnect';
@@ -26,6 +27,18 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PAGINATION_OPERATIONS from '../../../constants/pagination';
 import { Device as LedgerDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
 import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
+import SelectComponent from '../../UI/SelectComponent';
+import {
+  LEDGER_BIP44_PATH,
+  LEDGER_LEGACY_PATH,
+  LEDGER_LIVE_PATH,
+} from '../../../core/Ledger/constants';
+
+interface OptionType {
+  key: string;
+  label: string;
+  value: string;
+}
 
 const LedgerSelectAccount = () => {
   const navigation = useNavigation<StackNavigationProp<never>>();
@@ -38,6 +51,24 @@ const LedgerSelectAccount = () => {
     ledgerDeviceLightImage,
     ledgerDeviceDarkImage,
   );
+
+  const options: OptionType[] = [
+    {
+      key: LEDGER_LIVE_PATH,
+      label: strings('ledger.ledger_live_path'),
+      value: LEDGER_LIVE_PATH,
+    },
+    {
+      key: LEDGER_LEGACY_PATH,
+      label: strings('ledger.ledger_legacy_path'),
+      value: LEDGER_LEGACY_PATH,
+    },
+    {
+      key: LEDGER_BIP44_PATH,
+      label: strings('ledger.ledger_bip44_path'),
+      value: LEDGER_BIP44_PATH,
+    },
+  ];
 
   const {
     isSendingLedgerCommands,
@@ -67,6 +98,8 @@ const LedgerSelectAccount = () => {
 
   const [existingAccounts, setExistingAccounts] = useState<string[]>([]);
 
+  const [selectOption, setSelectOption] = useState<OptionType>(options[0]);
+
   useEffect(() => {
     keyringController.getAccounts().then((value: string[]) => {
       setExistingAccounts(value);
@@ -88,6 +121,21 @@ const LedgerSelectAccount = () => {
     );
     setAccounts(_accounts);
   }, [trackEvent]);
+
+  useEffect(() => {
+    if (selectOption) {
+      setBlockingModalVisible(true);
+      getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE)
+        .then((_accounts) => {
+          setAccounts(_accounts);
+          setBlockingModalVisible(false);
+        })
+        .catch((e) => {
+          console.error(e);
+          setBlockingModalVisible(false);
+        });
+    }
+  }, [selectOption]);
 
   const nextPage = useCallback(async () => {
     setBlockingModalVisible(true);
@@ -189,6 +237,30 @@ const LedgerSelectAccount = () => {
             <MaterialIcon name="close" size={15} style={styles.closeIcon} />
           </TouchableOpacity>
         </View>
+        <View style-={styles.selectorContainer}>
+          <Text style={styles.mainTitle}>
+            {strings('ledger.select_accounts')}{' '}
+          </Text>
+          <Text style={styles.selectorTitle}>
+            {strings('ledger.select_hd_path')}
+          </Text>
+          <Text style={styles.selectorDescription}>
+            {strings('ledger.select_hd_path_description')}
+          </Text>
+          <View style={styles.pathSelector}>
+            <SelectComponent
+              options={options}
+              label={strings('ledger.select_hd_path')}
+              onValueChange={async (path: string) => {
+                const option = options.find((d) => d.key === path);
+                if (!option) return;
+                setSelectOption(option);
+                await setHDPath(path);
+              }}
+              selectedValue={selectOption.value}
+            />
+          </View>
+        </View>
         <AccountSelector
           accounts={accounts}
           selectedAccounts={existingAccounts}
@@ -202,7 +274,7 @@ const LedgerSelectAccount = () => {
             setForgetDevice(true);
             setBlockingModalVisible(true);
           }}
-          title={strings('ledger.select_accounts')}
+          // title={strings('ledger.select_accounts')}
         />
       </View>
       <BlockingActionModal
