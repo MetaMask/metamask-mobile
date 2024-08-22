@@ -80,23 +80,26 @@ describe('WalletConnect2Session', () => {
     });
 
     // Mock Engine.context
-    Engine.context = {
-      AccountsController: {
-        getSelectedAccount: jest.fn().mockReturnValue({
-          address: '0x1234567890abcdef1234567890abcdef12345678',
-        }),
+    Object.defineProperty(Engine, 'context', {
+      value: {
+        AccountsController: {
+          getSelectedAccount: jest.fn().mockReturnValue({
+            address: '0x1234567890abcdef1234567890abcdef12345678',
+          }),
+        },
+        NetworkController: {
+          getProviderAndBlockTracker: jest.fn().mockReturnValue({
+            provider: {},
+            blockTracker: {},
+          }),
+        },
+        PermissionController: {
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          createPermissionMiddleware: jest.fn().mockReturnValue(() => {}),
+        },
       },
-      NetworkController: {
-        getProviderAndBlockTracker: jest.fn().mockReturnValue({
-          provider: {},
-          blockTracker: {},
-        }),
-      },
-      PermissionController: {
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        createPermissionMiddleware: jest.fn().mockReturnValue(() => {}),
-      },
-    };
+      writable: true,
+    });
 
     session = new WalletConnect2Session({
       web3Wallet: mockClient,
@@ -107,13 +110,13 @@ describe('WalletConnect2Session', () => {
     });
 
     // Manually set the topicByRequestId to ensure it's populated correctly for tests
-    session.topicByRequestId['1'] = mockSession.topic;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (session as any).topicByRequestId = { '1': mockSession.topic };
   });
-
   it('should approve a request correctly', async () => {
     const mockApproveRequest = jest
       .spyOn(mockClient, 'approveRequest')
-      .mockResolvedValue();
+      .mockResolvedValue(undefined);
     const request = { id: '1', result: '0x123' };
 
     await session.approveRequest(request);
@@ -128,7 +131,7 @@ describe('WalletConnect2Session', () => {
   it('should reject a request correctly', async () => {
     const mockRejectRequest = jest
       .spyOn(mockClient, 'rejectRequest')
-      .mockResolvedValue();
+      .mockResolvedValue(undefined);
     const request = { id: '1', error: new Error('User rejected') };
 
     await session.rejectRequest(request);
@@ -143,7 +146,7 @@ describe('WalletConnect2Session', () => {
   it('should handle session update correctly', async () => {
     const mockUpdateSession = jest
       .spyOn(mockClient, 'updateSession')
-      .mockResolvedValue();
+      .mockResolvedValue(undefined);
     const approvedAccounts = ['0x123'];
 
     // Mock the getApprovedAccountsFromPermissions method

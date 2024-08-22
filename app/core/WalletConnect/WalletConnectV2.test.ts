@@ -2,6 +2,8 @@ import { WC2Manager } from './WalletConnectV2';
 import { Client } from '@walletconnect/se-sdk';
 import { NavigationContainerRef } from '@react-navigation/native';
 import Engine from '../Engine';
+import { SessionTypes } from '@walletconnect/types/dist/types/sign-client/session';
+import { SingleEthereumTypes } from '@walletconnect/se-sdk/dist/types';
 
 jest.mock('../AppConstants', () => ({
   WALLET_CONNECT: {
@@ -129,7 +131,12 @@ describe('WC2Manager', () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let mockClient: Client;
   let mockNavigation: NavigationContainerRef;
-  let mockApproveSession;
+  let mockApproveSession: jest.SpyInstance<
+    Promise<SessionTypes.Struct>,
+    [params: { id: number; chainId: number; accounts: string[] }],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    any
+  >;
 
   beforeEach(async () => {
     mockClient = new Client();
@@ -137,28 +144,37 @@ describe('WC2Manager', () => {
       getCurrentRoute: jest.fn().mockReturnValue({ name: 'Home' }),
     } as unknown as NavigationContainerRef;
 
-    Engine.context = {
-      AccountsController: {
-        getSelectedAccount: jest.fn().mockReturnValue({
-          address: '0x1234567890abcdef1234567890abcdef12345678',
-        }),
+    Object.defineProperty(Engine, 'context', {
+      value: {
+        AccountsController: {
+          getSelectedAccount: jest.fn().mockReturnValue({
+            address: '0x1234567890abcdef1234567890abcdef12345678',
+          }),
+        },
+        KeyringController: {
+          isUnlocked: jest.fn().mockReturnValue(true),
+        },
+        PermissionController: {
+          requestPermissions: jest.fn().mockResolvedValue(true),
+          getPermission: jest.fn().mockReturnValue({
+            id: 'mockPermissionId',
+          }),
+          revokeAllPermissions: jest.fn(),
+        },
       },
-      KeyringController: {
-        isUnlocked: jest.fn().mockReturnValue(true),
-      },
-      PermissionController: {
-        requestPermissions: jest.fn().mockResolvedValue(true),
-        getPermission: jest.fn().mockReturnValue({
-          id: 'mockPermissionId',
-        }),
-        revokeAllPermissions: jest.fn(),
-      },
-    };
+      writable: true,
+      configurable: true,
+    });
 
-    manager = await WC2Manager.init({ navigation: mockNavigation });
+    const initResult = await WC2Manager.init({ navigation: mockNavigation });
+    if (!initResult) {
+      throw new Error('Failed to initialize WC2Manager');
+    }
+    manager = initResult;
 
     // Explicitly re-mock the approveSession on the correct instance
-    mockApproveSession = jest.spyOn(manager.web3Wallet, 'approveSession');
+    // eslint-disable-next-line dot-notation
+    mockApproveSession = jest.spyOn(manager['web3Wallet'], 'approveSession');
   });
 
   it('should correctly handle a session proposal', async () => {
