@@ -492,7 +492,9 @@
     "webpack-cli": "^5.1.4",
     "xhr2": "^0.2.1",
     "xml2js": "^0.5.0",
-    "yarn-deduplicate": "^6.0.2"
+    "yarn-deduplicate": "^6.0.2",
+    "redux-flipper": "^2.0.3",
+    "react-native-flipper": "^0.263.0"
   },
   "config": {
     "react-native-storybook-loader": {
