@@ -14,11 +14,11 @@ import { useTheme } from '../../../../util/theme';
 import EnableNotificationsCardPlaceholder from '../../../../images/enableNotificationsCard.png';
 import { createStyles } from './styles';
 import Routes from '../../../../constants/navigation/Routes';
-import { CONSENSYS_PRIVACY_POLICY } from '../../../../constants/urls';
 import { useSelector } from 'react-redux';
 import { mmStorage } from '../../../../util/notifications';
 import { STORAGE_IDS } from '../../../../util/notifications/settings/storage/constants';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
+import AppConstants from '../../../../core/AppConstants';
 
 const OptIn = () => {
   const theme = useTheme();
@@ -37,7 +37,7 @@ const OptIn = () => {
   };
 
   const goToLearnMore = () => {
-    Linking.openURL(CONSENSYS_PRIVACY_POLICY);
+    Linking.openURL(AppConstants.URLS.PROFILE_SYNC);
   };
 
   useFocusEffect(() => {
