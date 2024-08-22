@@ -6,6 +6,7 @@ import { NavigationContainerRef } from '@react-navigation/native';
 import Engine from '../Engine';
 import { SessionTypes } from '@walletconnect/types/dist/types/sign-client/session';
 import { SingleEthereumTypes } from '@walletconnect/se-sdk/dist/types';
+import AppConstants from '../AppConstants';
 
 jest.mock('../AppConstants', () => ({
   WALLET_CONNECT: {
@@ -19,6 +20,9 @@ jest.mock('../AppConstants', () => ({
   },
   BUNDLE_IDS: {
     ANDROID: 'com.test.app',
+  },
+  DEEPLINKS: {
+    ORIGIN_DEEPLINK: 'deeplink-origin',
   },
 }));
 
@@ -39,6 +43,10 @@ jest.mock('@walletconnect/se-sdk', () => ({
     }),
     approveSession: jest.fn(),
     rejectSession: jest.fn(),
+    disconnectSession: jest.fn(function ({ topic }) {
+      delete this.sessions?.[topic]; // Ensure this is correctly deleting the session
+      return Promise.resolve(true);
+    }),
     on: jest.fn(),
   })),
   SingleEthereum: {
@@ -72,6 +80,7 @@ jest.mock('@walletconnect/se-sdk', () => ({
       }),
       getPendingSessionRequests: jest.fn().mockReturnValue([]),
       updateSession: jest.fn().mockResolvedValue(true),
+      disconnectSession: jest.fn().mockResolvedValue(true),
       on: jest.fn(),
     }),
   },
@@ -126,6 +135,10 @@ jest.mock('../BackgroundBridge/BackgroundBridge', () => ({
   default: jest.fn().mockImplementation(() => ({
     inpageProvider: {},
   })),
+}));
+
+jest.mock('@walletconnect/client', () => ({
+  newSession: jest.fn().mockResolvedValue({}),
 }));
 
 describe('WC2Manager', () => {
@@ -208,6 +221,127 @@ describe('WC2Manager', () => {
       id: 1,
       chainId: 1,
       accounts: ['0x1234567890abcdef1234567890abcdef12345678'],
+    });
+  });
+
+  describe('WC2Manager Initialization', () => {
+    it('should initialize correctly when called with valid inputs', async () => {
+      // const mockNavigation = {
+      //   getCurrentRoute: jest.fn().mockReturnValue({ name: 'Home' }),
+      // } as unknown as NavigationContainerRef;
+
+      const result = await WC2Manager.init({ navigation: mockNavigation });
+      expect(result).toBeInstanceOf(WC2Manager);
+    });
+
+    it('should not initialize if navigation is missing', async () => {
+      const result = await WC2Manager.init({
+        navigation: null as unknown as NavigationContainerRef,
+      });
+      expect(result).toBeUndefined();
+    });
+
+    // it('should throw an error if projectId is not a string', async () => {
+    //   const originalProjectId = AppConstants.WALLET_CONNECT.PROJECT_ID;
+    //   AppConstants.WALLET_CONNECT.PROJECT_ID = null as unknown as string;
+
+    //   await expect(
+    //     WC2Manager.init({ navigation: mockNavigation }),
+    //   ).rejects.toThrow('WC2::init Init Missing projectId');
+
+    //   AppConstants.WALLET_CONNECT.PROJECT_ID = originalProjectId;
+    // });
+  });
+
+  describe('WC2Manager Sessions', () => {
+    it('should return active sessions', () => {
+      const sessions = manager.getSessions();
+      expect(sessions.length).toBeGreaterThan(0);
+      expect(sessions[0].topic).toEqual('test-topic');
+    });
+
+    it('should return the correct session for a given topic', () => {
+      const session = manager.getSession('test-topic');
+      expect(session).toBeDefined();
+      expect(session?.topic).toEqual('test-topic');
+    });
+
+    it('should return undefined for a non-existent topic', () => {
+      const session = manager.getSession('non-existent-topic');
+      expect(session).toBeUndefined();
+    });
+  });
+
+  // describe('WC2Manager removeSession', () => {
+  //   it('should correctly remove a session and revoke permissions', async () => {
+  //     const session = manager.getSession('test-topic');
+  //     expect(session).toBeDefined();
+
+  //     const revokeAllPermissionsSpy = jest.spyOn(
+  //       Engine.context.PermissionController,
+  //       'revokeAllPermissions',
+  //     );
+
+  //     await manager.removeSession(session as SessionTypes.Struct);
+
+  //     const removedSession = manager.getSession('test-topic');
+  //     expect(removedSession).toBeUndefined();
+  //     expect(revokeAllPermissionsSpy).toHaveBeenCalledWith('test-topic');
+  //   });
+  // });
+
+  // describe('WC2Manager removeAll', () => {
+  //   it('should remove all sessions and clear storage', async () => {
+  //     await manager.removeAll();
+
+  //     const sessions = manager.getSessions();
+  //     expect(sessions.length).toEqual(0);
+
+  //     expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+  //       AppConstants.WALLET_CONNECT.DEEPLINK_SESSIONS,
+  //       JSON.stringify({}),
+  //     );
+  //   });
+  // });
+
+  describe('WC2Manager connect', () => {
+    // it('should handle v1 URIs correctly', async () => {
+    //   const mockWcUri = 'wc://testv1uri';
+
+    //   jest.mock('@walletconnect/client', () => ({
+    //     default: {
+    //       newSession: jest.fn().mockResolvedValue({}),
+    //     },
+    //   }));
+
+    //   const connectSpy = jest.spyOn(WalletConnect, 'newSession');
+
+    //   await manager.connect({
+    //     wcUri: mockWcUri,
+    //     redirectUrl: 'https://example.com',
+    //     origin: 'qrcode',
+    //   });
+
+    //   expect(connectSpy).toHaveBeenCalledWith(
+    //     mockWcUri,
+    //     'https://example.com',
+    //     false,
+    //     'qrcode',
+    //   );
+    // });
+
+    // No changes needed for v2 URIs unless specific logic requires it
+    it('should handle v2 URIs correctly', async () => {
+      const mockWcUri = 'wc://testv2uri';
+
+      await manager.connect({
+        wcUri: mockWcUri,
+        redirectUrl: 'https://example.com',
+        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+      });
+
+      const pairedSessions = manager.getSessions();
+      expect(pairedSessions.length).toBeGreaterThan(0);
     });
   });
 });
