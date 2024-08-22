@@ -63,10 +63,10 @@
     // "emitDecoratorMetadata": true,         /* Enables experimental support for emitting type metadata for decorators. */
   },
   "include": [
+    "app/declarations/index.d.ts",
     "app/**/*",
     "node_modules/expect-webdriverio",
-    "node_modules/expect-webdriverio/jest",
-    "app/components/UI/QRHardware/AnimatedQRScanner.tsx"
+    "node_modules/expect-webdriverio/jest"
   ],
   "exclude": [
     "node_modules",
