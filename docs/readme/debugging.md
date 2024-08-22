@@ -14,7 +14,7 @@ The prerequisite for debugging is to ensure that the mobile app is up and runnin
 - `yarn watch` - Start the metro bundler, which serves the JS bundle to the native app
 - `yarn start:android` or `yarn start:ios`, which builds the app and installs it in the simulator
 
-Run [Flipper](https://fbflipper.com/docs/getting-started/) using `yarn flipper` (verified working with v0.263.0)
+Run [Flipper](https://fbflipper.com/docs/getting-started/) using `yarn start:flipper` (verified working with v0.263.0)
 
 - May be prompted to install Flipper for first time users
 
