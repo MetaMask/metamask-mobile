@@ -1,4 +1,4 @@
-import { ViewProps } from "react-native";
+import { ViewProps } from 'react-native';
 
 /**
  * Options for displaying the action button on the right of the title.
