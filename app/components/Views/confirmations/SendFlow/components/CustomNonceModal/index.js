@@ -121,9 +121,9 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
-  const incrementDecrementNonce = (decrement) => {
+  const incrementDecrementNonce = (isDecrement) => {
     const currentNonce = Number(nonce);
-    const updatedValue = decrement ? currentNonce - 1 : currentNonce + 1;
+    const updatedValue = isDecrement ? currentNonce - 1 : currentNonce + 1;
     const clampedValue = Math.max(updatedValue, 0);
 
     onChangeText(clampedValue);

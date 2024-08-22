@@ -2,7 +2,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import CustomNonceModal from '.';
 
-const proposedNonce = 26;
+const PROPOSED_NONCE = 26;
 const saveMock = jest.fn();
 const closeMock = jest.fn();
 const createWrapper = () =>
@@ -10,8 +10,8 @@ const createWrapper = () =>
     <CustomNonceModal
       save={saveMock}
       close={closeMock}
-      proposedNonce={proposedNonce}
-      nonceValue={proposedNonce}
+      proposedNonce={PROPOSED_NONCE}
+      nonceValue={PROPOSED_NONCE}
     />,
   );
 describe('CustomNonceModal', () => {
@@ -24,7 +24,9 @@ describe('CustomNonceModal', () => {
     const wrapper = createWrapper();
     const nonceTextInput = wrapper.find('TextInput');
     nonceTextInput.simulate('changeText', '30c');
-    expect(wrapper.find('TextInput').prop('value')).toBe(String(proposedNonce));
+    expect(wrapper.find('TextInput').prop('value')).toBe(
+      String(PROPOSED_NONCE),
+    );
     nonceTextInput.simulate('changeText', '30');
     expect(wrapper.find('TextInput').prop('value')).toBe('30');
   });
@@ -35,7 +37,7 @@ describe('CustomNonceModal', () => {
 
     incrementButton.simulate('press');
     expect(wrapper.find('TextInput').prop('value')).toBe(
-      String(proposedNonce + 1),
+      String(PROPOSED_NONCE + 1),
     );
   });
 
@@ -44,15 +46,15 @@ describe('CustomNonceModal', () => {
       <CustomNonceModal
         save={saveMock}
         close={closeMock}
-        proposedNonce={proposedNonce}
-        nonceValue={proposedNonce}
+        proposedNonce={PROPOSED_NONCE}
+        nonceValue={PROPOSED_NONCE}
       />,
     );
     const decrementButton = wrapper.find({ testID: 'decrement-nonce' });
 
     decrementButton.simulate('press');
     expect(wrapper.find('TextInput').prop('value')).toBe(
-      String(proposedNonce - 1),
+      String(PROPOSED_NONCE - 1),
     );
   });
 
