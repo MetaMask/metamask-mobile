@@ -1,6 +1,8 @@
 import React from 'react';
 import NFTAutoDetectionModal from './NFTAutoDetectionModal';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
@@ -28,10 +30,6 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-type PartialDeepState<T> = {
-  [P in keyof T]?: PartialDeepState<T[P]>;
-};
-
 const initialState = {
   engine: {
     backgroundState: {
@@ -44,7 +42,7 @@ const initialState = {
 
 const Stack = createStackNavigator();
 
-const renderComponent = (state: PartialDeepState<RootState> = {}) =>
+const renderComponent = (state: DeepPartial<RootState> = {}) =>
   renderWithProvider(
     <Stack.Navigator>
       <Stack.Screen name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}>

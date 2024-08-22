@@ -215,7 +215,6 @@ import { submitSmartTransactionHook } from '../util/smart-transactions/smart-pub
 import { SmartTransactionsControllerState } from '@metamask/smart-transactions-controller/dist/SmartTransactionsController';
 import { zeroAddress } from 'ethereumjs-util';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
-import { getPermittedAccounts } from './Permissions';
 import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
 import EthQuery from '@metamask/eth-query';
 import { TransactionControllerOptions } from '@metamask/transaction-controller/dist/types/TransactionController';
@@ -1146,7 +1145,6 @@ class Engine {
       getNetworkClientRegistry:
         networkController.getNetworkClientRegistry.bind(networkController),
       getNetworkState: () => networkController.state,
-      getPermittedAccounts: (origin) => getPermittedAccounts(origin as string),
       hooks: {
         publish: (transactionMeta) => {
           const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
@@ -1234,12 +1232,12 @@ class Engine {
           this.transactionController.confirmExternalTransaction.bind(
             this.transactionController,
           ),
+        // @ts-expect-error Need to make sure types match.
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
         getNonceLock: this.transactionController.getNonceLock.bind(
           this.transactionController,
         ),
-        // @ts-expect-error Older TransactionController version in SmartTransactionsController means TransactionMeta types don't match.
         getTransactions: this.transactionController.getTransactions.bind(
           this.transactionController,
         ),
@@ -1255,6 +1253,7 @@ class Engine {
           networkController.getProviderAndBlockTracker().provider as any,
 
         trackMetaMetricsEvent: smartTransactionsControllerTrackMetaMetricsEvent,
+        getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
       },
       {
         supportedChainIds: getAllowedSmartTransactionsChainIds(),

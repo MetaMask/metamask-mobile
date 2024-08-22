@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-svg/src/xml.tsx b/node_modules/react-native-svg/src/xml.tsx
-index 9e2352a..b617149 100644
+index 34fad47..473ab00 100644
 --- a/node_modules/react-native-svg/src/xml.tsx
 +++ b/node_modules/react-native-svg/src/xml.tsx
 @@ -124,6 +124,15 @@ export function SvgXml(props: XmlProps) {
