@@ -54,8 +54,15 @@ interface Transaction {
 
 interface EstimatedGas {
   gas: string;
-  gasPrice: string | undefined;
-}
+  simulationFails?: {
+    reason: any;
+    errorKey: any;
+    debug: {
+        blockNumber: string;
+        blockGasLimit: string;
+      };
+  } | undefined
+};
 
 /**
  * Estimates gas limit
@@ -63,6 +70,8 @@ interface EstimatedGas {
  * @param {object} opts - Object containing optional attributes object to calculate gas with (amount, data and to)
  * @returns {object} - Object containing gas estimation
  */
+
+
 export const estimateGas = async (
   opts: opts,
   transaction: Transaction,
@@ -73,7 +82,8 @@ export const estimateGas = async (
     data = transaction.data,
     to = transaction.to,
   } = opts;
-  let estimation;
+
+  let estimation
   try {
     estimation = await controllerEstimateGas({
       value: amount,
@@ -84,7 +94,6 @@ export const estimateGas = async (
   } catch (e) {
     estimation = {
       gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT,
-      gasPrice: undefined,
     };
   }
   return estimation;
