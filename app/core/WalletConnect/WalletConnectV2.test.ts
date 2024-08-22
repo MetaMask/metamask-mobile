@@ -190,7 +190,7 @@ describe('WC2Manager', () => {
 
     // Explicitly re-mock the approveSession on the correct instance
     // eslint-disable-next-line dot-notation
-    mockApproveSession = jest.spyOn(manager.web3Wallet, 'approveSession');
+    mockApproveSession = jest.spyOn(manager['web3Wallet'], 'approveSession');
   });
 
   it('should correctly handle a session proposal', async () => {
