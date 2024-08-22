@@ -245,6 +245,7 @@ const generateRawSignature = async ({
       url: url.current,
       title: title.current,
       icon: icon.current,
+      channelId,
       analytics: {
         request_source: getSource(),
         request_platform: analytics?.platform,
@@ -266,6 +267,7 @@ const generateRawSignature = async ({
       data: req.params[1],
       from: req.params[0],
       ...pageMeta,
+      channelId,
       origin: hostname,
       securityAlertResponse: req.securityAlertResponse,
     },
@@ -371,6 +373,7 @@ export const getRpcMethodMiddleware = ({
             url: url.current,
             title: title.current,
             icon: icon.current,
+            channelId,
             analytics: {
               request_source: getSource(),
               request_platform: analytics?.platform,
@@ -565,6 +568,7 @@ export const getRpcMethodMiddleware = ({
             url: url.current,
             title: title.current,
             icon: icon.current,
+            channelId,
             analytics: {
               request_source: getSource(),
               request_platform: analytics?.platform,
@@ -665,6 +669,7 @@ export const getRpcMethodMiddleware = ({
             url: url.current,
             title: title.current,
             icon: icon.current,
+            channelId,
             analytics: {
               request_source: getSource(),
               request_platform: analytics?.platform,
