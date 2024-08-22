@@ -52,6 +52,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
+import type SwapsController from '@metamask/swaps-controller';
 
 interface AssetOverviewProps {
   navigation: {
@@ -96,9 +97,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { SwapsController } = Engine.context as { SwapsController: any };
+    const { SwapsController } = Engine.context as {
+      SwapsController: SwapsController;
+    };
     const fetchTokenWithCache = async () => {
       try {
         await SwapsController.fetchTokenWithCache();
