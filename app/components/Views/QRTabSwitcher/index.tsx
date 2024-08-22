@@ -1,14 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useState, useRef, useEffect } from 'react';
-import {
-  TouchableOpacity,
-  View,
-  Text,
-  Animated,
-  TouchableWithoutFeedback,
-} from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { View, Text, Animated, TouchableWithoutFeedback } from 'react-native';
 import QRScanner from '../QRScanner';
 import { strings } from '../../../../locales/i18n';
 import ReceiveRequest from '../../UI/ReceiveRequest';
