@@ -34,10 +34,7 @@ import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
 import { useTheme } from '../../../util/theme';
-import {
-  shouldShowSmartTransactionsOptInModal,
-  shouldShowWhatsNewModal,
-} from '../../../util/onboarding';
+import { shouldShowSmartTransactionsOptInModal } from '../../../util/onboarding';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -83,6 +80,7 @@ import {
 import { getCurrentRoute } from '../../../reducers/navigation';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { selectIsMetamaskNotificationsEnabled } from '../../../selectors/notifications';
+import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -153,7 +151,6 @@ const Wallet = ({
   const styles = createStyles(theme);
   const { colors } = theme;
   const dispatch = useDispatch();
-
   /**
    * Object containing the balance of the current selected account
    */
@@ -239,6 +236,7 @@ const Wallet = ({
       ],
       closeButtonOptions: {
         label: strings(`privacy_policy.toast_action_button`),
+        variant: ButtonVariants.Primary,
         onPress: () => {
           storePrivacyPolicyClickedOrClosed();
           currentToast?.closeToast();
@@ -336,19 +334,6 @@ const Wallet = ({
       return;
     }
 
-    const checkWhatsNewModal = async () => {
-      try {
-        const shouldShowWhatsNew = await shouldShowWhatsNewModal();
-        if (shouldShowWhatsNew) {
-          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.MODAL.WHATS_NEW,
-          });
-        }
-      } catch (error) {
-        Logger.log(error, "Error while checking What's New modal!");
-      }
-    };
-
     // Show STX opt in modal before What's New modal
     // Fired on the first load of the wallet and also on network switch
     const checkSmartTransactionsOptInModal = async () => {
@@ -366,8 +351,6 @@ const Wallet = ({
           navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
             screen: Routes.MODAL.SMART_TRANSACTIONS_OPT_IN,
           });
-        } else {
-          await checkWhatsNewModal();
         }
       } catch (error) {
         Logger.log(
