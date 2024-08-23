@@ -54,5 +54,8 @@ export const rpcIdentifierUtility = (
     }
   }
 
-  return 'Unknown rpcUrl';
+  return {
+    safeChain: { chainId: '', nativeCurrency: { symbol: '' } },
+    safeRPCUrl: 'Unknown rpcUrl',
+  };
 };
