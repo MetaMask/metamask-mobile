@@ -876,7 +876,6 @@ export const safeBNToHex = (value) => {
  * @param number - The number to format.
  * @returns A localized string of the formatted number + unit.
  */
-// eslint-disable-next-line
 export const localizeLargeNumber = (i18n, number) => {
   const oneTrillion = 1000000000000;
   const oneBillion = 1000000000;
