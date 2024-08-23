@@ -188,29 +188,31 @@ const NetworkVerificationInfo = ({
             ? strings('networks.network_rpc_url_label')
             : strings('add_custom_network.network_url')}
         </Text>
-        <TouchableOpacity
-          onPress={() => {
-            showReviewDefaultRpcUrlChangesModal();
-          }}
-        >
-          <TagColored style={styles.tag} color={TagColor.Info}>
-            <View style={styles.tagContent}>
-              <Icon
-                size={IconSize.Sm}
-                name={IconName.Info}
-                color={IconColor.Primary}
-              />
-              <Text variant={TextVariant.BodySM} color={TextColor.Primary}>
-                {strings('networks.review')}
-              </Text>
-              <Icon
-                size={IconSize.Xs}
-                name={IconName.ArrowRight}
-                color={IconColor.Primary}
-              />
-            </View>
-          </TagColored>
-        </TouchableOpacity>
+        {isMutichainVersion1Enabled && (
+          <TouchableOpacity
+            onPress={() => {
+              showReviewDefaultRpcUrlChangesModal();
+            }}
+          >
+            <TagColored style={styles.tag} color={TagColor.Info}>
+              <View style={styles.tagContent}>
+                <Icon
+                  size={IconSize.Sm}
+                  name={IconName.Info}
+                  color={IconColor.Primary}
+                />
+                <Text variant={TextVariant.BodySM} color={TextColor.Primary}>
+                  {strings('networks.review')}
+                </Text>
+                <Icon
+                  size={IconSize.Xs}
+                  name={IconName.ArrowRight}
+                  color={IconColor.Primary}
+                />
+              </View>
+            </TagColored>
+          </TouchableOpacity>
+        )}
       </View>
       <Text style={styles.textSection}>
         {hideKeyFromUrl(customNetworkInformation.rpcUrl)}
@@ -351,7 +353,7 @@ const NetworkVerificationInfo = ({
     );
   }, [alerts, styles.textSection, safeChainsListValidationEnabled]);
 
-  return showReviewDefaultRpcUrlChanges ? (
+  return isMutichainVersion1Enabled && showReviewDefaultRpcUrlChanges ? (
     renderReviewDefaultNetworkRpcUrlChange()
   ) : showCheckNetwork ? (
     <View>
