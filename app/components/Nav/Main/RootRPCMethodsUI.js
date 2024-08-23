@@ -237,7 +237,7 @@ const RootRPCMethodsUI = (props) => {
           ...smartTransactionMetricsProperties,
         };
 
-        trackEvent(event, parameters);
+        trackEvent(event, { sensitiveProperties: { ...parameters } });
       } catch (e) {
         Logger.error(e, MetaMetricsEvents.SWAP_TRACKING_FAILED);
         trackEvent(MetaMetricsEvents.SWAP_TRACKING_FAILED, {

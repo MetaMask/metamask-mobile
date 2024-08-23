@@ -188,9 +188,10 @@ describe('MetaMetrics', () => {
      * | C2   | NA      | NO            | YES(mixed)| EMPTY                      | A PROPS               |
      * | D    | NA      | YES           | YES       | NA PROPS                   | NA PROPS + A PROPS    |
      *
-     * For C0/C1:
+     * For C0/C1/C2:
      * - individual prop is one that is mixed with others but is of the form `prop = { anonymous: true, value: 'anon value' }`
      * - group anonymous props are of the form `prop = 'anon value'` but are grouped in an object implementing the SensitiveProperties interface.
+     * - mixed means both types in the same event
      *
      * The following test cases include the code (A,B, C0/C1 and D) of the test in the table for reference.
      */

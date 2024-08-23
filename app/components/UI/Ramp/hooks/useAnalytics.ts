@@ -46,7 +46,7 @@ export function trackEvent<T extends keyof AnalyticsEvents>(
       });
     } else {
       metrics.trackEvent(event, {
-        properties: { ...params },
+        ...params,
       });
     }
   });

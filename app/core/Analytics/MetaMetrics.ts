@@ -58,6 +58,15 @@ import convertLegacyProperties from '../../util/events/convertLegacyProperties';
  * metrics.trackEvent(event, { property: 'value' });
  * ```
  *
+ * or using the new properties structure:
+ * ```
+ * const metrics = MetaMetrics.getInstance();
+ * metrics.trackEvent(event, {
+ *   properties: {property: 'value' },
+ *   sensitiveProperties: {sensitiveProperty: 'sensitiveValue' }
+ * );
+ * ```
+ *
  * ## Enabling MetaMetrics
  * Enable the metrics when user agrees (optin or settings).
  * ```
@@ -609,6 +618,51 @@ class MetaMetrics implements IMetaMetrics {
 
   /**
    * Track an event
+   *
+   * The function allows to track non-anonymous and anonymous events:
+   * - with properties and without properties,
+   * - with a unique trackEvent function
+   *
+   * ## Regular non-anonymous events
+   * Regular events are tracked with the user ID and can have properties set
+   *
+   * ## Anonymous events
+   * Anonymous tracking track sends two events: one with the anonymous ID and one with the user ID
+   * - The anonymous event includes sensitive properties so you can know **what** but not **who**
+   * - The non-anonymous event has either no properties or not sensitive one so you can know **who** but not **what**
+   *
+   * @returns MetaMetrics functions
+   *
+   * @example basic non-anonymous tracking with no properties:
+   * trackEvent(MetaMetricsEvents.ONBOARDING_STARTED);
+   *
+   * @example track with non-anonymous properties:
+   * trackEvent(MetaMetricsEvents.BROWSER_SEARCH_USED, {
+   *   option_chosen: 'Browser Bottom Bar Menu',
+   *   number_of_tabs: undefined,
+   * });
+   *
+   * @example you can also track with non-anonymous properties (new properties structure):
+   * trackEvent(MetaMetricsEvents.BROWSER_SEARCH_USED, {
+   *   properties: {
+   *     option_chosen: 'Browser Bottom Bar Menu',
+   *     number_of_tabs: undefined,
+   *   },
+   * });
+   *
+   * @example track an anonymous event (without properties)
+   * trackEvent(MetaMetricsEvents.SWAP_COMPLETED);
+   *
+   * @example track an anonymous event with properties
+   * trackEvent(MetaMetricsEvents.GAS_FEES_CHANGED, {
+   *   sensitiveProperties: { ...parameters },
+   * });
+   *
+   * @example track an event with both anonymous and non-anonymous properties
+   * trackEvent(MetaMetricsEvents.MY_EVENT, {
+   *   properties: { ...nonAnonymousParameters },
+   *   sensitiveProperties: { ...anonymousParameters },
+   * });
    *
    * @param event - Analytics event name
    * @param properties - Object containing any event relevant traits or properties (optional).
