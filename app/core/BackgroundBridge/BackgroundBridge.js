@@ -87,8 +87,8 @@ export class BackgroundBridge extends EventEmitter {
     this.port = isRemoteConn
       ? new RemotePort(sendMessage)
       : this.isWalletConnect
-      ? new WalletConnectPort(wcRequestActions)
-      : new Port(this._webviewRef, isMainFrame);
+        ? new WalletConnectPort(wcRequestActions)
+        : new Port(this._webviewRef, isMainFrame);
 
     this.engine = null;
 
@@ -347,7 +347,7 @@ export class BackgroundBridge extends EventEmitter {
    */
   setupProviderConnection(outStream) {
     this.engine = this.setupProviderEngine();
-
+    Logger.log('[BACKGROUND BRIDGE LOG: this.engine] FINISHED', Date.now());
     // setup connection
     const providerStream = createEngineStream({ engine: this.engine });
 
@@ -360,6 +360,7 @@ export class BackgroundBridge extends EventEmitter {
       });
       if (err) Logger.log('Error with provider stream conn', err);
     });
+    Logger.log('[BACKGROUND BRIDGE LOG: pump] FINISHED', Date.now());
   }
 
   /**
