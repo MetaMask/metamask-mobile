@@ -62,6 +62,7 @@ import Toast, {
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AccountConnect from '../../../components/Views/AccountConnect';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
+import AccountPermissionsConfirmRevokeAll from '../../../components/Views/AccountPermissions/AccountPermissionsConfirmRevokeAll';
 import { SRPQuiz } from '../../Views/Quiz';
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
 import AssetHideConfirmation from '../../Views/AssetHideConfirmation';
@@ -665,6 +666,10 @@ const App = ({ userLoggedIn, basicFunctionalityEnabled }) => {
       <Stack.Screen
         name={Routes.SHEET.ACCOUNT_PERMISSIONS}
         component={AccountPermissions}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS}
+        component={AccountPermissionsConfirmRevokeAll}
       />
       <Stack.Screen
         name={Routes.SHEET.NETWORK_SELECTOR}
