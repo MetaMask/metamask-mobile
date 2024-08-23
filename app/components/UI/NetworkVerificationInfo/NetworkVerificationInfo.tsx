@@ -149,6 +149,42 @@ const NetworkVerificationInfo = ({
     </>
   );
 
+  const renderNetworkRpcUrlLabel = () => (
+    <View style={styles.networkUrlLabelRow}>
+      <Text
+        color={isMissmatchingRPCUrl ? TextColor.Primary : TextColor.Default}
+        variant={TextVariant.BodyMDMedium}
+      >
+        {strings('networks.network_rpc_url_label')}
+      </Text>
+      {isMissmatchingRPCUrl && (
+        <TouchableOpacity
+          onPress={() => {
+            showReviewDefaultRpcUrlChangesModal();
+          }}
+        >
+          <TagColored style={styles.tag} color={TagColor.Info}>
+            <View style={styles.tagContent}>
+              <Icon
+                size={IconSize.Sm}
+                name={IconName.Info}
+                color={IconColor.Primary}
+              />
+              <Text variant={TextVariant.BodySM} color={TextColor.Primary}>
+                {strings('networks.review')}
+              </Text>
+              <Icon
+                size={IconSize.Xs}
+                name={IconName.ArrowRight}
+                color={IconColor.Primary}
+              />
+            </View>
+          </TagColored>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+
   const renderNetworkInfo = () => (
     <ScrollView
       nestedScrollEnabled
@@ -171,13 +207,10 @@ const NetworkVerificationInfo = ({
 
       {!isMutichainVersion1Enabled && renderChainId()}
 
-      <View style={styles.networkUrlLabelRow}>
+      {isMutichainVersion1Enabled ? (
+        renderNetworkRpcUrlLabel()
+      ) : (
         <Text
-          color={
-            isMutichainVersion1Enabled && isMissmatchingRPCUrl
-              ? TextColor.Primary
-              : TextColor.Default
-          }
           variant={
             !isMutichainVersion1Enabled
               ? TextVariant.BodyMDBold
@@ -188,32 +221,7 @@ const NetworkVerificationInfo = ({
             ? strings('networks.network_rpc_url_label')
             : strings('add_custom_network.network_url')}
         </Text>
-        {isMutichainVersion1Enabled && (
-          <TouchableOpacity
-            onPress={() => {
-              showReviewDefaultRpcUrlChangesModal();
-            }}
-          >
-            <TagColored style={styles.tag} color={TagColor.Info}>
-              <View style={styles.tagContent}>
-                <Icon
-                  size={IconSize.Sm}
-                  name={IconName.Info}
-                  color={IconColor.Primary}
-                />
-                <Text variant={TextVariant.BodySM} color={TextColor.Primary}>
-                  {strings('networks.review')}
-                </Text>
-                <Icon
-                  size={IconSize.Xs}
-                  name={IconName.ArrowRight}
-                  color={IconColor.Primary}
-                />
-              </View>
-            </TagColored>
-          </TouchableOpacity>
-        )}
-      </View>
+      )}
       <Text style={styles.textSection}>
         {hideKeyFromUrl(customNetworkInformation.rpcUrl)}
       </Text>
@@ -305,7 +313,7 @@ const NetworkVerificationInfo = ({
             {strings('networks.new_default_network_url')}
           </Text>
         </View>
-        <View>
+        <View style={styles.networkUrlMissmatchDetails}>
           <Text variant={TextVariant.BodyMDBold}>
             {strings('networks.current_label')}
           </Text>

@@ -73,6 +73,9 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 16,
       alignItems: 'center',
     },
+    networkUrlMissmatchDetails: {
+      marginBottom: 16,
+    },
     headerStyle: {
       width: '100%',
     },
