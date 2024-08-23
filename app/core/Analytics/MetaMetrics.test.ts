@@ -179,14 +179,14 @@ describe('MetaMetrics', () => {
      * - Test D means anonymous tracking (A) and it has both non-anonymous and anonymous props:
      *   The result must be a non-anonymous event with non-anonymous props (NA PROPS) and an anonymous event with all props (NA PROPS + A PROPS).
      *
-     * | Test |  Track  | Non-anon prop | Anon prop | Result non-anon (NA) event | Result anon (A) event |
-     * |------|---------|---------------|-----------|----------------------------|-----------------------|
-     * | A    | NA      | NO            | NO        | EMPTY                      | NONE                  |
-     * | B    | NA      | YES           | NO        | NA PROPS                   | NONE                  |
-     * | C0   | NA      | NO            | YES(indiv)| EMPTY                      | A PROPS               |
-     * | C1   | NA      | NO            | YES(group)| EMPTY                      | A PROPS               |
-     * | C2   | NA      | NO            | YES(mixed)| EMPTY                      | A PROPS               |
-     * | D    | NA      | YES           | YES       | NA PROPS                   | NA PROPS + A PROPS    |
+     * | Test | Non-anon prop | Anon prop | Result non-anon (NA) event | Result anon (A) event |
+     * |------|---------------|-----------|----------------------------|-----------------------|
+     * | A    | NO            | NO        | EMPTY                      | NONE                  |
+     * | B    | YES           | NO        | NA PROPS                   | NONE                  |
+     * | C0   | NO            | YES(indiv)| EMPTY                      | A PROPS               |
+     * | C1   | NO            | YES(group)| EMPTY                      | A PROPS               |
+     * | C2   | NO            | YES(mixed)| EMPTY                      | A PROPS               |
+     * | D    | YES           | YES       | NA PROPS                   | NA PROPS + A PROPS    |
      *
      * For C0/C1/C2:
      * - individual prop is one that is mixed with others but is of the form `prop = { anonymous: true, value: 'anon value' }`
@@ -198,7 +198,7 @@ describe('MetaMetrics', () => {
     describe('tracks event', () => {
       it('without properties (test A)', async () => {
         const metaMetrics = TestMetaMetrics.getInstance();
-        expect(await metaMetrics.configure()).toBeTruthy();
+        await metaMetrics.configure();
         await metaMetrics.enable();
         const event: IMetaMetricsEvent = { category: 'test event' };
 
@@ -210,14 +210,13 @@ describe('MetaMetrics', () => {
         // check if the event was tracked
         expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
           anonymous: false,
-          ...{},
         });
         expect(segmentMockClient.track).toHaveBeenCalledTimes(1);
       });
 
       it('with only non-anonymous properties (test B)', async () => {
         const metaMetrics = TestMetaMetrics.getInstance();
-        expect(await metaMetrics.configure()).toBeTruthy();
+        await metaMetrics.configure();
         await metaMetrics.enable();
         const event: IMetaMetricsEvent = { category: 'test event' };
         const nonAnonProp = { non_anon_prop: 'test value' };
@@ -237,6 +236,7 @@ describe('MetaMetrics', () => {
 
       it('with only individual anonymous properties (test C0)', async () => {
         const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.configure();
         await metaMetrics.enable();
         const event: IMetaMetricsEvent = { category: 'test event' };
 
@@ -274,6 +274,7 @@ describe('MetaMetrics', () => {
 
       it('with only anonymous properties group (test C1)', async () => {
         const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.configure();
         await metaMetrics.enable();
         const event: IMetaMetricsEvent = { category: 'test event' };
 
@@ -306,6 +307,7 @@ describe('MetaMetrics', () => {
 
       it('with mixed (group and individual) anonymous properties (test C2)', async () => {
         const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.configure();
         await metaMetrics.enable();
         const event: IMetaMetricsEvent = { category: 'test event' };
 
@@ -345,6 +347,7 @@ describe('MetaMetrics', () => {
 
       it('with anonymous and non-anonymous properties (test D)', async () => {
         const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.configure();
         await metaMetrics.enable();
         const event: IMetaMetricsEvent = { category: 'test event' };
 
@@ -390,7 +393,7 @@ describe('MetaMetrics', () => {
     describe('saveDataRecording', () => {
       it('tracks event without updating dataRecorded status', async () => {
         const metaMetrics = TestMetaMetrics.getInstance();
-        expect(await metaMetrics.configure()).toBeTruthy();
+        await metaMetrics.configure();
         await metaMetrics.enable();
         const event: IMetaMetricsEvent = { category: 'test event' };
         const properties = { regular_prop: 'test value' };
