@@ -55,10 +55,7 @@ import { isHardwareAccount } from '../../../util/address';
 import AppConstants from '../../../core/AppConstants';
 import { createStyles } from './styles';
 import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
-import {
-  RevealSeedViewSelectorsIDs,
-  RevealSeedViewSelectorsText,
-} from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
+import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -362,7 +359,7 @@ const RevealPrivateCredential = ({
             selectTextOnFocus
             style={styles.seedPhrase}
             editable={false}
-            testID={RevealSeedViewSelectorsText.SECRET_RECOVERY_PHRASE_TEXT}
+            testID={RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_TEXT}
             placeholderTextColor={colors.text.muted}
             keyboardAppearance={themeAppearance}
           />
