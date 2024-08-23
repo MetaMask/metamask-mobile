@@ -76,6 +76,11 @@ const NotificationsView = ({
   // NOTE - We currently do not support web3 notifications
   const announcementNotifications = useMemo(() => [], []);
 
+  const unreadCount = useMemo(
+    () => allNotifications.filter((n) => !n.isRead).length,
+    [allNotifications],
+  );
+
   // Effect - fetch notifications when component/view is visible.
   useEffect(() => {
     async function updateNotifications() {
@@ -98,7 +103,7 @@ const NotificationsView = ({
             web3Notifications={announcementNotifications}
             loading={isLoading}
           />
-          {!isLoading && (
+          {!isLoading && unreadCount > 0 && (
             <Button
               variant={ButtonVariants.Primary}
               label={strings('notifications.mark_all_as_read')}
@@ -106,6 +111,7 @@ const NotificationsView = ({
               size={ButtonSize.Lg}
               style={styles.stickyButton}
               disabled={loading}
+              loading={loading}
             />
           )}
         </>
