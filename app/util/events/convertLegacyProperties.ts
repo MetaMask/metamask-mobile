@@ -1,8 +1,8 @@
-import { JsonMap } from '@segment/analytics-react-native';
-import { EventProperties } from '../../core/Analytics/MetaMetrics.types';
+import {
+  CombinedProperties,
+  EventProperties,
+} from '../../core/Analytics/MetaMetrics.types';
 import preProcessAnalyticsEvent from './preProcessAnalyticsEvent';
-
-type CombinedProperties = JsonMap | EventProperties;
 
 function isEventProperties(
   properties: CombinedProperties,

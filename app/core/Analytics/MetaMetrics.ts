@@ -20,11 +20,11 @@ import {
 } from '../../constants/storage';
 
 import {
+  CombinedProperties,
   DataDeleteDate,
   DataDeleteRegulationId,
   DataDeleteResponseStatus,
   DataDeleteStatus,
-  EventProperties,
   IDeleteRegulationResponse,
   IDeleteRegulationStatus,
   IDeleteRegulationStatusResponse,
@@ -616,7 +616,7 @@ class MetaMetrics implements IMetaMetrics {
    */
   trackEvent = (
     event: IMetaMetricsEvent,
-    properties: JsonMap | EventProperties = {},
+    properties: CombinedProperties = {},
     saveDataRecording = true,
   ): void => {
     if (!this.enabled) {
@@ -635,7 +635,7 @@ class MetaMetrics implements IMetaMetrics {
       return;
     }
 
-    // if event has properties, convert then to EventProperties,
+    // if event has properties, convert then to the new EventProperties format,
     const convertedProperties = convertLegacyProperties(properties);
 
     // Log all non-anonymous properties, or an empty event if there's no non-anon props.

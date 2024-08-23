@@ -58,7 +58,7 @@ export interface IMetaMetrics {
    */
   trackEvent(
     event: IMetaMetricsEvent,
-    properties?: JsonMap | EventProperties, // EventProperties is the new type, direct JsonMap is for retro compatibility
+    properties?: CombinedProperties,
     saveDataRecording?: boolean,
   ): void;
   /**
@@ -142,7 +142,13 @@ export interface IDeleteRegulationStatus {
   dataDeletionRequestStatus: DataDeleteStatus;
 }
 
+// event properties structure with two distinct properties lists
+// for sensitive (anonymous) and regular (non-anonymous) properties
+// this structure and naming is mirroring how the extension metrics works.
 export interface EventProperties {
   properties?: JsonMap;
   sensitiveProperties?: JsonMap;
 }
+
+// EventProperties is the new type, direct JsonMap is for backward compatibility
+export type CombinedProperties = JsonMap | EventProperties;

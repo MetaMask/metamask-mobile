@@ -1,7 +1,7 @@
-import type { JsonMap, UserTraits } from '@segment/analytics-react-native';
+import type { UserTraits } from '@segment/analytics-react-native';
 import {
+  CombinedProperties,
   DataDeleteDate,
-  EventProperties,
   IDeleteRegulationResponse,
   IDeleteRegulationStatus,
   IMetaMetricsEvent,
@@ -21,7 +21,7 @@ export interface IUseMetricsHook {
   addTraitsToUser(userTraits: UserTraits): Promise<void>;
   trackEvent(
     event: IMetaMetricsEvent,
-    properties?: JsonMap | EventProperties, // EventProperties is the new type, direct JsonMap is for retro compatibility
+    properties?: CombinedProperties,
     saveDataRecording?: boolean,
   ): void;
   createDataDeletionTask(): Promise<IDeleteRegulationResponse>;
