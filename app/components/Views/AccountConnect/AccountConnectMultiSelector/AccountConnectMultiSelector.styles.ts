@@ -25,10 +25,10 @@ const styleSheet = (params: { theme: Theme }) => {
       color: colors.text.alternative,
     },
     ctaButtonsContainer: {
-      marginTop: 24,
-      flexDirection: 'row',
+      marginTop: isMutichainVersion1Enabled ? 0 : 24,
       marginBottom: 16,
     },
+    connectOrUpdateButtonContainer: { flexDirection: 'row' },
     button: { flex: 1 },
     buttonSeparator: {
       width: 16,
@@ -57,7 +57,20 @@ const styleSheet = (params: { theme: Theme }) => {
       marginHorizontal: 16,
       marginTop: 16,
     },
-    selectAll: { marginLeft: 0, marginVertical: 12 },
+    selectAll: {
+      marginLeft: 0,
+      marginVertical: 12,
+    },
+    disconnectAllContainer: {
+      flexDirection: 'column',
+      alignItems: 'center',
+    },
+    helpTextContainer: {
+      margin: 16,
+    },
+    disconnectAllButtonContainer: {
+      flexDirection: 'row',
+    },
   });
 };
 

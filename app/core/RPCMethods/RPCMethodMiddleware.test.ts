@@ -371,6 +371,7 @@ describe('getRpcMethodMiddleware', () => {
       },
     ]);
     const permissionController = new PermissionController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: controllerMessenger.getRestricted({
         name: 'PermissionController',
         allowedActions: [],
