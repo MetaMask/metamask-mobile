@@ -46,7 +46,10 @@ export const rpcIdentifierUtility = (
   for (const chain of safeChains) {
     for (const rpc of chain.rpc) {
       if (host === new URL(rpc).host) {
-        return host;
+        return {
+          safeChain: chain,
+          safeRPCUrl: host,
+        };
       }
     }
   }
