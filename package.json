@@ -92,7 +92,8 @@
     "patch:assets": "./scripts/patch-assets-controllers.sh",
     "patch:approval": "./scripts/patch-approval-controller.sh",
     "storybook-generate": "sb-rn-get-stories",
-    "storybook-watch": "sb-rn-watcher"
+    "storybook-watch": "sb-rn-watcher",
+    "start:flipper": "npx flipper-server"
   },
   "husky": {
     "hooks": {
@@ -149,7 +150,7 @@
     "@metamask/address-book-controller": "^4.0.1",
     "@metamask/approval-controller": "^7.0.1",
     "@metamask/assets-controllers": "^30.0.0",
-    "@metamask/base-controller": "^5.0.0",
+    "@metamask/base-controller": "^6.0.0",
     "@metamask/composable-controller": "^3.0.0",
     "@metamask/contract-metadata": "^2.1.0",
     "@metamask/controller-utils": "^10.0.0",
@@ -164,7 +165,7 @@
     "@metamask/keyring-controller": "^16.0.0",
     "@metamask/logging-controller": "^3.0.0",
     "@metamask/message-signing-snap": "^0.3.3",
-    "@metamask/network-controller": "^18.1.0",
+    "@metamask/network-controller": "^19.0.0",
     "@metamask/notification-services-controller": "^0.2.1",
     "@metamask/permission-controller": "^10.0.0",
     "@metamask/phishing-controller": "^9.0.0",
@@ -180,7 +181,7 @@
     "@metamask/react-native-webview": "^14.0.2",
     "@metamask/rpc-errors": "^6.2.1",
     "@metamask/scure-bip39": "^2.1.0",
-    "@metamask/sdk-communication-layer": "^0.20.2",
+    "@metamask/sdk-communication-layer": "^0.28.1",
     "@metamask/signature-controller": "^16.0.0",
     "@metamask/slip44": "3.1.0",
     "@metamask/smart-transactions-controller": "11.0.0",
@@ -492,7 +493,9 @@
     "webpack-cli": "^5.1.4",
     "xhr2": "^0.2.1",
     "xml2js": "^0.5.0",
-    "yarn-deduplicate": "^6.0.2"
+    "yarn-deduplicate": "^6.0.2",
+    "redux-flipper": "^2.0.3",
+    "react-native-flipper": "^0.263.0"
   },
   "config": {
     "react-native-storybook-loader": {
@@ -579,7 +582,10 @@
       "@metamask/sdk-communication-layer>bufferutil": false,
       "@metamask/sdk-communication-layer>utf-8-validate": false,
       "detox>ws>bufferutil": false,
-      "@metamask/notification-services-controller>firebase>@firebase/firestore>@grpc/proto-loader>protobufjs": false
+      "@metamask/notification-services-controller>firebase>@firebase/firestore>@grpc/proto-loader>protobufjs": false,
+      "@metamask/sdk-communication-layer>eciesjs>secp256k1": false,
+      "detox>ws>utf-8-validate": false,
+      "ganache>@trufflesuite/uws-js-unofficial>utf-8-validate": false
     }
   },
   "packageManager": "yarn@1.22.22"

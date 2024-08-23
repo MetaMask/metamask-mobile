@@ -30,6 +30,8 @@ import {
   UseAccounts,
   UseAccountsParams,
 } from './useAccounts.types';
+import { InternalAccountTypes } from '@metamask/keyring-api';
+import { Hex } from '@metamask/utils';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -123,7 +125,7 @@ const useAccounts = ({
     let yOffset = 0;
     let selectedIndex = 0;
     const flattenedAccounts: Account[] = internalAccounts.map(
-      (internalAccount, index) => {
+      (internalAccount: InternalAccountTypes, index: number) => {
         const {
           address,
           metadata: {
@@ -131,7 +133,8 @@ const useAccounts = ({
             keyring: { type },
           },
         } = internalAccount;
-        const checksummedAddress = toChecksumHexAddress(address);
+        // This should be changed at controller-utils core package
+        const checksummedAddress = toChecksumHexAddress(address) as Hex;
         const isSelected = selectedInternalAccount?.address === address;
         if (isSelected) {
           selectedIndex = index;
