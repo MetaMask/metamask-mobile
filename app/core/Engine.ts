@@ -1387,10 +1387,11 @@ class Engine {
           name: 'SwapsController',
           // TODO: allow these internal calls once GasFeeController
           // export these action types and register its action handlers
-          // allowedActions: [
-          //   'GasFeeController:getEIP1559GasFeeEstimates',
-          // ],
-          allowedActions: [],
+          allowedActions: [
+            `${networkController.name}:findNetworkClientIdByChainId`,
+            `${networkController.name}:getNetworkClientById`,
+            // 'GasFeeController:getEIP1559GasFeeEstimates',
+          ],
           allowedEvents: [],
         }),
         // TODO: Remove once GasFeeController exports this action type
