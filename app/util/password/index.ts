@@ -1,14 +1,15 @@
 import SecureKeychain from '../../core/SecureKeychain';
 import Engine from '../../core/Engine';
+import { regex } from '../regex';
 
 export const MIN_PASSWORD_LENGTH = 8;
 
 export const getPasswordStrength = (password: string) => {
   const minLength = 8;
-  const hasUpperCase = /[A-Z]/.test(password);
-  const hasLowerCase = /[a-z]/.test(password);
-  const hasNumbers = /\d/.test(password);
-  const hasSpecialChars = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+  const hasUpperCase = regex.hasUpperCase.test(password);
+  const hasLowerCase = regex.hasLowerCase.test(password);
+  const hasNumbers = regex.hasNumbers.test(password);
+  const hasSpecialChars = regex.hasSpecialChars.test(password);
 
   let strengthScore = 0;
 
