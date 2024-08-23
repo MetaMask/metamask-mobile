@@ -72,6 +72,7 @@ function NotificationsListItem(props: NotificationsListItemProps) {
         });
       }
       const unreadedCount = async () => await notifee.getBadgeCount();
+
       unreadedCount().then((count) => {
         if (count > 0) {
           notifee.setBadgeCount(count - 1);

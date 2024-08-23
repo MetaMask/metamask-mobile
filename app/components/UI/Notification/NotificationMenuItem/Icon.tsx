@@ -50,7 +50,6 @@ function NotificationIcon(props: NotificationIconProps) {
   const { styles } = useStyles();
   return (
     <React.Fragment>
-      <View style={props.isRead ? styles.readDot : styles.unreadDot} />
       <View style={styles.itemLogoSize}>
         <BadgeWrapper
           badgePosition={BOTTOM_BADGEWRAPPER_BADGEPOSITION}
@@ -65,6 +64,7 @@ function NotificationIcon(props: NotificationIconProps) {
           <MenuIcon {...props} />
         </BadgeWrapper>
       </View>
+      <View style={props.isRead ? styles.readDot : styles.unreadDot} />
     </React.Fragment>
   );
 }

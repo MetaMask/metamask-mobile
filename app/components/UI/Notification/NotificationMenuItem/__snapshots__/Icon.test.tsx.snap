@@ -5,18 +5,6 @@ exports[`NotificationIcon matches snapshot when icon is provided 1`] = `
   <View
     style={
       {
-        "alignSelf": "flex-start",
-        "backgroundColor": "#0376c9",
-        "borderRadius": 2,
-        "height": 4,
-        "marginTop": 14,
-        "width": 4,
-      }
-    }
-  />,
-  <View
-    style={
-      {
         "height": 32,
         "width": 32,
       }
@@ -120,5 +108,15 @@ exports[`NotificationIcon matches snapshot when icon is provided 1`] = `
       </View>
     </View>
   </View>,
+  <View
+    style={
+      {
+        "borderRadius": 2,
+        "height": 4,
+        "position": "absolute",
+        "width": 4,
+      }
+    }
+  />,
 ]
 `;
