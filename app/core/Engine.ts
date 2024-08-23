@@ -1499,8 +1499,6 @@ class Engine {
       Controllers[keyof Controllers]
     >({
       controllers,
-      // @ts-expect-error Resolve/patch mismatch between base-controller versions
-      // ts(2322) - Property '#private' in type 'RestrictedControllerMessenger' refers to a different member that cannot be accessed from within type 'RestrictedControllerMessenger'
       messenger: this.controllerMessenger.getRestricted({
         name: 'ComposableController',
         allowedActions: [],
