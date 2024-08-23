@@ -1,73 +1,90 @@
-import { AccountsControllerState } from '@metamask/accounts-controller';
-import { migrate, version } from './051';
-import { createMockInternalAccount } from '../../util/test/accountsControllerTestUtils';
+import migration from './051';
+import { merge } from 'lodash';
+import initialRootState from '../../util/test/initial-root-state';
+import { captureException } from '@sentry/react-native';
 
-const oldVersion = 50;
-const MOCK_DEFAULT_ADDRESS = '0xd5e099c71b797516c10ed0f0d895f429c2781111';
-
-const mockInternalAccount = createMockInternalAccount(
-  MOCK_DEFAULT_ADDRESS,
-  'Account 1',
-);
-const mockAccountsControllerState: AccountsControllerState = {
-  internalAccounts: {
-    accounts: {
-      [mockInternalAccount.id]: mockInternalAccount,
-    },
-    selectedAccount: mockInternalAccount.id,
-  },
-};
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
+}));
+const mockedCaptureException = jest.mocked(captureException);
 
 describe('Migration #51', () => {
-  afterEach(() => jest.resetAllMocks());
-
-  it('updates the version metadata', async () => {
-    const oldStorage = {
-      meta: { version: oldVersion },
-      data: {
-        AccountsController: mockAccountsControllerState,
-      },
-    };
-
-    const newStorage = await migrate(oldStorage);
-    expect(newStorage.meta).toStrictEqual({ version });
+  beforeEach(() => {
+    jest.restoreAllMocks();
+    jest.resetAllMocks();
   });
 
-  it('updates selected account if it is not found in the list of accounts', async () => {
-    const oldStorage = {
-      meta: { version: oldVersion },
-      data: {
-        AccountsController: {
-          ...mockAccountsControllerState,
-          internalAccounts: {
-            ...mockAccountsControllerState.internalAccounts,
-            selectedAccount: 'unknown id',
+  const invalidStates = [
+    {
+      state: merge({}, initialRootState, {
+        engine: null,
+      }),
+      errorMessage:
+        "FATAL ERROR: Migration 51: Invalid engine state error: 'object'",
+      scenario: 'engine state is invalid',
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: null,
+        },
+      }),
+      errorMessage:
+        "FATAL ERROR: Migration 51: Invalid backgroundState error: 'object'",
+      scenario: 'backgroundState is invalid',
+    },
+  ];
+
+  for (const { errorMessage, scenario, state } of invalidStates) {
+    it(`should capture exception if ${scenario}`, () => {
+      const newState = migration(state);
+
+      expect(newState).toStrictEqual(state);
+      expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+        errorMessage,
+      );
+    });
+  }
+
+  it('should remove TxController if present in backgroundState', () => {
+    const oldState = merge({}, initialRootState, {
+      engine: {
+        backgroundState: {
+          TxController: {
+            someData: 'test',
+          },
+          SomeOtherController: {
+            shouldRemain: true,
           },
         },
       },
-    };
+    });
 
-    const newStorage = await migrate(oldStorage);
-    const {
-      internalAccounts: { selectedAccount },
-    } = newStorage.data.AccountsController as AccountsControllerState;
-    expect(selectedAccount).toStrictEqual(mockInternalAccount.id);
-    expect(newStorage.data.AccountsController).toStrictEqual(
-      mockAccountsControllerState,
+    const newState = migration(oldState) as typeof oldState;
+
+    expect(newState.engine.backgroundState).not.toHaveProperty('TxController');
+    expect(newState.engine.backgroundState).toHaveProperty(
+      'SomeOtherController',
     );
+    expect(newState.engine.backgroundState.SomeOtherController).toEqual({
+      shouldRemain: true,
+    });
   });
 
-  it('does nothing if the selectedAccount is found in the list of accounts', async () => {
-    const oldStorage = {
-      meta: { version: oldVersion },
-      data: {
-        AccountsController: mockAccountsControllerState,
+  it('should not modify state if TxController is not present', () => {
+    const oldState = merge({}, initialRootState, {
+      engine: {
+        backgroundState: {
+          SomeOtherController: {
+            shouldRemain: true,
+          },
+        },
       },
-    };
+    });
 
-    const newStorage = await migrate(oldStorage);
-    expect(newStorage.data.AccountsController).toStrictEqual(
-      mockAccountsControllerState,
-    );
+    const newState = migration(oldState) as typeof oldState;
+
+    expect(newState).toEqual(oldState);
   });
 });
