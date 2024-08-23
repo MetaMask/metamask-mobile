@@ -13,7 +13,6 @@ import {
 import { connect } from 'react-redux';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -27,9 +26,9 @@ import {
 } from '../../../util/validators';
 import Logger from '../../../util/Logger';
 import {
-  getPasswordStrengthWord,
   passwordRequirementsMet,
   MIN_PASSWORD_LENGTH,
+  getPasswordStrength,
 } from '../../../util/password';
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -300,10 +299,9 @@ const ImportFromSecretRecoveryPhrase = ({
   }, []);
 
   const onPasswordChange = (value) => {
-    const passInfo = zxcvbn(value);
-
+    const passwordStrength = getPasswordStrength(value);
     setPassword(value);
-    setPasswordStrength(passInfo.score);
+    setPasswordStrength(passwordStrength);
   };
 
   const onPasswordConfirmChange = (value) => {
@@ -366,8 +364,6 @@ const ImportFromSecretRecoveryPhrase = ({
       },
     });
   }, [hideSeedPhraseInput, navigation]);
-
-  const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
   const hiddenSRPInput = useCallback(
     () => (
@@ -516,9 +512,9 @@ const ImportFromSecretRecoveryPhrase = ({
                 testID={ImportFromSeedSelectorsIDs.PASSWORD_STRENGTH_ID}
               >
                 {strings('choose_password.password_strength')}
-                <Text style={styles[`strength_${passwordStrengthWord}`]}>
+                <Text style={styles[`strength_${passwordStrength}`]}>
                   {' '}
-                  {strings(`choose_password.strength_${passwordStrengthWord}`)}
+                  {strings(`choose_password.strength_${passwordStrength}`)}
                 </Text>
               </Text>
             )) || <Text style={styles.passwordStrengthLabel} />}

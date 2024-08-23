@@ -30,7 +30,6 @@ import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
-import zxcvbn from 'zxcvbn';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
   TRUE,
@@ -38,7 +37,7 @@ import {
   PASSCODE_DISABLED,
 } from '../../../constants/storage';
 import {
-  getPasswordStrengthWord,
+  getPasswordStrength,
   passwordRequirementsMet,
 } from '../../../util/password';
 import NotificationManager from '../../../core/NotificationManager';
@@ -491,9 +490,9 @@ class ResetPassword extends PureComponent {
   };
 
   onPasswordChange = (val) => {
-    const passInfo = zxcvbn(val);
+    const passwordStrength = getPasswordStrength(val);
 
-    this.setState({ password: val, passwordStrength: passInfo.score });
+    this.setState({ password: val, passwordStrength });
   };
 
   toggleShowHide = () => {
@@ -600,7 +599,6 @@ class ResetPassword extends PureComponent {
     const passwordsMatch = password !== '' && password === confirmPassword;
     const canSubmit = passwordsMatch && isSelected;
     const previousScreen = this.props.route.params?.[PREVIOUS_SCREEN];
-    const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
     return (
       <SafeAreaView style={styles.mainWrapper}>
@@ -681,12 +679,10 @@ class ResetPassword extends PureComponent {
                       {strings('reset_password.password_strength')}
                       <Text
                         variant={TextVariant.BodySM}
-                        style={styles[`strength_${passwordStrengthWord}`]}
+                        style={styles[`strength_${passwordStrength}`]}
                       >
                         {' '}
-                        {strings(
-                          `reset_password.strength_${passwordStrengthWord}`,
-                        )}
+                        {strings(`reset_password.strength_${passwordStrength}`)}
                       </Text>
                     </Text>
                   )) || (

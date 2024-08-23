@@ -36,7 +36,6 @@ import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
 import OnboardingProgress from '../../UI/OnboardingProgress';
-import zxcvbn from 'zxcvbn';
 import Logger from '../../../util/Logger';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
@@ -47,9 +46,9 @@ import {
   PASSCODE_DISABLED,
 } from '../../../constants/storage';
 import {
-  getPasswordStrengthWord,
   passwordRequirementsMet,
   MIN_PASSWORD_LENGTH,
+  getPasswordStrength,
 } from '../../../util/password';
 
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
@@ -528,9 +527,9 @@ class ChoosePassword extends PureComponent {
   };
 
   onPasswordChange = (val) => {
-    const passInfo = zxcvbn(val);
+    const passwordStrength = getPasswordStrength(val);
 
-    this.setState({ password: val, passwordStrength: passInfo.score });
+    this.setState({ password: val, passwordStrength });
   };
 
   toggleShowHide = () => {
@@ -563,7 +562,6 @@ class ChoosePassword extends PureComponent {
     const passwordsMatch = password !== '' && password === confirmPassword;
     const canSubmit = passwordsMatch && isSelected;
     const previousScreen = this.props.route.params?.[PREVIOUS_SCREEN];
-    const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
     const styles = createStyles(colors);
@@ -654,11 +652,11 @@ class ChoosePassword extends PureComponent {
                       {strings('choose_password.password_strength')}
                       <Text
                         variant={TextVariant.BodySM}
-                        style={styles[`strength_${passwordStrengthWord}`]}
+                        style={styles[`strength_${passwordStrength}`]}
                       >
                         {' '}
                         {strings(
-                          `choose_password.strength_${passwordStrengthWord}`,
+                          `choose_password.strength_${passwordStrength}`,
                         )}
                       </Text>
                     </Text>

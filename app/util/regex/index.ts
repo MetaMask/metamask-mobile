@@ -53,4 +53,8 @@ export const regex: RegexTypes = {
   validChainIdHex: /^0x[0-9a-f]+$/iu,
   walletAddress: /^(0x){1}[0-9a-fA-F]{40}$/i,
   whiteSpaces: /\s+/g,
+  hasUpperCase: /[A-Z]/,
+  hasLowerCase: /[a-z]/,
+  hasNumbers: /\d/,
+  hasSpecialChars: /[!@#$%^&*(),.?":{}|<>]/,
 };

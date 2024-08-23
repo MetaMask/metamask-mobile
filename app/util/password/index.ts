@@ -4,16 +4,31 @@ import { UNRECOGNIZED_PASSWORD_STRENGTH } from '../../constants/error';
 
 export const MIN_PASSWORD_LENGTH = 8;
 
-export const getPasswordStrengthWord = (strength: number) => {
-  if (strength < 0) {
-    throw new Error(UNRECOGNIZED_PASSWORD_STRENGTH);
-  } else if (strength < 3) {
-    return 'weak';
-  } else if (strength === 3) {
-    return 'good';
+export const getPasswordStrength = (password: string) => {
+  const minLength = 8;
+  const hasUpperCase = /[A-Z]/.test(password);
+  const hasLowerCase = /[a-z]/.test(password);
+  const hasNumbers = /\d/.test(password);
+  const hasSpecialChars = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+  let strengthScore = 0;
+
+  if (password.length >= minLength) strengthScore++;
+  if (hasUpperCase) strengthScore++;
+  if (hasLowerCase) strengthScore++;
+  if (hasNumbers) strengthScore++;
+  if (hasSpecialChars) strengthScore++;
+
+  let strength;
+  if (strengthScore <= 2) {
+    strength = 'weak';
+  } else if (strengthScore === 3 || strengthScore === 4) {
+    strength = 'good';
   } else {
-    return 'strong';
+    strength = 'strong';
   }
+
+  return strength;
 };
 
 export const passwordRequirementsMet = (password: string) =>

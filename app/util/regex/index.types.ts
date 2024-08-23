@@ -34,4 +34,8 @@ export interface RegexTypes {
   validChainId: RegExp;
   walletAddress: RegExp;
   whiteSpaces: RegExp;
+  hasUpperCase: RegExp;
+  hasLowerCase: RegExp;
+  hasNumbers: RegExp;
+  hasSpecialChars: RegExp;
 }
