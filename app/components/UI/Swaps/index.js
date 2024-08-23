@@ -80,11 +80,7 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import AccountSelector from '../Ramp/components/AccountSelector';
-import {
-  SWAP_SOURCE_TOKEN,
-  SWAP_DEST_TOKEN,
-  SWAP_MAX_SLIPPAGE,
-} from '../../../../wdio/screen-objects/testIDs/Screens/QuoteView.js';
+import { QuoteViewSelectorIDs } from '../../../../e2e/selectors/swaps/QuoteView.selectors';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getSwapsLiveness } from '../../../reducers/swaps/utils';
@@ -665,7 +661,7 @@ function SwapsAmountView({
         <View
           style={[styles.tokenButtonContainer, disabledView && styles.disabled]}
           pointerEvents={disabledView ? 'none' : 'auto'}
-          testID={SWAP_SOURCE_TOKEN}
+          testID={QuoteViewSelectorIDs.SOURCE_TOKEN}
         >
           {isInitialLoadingTokens ? (
             <ActivityIndicator size="small" />
@@ -746,7 +742,10 @@ function SwapsAmountView({
           </TouchableOpacity>
           <View style={styles.horizontalRule} />
         </View>
-        <View style={styles.tokenButtonContainer} testID={SWAP_DEST_TOKEN}>
+        <View
+          style={styles.tokenButtonContainer}
+          testID={QuoteViewSelectorIDs.DEST_TOKEN}
+        >
           {isInitialLoadingTokens ? (
             <ActivityIndicator size="small" />
           ) : (
@@ -886,7 +885,11 @@ function SwapsAmountView({
               hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
               disabled={isDirectWrapping}
             >
-              <Text bold link={!isDirectWrapping} testID={SWAP_MAX_SLIPPAGE}>
+              <Text
+                bold
+                link={!isDirectWrapping}
+                testID={QuoteViewSelectorIDs.MAX_SLIPPAGE}
+              >
                 {strings('swaps.max_slippage_amount', {
                   slippage: `${slippage}%`,
                 })}
