@@ -1,6 +1,5 @@
 import SecureKeychain from '../../core/SecureKeychain';
 import Engine from '../../core/Engine';
-import { UNRECOGNIZED_PASSWORD_STRENGTH } from '../../constants/error';
 
 export const MIN_PASSWORD_LENGTH = 8;
 
