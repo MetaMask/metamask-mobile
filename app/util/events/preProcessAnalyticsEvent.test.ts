@@ -86,4 +86,16 @@ describe('preProcessAnalyticsEvent', () => {
       active_currency: 'FOXY',
     });
   });
+
+  it('adds non-anonymous object properties without anonymous key to nonAnonymousProperties', () => {
+    const properties = {
+      non_anonymous_object: { value: 'testValue' },
+    };
+    const [nonAnonymousProperties, anonymousProperties] =
+      preProcessAnalyticsEvent(properties);
+    expect(nonAnonymousProperties).toEqual({
+      non_anonymous_object: 'testValue',
+    });
+    expect(anonymousProperties).toEqual({});
+  });
 });
