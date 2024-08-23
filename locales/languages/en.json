@@ -3173,7 +3173,7 @@
     "how_to_install_eth_webview_title": "How to install the Ethereum App",
     "nonce_too_low": "Nonce too low",
     "nonce_too_low_error": "The set nonce is too low",
-    "select_accounts": "Select an Account",
+    "select_accounts": "Select an account",
     "select_hd_path": "Select HD Path",
     "select_hd_path_description": "If you don't see the accounts you expect, try switching the HD path or current selected network.",
     "ledger_live_path": "Ledger Live",
