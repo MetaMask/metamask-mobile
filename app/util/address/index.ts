@@ -582,8 +582,8 @@ export async function getAddress(
 
 export const getTokenDetails = async (
   tokenAddress: string,
-  userAddress: string,
-  tokenId: string,
+  userAddress?: string,
+  tokenId?: string,
 ) => {
   const { AssetsContractController } = Engine.context;
   const tokenData = await AssetsContractController.getTokenStandardAndDetails(

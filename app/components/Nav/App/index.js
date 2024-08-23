@@ -27,7 +27,6 @@ import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportFromSecretRecoveryPhrase from '../../Views/ImportFromSecretRecoveryPhrase';
 import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
-import WhatsNewModal from '../../UI/WhatsNewModal/WhatsNewModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
 import MetaMaskAnimation from '../../UI/MetaMaskAnimation';
@@ -62,6 +61,7 @@ import Toast, {
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AccountConnect from '../../../components/Views/AccountConnect';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
+import AccountPermissionsConfirmRevokeAll from '../../../components/Views/AccountPermissions/AccountPermissionsConfirmRevokeAll';
 import { SRPQuiz } from '../../Views/Quiz';
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
 import AssetHideConfirmation from '../../Views/AssetHideConfirmation';
@@ -614,7 +614,6 @@ const App = ({ userLoggedIn }) => {
         name={Routes.MODAL.MODAL_MANDATORY}
         component={ModalMandatory}
       />
-      <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
       <Stack.Screen
         name={Routes.MODAL.SMART_TRANSACTIONS_OPT_IN}
         component={SmartTransactionsOptInModal}
@@ -654,6 +653,10 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.ACCOUNT_PERMISSIONS}
         component={AccountPermissions}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS}
+        component={AccountPermissionsConfirmRevokeAll}
       />
       <Stack.Screen
         name={Routes.SHEET.NETWORK_SELECTOR}
