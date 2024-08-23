@@ -10,7 +10,7 @@ export const SecurityQuizGetStartedModalSelectorsText = {
   QUIZ_INTRODUCTION: enContent.srp_security_quiz.introduction,
 };
 
-export const SecurityQuestionOneModelSelectorsIDs = {
+export const SecurityQuestionOneModalSelectorsIDs = {
   QUIZ_QUESTION_ONE_CONTAINER: 'quiz-question-one-modal',
   QUIZ_QUESTION_ONE_DISMISS: 'quiz-question-one-dismiss-button',
   QUIZ_QUESTION_ONE_WRONG_ANSWER: 'quiz-question-one-wrong-answer',
@@ -32,7 +32,7 @@ export const SecurityQuizQuestionOneModalSelectorsText = {
     enContent.srp_security_quiz.question_one.wrong_answer_title,
 };
 
-export const SecurityQuestionTwoModelSelectorsIDs = {
+export const SecurityQuestionTwoModalSelectorsIDs = {
   QUIZ_QUESTION_TWO_CONTAINER: 'quiz-question-two-modal',
   QUIZ_QUESTION_TWO_DISMISS: 'quiz-question-two-dismiss-button',
   QUIZ_QUESTION_TWO_WRONG_ANSWER: 'quiz-question-two-wrong-answer',

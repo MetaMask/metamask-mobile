@@ -1,6 +1,6 @@
 'use strict';
 
-import { SmokeAccounts } from '../../tags.js';
+import { Regression } from '../../tags.js';
 import TestHelpers from '../../helpers.js';
 import { loginToApp } from '../../viewHelper.js';
 import TabBarComponent from '../../pages/TabBarComponent.js';
@@ -11,6 +11,12 @@ import {
   SecurityQuizQuestionOneModalSelectorsText,
   SecurityQuizQuestionTwoModalSelectorsText,
 } from '../../selectors/Modals/SecurityQuizModal.selectors';
+import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase.js';
+import {
+  RevealSeedViewSelectorsIDs,
+  RevealSeedViewSelectorsText,
+} from '../../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors.js';
+
 import {
   withFixtures,
   defaultGanacheOptions,
@@ -18,12 +24,14 @@ import {
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
 import Assertions from '../../utils/Assertions';
 
-describe(SmokeAccounts('Secret Recovery Phrase Quiz'), () => {
+describe(Regression('Secret Recovery Phrase Reveal from Settings'), () => {
+  const PASSWORD = '123123123';
+
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
   });
 
-  it('completes quiz after correcting wrong answers', async () => {
+  it('reveals Secret Recovery Phrase after completing the security quiz', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
@@ -33,7 +41,7 @@ describe(SmokeAccounts('Secret Recovery Phrase Quiz'), () => {
       async () => {
         await loginToApp();
 
-        // Navigate to Reveal Secret Recovery Phrase screen
+        // Navigate to Reveal SRP screen
         await TabBarComponent.tapSettings();
         await SettingsView.tapSecurityAndPrivacy();
         await SecurityAndPrivacy.tapRevealSecretRecoveryPhraseButton();
@@ -64,7 +72,7 @@ describe(SmokeAccounts('Secret Recovery Phrase Quiz'), () => {
           SecurityQuizModal.questionOneRightContinueButton,
         );
 
-        // // // Question 2
+        // Question 2
         await Assertions.checkIfVisible(SecurityQuizModal.getQuizQuestionTwo);
         await SecurityQuizModal.tapQuestionTwoWrongAnswerButton();
         await Assertions.checkIfTextIsDisplayed(
@@ -85,6 +93,35 @@ describe(SmokeAccounts('Secret Recovery Phrase Quiz'), () => {
         await SecurityQuizModal.tapQuestionTwoContinueButton();
         await Assertions.checkIfNotVisible(
           SecurityQuizModal.questionTwoRightContinueButton,
+        );
+
+        // Enter password after completing quiz
+        await TestHelpers.waitAndTap(
+          RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
+        );
+        await TestHelpers.typeTextAndHideKeyboard(
+          RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
+          PASSWORD,
+        );
+        // Tap on reveal SRP button
+        await TestHelpers.waitAndTap(
+          RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_REVEAL_BUTTON_ID,
+        );
+
+        // Confirm that the SRP container is displayed
+        await Assertions.checkIfVisible(RevealSecretRecoveryPhrase.container);
+        // Confirm that SRP Title is displayed
+        await Assertions.checkIfTextIsDisplayed(
+          RevealSeedViewSelectorsText.REVEAL_SECRET_RECOVERY_PHRASE_TITLE_TEXT,
+        );
+        // Confirm that correct SRP text is displayed accurately
+        await Assertions.checkIfTextIsDisplayed(defaultGanacheOptions.mnemonic);
+        // Copy to clipboard
+        await Assertions.checkIfVisible(
+          RevealSecretRecoveryPhrase.touchableBox,
+        );
+        await TestHelpers.tap(
+          RevealSeedViewSelectorsIDs.REVEAL_SECRET_RECOVERY_PHRASE_TOUCHABLE_BOX_ID,
         );
       },
     );

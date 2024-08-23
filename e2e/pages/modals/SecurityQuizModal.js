@@ -1,9 +1,9 @@
 import {
   SecurityQuizGetStartedModalSelectorsIDs,
   SecurityQuizGetStartedModalSelectorsText,
-  SecurityQuestionOneModelSelectorsIDs,
+  SecurityQuestionOneModalSelectorsIDs,
   SecurityQuizQuestionOneModalSelectorsText,
-  SecurityQuestionTwoModelSelectorsIDs,
+  SecurityQuestionTwoModalSelectorsIDs,
   SecurityQuizQuestionTwoModalSelectorsText,
 } from '../../selectors/Modals/SecurityQuizModal.selectors';
 import Matchers from '../../utils/Matchers';
@@ -36,13 +36,13 @@ class SecurityQuizModal {
 
   get questionOneContainer() {
     return Matchers.getElementByID(
-      SecurityQuestionOneModelSelectorsIDs.QUIZ_QUESTION_ONE_CONTAINER,
+      SecurityQuestionOneModalSelectorsIDs.QUIZ_QUESTION_ONE_CONTAINER,
     );
   }
 
   get questionOneDismiss() {
     return Matchers.getElementByID(
-      SecurityQuestionOneModelSelectorsIDs.QUIZ_QUESTION_ONE_DISMISS,
+      SecurityQuestionOneModalSelectorsIDs.QUIZ_QUESTION_ONE_DISMISS,
     );
   }
 
@@ -54,7 +54,7 @@ class SecurityQuizModal {
 
   get questionOneWrongAnswer() {
     return Matchers.getElementByID(
-      SecurityQuestionOneModelSelectorsIDs.QUIZ_QUESTION_ONE_WRONG_ANSWER,
+      SecurityQuestionOneModalSelectorsIDs.QUIZ_QUESTION_ONE_WRONG_ANSWER,
     );
   }
 
@@ -72,13 +72,13 @@ class SecurityQuizModal {
 
   get questionOneWrongAnswerTryAgainButton() {
     return Matchers.getElementByID(
-      SecurityQuestionOneModelSelectorsIDs.QUIZ_QUESTION_ONE_WRONG_ANSWER_TRY_AGAIN_BUTTON,
+      SecurityQuestionOneModalSelectorsIDs.QUIZ_QUESTION_ONE_WRONG_ANSWER_TRY_AGAIN_BUTTON,
     );
   }
 
   get questionOneRightAnswerButton() {
     return Matchers.getElementByID(
-      SecurityQuestionOneModelSelectorsIDs.QUIZ_QUESTION_ONE_RIGHT_ANSWER,
+      SecurityQuestionOneModalSelectorsIDs.QUIZ_QUESTION_ONE_RIGHT_ANSWER,
     );
   }
 
@@ -96,19 +96,19 @@ class SecurityQuizModal {
 
   get questionOneRightContinueButton() {
     return Matchers.getElementByID(
-      SecurityQuestionOneModelSelectorsIDs.QUIZ_QUESTION_ONE_RIGHT_CONTINUE,
+      SecurityQuestionOneModalSelectorsIDs.QUIZ_QUESTION_ONE_RIGHT_CONTINUE,
     );
   }
 
   get questionTwoContainer() {
     return Matchers.getElementByID(
-      SecurityQuestionTwoModelSelectorsIDs.QUIZ_QUESTION_TWO_CONTAINER,
+      SecurityQuestionTwoModalSelectorsIDs.QUIZ_QUESTION_TWO_CONTAINER,
     );
   }
 
   get questionTwoDismiss() {
     return Matchers.getElementByID(
-      SecurityQuestionTwoModelSelectorsIDs.QUIZ_QUESTION_TWO_DISMISS,
+      SecurityQuestionTwoModalSelectorsIDs.QUIZ_QUESTION_TWO_DISMISS,
     );
   }
 
@@ -120,7 +120,7 @@ class SecurityQuizModal {
 
   get questionTwoWrongAnswer() {
     return Matchers.getElementByID(
-      SecurityQuestionTwoModelSelectorsIDs.QUIZ_QUESTION_TWO_WRONG_ANSWER,
+      SecurityQuestionTwoModalSelectorsIDs.QUIZ_QUESTION_TWO_WRONG_ANSWER,
     );
   }
 
@@ -138,13 +138,13 @@ class SecurityQuizModal {
 
   get questionTwoWrongAnswerTryAgainButton() {
     return Matchers.getElementByID(
-      SecurityQuestionTwoModelSelectorsIDs.QUIZ_QUESTION_TWO_WRONG_ANSWER_TRY_AGAIN_BUTTON,
+      SecurityQuestionTwoModalSelectorsIDs.QUIZ_QUESTION_TWO_WRONG_ANSWER_TRY_AGAIN_BUTTON,
     );
   }
 
   get questionTwoRightAnswer() {
     return Matchers.getElementByID(
-      SecurityQuestionTwoModelSelectorsIDs.QUIZ_QUESTION_TWO_RIGHT_ANSWER,
+      SecurityQuestionTwoModalSelectorsIDs.QUIZ_QUESTION_TWO_RIGHT_ANSWER,
     );
   }
 
@@ -162,7 +162,7 @@ class SecurityQuizModal {
 
   get questionTwoRightContinueButton() {
     return Matchers.getElementByID(
-      SecurityQuestionTwoModelSelectorsIDs.QUIZ_QUESTION_TWO_RIGHT_CONTINUE,
+      SecurityQuestionTwoModalSelectorsIDs.QUIZ_QUESTION_TWO_RIGHT_CONTINUE,
     );
   }
 

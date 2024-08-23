@@ -12,5 +12,5 @@ export const SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID =
 export const SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID =
   'reveal-private-credential-next-button';
 
-export const SECRET_RECOVERY_PHRASE_LONG_PRESS_BUTTON_ID =
+export const SECRET_RECOVERY_PHRASE_REVEAL_BUTTON_ID =
   'reveal-private-long-press-button';
