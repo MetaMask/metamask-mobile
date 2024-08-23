@@ -1,6 +1,6 @@
 import { zeroAddress } from 'ethereumjs-util';
 import React from 'react';
-import { View } from 'react-native';
+import { DimensionValue, View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { Hex } from '@metamask/utils';
 import i18n, { strings } from '../../../../../locales/i18n';
@@ -19,8 +19,8 @@ interface AboutAssetProps {
 }
 
 interface SkeletonPlaceholderItem {
-  width: number;
-  height: number;
+  width: DimensionValue;
+  height: DimensionValue;
   borderRadius: number;
   marginBottom: number;
 }
@@ -29,7 +29,7 @@ const AboutAsset = ({ asset, chainId }: AboutAssetProps) => {
   const { styles } = useStyles(styleSheet, {});
   const locale: keyof TokenDescriptions = i18n.locale;
   const skeletonProps: SkeletonPlaceholderItem = {
-    width: 100,
+    width: '100%',
     height: 18,
     borderRadius: 6,
     marginBottom: 8,

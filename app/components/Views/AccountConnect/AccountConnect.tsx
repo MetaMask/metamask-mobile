@@ -349,7 +349,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     const request: PermissionsRequest = {
       ...hostInfo,
       metadata: {
-        id: channelIdOrHostname,
         ...hostInfo.metadata,
         origin: channelIdOrHostname,
       },
@@ -599,19 +598,19 @@ const AccountConnect = (props: AccountConnectProps) => {
         onUserAction={setUserIntent}
         onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
         connection={sdkConnection}
+        hostname={hostname}
       />
     ),
     [
       accounts,
       ensByAccountAddress,
       selectedAddresses,
-      setSelectedAddresses,
       isLoading,
-      setUserIntent,
       faviconSource,
-      urlWithProtocol,
       secureIcon,
+      urlWithProtocol,
       sdkConnection,
+      hostname,
     ],
   );
 
