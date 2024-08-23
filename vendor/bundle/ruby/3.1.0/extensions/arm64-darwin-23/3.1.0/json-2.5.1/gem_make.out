@@ -1,0 +1,13 @@
+current directory: /Users/katejohnson/Documents/metamask-mobile/vendor/bundle/ruby/3.1.0/gems/json-2.5.1/ext/json
+/Users/katejohnson/.rbenv/versions/3.1.4/bin/ruby -I /Users/katejohnson/.rbenv/versions/3.1.4/lib/ruby/3.1.0 extconf.rb
+creating Makefile
+
+current directory: /Users/katejohnson/Documents/metamask-mobile/vendor/bundle/ruby/3.1.0/gems/json-2.5.1/ext/json
+make DESTDIR\= sitearchdir\=./.gem.20240426-58389-88k9kd sitelibdir\=./.gem.20240426-58389-88k9kd clean
+
+current directory: /Users/katejohnson/Documents/metamask-mobile/vendor/bundle/ruby/3.1.0/gems/json-2.5.1/ext/json
+make DESTDIR\= sitearchdir\=./.gem.20240426-58389-88k9kd sitelibdir\=./.gem.20240426-58389-88k9kd
+make: Nothing to be done for `all'.
+
+current directory: /Users/katejohnson/Documents/metamask-mobile/vendor/bundle/ruby/3.1.0/gems/json-2.5.1/ext/json
+make DESTDIR\= sitearchdir\=./.gem.20240426-58389-88k9kd sitelibdir\=./.gem.20240426-58389-88k9kd install

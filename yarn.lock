@@ -4125,6 +4125,23 @@
     immer "^9.0.6"
     uuid "^8.3.2"
 
+"@metamask/accounts-controller@^18.1.0":
+  version "18.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-18.1.0.tgz#a832f331065f888cab53645bdadc86449b38ce1a"
+  integrity sha512-vZPa8kyo8ThEme/67HO6XzHHhvc4pGOLexNrtsS9EK+QBww1EgrwM42mAkKYZmlgbLCoCKCvzQI/CK1URqw5zg==
+  dependencies:
+    "@ethereumjs/util" "^8.1.0"
+    "@metamask/base-controller" "^6.0.3"
+    "@metamask/eth-snap-keyring" "^4.3.1"
+    "@metamask/keyring-api" "^8.1.0"
+    "@metamask/snaps-sdk" "^6.1.1"
+    "@metamask/snaps-utils" "^7.8.1"
+    "@metamask/utils" "^9.1.0"
+    deepmerge "^4.2.2"
+    ethereum-cryptography "^2.1.2"
+    immer "^9.0.6"
+    uuid "^8.3.2"
+
 "@metamask/address-book-controller@^4.0.1":
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/address-book-controller/-/address-book-controller-4.0.1.tgz#78a841e97b7db0058e6796590eb07444c750d13f"
@@ -4216,6 +4233,14 @@
   version "6.0.2"
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-6.0.2.tgz#710d4a1686616cc66c572099f065ebbfb6dbfcf5"
   integrity sha512-U6BWN/CLrXvDSsYOpx6QgavZO7XRi6n6zuz4Kqni2Sg2n6R9ixSS8JLZhYUbIBgosTf84tVURaSYsYavX3G5KQ==
+  dependencies:
+    "@metamask/utils" "^9.1.0"
+    immer "^9.0.6"
+
+"@metamask/base-controller@^6.0.3":
+  version "6.0.3"
+  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-6.0.3.tgz#9bb4e74234c1de5f99842c343ffa053c08055db1"
+  integrity sha512-neUqsCXRT6QYcZO51y6Y5u9NPTHuxgNsW5Z4h///o1gDdV8lBeIG/b1ne+QPK422DZMAm4ChnkG1DDNf4PkErw==
   dependencies:
     "@metamask/utils" "^9.1.0"
     immer "^9.0.6"
@@ -4680,6 +4705,18 @@
     "@types/uuid" "^9.0.8"
     bech32 "^2.0.0"
     superstruct "^1.0.3"
+    uuid "^9.0.1"
+
+"@metamask/keyring-api@^8.1.0":
+  version "8.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-8.1.0.tgz#e4157550189797fae89557c37315dc47d4c23bed"
+  integrity sha512-w/B1ulJvyxQBZoJMpSsHFtrL8kbdwFc2ryjEcAgMZ3V0PNyW2urY0f9v/majYAVkPhQcN1t0AUwv8NcOSigGqg==
+  dependencies:
+    "@metamask/snaps-sdk" "^6.1.0"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^9.1.0"
+    "@types/uuid" "^9.0.8"
+    bech32 "^2.0.0"
     uuid "^9.0.1"
 
 "@metamask/keyring-controller@^16.0.0":

@@ -1,5 +1,5 @@
 import { EthAccountType, InternalAccount } from '@metamask/keyring-api';
-import { isObject, hasProperty } from '@metamask/utils';
+import { hasProperty, isObject } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 import { getUUIDFromAddressOfNormalAccount } from '@metamask/accounts-controller';
 import { KeyringTypes } from '@metamask/keyring-controller';
@@ -116,7 +116,7 @@ function createInternalAccountsForAccountsController(
       options: {},
       metadata: {
         name: identity.name,
-        importTime: identity.importTime ?? Date.now(),
+        importTime: identity.importTime ?? Date.now(), // Default to 0
         lastSelected: identity.lastSelected ?? undefined,
         keyring: {
           // This is default HD Key Tree type because the keyring is encrypted

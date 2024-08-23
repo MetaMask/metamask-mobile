@@ -1,0 +1,62 @@
+have_func: checking for rb_enc_raise() in ruby.h... -------------------- yes
+
+DYLD_FALLBACK_LIBRARY_PATH=.:/Users/katejohnson/.rbenv/versions/3.1.4/lib "clang -o conftest -I/Users/katejohnson/.rbenv/versions/3.1.4/include/ruby-3.1.0/arm64-darwin23 -I/Users/katejohnson/.rbenv/versions/3.1.4/include/ruby-3.1.0/ruby/backward -I/Users/katejohnson/.rbenv/versions/3.1.4/include/ruby-3.1.0 -I. -I/opt/homebrew/opt/gmp/include -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE -D_DARWIN_UNLIMITED_SELECT -D_REENTRANT   -fdeclspec -O3 -fno-fast-math -ggdb3 -Wall -Wextra -Wdeprecated-declarations -Wdivision-by-zero -Wimplicit-function-declaration -Wimplicit-int -Wmisleading-indentation -Wpointer-arith -Wshorten-64-to-32 -Wwrite-strings -Wold-style-definition -Wmissing-noreturn -Wno-cast-function-type -Wno-constant-logical-operand -Wno-long-long -Wno-missing-field-initializers -Wno-overlength-strings -Wno-parentheses-equality -Wno-self-assign -Wno-tautological-compare -Wno-unused-parameter -Wno-unused-value -Wunused-variable -Wextra-tokens -Wundef  -fno-common -pipe conftest.c  -L. -L/Users/katejohnson/.rbenv/versions/3.1.4/lib -L. -fstack-protector-strong -L/opt/homebrew/opt/gmp/lib -L/usr/local/lib     -lruby.3.1   "
+checked program was:
+/* begin */
+1: #include "ruby.h"
+2: 
+3: int main(int argc, char **argv)
+4: {
+5:   return !!argv[argc];
+6: }
+/* end */
+
+DYLD_FALLBACK_LIBRARY_PATH=.:/Users/katejohnson/.rbenv/versions/3.1.4/lib "clang -o conftest -I/Users/katejohnson/.rbenv/versions/3.1.4/include/ruby-3.1.0/arm64-darwin23 -I/Users/katejohnson/.rbenv/versions/3.1.4/include/ruby-3.1.0/ruby/backward -I/Users/katejohnson/.rbenv/versions/3.1.4/include/ruby-3.1.0 -I. -I/opt/homebrew/opt/gmp/include -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE -D_DARWIN_UNLIMITED_SELECT -D_REENTRANT   -fdeclspec -O3 -fno-fast-math -ggdb3 -Wall -Wextra -Wdeprecated-declarations -Wdivision-by-zero -Wimplicit-function-declaration -Wimplicit-int -Wmisleading-indentation -Wpointer-arith -Wshorten-64-to-32 -Wwrite-strings -Wold-style-definition -Wmissing-noreturn -Wno-cast-function-type -Wno-constant-logical-operand -Wno-long-long -Wno-missing-field-initializers -Wno-overlength-strings -Wno-parentheses-equality -Wno-self-assign -Wno-tautological-compare -Wno-unused-parameter -Wno-unused-value -Wunused-variable -Wextra-tokens -Wundef  -fno-common -pipe conftest.c  -L. -L/Users/katejohnson/.rbenv/versions/3.1.4/lib -L. -fstack-protector-strong -L/opt/homebrew/opt/gmp/lib -L/usr/local/lib     -lruby.3.1   "
+conftest.c:16:57: error: use of undeclared identifier 'rb_enc_raise'
+int t(void) { void ((*volatile p)()); p = (void ((*)()))rb_enc_raise; return !p; }
+                                                        ^
+1 error generated.
+checked program was:
+/* begin */
+ 1: #include "ruby.h"
+ 2: 
+ 3: #include <ruby.h>
+ 4: 
+ 5: /*top*/
+ 6: extern int t(void);
+ 7: int main(int argc, char **argv)
+ 8: {
+ 9:   if (argc > 1000000) {
+10:     int (* volatile tp)(void)=(int (*)(void))&t;
+11:     printf("%d", (*tp)());
+12:   }
+13: 
+14:   return !!argv[argc];
+15: }
+16: int t(void) { void ((*volatile p)()); p = (void ((*)()))rb_enc_raise; return !p; }
+/* end */
+
+DYLD_FALLBACK_LIBRARY_PATH=.:/Users/katejohnson/.rbenv/versions/3.1.4/lib "clang -o conftest -I/Users/katejohnson/.rbenv/versions/3.1.4/include/ruby-3.1.0/arm64-darwin23 -I/Users/katejohnson/.rbenv/versions/3.1.4/include/ruby-3.1.0/ruby/backward -I/Users/katejohnson/.rbenv/versions/3.1.4/include/ruby-3.1.0 -I. -I/opt/homebrew/opt/gmp/include -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE -D_DARWIN_UNLIMITED_SELECT -D_REENTRANT   -fdeclspec -O3 -fno-fast-math -ggdb3 -Wall -Wextra -Wdeprecated-declarations -Wdivision-by-zero -Wimplicit-function-declaration -Wimplicit-int -Wmisleading-indentation -Wpointer-arith -Wshorten-64-to-32 -Wwrite-strings -Wold-style-definition -Wmissing-noreturn -Wno-cast-function-type -Wno-constant-logical-operand -Wno-long-long -Wno-missing-field-initializers -Wno-overlength-strings -Wno-parentheses-equality -Wno-self-assign -Wno-tautological-compare -Wno-unused-parameter -Wno-unused-value -Wunused-variable -Wextra-tokens -Wundef  -fno-common -pipe conftest.c  -L. -L/Users/katejohnson/.rbenv/versions/3.1.4/lib -L. -fstack-protector-strong -L/opt/homebrew/opt/gmp/lib -L/usr/local/lib     -lruby.3.1   "
+checked program was:
+/* begin */
+ 1: #include "ruby.h"
+ 2: 
+ 3: #include <ruby.h>
+ 4: 
+ 5: /*top*/
+ 6: extern int t(void);
+ 7: int main(int argc, char **argv)
+ 8: {
+ 9:   if (argc > 1000000) {
+10:     int (* volatile tp)(void)=(int (*)(void))&t;
+11:     printf("%d", (*tp)());
+12:   }
+13: 
+14:   return !!argv[argc];
+15: }
+16: extern void rb_enc_raise();
+17: int t(void) { rb_enc_raise(); return 0; }
+/* end */
+
+--------------------
+
