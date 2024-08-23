@@ -4,7 +4,7 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { zeroAddress } from 'ethereumjs-util';
 import React, { useCallback, useEffect } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { Platform, TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import {
@@ -12,6 +12,7 @@ import {
   TOKEN_OVERVIEW_SEND_BUTTON,
   TOKEN_OVERVIEW_RECEIVE_BUTTON,
 } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
@@ -226,7 +227,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }
 
   return (
-    <View style={styles.wrapper} testID={TOKEN_ASSET_OVERVIEW}>
+    <View
+      style={styles.wrapper}
+      {...generateTestId(Platform, TOKEN_ASSET_OVERVIEW)}
+    >
       {asset.balanceError ? (
         renderWarning()
       ) : (
@@ -253,7 +257,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
                 size={ButtonSize.Lg}
                 label={strings('asset_overview.receive_button')}
                 onPress={onReceive}
-                testID={TOKEN_OVERVIEW_RECEIVE_BUTTON}
+                {...generateTestId(Platform, TOKEN_OVERVIEW_RECEIVE_BUTTON)}
               />
               <Button
                 style={{ ...styles.footerButton, ...styles.sendButton }}
@@ -261,7 +265,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
                 size={ButtonSize.Lg}
                 label={strings('asset_overview.send_button')}
                 onPress={onSend}
-                testID={TOKEN_OVERVIEW_SEND_BUTTON}
+                {...generateTestId(Platform, TOKEN_OVERVIEW_SEND_BUTTON)}
               />
             </View>
           </View>

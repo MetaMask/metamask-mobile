@@ -55,7 +55,7 @@ describe(Regression('Swap from Token view'), () => {
     if (!swapOnboarded) await Onboarding.tapStartSwapping();
     await QuoteView.isVisible();
     await QuoteView.tapOnSelectSourceToken();
-    await QuoteView.selectToken('USDT');
+    await QuoteView.selectToken('USDC');
     await QuoteView.enterSwapAmount('5');
     await QuoteView.tapOnSelectDestToken();
     await QuoteView.selectToken('DAI');
@@ -63,6 +63,6 @@ describe(Regression('Swap from Token view'), () => {
     await SwapView.isVisible();
     await SwapView.tapIUnderstandPriceWarning();
     await SwapView.swipeToSwap();
-    await SwapView.waitForSwapToComplete('USDT', 'DAI');
+    await SwapView.waitForSwapToComplete('USDC', 'DAI');
   });
 });
