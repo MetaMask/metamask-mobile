@@ -58,7 +58,7 @@ const NetworkVerificationInfo = ({
   onReject,
   onConfirm,
   isCustomNetwork = false,
-  isMissmatchingRPCUrl = false,
+  isMissmatchingRPCUrl = true,
 }: {
   customNetworkInformation: CustomNetworkInformation;
   onReject: () => void;
