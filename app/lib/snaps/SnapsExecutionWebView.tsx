@@ -2,15 +2,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useRef, useEffect, useCallback } from 'react';
 import { View, ScrollView, NativeSyntheticEvent } from 'react-native';
-import { useSelector } from 'react-redux';
 import WebView, { WebViewMessageEvent } from '@metamask/react-native-webview';
 import { WebViewError } from '@metamask/react-native-webview/lib/WebViewTypes';
 import { PostMessageEvent } from '@metamask/post-message-stream';
 import { WebViewInterface } from '@metamask/snaps-controllers/dist/types/services/webview/WebViewMessageStream';
-import Engine from '../../core/Engine';
-import { RootState } from '../../reducers';
+
 import { createStyles } from './styles';
-import { SnapId } from '@metamask/snaps-sdk';
 
 const SNAPS_EE_URL = 'https://execution.metamask.io/webview/6.6.2/index.html';
 
@@ -35,9 +32,6 @@ export const getSnapsWebViewPromise = new Promise<WebViewInterface>(
 export const SnapsExecutionWebView: React.FC = () => {
   const webViewRef = useRef<WebView>(null);
   const listenerRef = useRef<any>(null);
-  const basicFunctionalityEnabled = useSelector(
-    (state: RootState) => state.settings.basicFunctionalityEnabled,
-  );
 
   const onWebViewLoad = useCallback(() => {
     const api = {
@@ -85,18 +79,6 @@ export const SnapsExecutionWebView: React.FC = () => {
       },
     [],
   );
-
-  useEffect(() => {
-    if (!basicFunctionalityEnabled) {
-      try {
-        Engine.context.SnapController.stopSnap(
-          'npm:@metamask/message-signing-snap' as SnapId,
-        );
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  }, [basicFunctionalityEnabled]);
 
   return (
     <ScrollView testID={'load-snap-webview'}>

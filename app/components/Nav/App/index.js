@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
+import Engine from '../../../core/Engine';
 import QRScanner from '../../Views/QRScanner';
 import DataCollectionModal from '../../Views/DataCollectionModal';
 import Onboarding from '../../Views/Onboarding';
@@ -303,7 +304,7 @@ const VaultRecoveryFlow = () => (
 );
 
 // eslint-disable-next-line react/prop-types
-const App = ({ userLoggedIn }) => {
+const App = ({ userLoggedIn, basicFunctionalityEnabled }) => {
   const animationRef = useRef(null);
   const animationNameRef = useRef(null);
   const opacity = useRef(new Animated.Value(1)).current;
@@ -548,6 +549,18 @@ const App = ({ userLoggedIn }) => {
       Logger.error(error, 'Error starting app');
     });
   }, []);
+
+  useEffect(() => {
+    if (!basicFunctionalityEnabled) {
+      try {
+        Engine.context.SnapController.stopSnap(
+          'npm:@metamask/message-signing-snap',
+        );
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  }, [basicFunctionalityEnabled]);
 
   const setNavigatorRef = (ref) => {
     if (!prevNavigator.current) {
@@ -949,6 +962,7 @@ const App = ({ userLoggedIn }) => {
 
 const mapStateToProps = (state) => ({
   userLoggedIn: state.user.userLoggedIn,
+  basicFunctionalityEnabled: state.settings.basicFunctionalityEnabled,
 });
 
 export default connect(mapStateToProps)(App);
