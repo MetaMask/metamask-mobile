@@ -69,7 +69,9 @@ export default {
       name: 'MetaMask Wallet',
       description: 'MetaMask Wallet Integration',
       url: 'https://metamask.io/',
-      icons: [],
+      icons: [
+        'https://raw.githubusercontent.com/MetaMask/metamask-mobile/main/logo.png',
+      ],
       redirect: {
         native: 'metamask://',
         universal: 'https://metamask.app.link/',
