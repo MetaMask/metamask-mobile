@@ -870,6 +870,8 @@
     },
     "contacts_title": "Contacts",
     "contacts_desc": "Add, edit, remove, and manage your accounts",
+    "permissions_title": "Permissions",
+    "permissions_desc": "Manage the permissions given to sites and apps",
     "security_title": "Security & Privacy",
     "back": "Back",
     "security_desc": "Privacy settings, MetaMetrics, private key and wallet Secret Recovery Phrase",
