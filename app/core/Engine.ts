@@ -1365,46 +1365,39 @@ class Engine {
       }),
       this.transactionController,
       this.smartTransactionsController,
-      new SwapsController(
-        {
-          messenger: this.controllerMessenger.getRestricted({
-            name: 'SwapsController',
-            // TODO: allow these internal calls once GasFeeController
-            // export these action types and register its action handlers
-            // allowedActions: [
-            //   'GasFeeController:getEIP1559GasFeeEstimates',
-            // ],
-            allowedActions: [],
-            allowedEvents: [],
-          }),
-          // TODO: Remove once GasFeeController exports this action type
-          fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
-          // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
-          fetchEstimatedMultiLayerL1Fee,
-        },
-        {
-          config: {
-            clientId: AppConstants.SWAPS.CLIENT_ID,
-            fetchAggregatorMetadataThreshold:
-              AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
-            fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
-            fetchTopAssetsThreshold:
-              AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
-            supportedChainIds: [
-              swapsUtils.ETH_CHAIN_ID,
-              swapsUtils.BSC_CHAIN_ID,
-              swapsUtils.SWAPS_TESTNET_CHAIN_ID,
-              swapsUtils.POLYGON_CHAIN_ID,
-              swapsUtils.AVALANCHE_CHAIN_ID,
-              swapsUtils.ARBITRUM_CHAIN_ID,
-              swapsUtils.OPTIMISM_CHAIN_ID,
-              swapsUtils.ZKSYNC_ERA_CHAIN_ID,
-              swapsUtils.LINEA_CHAIN_ID,
-              swapsUtils.BASE_CHAIN_ID,
-            ],
-          },
-        },
-      ),
+      new SwapsController({
+        clientId: AppConstants.SWAPS.CLIENT_ID,
+        fetchAggregatorMetadataThreshold:
+          AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
+        fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
+        fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
+        supportedChainIds: [
+          swapsUtils.ETH_CHAIN_ID,
+          swapsUtils.BSC_CHAIN_ID,
+          swapsUtils.SWAPS_TESTNET_CHAIN_ID,
+          swapsUtils.POLYGON_CHAIN_ID,
+          swapsUtils.AVALANCHE_CHAIN_ID,
+          swapsUtils.ARBITRUM_CHAIN_ID,
+          swapsUtils.OPTIMISM_CHAIN_ID,
+          swapsUtils.ZKSYNC_ERA_CHAIN_ID,
+          swapsUtils.LINEA_CHAIN_ID,
+          swapsUtils.BASE_CHAIN_ID,
+        ],
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'SwapsController',
+          // TODO: allow these internal calls once GasFeeController
+          // export these action types and register its action handlers
+          // allowedActions: [
+          //   'GasFeeController:getEIP1559GasFeeEstimates',
+          // ],
+          allowedActions: [],
+          allowedEvents: [],
+        }),
+        // TODO: Remove once GasFeeController exports this action type
+        fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
+        // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
+        fetchEstimatedMultiLayerL1Fee,
+      }),
       gasFeeController,
       approvalController,
       permissionController,
@@ -1614,8 +1607,7 @@ class Engine {
     AccountTrackerController.configure({ provider });
     AssetsContractController.configure({ provider });
 
-    SwapsController.configure({
-      provider,
+    SwapsController.setProvider(provider, {
       chainId: NetworkController.state?.providerConfig?.chainId,
       pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
     });
