@@ -105,12 +105,13 @@ const NetworkModals = (props: NetworkProps) => {
   const addNetwork = async () => {
     const validUrl = validateRpcUrl(rpcUrl);
     if (!showPopularNetworkModal && safeChains) {
+      const { safeChain, safeRPCUrl } = rpcIdentifierUtility(rpcUrl, safeChains);
       // emit custom network
       trackAnonymousEvent(MetaMetricsEvents.NETWORK_ADDED, {
-        chain_id: toHex(chainId), // prefixed chainId
+        chain_id: toHex(safeChain.chainId),
         source: 'Custom Network Added',
-        symbol: ticker,
-        rpcUrl: rpcIdentifierUtility(rpcUrl, safeChains),
+        symbol: safeChain.nativeCurrency.symbol,
+        rpcUrl: safeRPCURL,
       });
     } else {
       // emit popular network
