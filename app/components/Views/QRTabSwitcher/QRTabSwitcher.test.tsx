@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import QRTabSwitcher, { Screens } from './index';
+import QRTabSwitcher, { Screens } from './QRTabSwitcher';
 import { useRoute } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 
