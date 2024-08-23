@@ -22,6 +22,12 @@ export const createStyles = ({ colors, typography }: Theme) =>
       paddingHorizontal: 8,
       backgroundColor: colors.info.muted,
     },
+    readItemContainer: {
+      flex: 1,
+      paddingVertical: 10,
+      paddingHorizontal: 8,
+      backgroundColor: colors.background.default,
+    },
     unreadDot: {
       width: 4,
       height: 4,

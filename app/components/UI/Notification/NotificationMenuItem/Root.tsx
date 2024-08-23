@@ -78,7 +78,7 @@ function NotificationRoot({
   const rChildrenStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: transX.value }],
     ...styles.itemContainer,
-    ...(!isRead ? styles.unreadItemContainer : {}),
+    ...(!isRead ? styles.unreadItemContainer : styles.readItemContainer),
   }));
 
   const rIconStyle = useAnimatedStyle(() => {
