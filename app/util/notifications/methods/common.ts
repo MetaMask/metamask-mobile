@@ -197,7 +197,6 @@ export function getProviderByChainId(chainId: HexChainId) {
       networkClientId,
     )?.provider;
 
-  // @ts-expect-error TODO: remove this annotation once the `Eip1193Provider` class is released
   return provider && new Web3Provider(provider);
 }
 

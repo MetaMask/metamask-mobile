@@ -1,11 +1,14 @@
 import React from 'react';
 import ConfirmAddAsset from './ConfirmAddAsset';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../util/test/renderWithProvider';
 import useBalance from '../Ramp/hooks/useBalance';
 import { toTokenMinimalUnit } from '../../../util/number';
 import { fireEvent } from '@testing-library/react-native';
 import { BN } from 'ethereumjs-util';
+import { RootState } from '../../../reducers';
 
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
@@ -54,7 +57,7 @@ jest.mock('../Ramp/hooks/useBalance', () =>
   jest.fn(() => mockUseBalanceValues),
 );
 
-const mockInitialState = {
+const mockInitialState: DeepPartial<RootState> = {
   settings: {},
   engine: {
     backgroundState: {
