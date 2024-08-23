@@ -33,10 +33,8 @@ describe('useAnalytics', () => {
     expect(MetaMetrics.getInstance().trackEvent).toHaveBeenCalledWith(
       MetaMetricsEvents[testEvent],
       {
-        properties: {
-          location: 'Amount to Buy Screen',
-          text: 'Buy',
-        },
+        location: 'Amount to Buy Screen',
+        text: 'Buy',
       },
     );
   });
