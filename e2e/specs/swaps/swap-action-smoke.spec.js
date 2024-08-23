@@ -7,7 +7,6 @@ import TabBarComponent from '../../pages/TabBarComponent';
 import ActivitiesView from '../../pages/ActivitiesView';
 import DetailsModal from '../../pages/modals/DetailsModal';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
-import WalletView from '../../pages/wallet/WalletView';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   loadFixture,
