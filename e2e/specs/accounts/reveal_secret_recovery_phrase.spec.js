@@ -103,25 +103,20 @@ describe(Regression('Secret Recovery Phrase Reveal from Settings'), () => {
       SecurityQuizModal.questionTwoRightContinueButton,
     );
 
-    // Enter password after completing quiz
+    // Enter password and tap to reveal
     await RevealSecretRecoveryPhrase.enterPasswordToRevealSecretCredential(
       PASSWORD,
     );
-    // await TestHelpers.typeTextAndHideKeyboard(
-    //   RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
-    //   PASSWORD,
-    // );
-    // Tap on reveal SRP button
+
+    // Tap to reveal
+    // If the following step fails, ensure you are using a test build with tap and hold to reveal animation disabled
     await RevealSecretRecoveryPhrase.tapToReveal();
 
-    // Confirm that the SRP container is displayed
+    // Confirm that the SRP container, title, and text are displayed
     await Assertions.checkIfVisible(RevealSecretRecoveryPhrase.container);
-    // Confirm that SRP Title is displayed
     await Assertions.checkIfTextIsDisplayed(
       RevealSeedViewSelectorsText.REVEAL_SECRET_CREDENTIAL_TITLE_TEXT,
     );
-
-    // Confirm that expected SRP text is displayed
     await Assertions.checkIfTextIsDisplayed(defaultGanacheOptions.mnemonic);
 
     // Copy to clipboard
@@ -129,11 +124,11 @@ describe(Regression('Secret Recovery Phrase Reveal from Settings'), () => {
     // This will cause the following step to fail if e2e were being run on an older android OS prior to our minimum API level 29
     // See details here: https://github.com/MetaMask/metamask-mobile/pull/4170
     await RevealSecretRecoveryPhrase.tapToCopyPrivateCredentialToClipboard();
+
     // Tap done
     await TestHelpers.waitAndTapText(
       RevealSeedViewSelectorsText.REVEAL_SECRET_CREDENTIAL_DONE,
     );
-    // Confirm that the SRP container is not displayed
     await Assertions.checkIfNotVisible(RevealSecretRecoveryPhrase.container);
   });
 });
