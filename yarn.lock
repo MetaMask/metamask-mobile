@@ -5065,6 +5065,18 @@
     utf-8-validate "^5.0.2"
     uuid "^8.3.2"
 
+"@metamask/selected-network-controller@^15.0.2":
+  version "15.0.2"
+  resolved "https://registry.yarnpkg.com/@metamask/selected-network-controller/-/selected-network-controller-15.0.2.tgz#6373156a1e837839ea771b61aa065f69b47a90c9"
+  integrity sha512-B4jZO0g49NwK78Zh391UOZsGYlHlWw/GMVkb9rXDLBYpbXSgiVMb5mdgdfqSWvi2YnFuwiCDPTszwBTM+M+aLA==
+  dependencies:
+    "@metamask/base-controller" "^6.0.0"
+    "@metamask/json-rpc-engine" "^9.0.0"
+    "@metamask/network-controller" "^19.0.0"
+    "@metamask/permission-controller" "^10.0.0"
+    "@metamask/swappable-obj-proxy" "^2.2.0"
+    "@metamask/utils" "^8.3.0"
+
 "@metamask/signature-controller@^16.0.0":
   version "16.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-16.0.0.tgz#78c7f23d02da99d4e953eb9b4e8e2909523a3288"

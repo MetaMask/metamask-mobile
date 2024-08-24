@@ -83,6 +83,12 @@ import {
   ApprovalControllerState,
 } from '@metamask/approval-controller';
 import {
+  METAMASK_DOMAIN,
+  SelectedNetworkController,
+  SelectedNetworkControllerState,
+  createSelectedNetworkMiddleware,
+} from '@metamask/selected-network-controller';
+import {
   PermissionController,
   PermissionControllerActions,
   PermissionControllerEvents,
@@ -336,6 +342,7 @@ export interface EngineState {
   LoggingController: LoggingControllerState;
   PPOMController: PPOMState;
   AccountsController: AccountsControllerState;
+  SelectedNetworkController: SelectedNetworkControllerState;
 }
 
 /**
@@ -896,6 +903,28 @@ class Engine {
         ///: END:ONLY_INCLUDE_IF
       },
       unrestrictedMethods,
+    });
+
+    const selectedNetworkController = new SelectedNetworkController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'SelectedNetworkController',
+        allowedActions: [
+          'NetworkController:getNetworkClientById',
+          'NetworkController:getState',
+          'NetworkController:getSelectedNetworkClient',
+          'PermissionController:hasPermissions',
+          'PermissionController:getSubjectNames',
+        ],
+        allowedEvents: [
+          'NetworkController:stateChange',
+          'PermissionController:stateChange',
+        ],
+      }),
+      state: initialState.SelectedNetworkController || { domains: {} },
+      useRequestQueuePreference: !!process.env.MULTICHAIN_V1,
+      // @ts-expect-error TODO: Resolve mismatch between PreferenceController versions.
+      onPreferencesStateChange,
+      domainProxyMap: new WeakRefObjectMap(),
     });
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
