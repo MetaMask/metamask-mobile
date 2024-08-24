@@ -19,12 +19,6 @@ class RevealSecretRecoveryPhrase {
     );
   }
 
-  get copyPrivateCredentialToClipboardButton() {
-    return Matchers.getElementByID(
-      RevealSeedViewSelectorsIDs.COPY_PRIVATE_CREDENTIAL_TO_CLIPBOARD_BUTTON,
-    );
-  }
-
   get recoveryPhrase() {
     return Matchers.getElementByText(
       RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_TEXT,

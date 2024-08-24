@@ -102,28 +102,28 @@ describe(Regression('Secret Recovery Phrase Reveal from Settings'), () => {
         );
         // Tap on reveal SRP button
         await TestHelpers.waitAndTap(
-          RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_REVEAL_BUTTON_ID,
+          RevealSeedViewSelectorsIDs.SECRET_CREDENTIAL_REVEAL_BUTTON_ID,
         );
         // Confirm that the SRP container is displayed
         await Assertions.checkIfVisible(RevealSecretRecoveryPhrase.container);
         // Confirm that SRP Title is displayed
         await Assertions.checkIfTextIsDisplayed(
-          RevealSeedViewSelectorsText.REVEAL_SECRET_RECOVERY_PHRASE_TITLE_TEXT,
+          RevealSeedViewSelectorsText.REVEAL_SECRET_CREDENTIAL_TITLE_TEXT,
         );
 
-        // Confirm that correct SRP text is displayed
+        // Confirm that expected SRP text is displayed
         await Assertions.checkIfTextIsDisplayed(defaultGanacheOptions.mnemonic);
 
         // Copy to clipboard
-        // Android devices running OS version < 10 (API level 29) will not see the copy to clipboard button presented
+        // Android devices running OS version < 11 (API level 29) will not see the copy to clipboard button presented
         // This will cause the following step to fail if e2e were being run on an older android OS prior to our minimum API level 29
-        // More details here: https://github.com/MetaMask/metamask-mobile/pull/4170
+        // See details here: https://github.com/MetaMask/metamask-mobile/pull/4170
         await TestHelpers.tap(
           RevealSeedViewSelectorsIDs.COPY_PRIVATE_CREDENTIAL_TO_CLIPBOARD_BUTTON,
         );
         // Tap done
         await TestHelpers.waitAndTapText(
-          RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_DONE_BUTTON,
+          RevealSeedViewSelectorsText.REVEAL_SECRET_CREDENTIAL_DONE,
         );
         // Confirm that the SRP container is not displayed
         await Assertions.checkIfNotVisible(

@@ -476,7 +476,7 @@ const RevealPrivateCredential = ({
               onPress={revealCredential}
               style={styles.revealButton}
               testID={
-                RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_REVEAL_BUTTON_ID
+                RevealSeedViewSelectorsIDs.SECRET_CREDENTIAL_REVEAL_BUTTON_ID
               }
             />
           ) : (
