@@ -10,7 +10,7 @@ import SecurityQuizModal from '../../pages/modals/SecurityQuizModal.js';
 import {
   SecurityQuizQuestionOneModalSelectorsText,
   SecurityQuizQuestionTwoModalSelectorsText,
-} from '../../selectors/Modals/SecurityQuizModal.selectors';
+} from '../../selectors/Modals/SecurityQuizModal.selectors.js';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase.js';
 import {
   RevealSeedViewSelectorsIDs,
@@ -20,9 +20,9 @@ import {
 import {
   withFixtures,
   defaultGanacheOptions,
-} from '../../fixtures/fixture-helper';
+} from '../../fixtures/fixture-helper.js';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../utils/Assertions.js';
 
 describe(Regression('Secret Recovery Phrase Reveal from Settings'), () => {
   const PASSWORD = '123123123';
@@ -49,7 +49,7 @@ describe(Regression('Secret Recovery Phrase Reveal from Settings'), () => {
         // Start the quiz
         await SecurityQuizModal.tapGetStartedButton();
 
-        // Question 1
+        // Question 1 answer wrong, acknowledge error, then retry with correct answer
         await Assertions.checkIfVisible(SecurityQuizModal.getQuizQuestionOne);
         await SecurityQuizModal.tapQuestionOneWrongAnswerButton();
         await Assertions.checkIfTextIsDisplayed(
@@ -72,7 +72,7 @@ describe(Regression('Secret Recovery Phrase Reveal from Settings'), () => {
           SecurityQuizModal.questionOneRightContinueButton,
         );
 
-        // Question 2
+        // Question 2 answer wrong, acknowledge error, then retry with correct answer
         await Assertions.checkIfVisible(SecurityQuizModal.getQuizQuestionTwo);
         await SecurityQuizModal.tapQuestionTwoWrongAnswerButton();
         await Assertions.checkIfTextIsDisplayed(
@@ -96,9 +96,6 @@ describe(Regression('Secret Recovery Phrase Reveal from Settings'), () => {
         );
 
         // Enter password after completing quiz
-        await TestHelpers.waitAndTap(
-          RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
-        );
         await TestHelpers.typeTextAndHideKeyboard(
           RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
           PASSWORD,
@@ -107,21 +104,30 @@ describe(Regression('Secret Recovery Phrase Reveal from Settings'), () => {
         await TestHelpers.waitAndTap(
           RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_REVEAL_BUTTON_ID,
         );
-
         // Confirm that the SRP container is displayed
         await Assertions.checkIfVisible(RevealSecretRecoveryPhrase.container);
         // Confirm that SRP Title is displayed
         await Assertions.checkIfTextIsDisplayed(
           RevealSeedViewSelectorsText.REVEAL_SECRET_RECOVERY_PHRASE_TITLE_TEXT,
         );
-        // Confirm that correct SRP text is displayed accurately
+
+        // Confirm that correct SRP text is displayed
         await Assertions.checkIfTextIsDisplayed(defaultGanacheOptions.mnemonic);
+
         // Copy to clipboard
-        await Assertions.checkIfVisible(
-          RevealSecretRecoveryPhrase.touchableBox,
-        );
+        // Android devices running OS version < 10 (API level 29) will not see the copy to clipboard button presented
+        // This will cause the following step to fail if e2e were being run on an older android OS prior to our minimum API level 29
+        // More details here: https://github.com/MetaMask/metamask-mobile/pull/4170
         await TestHelpers.tap(
-          RevealSeedViewSelectorsIDs.REVEAL_SECRET_RECOVERY_PHRASE_TOUCHABLE_BOX_ID,
+          RevealSeedViewSelectorsIDs.COPY_PRIVATE_CREDENTIAL_TO_CLIPBOARD_BUTTON,
+        );
+        // Tap done
+        await TestHelpers.waitAndTapText(
+          RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_DONE_BUTTON,
+        );
+        // Confirm that the SRP container is not displayed
+        await Assertions.checkIfNotVisible(
+          RevealSecretRecoveryPhrase.container,
         );
       },
     );

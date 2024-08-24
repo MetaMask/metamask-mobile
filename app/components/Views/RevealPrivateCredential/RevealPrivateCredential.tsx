@@ -372,7 +372,7 @@ const RevealPrivateCredential = ({
                 copyPrivateCredentialToClipboard(privCredentialName)
               }
               testID={
-                RevealSeedViewSelectorsIDs.REVEAL_SECRET_RECOVERY_PHRASE_TOUCHABLE_BOX_ID
+                RevealSeedViewSelectorsIDs.COPY_PRIVATE_CREDENTIAL_TO_CLIPBOARD_BUTTON
               }
               style={styles.clipboardButton}
             />
