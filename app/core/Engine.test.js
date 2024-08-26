@@ -1,5 +1,6 @@
 import Engine from './Engine';
 import { backgroundState } from '../util/test/initial-root-state';
+import { ControllerMessenger } from '@metamask/base-controller';
 
 jest.unmock('./Engine');
 
@@ -90,5 +91,42 @@ describe('Engine', () => {
     expect(() => engine.setSelectedAccount(invalidAddress)).toThrow(
       `No account found for address: ${invalidAddress}`,
     );
+  });
+
+  it('should not call updateNFTOwnership', async () => {
+    const engine = Engine.init(backgroundState);
+    const onFinishedTransactionSpy = jest.spyOn(
+      engine,
+      'onFinishedTransaction',
+    );
+    const updateNFTOwnershipSpy = jest.spyOn(engine, 'updateNFTOwnership');
+    jest.spyOn(ControllerMessenger.prototype, 'subscribe');
+    engine.controllerMessenger.publish(
+      'TransactionController:transactionStatusUpdated',
+      {
+        transactionMeta: { status: 'failed' },
+      },
+    );
+    expect(onFinishedTransactionSpy).toHaveBeenCalledTimes(1);
+    expect(updateNFTOwnershipSpy).toHaveBeenCalledTimes(0);
+  });
+
+  it('should call updateNFTOwnership when transaction is confirmed', async () => {
+    const engine = Engine.init(backgroundState);
+
+    const onFinishedTransactionSpy = jest.spyOn(
+      engine,
+      'onFinishedTransaction',
+    );
+    const updateNFTOwnershipSpy = jest.spyOn(engine, 'updateNFTOwnership');
+    jest.spyOn(ControllerMessenger.prototype, 'subscribe');
+    engine.controllerMessenger.publish(
+      'TransactionController:transactionStatusUpdated',
+      {
+        transactionMeta: { status: 'confirmed' },
+      },
+    );
+    expect(onFinishedTransactionSpy).toHaveBeenCalledTimes(1);
+    expect(updateNFTOwnershipSpy).toHaveBeenCalledTimes(1);
   });
 });

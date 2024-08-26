@@ -1566,11 +1566,7 @@ class Engine {
   }
 
   async onFinishedTransaction(transactionMeta: ExtendedTransactionMeta) {
-    if (
-      ![TransactionStatus.confirmed, TransactionStatus.failed].includes(
-        transactionMeta.status,
-      )
-    ) {
+    if (![TransactionStatus.confirmed].includes(transactionMeta.status)) {
       return;
     }
 
@@ -2166,7 +2162,10 @@ export default {
 
   init(state: Record<string, never> | undefined, keyringState = null) {
     instance = Engine.instance || new Engine(state, keyringState);
-    Object.freeze(instance);
+    // Added this check because Object.freeze was making instance immutable, which prevents jest to add Spys on the object.
+    if (process.env.NODE_ENV === 'production') {
+      Object.freeze(instance);
+    }
     return instance;
   },
 
