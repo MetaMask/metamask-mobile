@@ -567,20 +567,6 @@ const App = ({ userLoggedIn }) => {
     });
   }, [opacity]);
 
-  const renderSplash = () => {
-    if (!animationPlayed) {
-      return (
-        <MetaMaskAnimation
-          animationRef={animationRef}
-          animationName={animationNameRef}
-          opacity={opacity}
-          onAnimationFinish={onAnimationFinished}
-        />
-      );
-    }
-    return null;
-  };
-
   const DetectedTokensFlow = () => (
     <Stack.Navigator
       mode={'modal'}
@@ -938,7 +924,6 @@ const App = ({ userLoggedIn }) => {
             />
           </Stack.Navigator>
         </NavigationContainer>
-        {renderSplash()}
         <Toast ref={toastRef} />
       </>
     )) ||

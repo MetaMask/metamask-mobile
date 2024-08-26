@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import LottieView from 'lottie-react-native';
 import { useTheme, useAssetFromTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { SPLASH_SCREEN_METAMASK_ANIMATION_ID } from '../../../../wdio/screen-objects/testIDs/Components/MetaMaskAnimation.testIds';
 
 const LOGO_SIZE = 175;
 const LOGO_PADDING = 25;
@@ -81,7 +80,6 @@ const MetaMaskAnimation = ({
         <View style={styles.fox}>
           <View
             style={styles.foxAndName}
-            {...generateTestId(Platform, SPLASH_SCREEN_METAMASK_ANIMATION_ID)}
           >
             <LottieView
               autoPlay={false}
