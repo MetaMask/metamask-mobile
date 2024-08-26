@@ -7,6 +7,7 @@ import {
   ScrollView,
   BackHandler,
   Alert,
+  Linking,
   InteractionManager,
   TouchableOpacity,
 } from 'react-native';
@@ -85,6 +86,12 @@ const createStyles = ({ colors }) =>
       ...fontStyles.normal,
       fontSize: 14,
       color: colors.text.default,
+      paddingVertical: 10,
+    },
+    linkText: {
+      ...fontStyles.normal,
+      fontSize: 14,
+      color: colors.info.default,
       paddingVertical: 10,
     },
     wrapper: {
@@ -178,24 +185,24 @@ class OptinMetrics extends PureComponent {
 
   actionsList = isPastPrivacyPolicyDate
     ? [1, 2, 3].map((value) => ({
-        action: value,
-        prefix: strings(`privacy_policy.action_description_${value}_prefix`),
-        description: strings(
-          `privacy_policy.action_description_${value}_description`,
-        ),
-      }))
+      action: value,
+      prefix: strings(`privacy_policy.action_description_${value}_prefix`),
+      description: strings(
+        `privacy_policy.action_description_${value}_description`,
+      ),
+    }))
     : [1, 2, 3, 4, 5].map((value) => {
-        const actionVal = value <= 2 ? 0 : 1;
-        return {
-          action: actionVal,
-          prefix: actionVal
-            ? `${strings('privacy_policy.action_description_never_legacy')} `
-            : '',
-          description: strings(
-            `privacy_policy.action_description_${value}_legacy`,
-          ),
-        };
-      });
+      const actionVal = value <= 2 ? 0 : 1;
+      return {
+        action: actionVal,
+        prefix: actionVal
+          ? `${strings('privacy_policy.action_description_never_legacy')} `
+          : '',
+        description: strings(
+          `privacy_policy.action_description_${value}_legacy`,
+        ),
+      };
+    });
 
   updateNavBar = () => {
     const { navigation } = this.props;
@@ -565,6 +572,10 @@ class OptinMetrics extends PureComponent {
     if (currentYOffset >= endThreshold) this.onScrollEndReached();
   };
 
+  handleLink = () => {
+    Linking.openURL(AppConstants.URLS.PROFILE_SYNC);
+  };
+
   render() {
     const {
       isDataCollectionForMarketingEnabled,
@@ -603,6 +614,9 @@ class OptinMetrics extends PureComponent {
                   ? 'privacy_policy.description_content_1'
                   : 'privacy_policy.description_content_1_legacy',
               )}
+            </Text>
+            <Text style={styles.linkText} onPress={this.handleLink}>
+              {strings('privacy_policy.description_content_3')}
             </Text>
             <Text style={styles.content}>
               {strings(
