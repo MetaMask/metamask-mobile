@@ -1,5 +1,6 @@
-import type { JsonMap, UserTraits } from '@segment/analytics-react-native';
+import type { UserTraits } from '@segment/analytics-react-native';
 import {
+  CombinedProperties,
   DataDeleteDate,
   IDeleteRegulationResponse,
   IDeleteRegulationStatus,
@@ -18,14 +19,9 @@ export interface IUseMetricsHook {
   isEnabled(): boolean;
   enable(enable?: boolean): Promise<void>;
   addTraitsToUser(userTraits: UserTraits): Promise<void>;
-  trackAnonymousEvent(
-    event: IMetaMetricsEvent,
-    properties?: JsonMap,
-    saveDataRecording?: boolean,
-  ): void;
   trackEvent(
     event: IMetaMetricsEvent,
-    properties?: JsonMap,
+    properties?: CombinedProperties,
     saveDataRecording?: boolean,
   ): void;
   createDataDeletionTask(): Promise<IDeleteRegulationResponse>;
