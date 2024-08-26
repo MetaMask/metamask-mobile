@@ -50,9 +50,6 @@ const useNotificationHandler = (
   );
 
   useEffect(() => {
-    // Reset badge count https://notifee.app/react-native/docs/ios/badges#removing-the-badge-count
-    notifee.setBadgeCount(0);
-
     bootstrapAndroidInitialNotification();
     setTimeout(() => {
       if (Device.isAndroid()) {
