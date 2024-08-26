@@ -197,7 +197,6 @@ export function getProviderByChainId(chainId: HexChainId) {
       networkClientId,
     )?.provider;
 
-  // @ts-expect-error TODO: remove this annotation once the `Eip1193Provider` class is released
   return provider && new Web3Provider(provider);
 }
 
@@ -216,9 +215,11 @@ export const getNetworkFees = async (
   }
 
   try {
-    const receipt = await provider.getTransactionReceipt(notification.tx_hash);
-    const transaction = await provider.getTransaction(notification.tx_hash);
-    const block = await provider.getBlock(notification.block_number);
+    const [receipt, transaction, block] = await Promise.all([
+      provider.getTransactionReceipt(notification.tx_hash),
+      provider.getTransaction(notification.tx_hash),
+      provider.getBlock(notification.block_number),
+    ]);
 
     const calculateUsdAmount = (value: string, decimalPlaces?: number) =>
       formatAmount(

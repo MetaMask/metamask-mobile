@@ -18,6 +18,7 @@ export interface Network {
 }
 
 export interface ExtendedNetwork extends Network {
+  name: string;
   formattedRpcUrl?: string | null;
 }
 
@@ -41,7 +42,7 @@ export interface CustomNetworkProps {
   /**
    * show network modal
    */
-  showNetworkModal: (networkConfiguration: Network) => void;
+  showNetworkModal: (networkConfiguration: Network & ExtendedNetwork) => void;
   /**
    * Switch tab between popular and custom networks
    */

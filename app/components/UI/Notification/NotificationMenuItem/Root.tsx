@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Notifications team directory
 import React from 'react';
 import { Dimensions, TouchableOpacity } from 'react-native';
 import {

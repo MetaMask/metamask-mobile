@@ -74,7 +74,6 @@ import SelectComponent from '../../../UI/SelectComponent';
 import { timeoutFetch } from '../../../../util/general';
 import createStyles from './SecuritySettings.styles';
 import {
-  EtherscanNetworksType,
   Gateway,
   HeadingProps,
   NetworksI,
@@ -118,10 +117,16 @@ import Button, {
 } from '../../../../component-library/components/Buttons/Button';
 import trackErrorAsAnalytics from '../../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
+import ProfileSyncingComponent from '../../../UI/ProfileSyncing/ProfileSyncing';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetrics } from '../../../../core/Analytics';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { selectIsProfileSyncingEnabled } from '../../../../selectors/notifications';
+import { useProfileSyncing } from '../../../../util/notifications/hooks/useProfileSyncing';
+import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
+import { RootState } from '../../../../reducers';
+import { EtherscanSupportedHexChainId } from '@metamask/preferences-controller';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -151,6 +156,16 @@ const Settings: React.FC = () => {
   const [hintText, setHintText] = useState('');
   const [onlineIpfsGateways, setOnlineIpfsGateways] = useState<Gateway[]>([]);
   const [gotAvailableGateways, setGotAvailableGateways] = useState(false);
+  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+  const isBasicFunctionalityEnabled = useSelector(
+    (state: RootState) => state?.settings?.basicFunctionalityEnabled,
+  );
+  const {
+    enableProfileSyncing,
+    disableProfileSyncing,
+    loading: profileSyncLoading,
+    error: profileSyncError,
+  } = useProfileSyncing();
 
   const scrollViewRef = useRef<ScrollView>(null);
   const detectNftComponentRef = useRef<View>(null);
@@ -188,7 +203,7 @@ const Settings: React.FC = () => {
   );
   const ipfsGateway = useSelector(selectIpfsGateway);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
-  const myNetworks = ETHERSCAN_SUPPORTED_NETWORKS as EtherscanNetworksType;
+  const myNetworks = ETHERSCAN_SUPPORTED_NETWORKS;
   const isMainnet = type === MAINNET;
 
   const updateNavBar = useCallback(() => {
@@ -254,6 +269,10 @@ const Settings: React.FC = () => {
     isEnabled,
     trackEvent,
   ]);
+
+  useEffect(() => {
+    !isBasicFunctionalityEnabled && disableProfileSyncing();
+  }, [disableProfileSyncing, isBasicFunctionalityEnabled]);
 
   const scrollToDetectNFTs = useCallback(() => {
     if (detectNftComponentRef.current) {
@@ -346,7 +365,7 @@ const Settings: React.FC = () => {
         }
         await Authentication.storePassword(password, authType);
       } catch (error) {
-        Logger.error(error as string, {});
+        Logger.error(error as unknown as Error, {});
       }
 
       dispatch(passwordSet());
@@ -368,7 +387,7 @@ const Settings: React.FC = () => {
           '',
         );
       } else {
-        Logger.error(e as string, 'SecuritySettings:biometrics');
+        Logger.error(e as unknown as Error, 'SecuritySettings:biometrics');
       }
       setLoading(false);
     }
@@ -380,7 +399,7 @@ const Settings: React.FC = () => {
     try {
       credentials = await Authentication.getPassword();
     } catch (error) {
-      Logger.error(error as string, {});
+      Logger.error(error as unknown as Error, {});
     }
 
     if (credentials && credentials.password !== '') {
@@ -502,7 +521,7 @@ const Settings: React.FC = () => {
     </View>
   );
   const toggleEnableIncomingTransactions = (
-    hexChainId: string,
+    hexChainId: EtherscanSupportedHexChainId,
     value: boolean,
   ) => {
     const { PreferencesController } = Engine.context;
@@ -823,7 +842,10 @@ const Settings: React.FC = () => {
           <Switch
             value={showIncomingTransactionsNetworks[chainId]}
             onValueChange={(value) =>
-              toggleEnableIncomingTransactions(chainId, value)
+              toggleEnableIncomingTransactions(
+                chainId as EtherscanSupportedHexChainId,
+                value,
+              )
             }
             trackColor={{
               true: colors.primary.default,
@@ -855,7 +877,10 @@ const Settings: React.FC = () => {
           <Switch
             value={showIncomingTransactionsNetworks[chainId]}
             onValueChange={(value) =>
-              toggleEnableIncomingTransactions(chainId, value)
+              toggleEnableIncomingTransactions(
+                chainId as EtherscanSupportedHexChainId,
+                value,
+              )
             }
             trackColor={{
               true: colors.primary.default,
@@ -885,7 +910,9 @@ const Settings: React.FC = () => {
               key={chainId}
               variant={CellVariant.Display}
               title={name}
-              secondaryText={myNetworks[chainId].domain}
+              secondaryText={
+                myNetworks[chainId as keyof typeof myNetworks].domain
+              }
               avatarProps={{
                 variant: AvatarVariant.Network,
                 name,
@@ -896,7 +923,10 @@ const Settings: React.FC = () => {
               <Switch
                 value={showIncomingTransactionsNetworks[chainId]}
                 onValueChange={(value) =>
-                  toggleEnableIncomingTransactions(chainId, value)
+                  toggleEnableIncomingTransactions(
+                    chainId as EtherscanSupportedHexChainId,
+                    value,
+                  )
                 }
                 trackColor={{
                   true: colors.primary.default,
@@ -922,7 +952,9 @@ const Settings: React.FC = () => {
             key={chainId}
             variant={CellVariant.Display}
             title={name}
-            secondaryText={myNetworks[chainId]?.domain}
+            secondaryText={
+              myNetworks[chainId as keyof typeof myNetworks].domain
+            }
             avatarProps={{
               variant: AvatarVariant.Network,
               name,
@@ -933,7 +965,11 @@ const Settings: React.FC = () => {
             <Switch
               value={showIncomingTransactionsNetworks[chainId]}
               onValueChange={(value) => {
-                chainId && toggleEnableIncomingTransactions(chainId, value);
+                chainId &&
+                  toggleEnableIncomingTransactions(
+                    chainId as keyof typeof myNetworks,
+                    value,
+                  );
               }}
               trackColor={{
                 true: colors.primary.default,
@@ -973,6 +1009,16 @@ const Settings: React.FC = () => {
     );
   };
 
+  const toggleProfileSyncing = async () => {
+    if (isProfileSyncingEnabled) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.PROFILE_SYNCING,
+      });
+    } else {
+      await enableProfileSyncing();
+    }
+  };
+
   const toggleBasicFunctionality = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY,
@@ -986,6 +1032,10 @@ const Settings: React.FC = () => {
       </View>
     );
   }
+
+  const profileSyncModalMessage = !isProfileSyncingEnabled
+    ? strings('app_settings.enabling_profile_sync')
+    : strings('app_settings.disabling_profile_sync');
 
   return (
     <ScrollView
@@ -1024,6 +1074,7 @@ const Settings: React.FC = () => {
             handleSwitchToggle={toggleBasicFunctionality}
           />
         </View>
+        <ProfileSyncingComponent handleSwitchToggle={toggleProfileSyncing} />
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}
@@ -1087,6 +1138,11 @@ const Settings: React.FC = () => {
         <DeleteWalletData />
         {renderHint()}
       </View>
+      <SwitchLoadingModal
+        loading={profileSyncLoading}
+        loadingText={profileSyncModalMessage}
+        error={profileSyncError}
+      />
     </ScrollView>
   );
 };

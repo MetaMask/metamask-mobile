@@ -29,7 +29,7 @@ export interface NotificationMenuItem {
   /**
    * This is the small badge icon on the notification icon
    */
-  badgeIcon?: IconName;
+  badgeIcon: IconName;
 
   /**
    * Timestamp of the notification.

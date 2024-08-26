@@ -8,6 +8,7 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
       "backgroundColor": "#ffffff",
       "flexDirection": "row",
       "paddingRight": 20,
+      "width": "100%",
     }
   }
 >
@@ -15,11 +16,11 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
     disabled={false}
     style={
       {
-        "backgroundColor": "#ffffff",
         "opacity": 1,
         "padding": 16,
         "position": "relative",
         "width": "95%",
+        "zIndex": 1,
       }
     }
     testID="cellmultiselect"
@@ -29,13 +30,14 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
       accessible={true}
       style={
         {
-          "alignItems": "center",
-          "flexDirection": "row",
+          "alignItems": "flex-start",
+          "flexDirection": "column",
           "padding": 16,
           "paddingBottom": 0,
           "paddingLeft": 0,
           "paddingRight": 0,
           "paddingTop": 0,
+          "zIndex": 2,
         }
       }
     >
@@ -213,10 +215,8 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
           >
             Orangefox.eth
           </Text>
-          <Text
-            accessibilityRole="text"
-            numberOfLines={1}
-            style={
+          <TouchableOpacity
+            accessibilityState={
               {
                 "color": "#6a737d",
                 "fontFamily": "EuclidCircularB-Regular",
@@ -226,12 +226,15 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
                 "lineHeight": 22,
               }
             }
-          >
-            0x2990079bcdEe240329a520d2444386FC119da21a
-          </Text>
-          <Text
-            accessibilityRole="text"
-            numberOfLines={1}
+            accessible={true}
+            focusable={false}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               {
                 "color": "#6a737d",
@@ -261,6 +264,7 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
           >
             <Text
               accessibilityRole="text"
+              numberOfLines={1}
               style={
                 {
                   "color": "#141618",
@@ -272,9 +276,23 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
                 }
               }
             >
-              Imported
+              0x2990079bcdEe240329a520d2444386FC119da21a
             </Text>
-          </View>
+            <SvgMock
+              color="#141618"
+              height={10}
+              name="ArrowDown"
+              style={
+                {
+                  "height": 10,
+                  "paddingLeft": 8,
+                  "paddingTop": 24,
+                  "width": 10,
+                }
+              }
+              width={10}
+            />
+          </TouchableOpacity>
         </View>
       </View>
     </View>
