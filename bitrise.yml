@@ -66,7 +66,7 @@ pipelines:
       - create_build_qa_android: {}
       - app_launch_times_test_stage: {}
 
-#App Upgrade pipeline. Runs on browserstack
+  #App Upgrade pipeline. Runs on browserstack
   app_upgrade_pipeline:
     stages:
       - create_build_qa_android: {}
@@ -278,12 +278,12 @@ workflows:
           title: Install node, yarn and corepack
   install_detox:
     steps:
-    - script@1:
-        inputs:
-          - content: |-
-              #!/usr/bin/env bash
-              scripts/detox-setup.sh
-        title: Install Detox Dependencies
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                scripts/detox-setup.sh
+          title: Install Detox Dependencies
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
@@ -1489,13 +1489,13 @@ app:
       VERSION_NAME: 7.30.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1398
+      VERSION_NUMBER: 1399
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.30.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1398
+      FLASK_VERSION_NUMBER: 1399
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
