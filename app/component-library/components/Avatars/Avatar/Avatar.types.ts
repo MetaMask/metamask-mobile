@@ -53,3 +53,10 @@ export type IconSizeByAvatarSize = {
 export type TextVariantByAvatarSize = {
   [key in AvatarSize]: TextVariant;
 };
+
+/**
+ * Mapping of borderWidth by AvatarSize.
+ */
+export type BorderWidthByAvatarSize = {
+  [key in AvatarSize]: number;
+};

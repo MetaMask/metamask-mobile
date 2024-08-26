@@ -229,15 +229,11 @@ export class Connection extends EventEmitter2 {
     });
 
     // if relayPersistence is true, automatically setup background bridge
-    if (relayPersistence) {
-      if (originatorInfo) {
-        this.backgroundBridge = setupBridge({
-          originatorInfo,
-          connection: this,
-        });
-      } else {
-        console.error('Connection::constructor() originatorInfo is undefined');
-      }
+    if (originatorInfo) {
+      this.backgroundBridge = setupBridge({
+        originatorInfo,
+        connection: this,
+      });
     }
 
     this.remote.on(EventType.CLIENTS_CONNECTED, handleClientsConnected(this));
@@ -273,8 +269,18 @@ export class Connection extends EventEmitter2 {
     );
   }
 
-  public connect({ withKeyExchange }: { withKeyExchange: boolean }) {
-    return connect({ instance: this, withKeyExchange });
+  public connect({
+    withKeyExchange,
+    authorized,
+  }: {
+    authorized: boolean;
+    withKeyExchange: boolean;
+  }) {
+    return connect({
+      instance: this,
+      withKeyExchange,
+      authorized,
+    });
   }
 
   sendAuthorized(force?: boolean) {
