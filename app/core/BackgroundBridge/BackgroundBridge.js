@@ -326,6 +326,7 @@ export class BackgroundBridge extends EventEmitter {
   };
 
   onMessage = (msg) => {
+    console.log('message', msg);
     this.port.emit('message', { name: msg.name, data: msg.data });
   };
 
@@ -381,7 +382,9 @@ export class BackgroundBridge extends EventEmitter {
     // it in a proxy which can be switched to use its own state if/when the origin
     // is added to the `domains` state
     const proxyClient =
-      this.selectedNetworkController.getProviderAndBlockTracker(origin);
+      Engine.context.SelectedNetworkController.getProviderAndBlockTracker(
+        origin,
+      );
 
     // create filter polyfill middleware
     const filterMiddleware = createFilterMiddleware(proxyClient);
