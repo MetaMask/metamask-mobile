@@ -112,7 +112,7 @@ const NotificationOptionToggle = ({
         <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
           {title}
         </Text>
-        {address && (
+        {Boolean(address) && (
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {type === NotificationsToggleTypes.ACTIONS
               ? address.toLowerCase()
