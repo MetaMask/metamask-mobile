@@ -19,6 +19,17 @@ export const createStyle = (colors: any) =>
       ...fontStyles.normal,
       color: colors.text.default,
     },
+    warning: {
+      fontSize: 14,
+      marginBottom: 5,
+      ...fontStyles.bold,
+    },
+    subMsg: {
+      fontSize: 12,
+      marginBottom: 5,
+      ...fontStyles.normal,
+      color: colors.text.default,
+    },
     account: {
       flexDirection: 'row',
       paddingHorizontal: 10,

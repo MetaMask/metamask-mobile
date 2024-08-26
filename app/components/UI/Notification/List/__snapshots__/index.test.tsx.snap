@@ -13,7 +13,9 @@ exports[`NotificationsList should render correctly 1`] = `
   <View
     style={
       {
+        "alignItems": "center",
         "height": "100%",
+        "justifyContent": "center",
         "position": "absolute",
         "width": "100%",
         "zIndex": 999,

@@ -2,8 +2,8 @@
 import Device from '../../../util/device';
 import { StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
-import { isNetworkUiRedesignEnabled } from '../../../util/networks';
 import { Colors } from '../../../util/theme/models';
+import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 
 /**
  * Style sheet function for NetworkSelector screen.
@@ -15,12 +15,31 @@ const createStyles = (colors: Colors) =>
       marginHorizontal: 16,
       marginBottom: Device.isAndroid()
         ? 16
-        : isNetworkUiRedesignEnabled
+        : isNetworkUiRedesignEnabled()
         ? 12
         : 0,
     },
     networkMenu: {
       alignItems: 'center',
+    },
+    rpcMenu: {
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'center',
+    },
+    cellBorder: { borderWidth: 0, paddingVertical: 4 },
+    baseHeader: { paddingVertical: 8 },
+    rpcText: {
+      width: '100%',
+    },
+    textWrapper: {
+      display: 'flex',
+      alignSelf: 'center',
+      borderWidth: 2,
+      height: 'auto',
+    },
+    alternativeText: {
+      color: colors.text.alternative,
     },
     containerDeleteText: {
       paddingLeft: 16,
@@ -83,7 +102,7 @@ const createStyles = (colors: Colors) =>
       marginTop: 1,
     },
     networkListContainer: {
-      height: isNetworkUiRedesignEnabled ? '100%' : undefined,
+      height: isNetworkUiRedesignEnabled() ? '100%' : undefined,
     },
     networkIcon: {
       width: 20,

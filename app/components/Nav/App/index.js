@@ -27,7 +27,6 @@ import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportFromSecretRecoveryPhrase from '../../Views/ImportFromSecretRecoveryPhrase';
 import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
-import WhatsNewModal from '../../UI/WhatsNewModal/WhatsNewModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
 import MetaMaskAnimation from '../../UI/MetaMaskAnimation';
@@ -62,6 +61,7 @@ import Toast, {
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AccountConnect from '../../../components/Views/AccountConnect';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
+import AccountPermissionsConfirmRevokeAll from '../../../components/Views/AccountPermissions/AccountPermissionsConfirmRevokeAll';
 import { SRPQuiz } from '../../Views/Quiz';
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
 import AssetHideConfirmation from '../../Views/AssetHideConfirmation';
@@ -116,7 +116,10 @@ import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctional
 import SmartTransactionsOptInModal from '../../Views/SmartTransactionsOptInModal/SmartTranactionsOptInModal';
 import ProfileSyncingModal from '../../UI/ProfileSyncing/ProfileSyncingModal/ProfileSyncingModal';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
+import NftOptions from '../../../components/Views/NftOptions';
+import ShowTokenIdSheet from '../../../components/Views/ShowTokenIdSheet';
 import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
+import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
@@ -611,7 +614,6 @@ const App = ({ userLoggedIn }) => {
         name={Routes.MODAL.MODAL_MANDATORY}
         component={ModalMandatory}
       />
-      <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
       <Stack.Screen
         name={Routes.MODAL.SMART_TRANSACTIONS_OPT_IN}
         component={SmartTransactionsOptInModal}
@@ -653,6 +655,10 @@ const App = ({ userLoggedIn }) => {
         component={AccountPermissions}
       />
       <Stack.Screen
+        name={Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS}
+        component={AccountPermissionsConfirmRevokeAll}
+      />
+      <Stack.Screen
         name={Routes.SHEET.NETWORK_SELECTOR}
         component={NetworkSelector}
       />
@@ -682,6 +688,7 @@ const App = ({ userLoggedIn }) => {
       />
       <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
       <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
+      <Stack.Screen name={'NftOptions'} component={NftOptions} />
       <Stack.Screen
         name={Routes.MODAL.UPDATE_NEEDED}
         component={UpdateNeeded}
@@ -715,6 +722,11 @@ const App = ({ userLoggedIn }) => {
         name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}
         component={NFTAutoDetectionModal}
       />
+      <Stack.Screen
+        name={Routes.SHEET.SHOW_TOKEN_ID}
+        component={ShowTokenIdSheet}
+      />
+
       <Stack.Screen
         name={Routes.SHEET.ORIGIN_SPAM_MODAL}
         component={OriginSpamModal}
@@ -916,6 +928,14 @@ const App = ({ userLoggedIn }) => {
               component={AddNetworkFlow}
               options={{ animationEnabled: true }}
             />
+            {isNetworkUiRedesignEnabled() ? (
+              <Stack.Screen
+                name={Routes.EDIT_NETWORK}
+                component={AddNetworkFlow}
+                options={{ animationEnabled: true }}
+              />
+            ) : null}
+
             <Stack.Screen
               name={Routes.LOCK_SCREEN}
               component={LockScreen}

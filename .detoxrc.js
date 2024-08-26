@@ -64,7 +64,7 @@ module.exports = {
     'ios.simulator': {
       type: 'ios.simulator',
       device: {
-        type: 'iPhone 13 Pro',
+        type: 'iPhone 15 Pro',
       },
     },
     'android.bitrise.emulator': {
@@ -76,7 +76,7 @@ module.exports = {
     'android.emulator': {
       type: 'android.emulator',
       device: {
-        avdName: 'Pixel_5_Pro_API_30',
+        avdName: 'Pixel_5_Pro_API_34',
       },
     },
   },

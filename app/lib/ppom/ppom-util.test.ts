@@ -4,10 +4,8 @@ import * as TransactionActions from '../../actions/transaction'; // eslint-disab
 import * as NetworkControllerSelectors from '../../selectors/networkController'; // eslint-disable-line import/no-namespace
 import Engine from '../../core/Engine';
 import PPOMUtil from './ppom-util';
-import {
-  isSecurityAlertsAPIEnabled,
-  validateWithSecurityAlertsAPI,
-} from './security-alerts-api';
+// eslint-disable-next-line import/no-namespace
+import * as securityAlertAPI from './security-alerts-api';
 
 const CHAIN_ID_MOCK = '0x1';
 
@@ -90,10 +88,17 @@ const mockSignatureRequest = {
 
 describe('PPOM Utils', () => {
   const validateWithSecurityAlertsAPIMock = jest.mocked(
-    validateWithSecurityAlertsAPI,
+    securityAlertAPI.validateWithSecurityAlertsAPI,
   );
 
-  const isSecurityAlertsEnabledMock = jest.mocked(isSecurityAlertsAPIEnabled);
+  const isSecurityAlertsEnabledMock = jest.mocked(
+    securityAlertAPI.isSecurityAlertsAPIEnabled,
+  );
+
+  const getSupportedChainIdsMock = jest.spyOn(
+    securityAlertAPI,
+    'getSecurityAlertsAPISupportedChainIds',
+  );
 
   const normalizeTransactionParamsMock = jest.mocked(
     normalizeTransactionParams,
@@ -275,6 +280,7 @@ describe('PPOM Utils', () => {
 
     it('uses security alerts API if enabled', async () => {
       isSecurityAlertsEnabledMock.mockReturnValue(true);
+      getSupportedChainIdsMock.mockResolvedValue([CHAIN_ID_MOCK]);
 
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
 
@@ -289,6 +295,7 @@ describe('PPOM Utils', () => {
 
     it('uses controller if security alerts API throws', async () => {
       isSecurityAlertsEnabledMock.mockReturnValue(true);
+      getSupportedChainIdsMock.mockResolvedValue([CHAIN_ID_MOCK]);
 
       validateWithSecurityAlertsAPIMock.mockRejectedValue(
         new Error('Test Error'),
@@ -305,6 +312,18 @@ describe('PPOM Utils', () => {
         CHAIN_ID_MOCK,
         mockRequest,
       );
+    });
+
+    it('validates correctly if security alerts API throws', async () => {
+      const spy = jest.spyOn(
+        TransactionActions,
+        'setTransactionSecurityAlertResponse',
+      );
+      jest
+        .spyOn(securityAlertAPI, 'getSecurityAlertsAPISupportedChainIds')
+        .mockRejectedValue(new Error('Test Error'));
+      await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
+      expect(spy).toBeCalledTimes(2);
     });
   });
 });

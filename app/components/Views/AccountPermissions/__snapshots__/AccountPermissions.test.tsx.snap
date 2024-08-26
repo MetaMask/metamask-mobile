@@ -1,0 +1,418 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AccountPermissions renders correctly 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    [
+      {
+        "bottom": 0,
+        "justifyContent": "flex-end",
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      },
+      {
+        "paddingBottom": 0,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {
+          "backgroundColor": "#00000099",
+          "bottom": 0,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        },
+        {
+          "opacity": 0,
+        },
+      ]
+    }
+  >
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    />
+  </View>
+  <View
+    onLayout={[Function]}
+    style={
+      [
+        {
+          "bottom": 0,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+        },
+        {
+          "paddingBottom": 0,
+        },
+      ]
+    }
+  >
+    <View
+      collapsable={false}
+      onGestureHandlerEvent={[Function]}
+      onGestureHandlerStateChange={[Function]}
+      onLayout={[Function]}
+      style={
+        [
+          {
+            "backgroundColor": "#ffffff",
+            "borderColor": "#bbc0c566",
+            "borderTopLeftRadius": 8,
+            "borderTopRightRadius": 8,
+            "borderWidth": 1,
+            "maxHeight": 1334,
+            "overflow": "hidden",
+            "paddingBottom": 0,
+            "shadowColor": "#0000001a",
+            "shadowOffset": {
+              "height": 2,
+              "width": 0,
+            },
+            "shadowOpacity": 1,
+            "shadowRadius": 40,
+          },
+          {
+            "transform": [
+              {
+                "translateY": 1334,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "padding": 4,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "#bbc0c566",
+              "borderRadius": 2,
+              "height": 4,
+              "width": 40,
+            }
+          }
+        />
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "flexDirection": "row",
+            "height": 32,
+            "justifyContent": "space-between",
+            "margin": 16,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        />
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 18,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Connected accounts
+        </Text>
+        <View
+          style={
+            {
+              "alignItems": "flex-end",
+              "flex": 1,
+            }
+          }
+        />
+      </View>
+      <View
+        style={
+          {
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <View
+          iconName="LockSlash"
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "center",
+              "backgroundColor": "#ffffff",
+              "borderColor": "#bbc0c5",
+              "borderRadius": 99,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "paddingLeft": 8,
+              "paddingRight": 16,
+              "paddingVertical": 8,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderRadius": 16,
+                "height": 24,
+                "marginRight": 8,
+                "overflow": "hidden",
+                "width": 24,
+              }
+            }
+          >
+            <Image
+              onError={[Function]}
+              resizeMode="contain"
+              source={{}}
+              style={
+                {
+                  "flex": 1,
+                  "height": undefined,
+                  "width": undefined,
+                }
+              }
+              testID="favicon-avatar-image"
+            />
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#6a737d",
+                "flexShrink": 1,
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            https://test
+          </Text>
+          <Text
+            accessibilityRole="link"
+            accessible={true}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "backgroundColor": "transparent",
+                "color": "#141618",
+                "marginLeft": 16,
+              }
+            }
+            suppressHighlighting={true}
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#0376c9",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Permissions
+            </Text>
+          </Text>
+        </View>
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "center",
+              "backgroundColor": "#f2f4f6",
+              "borderRadius": 16,
+              "flexDirection": "row",
+              "height": 32,
+              "marginVertical": 16,
+              "paddingHorizontal": 8,
+            }
+          }
+          testID="accounts-connected-network-picker"
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderRadius": 8,
+                "height": 16,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "width": 16,
+              }
+            }
+          >
+            <Image
+              onError={[Function]}
+              resizeMode="contain"
+              source={
+                {
+                  "default": {
+                    "uri": "MockImage",
+                  },
+                }
+              }
+              style={
+                {
+                  "height": 16,
+                  "width": 16,
+                }
+              }
+              testID="network-avatar-image"
+            />
+          </View>
+          <Text
+            accessibilityRole="text"
+            numberOfLines={1}
+            style={
+              {
+                "color": "#141618",
+                "flexShrink": 1,
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginHorizontal": 8,
+              }
+            }
+            testID="open-networks-text"
+          >
+            Ethereum Main Network
+          </Text>
+          <SvgMock
+            color="#141618"
+            height={12}
+            name="ArrowDown"
+            style={
+              {
+                "height": 12,
+                "width": 12,
+              }
+            }
+            testID="pickernetwork-arrow"
+            width={12}
+          />
+        </TouchableOpacity>
+      </View>
+      <RCTScrollView
+        collapsable={false}
+        data={[]}
+        getItem={[Function]}
+        getItemCount={[Function]}
+        initialNumToRender={999}
+        keyExtractor={[Function]}
+        onContentSizeChange={[Function]}
+        onGestureHandlerEvent={[Function]}
+        onGestureHandlerStateChange={[Function]}
+        onLayout={[Function]}
+        onMomentumScrollBegin={[Function]}
+        onMomentumScrollEnd={[Function]}
+        onScroll={[Function]}
+        onScrollBeginDrag={[Function]}
+        onScrollEndDrag={[Function]}
+        removeClippedSubviews={false}
+        renderItem={[Function]}
+        renderScrollComponent={[Function]}
+        scrollEventThrottle={50}
+        stickyHeaderIndices={[]}
+        viewabilityConfigCallbackPairs={[]}
+      >
+        <View />
+      </RCTScrollView>
+      <View
+        style={
+          {
+            "marginVertical": 16,
+          }
+        }
+        testID="connect-accounts-buttons"
+      >
+        <View>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "transparent",
+                "borderRadius": 24,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "opacity": 1,
+                "paddingHorizontal": 16,
+              }
+            }
+            variant="Link"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#0376c9",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Connect more accounts
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  </View>
+</View>
+`;
