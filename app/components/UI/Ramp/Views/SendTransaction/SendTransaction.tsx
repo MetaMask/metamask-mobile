@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
-import { View } from 'react-native';
+import { ImageSourcePropType, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { BN } from 'ethereumjs-util';
@@ -200,12 +200,14 @@ function SendTransaction() {
     return null;
   }
 
-  let tokenIcon;
+  let tokenIcon: ImageSourcePropType;
   const symbol = orderData.cryptoCurrency.symbol;
   if (symbol === 'ETH') {
-    tokenIcon = imageIcons.ETHEREUM;
+    tokenIcon = imageIcons.ETHEREUM as ImageSourcePropType;
   } else if (Object.keys(imageIcons).includes(symbol)) {
-    tokenIcon = imageIcons[symbol as keyof typeof imageIcons];
+    tokenIcon = imageIcons[
+      symbol as keyof typeof imageIcons
+    ] as ImageSourcePropType;
   } else {
     tokenIcon = { uri: orderData.cryptoCurrency.logo };
   }
