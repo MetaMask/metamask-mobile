@@ -112,13 +112,13 @@ const NotificationOptionToggle = ({
         <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
           {title}
         </Text>
-        {address ? (
+        {address && (
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {type === NotificationsToggleTypes.ACTIONS
               ? address.toLowerCase()
               : formatAddress(address, 'short').toLowerCase()}
           </Text>
-        ) : null}
+        )}
       </View>
       <View style={styles.switchElement}>
         <Switch
