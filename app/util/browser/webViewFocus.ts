@@ -17,6 +17,7 @@ const handleWebViewFocus = ({
   chainId,
   previousChainId,
 }: WebViewFocus) => {
+  console.log(previousChainId, chainId);
   if (webviewRef.current) {
     if (!isFocused) {
       webviewRef.current.stopLoading();

@@ -269,7 +269,7 @@ export const BrowserTab = (props) => {
   const [blockedUrl, setBlockedUrl] = useState(undefined);
   const [ipfsBannerVisible, setIpfsBannerVisible] = useState(false);
   const [isResolvedIpfsUrl, setIsResolvedIpfsUrl] = useState(false);
-  const [previousChainId, setPreviousChainId] = useState('0x1');
+  const previousChainIdRef = useRef('0x1');
   const webviewRef = useRef(null);
   const blockListType = useRef('');
   const allowList = useRef([]);
@@ -715,10 +715,9 @@ export const BrowserTab = (props) => {
       webviewRef,
       isFocused,
       chainId: props.chainId,
-      previousChainId,
+      previousChainId: previousChainIdRef.current,
     });
-    setPreviousChainId(props.chainId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    previousChainIdRef.current = props.chainId;
   }, [webviewRef, isFocused, props.chainId]);
 
   /**
