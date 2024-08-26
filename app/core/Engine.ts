@@ -86,7 +86,6 @@ import {
   METAMASK_DOMAIN,
   SelectedNetworkController,
   SelectedNetworkControllerState,
-  createSelectedNetworkMiddleware,
 } from '@metamask/selected-network-controller';
 import {
   PermissionController,
@@ -224,6 +223,7 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
 import EthQuery from '@metamask/eth-query';
 import { TransactionControllerOptions } from '@metamask/transaction-controller/dist/types/TransactionController';
+import DomainProxyMap from '../lib/DomainProxyMap/DomainProxyMap';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -365,6 +365,7 @@ interface Controllers {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   PermissionController: PermissionController<any, any>;
+  SelectedNetworkController: SelectedNetworkController;
   PhishingController: PhishingController;
   PreferencesController: PreferencesController;
   PPOMController: PPOMController;
@@ -924,7 +925,7 @@ class Engine {
       useRequestQueuePreference: !!process.env.MULTICHAIN_V1,
       // @ts-expect-error TODO: Resolve mismatch between PreferenceController versions.
       onPreferencesStateChange,
-      domainProxyMap: new WeakRefObjectMap(),
+      domainProxyMap: new DomainProxyMap(),
     });
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -1436,6 +1437,7 @@ class Engine {
       gasFeeController,
       approvalController,
       permissionController,
+      selectedNetworkController,
       new SignatureController({
         // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
@@ -1821,6 +1823,7 @@ class Engine {
       TokenBalancesController,
       TokenRatesController,
       PermissionController,
+      // SelectedNetworkController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController,
       ///: END:ONLY_INCLUDE_IF
@@ -1833,6 +1836,9 @@ class Engine {
     SnapController.clearState();
     ///: END:ONLY_INCLUDE_IF
 
+    // Clear selected network
+    // TODO implement this method on SelectedNetworkController
+    // SelectedNetworkController.unsetAllDomains()
     //Clear assets info
     TokensController.update({
       allTokens: {},
@@ -2021,6 +2027,7 @@ export default {
       NotificationServicesController,
       ///: END:ONLY_INCLUDE_IF
       PermissionController,
+      SelectedNetworkController,
       ApprovalController,
       LoggingController,
       AccountsController,
@@ -2065,6 +2072,7 @@ export default {
       NotificationServicesController,
       ///: END:ONLY_INCLUDE_IF
       PermissionController,
+      SelectedNetworkController,
       ApprovalController,
       LoggingController,
       AccountsController,

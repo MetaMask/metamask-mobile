@@ -40,6 +40,7 @@ import { NetworkStatus } from '@metamask/network-controller';
 import { NETWORK_ID_LOADING } from '../redux/slices/inpageProvider';
 import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMethodMiddleware';
 import createLegacyMethodMiddleware from '../RPCMethods/createLegacyMethodMiddleware';
+import { createSelectedNetworkMiddleware } from '@metamask/selected-network-controller';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -369,23 +370,30 @@ export class BackgroundBridge extends EventEmitter {
     const origin = this.hostname;
     // setup json rpc engine stack
     const engine = new JsonRpcEngine();
-    const { blockTracker, provider } =
-      Engine.context.NetworkController.getProviderAndBlockTracker();
+
+    // const { blockTracker, provider } =
+    //   Engine.context.NetworkController.getProviderAndBlockTracker();
+
+    // If the origin is not in the selectedNetworkController's `domains` state
+    // when the provider engine is created, the selectedNetworkController will
+    // fetch the globally selected networkClient from the networkController and wrap
+    // it in a proxy which can be switched to use its own state if/when the origin
+    // is added to the `domains` state
+    const proxyClient =
+      this.selectedNetworkController.getProviderAndBlockTracker(origin);
 
     // create filter polyfill middleware
-    const filterMiddleware = createFilterMiddleware({ provider, blockTracker });
+    const filterMiddleware = createFilterMiddleware(proxyClient);
 
     // create subscription polyfill middleware
-    const subscriptionManager = createSubscriptionManager({
-      provider,
-      blockTracker,
-    });
+    const subscriptionManager = createSubscriptionManager(proxyClient);
     subscriptionManager.events.on('notification', (message) =>
       engine.emit('notification', message),
     );
 
     // metadata
     engine.push(createOriginMiddleware({ origin }));
+    engine.push(createSelectedNetworkMiddleware(Engine.controllerMessenger));
     engine.push(createLoggerMiddleware({ origin }));
     // filter and subscription polyfills
     engine.push(filterMiddleware);
@@ -435,7 +443,7 @@ export class BackgroundBridge extends EventEmitter {
     engine.push(createSanitizationMiddleware());
 
     // forward to metamask primary provider
-    engine.push(providerAsMiddleware(provider));
+    engine.push(providerAsMiddleware(proxyClient.provider));
     return engine;
   }
 
