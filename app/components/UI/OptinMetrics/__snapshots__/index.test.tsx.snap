@@ -445,7 +445,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                 }
                               }
                             >
-                              [missing "en.privacy_policy.description_content_3" translation]
+                              Learn how we protect your privacy while collecting usage data for your profile.
                             </Text>
                             <Text
                               style={
