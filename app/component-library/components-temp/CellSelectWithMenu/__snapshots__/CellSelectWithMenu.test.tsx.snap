@@ -218,12 +218,11 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
           <TouchableOpacity
             accessibilityState={
               {
-                "color": "#6a737d",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
               }
             }
             accessible={true}
@@ -237,28 +236,10 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
             onStartShouldSetResponder={[Function]}
             style={
               {
-                "color": "#6a737d",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              }
-            }
-          >
-            Updated 1 sec ago
-          </Text>
-          <View
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderColor": "#bbc0c5",
-                "borderRadius": 10,
-                "borderWidth": 1,
-                "height": 24,
-                "justifyContent": "center",
-                "marginTop": 4,
-                "paddingHorizontal": 4,
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "marginBottom": 0,
+                "zIndex": 1,
               }
             }
           >
@@ -267,7 +248,7 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
               numberOfLines={1}
               style={
                 {
-                  "color": "#141618",
+                  "color": "#6a737d",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
