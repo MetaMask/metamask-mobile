@@ -102,7 +102,7 @@ class Gestures {
    */
   static async typeTextAndHideKeyboard(elementID, text) {
     const element = await elementID;
-    await this.clearField(element);
+    await this.clearField(elementID);
 
     await element.typeText(text + '\n');
   }
