@@ -53,11 +53,7 @@ const ENGINE_MOCK = Engine as jest.MockedClass<any>;
 
 jest.mock('../../util/transaction-controller');
 
-ENGINE_MOCK.context = {
-  TransactionController: {
-    ethQuery: null,
-  },
-};
+ENGINE_MOCK.getGlobalEthQuery = () => null;
 
 const MOCK_ADDRESS1 = '0x0001';
 const MOCK_ADDRESS2 = '0x0002';

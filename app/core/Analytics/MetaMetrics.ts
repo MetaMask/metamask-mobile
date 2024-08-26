@@ -6,7 +6,7 @@ import {
   UserTraits,
 } from '@segment/analytics-react-native';
 import axios, { AxiosHeaderValue } from 'axios';
-import DefaultPreference from 'react-native-default-preference';
+import StorageWrapper from '../../store/storage-wrapper';
 import Logger from '../../util/Logger';
 import {
   AGREED,
@@ -177,7 +177,7 @@ class MetaMetrics implements IMetaMetrics {
    * @returns Promise containing the enabled state
    */
   #isMetaMetricsEnabled = async (): Promise<boolean> => {
-    const enabledPref = await DefaultPreference.get(METRICS_OPT_IN);
+    const enabledPref = await StorageWrapper.getItem(METRICS_OPT_IN);
     this.enabled = AGREED === enabledPref;
     if (__DEV__)
       Logger.log(`Current MetaMatrics enable state: ${this.enabled}`);
@@ -189,21 +189,21 @@ class MetaMetrics implements IMetaMetrics {
    * @private
    */
   #getIsDataRecordedFromPrefs = async (): Promise<boolean> =>
-    (await DefaultPreference.get(ANALYTICS_DATA_RECORDED)) === 'true';
+    (await StorageWrapper.getItem(ANALYTICS_DATA_RECORDED)) === 'true';
 
   /**
    * Retrieve the analytics deletion request date from the preference
    * @private
    */
   #getDeleteRegulationDateFromPrefs = async (): Promise<string> =>
-    await DefaultPreference.get(ANALYTICS_DATA_DELETION_DATE);
+    await StorageWrapper.getItem(ANALYTICS_DATA_DELETION_DATE);
 
   /**
    * Retrieve the analytics deletion regulation ID from the preference
    * @private
    */
   #getDeleteRegulationIdFromPrefs = async (): Promise<string> =>
-    await DefaultPreference.get(METAMETRICS_DELETION_REGULATION_ID);
+    await StorageWrapper.getItem(METAMETRICS_DELETION_REGULATION_ID);
 
   /**
    * Persist the analytics recording status
@@ -212,7 +212,7 @@ class MetaMetrics implements IMetaMetrics {
    */
   #setIsDataRecorded = async (isDataRecorded = false): Promise<void> => {
     this.dataRecorded = isDataRecorded;
-    await DefaultPreference.set(
+    await StorageWrapper.setItem(
       ANALYTICS_DATA_RECORDED,
       String(isDataRecorded),
     );
@@ -228,7 +228,7 @@ class MetaMetrics implements IMetaMetrics {
     deleteRegulationId: string,
   ): Promise<void> => {
     this.deleteRegulationId = deleteRegulationId;
-    await DefaultPreference.set(
+    await StorageWrapper.setItem(
       METAMETRICS_DELETION_REGULATION_ID,
       deleteRegulationId,
     );
@@ -249,7 +249,7 @@ class MetaMetrics implements IMetaMetrics {
     this.deleteRegulationDate = deletionDate;
 
     // similar to the one used in the legacy Analytics
-    await DefaultPreference.set(ANALYTICS_DATA_DELETION_DATE, deletionDate);
+    await StorageWrapper.setItem(ANALYTICS_DATA_DELETION_DATE, deletionDate);
   };
 
   /**
@@ -265,19 +265,21 @@ class MetaMetrics implements IMetaMetrics {
     // If user later enables MetaMetrics,
     // this same ID should be retrieved from preferences and reused.
     // look for a legacy ID from MixPanel integration and use it
-    const legacyId = await DefaultPreference.get(MIXPANEL_METAMETRICS_ID);
+    const legacyId = await StorageWrapper.getItem(MIXPANEL_METAMETRICS_ID);
     if (legacyId) {
       this.metametricsId = legacyId;
-      await DefaultPreference.set(METAMETRICS_ID, legacyId);
+      await StorageWrapper.setItem(METAMETRICS_ID, legacyId);
       return legacyId;
     }
 
     // look for a new Metametics ID and use it or generate a new one
-    const metametricsId = await DefaultPreference.get(METAMETRICS_ID);
+    const metametricsId: string | undefined = await StorageWrapper.getItem(
+      METAMETRICS_ID,
+    );
     if (!metametricsId) {
       // keep the id format compatible with MixPanel but base it on a UUIDv4
       this.metametricsId = uuidv4();
-      await DefaultPreference.set(METAMETRICS_ID, this.metametricsId);
+      await StorageWrapper.setItem(METAMETRICS_ID, this.metametricsId);
     } else {
       this.metametricsId = metametricsId;
     }
@@ -289,7 +291,7 @@ class MetaMetrics implements IMetaMetrics {
    */
   #resetMetaMetricsId = async (): Promise<void> => {
     try {
-      await DefaultPreference.set(METAMETRICS_ID, '');
+      await StorageWrapper.setItem(METAMETRICS_ID, '');
       this.metametricsId = await this.#getMetaMetricsId();
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -358,13 +360,13 @@ class MetaMetrics implements IMetaMetrics {
 
   /**
    * Update the user analytics preference and
-   * store in DefaultPreference
+   * store in StorageWrapper
    *
    * @param enabled - Boolean indicating if opts-in ({@link AGREED}) or opts-out ({@link DENIED})
    */
   #storeMetricsOptInPreference = async (enabled: boolean) => {
     try {
-      await DefaultPreference.set(METRICS_OPT_IN, enabled ? AGREED : DENIED);
+      await StorageWrapper.setItem(METRICS_OPT_IN, enabled ? AGREED : DENIED);
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {

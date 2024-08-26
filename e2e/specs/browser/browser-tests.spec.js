@@ -69,7 +69,7 @@ describe(SmokeCore('Browser Tests'), () => {
   it('should tap on the test dapp in favorites on the home page', async () => {
     await Browser.tapHomeButton();
     // Wait for page to load
-    await TestHelpers.delay(1000);
+    await TestHelpers.delay(3000);
     await Browser.tapDappInFavorites();
     await Assertions.checkIfTextIsDisplayed('metamask.github.io');
     // }

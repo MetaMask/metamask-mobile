@@ -24,26 +24,28 @@ index 0dc70ec..461a210 100644
      };
      return acc;
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-FMZML3V5.js b/node_modules/@metamask/assets-controllers/dist/chunk-FMZML3V5.js
-index ee6155c..3b33a57 100644
+index ee6155c..06a3a04 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-FMZML3V5.js
 +++ b/node_modules/@metamask/assets-controllers/dist/chunk-FMZML3V5.js
-@@ -1,12 +1,14 @@
+@@ -1,12 +1,16 @@
  "use strict";Object.defineProperty(exports, "__esModule", {value: true});// src/NftDetectionController.ts
  
--
 +var utils_1 = require('@metamask/utils');
  
+-
++var _chunkNEXY7SE2js = require('./chunk-NEXY7SE2.js');
++var MAX_GET_COLLECTION_BATCH_SIZE = 20;
  
  
  var _controllerutils = require('@metamask/controller-utils');
  var _pollingcontroller = require('@metamask/polling-controller');
  var DEFAULT_INTERVAL = 18e4;
-+var supportedNftDetectionNetworks = [_controllerutils.ChainId.mainnet];
++var supportedNftDetectionNetworks = [_controllerutils.ChainId.mainnet, _controllerutils.ChainId['linea-mainnet']];
 +var inProcessNftFetchingUpdates;
  var BlockaidResultType = /* @__PURE__ */ ((BlockaidResultType2) => {
    BlockaidResultType2["Benign"] = "Benign";
    BlockaidResultType2["Spam"] = "Spam";
-@@ -50,6 +52,7 @@ var NftDetectionController = class extends _pollingcontroller.StaticIntervalPoll
+@@ -50,6 +54,7 @@ var NftDetectionController = class extends _pollingcontroller.StaticIntervalPoll
       * Name of this controller used during composition
       */
      this.name = "NftDetectionController";
@@ -51,7 +53,7 @@ index ee6155c..3b33a57 100644
      /**
       * Checks whether network is mainnet or not.
       *
-@@ -72,11 +75,6 @@ var NftDetectionController = class extends _pollingcontroller.StaticIntervalPoll
+@@ -72,11 +77,6 @@ var NftDetectionController = class extends _pollingcontroller.StaticIntervalPoll
        const { selectedAddress: previouslySelectedAddress, disabled } = this.config;
        if (selectedAddress !== previouslySelectedAddress || !useNftDetection !== disabled) {
          this.configure({ selectedAddress, disabled: !useNftDetection });
@@ -63,7 +65,7 @@ index ee6155c..3b33a57 100644
        }
      });
      onNetworkStateChange(({ selectedNetworkClientId }) => {
-@@ -92,34 +90,21 @@ var NftDetectionController = class extends _pollingcontroller.StaticIntervalPoll
+@@ -92,34 +92,21 @@ var NftDetectionController = class extends _pollingcontroller.StaticIntervalPoll
      this.setIntervalLength(this.config.interval);
    }
    getOwnerNftApi({
@@ -108,7 +110,7 @@ index ee6155c..3b33a57 100644
    }
    async _executePoll(networkClientId, options) {
      await this.detectNfts({ networkClientId, userAddress: options.address });
-@@ -169,62 +154,96 @@ var NftDetectionController = class extends _pollingcontroller.StaticIntervalPoll
+@@ -169,62 +156,150 @@ var NftDetectionController = class extends _pollingcontroller.StaticIntervalPoll
      networkClientId,
      userAddress
    } = { userAddress: this.config.selectedAddress }) {
@@ -191,6 +193,60 @@ index ee6155c..3b33a57 100644
 -          userAddress,
 -          source: "detected" /* Detected */,
 -          networkClientId
++        const collections = apiNfts.reduce((acc, currValue) => {
++          if (!acc.includes(currValue.token.contract) && currValue.token.contract === currValue?.token?.collection?.id) {
++                    acc.push(currValue.token.contract);
++                  }
++                  return acc;
++        }, []);
++        if (collections.length !== 0) {
++            const collectionResponse = await _chunkNEXY7SE2js.reduceInBatchesSerially.call(void 0, {
++              values: collections,
++              batchSize: MAX_GET_COLLECTION_BATCH_SIZE,
++              eachBatch: async (allResponses, batch) => {
++                const params = new URLSearchParams(
++                  batch.map((s) => ["contract", s])
++                );
++                params.append("chainId", "1");
++                const collectionResponseForBatch = await _controllerutils.fetchWithErrorHandling.call(void 0, 
++                  {
++                    url: `${_controllerutils.NFT_API_BASE_URL}/collections?${params.toString()}`,
++                    options: {
++                      headers: {
++                        Version: '1'
++                      }
++                    },
++                    timeout: 15000
++                  }
++                );
++                return {
++                  ...allResponses,
++                  ...collectionResponseForBatch
++                };
++              },
++              initialResult: {}
++            });
++            if (collectionResponse.collections?.length) {
++              apiNfts.forEach((singleNFT) => {
++                const found = collectionResponse.collections.find(
++                  (elm) => elm.id?.toLowerCase() === singleNFT.token.contract.toLowerCase()
++                );
++                if (found) {
++                  singleNFT.token = {
++                    ...singleNFT.token,
++                    collection: {
++                      ...singleNFT.token.collection ? singleNFT.token.collection : {},
++                      creator: found?.creator,
++                      openseaVerificationStatus: found?.openseaVerificationStatus,
++                      contractDeployedAt: found.contractDeployedAt,
++                      ownerCount: found.ownerCount,
++                      topBid: found.topBid
++                    }
++                  };
++                }
++              });
++            }
++        }
 +        const addNftPromises = apiNfts.map(async (nft) => {
 +          const {
 +            tokenId: token_id,
@@ -309,7 +365,7 @@ index 76e3362..5ab79a4 100644
      allTokens,
      allDetectedTokens,
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-LAU6ZDZR.js b/node_modules/@metamask/assets-controllers/dist/chunk-LAU6ZDZR.js
-index d429be1..f5c1e2e 100644
+index d429be1..6fef22b 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-LAU6ZDZR.js
 +++ b/node_modules/@metamask/assets-controllers/dist/chunk-LAU6ZDZR.js
 @@ -33,6 +33,11 @@ var getDefaultNftState = () => {
@@ -353,7 +409,24 @@ index d429be1..f5c1e2e 100644
          if (needsUpdateNftMetadata) {
            const { chainId } = this.config;
            const nfts = this.state.allNfts[selectedAddress]?.[chainId] ?? [];
-@@ -189,7 +194,8 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+@@ -184,12 +189,25 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+         }
+       }
+     });
++    const getCollectionParams = new URLSearchParams({
++      chainId: "1",
++      id: `${nftInformation?.tokens[0]?.token?.collection?.id}`
++    }).toString();
++    const collectionInformation = await _controllerutils.fetchWithErrorHandling.call(void 0, {
++      url: `${_controllerutils.NFT_API_BASE_URL}/collections?${getCollectionParams}`,
++      options: {
++        headers: {
++          Version: "1"
++        }
++      }
++    });
+     if (!nftInformation?.tokens?.[0]?.token) {
+       return {
          name: null,
          description: null,
          image: null,
@@ -363,7 +436,25 @@ index d429be1..f5c1e2e 100644
        };
      }
      const {
-@@ -234,7 +240,7 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+@@ -221,7 +239,16 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+       },
+       rarityRank && { rarityRank },
+       rarity && { rarity },
+-      collection && { collection }
++      (collection || collectionInformation) && {
++        collection: {
++          ...collection || {},
++          creator: collection?.creator || collectionInformation?.collections[0].creator,
++          openseaVerificationStatus: collectionInformation?.collections[0].openseaVerificationStatus,
++          contractDeployedAt: collectionInformation?.collections[0].contractDeployedAt,
++          ownerCount: collectionInformation?.collections[0].ownerCount,
++          topBid: collectionInformation?.collections[0].topBid
++        }
++      }
+     );
+     return nftMetadata;
+   }
+@@ -234,7 +261,7 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
     * @returns Promise resolving to the current NFT name and image.
     */
    async getNftInformationFromTokenURI(contractAddress, tokenId, networkClientId) {
@@ -372,7 +463,7 @@ index d429be1..f5c1e2e 100644
      const result = await this.getNftURIAndStandard(
        contractAddress,
        tokenId,
-@@ -242,6 +248,18 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+@@ -242,6 +269,18 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
      );
      let tokenURI = result[0];
      const standard = result[1];
@@ -391,7 +482,7 @@ index d429be1..f5c1e2e 100644
      const hasIpfsTokenURI = tokenURI.startsWith("ipfs://");
      if (hasIpfsTokenURI && !isIpfsGatewayEnabled) {
        return {
-@@ -253,15 +271,15 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+@@ -253,15 +292,15 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
          tokenURI: tokenURI ?? null
        };
      }
@@ -410,7 +501,7 @@ index d429be1..f5c1e2e 100644
        };
      }
      if (hasIpfsTokenURI) {
-@@ -288,7 +306,8 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+@@ -288,7 +327,8 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
          description: null,
          standard: standard || null,
          favorite: false,
@@ -420,7 +511,7 @@ index d429be1..f5c1e2e 100644
        };
      }
    }
-@@ -345,15 +364,28 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+@@ -345,15 +385,28 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
            networkClientId
          )
        ),
@@ -451,7 +542,17 @@ index d429be1..f5c1e2e 100644
        standard: blockchainMetadata?.standard ?? nftApiMetadata?.standard ?? null,
        tokenURI: blockchainMetadata?.tokenURI ?? null
      };
-@@ -472,7 +504,8 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+@@ -443,7 +496,8 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+           nftMetadata,
+           existingEntry
+         );
+-        if (differentMetadata || !existingEntry.isCurrentlyOwned) {
++        const hasNewFields = _chunkNEXY7SE2js.hasNewCollectionFields(nftMetadata, existingEntry);
++        if (differentMetadata || hasNewFields || !existingEntry.isCurrentlyOwned) {
+           const indexToRemove = nfts.findIndex(
+             (nft) => nft.address.toLowerCase() === tokenAddress.toLowerCase() && nft.tokenId === tokenId
+           );
+@@ -472,7 +526,8 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
            symbol: nftContract.symbol,
            tokenId: tokenId.toString(),
            standard: nftMetadata.standard,
@@ -461,7 +562,7 @@ index d429be1..f5c1e2e 100644
          });
        }
        return newNfts;
-@@ -850,7 +883,7 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+@@ -850,7 +905,7 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
        );
      }
    }
@@ -470,7 +571,7 @@ index d429be1..f5c1e2e 100644
     * Refetches NFT metadata and updates the state
     *
     * @param options - Options for refetching NFT metadata
-@@ -858,11 +891,13 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+@@ -858,11 +913,13 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
     * @param options.userAddress - The current user address
     * @param options.networkClientId - The networkClientId that can be used to identify the network client to use for this request.
     */
@@ -489,7 +590,7 @@ index d429be1..f5c1e2e 100644
      const chainId = this.getCorrectChainId({ networkClientId });
      const nftsWithChecksumAdr = nfts.map((nft) => {
        return {
-@@ -870,7 +905,7 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+@@ -870,7 +927,7 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
          address: _controllerutils.toChecksumHexAddress.call(void 0, nft.address)
        };
      });
@@ -498,7 +599,7 @@ index d429be1..f5c1e2e 100644
        nftsWithChecksumAdr.map(async (nft) => {
          const resMetadata = await this.getNftInformation(
            nft.address,
-@@ -883,19 +918,16 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+@@ -883,19 +940,16 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
          };
        })
      );
@@ -521,7 +622,7 @@ index d429be1..f5c1e2e 100644
            existingEntry
          );
          if (differentMetadata) {
-@@ -905,15 +937,13 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
+@@ -905,15 +959,13 @@ var NftController = class extends _basecontroller.BaseControllerV1 {
      });
      if (nftsWithDifferentMetadata.length !== 0) {
        nftsWithDifferentMetadata.forEach(
@@ -655,10 +756,28 @@ index cd8f792..b20db8a 100644
  
  
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-NEXY7SE2.js b/node_modules/@metamask/assets-controllers/dist/chunk-NEXY7SE2.js
-index 8c506d9..d1ec2d2 100644
+index 8c506d9..bd798ec 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-NEXY7SE2.js
 +++ b/node_modules/@metamask/assets-controllers/dist/chunk-NEXY7SE2.js
-@@ -182,7 +182,7 @@ async function fetchTokenContractExchangeRates({
+@@ -27,6 +27,17 @@ function compareNftMetadata(newNftMetadata, nft) {
+   }, 0);
+   return differentValues > 0;
+ }
++
++function hasNewCollectionFields(
++  newNftMetadata,
++  nft,
++) {
++  const keysNewNftMetadata = Object.keys(newNftMetadata.collection || {});
++  const keysExistingNft = new Set(Object.keys(nft.collection || {}));
++
++  return keysNewNftMetadata.some((key) => !keysExistingNft.has(key));
++}
++
+ var aggregatorNameByKey = {
+   aave: "Aave",
+   bancor: "Bancor",
+@@ -182,7 +193,7 @@ async function fetchTokenContractExchangeRates({
      (obj, [tokenAddress, tokenPrice]) => {
        return {
          ...obj,
@@ -667,6 +786,14 @@ index 8c506d9..d1ec2d2 100644
        };
      },
      {}
+@@ -205,5 +216,5 @@ async function fetchTokenContractExchangeRates({
+ 
+ 
+ 
+-exports.TOKEN_PRICES_BATCH_SIZE = TOKEN_PRICES_BATCH_SIZE; exports.compareNftMetadata = compareNftMetadata; exports.formatAggregatorNames = formatAggregatorNames; exports.formatIconUrlWithProxy = formatIconUrlWithProxy; exports.SupportedTokenDetectionNetworks = SupportedTokenDetectionNetworks; exports.isTokenDetectionSupportedForNetwork = isTokenDetectionSupportedForNetwork; exports.isTokenListSupportedForNetwork = isTokenListSupportedForNetwork; exports.removeIpfsProtocolPrefix = removeIpfsProtocolPrefix; exports.getIpfsCIDv1AndPath = getIpfsCIDv1AndPath; exports.getFormattedIpfsUrl = getFormattedIpfsUrl; exports.addUrlProtocolPrefix = addUrlProtocolPrefix; exports.ethersBigNumberToBN = ethersBigNumberToBN; exports.divideIntoBatches = divideIntoBatches; exports.reduceInBatchesSerially = reduceInBatchesSerially; exports.fetchTokenContractExchangeRates = fetchTokenContractExchangeRates;
++exports.TOKEN_PRICES_BATCH_SIZE = TOKEN_PRICES_BATCH_SIZE; exports.compareNftMetadata = compareNftMetadata; exports.hasNewCollectionFields = hasNewCollectionFields; exports.formatAggregatorNames = formatAggregatorNames; exports.formatIconUrlWithProxy = formatIconUrlWithProxy; exports.SupportedTokenDetectionNetworks = SupportedTokenDetectionNetworks; exports.isTokenDetectionSupportedForNetwork = isTokenDetectionSupportedForNetwork; exports.isTokenListSupportedForNetwork = isTokenListSupportedForNetwork; exports.removeIpfsProtocolPrefix = removeIpfsProtocolPrefix; exports.getIpfsCIDv1AndPath = getIpfsCIDv1AndPath; exports.getFormattedIpfsUrl = getFormattedIpfsUrl; exports.addUrlProtocolPrefix = addUrlProtocolPrefix; exports.ethersBigNumberToBN = ethersBigNumberToBN; exports.divideIntoBatches = divideIntoBatches; exports.reduceInBatchesSerially = reduceInBatchesSerially; exports.fetchTokenContractExchangeRates = fetchTokenContractExchangeRates;
+ //# sourceMappingURL=chunk-NEXY7SE2.js.map
+\ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-V4ZO3F2S.js b/node_modules/@metamask/assets-controllers/dist/chunk-V4ZO3F2S.js
 index 0430e5c..038398c 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-V4ZO3F2S.js
@@ -715,18 +842,34 @@ index 2f1b66f..60cbc0f 100644
            ...marketData
          };
 diff --git a/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts b/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts
-index 42a321a..1393ca3 100644
+index 42a321a..b4554f5 100644
 --- a/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts
 +++ b/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts
-@@ -109,6 +109,7 @@ export interface NftMetadata {
+@@ -8,7 +8,7 @@ import type { Hex } from '@metamask/utils';
+ import { EventEmitter } from 'events';
+ import type { AssetsContractController } from './AssetsContractController';
+ import { Source } from './constants';
+-import type { Collection, Attributes, LastSale } from './NftDetectionController';
++import type { Collection, Attributes, LastSale, TopBid } from './NftDetectionController';
+ type NFTStandardType = 'ERC721' | 'ERC1155';
+ type SuggestedNftMeta = {
+     asset: {
+@@ -109,11 +109,13 @@ export interface NftMetadata {
      creator?: string;
      transactionId?: string;
      tokenURI?: string | null;
 +    error?: string;
      collection?: Collection;
      address?: string;
-     attributes?: Attributes;
-@@ -125,7 +126,7 @@ export interface NftConfig extends BaseConfig {
+-    attributes?: Attributes;
++    attributes?: Attributes[];
+     lastSale?: LastSale;
+     rarityRank?: string;
++    topBid?: TopBid;
+ }
+ /**
+  * @type NftConfig
+@@ -125,7 +127,7 @@ export interface NftConfig extends BaseConfig {
      selectedAddress: string;
      chainId: Hex;
      ipfsGateway: string;
@@ -735,7 +878,7 @@ index 42a321a..1393ca3 100644
      useIPFSSubdomains: boolean;
      isIpfsGatewayEnabled: boolean;
  }
-@@ -350,7 +351,7 @@ export declare class NftController extends BaseControllerV1<NftConfig, NftState>
+@@ -350,7 +352,7 @@ export declare class NftController extends BaseControllerV1<NftConfig, NftState>
              source: string;
          }) => void;
          messenger: NftControllerMessenger;
@@ -744,6 +887,67 @@ index 42a321a..1393ca3 100644
      private validateWatchNft;
      private getCorrectChainId;
      /**
+diff --git a/node_modules/@metamask/assets-controllers/dist/types/NftDetectionController.d.ts b/node_modules/@metamask/assets-controllers/dist/types/NftDetectionController.d.ts
+index 9016c5f..a24805e 100644
+--- a/node_modules/@metamask/assets-controllers/dist/types/NftDetectionController.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/types/NftDetectionController.d.ts
+@@ -234,7 +234,42 @@ export type Attributes = {
+     topBidValue?: number | null;
+     createdAt?: string;
+ };
+-export type Collection = {
++export type GetCollectionsResponse = {
++    collections: CollectionResponse[];
++  };
++  
++export type CollectionResponse = {
++    id?: string;
++    openseaVerificationStatus?: string;
++    contractDeployedAt?: string;
++    creator?: string;
++    ownerCount?: string;
++    topBid?: TopBid & {
++      sourceDomain?: string;
++    };
++};
++
++export type FloorAskCollection = {
++    id?: string;
++    price?: Price;
++    maker?: string;
++    kind?: string;
++    validFrom?: number;
++    validUntil?: number;
++    source?: SourceCollection;
++    rawData?: Metadata;
++    isNativeOffChainCancellable?: boolean;
++};
++  
++export type SourceCollection = {
++    id: string;
++    domain: string;
++    name: string;
++    icon: string;
++    url: string;
++};
++
++export type TokenCollection = {
+     id?: string;
+     name?: string;
+     slug?: string;
+@@ -250,7 +285,11 @@ export type Collection = {
+     floorAskPrice?: Price;
+     royaltiesBps?: number;
+     royalties?: Royalties[];
+-};
++    floorAsk?: FloorAskCollection;
++  };
++  
++export type Collection = TokenCollection & CollectionResponse;
++
+ export type Royalties = {
+     bps?: number;
+     recipient?: string;
 diff --git a/node_modules/@metamask/assets-controllers/dist/types/TokenBalancesController.d.ts b/node_modules/@metamask/assets-controllers/dist/types/TokenBalancesController.d.ts
 index 52bb3ac..1f4d15d 100644
 --- a/node_modules/@metamask/assets-controllers/dist/types/TokenBalancesController.d.ts

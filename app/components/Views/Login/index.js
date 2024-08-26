@@ -10,13 +10,13 @@ import {
   Image,
   InteractionManager,
   BackHandler,
-  TouchableWithoutFeedback,
+  TouchableOpacity,
 } from 'react-native';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import AsyncStorage from '../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from '@metamask/react-native-button';
 import StyledButton from '../../UI/StyledButton';
@@ -44,7 +44,6 @@ import Routes from '../../../constants/navigation/Routes';
 import { passwordRequirementsMet } from '../../../util/password';
 import ErrorBoundary from '../ErrorBoundary';
 import { toLowerCaseEquals } from '../../../util/general';
-import DefaultPreference from 'react-native-default-preference';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -194,6 +193,7 @@ const WRONG_PASSWORD_ERROR_ANDROID =
   'Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
 const VAULT_ERROR = 'Cannot unlock without a previous vault.';
 const DENY_PIN_ERROR_ANDROID = 'Error: Error: Cancel';
+const JSON_PARSE_ERROR_UNEXPECTED_TOKEN = 'Error: JSON Parse error';
 
 /**
  * View where returning users can authenticate
@@ -251,10 +251,10 @@ class Login extends PureComponent {
     const authData = await Authentication.getType();
 
     //Setup UI to handle Biometric
-    const previouslyDisabled = await AsyncStorage.getItem(
+    const previouslyDisabled = await StorageWrapper.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
-    const passcodePreviouslyDisabled = await AsyncStorage.getItem(
+    const passcodePreviouslyDisabled = await StorageWrapper.getItem(
       PASSCODE_DISABLED,
     );
 
@@ -373,7 +373,7 @@ class Login extends PureComponent {
       Keyboard.dismiss();
 
       // Get onboarding wizard state
-      const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
+      const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
       if (onboardingWizard) {
         this.props.navigation.replace(Routes.ONBOARDING.HOME_NAV);
       } else {
@@ -407,7 +407,10 @@ class Login extends PureComponent {
           strings('login.security_alert_desc'),
         );
         this.setState({ loading: false });
-      } else if (containsErrorMessage(error, VAULT_ERROR)) {
+      } else if (
+        containsErrorMessage(error, VAULT_ERROR) ||
+        containsErrorMessage(error, JSON_PARSE_ERROR_UNEXPECTED_TOKEN)
+      ) {
         try {
           await this.handleVaultCorruption();
         } catch (e) {
@@ -434,7 +437,7 @@ class Login extends PureComponent {
     field?.blur();
     try {
       await Authentication.appTriggeredAuth();
-      const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
+      const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
       if (!onboardingWizard) this.props.setOnboardingWizardStep(1);
       this.props.navigation.replace(Routes.ONBOARDING.HOME_NAV);
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
@@ -516,23 +519,23 @@ class Login extends PureComponent {
             style={styles.wrapper}
           >
             <View testID={LoginViewSelectors.CONTAINER}>
-              <TouchableWithoutFeedback
-                onLongPress={this.handleDownloadStateLogs}
-                delayLongPress={10 * 1000} // 10 seconds
+              <TouchableOpacity
                 style={styles.foxWrapper}
+                delayLongPress={10 * 1000} // 10 seconds
+                onLongPress={this.handleDownloadStateLogs}
+                activeOpacity={1}
               >
-                <View style={styles.foxWrapper}>
-                  {Device.isAndroid() ? (
-                    <Image
-                      source={require('../../../images/fox.png')}
-                      style={styles.image}
-                      resizeMethod={'auto'}
-                    />
-                  ) : (
-                    <AnimatedFox bgColor={colors.background.default} />
-                  )}
-                </View>
-              </TouchableWithoutFeedback>
+                {Device.isAndroid() ? (
+                  <Image
+                    source={require('../../../images/fox.png')}
+                    style={styles.image}
+                    resizeMethod={'auto'}
+                  />
+                ) : (
+                  <AnimatedFox bgColor={colors.background.default} />
+                )}
+              </TouchableOpacity>
+
               <Text
                 style={styles.title}
                 testID={LoginViewSelectors.LOGIN_VIEW_TITLE_ID}

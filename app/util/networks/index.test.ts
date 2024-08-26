@@ -322,7 +322,7 @@ describe('network-utils', () => {
     const fromMock = '0x123';
 
     it('returns value from TransactionController', async () => {
-      getNonceLock.mockReturnValueOnce({
+      (getNonceLock as jest.Mock).mockReturnValueOnce({
         nextNonce: nonceMock,
         releaseLock: jest.fn(),
       });
@@ -335,7 +335,7 @@ describe('network-utils', () => {
     it('releases nonce lock', async () => {
       const releaseLockMock = jest.fn();
 
-      getNonceLock.mockReturnValueOnce({
+      (getNonceLock as jest.Mock).mockReturnValueOnce({
         releaseLock: releaseLockMock,
       });
 
@@ -378,7 +378,7 @@ describe('network-utils', () => {
       // Reset mocks before each test
       jest.clearAllMocks();
       // Setup default behavior for mocked functions
-      Engine.controllerMessenger.call.mockReturnValue({
+      (Engine.controllerMessenger.call as jest.Mock).mockReturnValue({
         sendAsync: mockSendAsync,
       });
     });
@@ -405,7 +405,9 @@ describe('network-utils', () => {
 
     it('throws when provider is not initialized', async () => {
       // Mock the call method to return undefined, simulating an uninitialized provider
-      Engine.controllerMessenger.call.mockReturnValueOnce(undefined);
+      (Engine.controllerMessenger.call as jest.Mock).mockReturnValueOnce(
+        undefined,
+      );
 
       await expect(deprecatedGetNetworkId()).rejects.toThrow(
         'Provider has not been initialized',

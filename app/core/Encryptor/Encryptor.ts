@@ -150,7 +150,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     key: EncryptionKey,
     payload: EncryptionResult,
   ): Promise<unknown> => {
-    // TODO: Check for key and payload compatiblity?
+    // TODO: Check for key and payload compatibility?
 
     // We assume that both `payload.lib` and `key.lib` are the same here!
     const lib = getEncryptionLibrary(payload.lib);

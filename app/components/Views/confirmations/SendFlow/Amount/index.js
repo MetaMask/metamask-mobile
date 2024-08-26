@@ -102,6 +102,7 @@ import { isNetworkRampNativeTokenSupported } from '../../../../../components/UI/
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
+import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -1254,6 +1255,7 @@ class Amount extends PureComponent {
         params: {
           sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
           destinationToken: selectedAsset.address,
+          sourcePage: 'SendFlow',
         },
       });
     };
@@ -1277,7 +1279,7 @@ class Amount extends PureComponent {
           location: 'insufficient_funds_warning',
           text: 'buy_more',
         });
-        navigation.navigate(Routes.RAMP.BUY);
+        navigation.navigate(...createBuyNavigationDetails());
       }
     };
 

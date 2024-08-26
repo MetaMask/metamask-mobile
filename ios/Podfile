@@ -1,7 +1,7 @@
 require_relative '../node_modules/react-native/scripts/react_native_pods'
 require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
 
-platform :ios, '12.4' #min_ios_version_supported
+platform :ios, min_ios_version_supported
 prepare_react_native_project!
 # Ensures that versions from Gemfile is respected
 ensure_bundler!
@@ -121,6 +121,6 @@ post_install do |installer|
     # Set `mac_catalyst_enabled` to `true` in order to apply patches
     # necessary for Mac Catalyst builds
     :mac_catalyst_enabled => false
-  )
+  )  
   __apply_Xcode_12_5_M1_post_install_workaround(installer)
 end

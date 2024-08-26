@@ -38,6 +38,7 @@ const config = {
   moduleNameMapper: {
     '\\.svg': '<rootDir>/app/__mocks__/svgMock.js',
     '\\.png': '<rootDir>/app/__mocks__/pngMock.js',
+    '\\webview/index.html': '<rootDir>/app/__mocks__/htmlMock.ts',
   },
   // Disable jest cache
   cache: false,

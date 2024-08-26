@@ -14,13 +14,13 @@ import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NetworksSettings from '../../Views/Settings/NetworksSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
+import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
 import OptIn from '../../Views/Notifications/OptIn';
 import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
 import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
-import NotificationsView from '../../Views/Notifications';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
@@ -82,6 +82,10 @@ import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
 import ConfirmAddAsset from '../../UI/ConfirmAddAsset';
 import { AesCryptoTestForm } from '../../Views/AesCryptoTestForm';
 import { isTest } from '../../../util/test/utils';
+import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
+
+import NftDetails from '../../Views/NftDetails';
+import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -396,8 +400,7 @@ const HomeTabs = () => {
     const activeTabUrl = getActiveTabUrl(state);
     if (!isUrl(activeTabUrl)) return [];
     try {
-      const permissionsControllerState =
-        state.engine.backgroundState.PermissionController;
+      const permissionsControllerState = selectPermissionControllerState(state);
       const hostname = new URL(activeTabUrl).hostname;
       const permittedAcc = getPermittedAccountsByHostname(
         permissionsControllerState,
@@ -542,6 +545,32 @@ const SendView = () => (
   </Stack.Navigator>
 );
 
+/* eslint-disable react/prop-types */
+const NftDetailsModeView = (props) => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name=" " // No name here because this title will be displayed in the header of the page
+      component={NftDetails}
+      initialParams={{
+        collectible: props.route.params?.collectible,
+      }}
+    />
+  </Stack.Navigator>
+);
+
+/* eslint-disable react/prop-types */
+const NftDetailsFullImageModeView = (props) => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name=" " // No name here because this title will be displayed in the header of the page
+      component={NftDetailsFullImage}
+      initialParams={{
+        collectible: props.route.params?.collectible,
+      }}
+    />
+  </Stack.Navigator>
+);
+
 const SendFlowView = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -611,16 +640,15 @@ const NotificationsModeView = (props) => (
       options={NotificationsSettings.navigationOptions}
     />
     <Stack.Screen
+      mode={'modal'}
+      name={Routes.NOTIFICATIONS.OPT_IN}
+      component={OptIn}
+      options={OptIn.navigationOptions}
+    />
+    <Stack.Screen
       name={Routes.NOTIFICATIONS.DETAILS}
       component={NotificationsDetails}
       options={NotificationsDetails.navigationOptions}
-      initialParams={{ notification: props.route.params?.notification }}
-    />
-    <Stack.Screen
-      mode={'modal'}
-      name="NotificationsOptIn"
-      component={OptIn}
-      options={OptIn.navigationOptions}
     />
     <Stack.Screen
       name="ContactForm"
@@ -734,6 +762,11 @@ const MainNavigator = () => (
     <Stack.Screen
       name={Routes.NOTIFICATIONS.VIEW}
       component={NotificationsModeView}
+    />
+    <Stack.Screen name="NftDetails" component={NftDetailsModeView} />
+    <Stack.Screen
+      name="NftDetailsFullImage"
+      component={NftDetailsFullImageModeView}
     />
     <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
