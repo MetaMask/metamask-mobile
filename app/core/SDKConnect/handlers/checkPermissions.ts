@@ -150,7 +150,8 @@ export const checkPermissions = async ({
       );
     }
 
-    await connection.approvalPromise;
+    const res = await connection.approvalPromise;
+    DevLogger.log(`checkPermissions approvalPromise completed`, res);
     // Clear previous permissions if already approved.
     connection.revalidate({ channelId: connection.channelId });
     return true;
