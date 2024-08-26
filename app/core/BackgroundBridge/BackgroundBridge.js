@@ -209,6 +209,7 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   getProviderNetworkState() {
+    // TODO update to use SelectedNetworkController
     const providerConfig = selectProviderConfig(store.getState());
     const networkType = providerConfig.type;
 
