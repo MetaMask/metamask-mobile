@@ -434,6 +434,20 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                               We’d like to gather basic usage data to improve MetaMask. Know that we never sell the data you provide here.
                             </Text>
                             <Text
+                              onPress={[Function]}
+                              style={
+                                {
+                                  "color": "#0376c9",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "paddingVertical": 10,
+                                }
+                              }
+                            >
+                              [missing "en.privacy_policy.description_content_3" translation]
+                            </Text>
+                            <Text
                               style={
                                 {
                                   "color": "#141618",
