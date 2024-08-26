@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Platform, Switch, View } from 'react-native';
 import { createStyles } from './styles';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
@@ -37,10 +37,7 @@ interface NotificationOptionsToggleProps {
   refetchAccountSettings: () => Promise<void>;
 }
 
-function useUpdateAccountSetting(
-  address: string,
-  refetchAccountSettings: () => Promise<void>,
-) {
+function useUpdateAccountSetting(address: string) {
   const { switchAccountNotifications } = useSwitchNotifications();
   const { listNotifications: refetch } = useListNotifications();
 
@@ -52,14 +49,13 @@ function useUpdateAccountSetting(
       setLoading(true);
       try {
         await switchAccountNotifications([address], state);
-        await refetchAccountSettings();
         refetch();
       } catch {
         // Do nothing (we don't need to propagate this)
       }
       setLoading(false);
     },
-    [address, refetch, refetchAccountSettings, switchAccountNotifications],
+    [address, refetch, switchAccountNotifications],
   );
 
   return { toggleAccount, loading };
@@ -77,16 +73,22 @@ const NotificationOptionToggle = ({
   testId,
   isEnabled,
   disabledSwitch,
-  refetchAccountSettings,
 }: NotificationOptionsToggleProps) => {
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles();
+  const [status, setStatus] = useState<boolean | undefined>(isEnabled);
 
-  const { toggleAccount } = useUpdateAccountSetting(
-    address,
-    refetchAccountSettings,
-  );
+  const { toggleAccount } = useUpdateAccountSetting(address);
+
+  useEffect(() => {
+    setStatus(isEnabled);
+  }, [isEnabled]);
+
+  const onPress = async () => {
+    setStatus(!status);
+    await toggleAccount(!isEnabled);
+  };
 
   return (
     <View style={styles.container}>
@@ -113,15 +115,15 @@ const NotificationOptionToggle = ({
         {address ? (
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {type === NotificationsToggleTypes.ACTIONS
-              ? address
-              : formatAddress(address, 'short')}
+              ? address.toLowerCase()
+              : formatAddress(address, 'short').toLowerCase()}
           </Text>
         ) : null}
       </View>
       <View style={styles.switchElement}>
         <Switch
-          value={isEnabled}
-          onValueChange={() => toggleAccount(!isEnabled)}
+          value={status}
+          onChange={onPress}
           trackColor={{
             true: colors.primary.default,
             false: colors.border.muted,
