@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
@@ -39,29 +39,38 @@ const AvatarGroup = ({
     style,
   });
 
-  const renderavatarPropsList = () =>
-    avatarPropsList.slice(0, maxStackedAvatars).map((avatarProps, index) => {
-      const marginLeft = index === 0 ? 0 : avatarNegativeSpacing;
+  const renderAvatarList = useCallback(
+    () =>
+      avatarPropsList.slice(0, maxStackedAvatars).map((avatarProps, index) => {
+        const marginLeft = index === 0 ? 0 : avatarNegativeSpacing;
 
-      return (
-        <View
-          key={`avatar-${index}`}
-          testID={`${AVATARGROUP_AVATAR_CONTAINER_TESTID}-${index}`}
-          style={{ marginLeft }}
-        >
-          <Avatar
-            {...avatarProps}
-            size={size}
-            includesBorder={includesBorder}
-            testID={AVATARGROUP_AVATAR_TESTID}
-          />
-        </View>
-      );
-    });
+        return (
+          <View
+            key={`avatar-${index}`}
+            testID={`${AVATARGROUP_AVATAR_CONTAINER_TESTID}-${index}`}
+            style={{ marginLeft }}
+          >
+            <Avatar
+              {...avatarProps}
+              size={size}
+              includesBorder={includesBorder}
+              testID={AVATARGROUP_AVATAR_TESTID}
+            />
+          </View>
+        );
+      }),
+    [
+      avatarPropsList,
+      avatarNegativeSpacing,
+      includesBorder,
+      maxStackedAvatars,
+      size,
+    ],
+  );
 
   return (
     <View style={styles.base}>
-      {renderavatarPropsList()}
+      {renderAvatarList()}
       {shouldRenderOverflowCounter && (
         <Text
           variant={TEXTVARIANT_BY_AVATARSIZE[size]}
