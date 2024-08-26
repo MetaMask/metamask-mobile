@@ -51,7 +51,7 @@ function expectedInternalAccount(
     id: getUUIDFromAddressOfNormalAccount(address),
     metadata: {
       name: nickname,
-      importTime: Date.now(), // Default to 0
+      importTime: Date.now(),
       keyring: {
         type: 'HD Key Tree',
       },

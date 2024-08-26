@@ -116,7 +116,7 @@ function createInternalAccountsForAccountsController(
       options: {},
       metadata: {
         name: identity.name,
-        importTime: identity.importTime ?? Date.now(), // Default to 0
+        importTime: identity.importTime ?? Date.now(),
         lastSelected: identity.lastSelected ?? undefined,
         keyring: {
           // This is default HD Key Tree type because the keyring is encrypted
