@@ -6,10 +6,9 @@ import {
   Linking,
   ImageBackground,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
-import AsyncStorage from '../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import { CURRENT_APP_VERSION } from '../../../constants/storage';
 import { useTheme } from '../../../util/theme';
 import Text, {
@@ -32,7 +31,6 @@ import backgroundImage from '../../../images/smart-transactions-opt-in-bg.png';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { useDispatch } from 'react-redux';
 import { updateOptInModalAppVersionSeen } from '../../../core/redux/slices/smartTransactions';
-import Routes from '../../../constants/navigation/Routes';
 
 const MODAL_MARGIN = 24;
 const MODAL_PADDING = 24;
@@ -139,7 +137,6 @@ const SmartTransactionsOptInModal = () => {
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
   const dispatch = useDispatch();
-  const navigation = useNavigation();
 
   const styles = createStyles(colors);
 
@@ -150,7 +147,7 @@ const SmartTransactionsOptInModal = () => {
   };
 
   const markOptInModalAsSeen = async () => {
-    const version = await AsyncStorage.getItem(CURRENT_APP_VERSION);
+    const version = await StorageWrapper.getItem(CURRENT_APP_VERSION);
     dispatch(updateOptInModalAppVersionSeen(version));
   };
 
@@ -173,9 +170,7 @@ const SmartTransactionsOptInModal = () => {
     });
     hasOptedIn.current = false;
     await markOptInModalAsSeen();
-    navigation.navigate(Routes.SETTINGS_VIEW, {
-      screen: Routes.SETTINGS.ADVANCED_SETTINGS,
-    });
+    dismissModal();
   };
 
   const handleDismiss = async () => {
@@ -254,11 +249,11 @@ const SmartTransactionsOptInModal = () => {
       onPress={optOut}
       label={
         <Text style={styles.secondaryButtonText}>
-          {strings('whats_new.stx.secondary_button')}
+          {strings('whats_new.stx.no_thanks')}
         </Text>
       }
     >
-      {strings('whats_new.stx.secondary_button')}
+      {strings('whats_new.stx.no_thanks')}
     </Button>
   );
 

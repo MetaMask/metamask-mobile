@@ -1,0 +1,437 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AccountConnect renders correctly 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    [
+      {
+        "bottom": 0,
+        "justifyContent": "flex-end",
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      },
+      {
+        "paddingBottom": 0,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {
+          "backgroundColor": "#00000099",
+          "bottom": 0,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        },
+        {
+          "opacity": 0,
+        },
+      ]
+    }
+  >
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    />
+  </View>
+  <View
+    onLayout={[Function]}
+    style={
+      [
+        {
+          "bottom": 0,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+        },
+        {
+          "paddingBottom": 0,
+        },
+      ]
+    }
+  >
+    <View
+      collapsable={false}
+      onGestureHandlerEvent={[Function]}
+      onGestureHandlerStateChange={[Function]}
+      onLayout={[Function]}
+      style={
+        [
+          {
+            "backgroundColor": "#ffffff",
+            "borderColor": "#bbc0c566",
+            "borderTopLeftRadius": 8,
+            "borderTopRightRadius": 8,
+            "borderWidth": 1,
+            "maxHeight": 1334,
+            "overflow": "hidden",
+            "paddingBottom": 0,
+            "shadowColor": "#0000001a",
+            "shadowOffset": {
+              "height": 2,
+              "width": 0,
+            },
+            "shadowOpacity": 1,
+            "shadowRadius": 40,
+          },
+          {
+            "transform": [
+              {
+                "translateY": 1334,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "padding": 4,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "#bbc0c566",
+              "borderRadius": 2,
+              "height": 4,
+              "width": 40,
+            }
+          }
+        />
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "flexDirection": "row",
+            "height": 32,
+            "justifyContent": "space-between",
+            "margin": 16,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        />
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 18,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Connect account
+        </Text>
+        <View
+          style={
+            {
+              "alignItems": "flex-end",
+              "flex": 1,
+            }
+          }
+        />
+      </View>
+      <View
+        style={
+          {
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="connect-account-modal"
+      >
+        <View
+          iconName="LockSlash"
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "center",
+              "backgroundColor": "#ffffff",
+              "borderColor": "#bbc0c5",
+              "borderRadius": 99,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "paddingLeft": 8,
+              "paddingRight": 16,
+              "paddingVertical": 8,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderRadius": 16,
+                "height": 24,
+                "marginRight": 8,
+                "overflow": "hidden",
+                "width": 24,
+              }
+            }
+          >
+            <Image
+              onError={[Function]}
+              resizeMode="contain"
+              source={
+                {
+                  "uri": "",
+                }
+              }
+              style={
+                {
+                  "flex": 1,
+                  "height": undefined,
+                  "width": undefined,
+                }
+              }
+              testID="favicon-avatar-image"
+            />
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#6a737d",
+                "flexShrink": 1,
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            https://test
+          </Text>
+        </View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#6a737d",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginVertical": 16,
+              "textAlign": "center",
+            }
+          }
+        >
+          Share your account address, balance, activity, and allow site to initiate transactions.
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "marginTop": 16,
+          }
+        }
+      >
+        <View>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "transparent",
+                "borderRadius": 24,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "opacity": 1,
+                "paddingHorizontal": 16,
+              }
+            }
+            variant="Link"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#0376c9",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Connect multiple accounts
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "flexDirection": "row",
+                "marginBottom": 16,
+                "marginTop": 24,
+              },
+              false,
+            ]
+          }
+        >
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "flex-start",
+                "backgroundColor": "transparent",
+                "borderColor": "#0376c9",
+                "borderRadius": 24,
+                "borderWidth": 1,
+                "flex": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "paddingHorizontal": 16,
+              }
+            }
+            testID="cancel-button"
+            variant="Secondary"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#0376c9",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Cancel
+            </Text>
+          </TouchableOpacity>
+          <View
+            style={
+              {
+                "width": 16,
+              }
+            }
+          />
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "flex-start",
+                "backgroundColor": "#0376c9",
+                "borderRadius": 24,
+                "flex": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "paddingHorizontal": 16,
+              }
+            }
+            testID="connect-button"
+            variant="Primary"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#ffffff",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Connect
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      <Modal
+        animationType="none"
+        deviceHeight={null}
+        deviceWidth={null}
+        hardwareAccelerated={false}
+        hideModalContentWhileAnimating={false}
+        onBackdropPress={[Function]}
+        onModalHide={[Function]}
+        onModalWillHide={[Function]}
+        onModalWillShow={[Function]}
+        onRequestClose={[Function]}
+        panResponderThreshold={4}
+        scrollHorizontal={false}
+        scrollOffset={0}
+        scrollOffsetMax={0}
+        scrollTo={null}
+        statusBarTranslucent={false}
+        supportedOrientations={
+          [
+            "portrait",
+            "landscape",
+          ]
+        }
+        swipeThreshold={100}
+        transparent={true}
+        visible={false}
+      />
+    </View>
+  </View>
+</View>
+`;

@@ -39,6 +39,15 @@ class EngineService {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private updateControllers = (store: any, engine: any) => {
+    if (!engine.context) {
+      Logger.error(
+        new Error(
+          'Engine context does not exists. Redux will not be updated from controller state updates!',
+        ),
+      );
+      return;
+    }
+
     const controllers = [
       { name: 'AddressBookController' },
       { name: 'AssetsContractController' },
@@ -73,7 +82,10 @@ class EngineService {
         key: `${engine.context.TokenBalancesController.name}:stateChange`,
       },
       { name: 'TokenRatesController' },
-      { name: 'TransactionController' },
+      {
+        name: 'TransactionController',
+        key: `${engine.context.TransactionController.name}:stateChange`,
+      },
       { name: 'SmartTransactionsController' },
       { name: 'SwapsController' },
       {
@@ -101,6 +113,18 @@ class EngineService {
         name: 'SubjectMetadataController',
         key: `${engine.context.SubjectMetadataController.name}:stateChange`,
       },
+      {
+        name: 'AuthenticationController',
+        key: 'AuthenticationController:stateChange',
+      },
+      {
+        name: 'UserStorageController',
+        key: 'UserStorageController:stateChange',
+      },
+      {
+        name: 'NotificationServicesController',
+        key: 'NotificationServicesController:stateChange',
+      },
       ///: END:ONLY_INCLUDE_IF
       {
         name: 'PermissionController',
@@ -117,6 +141,18 @@ class EngineService {
       {
         name: 'PPOMController',
         key: `${engine.context.PPOMController.name}:stateChange`,
+      },
+      {
+        name: 'AuthenticationController',
+        key: `AuthenticationController:stateChange`,
+      },
+      {
+        name: 'UserStorageController',
+        key: `UserStorageController:stateChange`,
+      },
+      {
+        name: 'NotificationServicesController',
+        key: `NotificationServicesController:stateChange`,
       },
     ];
 

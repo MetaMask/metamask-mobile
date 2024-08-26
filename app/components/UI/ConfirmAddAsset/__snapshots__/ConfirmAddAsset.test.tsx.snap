@@ -168,7 +168,7 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
                     "opacity": 0,
                   }
                 }
-                testID="badge-network"
+                testID="badgenetwork"
               >
                 <View
                   style={

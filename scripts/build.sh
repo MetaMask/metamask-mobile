@@ -162,9 +162,6 @@ loadJSEnv(){
 
 
 prebuild(){
-	# Import provider
-	yarn --ignore-engines build:static-logos
-
   WATCHER_PORT=${WATCHER_PORT:-8081}
 }
 
@@ -391,7 +388,7 @@ buildAndroidQA(){
 	prebuild_android
 
 	# Generate APK
-	cd android && ./gradlew assembleQaRelease -x app:createBundleFlaskDebugJsAndAssets --no-daemon --max-workers 2
+	cd android && ./gradlew assembleQaRelease --no-daemon --max-workers 2
 
 	# GENERATE BUNDLE
 	if [ "$GENERATE_BUNDLE" = true ] ; then
@@ -421,7 +418,7 @@ buildAndroidRelease(){
 	prebuild_android
 
 	# GENERATE APK
-	cd android && ./gradlew assembleProdRelease -x app:createBundleFlaskDebugJsAndAssets --no-daemon --max-workers 2
+	cd android && ./gradlew assembleProdRelease --no-daemon --max-workers 2
 
 	# GENERATE BUNDLE
 	if [ "$GENERATE_BUNDLE" = true ] ; then
@@ -448,7 +445,7 @@ buildAndroidFlaskRelease(){
 	prebuild_android
 
 	# GENERATE APK
-	cd android && ./gradlew assembleFlaskRelease -x app:createBundleQaDebugJsAndAssets --no-daemon --max-workers 2
+	cd android && ./gradlew assembleFlaskRelease --no-daemon --max-workers 2
 
 	# GENERATE BUNDLE
 	if [ "$GENERATE_BUNDLE" = true ] ; then
@@ -467,12 +464,12 @@ buildAndroidFlaskRelease(){
 
 buildAndroidReleaseE2E(){
 	prebuild_android
-	cd android && ./gradlew assembleProdRelease app:assembleProdReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release -x app:createBundleFlaskDebugJsAndAssets
+	cd android && ./gradlew assembleProdRelease app:assembleProdReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
 }
 
 buildAndroidQAE2E(){
 	prebuild_android
-	cd android && ./gradlew assembleQaRelease app:assembleQaReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release -x app:createBundleFlaskDebugJsAndAssets
+	cd android && ./gradlew assembleQaRelease app:assembleQaReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
 }
 
 buildAndroid() {
@@ -503,7 +500,7 @@ buildAndroidRunE2E(){
 	then
 		source $ANDROID_ENV_FILE
 	fi
-	cd android && ./gradlew assembleProdDebug app:assembleAndroidTest -DtestBuildType=debug -x app:createBundleQaDebugJsAndAssets -x app:createBundleFlaskDebugJsAndAssets --build-cache --parallel && cd ..
+	cd android && ./gradlew assembleProdDebug app:assembleAndroidTest -DtestBuildType=debug --build-cache --parallel && cd ..
 }
 
 buildIos() {
@@ -543,8 +540,7 @@ buildIos() {
 
 startWatcher() {
 	source $JS_ENV_FILE
-  WATCHER_PORT=${WATCHER_PORT:-8081}
-	yarn --ignore-engines build:static-logos
+  	WATCHER_PORT=${WATCHER_PORT:-8081}
 	if [ "$MODE" == "clean" ]; then
 		watchman watch-del-all
 		rm -rf $TMPDIR/metro-cache

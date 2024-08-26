@@ -235,7 +235,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                       "opacity": 0,
                     }
                   }
-                  testID="badge-network"
+                  testID="badgenetwork"
                 >
                   <View
                     style={

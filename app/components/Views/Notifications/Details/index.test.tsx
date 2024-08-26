@@ -44,6 +44,7 @@ describe('NotificationsDetails', () => {
   beforeEach(() => {
     navigation = {
       navigate: jest.fn(),
+      setOptions: jest.fn(),
     } as unknown as NavigationProp<ParamListBase>;
   });
 

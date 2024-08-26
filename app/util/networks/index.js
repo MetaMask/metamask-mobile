@@ -573,5 +573,5 @@ export const deprecatedGetNetworkId = async () => {
   });
 };
 
-export const isNetworkUiRedesignEnabled =
-  process.env.MM_NETWORK_UI_REDESIGN_ENABLED === '1';
+export const isMutichainVersion1Enabled =
+  process.env.MM_MULTICHAIN_V1_ENABLED === '1';

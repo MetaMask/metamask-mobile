@@ -134,7 +134,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
         ]
       }
     >
-      Please make sure your Ledger Nano X is:
+      Please make sure your Ledger device is:
     </Text>
     <Text
       style={
@@ -175,7 +175,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
         ]
       }
     >
-      1. Unlock your Ledger Nano X
+      1. Unlock your Ledger device
     </Text>
     <Text
       style={
@@ -346,7 +346,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
     onPress={[Function]}
   >
     <Text
-      numerOfLines={2}
+      numberOfLines={2}
       style={
         [
           {
@@ -534,7 +534,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
         ]
       }
     >
-      Please make sure your Ledger Nano X is:
+      Please make sure your Ledger device is:
     </Text>
     <Text
       style={
@@ -575,7 +575,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
         ]
       }
     >
-      1. Unlock your Ledger Nano X
+      1. Unlock your Ledger device
     </Text>
     <Text
       style={
@@ -746,7 +746,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
     onPress={[Function]}
   >
     <Text
-      numerOfLines={2}
+      numberOfLines={2}
       style={
         [
           {

@@ -43,8 +43,6 @@ const getDefaultState = () => {
       },
     },
   };
-  defaultState.engine.backgroundState.PreferencesController.selectedAddress =
-    '0xabc';
   defaultState.engine.backgroundState.NetworkController.providerConfig = {
     rpcUrl: undefined, // default rpc for chain 0x1
     chainId: '0x1',

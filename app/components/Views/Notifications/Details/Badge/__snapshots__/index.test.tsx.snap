@@ -5,10 +5,8 @@ exports[`NotificationBadge should renders correctly 1`] = `
   onLayout={[Function]}
   style={
     {
-      "alignItems": "center",
-      "alignSelf": "flex-start",
-      "justifyContent": "center",
-      "position": "absolute",
+      "alignSelf": "center",
+      "position": "relative",
     }
   }
   testID="badge-wrapper-badge"
@@ -110,7 +108,7 @@ exports[`NotificationBadge should renders correctly 1`] = `
           "opacity": 0,
         }
       }
-      testID="badge-network"
+      testID="badgenetwork"
     >
       <View
         style={

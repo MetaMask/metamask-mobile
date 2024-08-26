@@ -19,7 +19,6 @@ import {
   balanceToFiat,
   isDecimal,
   hexToBN,
-  BNToHex,
 } from '../../../../../util/number';
 import {
   getTicker,
@@ -61,7 +60,6 @@ import {
   getDecimalChainId,
 } from '../../../../../util/networks';
 import Text from '../../../../Base/Text';
-import { addHexPrefix } from 'ethereumjs-util';
 import { removeFavoriteCollectible } from '../../../../../actions/collectibles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AccountFromToInfoCard from '../../../../UI/AccountFromToInfoCard';
@@ -116,8 +114,10 @@ import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics
 import {
   selectTransactionGasFeeEstimates,
   selectCurrentTransactionMetadata,
+  selectCurrentTransactionSecurityAlertResponse,
 } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
+import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
 import { updateTransaction } from '../../../../../util/transaction-controller';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
@@ -126,6 +126,7 @@ import { TransactionConfirmViewSelectorsIDs } from '../../../../../../e2e/select
 import { selectTransactionMetrics } from '../../../../../core/redux/slices/transactionMetrics';
 import SimulationDetails from '../../../../UI/SimulationDetails/SimulationDetails';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
+import { buildTransactionParams } from '../../../../../util/confirmation/transactions';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -265,6 +266,10 @@ class Confirm extends PureComponent {
      * Indicates whether the transaction simulations feature is enabled
      */
     useTransactionSimulations: PropTypes.bool,
+    /**
+     * Object containing blockaid validation response for confirmation
+     */
+    securityAlertResponse: PropTypes.object,
   };
 
   state = {
@@ -457,8 +462,10 @@ class Confirm extends PureComponent {
     }
     // add transaction
     const { TransactionController } = Engine.context;
+    const transactionParams = this.prepareTransactionToSend();
+
     const { result, transactionMeta } =
-      await TransactionController.addTransaction(this.props.transaction, {
+      await TransactionController.addTransaction(transactionParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         origin: TransactionTypes.MMM,
       });
@@ -694,38 +701,29 @@ class Confirm extends PureComponent {
 
   prepareTransactionToSend = () => {
     const {
-      transactionState: { transaction },
-      showCustomNonce,
       gasEstimateType,
+      showCustomNonce,
+      transaction: rawTransaction,
     } = this.props;
-    const { fromSelectedAddress, legacyGasTransaction, EIP1559GasTransaction } =
-      this.state;
-    const { nonce } = this.props.transaction;
-    const transactionToSend = { ...transaction };
 
-    if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-      transactionToSend.gas = EIP1559GasTransaction.gasLimitHex;
-      transactionToSend.maxFeePerGas = addHexPrefix(
-        EIP1559GasTransaction.suggestedMaxFeePerGasHex,
-      ); //'0x2540be400'
-      transactionToSend.maxPriorityFeePerGas = addHexPrefix(
-        EIP1559GasTransaction.suggestedMaxPriorityFeePerGasHex,
-      ); //'0x3b9aca00';
-      transactionToSend.estimatedBaseFee = addHexPrefix(
-        EIP1559GasTransaction.estimatedBaseFeeHex,
-      );
-      delete transactionToSend.gasPrice;
-    } else {
-      transactionToSend.gas = legacyGasTransaction.suggestedGasLimitHex;
-      transactionToSend.gasPrice = addHexPrefix(
-        legacyGasTransaction.suggestedGasPriceHex,
-      );
-    }
+    const {
+      fromSelectedAddress: from,
+      legacyGasTransaction: gasDataLegacy,
+      EIP1559GasTransaction: gasDataEIP1559,
+    } = this.state;
 
-    transactionToSend.from = fromSelectedAddress;
-    if (showCustomNonce && nonce) transactionToSend.nonce = BNToHex(nonce);
+    const transaction = {
+      ...rawTransaction,
+      from,
+    };
 
-    return transactionToSend;
+    return buildTransactionParams({
+      gasDataEIP1559,
+      gasDataLegacy,
+      gasEstimateType,
+      showCustomNonce,
+      transaction,
+    });
   };
 
   /**
@@ -816,9 +814,6 @@ class Confirm extends PureComponent {
     // Manual cancel from UI or rejected from ledger device.
     try {
       if (!approve) {
-        TransactionController.hub.removeAllListeners(
-          `${transactionMeta.id}:finished`,
-        );
         TransactionController.cancelTransaction(transactionMeta.id);
       } else {
         await new Promise((resolve) => resolve(result));
@@ -1103,7 +1098,7 @@ class Confirm extends PureComponent {
   buyEth = () => {
     const { navigation } = this.props;
     try {
-      navigation.navigate(Routes.RAMP.BUY);
+      navigation.navigate(...createBuyNavigationDetails());
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
@@ -1182,27 +1177,15 @@ class Confirm extends PureComponent {
   };
 
   getConfirmButtonStyles() {
-    const { transactionMeta } = this.state;
-    const { transaction } = this.props;
-    const { currentTransactionSecurityAlertResponse } = transaction;
+    const { securityAlertResponse } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
     let confirmButtonStyle = {};
-    if (
-      transactionMeta.id &&
-      currentTransactionSecurityAlertResponse?.id &&
-      currentTransactionSecurityAlertResponse.id === transactionMeta.id
-    ) {
-      if (
-        currentTransactionSecurityAlertResponse?.response?.result_type ===
-        ResultType.Malicious
-      ) {
+    if (securityAlertResponse) {
+      if (securityAlertResponse?.result_type === ResultType.Malicious) {
         confirmButtonStyle = styles.confirmButtonError;
-      } else if (
-        currentTransactionSecurityAlertResponse?.response?.result_type ===
-        ResultType.Warning
-      ) {
+      } else if (securityAlertResponse?.result_type === ResultType.Warning) {
         confirmButtonStyle = styles.confirmButtonWarning;
       }
     }
@@ -1488,8 +1471,6 @@ const mapStateToProps = (state) => ({
   gasFeeEstimates: selectTransactionGasFeeEstimates(state),
   gasEstimateType: selectGasFeeControllerEstimateType(state),
   isPaymentRequest: state.transaction.paymentRequest,
-  securityAlertResponse:
-    state.transaction.currentTransactionSecurityAlertResponse,
   isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
     selectChainId(state),
     getRampNetworks(state),
@@ -1499,6 +1480,7 @@ const mapStateToProps = (state) => ({
   transactionSimulationData:
     selectCurrentTransactionMetadata(state)?.simulationData,
   useTransactionSimulations: selectUseTransactionSimulations(state),
+  securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
