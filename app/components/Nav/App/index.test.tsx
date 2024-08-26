@@ -1,12 +1,16 @@
-import { renderScreen } from '../../../util/test/renderWithProvider';
+import {
+  DeepPartial,
+  renderScreen,
+} from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import App from './';
 import { MetaMetrics } from '../../../core/Analytics';
 import { waitFor } from '@testing-library/react-native';
+import { RootState } from '../../../reducers';
 
-const initialState = {
+const initialState: DeepPartial<RootState> = {
   user: {
-    loggedIn: true,
+    userLoggedIn: true,
   },
   engine: {
     backgroundState,

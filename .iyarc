@@ -2,6 +2,6 @@
 
 GHSA-c2qf-rxjj-qqgw
 
-# ip SSRF improper categorization in isPublic, since it only affect dev tools on, and the server is actually a local server, this advisory shouldn't apply to this use cases
+# micromatch ReDoS
 
-GHSA-2p57-rm9w-gvfp
+GHSA-952p-6rrq-rcjv

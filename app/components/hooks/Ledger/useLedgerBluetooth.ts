@@ -33,7 +33,7 @@ const RESTART_LIMIT = 5;
 // Assumptions
 // 1. One big code block - logic all encapsulated in logicToRun
 // 2. logicToRun calls setUpBluetoothConnection
-function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
+function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
   // This is to track if we are expecting code to run or connection operational
   const [isSendingLedgerCommands, setIsSendingLedgerCommands] =
     useState<boolean>(false);
@@ -130,7 +130,7 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
       // Must do this at start of every code block to run to ensure transport is set
       await setUpBluetoothConnection();
 
-      if (!transportRef.current || !deviceId) {
+      if (!transportRef.current) {
         throw new Error('transportRef.current is undefined');
       }
       // Initialise the keyring and check for pre-conditions (is the correct app running?)

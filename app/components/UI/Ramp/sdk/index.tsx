@@ -30,7 +30,7 @@ import {
   fiatOrdersGetStartedSell,
   setFiatOrdersGetStartedSell,
 } from '../../../../reducers/fiatOrders';
-import { RampType, Region } from '../types';
+import { RampIntent, RampType, Region } from '../types';
 
 import I18n, { I18nEvents } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
@@ -78,6 +78,14 @@ export interface RampSDK {
 
   rampType: RampType;
   setRampType: (rampType: RampType) => void;
+
+  intent: RampIntent | undefined;
+  setIntent: (
+    intentOrSetter:
+      | RampIntent
+      | ((previousIntent: RampIntent | undefined) => void)
+      | undefined,
+  ) => void;
 
   selectedRegion: Region | null;
   setSelectedRegion: (region: Region | null) => void;
@@ -179,6 +187,8 @@ export const RampSDKProvider = ({
   const [selectedRegion, setSelectedRegion] = useState(INITIAL_SELECTED_REGION);
   const [unsupportedRegion, setUnsupportedRegion] = useState<Region>();
 
+  const [intent, setIntent] = useState<RampIntent>();
+
   const [selectedAsset, setSelectedAsset] = useState(INITIAL_SELECTED_ASSET);
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState(
     INITIAL_PAYMENT_METHOD_ID,
@@ -240,6 +250,11 @@ export const RampSDKProvider = ({
       rampType,
       setRampType,
 
+      intent,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error - Ramps team ownership"
+      setIntent,
+
       selectedRegion,
       setSelectedRegion: setSelectedRegionCallback,
 
@@ -257,7 +272,8 @@ export const RampSDKProvider = ({
 
       getStarted,
       setGetStarted: setGetStartedCallback,
-
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error - Ramps team ownership"
       selectedAddress,
       selectedChainId,
       selectedNetworkName,
@@ -273,6 +289,8 @@ export const RampSDKProvider = ({
       getStarted,
       isBuy,
       isSell,
+      intent,
+      setIntent,
       rampType,
       sdk,
       sdkError,

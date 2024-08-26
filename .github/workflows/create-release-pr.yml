@@ -12,7 +12,9 @@ on:
       version-number:
         description: 'A natural version number. eg: 862'
         required: true
-
+      previous-version-tag:
+        description: 'Previous release version tag. eg: v7.7.0'
+        required: true
 jobs:
   create-release-pr:
     runs-on: ubuntu-latest
@@ -34,20 +36,21 @@ jobs:
           # The workaround is to use a personal access token (BUG_REPORT_TOKEN) instead of
           # the default GITHUB_TOKEN for the checkout action.
           token: ${{ secrets.BUG_REPORT_TOKEN }}
-      - name: Get Node.js version
-        id: nvm
-        run: echo "NODE_VERSION=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
-      - uses: actions/setup-node@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Install dependencies
+        run: yarn --immutable
       - name: Set Versions
         id: set-versions
         shell: bash
-        run: SEMVER_VERSION=${{ github.event.inputs.semver-version }} VERSION_NUMBER=${{ github.event.inputs.version-number }} yarn create-release
+        run: SEMVER_VERSION=${{ github.event.inputs.semver-version }} VERSION_NUMBER=${{ github.event.inputs.version-number }} yarn set-version
       - name: Create Release PR
         id: create-release-pr
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ./scripts/create-release-pr.sh ${{ github.event.inputs.semver-version }}
+          ./scripts/create-release-pr.sh ${{ github.event.inputs.previous-version-tag }} ${{ github.event.inputs.semver-version }}

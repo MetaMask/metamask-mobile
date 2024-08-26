@@ -5,6 +5,7 @@ import notifee, {
 } from '@notifee/react-native';
 
 import useNotificationHandler from './index';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
 jest.mock('../../../util/device');
 jest.mock('../../../core/NotificationManager', () => ({
@@ -25,19 +26,14 @@ jest.mock('@notifee/react-native', () => ({
   },
 }));
 
-interface NavigationMock {
-  navigate: jest.Mock;
-}
-
-const mockNavigate: jest.Mock = jest.fn();
-const mockNavigation: NavigationMock = {
+const mockNavigate = jest.fn();
+const mockNavigation = {
   navigate: mockNavigate,
-};
+} as unknown as NavigationProp<ParamListBase>;
+
 const bootstrapAndroidInitialNotification = jest
   .fn()
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  .mockResolvedValue(Promise.resolve((resolve: any) => setTimeout(resolve, 1)));
+  .mockResolvedValue(undefined);
 
 const mockNotificationEvent = (event: NotifeeEvent) => ({
   type: event.type,
@@ -51,7 +47,6 @@ const mockNotificationEvent = (event: NotifeeEvent) => ({
     },
   },
 });
-
 describe('useNotificationHandler', () => {
   beforeEach(() => {
     jest.clearAllMocks();

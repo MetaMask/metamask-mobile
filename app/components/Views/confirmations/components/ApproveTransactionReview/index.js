@@ -85,6 +85,7 @@ import {
 import { selectTokenList } from '../../../../../selectors/tokenListController';
 import { selectTokensLength } from '../../../../../selectors/tokensController';
 import { selectAccountsLength } from '../../../../../selectors/accountTrackerController';
+import { selectCurrentTransactionSecurityAlertResponse } from '../../../../../selectors/confirmTransaction';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -100,6 +101,7 @@ import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionB
 import { regex } from '../../../../../util/regex';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -282,6 +284,10 @@ class ApproveTransactionReview extends PureComponent {
      * Boolean that indicates if smart transaction should be used
      */
     shouldUseSmartTransaction: PropTypes.bool,
+    /**
+     * Object containing blockaid validation response for confirmation
+     */
+    securityAlertResponse: PropTypes.object,
   };
 
   state = {
@@ -730,23 +736,13 @@ class ApproveTransactionReview extends PureComponent {
   };
 
   getConfirmButtonState() {
-    const { transaction } = this.props;
-    const { id, currentTransactionSecurityAlertResponse } = transaction;
+    const { securityAlertResponse } = this.props;
     let confirmButtonState = ConfirmButtonState.Normal;
-    if (
-      id &&
-      currentTransactionSecurityAlertResponse?.id &&
-      currentTransactionSecurityAlertResponse.id === id
-    ) {
-      if (
-        currentTransactionSecurityAlertResponse?.response?.result_type ===
-        ResultType.Malicious
-      ) {
+
+    if (securityAlertResponse) {
+      if (securityAlertResponse.result_type === ResultType.Malicious) {
         confirmButtonState = ConfirmButtonState.Error;
-      } else if (
-        currentTransactionSecurityAlertResponse?.response?.result_type ===
-        ResultType.Warning
-      ) {
+      } else if (securityAlertResponse.result_type === ResultType.Warning) {
         confirmButtonState = ConfirmButtonState.Warning;
       }
     }
@@ -1182,7 +1178,7 @@ class ApproveTransactionReview extends PureComponent {
     /* this is kinda weird, we have to reject the transaction to collapse the modal */
     this.onCancelPress();
     try {
-      navigation.navigate(Routes.RAMP.BUY);
+      navigation.navigate(...createBuyNavigationDetails());
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
@@ -1305,6 +1301,7 @@ const mapStateToProps = (state) => ({
     getRampNetworks(state),
   ),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+  securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

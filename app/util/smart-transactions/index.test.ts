@@ -1,3 +1,4 @@
+import { TransactionMeta } from '@metamask/transaction-controller';
 import {
   getShouldStartApprovalRequest,
   getShouldUpdateApprovalRequest,
@@ -30,7 +31,8 @@ describe('Smart Transactions utils', () => {
           value: '0x2386f26fc10000',
         },
         verifiedOnBlockchain: false,
-      };
+      } as TransactionMeta;
+
       const chainId = '0x1';
       const res = getTransactionType(txMeta, chainId);
       expect(res).toEqual({
@@ -67,7 +69,8 @@ describe('Smart Transactions utils', () => {
           value: '0x0',
         },
         verifiedOnBlockchain: false,
-      };
+      } as TransactionMeta;
+
       const chainId = '0x1';
       const res = getTransactionType(txMeta, chainId);
       expect(res).toEqual({
@@ -103,7 +106,8 @@ describe('Smart Transactions utils', () => {
           value: '0x2386f26fc10000',
         },
         verifiedOnBlockchain: false,
-      };
+      } as TransactionMeta;
+
       const chainId = '0x1';
       const res = getTransactionType(txMeta, chainId);
       expect(res).toEqual({
@@ -139,7 +143,8 @@ describe('Smart Transactions utils', () => {
           value: '0x0',
         },
         verifiedOnBlockchain: false,
-      };
+      } as TransactionMeta;
+
       const chainId = '0x1';
       const res = getTransactionType(txMeta, chainId);
       expect(res).toEqual({
@@ -176,7 +181,8 @@ describe('Smart Transactions utils', () => {
           value: '0x2386f26fc10000',
         },
         verifiedOnBlockchain: false,
-      };
+      } as TransactionMeta;
+
       const chainId = '0x1';
       const res = getTransactionType(txMeta, chainId);
       expect(res).toEqual({
@@ -213,7 +219,8 @@ describe('Smart Transactions utils', () => {
           value: '0x0',
         },
         verifiedOnBlockchain: false,
-      };
+      } as TransactionMeta;
+
       const chainId = '0x1';
       const res = getTransactionType(txMeta, chainId);
       expect(res).toEqual({
@@ -250,7 +257,8 @@ describe('Smart Transactions utils', () => {
           value: '0x0',
         },
         verifiedOnBlockchain: false,
-      };
+      } as TransactionMeta;
+
       const chainId = '0x1';
       const res = getTransactionType(txMeta, chainId);
       expect(res).toEqual({

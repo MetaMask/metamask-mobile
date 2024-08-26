@@ -14,7 +14,9 @@ import {
   isBlockaidSupportedOnCurrentChain,
   getBlockaidTransactionMetricsParams,
   isBlockaidFeatureEnabled,
+  TransactionType,
 } from '.';
+import { TransactionStatus } from '@metamask/transaction-controller';
 
 jest.mock('../../core/Engine', () => ({
   resetState: jest.fn(),
@@ -40,11 +42,17 @@ describe('Blockaid util', () => {
     });
 
     it('returns empty object when transaction id does not match security response id', () => {
-      const transaction = {
-        id: 1,
-        currentTransactionSecurityAlertResponse: {
-          id: 2,
-          response: {
+      const transaction: TransactionType = {
+        status: TransactionStatus.failed,
+        error: new Error('Simulated transaction error'),
+        id: '1',
+        chainId: '0x1',
+        time: Date.now(),
+        txParams: {
+          from: '0x1',
+        },
+        securityAlertResponses: {
+          2: {
             result_type: ResultType.Malicious,
             reason: Reason.notApplicable,
             providerRequestsCount: {
@@ -60,11 +68,17 @@ describe('Blockaid util', () => {
     });
 
     it('returns metrics params object when transaction id matches security response id', () => {
-      const transaction = {
-        id: 1,
-        currentTransactionSecurityAlertResponse: {
-          id: 1,
-          response: {
+      const transaction: TransactionType = {
+        status: TransactionStatus.failed,
+        error: new Error('Simulated transaction error'),
+        id: '1',
+        chainId: '0x1',
+        time: Date.now(),
+        txParams: {
+          from: '0x1',
+        },
+        securityAlertResponses: {
+          1: {
             result_type: ResultType.Malicious,
             reason: Reason.notApplicable,
             providerRequestsCount: {
@@ -104,7 +118,9 @@ describe('Blockaid util', () => {
     });
 
     it('returns empty object when chain id is not in supported chain ids list', () => {
-      jest.spyOn(NetworkControllerMock, 'selectChainId').mockReturnValue('10');
+      jest
+        .spyOn(NetworkControllerMock, 'selectChainId')
+        .mockReturnValue('0x10');
       const result = getBlockaidMetricsParams(undefined);
       expect(result).toStrictEqual({});
     });

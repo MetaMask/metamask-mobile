@@ -14,6 +14,7 @@ import {
 } from '../../../../util/transactions';
 import { useTheme } from '../../../../util/theme';
 import Logger from '../../../../util/Logger';
+import { selectSwapsApprovalTransaction } from '../../../../reducers/swaps';
 
 const styles = StyleSheet.create({
   keyboardAwareWrapper: {
@@ -164,8 +165,7 @@ ApprovalTransactionEditionModal.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  originalApprovalTransaction:
-    state.engine.backgroundState.SwapsController.approvalTransaction,
+  originalApprovalTransaction: selectSwapsApprovalTransaction(state),
 });
 
 export default connect(mapStateToProps)(ApprovalTransactionEditionModal);

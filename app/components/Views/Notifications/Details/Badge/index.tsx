@@ -8,17 +8,13 @@ import { BOTTOM_BADGEWRAPPER_BADGEPOSITION } from '../../../../../component-libr
 import { TRIGGER_TYPES } from '../../../../../util/notifications';
 import NetworkMainAssetLogo from '../../../../UI/NetworkMainAssetLogo';
 
-import {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../../component-library/components/Avatars/Avatar';
+import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import { NotificationDetailStyles } from '../styles';
 
 interface NotificationBadgeProps {
   notificationType: TRIGGER_TYPES;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  styles: Record<string, any>;
+  styles: NotificationDetailStyles;
   badgeImageSource?: ImageSourcePropType;
   imageUrl?: string;
 }
@@ -38,13 +34,13 @@ function NotificationBadge({
       ].includes(notificationType)
     ) {
       return {
-        style: styles.nftLogo,
-        placeholderStyle: styles.nftPlaceholder,
+        style: styles.squareLogo,
+        placeholderStyle: styles.squareLogoPlaceholder,
       };
     }
     return {
-      style: styles.assetLogo,
-      placeholderStyle: styles.assetPlaceholder,
+      style: styles.circleLogo,
+      placeholderStyle: styles.circleLogoPlaceholder,
     };
   };
 
@@ -69,11 +65,9 @@ function NotificationBadge({
       ) : (
         <AvatarToken
           testID={'avatar-asset-badge'}
-          variant={AvatarVariant.Token}
           imageSource={{ uri: imageUrl }}
           size={AvatarSize.Md}
           style={customStyles().style}
-          placeholderStyle={customStyles().placeholderStyle}
         />
       )}
     </BadgeWrapper>
