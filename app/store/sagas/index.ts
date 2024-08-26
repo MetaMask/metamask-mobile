@@ -28,9 +28,15 @@ if (typeof global.XMLHttpRequest === 'undefined') {
 const originalSend = XMLHttpRequest.prototype.send;
 const originalOpen = XMLHttpRequest.prototype.open;
 
+interface GenericObject {
+  [key: string]: unknown;
+}
+
+type DataArray<T extends GenericObject> = T[];
+
 interface FeatureFlagResponse {
   status: string;
-  data: [];
+  data: DataArray<GenericObject>[];
   message?: string;
 }
 
@@ -182,7 +188,7 @@ function* fetchFeatureFlags(): Generator {
       status: '',
       data: [],
     };
-    yield fetch('http://localhost:3000/launch-darkly')
+    yield fetch('http://localhost:3000/flags')
       .then((res) => res.json())
       .then((res) => (response = res));
 
