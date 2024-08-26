@@ -129,7 +129,7 @@ exports[`TabBar renders correctly 1`] = `
         <SvgMock
           color="#ffffff"
           height={20}
-          name="SwapVertival"
+          name="SwapVertical"
           style={
             {
               "height": 20,

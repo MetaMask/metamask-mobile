@@ -54,9 +54,7 @@ export const aggregatorOrderToFiatOrder = (aggregatorOrder: Order) => ({
   currencySymbol: aggregatorOrder.fiatCurrency?.denomSymbol || '',
   cryptocurrency: aggregatorOrder.cryptoCurrency?.symbol || '',
   network:
-    aggregatorOrder.network ||
-    // TODO(ramp, chainId-string): remove once chainId is a string
-    `${aggregatorOrder.cryptoCurrency?.network?.chainId}`,
+    aggregatorOrder.network || aggregatorOrder.cryptoCurrency?.network?.chainId,
   state: aggregatorOrderStateToFiatOrderState(aggregatorOrder.status),
   account: aggregatorOrder.walletAddress,
   txHash: aggregatorOrder.txHash,
