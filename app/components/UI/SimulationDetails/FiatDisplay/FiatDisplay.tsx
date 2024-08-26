@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ViewProps } from 'react-native';
 import { useStyles } from '../../../hooks/useStyles';
 import Text, {
   TextColor,
@@ -46,7 +46,12 @@ export function calculateTotalFiat(fiatAmounts: FiatAmount[]): number {
  * @param props - Properties object.
  * @param props.fiatAmount - The fiat amount to display.
  */
-export const IndividualFiatDisplay: React.FC<{ fiatAmount: FiatAmount }> = ({
+
+interface IndividualFiatDisplayProps extends ViewProps {
+  fiatAmount: FiatAmount;
+}
+
+export const IndividualFiatDisplay: React.FC<IndividualFiatDisplayProps> = ({
   fiatAmount,
 }) => {
   const hideFiatForTestnet = useHideFiatForTestnet();

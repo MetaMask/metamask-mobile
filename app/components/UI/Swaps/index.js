@@ -201,7 +201,7 @@ function SwapsAmountView({
   const navigation = useNavigation();
   const route = useRoute();
   const { colors } = useTheme();
-  const { trackAnonymousEvent } = useMetrics();
+  const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
 
   const previousSelectedAddress = useRef();
@@ -277,7 +277,9 @@ function SwapsAmountView({
               chain_id: getDecimalChainId(chainId),
             };
 
-            trackAnonymousEvent(MetaMetricsEvents.SWAPS_OPENED, parameters);
+            trackEvent(MetaMetricsEvents.SWAPS_OPENED, {
+              sensitiveProperties: { ...parameters },
+            });
           });
         } else {
           navigation.pop();

@@ -74,7 +74,6 @@ import SelectComponent from '../../../UI/SelectComponent';
 import { timeoutFetch } from '../../../../util/general';
 import createStyles from './SecuritySettings.styles';
 import {
-  EtherscanNetworksType,
   Gateway,
   HeadingProps,
   NetworksI,
@@ -127,6 +126,7 @@ import { selectIsProfileSyncingEnabled } from '../../../../selectors/notificatio
 import { useProfileSyncing } from '../../../../util/notifications/hooks/useProfileSyncing';
 import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
 import { RootState } from '../../../../reducers';
+import { EtherscanSupportedHexChainId } from '@metamask/preferences-controller';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -203,7 +203,7 @@ const Settings: React.FC = () => {
   );
   const ipfsGateway = useSelector(selectIpfsGateway);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
-  const myNetworks = ETHERSCAN_SUPPORTED_NETWORKS as EtherscanNetworksType;
+  const myNetworks = ETHERSCAN_SUPPORTED_NETWORKS;
   const isMainnet = type === MAINNET;
 
   const updateNavBar = useCallback(() => {
@@ -365,7 +365,7 @@ const Settings: React.FC = () => {
         }
         await Authentication.storePassword(password, authType);
       } catch (error) {
-        Logger.error(error as string, {});
+        Logger.error(error as unknown as Error, {});
       }
 
       dispatch(passwordSet());
@@ -387,7 +387,7 @@ const Settings: React.FC = () => {
           '',
         );
       } else {
-        Logger.error(e as string, 'SecuritySettings:biometrics');
+        Logger.error(e as unknown as Error, 'SecuritySettings:biometrics');
       }
       setLoading(false);
     }
@@ -399,7 +399,7 @@ const Settings: React.FC = () => {
     try {
       credentials = await Authentication.getPassword();
     } catch (error) {
-      Logger.error(error as string, {});
+      Logger.error(error as unknown as Error, {});
     }
 
     if (credentials && credentials.password !== '') {
@@ -521,7 +521,7 @@ const Settings: React.FC = () => {
     </View>
   );
   const toggleEnableIncomingTransactions = (
-    hexChainId: string,
+    hexChainId: EtherscanSupportedHexChainId,
     value: boolean,
   ) => {
     const { PreferencesController } = Engine.context;
@@ -842,7 +842,10 @@ const Settings: React.FC = () => {
           <Switch
             value={showIncomingTransactionsNetworks[chainId]}
             onValueChange={(value) =>
-              toggleEnableIncomingTransactions(chainId, value)
+              toggleEnableIncomingTransactions(
+                chainId as EtherscanSupportedHexChainId,
+                value,
+              )
             }
             trackColor={{
               true: colors.primary.default,
@@ -874,7 +877,10 @@ const Settings: React.FC = () => {
           <Switch
             value={showIncomingTransactionsNetworks[chainId]}
             onValueChange={(value) =>
-              toggleEnableIncomingTransactions(chainId, value)
+              toggleEnableIncomingTransactions(
+                chainId as EtherscanSupportedHexChainId,
+                value,
+              )
             }
             trackColor={{
               true: colors.primary.default,
@@ -904,7 +910,9 @@ const Settings: React.FC = () => {
               key={chainId}
               variant={CellVariant.Display}
               title={name}
-              secondaryText={myNetworks[chainId].domain}
+              secondaryText={
+                myNetworks[chainId as keyof typeof myNetworks].domain
+              }
               avatarProps={{
                 variant: AvatarVariant.Network,
                 name,
@@ -915,7 +923,10 @@ const Settings: React.FC = () => {
               <Switch
                 value={showIncomingTransactionsNetworks[chainId]}
                 onValueChange={(value) =>
-                  toggleEnableIncomingTransactions(chainId, value)
+                  toggleEnableIncomingTransactions(
+                    chainId as EtherscanSupportedHexChainId,
+                    value,
+                  )
                 }
                 trackColor={{
                   true: colors.primary.default,
@@ -941,7 +952,9 @@ const Settings: React.FC = () => {
             key={chainId}
             variant={CellVariant.Display}
             title={name}
-            secondaryText={myNetworks[chainId]?.domain}
+            secondaryText={
+              myNetworks[chainId as keyof typeof myNetworks].domain
+            }
             avatarProps={{
               variant: AvatarVariant.Network,
               name,
@@ -952,7 +965,11 @@ const Settings: React.FC = () => {
             <Switch
               value={showIncomingTransactionsNetworks[chainId]}
               onValueChange={(value) => {
-                chainId && toggleEnableIncomingTransactions(chainId, value);
+                chainId &&
+                  toggleEnableIncomingTransactions(
+                    chainId as keyof typeof myNetworks,
+                    value,
+                  );
               }}
               trackColor={{
                 true: colors.primary.default,
