@@ -1,6 +1,7 @@
+import { AccountsController } from '@metamask/accounts-controller';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { KeyringController } from '@metamask/keyring-controller';
 import { NetworkController } from '@metamask/network-controller';
-import { AccountsController } from '@metamask/accounts-controller';
 import {
   CommunicationLayerMessage,
   MessageType,
@@ -9,16 +10,18 @@ import {
 } from '@metamask/sdk-communication-layer';
 import Logger from '../../../util/Logger';
 import Engine from '../../Engine';
+import { getPermittedAccounts } from '../../Permissions';
 import { Connection } from '../Connection';
 import DevLogger from '../utils/DevLogger';
 import {
+  waitForAsyncCondition,
+  waitForCondition,
   waitForConnectionReadiness,
   waitForKeychainUnlocked,
 } from '../utils/wait.util';
 import checkPermissions from './checkPermissions';
 import handleCustomRpcCalls from './handleCustomRpcCalls';
 import handleSendMessage from './handleSendMessage';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
 // eslint-disable-next-line
 const { version } = require('../../../../package.json');
 
@@ -118,6 +121,11 @@ export const handleConnectionMessage = async ({
   // It will wait until user accept/reject the connection request.
   try {
     await checkPermissions({ message, connection, engine });
+    DevLogger.log(
+      `[handleConnectionMessage] checkPermissions passed -- method=${
+        message.method
+      } -- hasRelayPersistence=${connection.remote.hasRelayPersistence()}`,
+    );
     if (!connection.remote.hasRelayPersistence()) {
       if (!connection.receivedDisconnect) {
         await waitForConnectionReadiness({ connection });
@@ -169,6 +177,34 @@ export const handleConnectionMessage = async ({
     connection.rpcQueueManager.add({
       id: processedRpc?.id ?? message.id,
       method: processedRpc?.method ?? message.method,
+    });
+
+    if (!connection.backgroundBridge) {
+      await waitForCondition({
+        fn() {
+          DevLogger.log(
+            `[handleConnectionMessage] waiting for backgroundBridge`,
+            connection.backgroundBridge,
+          );
+          return connection.backgroundBridge !== undefined;
+        },
+        context: 'handleConnectionMessage',
+        waitTime: 1000,
+      });
+    }
+
+    // wait for accounts to be loaded
+    await waitForAsyncCondition({
+      fn: async () => {
+        const accounts = await getPermittedAccounts(connection.channelId);
+        DevLogger.log(
+          `handleDeeplink::waitForAsyncCondition accounts`,
+          accounts,
+        );
+        return accounts.length > 0;
+      },
+      context: 'deeplink',
+      waitTime: 500,
     });
 
     connection.backgroundBridge?.onMessage({
