@@ -166,9 +166,6 @@ prebuild(){
 }
 
 prebuild_ios(){
-	# Disable Flipper
-	NO_FLIPPER="1"
-
 	prebuild
 	# Generate xcconfig files for CircleCI
 	if [ "$PRE_RELEASE" = true ] ; then
@@ -292,11 +289,14 @@ generateArchivePackages() {
 }
 
 buildIosRelease(){
-
-  remapEnvVariableRelease
+  	remapEnvVariableRelease
 
 	# Enable Sentry to auto upload source maps and debug symbols
 	export SENTRY_DISABLE_AUTO_UPLOAD="false"
+
+	# Disable Flipper
+	export NO_FLIPPER="1"
+
 	prebuild_ios
 
 	# Replace release.xcconfig with ENV vars
@@ -319,6 +319,9 @@ buildIosFlaskRelease(){
 	# remap flask env variables to match what the app expects
 	remapFlaskEnvVariables
 
+	# Disable Flipper
+	export NO_FLIPPER="1"
+
 	prebuild_ios
 
 	# Replace release.xcconfig with ENV vars
@@ -338,6 +341,9 @@ buildIosFlaskRelease(){
 }
 
 buildIosReleaseE2E(){
+	# Disable Flipper
+	export NO_FLIPPER="1"
+
 	prebuild_ios
 
 	# Replace release.xcconfig with ENV vars
@@ -358,7 +364,11 @@ buildIosReleaseE2E(){
 }
 
 buildIosQA(){
-  remapEnvVariableQA
+  	remapEnvVariableQA
+	
+	# Disable Flipper
+	export NO_FLIPPER="1"
+
 	prebuild_ios
 
   	echo "Start QA build..."
@@ -382,7 +392,7 @@ buildIosQA(){
 
 
 buildAndroidQA(){
-  remapEnvVariableQA
+  	remapEnvVariableQA
 
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask.qa
