@@ -65,7 +65,17 @@ describe('AccountConnect', () => {
       <AccountConnect
         route={{
           params: {
-            hostInfo: { metadata: { origin: 'test' } },
+            hostInfo: {
+              metadata: {
+                id: 'mockId',
+                origin: 'mockOrigin',
+              },
+              permissions: {
+                eth_accounts: {
+                  parentCapability: 'eth_accounts',
+                },
+              },
+            },
             permissionRequestId: 'test',
           },
         }}
