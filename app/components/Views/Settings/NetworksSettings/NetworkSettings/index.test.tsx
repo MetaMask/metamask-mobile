@@ -5,8 +5,7 @@ import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { ThemeContext, mockTheme } from '../../../../../../app/util/theme';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-// eslint-disable-next-line import/no-namespace
-import * as networkUtils from '../../../../../util/networks/isNetworkUiRedesignEnabled';
+import { isNetworkUiRedesignEnabled } from '../../../../../util/networks/isNetworkUiRedesignEnabled';
 
 // Mock the entire module
 jest.mock('../../../../../util/networks/isNetworkUiRedesignEnabled', () => ({
@@ -141,9 +140,7 @@ describe('NetworkSettings', () => {
   });
 
   it('should render the component correctly when isNetworkUiRedesignEnabled is true', () => {
-    (networkUtils.isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(
-      () => true,
-    );
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
 
     const component = shallow(
       <Provider store={store}>
@@ -152,13 +149,11 @@ describe('NetworkSettings', () => {
     );
 
     expect(component).toMatchSnapshot();
-    expect(networkUtils.isNetworkUiRedesignEnabled()).toBe(true);
+    expect(isNetworkUiRedesignEnabled()).toBe(true);
   });
 
   it('should render the component correctly when isNetworkUiRedesignEnabled is false', () => {
-    (networkUtils.isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(
-      () => false,
-    );
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
 
     const component = shallow(
       <Provider store={store}>
@@ -167,7 +162,7 @@ describe('NetworkSettings', () => {
     );
 
     expect(component).toMatchSnapshot();
-    expect(networkUtils.isNetworkUiRedesignEnabled()).toBe(false);
+    expect(isNetworkUiRedesignEnabled()).toBe(false);
   });
 
   it('should return an empty string if the mainnet configuration is not found', () => {
@@ -208,7 +203,9 @@ describe('NetworkSettings', () => {
   it('should initialize state correctly when networkTypeOrRpcUrl is provided', () => {
     const SAMPLE_NETWORKSETTINGS_PROPS_2 = {
       route: {
-        params: { network: 'mainnet' },
+        params: {
+          network: 'mainnet',
+        },
       },
       navigation: {
         setOptions: jest.fn(),

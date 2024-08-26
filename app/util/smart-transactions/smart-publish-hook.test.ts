@@ -505,7 +505,7 @@ describe('submitSmartTransactionHook', () => {
           isSwapTransaction: true,
         },
       });
-
+      //@ts-expect-error - We are calling a protected method for testing purposes
       expect(request.transactionController.update).toHaveBeenCalledTimes(1);
     });
   });

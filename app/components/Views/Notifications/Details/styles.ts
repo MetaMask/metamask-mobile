@@ -221,6 +221,6 @@ export const createStyles = ({ colors, typography }: Theme) =>
       marginTop: -16,
     },
     backIcon: {
-      marginHorizontal: 16,
+      marginLeft: 16,
     },
   });

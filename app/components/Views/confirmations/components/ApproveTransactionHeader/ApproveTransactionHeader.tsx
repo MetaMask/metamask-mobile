@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Confirmations team or Transactions team
 import { toChecksumAddress } from 'ethereumjs-util';
 import React, { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';

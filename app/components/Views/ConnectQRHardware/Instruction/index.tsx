@@ -22,7 +22,7 @@ interface IConnectQRInstructionProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   onConnect: () => void;
-  renderAlert: () => Element;
+  renderAlert: () => React.JSX.Element;
 }
 
 // eslint-disable-next-line import/no-commonjs

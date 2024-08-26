@@ -2,6 +2,7 @@ import { strings } from '../../../../../locales/i18n';
 import {
   ModalFieldType,
   ModalFooterType,
+  ModalHeaderType,
   TRIGGER_TYPES,
 } from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
@@ -78,7 +79,7 @@ const state: NotificationState<ERC1155Notification> = {
       title: modalTitle(notification),
       createdAt: notification.createdAt.toString(),
       header: {
-        type: ModalFieldType.NFT_IMAGE,
+        type: ModalHeaderType.NFT_IMAGE,
         nftImageUrl: notification.data.nft?.image ?? '',
         networkBadgeUrl: nativeTokenDetails?.image,
       },

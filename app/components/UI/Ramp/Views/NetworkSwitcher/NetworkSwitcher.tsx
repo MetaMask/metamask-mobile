@@ -63,7 +63,7 @@ function NetworkSwitcher() {
   const error = errorFetchingNetworks || errorFetchingNetworksDetail;
   const rampNetworksDetails = useMemo(() => {
     const activeNetworkDetails: Network[] = [];
-    // TODO(ramp, chainId-string): filter supportedNetworks by EVM compatible chains (chainId are strings of decimal numbers)
+    // TODO(ramp, btc): filter supportedNetworks by EVM compatible chains (chainId are strings of decimal numbers)
     supportedNetworks.forEach(({ chainId: supportedChainId, active }) => {
       let rampSupportedNetworkChainIdAsHex: `0x${string}`;
       try {

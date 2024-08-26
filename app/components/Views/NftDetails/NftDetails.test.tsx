@@ -5,7 +5,6 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import { RootState } from 'app/reducers';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import NftDetails from './';
-import { Collectible } from '../../../components/UI/CollectibleMedia/CollectibleMedia.types';
 // eslint-disable-next-line import/no-namespace
 import * as allSelectors from '../../../../app/reducers/collectibles/index.js';
 import Routes from '../../../constants/navigation/Routes';
@@ -118,9 +117,7 @@ const TEST_COLLECTIBLE = {
   logo: 'https://img.reservoir.tools/images/v2/mainnet/m8Rol%2FE80oMmjzi7K7IQ0u6HzXVyHUh6MaSEPbYQy1GRP1ztTkhG1VSzAwMMXv97QfX8ZgwGwpR8nf9yb12HQqI%2BXfaLY%2BhMdAJk7UThICq3VpXqP8R9a7UJJWaudViqrlaZXcB%2B9WiV9avzgRprPEfJ1chTNYa3%2B36V9Areb6V%2BqwbskYYLZjPXCrV525seJSJnfQqrVwl64p9PV9sCkw%3D%3D?width=250',
 };
 
-let mockUseParamsValues: {
-  collectible: Collectible;
-} = {
+let mockUseParamsValues = {
   collectible: TEST_COLLECTIBLE,
 };
 
