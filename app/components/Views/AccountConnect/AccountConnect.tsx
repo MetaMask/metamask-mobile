@@ -353,7 +353,6 @@ const AccountConnect = (props: AccountConnectProps) => {
         origin: channelIdOrHostname,
       },
       approvedAccounts: selectedAddresses,
-      permissions: {},
     };
 
     const connectedAccountLength = selectedAddresses.length;
