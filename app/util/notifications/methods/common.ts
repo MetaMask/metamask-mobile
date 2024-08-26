@@ -11,6 +11,7 @@ import { Notification } from '../types';
 import { calcTokenAmount } from '../../transactions';
 import images from '../../../images/image-icons';
 import CHAIN_SCANS_URLS from '../constants/urls';
+import { strings } from '../../../../locales/i18n';
 
 const { UI } = NotificationServicesController;
 /**
@@ -56,7 +57,7 @@ const isSameYear = (currentDate: Date, dateToCheck: Date) =>
  */
 export function formatMenuItemDate(date?: Date) {
   if (!date) {
-    return 'Unknown';
+    return strings('notifications.no_date');
   }
   const currentDate = new Date();
 

@@ -2571,7 +2571,8 @@
       "sale_completed_title": "Order completed",
       "sale_completed_description": "Your order was successful!.",
       "sale_pending_title": "{{currency}} sale processing",
-      "sale_pending_description": "Your order is now being processed."
+      "sale_pending_description": "Your order is now being processed.",
+      "no_date": "Unknown"
     }
   },
   "swaps": {
