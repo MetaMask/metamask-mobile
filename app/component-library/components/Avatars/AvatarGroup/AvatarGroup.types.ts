@@ -1,9 +1,20 @@
 // Third party dependencies
-import { ViewProps } from 'react-native';
+import { ImageSourcePropType, ViewProps } from 'react-native';
 
 // External dependencies
 import { AvatarProps, AvatarSize } from '../Avatar/Avatar.types';
 import { TextVariant } from '../../Texts/Text';
+
+export interface AvatarGroupToken {
+  /**
+   * Token Name.
+   */
+  name: string;
+  /**
+   * Token image from either remote or local source.
+   */
+  imageSource: ImageSourcePropType;
+}
 
 /**
  * Mapping of TextVariant by AvatarSize.
