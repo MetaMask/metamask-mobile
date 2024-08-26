@@ -27,6 +27,7 @@ import { isNotificationsFeatureEnabled } from './app/util/notifications';
 import { Performance } from './app/core/Performance';
 Performance.setupPerformanceObservers();
 
+LogBox.ignoreAllLogs();
 // List of warnings that we're ignoring
 LogBox.ignoreLogs([
   '{}',
@@ -88,17 +89,11 @@ isNotificationsFeatureEnabled() &&
   notifee.onBackgroundEvent(async ({ type, detail }) => {
     const { notification, pressAction } = detail;
 
-    // Disable badge count https://notifee.app/react-native/docs/ios/badges#removing-the-badge-count
-    notifee.setBadgeCount(0).then(async () => {
-      if (
-        type === EventType.ACTION_PRESS &&
-        pressAction.id === 'mark-as-read'
-      ) {
-        await notifee.cancelNotification(notification.id);
-      } else {
-        NotificationManager.onMessageReceived(notification);
-      }
-    });
+    if (type === EventType.ACTION_PRESS && pressAction.id === 'mark-as-read') {
+      await notifee.cancelNotification(notification.id);
+    } else {
+      NotificationManager.onMessageReceived(notification);
+    }
   });
 
 /* Uncomment and comment regular registration below */
