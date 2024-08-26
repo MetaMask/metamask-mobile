@@ -7,7 +7,6 @@ import React, {
 } from 'react';
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
 import {
-  Animated,
   Linking,
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   View,
@@ -29,7 +28,6 @@ import ImportFromSecretRecoveryPhrase from '../../Views/ImportFromSecretRecovery
 import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
-import MetaMaskAnimation from '../../UI/MetaMaskAnimation';
 import SimpleWebview from '../../Views/SimpleWebview';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import branch from 'react-native-branch';
@@ -307,12 +305,10 @@ const VaultRecoveryFlow = () => (
 const App = ({ userLoggedIn }) => {
   const animationRef = useRef(null);
   const animationNameRef = useRef(null);
-  const opacity = useRef(new Animated.Value(1)).current;
   const [navigator, setNavigator] = useState(undefined);
   const prevNavigator = useRef(navigator);
   const [route, setRoute] = useState();
   const queueOfHandleDeeplinkFunctions = useRef([]);
-  const [animationPlayed, setAnimationPlayed] = useState(false);
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
@@ -556,17 +552,6 @@ const App = ({ userLoggedIn }) => {
       NavigationService.setNavigationRef(ref);
     }
   };
-
-  const onAnimationFinished = useCallback(() => {
-    Animated.timing(opacity, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-      isInteraction: false,
-    }).start(() => {
-      setAnimationPlayed(true);
-    });
-  }, [opacity]);
 
   const DetectedTokensFlow = () => (
     <Stack.Navigator
