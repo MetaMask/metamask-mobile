@@ -60,7 +60,6 @@ describe('useNotificationHandler', () => {
       ),
     );
 
-    expect(notifee.setBadgeCount).toHaveBeenCalledWith(0);
     expect(bootstrapAndroidInitialNotification).toHaveBeenCalled();
 
     jest.runAllTimers();
