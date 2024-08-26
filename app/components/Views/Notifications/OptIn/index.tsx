@@ -1,6 +1,6 @@
 import React, { Fragment, useCallback } from 'react';
 import { Image, View, Linking } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 
 import Button, {
   ButtonVariants,
@@ -17,10 +17,8 @@ import Routes from '../../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
 import {
   asyncAlert,
-  mmStorage,
   requestPushNotificationsPermission,
 } from '../../../../util/notifications';
-import { STORAGE_IDS } from '../../../../util/notifications/settings/storage/constants';
 import AppConstants from '../../../../core/AppConstants';
 import { RootState } from '../../../../reducers';
 import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
@@ -74,15 +72,6 @@ const OptIn = () => {
   const goToLearnMore = () => {
     Linking.openURL(AppConstants.URLS.PROFILE_SYNC);
   };
-
-  useFocusEffect(() => {
-    const count = mmStorage.getLocal(
-      STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,
-    );
-    const times = count + 1 || 1;
-
-    mmStorage.saveLocal(STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT, times);
-  });
 
   return (
     <Fragment>
