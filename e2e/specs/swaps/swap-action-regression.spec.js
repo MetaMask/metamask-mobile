@@ -79,7 +79,7 @@ describe(Regression('Multiple Swaps from Actions'), () => {
       }
       await QuoteView.tapOnGetQuotes();
       await SwapView.tapIUnderstandPriceWarning();
-      await SwapView.swipeToSwap();
+      await SwapView.tapToSwap();
       await SwapView.waitForSwapToComplete(sourceTokenSymbol, destTokenSymbol);
       await TabBarComponent.tapActivity();
       await ActivitiesView.isVisible();

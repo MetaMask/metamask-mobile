@@ -28,6 +28,15 @@ export default class SwapView {
     await TestHelpers.delay(2000);
   }
 
+  static async tapToSwap() {
+    await waitFor(element(by.id(SwapsViewSelectors.TAP_TO_SWAP_BUTTON)))
+      .toBeVisible(100)
+      .withTimeout(8000);
+    await TestHelpers.delay(3000);
+    await TestHelpers.tapByText('Swap');
+    await TestHelpers.delay(2000);
+  }
+
   static async waitForSwapToComplete(sourceTokenSymbol, destTokenSymbol) {
     try {
       await TestHelpers.checkIfElementByTextIsVisible(
