@@ -1,7 +1,6 @@
 import TestHelpers from '../helpers';
 import {
   TOKEN_PRICE,
-  TOKEN_ASSET_OVERVIEW,
   TOKEN_OVERVIEW_SEND_BUTTON,
   TOKEN_OVERVIEW_RECEIVE_BUTTON,
   TOKEN_OVERVIEW_BUY_BUTTON,
@@ -37,7 +36,7 @@ export default class TokenOverview {
   }
 
   static async isVisible() {
-    await TestHelpers.checkIfVisible(TOKEN_ASSET_OVERVIEW);
+    await TestHelpers.checkIfVisible(TOKEN_OVERVIEW_SEND_BUTTON);
   }
 
   static async selectChart(chartPeriod) {

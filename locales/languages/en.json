@@ -502,8 +502,10 @@
     "lists": "Token Lists",
     "hide_cta": "Hide token",
     "options": {
+      "view_on_portfolio": "View on Portfolio",
       "view_on_block": "View on block explorer",
-      "token_details": "Token details"
+      "token_details": "Token details",
+      "remove_token": "Remove token"
     }
   },
   "nft_details": {
@@ -624,7 +626,21 @@
     "decimals_is_required": "Decimal is required. Find it on:",
     "no_tokens_found": "We couldn't find any tokens with that name.",
     "select_token": "Select Token",
-    "address_must_be_smart_contract": "Personal address detected. Enter the token contract address."
+    "address_must_be_smart_contract": "Personal address detected. Enter the token contract address.",
+    "billion_abbreviation": "B",
+    "trillion_abbreviation": "T",
+    "million_abbreviation": "M",
+    "token_details": "Token details",
+    "contract_address": "Contract address",
+    "token_list": "Token list",
+    "market_details": "Market details",
+    "market_cap": "Market Cap",
+    "total_volume": "Total Volume (24h)",
+    "volume_to_marketcap": "Volume / Market Cap",
+    "circulating_supply": "Circulating supply",
+    "all_time_high": "All time high",
+    "all_time_low": "All time low",
+    "fully_diluted": "Fully diluted"
   },
   "collectible": {
     "collectible_address": "Address",
@@ -1731,6 +1747,10 @@
     "network_chain_id": "Chain ID",
     "network_rpc_url": "Network URL",
     "network_rpc_url_label": "Network RPC URL",
+    "new_default_network_url": "New default network URL",
+    "current_label": "Current",
+    "new_label": "New",
+    "review": "Review",
     "view_details": "View details",
     "network_details": "Network details",
     "network_select_confirm_use_safe_check": "Selecting Confirm turns on Network details check. You can turn off Network details check in ",
