@@ -205,7 +205,7 @@ exports[`NftDetails should render correctly 1`] = `
                       "width": 24,
                     }
                   }
-                  testID="more"
+                  testID="more-button"
                   width={24}
                 />
               </TouchableOpacity>
