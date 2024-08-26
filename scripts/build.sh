@@ -166,6 +166,9 @@ prebuild(){
 }
 
 prebuild_ios(){
+	# Disable Flipper
+	NO_FLIPPER="1"
+
 	prebuild
 	# Generate xcconfig files for CircleCI
 	if [ "$PRE_RELEASE" = true ] ; then
