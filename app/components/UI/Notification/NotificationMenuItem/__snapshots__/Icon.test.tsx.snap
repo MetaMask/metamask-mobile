@@ -37,7 +37,7 @@ exports[`NotificationIcon matches snapshot when icon is provided 1`] = `
         }
         source={
           {
-            "uri": "SvgMock",
+            "uri": "MockImage",
           }
         }
         style={
