@@ -51,6 +51,7 @@ import ChartNavigationButton from './ChartNavigationButton';
 import Price from './Price';
 import styleSheet from './AssetOverview.styles';
 import { useStyles } from '../../../component-library/hooks';
+import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
 
 interface AssetOverviewProps {
@@ -256,7 +257,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
                 size={ButtonSize.Lg}
                 label={strings('asset_overview.receive_button')}
                 onPress={onReceive}
-                testID={TOKEN_OVERVIEW_RECEIVE_BUTTON}
+                {...generateTestId(Platform, TOKEN_OVERVIEW_RECEIVE_BUTTON)}
               />
               <Button
                 style={{ ...styles.footerButton, ...styles.sendButton }}
@@ -267,6 +268,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
                 {...generateTestId(Platform, TOKEN_OVERVIEW_SEND_BUTTON)}
               />
             </View>
+          </View>
+          <View style={styles.tokenDetailsWrapper}>
+            <TokenDetails asset={asset} />
           </View>
           {/*  Commented out since we are going to re enable it after curating content */}
           {/* <View style={styles.aboutWrapper}>

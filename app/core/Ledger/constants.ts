@@ -1,3 +1,5 @@
+const LEDGER_LIVE_PATH = `m/44'/60'/0'/0/0`;
 const LEDGER_HD_PATH = `m/44'/60'/0'/0`;
+const LEDGER_LEGACY_PATH = `m/44'/60'/0'`;
 
-export default LEDGER_HD_PATH;
+export { LEDGER_LIVE_PATH, LEDGER_HD_PATH, LEDGER_LEGACY_PATH };
