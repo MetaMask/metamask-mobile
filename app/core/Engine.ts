@@ -2195,7 +2195,7 @@ export default {
 
   init(state: Record<string, never> | undefined, keyringState = null) {
     instance = Engine.instance || new Engine(state, keyringState);
-    // Added this check because Object.freeze was making instance immutable, which prevents jest to add Spys on the object.
+    // Added this check because Object.freeze was making instance immutable, which prevents jest to add Spys to the object.
     if (process.env.NODE_ENV === 'production') {
       Object.freeze(instance);
     }
