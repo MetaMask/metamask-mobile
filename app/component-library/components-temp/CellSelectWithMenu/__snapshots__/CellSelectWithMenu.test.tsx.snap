@@ -205,10 +205,10 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
               {
                 "color": "#141618",
                 "fontFamily": "Euclid Circular B",
-                "fontSize": 16,
+                "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 24,
+                "lineHeight": 22,
               }
             }
             testID="cellbase-avatar-title"

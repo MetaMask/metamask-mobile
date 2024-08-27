@@ -493,52 +493,72 @@ exports[`Network Selector renders correctly 1`] = `
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
                                       {
                                         "alignItems": "center",
                                         "flexDirection": "row",
+                                        "padding": 0,
                                       }
                                     }
                                   >
                                     <View
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderRadius": 16,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "marginRight": 16,
-                                          "overflow": "hidden",
-                                          "width": 32,
+                                          "flex": -1,
                                         }
                                       }
-                                      testID="cellbase-avatar"
+                                      testID="listitemcolumn"
                                     >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={
-                                          {
-                                            "uri": "MockImage",
-                                          }
-                                        }
+                                      <View
                                         style={
                                           {
+                                            "alignItems": "center",
+                                            "backgroundColor": "#ffffff",
+                                            "borderRadius": 16,
                                             "height": 32,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
                                             "width": 32,
                                           }
                                         }
-                                        testID="network-avatar-image"
-                                      />
+                                        testID="cellbase-avatar"
+                                      >
+                                        <Image
+                                          onError={[Function]}
+                                          resizeMode="contain"
+                                          source={
+                                            {
+                                              "uri": "MockImage",
+                                            }
+                                          }
+                                          style={
+                                            {
+                                              "height": 32,
+                                              "width": 32,
+                                            }
+                                          }
+                                          testID="network-avatar-image"
+                                        />
+                                      </View>
                                     </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
                                     <View
                                       style={
                                         {
-                                          "alignItems": "flex-start",
                                           "flex": 1,
                                         }
                                       }
+                                      testID="listitemcolumn"
                                     >
                                       <Text
                                         accessibilityRole="text"
@@ -614,51 +634,72 @@ exports[`Network Selector renders correctly 1`] = `
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
                                       {
+                                        "alignItems": "center",
                                         "flexDirection": "row",
+                                        "padding": 0,
                                       }
                                     }
                                   >
                                     <View
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderRadius": 16,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "marginRight": 16,
-                                          "overflow": "hidden",
-                                          "width": 32,
+                                          "flex": -1,
                                         }
                                       }
-                                      testID="cellbase-avatar"
+                                      testID="listitemcolumn"
                                     >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={
-                                          {
-                                            "uri": "MockImage",
-                                          }
-                                        }
+                                      <View
                                         style={
                                           {
+                                            "alignItems": "center",
+                                            "backgroundColor": "#ffffff",
+                                            "borderRadius": 16,
                                             "height": 32,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
                                             "width": 32,
                                           }
                                         }
-                                        testID="network-avatar-image"
-                                      />
+                                        testID="cellbase-avatar"
+                                      >
+                                        <Image
+                                          onError={[Function]}
+                                          resizeMode="contain"
+                                          source={
+                                            {
+                                              "uri": "MockImage",
+                                            }
+                                          }
+                                          style={
+                                            {
+                                              "height": 32,
+                                              "width": 32,
+                                            }
+                                          }
+                                          testID="network-avatar-image"
+                                        />
+                                      </View>
                                     </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
                                     <View
                                       style={
                                         {
-                                          "alignItems": "flex-start",
                                           "flex": 1,
                                         }
                                       }
+                                      testID="listitemcolumn"
                                     >
                                       <Text
                                         accessibilityRole="text"
@@ -708,54 +749,74 @@ exports[`Network Selector renders correctly 1`] = `
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
                                       {
                                         "alignItems": "center",
                                         "flexDirection": "row",
+                                        "padding": 0,
                                       }
                                     }
                                   >
                                     <View
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderRadius": 16,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "marginRight": 16,
-                                          "overflow": "hidden",
-                                          "width": 32,
+                                          "flex": -1,
                                         }
                                       }
-                                      testID="cellbase-avatar"
+                                      testID="listitemcolumn"
                                     >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={
-                                          {
-                                            "default": {
-                                              "uri": "MockImage",
-                                            },
-                                          }
-                                        }
+                                      <View
                                         style={
                                           {
+                                            "alignItems": "center",
+                                            "backgroundColor": "#ffffff",
+                                            "borderRadius": 16,
                                             "height": 32,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
                                             "width": 32,
                                           }
                                         }
-                                        testID="network-avatar-image"
-                                      />
+                                        testID="cellbase-avatar"
+                                      >
+                                        <Image
+                                          onError={[Function]}
+                                          resizeMode="contain"
+                                          source={
+                                            {
+                                              "default": {
+                                                "uri": "MockImage",
+                                              },
+                                            }
+                                          }
+                                          style={
+                                            {
+                                              "height": 32,
+                                              "width": 32,
+                                            }
+                                          }
+                                          testID="network-avatar-image"
+                                        />
+                                      </View>
                                     </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
                                     <View
                                       style={
                                         {
-                                          "alignItems": "flex-start",
                                           "flex": 1,
                                         }
                                       }
+                                      testID="listitemcolumn"
                                     >
                                       <Text
                                         accessibilityRole="text"
@@ -805,54 +866,74 @@ exports[`Network Selector renders correctly 1`] = `
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
                                       {
                                         "alignItems": "center",
                                         "flexDirection": "row",
+                                        "padding": 0,
                                       }
                                     }
                                   >
                                     <View
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderRadius": 16,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "marginRight": 16,
-                                          "overflow": "hidden",
-                                          "width": 32,
+                                          "flex": -1,
                                         }
                                       }
-                                      testID="cellbase-avatar"
+                                      testID="listitemcolumn"
                                     >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={
-                                          {
-                                            "default": {
-                                              "uri": "MockImage",
-                                            },
-                                          }
-                                        }
+                                      <View
                                         style={
                                           {
+                                            "alignItems": "center",
+                                            "backgroundColor": "#ffffff",
+                                            "borderRadius": 16,
                                             "height": 32,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
                                             "width": 32,
                                           }
                                         }
-                                        testID="network-avatar-image"
-                                      />
+                                        testID="cellbase-avatar"
+                                      >
+                                        <Image
+                                          onError={[Function]}
+                                          resizeMode="contain"
+                                          source={
+                                            {
+                                              "default": {
+                                                "uri": "MockImage",
+                                              },
+                                            }
+                                          }
+                                          style={
+                                            {
+                                              "height": 32,
+                                              "width": 32,
+                                            }
+                                          }
+                                          testID="network-avatar-image"
+                                        />
+                                      </View>
                                     </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
                                     <View
                                       style={
                                         {
-                                          "alignItems": "flex-start",
                                           "flex": 1,
                                         }
                                       }
+                                      testID="listitemcolumn"
                                     >
                                       <Text
                                         accessibilityRole="text"
@@ -902,54 +983,74 @@ exports[`Network Selector renders correctly 1`] = `
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
                                       {
                                         "alignItems": "center",
                                         "flexDirection": "row",
+                                        "padding": 0,
                                       }
                                     }
                                   >
                                     <View
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderRadius": 16,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "marginRight": 16,
-                                          "overflow": "hidden",
-                                          "width": 32,
+                                          "flex": -1,
                                         }
                                       }
-                                      testID="cellbase-avatar"
+                                      testID="listitemcolumn"
                                     >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={
-                                          {
-                                            "default": {
-                                              "uri": "MockImage",
-                                            },
-                                          }
-                                        }
+                                      <View
                                         style={
                                           {
+                                            "alignItems": "center",
+                                            "backgroundColor": "#ffffff",
+                                            "borderRadius": 16,
                                             "height": 32,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
                                             "width": 32,
                                           }
                                         }
-                                        testID="network-avatar-image"
-                                      />
+                                        testID="cellbase-avatar"
+                                      >
+                                        <Image
+                                          onError={[Function]}
+                                          resizeMode="contain"
+                                          source={
+                                            {
+                                              "default": {
+                                                "uri": "MockImage",
+                                              },
+                                            }
+                                          }
+                                          style={
+                                            {
+                                              "height": 32,
+                                              "width": 32,
+                                            }
+                                          }
+                                          testID="network-avatar-image"
+                                        />
+                                      </View>
                                     </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
                                     <View
                                       style={
                                         {
-                                          "alignItems": "flex-start",
                                           "flex": 1,
                                         }
                                       }
+                                      testID="listitemcolumn"
                                     >
                                       <Text
                                         accessibilityRole="text"
@@ -999,52 +1100,72 @@ exports[`Network Selector renders correctly 1`] = `
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
                                       {
                                         "alignItems": "center",
                                         "flexDirection": "row",
+                                        "padding": 0,
                                       }
                                     }
                                   >
                                     <View
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#f2f4f6",
-                                          "borderRadius": 16,
-                                          "borderWidth": 1,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "marginRight": 16,
-                                          "overflow": "hidden",
-                                          "width": 32,
+                                          "flex": -1,
                                         }
                                       }
-                                      testID="cellbase-avatar"
+                                      testID="listitemcolumn"
                                     >
-                                      <Text
-                                        accessibilityRole="text"
+                                      <View
                                         style={
                                           {
-                                            "color": "#141618",
-                                            "fontFamily": "Euclid Circular B",
-                                            "fontSize": 16,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
+                                            "alignItems": "center",
+                                            "backgroundColor": "#f2f4f6",
+                                            "borderRadius": 16,
+                                            "borderWidth": 1,
+                                            "height": 32,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
+                                            "width": 32,
                                           }
                                         }
+                                        testID="cellbase-avatar"
                                       >
-                                        G
-                                      </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#141618",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 16,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          G
+                                        </Text>
+                                      </View>
                                     </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
                                     <View
                                       style={
                                         {
-                                          "alignItems": "flex-start",
                                           "flex": 1,
                                         }
                                       }
+                                      testID="listitemcolumn"
                                     >
                                       <Text
                                         accessibilityRole="text"

@@ -1665,51 +1665,72 @@ exports[`SecuritySettings should render correctly 1`] = `
             title="Ethereum Main Network"
           >
             <View
+              accessibilityRole="none"
+              accessible={true}
               style={
                 {
+                  "alignItems": "center",
                   "flexDirection": "row",
+                  "padding": 0,
                 }
               }
             >
               <View
                 style={
                   {
-                    "alignItems": "center",
-                    "backgroundColor": "#ffffff",
-                    "borderRadius": 16,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginRight": 16,
-                    "overflow": "hidden",
-                    "width": 32,
+                    "flex": -1,
                   }
                 }
-                testID="cellbase-avatar"
+                testID="listitemcolumn"
               >
-                <Image
-                  onError={[Function]}
-                  resizeMode="contain"
-                  source={
-                    {
-                      "uri": "MockImage",
-                    }
-                  }
+                <View
                   style={
                     {
+                      "alignItems": "center",
+                      "backgroundColor": "#ffffff",
+                      "borderRadius": 16,
                       "height": 32,
+                      "justifyContent": "center",
+                      "overflow": "hidden",
                       "width": 32,
                     }
                   }
-                  testID="network-avatar-image"
-                />
+                  testID="cellbase-avatar"
+                >
+                  <Image
+                    onError={[Function]}
+                    resizeMode="contain"
+                    source={
+                      {
+                        "uri": "MockImage",
+                      }
+                    }
+                    style={
+                      {
+                        "height": 32,
+                        "width": 32,
+                      }
+                    }
+                    testID="network-avatar-image"
+                  />
+                </View>
               </View>
+              <View
+                accessible={false}
+                style={
+                  {
+                    "width": 16,
+                  }
+                }
+                testID="listitem-gap"
+              />
               <View
                 style={
                   {
-                    "alignItems": "flex-start",
                     "flex": 1,
                   }
                 }
+                testID="listitemcolumn"
               >
                 <Text
                   accessibilityRole="text"
@@ -1746,11 +1767,21 @@ exports[`SecuritySettings should render correctly 1`] = `
                 </Text>
               </View>
               <View
+                accessible={false}
                 style={
                   {
-                    "marginLeft": 16,
+                    "width": 16,
                   }
                 }
+                testID="listitem-gap"
+              />
+              <View
+                style={
+                  {
+                    "flex": -1,
+                  }
+                }
+                testID="listitemcolumn"
               >
                 <RCTSwitch
                   accessibilityRole="switch"
@@ -1806,51 +1837,72 @@ exports[`SecuritySettings should render correctly 1`] = `
             title="Linea Main Network"
           >
             <View
+              accessibilityRole="none"
+              accessible={true}
               style={
                 {
+                  "alignItems": "center",
                   "flexDirection": "row",
+                  "padding": 0,
                 }
               }
             >
               <View
                 style={
                   {
-                    "alignItems": "center",
-                    "backgroundColor": "#ffffff",
-                    "borderRadius": 16,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginRight": 16,
-                    "overflow": "hidden",
-                    "width": 32,
+                    "flex": -1,
                   }
                 }
-                testID="cellbase-avatar"
+                testID="listitemcolumn"
               >
-                <Image
-                  onError={[Function]}
-                  resizeMode="contain"
-                  source={
-                    {
-                      "uri": "MockImage",
-                    }
-                  }
+                <View
                   style={
                     {
+                      "alignItems": "center",
+                      "backgroundColor": "#ffffff",
+                      "borderRadius": 16,
                       "height": 32,
+                      "justifyContent": "center",
+                      "overflow": "hidden",
                       "width": 32,
                     }
                   }
-                  testID="network-avatar-image"
-                />
+                  testID="cellbase-avatar"
+                >
+                  <Image
+                    onError={[Function]}
+                    resizeMode="contain"
+                    source={
+                      {
+                        "uri": "MockImage",
+                      }
+                    }
+                    style={
+                      {
+                        "height": 32,
+                        "width": 32,
+                      }
+                    }
+                    testID="network-avatar-image"
+                  />
+                </View>
               </View>
+              <View
+                accessible={false}
+                style={
+                  {
+                    "width": 16,
+                  }
+                }
+                testID="listitem-gap"
+              />
               <View
                 style={
                   {
-                    "alignItems": "flex-start",
                     "flex": 1,
                   }
                 }
+                testID="listitemcolumn"
               >
                 <Text
                   accessibilityRole="text"
@@ -1887,11 +1939,21 @@ exports[`SecuritySettings should render correctly 1`] = `
                 </Text>
               </View>
               <View
+                accessible={false}
                 style={
                   {
-                    "marginLeft": 16,
+                    "width": 16,
                   }
                 }
+                testID="listitem-gap"
+              />
+              <View
+                style={
+                  {
+                    "flex": -1,
+                  }
+                }
+                testID="listitemcolumn"
               >
                 <RCTSwitch
                   accessibilityRole="switch"
