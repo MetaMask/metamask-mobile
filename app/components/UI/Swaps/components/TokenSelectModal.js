@@ -58,7 +58,7 @@ import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
-import { SWAP_SEARCH_TOKEN } from '../../../../../wdio/screen-objects/testIDs/Screens/QuoteView.js';
+import { QuoteViewSelectorIDs } from '../../../../../e2e/selectors/swaps/QuoteView.selectors';
 import { getDecimalChainId } from '../../../../util/networks';
 
 const createStyles = (colors) =>
@@ -417,7 +417,7 @@ function TokenSelectModal({
               value={searchString}
               onChangeText={handleSearchTextChange}
               keyboardAppearance={themeAppearance}
-              testID={SWAP_SEARCH_TOKEN}
+              testID={QuoteViewSelectorIDs.SEARCH_TOKEN}
             />
             {searchString.length > 0 && (
               <TouchableOpacity onPress={handleClearSearch}>

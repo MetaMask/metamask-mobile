@@ -62,3 +62,6 @@ To enable Redux debugging: in Flipper, select the `More` tab -> `Plugin` and add
   - Ensure that `pipx` path is added to your terminal's profile file using `pipx ensurepath`
 - `Flipper` not detecting open simulator when `Flipper` is started
   - Try both refreshing the web page and the simulator
+- Simulators not found and/or an error appearing under simulators showing command failed for `idb list-targets --json`
+  - This is an open issue regarding M1 devices experiencing this issue
+  - Try creating a symlink for `idb_companion` with `sudo ln -s /opt/homebrew/bin/idb_companion /usr/local/bin`
