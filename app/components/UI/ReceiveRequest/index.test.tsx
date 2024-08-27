@@ -57,7 +57,7 @@ describe('ReceiveRequest', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('render correctly without buy', () => {
+  it('render without buy matches snapshot', () => {
     const state = {
       ...initialState,
       fiatOrders: undefined,
