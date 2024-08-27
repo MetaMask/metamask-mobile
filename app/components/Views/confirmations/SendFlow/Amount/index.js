@@ -907,13 +907,13 @@ class Amount extends PureComponent {
         : undefined;
       if (internalPrimaryCurrencyIsCrypto || !exchangeRate) {
         input = fromTokenMinimalUnitString(
-          contractBalances[selectedAsset.address]?.toString(10),
+          (contractBalances[selectedAsset.address] || '0').toString(),
           selectedAsset.decimals,
         );
       } else {
         input = `${balanceToFiatNumber(
           fromTokenMinimalUnitString(
-            contractBalances[selectedAsset.address]?.toString(10),
+            (contractBalances[selectedAsset.address] || '0').toString(),
             selectedAsset.decimals,
           ),
           conversionRate,
