@@ -28,10 +28,31 @@ jobs:
       - name: Require clean working directory
         shell: bash
         run: |
+          # Read the file into an array using mapfile
+          mapfile -t EXCLUDES < git-diff-exclusions.txt
+
+          # Apply git update-index --assume-unchanged to each entry
+          echo "Assuming unchanged for the following paths:"
+          for path in "${EXCLUDES[@]}"; do
+            echo "$path"
+            git update-index --assume-unchanged "$path"
+          done
+
+          # Run git diff
+          echo "Running git diff command:"
           if ! git diff --exit-code; then
             echo "Working tree dirty at end of job"
             exit 1
+          else
+            echo "No changes detected"
           fi
+
+          # Revert git update-index --no-assume-unchanged for each entry
+          echo "Reverting assume unchanged for the following paths:"
+          for path in "${EXCLUDES[@]}"; do
+            echo "$path"
+            git update-index --no-assume-unchanged "$path"
+          done
   dedupe:
     runs-on: ubuntu-20.04
     needs: setup
@@ -73,10 +94,31 @@ jobs:
       - name: Require clean working directory
         shell: bash
         run: |
+          # Read the file into an array using mapfile
+          mapfile -t EXCLUDES < git-diff-exclusions.txt
+
+          # Apply git update-index --assume-unchanged to each entry
+          echo "Assuming unchanged for the following paths:"
+          for path in "${EXCLUDES[@]}"; do
+            echo "$path"
+            git update-index --assume-unchanged "$path"
+          done
+
+          # Run git diff
+          echo "Running git diff command:"
           if ! git diff --exit-code; then
             echo "Working tree dirty at end of job"
             exit 1
+          else
+            echo "No changes detected"
           fi
+
+          # Revert git update-index --no-assume-unchanged for each entry
+          echo "Reverting assume unchanged for the following paths:"
+          for path in "${EXCLUDES[@]}"; do
+            echo "$path"
+            git update-index --no-assume-unchanged "$path"
+          done
   unit-tests:
     runs-on: ubuntu-20.04
     needs: setup
@@ -107,10 +149,31 @@ jobs:
       - name: Require clean working directory
         shell: bash
         run: |
+          # Read the file into an array using mapfile
+          mapfile -t EXCLUDES < git-diff-exclusions.txt
+
+          # Apply git update-index --assume-unchanged to each entry
+          echo "Assuming unchanged for the following paths:"
+          for path in "${EXCLUDES[@]}"; do
+            echo "$path"
+            git update-index --assume-unchanged "$path"
+          done
+
+          # Run git diff
+          echo "Running git diff command:"
           if ! git diff --exit-code; then
             echo "Working tree dirty at end of job"
             exit 1
+          else
+            echo "No changes detected"
           fi
+
+          # Revert git update-index --no-assume-unchanged for each entry
+          echo "Reverting assume unchanged for the following paths:"
+          for path in "${EXCLUDES[@]}"; do
+            echo "$path"
+            git update-index --no-assume-unchanged "$path"
+          done
   merge-unit-tests:
     runs-on: ubuntu-20.04
     needs: unit-tests
@@ -138,10 +201,31 @@ jobs:
       - name: Require clean working directory
         shell: bash
         run: |
+          # Read the file into an array using mapfile
+          mapfile -t EXCLUDES < git-diff-exclusions.txt
+
+          # Apply git update-index --assume-unchanged to each entry
+          echo "Assuming unchanged for the following paths:"
+          for path in "${EXCLUDES[@]}"; do
+            echo "$path"
+            git update-index --assume-unchanged "$path"
+          done
+
+          # Run git diff
+          echo "Running git diff command:"
           if ! git diff --exit-code; then
             echo "Working tree dirty at end of job"
             exit 1
+          else
+            echo "No changes detected"
           fi
+
+          # Revert git update-index --no-assume-unchanged for each entry
+          echo "Reverting assume unchanged for the following paths:"
+          for path in "${EXCLUDES[@]}"; do
+            echo "$path"
+            git update-index --no-assume-unchanged "$path"
+          done
   sonar-cloud:
     runs-on: ubuntu-20.04
     needs: merge-unit-tests
@@ -149,6 +233,9 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0 # SonarCloud needs a full checkout to perform necessary analysis
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
       - uses: actions/download-artifact@v3
         with:
           name: coverage
@@ -166,10 +253,31 @@ jobs:
       - name: Require clean working directory
         shell: bash
         run: |
+          # Read the file into an array using mapfile
+          mapfile -t EXCLUDES < git-diff-exclusions.txt
+
+          # Apply git update-index --assume-unchanged to each entry
+          echo "Assuming unchanged for the following paths:"
+          for path in "${EXCLUDES[@]}"; do
+            echo "$path"
+            git update-index --assume-unchanged "$path"
+          done
+
+          # Run git diff
+          echo "Running git diff command:"
           if ! git diff --exit-code; then
             echo "Working tree dirty at end of job"
             exit 1
+          else
+            echo "No changes detected"
           fi
+
+          # Revert git update-index --no-assume-unchanged for each entry
+          echo "Reverting assume unchanged for the following paths:"
+          for path in "${EXCLUDES[@]}"; do
+            echo "$path"
+            git update-index --no-assume-unchanged "$path"
+          done
   check-workflows:
     name: Check workflows
     runs-on: ubuntu-latest
