@@ -115,8 +115,19 @@ jobs:
       - name: Require clean working directory
         shell: bash
         run: |
+          # Print the contents of git-diff-exclusions.txt for debugging
+          echo "Contents of git-diff-exclusions.txt:"
+          cat git-diff-exclusions.txt
+
           # Initialize an empty array to store the exclude paths
           mapfile -t EXCLUDES < <(awk '{print ":! " $0}' git-diff-exclusions.txt)
+
+          # Print the exclude paths for debugging
+          echo "Exclude paths: ${EXCLUDES[@]}"
+
+          # Print the status of the working directory for debugging
+          echo "Git status:"
+          git status
 
           # Execute the git diff command
           if ! git diff --exit-code -- . "${EXCLUDES[@]}"; then
