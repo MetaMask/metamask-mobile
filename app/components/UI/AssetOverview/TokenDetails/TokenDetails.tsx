@@ -30,12 +30,12 @@ export interface TokenDetails {
 
 export interface MarketDetails {
   marketCap: string | null;
-  totalVolume: number | null;
+  totalVolume: string | null;
   volumeToMarketCap: string | null;
-  circulatingSupply: number | null;
+  circulatingSupply: string | null;
   allTimeHigh: string | null;
   allTimeLow: string | null;
-  fullyDiluted: number | null;
+  fullyDiluted: string | null;
 }
 
 interface TokenDetailsProps {
