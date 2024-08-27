@@ -9,23 +9,6 @@ const initialState = {
   engine: {
     backgroundState: {
       ...initialBackgroundState,
-      PreferencesController: {
-        selectedAddress: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
-        identities: {
-          '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045': {
-            address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
-            name: 'Account 1',
-          },
-        },
-      },
-    },
-    NetworkController: {
-      network: 1,
-      providerConfig: {
-        type: 'mainnet',
-        chainId: '0x1',
-        ticker: 'ETH',
-      },
     },
   },
 };
@@ -56,7 +39,8 @@ describe('QRAccountDisplay', () => {
     const { toJSON } = renderScreen(
       TestWrapper,
       { name: 'QRAccountDisplay' },
-      { state: initialState },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      { state: initialState as any },
     );
     expect(toJSON()).toMatchSnapshot();
   });
@@ -65,7 +49,8 @@ describe('QRAccountDisplay', () => {
     const { getByTestId } = renderScreen(
       TestWrapper,
       { name: 'QRAccountDisplay' },
-      { state: initialState },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      { state: initialState as any },
     );
 
     const copyButton = getByTestId('qr-account-display-copy-button');
