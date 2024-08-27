@@ -456,7 +456,7 @@ const buildOVMGasPriceOracleContract = (eth) => {
  *
  * @param {Object} eth
  * @param {Object} txMeta
- * @returns {String}
+ * @returns {Promise<string>}
  */
 export const fetchEstimatedMultiLayerL1Fee = async (eth, txMeta) => {
   const contract = buildOVMGasPriceOracleContract(eth);
