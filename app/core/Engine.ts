@@ -274,7 +274,6 @@ type GlobalActions =
   | UserStorageControllerActions
   | NotificationsServicesControllerActions
   ///: END:ONLY_INCLUDE_IF
-  | KeyringControllerActions
   | AccountsControllerActions
   | PreferencesControllerActions
   | TokensControllerActions
@@ -292,7 +291,6 @@ type GlobalEvents =
   | SnapsGlobalEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
-  | KeyringControllerEvents
   | PPOMControllerEvents
   | AccountsControllerEvents
   | PreferencesControllerEvents
@@ -1378,7 +1376,6 @@ class Engine {
       new SwapsController(
         {
           fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
-          // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
           fetchEstimatedMultiLayerL1Fee,
         },
         {

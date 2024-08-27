@@ -42,7 +42,7 @@ export const loadFixture = async (fixtureServer, { fixture } = {}) => {
   // If no fixture is provided, the `onboarding` option is set to `true` by default, which means
   // the app will be loaded without any fixtures and will start and go through the onboarding process.
   const state = fixture || new FixtureBuilder({ onboarding: true }).build();
-  await fixtureServer.loadJsonState(state);
+  fixtureServer.loadJsonState(state);
   // Checks if state is loaded
   const response = await axios.get(FIXTURE_SERVER_URL);
 
