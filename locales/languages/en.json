@@ -393,7 +393,7 @@
     "creator_address": "Creator address",
     "last_sold": "Last sold",
     "highest_current_bid": "Highest current bid",
-    "options" :{
+    "options": {
       "view_on_os": "View on OpenSea",
       "remove_nft": "Remove NFT"
     },
@@ -524,7 +524,7 @@
     "creator_address": "Creator address",
     "last_sold": "Last sold",
     "highest_current_bid": "Highest current bid",
-    "options" :{
+    "options": {
       "view_on_os": "View on OpenSea",
       "remove_nft": "Remove NFT"
     },
@@ -575,6 +575,7 @@
     "description_title": "Help us improve MetaMask",
     "description_content_1": "We’d like to gather basic usage data to improve MetaMask. Know that we never sell the data you provide here.",
     "description_content_2": "When we gather metrics, it will always be...",
+    "description_content_3": "Learn how we protect your privacy while collecting usage data for your profile.",
     "checkbox": "We'll use this data to learn how you interact with our marketing communications. We may share relavent news (like product features).",
     "action_description_1_prefix": "Private:",
     "action_description_2_prefix": "General:",
@@ -2182,9 +2183,9 @@
     "transaction_id_copied_to_clipboard": "Transaction ID copied to clipboard",
     "activation_card": {
       "title": "Turn on notifications",
-      "description_1": "Stay in the loop on what's happening in your wallet with notifications. ",
+      "description_1": "Stay in the loop on what's happening in your wallet with notifications.",
       "description_2": "To use this feature, we’ll generate an anonymous ID for your account. It’s used only for syncing your data in MetaMask and doesn't link to your activities or other identifiers, ensuring your privacy.",
-      "learn_more": "Learn how we protect your privacy while using this feature. ",
+      "learn_more": "Learn how we protect your privacy while using this feature.",
       "manage_preferences_1": "You can turn off notifications at any time in ",
       "manage_preferences_2": "Settings > Notifications.",
       "cancel": "Cancel",
@@ -2576,7 +2577,8 @@
       "sale_completed_title": "Order completed",
       "sale_completed_description": "Your order was successful!.",
       "sale_pending_title": "{{currency}} sale processing",
-      "sale_pending_description": "Your order is now being processed."
+      "sale_pending_description": "Your order is now being processed.",
+      "no_date": "Unknown"
     }
   },
   "swaps": {
@@ -3203,9 +3205,7 @@
     "how_to_install_eth_webview_title": "How to install the Ethereum App",
     "nonce_too_low": "Nonce too low",
     "nonce_too_low_error": "The set nonce is too low",
-    "select_accounts": "Select an Account",
-    "select_accounts_warning": "Note: these accounts might be different to what you're used to.",
-    "select_accounts_sub_msg": "These accounts are derived using the BIP44 derivation path, which is different to the default Ledger Live derivation path on MetaMask Extension, Different derivation paths for Ledger will be available on MetaMask Mobile soon."
+    "select_accounts": "Select an Account"
   },
   "account_actions": {
     "edit_name": "Edit account name",
@@ -3278,7 +3278,7 @@
       "title_off": "Turn off basic functionality",
       "description_off": "This means you won't fully optimize your time on MetaMask. Basic features (like token details, optimal gas settings, and others) won't be available to you.",
       "title_on": "Turn on basic functionality",
-      "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, and others) are important to the web3 experience.",
+      "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, notifications, and others) are important to the web3 experience.",
       "checkbox_label": "I understand and want to continue",
       "buttons": {
         "cancel": "Cancel",
