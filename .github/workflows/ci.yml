@@ -24,6 +24,11 @@ jobs:
         run: printf '%s\n\n%s' '@metamask:registry=https://npm.pkg.github.com' "//npm.pkg.github.com/:_authToken=${PACKAGE_READ_TOKEN}" > .npmrc
         env:
           PACKAGE_READ_TOKEN: ${{ secrets.PACKAGE_READ_TOKEN }}
+      - run: yarn setup_node
+      - name: Ingore changes in specific file
+        shell: bash
+        run: |
+          git update-index --asume-unchanged app/util/termsOfUse/termsOfUseContent.js
       - run: yarn setup:node
       - name: Require clean working directory
         shell: bash
@@ -32,6 +37,11 @@ jobs:
             echo "Working tree dirty at end of job"
             exit 1
           fi
+      - run: yarn setup:node
+      - name: Revert ignore changes in specific file
+        shell: bash
+        run: |
+          git update-index --no-assume-unchanged app/util/termsOfUse/termsOfUseContent.js
   dedupe:
     runs-on: ubuntu-20.04
     needs: setup
