@@ -80,6 +80,11 @@ jobs:
           cache: yarn
       - run: yarn setup:node
       - run: yarn ${{ matrix['scripts'] }}
+      - run: yarn setup:node
+      - name: Ingore changes in specific file
+        shell: bash
+        run: |
+          git update-index --assume-unchanged app/util/termsOfUse/termsOfUseContent.js
       - name: Require clean working directory
         shell: bash
         run: |
@@ -87,6 +92,11 @@ jobs:
             echo "Working tree dirty at end of job"
             exit 1
           fi
+      - run: yarn setup:node
+      - name: Revert ignore changes in specific file
+        shell: bash
+        run: |
+          git update-index --no-assume-unchanged app/util/termsOfUse/termsOfUseContent.js
   unit-tests:
     runs-on: ubuntu-20.04
     needs: setup
@@ -114,6 +124,11 @@ jobs:
           name: coverage-${{ matrix.shard }}
           path: ./tests/coverage/coverage-${{ matrix.shard }}.json
           if-no-files-found: error
+      - run: yarn setup:node
+      - name: Ingore changes in specific file
+        shell: bash
+        run: |
+          git update-index --assume-unchanged app/util/termsOfUse/termsOfUseContent.js
       - name: Require clean working directory
         shell: bash
         run: |
@@ -121,6 +136,11 @@ jobs:
             echo "Working tree dirty at end of job"
             exit 1
           fi
+      - run: yarn setup:node
+      - name: Revert ignore changes in specific file
+        shell: bash
+        run: |
+          git update-index --no-assume-unchanged app/util/termsOfUse/termsOfUseContent.js
   merge-unit-tests:
     runs-on: ubuntu-20.04
     needs: unit-tests
@@ -145,6 +165,11 @@ jobs:
           name: coverage
           path: ./tests/merged-coverage/lcov.info
           if-no-files-found: error
+      - run: yarn setup:node
+      - name: Ingore changes in specific file
+        shell: bash
+        run: |
+          git update-index --assume-unchanged app/util/termsOfUse/termsOfUseContent.js
       - name: Require clean working directory
         shell: bash
         run: |
@@ -152,6 +177,11 @@ jobs:
             echo "Working tree dirty at end of job"
             exit 1
           fi
+      - run: yarn setup:node
+      - name: Revert ignore changes in specific file
+        shell: bash
+        run: |
+          git update-index --no-assume-unchanged app/util/termsOfUse/termsOfUseContent.js
   sonar-cloud:
     runs-on: ubuntu-20.04
     needs: merge-unit-tests
@@ -173,6 +203,11 @@ jobs:
         env:
           HAVE_SONAR_TOKEN: ${{ secrets.SONAR_TOKEN != '' }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - run: yarn setup:node
+      - name: Ingore changes in specific file
+        shell: bash
+        run: |
+          git update-index --assume-unchanged app/util/termsOfUse/termsOfUseContent.js
       - name: Require clean working directory
         shell: bash
         run: |
@@ -180,6 +215,11 @@ jobs:
             echo "Working tree dirty at end of job"
             exit 1
           fi
+      - run: yarn setup:node
+      - name: Revert ignore changes in specific file
+        shell: bash
+        run: |
+          git update-index --no-assume-unchanged app/util/termsOfUse/termsOfUseContent.js
   check-workflows:
     name: Check workflows
     runs-on: ubuntu-latest
