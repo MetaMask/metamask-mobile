@@ -184,6 +184,10 @@ jobs:
           git update-index --no-assume-unchanged app/util/termsOfUse/termsOfUseContent.ts
   sonar-cloud:
     runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
     needs: merge-unit-tests
     steps:
       - uses: actions/checkout@v3
