@@ -553,13 +553,10 @@ const App = ({ userLoggedIn, basicFunctionalityEnabled }) => {
 
   useEffect(() => {
     if (!basicFunctionalityEnabled) {
-      try {
         Engine.context.SnapController.stopSnap(
           'npm:@metamask/message-signing-snap',
-        );
-      } catch (error) {
-        console.error(error);
-      }
+        ).catch(console.error);
+     }
     }
   }, [basicFunctionalityEnabled]);
 
