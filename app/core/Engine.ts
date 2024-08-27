@@ -6,9 +6,6 @@ import {
   AssetsContractController,
   CurrencyRateController,
   CurrencyRateState,
-  CurrencyRateStateChange,
-  GetCurrencyRateState,
-  GetTokenListState,
   NftController,
   NftDetectionController,
   NftState,
@@ -16,7 +13,6 @@ import {
   TokenDetectionController,
   TokenListController,
   TokenListState,
-  TokenListStateChange,
   TokenRatesController,
   TokenRatesState,
   TokensController,
@@ -26,7 +22,10 @@ import {
   TokensControllerEvents,
   TokenListControllerActions,
   TokenListControllerEvents,
-  TokenBalancesControllerState,
+  CurrencyRateControllerActions,
+  TokenBalancesControllerActions,
+  CurrencyRateControllerEvents,
+  TokenBalancesControllerEvents,
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { AppState } from 'react-native';
@@ -56,6 +55,7 @@ import {
 } from '@metamask/network-controller';
 import {
   PhishingController,
+  PhishingControllerActions,
   PhishingControllerState,
 } from '@metamask/phishing-controller';
 import {
@@ -71,9 +71,9 @@ import {
 } from '@metamask/transaction-controller';
 import {
   GasFeeController,
+  GasFeeControllerActions,
+  GasFeeControllerEvents,
   GasFeeState,
-  GasFeeStateChange,
-  GetGasFeeState,
 } from '@metamask/gas-fee-controller';
 import {
   AcceptOptions,
@@ -97,6 +97,7 @@ import {
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import {
   PPOMController,
+  PPOMControllerActions,
   PPOMControllerEvents,
   PPOMState,
 } from '@metamask/ppom-validator';
@@ -111,6 +112,8 @@ import {
   SnapControllerActions,
   PersistedSnapControllerState,
   SnapsRegistryMessenger,
+  SnapsRegistryActions,
+  SnapsRegistryEvents,
 } from '@metamask/snaps-controllers';
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
@@ -217,7 +220,12 @@ import { zeroAddress } from 'ethereumjs-util';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
 import EthQuery from '@metamask/eth-query';
-import { TransactionControllerOptions } from '@metamask/transaction-controller/dist/types/TransactionController';
+import {
+  TransactionControllerActions,
+  TransactionControllerOptions,
+} from '@metamask/transaction-controller/dist/types/TransactionController';
+// TODO: Remove subpath import once this variable is exported by the package in `@metamask/assets-controllers@37.0.0`
+import { TokenBalancesControllerState } from '@metamask/assets-controllers/dist/types/TokenBalancesController';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -229,40 +237,33 @@ const encryptor = new Encryptor({
 let currentChainId: any;
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-// TODO remove these custom types when the PhishingController is to version >= 7.0.0
-interface MaybeUpdateState {
-  type: `${PhishingController['name']}:maybeUpdateState`;
-  handler: PhishingController['maybeUpdateState'];
-}
-
-interface TestOrigin {
-  type: `${PhishingController['name']}:testOrigin`;
-  handler: PhishingController['test'];
-}
-
-type PhishingControllerActions = MaybeUpdateState | TestOrigin;
-type AuthenticationControllerActions = AuthenticationController.AllowedActions;
-type UserStorageControllerActions = UserStorageController.AllowedActions;
-type NotificationsServicesControllerActions =
-  NotificationServicesController.AllowedActions;
 
 type SnapsGlobalActions =
   | SnapControllerActions
+  | SnapsRegistryActions
   | SubjectMetadataControllerActions
   | PhishingControllerActions
   | SnapsAllowedActions;
 
 type SnapsGlobalEvents =
   | SnapControllerEvents
+  | SnapsRegistryEvents
   | SubjectMetadataControllerEvents
+  // TODO: uncomment once controller is upgraded to V2
+  // | PhishingControllerEvents
   | SnapsAllowedEvents;
 ///: END:ONLY_INCLUDE_IF
 
 type GlobalActions =
+  // TODO: uncomment once controller is upgraded to V2
+  // | AccountTrackerControllerActions
+  // | AddressBookControllerActions
+  // | NftControllerActions
+  // | SmartTransactionControllerActions
+  // | SwapsControllerActions
   | ApprovalControllerActions
-  | GetCurrencyRateState
-  | GetGasFeeState
-  | GetTokenListState
+  | CurrencyRateControllerActions
+  | GasFeeControllerActions
   | KeyringControllerActions
   | NetworkControllerActions
   | PermissionControllerActions
@@ -270,32 +271,44 @@ type GlobalActions =
   | LoggingControllerActions
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalActions
-  | AuthenticationControllerActions
-  | UserStorageControllerActions
-  | NotificationsServicesControllerActions
+  | AuthenticationController.Actions
+  | UserStorageController.Actions
+  | NotificationServicesController.Actions
   ///: END:ONLY_INCLUDE_IF
-  | KeyringControllerActions
   | AccountsControllerActions
   | PreferencesControllerActions
+  | PPOMControllerActions
+  | TokenBalancesControllerActions
   | TokensControllerActions
-  | TokenListControllerActions;
+  | TokenListControllerActions
+  | TransactionControllerActions;
 
 type GlobalEvents =
+  // TODO: uncomment once controller is upgraded to V2
+  // | AccountTrackerControllerEvents
+  // | AddressBookControllerEvents
+  // | NftControllerEvents
+  // | SmartTransactionControllerEvents
+  // | SwapsControllerEvents
+  // TODO: uncomment once `Events` type is added to controller
+  // | LoggingControllerEvents
+  // | AuthenticationController.Events
+  // | UserStorageController.Events
+  // | NotificationsServicesPushController.Events
   | ApprovalControllerEvents
-  | CurrencyRateStateChange
-  | GasFeeStateChange
+  | CurrencyRateControllerEvents
+  | GasFeeControllerEvents
   | KeyringControllerEvents
-  | TokenListStateChange
   | NetworkControllerEvents
   | PermissionControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
-  | KeyringControllerEvents
   | PPOMControllerEvents
   | AccountsControllerEvents
   | PreferencesControllerEvents
+  | TokenBalancesControllerEvents
   | TokensControllerEvents
   | TokenListControllerEvents
   | TransactionControllerEvents;
