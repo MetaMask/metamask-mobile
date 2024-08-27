@@ -6,6 +6,7 @@ import {
   Text,
   View,
   ActivityIndicator,
+  DimensionValue,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import StyledButton from '../../UI/StyledButton';
@@ -28,7 +29,7 @@ import Routes from '../../../constants/navigation/Routes';
 const ImportPrivateKey = () => {
   const [privateKey, setPrivateKey] = useState('');
   const [loading, setLoading] = useState(false);
-  const [inputWidth, setInputWidth] = useState(
+  const [inputWidth, setInputWidth] = useState<DimensionValue | undefined>(
     Device.isAndroid() ? '99%' : undefined,
   );
   const navigation = useNavigation();

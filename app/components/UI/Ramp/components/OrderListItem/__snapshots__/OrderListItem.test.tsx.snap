@@ -162,7 +162,7 @@ exports[`OrderListItem should render correctly 1`] = `
         style={
           {
             "color": "#1c8234",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 12,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -444,7 +444,7 @@ exports[`OrderListItem should render correctly 2`] = `
         style={
           {
             "color": "#d73847",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 12,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -726,7 +726,7 @@ exports[`OrderListItem should render correctly 3`] = `
         style={
           {
             "color": "#141618",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 12,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -1008,7 +1008,7 @@ exports[`OrderListItem should render correctly 4`] = `
         style={
           {
             "color": "#141618",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 12,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -1290,7 +1290,7 @@ exports[`OrderListItem should render correctly 5`] = `
         style={
           {
             "color": "#d73847",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 12,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -1572,7 +1572,7 @@ exports[`OrderListItem should render correctly 6`] = `
         style={
           {
             "color": "#0376c9",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 12,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -1854,7 +1854,7 @@ exports[`OrderListItem should render correctly 7`] = `
         style={
           {
             "color": "#0376c9",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 12,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -2088,7 +2088,7 @@ exports[`OrderListItem should render correctly 8`] = `
         style={
           {
             "color": "#0376c9",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 12,
             "fontWeight": "700",
             "letterSpacing": 0,
