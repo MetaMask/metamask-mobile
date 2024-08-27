@@ -14,13 +14,21 @@ async function reconnectAll(instance: SDKConnect) {
   }
 
   const channelIds = Object.keys(instance.state.connections);
+
   channelIds.forEach((channelId) => {
     // Only reconnects to type 'qrcode' connections.
     const connection = instance.state.connections[channelId];
-    if (connection.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) {
+    DevLogger.log(
+      `SDKConnect::reconnectAll - reconnecting to ${channelId} origin=${connection.origin} relayPersistence=${connection.relayPersistence} protocolVersion=${connection.protocolVersion}`,
+    );
+    if (
+      connection.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE ||
+      connection.relayPersistence
+    ) {
       instance
         .reconnect({
           channelId,
+          protocolVersion: connection.protocolVersion,
           otherPublicKey: instance.state.connections[channelId].otherPublicKey,
           initialConnection: false,
           trigger: 'reconnect',
@@ -35,7 +43,9 @@ async function reconnectAll(instance: SDKConnect) {
     }
   });
   instance.state.reconnected = true;
-  DevLogger.log(`SDKConnect::reconnectAll - done`);
+  DevLogger.log(
+    `SDKConnect::reconnectAll - channelIds=${channelIds.length} - done`,
+  );
 }
 
 export default reconnectAll;

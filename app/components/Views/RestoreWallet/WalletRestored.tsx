@@ -16,16 +16,14 @@ import StyledButton from '../../UI/StyledButton';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Authentication } from '../../../core';
 import { useAppThemeFromContext } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { trackEventV2 as trackEvent } from '../../../util/analyticsV2';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 export const createWalletRestoredNavDetails = createNavigationDetails(
   Routes.VAULT_RECOVERY.WALLET_RESTORED,
@@ -34,9 +32,11 @@ export const createWalletRestoredNavDetails = createNavigationDetails(
 const WalletRestored = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const { colors } = useAppThemeFromContext();
+  const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<StackNavigationProp<any>>();
-  const selectedAddress = useSelector(selectSelectedAddress);
 
   const deviceMetaData = useMemo(() => generateDeviceAnalyticsMetaData(), []);
 
@@ -45,17 +45,17 @@ const WalletRestored = () => {
       MetaMetricsEvents.VAULT_CORRUPTION_WALLET_SUCCESSFULLY_RESTORED_SCREEN_VIEWED,
       deviceMetaData,
     );
-  }, [deviceMetaData]);
+  }, [deviceMetaData, trackEvent]);
 
   const finishWalletRestore = useCallback(async (): Promise<void> => {
     try {
-      await Authentication.appTriggeredAuth({ selectedAddress });
+      await Authentication.appTriggeredAuth();
       navigation.replace(Routes.ONBOARDING.HOME_NAV);
     } catch (e) {
       // we were not able to log in automatically so we will go back to login
       navigation.replace(Routes.ONBOARDING.LOGIN);
     }
-  }, [navigation, selectedAddress]);
+  }, [navigation]);
 
   const onPressBackupSRP = useCallback(async (): Promise<void> => {
     Linking.openURL(SRP_GUIDE_URL);
@@ -68,7 +68,7 @@ const WalletRestored = () => {
       deviceMetaData,
     );
     await finishWalletRestore();
-  }, [deviceMetaData, finishWalletRestore]);
+  }, [deviceMetaData, finishWalletRestore, trackEvent]);
 
   return (
     <SafeAreaView style={styles.screen}>

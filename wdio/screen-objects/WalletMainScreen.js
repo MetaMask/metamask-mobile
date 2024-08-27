@@ -1,103 +1,81 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures.js';
-import { WALLET_CONTAINER_ID } from './testIDs/Screens/WalletScreen-testIds.js';
-import { ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID } from './testIDs/Components/OnboardingWizard.testIds';
-
-import {
-  IMPORT_NFT_BUTTON_ID,
-  IMPORT_TOKEN_BUTTON_ID,
-  MAIN_WALLET_ACCOUNT_ACTIONS,
-  MAIN_WALLET_VIEW_VIA_TOKENS_ID,
-  NAVBAR_NETWORK_BUTTON,
-  NAVBAR_NETWORK_TEXT,
-  NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
-  SECURE_WALLET_BACKUP_ALERT_MODAL,
-  SHARE_ADDRESS,
-  SHOW_PRIVATE_KEY,
-  VIEW_ETHERSCAN,
-  WALLET_ACCOUNT_ICON,
-  ACCOUNT_OVERVIEW_ID,
-} from './testIDs/Screens/WalletView.testIds';
-
+import { OnboardingWizardModalSelectorsIDs } from '../../e2e/selectors/Modals/OnboardingWizardModal.selectors';
+import { ProtectWalletModalSelectorsIDs } from '../../e2e/selectors/Modals/ProtectWalletModal.selectors';
+import { AccountActionsModalSelectorsIDs } from '../../e2e/selectors/Modals/AccountActionsModal.selectors';
 import { NOTIFICATION_TITLE } from './testIDs/Components/Notification.testIds';
-import { TAB_BAR_WALLET_BUTTON } from './testIDs/Components/TabBar.testIds';
+import { TabBarSelectorIDs } from '../../e2e/selectors/TabBar.selectors';
+
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from './testIDs/Components/SimpleWebView.testIds';
+import { WalletViewSelectorsIDs } from '../../e2e/selectors/wallet/WalletView.selectors.js';
 
 class WalletMainScreen {
   get noThanks() {
     return Selectors.getElementByPlatform(
-      ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
+      OnboardingWizardModalSelectorsIDs.NO_THANKS_BUTTON,
     );
   }
 
   get ImportToken() {
-    return Selectors.getElementByPlatform(IMPORT_TOKEN_BUTTON_ID);
+    return Selectors.getElementByPlatform(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON);
   }
 
   get ImportNFT() {
-    return Selectors.getElementByPlatform(IMPORT_NFT_BUTTON_ID);
+    return Selectors.getElementByPlatform(WalletViewSelectorsIDs.IMPORT_NFT_BUTTON);
   }
 
   get TokenNotificationTitle() {
     return Selectors.getElementByPlatform(NOTIFICATION_TITLE);
   }
 
-  get Identicon() {
-    return Selectors.getElementByPlatform(WALLET_ACCOUNT_ICON);
+  get accountIcon() {
+    return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.ACCOUNT_ICON);
   }
 
   get WalletScreenContainer() {
-    return Selectors.getXpathElementByResourceId(WALLET_CONTAINER_ID);
+    return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.WALLET_CONTAINER);
   }
 
   get networkInNavBar() {
-    return Selectors.getXpathElementByResourceId(NAVBAR_NETWORK_BUTTON);
-  }
-
-  get mainWalletView() {
-    return Selectors.getXpathElementByResourceId(ACCOUNT_OVERVIEW_ID);
+    return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON);
   }
 
   get remindMeLaterNotification() {
     return Selectors.getElementByPlatform(
-      NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
+      ProtectWalletModalSelectorsIDs.REMIND_ME_LATER_BUTTON,
     );
   }
 
   get backupAlertModal() {
-    return Selectors.getElementByPlatform(SECURE_WALLET_BACKUP_ALERT_MODAL);
+    return Selectors.getElementByPlatform(ProtectWalletModalSelectorsIDs.COLLAPSED_WALLET_MODAL);
   }
 
   get networkNavbarTitle() {
-    return Selectors.getElementByPlatform(NAVBAR_NETWORK_TEXT);
+    return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.NAVBAR_NETWORK_TEXT);
   }
 
   get accountActionsButton() {
-    return Selectors.getXpathElementByResourceId(MAIN_WALLET_ACCOUNT_ACTIONS);
+    return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.ACCOUNT_ACTIONS);
   }
 
   get privateKeyActionButton() {
-    return Selectors.getElementByPlatform(SHOW_PRIVATE_KEY);
+    return Selectors.getElementByPlatform(AccountActionsModalSelectorsIDs.SHOW_PRIVATE_KEY);
   }
 
   get shareAddressActionButton() {
-    return Selectors.getElementByPlatform(SHARE_ADDRESS);
+    return Selectors.getElementByPlatform(AccountActionsModalSelectorsIDs.SHARE_ADDRESS);
   }
 
   get viewEtherscanActionButton() {
-    return Selectors.getElementByPlatform(VIEW_ETHERSCAN);
+    return Selectors.getElementByPlatform(AccountActionsModalSelectorsIDs.VIEW_ETHERSCAN);
   }
 
   get walletButton() {
-    return Selectors.getXpathElementByResourceId(TAB_BAR_WALLET_BUTTON);
+    return Selectors.getXpathElementByResourceId(TabBarSelectorIDs.WALLET);
   }
 
   get goBackSimpleWebViewButton() {
     return Selectors.getElementByPlatform(BACK_BUTTON_SIMPLE_WEBVIEW);
-  }
-
-  get zeroBalance() {
-    return Selectors.getXpathElementByText('$0.00');
   }
 
   get networkModal() {
@@ -133,7 +111,7 @@ class WalletMainScreen {
   }
 
   async tapIdenticon() {
-    await Gestures.waitAndTap(this.Identicon);
+    await Gestures.waitAndTap(this.accountIcon);
   }
 
   async tapNetworkNavBar() {
@@ -150,7 +128,7 @@ class WalletMainScreen {
   }
 
   async isVisible() {
-    expect(this.WalletScreenContainer).toBeDisplayed();
+    await expect(this.WalletScreenContainer).toBeDisplayed();
   }
 
   async isNetworkNameCorrect(network) {
@@ -166,7 +144,7 @@ class WalletMainScreen {
 
   async isMainWalletViewVisible() {
     const element = await this.walletButton;
-    await element.waitForDisplayed({ timeout: 100000 });
+    await element.waitForDisplayed();
   }
 
   async isSubmittedNotificationDisplayed() {
@@ -206,7 +184,7 @@ class WalletMainScreen {
     await Gestures.waitAndTap(this.goBackSimpleWebViewButton);
   }
 
-  async waitForNetworkModaltoDisappear() {
+  async waitForNetworkModalToDisappear() {
     const element = await this.networkModal;
     await element.waitForExist({ reverse: true });
   }

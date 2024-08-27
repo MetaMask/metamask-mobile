@@ -21,7 +21,7 @@ const Text: React.FC<TextProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, { variant, style, color });
   return (
-    <RNText {...props} style={styles.base} accessibilityRole="text">
+    <RNText accessibilityRole="text" {...props} style={styles.base}>
       {children}
     </RNText>
   );

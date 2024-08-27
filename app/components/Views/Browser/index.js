@@ -1,44 +1,45 @@
-import React, { useEffect, useRef, useContext } from 'react';
-import { connect, useSelector } from 'react-redux';
-import { View, Dimensions, Platform } from 'react-native';
 import PropTypes from 'prop-types';
+import React, { useContext, useEffect, useRef } from 'react';
+import { Dimensions, Platform, View } from 'react-native';
+import { captureScreen } from 'react-native-view-shot';
+import { connect, useSelector } from 'react-redux';
+import { strings } from '../../../../locales/i18n';
+import { BROWSER_SCREEN_ID } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
-  createNewTab,
   closeAllTabs,
   closeTab,
+  createNewTab,
   setActiveTab,
   updateTab,
 } from '../../../actions/browser';
-import Tabs from '../../UI/Tabs';
-import { getBrowserViewNavbarOptions } from '../../UI/Navbar';
-import { captureScreen } from 'react-native-view-shot';
-import Logger from '../../../util/Logger';
-import Device from '../../../util/device';
-import BrowserTab from '../BrowserTab';
-import AppConstants from '../../../core/AppConstants';
-import { baseStyles } from '../../../styles/common';
-import { useTheme } from '../../../util/theme';
-import AnalyticsV2 from '../../../util/analyticsV2';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import {
-  getPermittedAccounts,
-  getPermittedAccountsByHostname,
-} from '../../../core/Permissions';
-import getAccountNameWithENS from '../../../util/accounts';
-import { useAccounts } from '../../../components/hooks/useAccounts';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
-import { strings } from '../../../../locales/i18n';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { BROWSER_SCREEN_ID } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
+import { useAccounts } from '../../../components/hooks/useAccounts';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import AppConstants from '../../../core/AppConstants';
+import {
+  getPermittedAccounts,
+  getPermittedAccountsByHostname,
+} from '../../../core/Permissions';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
+import { baseStyles } from '../../../styles/common';
+import Logger from '../../../util/Logger';
+import getAccountNameWithENS from '../../../util/accounts';
+import Device from '../../../util/device';
+import { useTheme } from '../../../util/theme';
+import Tabs from '../../UI/Tabs';
+import BrowserTab from '../BrowserTab';
 
-import URL from 'url-parse';
 import { isEqual } from 'lodash';
+import URL from 'url-parse';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import { getBrowserViewNavbarOptions } from '../../UI/Navbar';
+import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
@@ -48,7 +49,7 @@ const THUMB_HEIGHT = Device.isIos() ? THUMB_WIDTH * 1.81 : THUMB_WIDTH * 1.48;
  * Component that wraps all the browser
  * individual tabs and the tabs view
  */
-const Browser = (props) => {
+export const Browser = (props) => {
   const {
     route,
     navigation,
@@ -63,6 +64,7 @@ const Browser = (props) => {
   } = props;
   const previousTabs = useRef(null);
   const { colors } = useTheme();
+  const { trackEvent } = useMetrics();
   const { toastRef } = useContext(ToastContext);
   const browserUrl = props.route?.params?.url;
   const prevSiteHostname = useRef(browserUrl);
@@ -81,8 +83,7 @@ const Browser = (props) => {
   const permittedAccountsList = useSelector((state) => {
     if (!activeTab) return [];
 
-    const permissionsControllerState =
-      state.engine.backgroundState.PermissionController;
+    const permissionsControllerState = selectPermissionControllerState(state);
     const hostname = new URL(activeTab.url).hostname;
     const permittedAcc = getPermittedAccountsByHostname(
       permissionsControllerState,
@@ -92,7 +93,7 @@ const Browser = (props) => {
   }, isEqual);
 
   const handleRightTopButtonAnalyticsEvent = () => {
-    AnalyticsV2.trackEvent(MetaMetricsEvents.OPEN_DAPP_PERMISSIONS, {
+    trackEvent(MetaMetricsEvents.OPEN_DAPP_PERMISSIONS, {
       number_of_accounts: accountsLength,
       number_of_accounts_connected: permittedAccountsList.length,
       number_of_networks: nonTestnetNetworks,
@@ -106,6 +107,7 @@ const Browser = (props) => {
           route,
           colors,
           handleRightTopButtonAnalyticsEvent,
+          !route.params?.showTabs,
         ),
       ),
     /* eslint-disable-next-line */
@@ -131,7 +133,7 @@ const Browser = (props) => {
   };
 
   const switchToTab = (tab) => {
-    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_SWITCH_TAB, {});
+    trackEvent(MetaMetricsEvents.BROWSER_SWITCH_TAB, {});
     setActiveTab(tab.id);
     hideTabsAndUpdateUrl(tab.url);
     updateTabInfo(tab.url, tab.id);

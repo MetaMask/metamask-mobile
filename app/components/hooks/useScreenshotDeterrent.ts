@@ -13,6 +13,8 @@ const useScreenshotDeterrent = (warning: () => void) => {
   );
 
   const commonAddScreenshotListener = useCallback(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (listener: () => void): any => {
       const eventSubscription = detectorEventEmitter.addListener(
         'UIApplicationUserDidTakeScreenshotNotification',
@@ -25,6 +27,8 @@ const useScreenshotDeterrent = (warning: () => void) => {
   );
 
   const addScreenshotListener = useCallback(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (listener: () => void): any => {
       const unsubscribe = commonAddScreenshotListener(listener);
       return unsubscribe;

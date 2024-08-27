@@ -23,6 +23,8 @@ const SheetHeaderMeta = {
 export default SheetHeaderMeta;
 
 export const SheetHeader = {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   render: ({ title, actionButtonlabel }: any) => (
     <SheetHeaderComponent
       title={title}

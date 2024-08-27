@@ -5,11 +5,11 @@ describe('checkIfAddressIsSaved', () => {
   it(`returns an empty array if the transaction recipient is unset`, () => {
     const mockAddress = '0x0000000000000000000000000000000000000001';
     const addressBook: AddressBookState['addressBook'] = {
-      '1': {
+      '0x1': {
         [mockAddress]: {
           address: mockAddress,
           name: 'name',
-          chainId: '1',
+          chainId: '0x1',
           memo: '',
           isEns: false,
         },
@@ -27,7 +27,7 @@ describe('checkIfAddressIsSaved', () => {
   it('returns undefined if the address book is empty', () => {
     const mockAddress = '0x0000000000000000000000000000000000000001';
     const addressBook: AddressBookState['addressBook'] = {};
-    const chainId = '1';
+    const chainId = '0x1';
     const transaction = {
       to: mockAddress,
     };
@@ -41,17 +41,17 @@ describe('checkIfAddressIsSaved', () => {
     const mockAddress1 = '0x0000000000000000000000000000000000000001';
     const mockAddress2 = '0x0000000000000000000000000000000000000002';
     const addressBook: AddressBookState['addressBook'] = {
-      '1': {
+      '0x1': {
         [mockAddress2]: {
           address: mockAddress2,
           name: 'name',
-          chainId: '1',
+          chainId: '0x1',
           memo: '',
           isEns: false,
         },
       },
     };
-    const chainId = '1';
+    const chainId = '0x1';
     const transaction = {
       to: mockAddress1,
     };
@@ -64,17 +64,17 @@ describe('checkIfAddressIsSaved', () => {
   it('returns an empty array if transaction recipient is not in the address book for the given network', () => {
     const mockAddress = '0x0000000000000000000000000000000000000001';
     const addressBook: AddressBookState['addressBook'] = {
-      '2': {
+      '0x2': {
         [mockAddress]: {
           address: mockAddress,
           name: 'name',
-          chainId: '2',
+          chainId: '0x2',
           memo: '',
           isEns: false,
         },
       },
     };
-    const chainId = '1';
+    const chainId = '0x1';
     const transaction = {
       to: mockAddress,
     };
@@ -87,17 +87,17 @@ describe('checkIfAddressIsSaved', () => {
   it('returns an address book entry', () => {
     const mockAddress = '0x0000000000000000000000000000000000000001';
     const addressBook: AddressBookState['addressBook'] = {
-      '1': {
+      '0x1': {
         [mockAddress]: {
           address: mockAddress,
           name: 'name',
-          chainId: '1',
+          chainId: '0x1',
           memo: '',
           isEns: false,
         },
       },
     };
-    const chainId = '1';
+    const chainId = '0x1';
     const transaction = {
       to: mockAddress,
     };
@@ -116,17 +116,17 @@ describe('checkIfAddressIsSaved', () => {
     const mockAddress = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
     const mockAddressChecksummed = '0xaAaAaAaaAaAaAaaAaAAAAAAAAaaaAaAaAaaAaaAa';
     const addressBook: AddressBookState['addressBook'] = {
-      '1': {
+      '0x1': {
         [mockAddress]: {
           address: mockAddress,
           name: 'name',
-          chainId: '1',
+          chainId: '0x1',
           memo: '',
           isEns: false,
         },
       },
     };
-    const chainId = '1';
+    const chainId = '0x1';
     const transaction = {
       to: mockAddress,
     };
@@ -146,24 +146,24 @@ describe('checkIfAddressIsSaved', () => {
     const mockAddress = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
     const mockAddressChecksummed = '0xaAaAaAaaAaAaAaaAaAAAAAAAAaaaAaAaAaaAaaAa';
     const addressBook: AddressBookState['addressBook'] = {
-      '1': {
+      '0x1': {
         [mockAddress]: {
           address: mockAddress,
           name: 'name',
-          chainId: '1',
+          chainId: '0x1',
           memo: '',
           isEns: false,
         },
         [mockAddressChecksummed]: {
           address: mockAddressChecksummed,
           name: 'name',
-          chainId: '1',
+          chainId: '0x1',
           memo: '',
           isEns: false,
         },
       },
     };
-    const chainId = '1';
+    const chainId = '0x1';
     const transaction = {
       to: mockAddress,
     };

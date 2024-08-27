@@ -20,18 +20,19 @@ import { strings } from '../../../../locales/i18n';
 import Alert, { AlertType } from '../../Base/Alert';
 import HorizontalSelector from '../../Base/HorizontalSelector';
 import Device from '../../../util/device';
-import { isMainnetByChainId } from '../../../util/networks';
+import { getDecimalChainId, isMainnetByChainId } from '../../../util/networks';
 import FadeAnimationView from '../FadeAnimationView';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 
 import AppConstants from '../../../core/AppConstants';
 import { useTheme } from '../../../util/theme';
-
-const GAS_LIMIT_INCREMENT = new BigNumber(1000);
-const GAS_PRICE_INCREMENT = new BigNumber(1);
-const GAS_LIMIT_MIN = new BigNumber(21000);
-const GAS_PRICE_MIN = new BigNumber(0);
+import {
+  GAS_LIMIT_INCREMENT,
+  GAS_PRICE_INCREMENT,
+  GAS_LIMIT_MIN,
+  GAS_PRICE_MIN,
+} from '../../../util/gasUtils';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -147,13 +148,14 @@ const EditGasFeeLegacy = ({
   const [selectedOption, setSelectedOption] = useState(selected);
   const [gasPriceError, setGasPriceError] = useState();
   const { colors } = useTheme();
+  const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
 
   const getAnalyticsParams = useCallback(() => {
     try {
       return {
         ...analyticsParams,
-        chain_id: chainId,
+        chain_id: getDecimalChainId(chainId),
         function_type: view,
         gas_mode: selectedOption ? 'Basic' : 'Advanced',
         speed_set: selectedOption || undefined,
@@ -165,22 +167,19 @@ const EditGasFeeLegacy = ({
 
   const toggleAdvancedOptions = useCallback(() => {
     if (!showAdvancedOptions) {
-      AnalyticsV2.trackEvent(
+      trackEvent(
         MetaMetricsEvents.GAS_ADVANCED_OPTIONS_CLICKED,
         getAnalyticsParams(),
       );
     }
     setShowAdvancedOptions((showAdvancedOptions) => !showAdvancedOptions);
-  }, [getAnalyticsParams, showAdvancedOptions]);
+  }, [getAnalyticsParams, showAdvancedOptions, trackEvent]);
 
   const save = useCallback(() => {
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.GAS_FEE_CHANGED,
-      getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.GAS_FEE_CHANGED, getAnalyticsParams());
 
     onSave(selectedOption);
-  }, [getAnalyticsParams, onSave, selectedOption]);
+  }, [getAnalyticsParams, onSave, selectedOption, trackEvent]);
 
   const changeGas = useCallback(
     (gas, selectedOption) => {

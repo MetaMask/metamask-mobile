@@ -20,17 +20,18 @@ export interface BottomSheetDialogProps extends ViewProps {
    */
   isInteractable?: boolean;
   /**
-   * Optional callback that gets triggered when sheet is dismissed.
+   * Optional callback that gets triggered when sheet is closed.
    */
-  onDismissed?: () => void;
+  onClose?: (hasPendingAction?: boolean) => void;
   /**
-   * Optional boolean that allow the bottomsheet to grow until the top.
+   * Optional callback that gets triggered when sheet is opened.
    */
-  isFlexible?: boolean;
+  onOpen?: (hasPendingAction?: boolean) => void;
 }
 
 export interface BottomSheetDialogRef {
-  closeDialog: (callback?: () => void) => void;
+  onCloseDialog: (callback?: () => void) => void;
+  onOpenDialog: (callback?: () => void) => void;
 }
 
 /**

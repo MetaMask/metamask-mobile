@@ -6,7 +6,7 @@ import { render } from '@testing-library/react-native';
 import Text from '../../Texts/Text/Text';
 import { ButtonVariants } from '../../Buttons/Button';
 import { IconName } from '../../Icons/Icon';
-import { ButtonIconSizes, ButtonIconVariants } from '../../Buttons/ButtonIcon';
+import { ButtonIconSizes } from '../../Buttons/ButtonIcon';
 
 // Internal dependencies.
 import Banner from './Banner';
@@ -77,7 +77,6 @@ describe('Banner', () => {
         closeButtonProps={{
           onPress: () => jest.fn(),
           iconName: IconName.Close,
-          variant: ButtonIconVariants.Primary,
           size: ButtonIconSizes.Sm,
         }}
       />,

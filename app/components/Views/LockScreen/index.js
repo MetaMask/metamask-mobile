@@ -13,7 +13,6 @@ import { connect } from 'react-redux';
 import LottieView from 'lottie-react-native';
 import { baseStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
-import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { Authentication } from '../../../core';
 import {
   getAssetFromTheme,
@@ -21,8 +20,8 @@ import {
   ThemeContext,
 } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { CommonActions } from '@react-navigation/native';
+import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 
 const LOGO_SIZE = 175;
 const createStyles = (colors) =>
@@ -76,7 +75,6 @@ class LockScreen extends PureComponent {
      * The navigator object
      */
     navigation: PropTypes.object,
-    selectedAddress: PropTypes.string,
     appTheme: PropTypes.string,
     /**
      * ID associated with each biometric session.
@@ -133,10 +131,10 @@ class LockScreen extends PureComponent {
   async unlockKeychain() {
     const { bioStateMachineId } = this.props;
     try {
-      // Retreive the credentials
+      // Retrieve the credentials
       Logger.log('Lockscreen::unlockKeychain - getting credentials');
+
       await Authentication.appTriggeredAuth({
-        selectedAddress: this.props.selectedAddress,
         bioStateMachineId,
         disableAutoLogout: true,
       });
@@ -234,7 +232,6 @@ class LockScreen extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedAddress(state),
   appTheme: state.user.appTheme,
 });
 

@@ -8,7 +8,6 @@ import {
   StyleSheet,
   Image,
   Dimensions,
-  InteractionManager,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -23,10 +22,10 @@ import SeedphraseModal from '../../UI/SeedphraseModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 
 import { useTheme } from '../../../util/theme';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
@@ -206,17 +205,17 @@ const AccountBackupStep1B = (props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
+  const track = (event, properties) => {
+    trackOnboarding(event, properties);
+  };
+
   useEffect(() => {
     navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
   }, [navigation, route, colors]);
 
   const goNext = () => {
     props.navigation.navigate('ManualBackupStep1', { ...props.route.params });
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.WALLET_SECURITY_MANUAL_BACKUP_INITIATED,
-      );
-    });
+    track(MetaMetricsEvents.WALLET_SECURITY_MANUAL_BACKUP_INITIATED);
   };
 
   const learnMore = () => {
@@ -224,7 +223,7 @@ const AccountBackupStep1B = (props) => {
     props.navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-Tips',
+        url: 'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/',
         title: strings('drawer.metamask_support'),
       },
     });

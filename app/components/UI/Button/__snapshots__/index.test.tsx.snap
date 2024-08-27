@@ -1,12 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Button should render correctly 1`] = `
-<GenericButton
+<TouchableOpacity
+  delayPressIn={50}
   style={
-    Array [
-      Object {
+    [
+      {
         "alignItems": "center",
-        "backgroundColor": "#0376C9",
+        "backgroundColor": "#0376c9",
         "borderRadius": 4,
         "flex": 1,
         "height": 40,

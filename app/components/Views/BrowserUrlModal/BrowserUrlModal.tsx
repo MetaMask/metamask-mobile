@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   TextInput,
   InteractionManager,
-  Platform,
 } from 'react-native';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -20,13 +19,8 @@ import {
 } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import Device from '../../../util/device';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  URL_CLEAR_ICON,
-  URL_INPUT_BOX_ID,
-  CANCEL_BUTTON_ON_BROWSER_ID,
-} from '../../../../wdio/screen-objects/testIDs/BrowserScreen/AddressBar.testIds';
 
+import { BrowserURLBarSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserURLBar.selectors';
 export interface BrowserUrlParams {
   onUrlInputSubmit: (inputValue: string | undefined) => void;
   url: string | undefined;
@@ -90,7 +84,7 @@ const BrowserUrlModal = () => {
             ref={inputRef}
             autoCapitalize="none"
             autoCorrect={false}
-            {...generateTestId(Platform, URL_INPUT_BOX_ID)}
+            testID={BrowserURLBarSelectorsIDs.URL_INPUT}
             onChangeText={setAutocompleteValue}
             onSubmitEditing={() => triggerOnSubmit(autocompleteValue || '')}
             placeholder={strings('autocomplete.placeholder')}
@@ -106,19 +100,15 @@ const BrowserUrlModal = () => {
             <TouchableOpacity
               onPress={clearSearchInput}
               style={styles.clearButton}
+              testID={BrowserURLBarSelectorsIDs.URL_CLEAR_ICON}
             >
-              <Icon
-                name="times-circle"
-                size={18}
-                color={colors.icon.default}
-                {...generateTestId(Platform, URL_CLEAR_ICON)}
-              />
+              <Icon name="times-circle" size={18} color={colors.icon.default} />
             </TouchableOpacity>
           ) : null}
         </View>
         <TouchableOpacity
           style={styles.cancelButton}
-          {...generateTestId(Platform, CANCEL_BUTTON_ON_BROWSER_ID)}
+          testID={BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID}
           onPress={triggerClose}
         >
           <Text style={styles.cancelButtonText}>

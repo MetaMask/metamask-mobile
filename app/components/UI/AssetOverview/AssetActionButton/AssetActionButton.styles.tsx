@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 import Device from '../../../../util/device';
-import { Theme } from '@metamask/design-tokens';
+import type { Theme } from '@metamask/design-tokens';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;

@@ -26,9 +26,12 @@ export const setupBridge = ({
   const backgroundBridge = new BackgroundBridge({
     webview: null,
     isMMSDK: true,
-    // TODO: need to rewrite backgroundBridge to directly provide the origin instead of url format.
-    url: PROTOCOLS.METAMASK + '://' + AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
+    channelId: connection.channelId,
+    url:
+      PROTOCOLS.METAMASK + '://' + originatorInfo.url || originatorInfo.title,
     isRemoteConn: true,
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     sendMessage: (msg: any) => {
       DevLogger.log(`setupBride::sendMessage`, msg);
       handleSendMessage({
@@ -48,6 +51,7 @@ export const setupBridge = ({
       );
       return getRpcMethodMiddleware({
         hostname: connection.host,
+        channelId: connection.channelId,
         getProviderState,
         isMMSDK: true,
         navigation: null, //props.navigation,

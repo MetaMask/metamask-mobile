@@ -10,6 +10,8 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import { useTheme } from '../../../../util/theme';
 import { selectTokenList } from '../../../../selectors/tokenListController';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     item: {
@@ -25,6 +27,8 @@ const createStyles = (colors: any) =>
       alignItems: 'flex-start',
     },
     text: {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...(fontStyles.normal as any),
       color: colors.text.default,
     },
@@ -33,6 +37,8 @@ const createStyles = (colors: any) =>
       paddingBottom: 4,
       fontSize: 16,
       color: colors.text.default,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any,
     assetInfo: {
       flex: 1,
@@ -55,10 +61,14 @@ interface Props {
   /**
    * Array of assets objects returned from the search
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   searchResults: any;
   /**
    * Callback triggered when a token is selected
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   handleSelectAsset: any;
   /**
    * Message string to display when searchResults is empty
@@ -81,6 +91,8 @@ const AssetList = ({
    * @param {object} asset - Asset to generate the logo to render
    */
   const renderLogo = useCallback(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (asset: any) => {
       const { address, isETH } = asset;
       if (isETH) {
@@ -100,27 +112,31 @@ const AssetList = ({
 
   return (
     <View testID={'add-searched-token-screen'}>
-      {searchResults.map((_: any, i: number) => {
-        const { symbol, name } = searchResults[i] || {};
-        return (
-          <StyledButton
-            type={'normal'}
-            containerStyle={styles.item}
-            onPress={() => handleSelectAsset(searchResults[i])} // eslint-disable-line
-            key={i}
-          >
-            <View style={styles.assetListElement}>
-              <View style={styles.assetIcon}>
-                {renderLogo(searchResults[i])}
+      {
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        searchResults.map((_: any, i: number) => {
+          const { symbol, name } = searchResults[i] || {};
+          return (
+            <StyledButton
+              type={'normal'}
+              containerStyle={styles.item}
+              onPress={() => handleSelectAsset(searchResults[i])} // eslint-disable-line
+              key={i}
+            >
+              <View style={styles.assetListElement}>
+                <View style={styles.assetIcon}>
+                  {renderLogo(searchResults[i])}
+                </View>
+                <View style={styles.assetInfo}>
+                  <Text style={styles.textSymbol}>{symbol}</Text>
+                  {!!name && <Text style={styles.text}>{name}</Text>}
+                </View>
               </View>
-              <View style={styles.assetInfo}>
-                <Text style={styles.textSymbol}>{symbol}</Text>
-                {!!name && <Text style={styles.text}>{name}</Text>}
-              </View>
-            </View>
-          </StyledButton>
-        );
-      })}
+            </StyledButton>
+          );
+        })
+      }
       {searchResults.length === 0 && (
         <Text style={styles.text}>{emptyMessage}</Text>
       )}

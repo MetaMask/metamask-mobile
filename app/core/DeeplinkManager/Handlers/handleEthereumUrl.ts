@@ -1,10 +1,12 @@
 import { ETH_ACTIONS } from '../../../constants/deeplinks';
-import { NetworkSwitchErrorType } from '../../../constants/error';
 import { ParseOutput, parse } from 'eth-url-parser';
 import { Alert } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import DeeplinkManager from '../DeeplinkManager';
 import formattedDeeplinkParsedValue from '../../../util/formattedDeeplinkParsedValue';
+import { NetworkSwitchErrorType } from '../../../constants/error';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { getDecimalChainId } from '../../../util/networks';
 
 async function handleEthereumUrl({
   deeplinkManager,
@@ -26,6 +28,15 @@ async function handleEthereumUrl({
   const txMeta = { ...ethUrl, source: url };
 
   try {
+    // If the deeplink has a goerli chainId, show deprecation modal and return
+    if (
+      ethUrl.chain_id === getDecimalChainId(CHAIN_IDS.GOERLI) ||
+      ethUrl.chain_id === CHAIN_IDS.GOERLI
+    ) {
+      deeplinkManager.navigation.navigate('DeprecatedNetworkDetails', {});
+      return;
+    }
+
     /**
      * Validate and switch network before performing any other action
      */
@@ -60,6 +71,8 @@ async function handleEthereumUrl({
         }
       }
     }
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (e: any) {
     let alertMessage;
     switch (e.message) {
@@ -68,7 +81,7 @@ async function handleEthereumUrl({
         break;
       default:
         alertMessage = strings('send.network_not_found_description', {
-          chain_id: ethUrl.chain_id,
+          chain_id: getDecimalChainId(ethUrl.chain_id),
         });
     }
     Alert.alert(strings('send.network_not_found_title'), alertMessage);

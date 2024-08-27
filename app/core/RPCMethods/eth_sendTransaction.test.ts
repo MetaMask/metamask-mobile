@@ -2,7 +2,7 @@
 import { inspect } from 'util';
 import type { JsonRpcRequest, PendingJsonRpcResponse } from 'json-rpc-engine';
 import type {
-  Transaction,
+  TransactionParams,
   TransactionController,
   WalletDevice,
 } from '@metamask/transaction-controller';
@@ -19,16 +19,24 @@ jest.mock('../../core/Engine', () => ({
     PPOMController: {
       usePPOM: jest.fn(),
     },
-    TransactionController: {
-      updateTransaction: jest.fn(),
-      updateSecurityAlertResponse: jest.fn(),
-    },
     NetworkController: {
       state: {
-        providerConfig: { chainId: '1' },
+        providerConfig: { chainId: '0x1' },
       },
     },
+    AccountsController: {
+      state: {
+        internalAccounts: { accounts: [] },
+      },
+      listAccounts: () => [],
+    },
   },
+}));
+
+jest.mock('../../util/transaction-controller', () => ({
+  __esModule: true,
+  updateSecurityAlertResponse: jest.fn(),
+  updateTransaction: jest.fn(),
 }));
 
 /**
@@ -61,7 +69,7 @@ function constructPendingJsonRpcResponse(): PendingJsonRpcResponse<unknown> {
 }
 
 /**
- * Get a mock implementation of `TransactionController.addTransaction`.
+ * Get a mock implementation of `addTransaction`.
  *
  * A return value or some type of error must be provided.
  *
@@ -97,7 +105,7 @@ function getMockAddTransaction({
 
   return jest.fn().mockImplementation(
     async (
-      transaction: Transaction,
+      transaction: TransactionParams,
       {
         origin,
         deviceConfirmedOn,

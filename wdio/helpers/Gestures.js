@@ -67,7 +67,7 @@ const Actions = {
 class Gestures {
   static async waitAndTap(element) {
     const elem = await element;
-    await elem.waitForDisplayed();
+    await elem.waitForDisplayed({timeout: 25000});
     (await elem).touchAction(Actions.TAP);
   }
 

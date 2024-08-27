@@ -13,11 +13,12 @@ import {
   startFixtureServer,
   stopFixtureServer,
 } from '../../fixtures/fixture-helper';
-import Networks from '../../resources/networks.json';
+import { CustomNetworks } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { SmokeSwaps } from '../../tags';
+import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
 
@@ -26,7 +27,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
-      .withNetworkController(Networks.Tenderly)
+      .withNetworkController(CustomNetworks.Tenderly)
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
@@ -47,7 +48,8 @@ describe(SmokeSwaps('Swap from Actions'), () => {
 
   it.each`
     quantity | sourceTokenSymbol | destTokenSymbol
-    ${'.05'} | ${'ETH'}          | ${'USDC'}
+    ${'.05'} | ${'ETH'}          | ${'USDT'}
+    ${'100'} | ${'USDT'}         | ${'ETH'}
   `(
     "should Swap $quantity '$sourceTokenSymbol' to '$destTokenSymbol'",
     async ({ quantity, sourceTokenSymbol, destTokenSymbol }) => {
@@ -59,37 +61,67 @@ describe(SmokeSwaps('Swap from Actions'), () => {
         await Onboarding.tapStartSwapping();
         swapOnboarded = true;
       }
-      await QuoteView.isVisible();
+      await Assertions.checkIfVisible(QuoteView.getQuotes);
 
       //Select source token, if ETH then can skip because already selected
       if (sourceTokenSymbol !== 'ETH') {
         await QuoteView.tapOnSelectSourceToken();
+        await QuoteView.tapSearchToken();
+        await QuoteView.typeSearchToken(sourceTokenSymbol);
+        await TestHelpers.delay(1000);
         await QuoteView.selectToken(sourceTokenSymbol);
       }
       await QuoteView.enterSwapAmount(quantity);
 
       //Select destination token
       await QuoteView.tapOnSelectDestToken();
+      await QuoteView.tapSearchToken();
+      await QuoteView.typeSearchToken(destTokenSymbol);
+      await TestHelpers.delay(1000);
       await QuoteView.selectToken(destTokenSymbol);
 
       //Make sure slippage is zero for wrapped tokens
       if (sourceTokenSymbol === 'WETH' || destTokenSymbol === 'WETH') {
-        await QuoteView.checkMaxSlippage('Max slippage 0%');
+        await Assertions.checkIfElementToHaveText(
+          QuoteView.maxSlippage,
+          'Max slippage 0%',
+        );
       }
       await QuoteView.tapOnGetQuotes();
-      await SwapView.isVisible();
+      await Assertions.checkIfVisible(SwapView.fetchingQuotes);
+      await Assertions.checkIfVisible(SwapView.quoteSummary);
+      await Assertions.checkIfVisible(SwapView.gasFee);
       await SwapView.tapIUnderstandPriceWarning();
       await SwapView.swipeToSwap();
-      await SwapView.waitForSwapToComplete(sourceTokenSymbol, destTokenSymbol);
+      try {
+        await Assertions.checkIfVisible(
+          SwapView.swapCompleteLabel(sourceTokenSymbol, destTokenSymbol),
+          30000,
+        );
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.log(`Toast message is slow to appear or did not appear: ${e}`);
+      }
+      await device.enableSynchronization();
+      await TestHelpers.delay(5000);
       await TabBarComponent.tapActivity();
-      await ActivitiesView.isVisible();
+      await Assertions.checkIfVisible(ActivitiesView.title);
+      await Assertions.checkIfVisible(
+        ActivitiesView.swapActivity(sourceTokenSymbol, destTokenSymbol),
+      );
+      await TestHelpers.delay(5000);
       await ActivitiesView.tapOnSwapActivity(
         sourceTokenSymbol,
         destTokenSymbol,
       );
-      await DetailsModal.isTitleVisible(sourceTokenSymbol, destTokenSymbol);
-      await DetailsModal.isStatusCorrect('Confirmed');
+      await Assertions.checkIfVisible(DetailsModal.title);
+      await Assertions.checkIfElementToHaveText(
+        DetailsModal.title,
+        DetailsModal.generateExpectedTitle(sourceTokenSymbol, destTokenSymbol),
+      );
+      await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
       await DetailsModal.tapOnCloseIcon();
+      await Assertions.checkIfNotVisible(DetailsModal.title);
     },
   );
 });

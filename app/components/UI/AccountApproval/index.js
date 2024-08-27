@@ -1,44 +1,46 @@
-import React, { PureComponent } from 'react';
-import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import StyledButton from '../StyledButton';
+import React, { PureComponent } from 'react';
 import {
-  View,
   InteractionManager,
-  TouchableOpacity,
   Platform,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import TransactionHeader from '../TransactionHeader';
-import AccountInfoCard from '../AccountInfoCard';
+import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import Text from '../../../component-library/components/Texts/Text';
 import NotificationManager from '../../../core/NotificationManager';
+import AccountInfoCard from '../AccountInfoCard';
+import StyledButton from '../StyledButton';
+import TransactionHeader from '../TransactionHeader';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 
+import CheckBox from '@react-native-community/checkbox';
+import { shuffle } from 'lodash';
 import URL from 'url-parse';
-import { getAddressAccountType } from '../../../util/address';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+import AppConstants from '../../../../app/core/AppConstants';
+import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
+import { ConnectAccountModalSelectorsIDs } from '../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
+import Routes from '../../../constants/navigation/Routes';
+import Engine from '../../../core/Engine';
+import SDKConnect from '../../../core/SDKConnect/SDKConnect';
+import { selectAccountsLength } from '../../../selectors/accountTrackerController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import {
   selectChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
 import { selectTokensLength } from '../../../selectors/tokensController';
-import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
-import AppConstants from '../../../../app/core/AppConstants';
-import { shuffle } from 'lodash';
-import SDKConnect from '../../../core/SDKConnect/SDKConnect';
-import Routes from '../../../constants/navigation/Routes';
-import CheckBox from '@react-native-community/checkbox';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import Engine from '../../../core/Engine';
+import { getAddressAccountType } from '../../../util/address';
 import { prefixUrlWithProtocol } from '../../../util/browser';
-import createStyles from './styles';
+import { getDecimalChainId } from '../../../util/networks';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 import ShowWarningBanner from './showWarningBanner';
-import { ConnectAccountModalSelectorsIDs } from '../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
-import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
+import createStyles from './styles';
+import { SourceType } from '../../../components/hooks/useMetrics/useMetrics.types';
 
 /**
  * Account access approval component
@@ -86,6 +88,10 @@ class AccountApproval extends PureComponent {
      * A string representing the network chainId
      */
     chainId: PropTypes.string,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -103,26 +109,54 @@ class AccountApproval extends PureComponent {
   };
 
   getAnalyticsParams = () => {
+    const { currentPageInformation, chainId, selectedAddress, accountsLength } =
+      this.props;
+    let urlHostName = 'N/A';
+
     try {
-      const {
-        currentPageInformation,
-        chainId,
-        selectedAddress,
-        accountsLength,
-      } = this.props;
-      const url = new URL(currentPageInformation?.url);
-      return {
-        account_type: getAddressAccountType(selectedAddress),
-        dapp_host_name: url?.host,
-        chain_id: chainId,
-        number_of_accounts: accountsLength,
-        number_of_accounts_connected: 1,
-        source: 'SDK / WalletConnect',
-        ...currentPageInformation?.analytics,
-      };
+      if (currentPageInformation?.url) {
+        const url = new URL(currentPageInformation.url);
+        urlHostName = url.host;
+      }
     } catch (error) {
-      return {};
+      console.error('URL conversion error:', error);
     }
+
+    const getSource = () => {
+      const source = currentPageInformation?.analytics?.source;
+
+      if (source) {
+        return source;
+      }
+
+      if (
+        currentPageInformation?.analytics &&
+        'source' in currentPageInformation.analytics &&
+        !source
+      ) {
+        return SourceType.DAPP_DEEPLINK_URL;
+      }
+
+      return this.props.walletConnectRequest
+        ? SourceType.WALLET_CONNECT
+        : SourceType.SDK;
+    };
+
+    const extraAnalyticsParams = {
+      ...currentPageInformation?.analytics,
+      source: getSource(),
+    };
+
+    return {
+      account_type: selectedAddress
+        ? getAddressAccountType(selectedAddress)
+        : null,
+      dapp_host_name: urlHostName,
+      chain_id: chainId ? getDecimalChainId(chainId) : null,
+      number_of_accounts: accountsLength,
+      number_of_accounts_connected: 1,
+      ...extraAnalyticsParams,
+    };
   };
 
   componentDidMount = () => {
@@ -132,12 +166,10 @@ class AccountApproval extends PureComponent {
     const { hostname } = new URL(prefixedUrl);
     this.checkUrlFlaggedAsPhishing(hostname);
 
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.CONNECT_REQUEST_STARTED,
-        this.getAnalyticsParams(),
-      );
-    });
+    this.props.metrics.trackEvent(
+      MetaMetricsEvents.CONNECT_REQUEST_STARTED,
+      this.getAnalyticsParams(),
+    );
   };
 
   showWalletConnectNotification = (confirmation = false) => {
@@ -171,7 +203,7 @@ class AccountApproval extends PureComponent {
       // onConfirm will close current window by rejecting current approvalRequest.
       this.props.onCancel();
 
-      AnalyticsV2.trackEvent(
+      this.props.metrics.trackEvent(
         MetaMetricsEvents.CONNECT_REQUEST_OTPFAILURE,
         this.getAnalyticsParams(),
       );
@@ -192,7 +224,7 @@ class AccountApproval extends PureComponent {
     }
 
     this.props.onConfirm();
-    AnalyticsV2.trackEvent(
+    this.props.metrics.trackEvent(
       MetaMetricsEvents.CONNECT_REQUEST_COMPLETED,
       this.getAnalyticsParams(),
     );
@@ -203,7 +235,7 @@ class AccountApproval extends PureComponent {
    * Calls onConfirm callback and analytics to track connect canceled event
    */
   onCancel = () => {
-    AnalyticsV2.trackEvent(
+    this.props.metrics.trackEvent(
       MetaMetricsEvents.CONNECT_REQUEST_CANCELLED,
       this.getAnalyticsParams(),
     );
@@ -373,11 +405,11 @@ class AccountApproval extends PureComponent {
 const mapStateToProps = (state) => ({
   accountsLength: selectAccountsLength(state),
   tokensLength: selectTokensLength(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   networkType: selectProviderType(state),
   chainId: selectChainId(state),
 });
 
 AccountApproval.contextType = ThemeContext;
 
-export default connect(mapStateToProps)(AccountApproval);
+export default connect(mapStateToProps)(withMetricsAwareness(AccountApproval));

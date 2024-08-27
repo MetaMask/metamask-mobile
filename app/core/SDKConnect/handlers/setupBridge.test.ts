@@ -1,6 +1,5 @@
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { PROTOCOLS } from '../../../constants/deeplinks';
-import AppConstants from '../../AppConstants';
 import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
 import { Connection } from '../Connection';
 import DevLogger from '../utils/DevLogger';
@@ -22,6 +21,7 @@ describe('setupBridge', () => {
     jest.clearAllMocks();
     originatorInfo = {
       url: 'https://example.com',
+      dappId: 'https://example.com',
       title: 'Test Title',
       platform: 'testPlatform',
     };
@@ -55,7 +55,7 @@ describe('setupBridge', () => {
   it('should setup backgroundBridge with correct url and isRemoteConn', () => {
     connection.backgroundBridge = undefined;
     const expectedUrl =
-      PROTOCOLS.METAMASK + '://' + AppConstants.MM_SDK.SDK_REMOTE_ORIGIN;
+      PROTOCOLS.METAMASK + '://' + originatorInfo.url ?? originatorInfo.title;
 
     setupBridge({ originatorInfo, connection });
 

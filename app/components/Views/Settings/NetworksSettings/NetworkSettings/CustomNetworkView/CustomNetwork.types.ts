@@ -17,6 +17,11 @@ export interface Network {
   warning?: boolean;
 }
 
+export interface ExtendedNetwork extends Network {
+  name: string;
+  formattedRpcUrl?: string | null;
+}
+
 export interface CustomNetworkProps {
   /**
    * is network modal open
@@ -37,7 +42,7 @@ export interface CustomNetworkProps {
   /**
    * show network modal
    */
-  showNetworkModal: (networkConfiguration: Network) => void;
+  showNetworkModal: (networkConfiguration: Network & ExtendedNetwork) => void;
   /**
    * Switch tab between popular and custom networks
    */
@@ -59,4 +64,21 @@ export interface CustomNetworkProps {
    * List of custom networks
    */
   customNetworksList?: Network[];
+  /**
+   * Display "Continue" for selected networks
+   */
+  displayContinue?: boolean;
+  /**
+   * If this list of networks is used in a filtered way for example when the user is using a search box to filter networks,
+   * we should take that into consideration before displaying an empty state telling the user he has already added all networks.
+   * This is the main use case for this prop.
+   */
+  showCompletionMessage?: boolean;
+  /**
+   * In the redesigned network UI, instead of showing warning icons on each network that needs it,
+   * instead an information icon will be displayed next to the addtional networks group title.
+   * This prop allows to support both the redesigned UI as well as it's previous version.
+   * Once the previous version is removed, this hideWarningIcons wont have any other use and can be removed.
+   */
+  hideWarningIcons?: boolean;
 }

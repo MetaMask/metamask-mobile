@@ -7,7 +7,6 @@ import { selectAccounts } from '../../selectors/accountTrackerController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-  selectNativeCurrency,
 } from '../../selectors/currencyRateController';
 import { selectTicker } from '../../selectors/networkController';
 import { selectContractBalances } from '../../selectors/tokenBalancesController';
@@ -23,6 +22,7 @@ import {
   LegacyProps,
   UseGasTransactionProps,
 } from './types';
+import { selectGasFeeEstimates } from '../../selectors/confirmTransaction';
 
 /**
  *
@@ -30,6 +30,8 @@ import {
  * @returns the token that is used to identify the gas polling.
  */
 export const startGasPolling = async (token?: string) => {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { GasFeeController }: any = Engine.context;
   const pollToken = await GasFeeController.getGasFeeEstimatesAndStartPolling(
     token,
@@ -41,6 +43,8 @@ export const startGasPolling = async (token?: string) => {
  * @returns clears the token array state in the GasFeeController.
  */
 export const stopGasPolling = () => {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { GasFeeController }: any = Engine.context;
   return GasFeeController.stopPolling();
 };
@@ -52,7 +56,6 @@ export const useDataStore = () => {
     contractExchangeRates,
     conversionRate,
     currentCurrency,
-    nativeCurrency,
     accounts,
     contractBalances,
     ticker,
@@ -60,13 +63,14 @@ export const useDataStore = () => {
     selectedAsset,
     showCustomNonce,
   ] = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => [
-      state.engine.backgroundState.GasFeeController.gasFeeEstimates,
+      selectGasFeeEstimates(state),
       state.engine.backgroundState.GasFeeController.gasEstimateType,
       selectContractExchangeRates(state),
       selectConversionRate(state),
       selectCurrentCurrency(state),
-      selectNativeCurrency(state),
       selectAccounts(state),
       selectContractBalances(state),
       selectTicker(state),
@@ -84,7 +88,6 @@ export const useDataStore = () => {
     contractExchangeRates,
     conversionRate,
     currentCurrency,
-    nativeCurrency,
     accounts,
     contractBalances,
     selectedAsset,
@@ -202,7 +205,6 @@ export const useGasTransaction = ({
     contractExchangeRates,
     conversionRate,
     currentCurrency,
-    nativeCurrency,
     ticker,
   } = useDataStore();
 
@@ -270,7 +272,7 @@ export const useGasTransaction = ({
     contractExchangeRates,
     conversionRate,
     currentCurrency,
-    nativeCurrency,
+    nativeCurrency: ticker,
     suggestedGasLimit,
     onlyGas,
   });

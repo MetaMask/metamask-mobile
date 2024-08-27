@@ -1,16 +1,14 @@
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 
-import {
-  NETWORK_SCROLL_ID,
-  NETWORK_TEST_SWITCH_ID,
-} from '../testIDs/Components/NetworkListModal.TestIds';
+import { NETWORK_TEST_SWITCH_ID } from '../testIDs/Components/NetworkListModal.TestIds';
 import { ADD_NETWORK_BUTTON } from '../testIDs/Screens/NetworksScreen.testids';
 import { CellModalSelectorsIDs } from '../../../e2e/selectors/Modals/CellModal.selectors';
+import { NetworkListModalSelectorsText } from "../../../e2e/selectors/Modals/NetworkListModal.selectors";
 
 class NetworkListModal {
-  get scroll() {
-    return Selectors.getElementByPlatform(NETWORK_SCROLL_ID);
+  get title() {
+    return Selectors.getXpathElementByText(NetworkListModalSelectorsText.SELECT_NETWORK);
   }
 
   get addNetworkButton() {
@@ -18,7 +16,7 @@ class NetworkListModal {
   }
 
   get testNetworkSwitch() {
-    return Selectors.getElementByPlatform(NETWORK_TEST_SWITCH_ID);
+    return Selectors.getXpathElementByResourceId(NETWORK_TEST_SWITCH_ID);
   }
 
   get networksButton() {
@@ -30,12 +28,12 @@ class NetworkListModal {
   }
 
   async waitForDisplayed() {
-    const scroll = await this.scroll;
+    const scroll = await this.title;
     await scroll.waitForDisplayed();
   }
 
   async waitForDisappear() {
-    const scroll = await this.scroll;
+    const scroll = await this.title;
     await scroll.waitForDisplayed({ reverse: true });
   }
 

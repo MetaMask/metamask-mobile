@@ -3,9 +3,9 @@
 exports[`HeaderBase should render snapshot correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "flexDirection": "row",
     }
   }
@@ -13,7 +13,7 @@ exports[`HeaderBase should render snapshot correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "width": undefined,
       }
     }
@@ -24,7 +24,7 @@ exports[`HeaderBase should render snapshot correctly 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
         "flex": 1,
         "marginHorizontal": 16,
@@ -34,8 +34,8 @@ exports[`HeaderBase should render snapshot correctly 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        Object {
-          "color": "#24272A",
+        {
+          "color": "#141618",
           "fontFamily": "Euclid Circular B",
           "fontSize": 16,
           "fontWeight": "700",
@@ -51,7 +51,7 @@ exports[`HeaderBase should render snapshot correctly 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "width": undefined,
       }
     }

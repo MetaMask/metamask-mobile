@@ -6,8 +6,8 @@ exports[`TemplateConfirmationModal renders if approval type is error result 1`] 
 >
   <TemplateConfirmation
     approvalRequest={
-      Object {
-        "requestData": Object {
+      {
+        "requestData": {
           "test": "value",
         },
         "type": "result_error",
@@ -23,8 +23,8 @@ exports[`TemplateConfirmationModal renders if approval type is success result 1`
 >
   <TemplateConfirmation
     approvalRequest={
-      Object {
-        "requestData": Object {
+      {
+        "requestData": {
           "test": "value",
         },
         "type": "result_success",

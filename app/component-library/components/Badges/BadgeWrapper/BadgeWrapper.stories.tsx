@@ -53,6 +53,8 @@ export default BadgeWrapperMeta;
 
 export const BadgeWrapper = {
   // eslint-disable-next-line react/prop-types
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   render: (args: { [x: string]: any; badge: any; anchorElementShape: any }) => {
     const { badge, anchorElementShape, ...props } = args;
     let badgeProps: BadgeProps;
@@ -93,11 +95,11 @@ export const BadgeWrapper = {
           <View
             // eslint-disable-next-line react-native/no-inline-styles
             style={{
-              height: 24,
-              width: 24,
+              height: 32,
+              width: 32,
               borderRadius:
                 anchorElementShape === BadgeAnchorElementShape.Circular
-                  ? 12
+                  ? 999
                   : 2,
               backgroundColor: mockTheme.colors.primary.default,
               alignItems: 'center',

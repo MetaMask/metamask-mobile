@@ -17,8 +17,8 @@ import {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import { CONNECTING_TO_A_DECEPTIVE_SITE } from '../../../constants/urls';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { AccordionHeaderHorizontalAlignment } from '../../../component-library/components/Accordions/Accordion';
+import { MetaMetrics } from '../../../core/Analytics';
 
 const descriptionArray = [
   strings('accounts.fake_metamask'),
@@ -28,11 +28,14 @@ const descriptionArray = [
 
 const goToLearnMore = () => {
   Linking.openURL(CONNECTING_TO_A_DECEPTIVE_SITE);
-  AnalyticsV2.trackEvent('EXTERNAL_LINK_CLICKED', {
-    location: 'dapp_connection_request',
-    text: 'Learn More',
-    url_domain: CONNECTING_TO_A_DECEPTIVE_SITE,
-  });
+  MetaMetrics.getInstance().trackEvent(
+    { category: 'EXTERNAL_LINK_CLICKED' },
+    {
+      location: 'dapp_connection_request',
+      text: 'Learn More',
+      url_domain: CONNECTING_TO_A_DECEPTIVE_SITE,
+    },
+  );
 };
 
 const ShowWarningBanner = () => {

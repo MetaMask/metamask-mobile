@@ -16,6 +16,8 @@ const AutoLock = () => {
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const lockTime = useSelector((state: any) => state.settings.lockTime);
 
   const selectLockTime = (time: string): void => {

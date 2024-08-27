@@ -1,32 +1,43 @@
-import TestHelpers from '../../helpers';
 import {
-  DETAILS_MODAL_TITLE,
-  DETAILS_MODAL_STATUS_CONFIRMED,
-  DETAILS_MODAL_CLOSE_ICON,
-} from '../../../wdio/screen-objects/testIDs/Components/DetailsModal.js';
-import { TransactionDetailsModalSelectorsText } from '../../selectors/Modals/TransactionDetailsModal.selectors';
+  TransactionDetailsModalSelectorsText,
+  TransactionDetailsModalSelectorsIDs,
+} from '../../selectors/Modals/TransactionDetailsModal.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
+import { CommonSelectorsIDs } from '../../selectors/Common.selectors';
 
-export default class DetailsModal {
-  static async isTitleVisible(sourceToken, destinationToken) {
-    let title = TransactionDetailsModalSelectorsText.TITLE;
-    title = title.replace('{{sourceToken}}', sourceToken);
-    title = title.replace('{{destinationToken}}', destinationToken);
-    await TestHelpers.checkIfElementHasString(DETAILS_MODAL_TITLE, title);
+class DetailsModal {
+  get title() {
+    return Matchers.getElementByID(TransactionDetailsModalSelectorsIDs.TITLE);
   }
 
-  static async isStatusCorrect(status) {
-    await TestHelpers.checkIfElementHasString(
-      DETAILS_MODAL_STATUS_CONFIRMED,
-      status,
+  get closeIcon() {
+    return Matchers.getElementByID(
+      TransactionDetailsModalSelectorsIDs.CLOSE_ICON,
     );
   }
 
-  static async tapOnCloseIcon() {
+  get statusConfirmed() {
+    return Matchers.getElementIDWithAncestor(
+      CommonSelectorsIDs.STATUS_CONFIRMED,
+      TransactionDetailsModalSelectorsIDs.BODY,
+    );
+  }
+
+  generateExpectedTitle(sourceToken, destinationToken) {
+    let title = TransactionDetailsModalSelectorsText.TITLE;
+    title = title.replace('{{sourceToken}}', sourceToken);
+    title = title.replace('{{destinationToken}}', destinationToken);
+    return title;
+  }
+
+  async tapOnCloseIcon() {
     try {
-      await TestHelpers.waitAndTap(DETAILS_MODAL_CLOSE_ICON);
-      await TestHelpers.delay(1000);
+      await Gestures.waitAndTap(this.closeIcon);
     } catch {
       //
     }
   }
 }
+
+export default new DetailsModal();

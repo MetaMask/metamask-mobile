@@ -1,6 +1,6 @@
 import reducer, { ACTIONS, initialState } from './index';
-import notificationTypes from '../../util/notifications';
-const { TRANSACTION, SIMPLE } = notificationTypes;
+import { NotificationTypes } from '../../util/notifications';
+const { TRANSACTION, SIMPLE } = NotificationTypes;
 
 const emptyAction = { type: null };
 

@@ -3,9 +3,8 @@ import {
   TransactionController,
   WalletDevice,
 } from '@metamask/transaction-controller';
-import { ethErrors } from 'eth-json-rpc-errors';
-import ppomUtil from '../../lib/ppom/ppom-util';
-import { isBlockaidFeatureEnabled } from '../../util/blockaid';
+import { rpcErrors } from '@metamask/rpc-errors';
+import ppomUtil, { PPOMRequest } from '../../lib/ppom/ppom-util';
 
 /**
  * A JavaScript object that is not `null`, a function, or an array.
@@ -79,13 +78,13 @@ async function eth_sendTransaction({
     !Array.isArray(req.params) &&
     !(isObject(req.params) && hasProperty(req.params, 0))
   ) {
-    throw ethErrors.rpc.invalidParams({
+    throw rpcErrors.invalidParams({
       message: `Invalid parameters: expected an array`,
     });
   }
   const transactionParameters = req.params[0];
   if (!isObject(transactionParameters)) {
-    throw ethErrors.rpc.invalidParams({
+    throw rpcErrors.invalidParams({
       message: `Invalid parameters: expected the first parameter to be an object`,
     });
   }
@@ -99,9 +98,7 @@ async function eth_sendTransaction({
     origin: hostname,
   });
 
-  if (isBlockaidFeatureEnabled()) {
-    ppomUtil.validateRequest(req, transactionMeta?.id);
-  }
+  ppomUtil.validateRequest(req as PPOMRequest, transactionMeta?.id);
 
   res.result = await result;
 }

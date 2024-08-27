@@ -109,6 +109,18 @@ export function setTransactionObject(transaction) {
 }
 
 /**
+ * Sets the current transaction ID only.
+ *
+ * @param {object} transactionId - Id of the current transaction.
+ */
+export function setTransactionId(transactionId) {
+  return {
+    type: 'SET_TRANSACTION_ID',
+    transactionId,
+  };
+}
+
+/**
  * Enable selectable tokens (ERC20 and Ether) to send in a transaction
  *
  * @param {object} asset - Asset to start the transaction with
@@ -129,42 +141,6 @@ export function setEtherTransaction(transaction) {
   return {
     type: 'SET_ETHER_TRANSACTION',
     transaction,
-  };
-}
-
-/**
- * Enable individual ERC20 asset only to send in a transaction
- *
- * @param {object} token - Token object to be sent
- */
-export function setIndividualTokenTransaction(token) {
-  return {
-    type: 'SET_INDIVIDUAL_TOKEN_TRANSACTION',
-    token,
-  };
-}
-
-/**
- * Enable individual ERC721 asset only to send in a transaction
- *
- * @param {object} collectible - Collectible object to be sent
- */
-export function setIndividualCollectibleTransaction(collectible) {
-  return {
-    type: 'SET_INDIVIDUAL_COLLECTIBLE_TRANSACTION',
-    collectible,
-  };
-}
-
-/**
- * Enable selectable ERC721 assets who's current account is owner of a specific contract to be sent in a transaction
- *
- * @param {object} collectible - Collectible of the type contract collectible that the user wants to send
- */
-export function setCollectibleContractTransaction(collectible) {
-  return {
-    type: 'SET_COLLECTIBLE_CONTRACT_TRANSACTION',
-    collectible,
   };
 }
 

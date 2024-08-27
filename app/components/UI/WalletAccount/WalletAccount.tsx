@@ -1,92 +1,60 @@
 // Third parties dependencies
-import React, {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from 'react';
+import React, { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { Platform, View } from 'react-native';
+import { View } from 'react-native';
+
 // External dependencies
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
 import { useStyles } from '../../../component-library/hooks';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import AddressCopy from '../AddressCopy';
-import {
-  doENSReverseLookup,
-  isDefaultAccountName,
-} from '../../../util/ENSUtils';
-import { selectChainId } from '../../../selectors/networkController';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
+import { isDefaultAccountName } from '../../../util/ENSUtils';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
 import { ButtonIconSizes } from '../../../component-library/components/Buttons/ButtonIcon';
 import Routes from '../../../constants/navigation/Routes';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { getLabelTextByAddress } from '../../../util/address';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import useEnsNameByAddress from '../../../components/hooks/useEnsNameByAddress';
+import Logger from '../../../util/Logger';
 
 // Internal dependencies
 import styleSheet from './WalletAccount.styles';
 import { WalletAccountProps } from './WalletAccount.types';
-import {
-  WALLET_ACCOUNT_ICON,
-  MAIN_WALLET_ACCOUNT_ACTIONS,
-} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import { getLabelTextByAddress } from '../../../util/address';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
   const { styles } = useStyles(styleSheet, { style });
 
   const { navigate } = useNavigation();
-  const [ens, setEns] = useState<string>();
-
   const yourAccountRef = useRef(null);
   const accountActionsRef = useRef(null);
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const { ensName } = useEnsNameByAddress(selectedAccount?.address);
+  const defaultName = selectedAccount?.metadata?.name;
+  const accountName = useMemo(
+    () =>
+      (isDefaultAccountName(defaultName) && ensName ? ensName : defaultName) ||
+      '',
+    [defaultName, ensName],
+  );
 
   useImperativeHandle(ref, () => ({
     yourAccountRef,
     accountActionsRef,
   }));
-  /**
-   * A string that represents the selected address
-   */
-  const selectedAddress = useSelector(selectSelectedAddress);
 
-  /**
-   * An object containing each identity in the format address => account
-   */
-  const identities = useSelector(selectIdentities);
-
-  const chainId = useSelector(selectChainId);
-
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
-  const account = {
-    ...identities[selectedAddress],
-    address: selectedAddress,
-  };
-
-  const lookupEns = useCallback(async () => {
-    try {
-      const accountEns = await doENSReverseLookup(account.address, chainId);
-
-      setEns(accountEns);
-      // eslint-disable-next-line no-empty
-    } catch {}
-  }, [account.address, chainId]);
-
-  useEffect(() => {
-    lookupEns();
-  }, [lookupEns]);
 
   const onNavigateToAccountActions = () => {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -94,23 +62,31 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
     });
   };
 
+  if (!selectedAccount) {
+    const undefinedAccountError = new Error(
+      'selectedAccount is undefined on WalletAccount!',
+    );
+    Logger.error(undefinedAccountError);
+    return null;
+  }
+
   return (
     <View style={styles.base}>
       <PickerAccount
         ref={yourAccountRef}
-        accountAddress={account.address}
-        accountName={
-          isDefaultAccountName(account.name) && ens ? ens : account.name
-        }
+        accountAddress={selectedAccount.address}
+        accountName={accountName}
         accountAvatarType={accountAvatarType}
         onPress={() => {
           navigate(...createAccountSelectorNavDetails({}));
         }}
-        accountTypeLabel={getLabelTextByAddress(account.address)}
+        accountTypeLabel={
+          getLabelTextByAddress(selectedAccount?.address) || undefined
+        }
         showAddress={false}
         cellAccountContainerStyle={styles.account}
         style={styles.accountPicker}
-        {...generateTestId(Platform, WALLET_ACCOUNT_ICON)}
+        testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
       />
       <View style={styles.middleBorder} />
       <View style={styles.addressContainer} ref={accountActionsRef}>
@@ -119,7 +95,7 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
           iconName={IconName.MoreHorizontal}
           size={ButtonIconSizes.Sm}
           onPress={onNavigateToAccountActions}
-          {...generateTestId(Platform, MAIN_WALLET_ACCOUNT_ACTIONS)}
+          testID={WalletViewSelectorsIDs.ACCOUNT_ACTIONS}
         />
       </View>
     </View>

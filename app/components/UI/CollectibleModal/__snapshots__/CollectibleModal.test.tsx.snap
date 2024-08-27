@@ -3,7 +3,7 @@
 exports[`CollectibleModal should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "bottom": 0,
       "left": 0,
       "position": "absolute",
@@ -14,8 +14,8 @@ exports[`CollectibleModal should render correctly 1`] = `
 >
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "backgroundColor": "#00000099",
           "bottom": 0,
           "left": 0,
@@ -23,7 +23,7 @@ exports[`CollectibleModal should render correctly 1`] = `
           "right": 0,
           "top": 0,
         },
-        Object {
+        {
           "opacity": undefined,
         },
       ]
@@ -34,24 +34,24 @@ exports[`CollectibleModal should render correctly 1`] = `
     onGestureHandlerEvent={[Function]}
     onGestureHandlerStateChange={[Function]}
     style={
-      Array [
-        Array [
-          Object {
+      [
+        [
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
             "right": 0,
             "top": 0,
           },
-          Object {
-            "transform": Array [
-              Object {
+          {
+            "transform": [
+              {
                 "translateY": 1334,
               },
             ],
           },
         ],
-        Object {
+        {
           "justifyContent": "flex-end",
           "margin": 0,
         },
@@ -62,7 +62,7 @@ exports[`CollectibleModal should render correctly 1`] = `
       disabled={false}
       onPress={[Function]}
       style={
-        Object {
+        {
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -73,8 +73,8 @@ exports[`CollectibleModal should render correctly 1`] = `
     />
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "backgroundColor": "transparent",
             "borderRadius": 12,
             "left": 0,
@@ -84,7 +84,7 @@ exports[`CollectibleModal should render correctly 1`] = `
             "right": 0,
             "top": 32,
           },
-          Object {
+          {
             "elevation": 20,
             "zIndex": 20,
           },
@@ -93,8 +93,8 @@ exports[`CollectibleModal should render correctly 1`] = `
     >
       <View
         style={
-          Object {
-            "backgroundColor": "#undefined",
+          {
+            "backgroundColor": undefined,
             "borderRadius": 12,
             "flex": 0,
           }
@@ -104,25 +104,25 @@ exports[`CollectibleModal should render correctly 1`] = `
           <Image
             onError={[Function]}
             source={
-              Object {
+              {
                 "uri": "MockImage",
               }
             }
             style={
-              Array [
-                Object {
+              [
+                {
                   "alignItems": "center",
-                  "backgroundColor": "#F2F4F6",
+                  "backgroundColor": "#f2f4f6",
                   "borderRadius": 8,
                   "justifyContent": "flex-start",
                 },
-                Object {
+                {
                   "borderRadius": 12,
                 },
                 undefined,
                 undefined,
                 undefined,
-                Object {
+                {
                   "height": 750,
                 },
               ]
@@ -131,7 +131,7 @@ exports[`CollectibleModal should render correctly 1`] = `
           />
           <View
             style={
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -142,9 +142,9 @@ exports[`CollectibleModal should render correctly 1`] = `
           >
             <Text
               style={
-                Array [
-                  Object {
-                    "color": "#24272A",
+                [
+                  {
+                    "color": "#141618",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 30,
                     "fontWeight": "400",
@@ -173,7 +173,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                   undefined,
                   undefined,
                   undefined,
-                  Object {
+                  {
                     "color": "black",
                     "marginTop": 16,
                     "textAlign": "center",
@@ -186,18 +186,20 @@ exports[`CollectibleModal should render correctly 1`] = `
           </View>
           <View
             style={
-              Object {
+              {
                 "bottom": 48,
               }
             }
           >
             <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
-                Object {
+                {
                   "alignItems": "center",
                   "alignSelf": "center",
                   "backgroundColor": "transparent",
@@ -213,8 +215,8 @@ exports[`CollectibleModal should render correctly 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
-                    "color": "#0376C9",
+                  {
+                    "color": "#0376c9",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
                     "fontWeight": "400",
@@ -232,11 +234,11 @@ exports[`CollectibleModal should render correctly 1`] = `
     </View>
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "flex": 0,
           },
-          Object {
+          {
             "elevation": 10,
             "zIndex": 10,
           },
@@ -245,18 +247,17 @@ exports[`CollectibleModal should render correctly 1`] = `
     >
       <View
         collapsable={false}
-        forwardedRef={[Function]}
         onGestureHandlerEvent={[Function]}
         onGestureHandlerStateChange={[Function]}
         onLayout={[Function]}
         style={
-          Object {
-            "backgroundColor": "#FFFFFF",
+          {
+            "backgroundColor": "#ffffff",
             "borderTopEndRadius": 8,
             "borderTopStartRadius": 8,
             "flex": 0,
-            "transform": Array [
-              Object {
+            "transform": [
+              {
                 "translateY": 0,
               },
             ],
@@ -265,7 +266,7 @@ exports[`CollectibleModal should render correctly 1`] = `
       >
         <View
           style={
-            Object {
+            {
               "alignItems": "center",
               "justifyContent": "center",
               "paddingVertical": 16,
@@ -275,8 +276,8 @@ exports[`CollectibleModal should render correctly 1`] = `
         >
           <View
             style={
-              Object {
-                "backgroundColor": "#BBC0C5",
+              {
+                "backgroundColor": "#bbc0c5",
                 "borderRadius": 4,
                 "height": 5,
                 "width": 48,
@@ -290,7 +291,7 @@ exports[`CollectibleModal should render correctly 1`] = `
           >
             <View
               style={
-                Object {
+                {
                   "paddingHorizontal": 16,
                 }
               }
@@ -298,9 +299,9 @@ exports[`CollectibleModal should render correctly 1`] = `
               <Text
                 numberOfLines={2}
                 style={
-                  Array [
-                    Object {
-                      "color": "#24272A",
+                  [
+                    {
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -308,7 +309,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                     },
                     undefined,
                     undefined,
-                    Object {
+                    {
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontWeight": "600",
                     },
@@ -319,8 +320,8 @@ exports[`CollectibleModal should render correctly 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Object {
-                      "color": "#24272A",
+                    {
+                      "color": "#141618",
                     },
                     undefined,
                     undefined,
@@ -333,10 +334,10 @@ exports[`CollectibleModal should render correctly 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Object {
+                    {
                       "marginVertical": 0,
                     },
-                    Object {
+                    {
                       "fontSize": 24,
                       "marginBottom": 3,
                     },
@@ -347,9 +348,9 @@ exports[`CollectibleModal should render correctly 1`] = `
               </Text>
               <Text
                 style={
-                  Array [
-                    Object {
-                      "color": "#24272A",
+                  [
+                    {
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -365,13 +366,13 @@ exports[`CollectibleModal should render correctly 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Object {
-                      "color": "#24272A",
+                    {
+                      "color": "#141618",
                     },
                     undefined,
                     undefined,
                     undefined,
-                    Object {
+                    {
                       "fontSize": 16,
                     },
                     undefined,
@@ -381,7 +382,7 @@ exports[`CollectibleModal should render correctly 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Object {
+                    {
                       "marginVertical": 0,
                     },
                     undefined,
@@ -394,11 +395,11 @@ exports[`CollectibleModal should render correctly 1`] = `
             </View>
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "paddingHorizontal": 16,
                   },
-                  Object {
+                  {
                     "flexDirection": "row",
                     "marginTop": 16,
                   },
@@ -411,26 +412,26 @@ exports[`CollectibleModal should render correctly 1`] = `
                 activeOpacity={0.2}
                 onPressOut={[Function]}
                 style={
-                  Array [
-                    Array [
-                      Object {
+                  [
+                    [
+                      {
                         "borderRadius": 100,
                         "justifyContent": "center",
                         "padding": 15,
                       },
-                      Object {
-                        "backgroundColor": "#FFFFFF",
-                        "borderColor": "#0376C9",
+                      {
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "#0376c9",
                         "borderWidth": 1,
                         "padding": 8,
                       },
-                      Array [
-                        Object {
+                      [
+                        {
                           "alignItems": "center",
                           "borderWidth": 1.5,
                           "justifyContent": "center",
                         },
-                        Object {
+                        {
                           "height": 54,
                           "width": 54,
                         },
@@ -442,9 +443,9 @@ exports[`CollectibleModal should render correctly 1`] = `
               >
                 <Text
                   style={
-                    Array [
-                      Object {
-                        "color": "#24272A",
+                    [
+                      {
+                        "color": "#141618",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 30,
                         "fontWeight": "400",
@@ -469,12 +470,12 @@ exports[`CollectibleModal should render correctly 1`] = `
                       undefined,
                       undefined,
                       undefined,
-                      Object {
-                        "color": "#0376C9",
+                      {
+                        "color": "#0376c9",
                       },
                       undefined,
                       undefined,
-                      Object {
+                      {
                         "marginVertical": 0,
                       },
                       undefined,
@@ -484,18 +485,18 @@ exports[`CollectibleModal should render correctly 1`] = `
                   <Text
                     allowFontScaling={false}
                     style={
-                      Array [
-                        Object {
+                      [
+                        {
                           "color": undefined,
                           "fontSize": 24,
                         },
                         undefined,
-                        Object {
+                        {
                           "fontFamily": "anticon",
                           "fontStyle": "normal",
                           "fontWeight": "normal",
                         },
-                        Object {},
+                        {},
                       ]
                     }
                   >
@@ -508,14 +509,14 @@ exports[`CollectibleModal should render correctly 1`] = `
           <View />
           <View
             style={
-              Object {
+              {
                 "paddingTop": 24,
               }
             }
           >
             <View
               style={
-                Object {
+                {
                   "flexDirection": "row",
                   "marginBottom": 8,
                   "marginHorizontal": 16,
@@ -524,9 +525,9 @@ exports[`CollectibleModal should render correctly 1`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
-                      "color": "#24272A",
+                  [
+                    {
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -534,26 +535,26 @@ exports[`CollectibleModal should render correctly 1`] = `
                     },
                     undefined,
                     undefined,
-                    Object {
+                    {
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontWeight": "600",
                     },
                     undefined,
-                    Object {
-                      "color": "#24272A",
+                    {
+                      "color": "#141618",
                     },
                     undefined,
                     undefined,
                     undefined,
                     undefined,
-                    Object {
-                      "color": "#24272A",
+                    {
+                      "color": "#141618",
                     },
                     undefined,
                     undefined,
                     undefined,
                     undefined,
-                    Object {
+                    {
                       "fontSize": 16,
                     },
                     undefined,
@@ -563,10 +564,10 @@ exports[`CollectibleModal should render correctly 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Object {
+                    {
                       "marginVertical": 0,
                     },
-                    Object {
+                    {
                       "paddingRight": 10,
                     },
                   ]
@@ -579,16 +580,16 @@ exports[`CollectibleModal should render correctly 1`] = `
                 numberOfLines={1}
                 onPress={[Function]}
                 style={
-                  Array [
-                    Object {
-                      "color": "#24272A",
+                  [
+                    {
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
                       "marginVertical": 2,
                     },
                     undefined,
-                    Object {
+                    {
                       "textAlign": "right",
                     },
                     undefined,
@@ -603,22 +604,22 @@ exports[`CollectibleModal should render correctly 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Object {
+                    {
                       "fontSize": 16,
                     },
                     undefined,
                     undefined,
                     undefined,
                     undefined,
-                    Object {
-                      "color": "#0376C9",
+                    {
+                      "color": "#0376c9",
                     },
                     undefined,
                     undefined,
-                    Object {
+                    {
                       "marginVertical": 0,
                     },
-                    Object {
+                    {
                       "flex": 1,
                     },
                   ]

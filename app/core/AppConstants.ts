@@ -1,7 +1,10 @@
 import { CoreTypes } from '@walletconnect/types';
 import Device from '../util/device';
 import { DEFAULT_SERVER_URL } from '@metamask/sdk-communication-layer';
+
 const DEVELOPMENT = 'development';
+const PORTFOLIO_URL =
+  process.env.MM_PORTFOLIO_URL || 'https://portfolio.metamask.io';
 
 export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
@@ -14,8 +17,16 @@ export default {
   SWARM_DEFAULT_GATEWAY_URL: 'https://swarm-gateways.net/bzz:/',
   supportedTLDs: ['eth', 'xyz', 'test'],
   MAX_PUSH_NOTIFICATION_PROMPT_TIMES: 2,
-  PORTFOLIO_URL:
-    process.env.MM_PORTFOLIO_URL || 'https://portfolio.metamask.io',
+  PORTFOLIO: {
+    URL: PORTFOLIO_URL,
+  },
+  BRIDGE: {
+    ACTIVE: true,
+    URL: `${PORTFOLIO_URL}/bridge`,
+  },
+  STAKE: {
+    URL: `${PORTFOLIO_URL}/stake`,
+  },
   CONNEXT: {
     HUB_EXCHANGE_CEILING_TOKEN: 69,
     MIN_DEPOSIT_ETH: 0.03,
@@ -46,6 +57,7 @@ export default {
   DEEPLINKS: {
     ORIGIN_DEEPLINK: 'deeplink',
     ORIGIN_QR_CODE: 'qr-code',
+    ORIGIN_NOTIFICATION: 'notifications',
   },
   WALLET_CONNECT: {
     //One day in hours
@@ -75,26 +87,47 @@ export default {
     CACHE_TOKENS_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOP_ASSETS_THRESHOLD: 5 * 60 * 1000,
   },
-  BRIDGE: {
-    ACTIVE: true,
-  },
   MAX_SAFE_CHAIN_ID: 4503599627370476,
   URLS: {
+    ICONS: {
+      MASTERCARD_LIGHT:
+        'https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png',
+      MASTERCARD_DARK:
+        'https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard@3x.png',
+      VISA_LIGHT:
+        'https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png',
+      VISA_DARK: 'https://on-ramp.dev-api.cx.metamask.io/assets/Visa@3x.png',
+      ACH_LIGHT:
+        'https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png',
+      ACH_DARK:
+        'https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer@3x.png',
+    },
     TERMS_AND_CONDITIONS: 'https://legal.consensys.io/metamask/terms-of-use/',
-    PRIVACY_POLICY: 'https://legal.consensys.io/metamask/privacy-policy/',
+    PRIVACY_POLICY: 'https://consensys.io/privacy-policy',
+    PROFILE_SYNC:
+      'https://support.metamask.io/privacy-and-security/profile-privacy',
     DATA_RETENTION_UPDATE:
       'https://consensys.net/blog/news/consensys-data-retention-update/',
     CONNECTIVITY_ISSUES:
-      'https://metamask.zendesk.com/hc/en-us/articles/360059386712',
-    NFT: 'https://metamask.zendesk.com/hc/en-us/articles/360058238591-NFT-tokens-in-MetaMask-wallet',
+      'https://support.metamask.io/troubleshooting/why-infura-cannot-serve-certain-areas/',
+    NFT: 'https://support.metamask.io/nfts/nft-tokens-in-your-metamask-wallet/',
     SECURITY:
-      'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-and-Security-Tips-for-MetaMask',
+      'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/',
     TOKEN_BALANCE:
-      'https://metamask.zendesk.com/hc/en-us/articles/360028059272-What-to-do-when-your-balance-of-ETH-and-or-ERC20-tokens-is-incorrect-inaccurate',
+      'https://support.metamask.io/troubleshooting/what-to-do-when-your-balance-of-tokens-is-incorrect/',
     WHY_TRANSACTION_TAKE_TIME:
       'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172',
     WHAT_IS_ETH_SIGN_AND_WHY_IS_IT_A_RISK:
-      'https://support.metamask.io/hc/articles/14764161421467',
+      'https://support.metamask.io/privacy-and-security/what-is-eth_sign-and-why-is-it-a-risk/',
+    TESTNET_ETH_SCAMS:
+      'https://support.metamask.io/privacy-and-security/staying-safe-in-web3/testnet-eth-scams/',
+    WHAT_IS_SRP:
+      'https://community.metamask.io/t/what-is-a-secret-recovery-phrase-and-how-to-keep-your-crypto-wallet-secure/3440',
+    PRIVACY_POLICY_2024: 'https://consensys.io/privacy-policy',
+    PRIVACY_BEST_PRACTICES:
+      'https://support.metamask.io/privacy-and-security/privacy-best-practices',
+    SMART_TXS:
+      'https://support.metamask.io/transactions-and-gas/transactions/smart-transactions/',
   },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
@@ -118,11 +151,11 @@ export default {
   },
   REVIEW_PROMPT: {
     HIGH_GAS_FEES:
-      'https://metamask.zendesk.com/hc/en-us/articles/360058751211-Why-my-gas-fees-are-so-high',
+      'https://support.metamask.io/transactions-and-gas/gas-fees/why-are-my-gas-fees-so-high/',
     MISSING_TOKENS:
-      'https://metamask.zendesk.com/hc/en-us/articles/360015489031-How-to-add-unlisted-tokens-custom-tokens-in-MetaMask',
+      'https://support.metamask.io/managing-my-tokens/custom-tokens/how-to-display-tokens-in-metamask/',
     SWAP_ISSUES:
-      'https://metamask.zendesk.com/hc/en-us/articles/360060329612-Error-fetching-quote',
+      'https://support.metamask.io/token-swaps/error-fetching-quote/',
     SUPPORT: 'https://support.metamask.io',
   },
   BUNDLE_IDS: {
@@ -138,11 +171,13 @@ export default {
     WC2: 'WalletConnectV2',
     IN_APP_BROWSER: 'In-App-Browser',
     SDK_ANDROID: 'MetaMask-SDK-Android',
+    SDK_IOS: 'MetaMask-SDK-IOS',
   },
   MM_SDK: {
     SDK_CONNECTIONS: 'sdkConnections',
     ANDROID_CONNECTIONS: 'androidConnections',
     ANDROID_SDK: 'AndroidSDK',
+    IOS_SDK: 'iOSSDK',
     SDK_APPROVEDHOSTS: 'sdkApprovedHosts',
     SERVER_URL: process.env.SDK_COMMLAYER_URL ?? DEFAULT_SERVER_URL,
     PLATFORM: 'metamask-mobile',
@@ -152,7 +187,9 @@ export default {
   CANCEL_RATE: 'Transactions (Cancel)',
   SPEED_UP_RATE: 'Transactions (Speed Up)',
   NETWORK_STATE_CHANGE_EVENT: 'NetworkController:stateChange',
+  NETWORK_DID_CHANGE_EVENT: 'NetworkController:networkDidChange',
   KEYRING_STATE_CHANGE_EVENT: 'KeyringController:stateChange',
+  TOKEN_LIST_STATE_CHANGE_EVENT: 'TokenListController:stateChange',
   ETH_SIGN_ERROR: 'eth_sign requires 32 byte message hash',
   TERMS_OF_USE: {
     TERMS_DISPLAYED: 'ToU Displayed',
@@ -163,4 +200,17 @@ export default {
   FAVICON_CACHE_MAX_SIZE: 100,
   PPOM_INITIALISATION_STATE_CHANGE_EVENT:
     'PPOMController:initialisationStateChangeEvent',
+  BASIC_FUNCTIONALITY_BLOCK_LIST: [
+    'token-api',
+    'token.api',
+    'gas-api',
+    'gas.api',
+    'price-api',
+    'price.api',
+    'phishing-detection',
+    'infura.io',
+    'static.metafi',
+    'static.cx',
+    'config-api.metamask.io/featureFlags',
+  ],
 } as const;

@@ -4,28 +4,32 @@ import {
   selectAllNftContracts,
   selectAllNfts,
 } from '../../selectors/nftController';
-import { selectSelectedAddress } from '../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../selectors/accountsController';
 import { compareTokenIds } from '../../util/tokens';
+import { createDeepEqualSelector } from '../../selectors/util';
 
 const favoritesSelector = (state) => state.collectibles.favorites;
 
+export const isNftFetchingProgressSelector = (state) =>
+  state.collectibles.isNftFetchingProgress;
+
 export const collectibleContractsSelector = createSelector(
-  selectSelectedAddress,
+  selectSelectedInternalAccountChecksummedAddress,
   selectChainId,
   selectAllNftContracts,
   (address, chainId, allNftContracts) =>
     allNftContracts[address]?.[chainId] || [],
 );
 
-export const collectiblesSelector = createSelector(
-  selectSelectedAddress,
+export const collectiblesSelector = createDeepEqualSelector(
+  selectSelectedInternalAccountChecksummedAddress,
   selectChainId,
   selectAllNfts,
   (address, chainId, allNfts) => allNfts[address]?.[chainId] || [],
 );
 
 export const favoritesCollectiblesSelector = createSelector(
-  selectSelectedAddress,
+  selectSelectedInternalAccountChecksummedAddress,
   selectChainId,
   favoritesSelector,
   (address, chainId, favorites) => favorites[address]?.[chainId] || [],
@@ -53,9 +57,12 @@ const getFavoritesCollectibles = (
 
 export const ADD_FAVORITE_COLLECTIBLE = 'ADD_FAVORITE_COLLECTIBLE';
 export const REMOVE_FAVORITE_COLLECTIBLE = 'REMOVE_FAVORITE_COLLECTIBLE';
+export const SHOW_NFT_FETCHING_LOADER = 'SHOW_NFT_FETCHING_LOADER';
+export const HIDE_NFT_FETCHING_LOADER = 'HIDE_NFT_FETCHING_LOADER';
 
 const initialState = {
   favorites: {},
+  isNftFetchingProgress: false,
 };
 
 const collectiblesFavoritesReducer = (state = initialState, action) => {
@@ -111,10 +118,30 @@ const collectiblesFavoritesReducer = (state = initialState, action) => {
         },
       };
     }
+    case SHOW_NFT_FETCHING_LOADER: {
+      return {
+        ...state,
+        isNftFetchingProgress: true,
+      };
+    }
+    case HIDE_NFT_FETCHING_LOADER: {
+      return {
+        ...state,
+        isNftFetchingProgress: false,
+      };
+    }
     default: {
       return state;
     }
   }
 };
+
+export const showNftFetchingLoadingIndicator = () => ({
+  type: SHOW_NFT_FETCHING_LOADER,
+});
+
+export const hideNftFetchingLoadingIndicator = () => ({
+  type: HIDE_NFT_FETCHING_LOADER,
+});
 
 export default collectiblesFavoritesReducer;

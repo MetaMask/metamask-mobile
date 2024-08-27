@@ -9,6 +9,8 @@ export const SDK_SECTION = 'sdk-section';
 export const CLEAR_PRIVACY_SECTION = 'clear-privacy-section';
 export const CLEAR_BROWSER_HISTORY_SECTION = 'clear-browser-history-section';
 export const META_METRICS_SECTION = 'metametrics-section';
+export const META_METRICS_DATA_MARKETING_SECTION =
+  'metametrics-data-marketing-section';
 export const DELETE_METRICS_BUTTON = 'delete-metrics-button';
 export const SECURITY_SETTINGS_DELETE_WALLET_BUTTON =
   'security-settings-delete-wallet-buttons';
@@ -18,3 +20,6 @@ export const NFT_DISPLAY_MEDIA_MODE_SECTION = 'nft-display-media-mode-section';
 export const NFT_AUTO_DETECT_MODE_SECTION =
   'nft-opensea-autodetect-mode-section';
 export const IPFS_GATEWAY_SECTION = 'ipfs-gateway-section';
+export const USE_SAFE_CHAINS_LIST_VALIDATION = 'use-chains-list-validation';
+export const DISPLAY_SAFE_CHAINS_LIST_VALIDATION =
+  'display-use-safe-list-validation';

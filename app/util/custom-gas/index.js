@@ -2,7 +2,7 @@ import { BN } from 'ethereumjs-util';
 import { renderFromWei, weiToFiat, toWei, conversionUtil } from '../number';
 import { strings } from '../../../locales/i18n';
 import TransactionTypes from '../../core/TransactionTypes';
-import Engine from '../../core/Engine';
+import { estimateGas } from '../transaction-controller';
 import { hexToBN } from '@metamask/controller-utils';
 
 export const ETH = 'ETH';
@@ -108,15 +108,13 @@ export function parseWaitTime(min) {
 }
 
 export async function getGasLimit(transaction, resetGas = false) {
-  const { TransactionController } = Engine.context;
-
   let estimation;
   try {
     const newTransactionObj = resetGas
       ? { ...transaction, gas: undefined }
       : transaction;
 
-    estimation = await TransactionController.estimateGas(newTransactionObj);
+    estimation = await estimateGas(newTransactionObj);
   } catch (error) {
     estimation = {
       gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT,

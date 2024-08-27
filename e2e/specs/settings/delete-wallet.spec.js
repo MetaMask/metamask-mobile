@@ -50,9 +50,7 @@ describe(
         await ChangePasswordView.reEnterPassword(NEW_PASSWORD);
 
         // should lock wallet from Settings
-        await device.disableSynchronization(); // because the SRP tutorial video prevents the test from moving forward
         await CommonView.tapBackButton();
-        await device.enableSynchronization();
         await SettingsView.tapLock();
         await SettingsView.tapYesAlertButton();
         await LoginView.isVisible();
@@ -60,7 +58,7 @@ describe(
         // should tap reset wallet button
         await LoginView.tapResetWalletButton();
 
-        await DeleteWalletModal.isVisible();
+        await Assertions.checkIfVisible(DeleteWalletModal.container);
 
         // should delete wallet
         await DeleteWalletModal.tapIUnderstandButton();

@@ -1,10 +1,12 @@
-import React from 'react';
-import { shallow } from 'enzyme';
 import AmbiguousAddressSheet from './AmbiguousAddressSheet';
+import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import Routes from '../../../../../constants/navigation/Routes';
 
 describe('AmbiguousAddressSheet', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<AmbiguousAddressSheet />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderScreen(AmbiguousAddressSheet, {
+      name: Routes.SHEET.AMBIGUOUS_ADDRESS,
+    });
+    expect(toJSON()).toMatchSnapshot();
   });
 });

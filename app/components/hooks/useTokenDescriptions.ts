@@ -1,3 +1,5 @@
+import { Hex } from '@metamask/utils';
+import { getDecimalChainId } from '../../util/networks';
 import { useState, useEffect } from 'react';
 
 export interface TokenDescriptions {
@@ -42,10 +44,12 @@ const useTokenDescriptions = ({
   chainId,
 }: {
   address: string;
-  chainId: string;
+  chainId: Hex;
 }): {
   data: TokenDescriptions | Record<string, never>;
   isLoading: boolean;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error: any;
 } => {
   const [data, setData] = useState<TokenDescriptions | Record<string, never>>(
@@ -57,13 +61,17 @@ const useTokenDescriptions = ({
     const fetchPrices = async () => {
       setIsLoading(true);
       try {
-        const baseUri = `https://token-api.metaswap.codefi.network`;
-        const uri = new URL(`${baseUri}/token/${chainId}/description`);
+        const baseUri = `https://token.api.cx.metamask.io`;
+        const uri = new URL(
+          `${baseUri}/token/${getDecimalChainId(chainId)}/description`,
+        );
         uri.searchParams.set('address', address);
 
         const response = await fetch(uri.toString());
         const json = await response.json();
         setData(json);
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
         setError(e);
       } finally {

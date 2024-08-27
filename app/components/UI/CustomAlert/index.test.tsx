@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
 import CustomAlert from './';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 
 describe('CustomAlert', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<CustomAlert />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<CustomAlert isVisible />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

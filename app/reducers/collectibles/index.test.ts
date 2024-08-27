@@ -1,4 +1,4 @@
-import { NetworksChainId } from '@metamask/controller-utils';
+import { ChainId } from '@metamask/controller-utils';
 import reducer, {
   ADD_FAVORITE_COLLECTIBLE,
   REMOVE_FAVORITE_COLLECTIBLE,
@@ -13,19 +13,20 @@ const collectibleB2 = { tokenId: '102', address: '0xB' };
 const selectedAddressA = '0x0A';
 const selectedAddressB = '0x0B';
 
-describe('swaps reducer', () => {
+describe('collectibles reducer', () => {
   it('should add favorite', () => {
     const initalState = reducer(undefined, emptyAction);
     const firstState = reducer(initalState, {
       type: ADD_FAVORITE_COLLECTIBLE,
       selectedAddress: selectedAddressA,
-      chainId: NetworksChainId.mainnet,
+      chainId: ChainId.mainnet,
       collectible: collectibleA1,
     });
     expect(firstState).toEqual({
       favorites: {
-        [selectedAddressA]: { [NetworksChainId.mainnet]: [collectibleA1] },
+        [selectedAddressA]: { [ChainId.mainnet]: [collectibleA1] },
       },
+      isNftFetchingProgress: false,
     });
   });
 
@@ -34,24 +35,25 @@ describe('swaps reducer', () => {
     const firstState = reducer(initalState, {
       type: ADD_FAVORITE_COLLECTIBLE,
       selectedAddress: selectedAddressA,
-      chainId: NetworksChainId.mainnet,
+      chainId: ChainId.mainnet,
       collectible: collectibleA1,
     });
     const secondState = reducer(firstState, {
       type: ADD_FAVORITE_COLLECTIBLE,
       selectedAddress: selectedAddressB,
-      chainId: NetworksChainId.mainnet,
+      chainId: ChainId.mainnet,
       collectible: collectibleA2,
     });
     expect(secondState).toEqual({
       favorites: {
         [selectedAddressA]: {
-          [NetworksChainId.mainnet]: [collectibleA1],
+          [ChainId.mainnet]: [collectibleA1],
         },
         [selectedAddressB]: {
-          [NetworksChainId.mainnet]: [collectibleA2],
+          [ChainId.mainnet]: [collectibleA2],
         },
       },
+      isNftFetchingProgress: false,
     });
   });
 
@@ -60,39 +62,42 @@ describe('swaps reducer', () => {
     const firstState = reducer(initalState, {
       type: ADD_FAVORITE_COLLECTIBLE,
       selectedAddress: selectedAddressA,
-      chainId: NetworksChainId.mainnet,
+      chainId: ChainId.mainnet,
       collectible: collectibleA1,
     });
     const secondState = reducer(firstState, {
       type: ADD_FAVORITE_COLLECTIBLE,
       selectedAddress: selectedAddressA,
-      chainId: NetworksChainId.goerli,
+      chainId: ChainId.sepolia,
       collectible: collectibleA2,
     });
     expect(secondState).toEqual({
       favorites: {
         [selectedAddressA]: {
-          [NetworksChainId.mainnet]: [collectibleA1],
-          [NetworksChainId.goerli]: [collectibleA2],
+          [ChainId.mainnet]: [collectibleA1],
+          [ChainId.sepolia]: [collectibleA2],
         },
       },
+      isNftFetchingProgress: false,
     });
   });
 
   it('should remove favorite collectible', () => {
     const firstState = {
       favorites: {
-        [selectedAddressA]: { [NetworksChainId.mainnet]: [collectibleA1] },
+        [selectedAddressA]: { [ChainId.mainnet]: [collectibleA1] },
       },
+      isNftFetchingProgress: false,
     };
     const secondState = reducer(firstState, {
       type: REMOVE_FAVORITE_COLLECTIBLE,
       selectedAddress: selectedAddressA,
-      chainId: NetworksChainId.mainnet,
+      chainId: ChainId.mainnet,
       collectible: collectibleA1,
     });
     expect(secondState).toEqual({
-      favorites: { [selectedAddressA]: { [NetworksChainId.mainnet]: [] } },
+      favorites: { [selectedAddressA]: { [ChainId.mainnet]: [] } },
+      isNftFetchingProgress: false,
     });
   });
 
@@ -100,26 +105,28 @@ describe('swaps reducer', () => {
     const firstState = {
       favorites: {
         [selectedAddressA]: {
-          [NetworksChainId.mainnet]: [collectibleA1, collectibleA2],
+          [ChainId.mainnet]: [collectibleA1, collectibleA2],
         },
         [selectedAddressB]: {
-          [NetworksChainId.mainnet]: [collectibleB1, collectibleB2],
+          [ChainId.mainnet]: [collectibleB1, collectibleB2],
         },
       },
+      isNftFetchingProgress: false,
     };
     const secondState = reducer(firstState, {
       type: REMOVE_FAVORITE_COLLECTIBLE,
       selectedAddress: selectedAddressB,
-      chainId: NetworksChainId.mainnet,
+      chainId: ChainId.mainnet,
       collectible: collectibleB1,
     });
     expect(secondState).toEqual({
       favorites: {
         [selectedAddressA]: {
-          [NetworksChainId.mainnet]: [collectibleA1, collectibleA2],
+          [ChainId.mainnet]: [collectibleA1, collectibleA2],
         },
-        [selectedAddressB]: { [NetworksChainId.mainnet]: [collectibleB2] },
+        [selectedAddressB]: { [ChainId.mainnet]: [collectibleB2] },
       },
+      isNftFetchingProgress: false,
     });
   });
 
@@ -127,24 +134,26 @@ describe('swaps reducer', () => {
     const firstState = {
       favorites: {
         [selectedAddressA]: {
-          [NetworksChainId.mainnet]: [collectibleA1, collectibleA2],
-          [NetworksChainId.goerli]: [collectibleA1],
+          [ChainId.mainnet]: [collectibleA1, collectibleA2],
+          [ChainId.sepolia]: [collectibleA1],
         },
       },
+      isNftFetchingProgress: false,
     };
     const secondState = reducer(firstState, {
       type: REMOVE_FAVORITE_COLLECTIBLE,
       selectedAddress: selectedAddressA,
-      chainId: NetworksChainId.goerli,
+      chainId: ChainId.sepolia,
       collectible: collectibleA1,
     });
     expect(secondState).toEqual({
       favorites: {
         [selectedAddressA]: {
-          [NetworksChainId.mainnet]: [collectibleA1, collectibleA2],
-          [NetworksChainId.goerli]: [],
+          [ChainId.mainnet]: [collectibleA1, collectibleA2],
+          [ChainId.sepolia]: [],
         },
       },
+      isNftFetchingProgress: false,
     });
   });
 });

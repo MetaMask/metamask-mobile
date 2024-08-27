@@ -1,72 +1,38 @@
-import Engine from '../Engine';
+import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
-
-// Mock interface for the SerializationOptions
-interface SerializationOptions {
-  vault: any;
-  keyrings: any[];
-  isUnlocked: boolean;
-  encryptionKey: string;
-  encryptionSalt: string;
-}
-
-// Mock interface for the LedgerKeyring
-interface LedgerKeyring {
-  setTransport: (transport: any, deviceId: string) => void;
-  getAppAndVersion: () => Promise<{ appName: string }>;
-  getDefaultAccount: () => Promise<string>;
-  openEthApp: () => Promise<void>;
-  quitApp: () => Promise<void>;
-  forgetDevice: () => void;
-  deserialize: (keyringSerialized: SerializationOptions) => void;
-  deviceId: string;
-  getName: () => string;
-}
+import Engine from '../Engine';
+import {
+  LedgerKeyring,
+  LedgerMobileBridge,
+} from '@metamask/eth-ledger-bridge-keyring';
+import { LEDGER_LIVE_PATH } from './constants';
+import PAGINATION_OPERATIONS from '../../constants/pagination';
 
 /**
- * Add LedgerKeyring.
+ * Perform an operation with the Ledger keyring.
  *
- * @returns The Ledger Keyring
- */
-export const addLedgerKeyring = async (): Promise<LedgerKeyring> => {
-  const keyringController = Engine.context.KeyringController;
-  return (await keyringController.addNewKeyring(
-    ExtendedKeyringTypes.ledger,
-  )) as LedgerKeyring;
-};
-
-/**
- * Retrieve the existing LedgerKeyring or create a new one.
+ * If no Ledger keyring is found, one is created.
  *
+ * Note that the `operation` function should only be used for interactions with the ledger keyring.
+ * If you call KeyringController methods within this function, it could result in a deadlock.
+ *
+ * @param operation - The keyring operation to perform.
  * @returns The stored Ledger Keyring
  */
-export const getLedgerKeyring = async (): Promise<LedgerKeyring> => {
+export const withLedgerKeyring = async <CallbackResult = void>(
+  operation: (keyring: LedgerKeyring) => Promise<CallbackResult>,
+): Promise<CallbackResult> => {
   const keyringController = Engine.context.KeyringController;
-  // There should only be one ledger keyring.
-  const keyring = keyringController().getKeyringsByType(
-    ExtendedKeyringTypes.ledger,
-  )[0] as unknown as LedgerKeyring;
-
-  if (keyring) {
-    return keyring;
-  }
-
-  return await addLedgerKeyring();
-};
-
-/**
- * Restores the Ledger Keyring. This is only used at the time the user resets the account's password at the moment.
- *
- * @param keyringSerialized - The serialized keyring;
- */
-export const restoreLedgerKeyring = async (
-  keyringSerialized: SerializationOptions,
-): Promise<void> => {
-  const keyringController = Engine.context.KeyringController;
-
-  (await getLedgerKeyring()).deserialize(keyringSerialized);
-  keyringController.updateIdentities(await keyringController.getAccounts());
+  return await keyringController.withKeyring(
+    { type: ExtendedKeyringTypes.ledger },
+    // @ts-expect-error The Ledger keyring is not compatible with our keyring type yet
+    operation,
+    // TODO: Refactor this to stop creating the keyring on-demand
+    // Instead create it only in response to an explicit user action, and do
+    // not allow Ledger interactions until after that has been done.
+    { createIfMissing: true },
+  );
 };
 
 /**
@@ -77,79 +43,50 @@ export const restoreLedgerKeyring = async (
  * @returns The name of the currently open application on the device
  */
 export const connectLedgerHardware = async (
-  transport: any,
+  transport: BleTransport,
   deviceId: string,
 ): Promise<string> => {
-  const keyring = await getLedgerKeyring();
-  keyring.setTransport(transport as unknown as any, deviceId);
-  const { appName } = await keyring.getAppAndVersion();
-  return appName;
-};
+  const appAndVersion = await withLedgerKeyring(
+    async (keyring: LedgerKeyring) => {
+      keyring.setHdPath(LEDGER_LIVE_PATH);
+      keyring.setDeviceId(deviceId);
 
-/**
- * Retrieve the first account from the Ledger device.
- *
- * @returns The default (first) account on the device
- */
-export const unlockLedgerDefaultAccount = async (): Promise<{
-  address: string;
-  balance: string;
-}> => {
-  const keyringController = Engine.context.KeyringController;
-  const preferencesController = Engine.context.PreferencesController;
-  const keyring = await getLedgerKeyring();
-  const oldAccounts = await keyringController.getAccounts();
-  await keyringController.addNewAccountForKeyring(keyring);
-  const newAccounts = await keyringController.getAccounts();
+      const bridge = keyring.bridge as LedgerMobileBridge;
+      await bridge.updateTransportMethod(transport);
+      return await bridge.getAppNameAndVersion();
+    },
+  );
 
-  keyringController.updateIdentities(newAccounts);
-  newAccounts.forEach((address: string) => {
-    if (!oldAccounts.includes(address)) {
-      if (keyringController.setAccountLabel) {
-        // The first ledger account is always returned.
-        keyringController.setAccountLabel(address, `${keyring.getName()} 1`);
-      }
-      preferencesController.setSelectedAddress(address);
-    }
-  });
-  await keyringController.persistAllKeyrings();
-
-  const address = await keyring.getDefaultAccount();
-  return {
-    address,
-    balance: `0x0`,
-  };
+  return appAndVersion.appName;
 };
 
 /**
  * Automatically opens the Ethereum app on the Ledger device.
  */
 export const openEthereumAppOnLedger = async (): Promise<void> => {
-  const keyring = await getLedgerKeyring();
-  await keyring.openEthApp();
+  await withLedgerKeyring(async (keyring: LedgerKeyring) => {
+    const bridge = keyring.bridge as LedgerMobileBridge;
+    await bridge.openEthApp();
+  });
 };
 
 /**
  * Automatically closes the current app on the Ledger device.
  */
 export const closeRunningAppOnLedger = async (): Promise<void> => {
-  const keyring = await getLedgerKeyring();
-  await keyring.quitApp();
+  await withLedgerKeyring(async (keyring: LedgerKeyring) => {
+    const bridge = keyring.bridge as LedgerMobileBridge;
+    await bridge.closeApps();
+  });
 };
 
 /**
  * Forgets the ledger keyring's previous device specific state.
  */
 export const forgetLedger = async (): Promise<void> => {
-  const keyringController = Engine.context.KeyringController;
-  const preferencesController = Engine.context.PreferencesController;
-  const keyring = await getLedgerKeyring();
-  keyring.forgetDevice();
-
-  const accounts: string[] = await keyringController.getAccounts();
-  preferencesController.setSelectedAddress(accounts[0]);
-
-  await keyringController.persistAllKeyrings();
+  await withLedgerKeyring(async (keyring: LedgerKeyring) => {
+    keyring.forgetDevice();
+  });
 };
 
 /**
@@ -157,9 +94,39 @@ export const forgetLedger = async (): Promise<void> => {
  *
  * @returns The DeviceId
  */
-export const getDeviceId = async (): Promise<string> => {
-  const ledgerKeyring = await getLedgerKeyring();
-  return ledgerKeyring.deviceId;
+export const getDeviceId = async (): Promise<string> =>
+  await withLedgerKeyring(async (keyring: LedgerKeyring) =>
+    keyring.getDeviceId(),
+  );
+
+/**
+ * Unlock Ledger Accounts by page
+ * @param operation - the operation number, <br> 0: Get First Page<br> 1: Get Next Page <br> -1: Get Previous Page
+ * @return The Ledger Accounts
+ */
+export const getLedgerAccountsByOperation = async (
+  operation: number,
+): Promise<{ balance: string; address: string; index: number }[]> => {
+  try {
+    const accounts = await withLedgerKeyring(async (keyring: LedgerKeyring) => {
+      switch (operation) {
+        case PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE:
+          return await keyring.getPreviousPage();
+        case PAGINATION_OPERATIONS.GET_NEXT_PAGE:
+          return await keyring.getNextPage();
+        default:
+          return await keyring.getFirstPage();
+      }
+    });
+
+    return accounts.map((account) => ({
+      ...account,
+      balance: '0x0',
+    }));
+  } catch (e) {
+    /* istanbul ignore next */
+    throw new Error(`Unspecified error when connect Ledger Hardware, ${e}`);
+  }
 };
 
 /**
@@ -174,15 +141,28 @@ export const ledgerSignTypedMessage = async (
   },
   version: SignTypedDataVersion,
 ): Promise<string> => {
-  await getLedgerKeyring();
+  await withLedgerKeyring(async (_keyring: LedgerKeyring) => {
+    // This is just to trigger the keyring to get created if it doesn't exist already
+  });
   const keyringController = Engine.context.KeyringController;
   return await keyringController.signTypedMessage(
     {
       from: messageParams.from,
-      data: messageParams.data as
-        | Record<string, unknown>
-        | Record<string, unknown>[],
+      // @ts-expect-error TODO: Fix types
+      data: messageParams.data,
     },
-    { version },
+    version,
   );
+};
+
+/**
+ * Unlock Ledger Wallet Account with index, and add it that account to metamask
+ *
+ * @param index - The index of the account to unlock
+ */
+export const unlockLedgerWalletAccount = async (index: number) => {
+  await withLedgerKeyring(async (keyring: LedgerKeyring) => {
+    keyring.setAccountToUnlock(index);
+    await keyring.addAccounts(1);
+  });
 };

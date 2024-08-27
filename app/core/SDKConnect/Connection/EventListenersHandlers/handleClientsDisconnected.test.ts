@@ -23,6 +23,7 @@ describe('handleClientsDisconnected', () => {
       disconnect: mockDisconnect,
       remote: {
         isPaused: mockIsPaused,
+        hasRelayPersistence: jest.fn(() => false),
       },
       isReady: true,
       receivedClientsReady: true,
@@ -70,27 +71,6 @@ describe('handleClientsDisconnected', () => {
 
       expect(mockConnection.initialConnection).toBe(false);
       expect(mockConnection.otps).toBeUndefined();
-    });
-
-    describe('When clients ready event has not been received', () => {
-      beforeEach(() => {
-        mockConnection.receivedClientsReady = false;
-      });
-
-      it('should disconnect with termination and specific context', () => {
-        const handler = handleClientsDisconnected({
-          instance: mockConnection,
-          disapprove: mockDisapprove,
-        });
-
-        handler();
-
-        expect(mockDisconnect).toHaveBeenCalledTimes(1);
-        expect(mockDisconnect).toHaveBeenCalledWith({
-          terminate: true,
-          context: 'CLIENTS_DISCONNECTED',
-        });
-      });
     });
 
     it('should set receivedDisconnect to true', () => {

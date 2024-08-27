@@ -9,7 +9,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import Text from '../../../Base/Text';
 import { useTheme } from '../../../../util/theme';
-import { CommonSelectorsIDs } from '../../../../../e2e/selectors/Common.selectors';
+import { ToastSelectorsIDs } from '../../../../../e2e/selectors/Modals/ToastModal.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -60,13 +60,13 @@ const createStyles = (colors) =>
     },
   });
 
-const getIcon = (status, colors, styles) => {
+export const getIcon = (status, colors, styles) => {
   switch (status) {
     case 'pending':
     case 'pending_withdrawal':
     case 'pending_deposit':
     case 'speedup':
-      return <AnimatedSpinner size={36} />;
+      return <AnimatedSpinner />;
     case 'success_deposit':
     case 'success_withdrawal':
     case 'success':
@@ -87,6 +87,15 @@ const getIcon = (status, colors, styles) => {
           color={colors.error.default}
           size={36}
           name="alert-circle-outline"
+          style={styles.checkIcon}
+        />
+      );
+    case 'import_success':
+      return (
+        <IonicIcon
+          color={colors.background.default}
+          size={36}
+          name="md-checkmark"
           style={styles.checkIcon}
         />
       );
@@ -176,7 +185,7 @@ const BaseNotification = ({
           <View style={styles.flashLabel}>
             <Text
               style={styles.flashTitle}
-              testID={CommonSelectorsIDs.TOAST_NOTIFICATION_TITLE}
+              testID={ToastSelectorsIDs.NOTIFICATION_TITLE}
             >
               {!title ? getTitle(status, data) : title}
             </Text>

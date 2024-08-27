@@ -4,7 +4,7 @@ exports[`SignatureApproval populates message params if approval type is eth_sign
 <Root
   approvalType="eth_sign"
   messageParams={
-    Object {
+    {
       "test": "value",
     }
   }
@@ -16,7 +16,7 @@ exports[`SignatureApproval populates message params if approval type is eth_sign
 <Root
   approvalType="eth_signTypedData"
   messageParams={
-    Object {
+    {
       "test": "value",
     }
   }
@@ -28,7 +28,7 @@ exports[`SignatureApproval populates message params if approval type is personal
 <Root
   approvalType="personal_sign"
   messageParams={
-    Object {
+    {
       "test": "value",
     }
   }

@@ -1,28 +1,27 @@
-import TestHelpers from '../../helpers';
 import { NetworkApprovalModalSelectorsIDs } from '../../selectors/Modals/NetworkApprovalModal.selectors';
-export default class NetworkApprovalModal {
-  static async tapApproveButton() {
-    await TestHelpers.tap(NetworkApprovalModalSelectorsIDs.APPROVE_BUTTON);
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
+
+class NetworkApprovalModal {
+  get container() {
+    return Matchers.getElementByID(NetworkApprovalModalSelectorsIDs.CONTAINER);
   }
 
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(
-      NetworkApprovalModalSelectorsIDs.CONTAINER,
+  get approvedButton() {
+    return Matchers.getElementByID(
+      NetworkApprovalModalSelectorsIDs.APPROVE_BUTTON,
     );
   }
 
-  static async isDisplayNameVisible(displayName) {
-    await TestHelpers.checkIfHasText(
+  get displayName() {
+    return Matchers.getElementByID(
       NetworkApprovalModalSelectorsIDs.DISPLAY_NAME,
-      displayName,
     );
   }
 
-  static async isChainIDVisible(chainID) {
-    await TestHelpers.checkIfElementWithTextIsVisible(chainID);
-  }
-
-  static async isNetworkURLVisible(networkURL) {
-    await TestHelpers.checkIfElementWithTextIsVisible(networkURL);
+  async tapApproveButton() {
+    await Gestures.waitAndTap(this.approvedButton);
   }
 }
+
+export default new NetworkApprovalModal();

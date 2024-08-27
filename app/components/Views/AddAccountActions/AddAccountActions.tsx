@@ -8,7 +8,6 @@ import SheetHeader from '../../../component-library/components/Sheet/SheetHeader
 import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../locales/i18n';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
 import Engine from '../../../core/Engine';
@@ -17,31 +16,35 @@ import Engine from '../../../core/Engine';
 import { AddAccountActionsProps } from './AddAccountActions.types';
 import { AddAccountModalSelectorsIDs } from '../../../../e2e/selectors/Modals/AddAccountModal.selectors';
 import Routes from '../../../constants/navigation/Routes';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   const { navigate } = useNavigation();
+  const { trackEvent } = useMetrics();
   const [isLoading, setIsLoading] = useState(false);
 
   const openImportAccount = useCallback(() => {
     navigate('ImportPrivateKeyView');
     onBack();
-    AnalyticsV2.trackEvent(MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT, {});
-  }, [navigate, onBack]);
+    trackEvent(MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT, {});
+  }, [navigate, onBack, trackEvent]);
 
   const openConnectHardwareWallet = useCallback(() => {
     navigate(Routes.HW.CONNECT);
     onBack();
-    AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET, {});
-  }, [onBack, navigate]);
+    trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET, {});
+  }, [onBack, navigate, trackEvent]);
 
   const createNewAccount = useCallback(async () => {
-    const { KeyringController, PreferencesController } = Engine.context;
+    const { KeyringController } = Engine.context;
     try {
       setIsLoading(true);
 
-      const { addedAccountAddress } = await KeyringController.addNewAccount();
-      PreferencesController.setSelectedAddress(addedAccountAddress);
-      AnalyticsV2.trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT, {});
+      const addedAccountAddress = await KeyringController.addNewAccount();
+      Engine.setSelectedAddress(addedAccountAddress);
+      trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT, {});
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       Logger.error(e, 'error while trying to add a new account');
     } finally {
@@ -49,7 +52,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
 
       setIsLoading(false);
     }
-  }, [onBack, setIsLoading]);
+  }, [onBack, setIsLoading, trackEvent]);
 
   return (
     <Fragment>

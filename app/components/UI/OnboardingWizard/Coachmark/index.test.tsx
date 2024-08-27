@@ -1,11 +1,11 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Coachmark from './';
 jest.useFakeTimers();
 
 describe('Coachmark', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = renderWithProvider(
       <Coachmark
         content={'content'}
         title={'title'}
@@ -13,6 +13,6 @@ describe('Coachmark', () => {
         topIndicatorPosition={'topLeft'}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -1,7 +1,7 @@
 apply plugin: "com.android.application"
 apply plugin: "com.facebook.react"
-
-import com.android.build.OutputFile
+apply plugin: "io.sentry.android.gradle"
+apply plugin: 'com.google.gms.google-services'
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -13,8 +13,8 @@ react {
     // root = file("../")
     //   The folder where the react-native NPM package is. Default is ../node_modules/react-native
     // reactNativeDir = file("../node_modules/react-native")
-    //   The folder where the react-native Codegen package is. Default is ../node_modules/react-native-codegen
-    // codegenDir = file("../node_modules/react-native-codegen")
+    //   The folder where the react-native Codegen package is. Default is ../node_modules/@react-native/codegen
+    // codegenDir = file("../node_modules/@react-native/codegen")
     //   The cli.js file which is the React Native CLI entrypoint. Default is ../node_modules/react-native/cli.js
     // cliFile = file("../node_modules/react-native/cli.js")
     /* Variants */
@@ -49,12 +49,55 @@ react {
     // hermesFlags = ["-O", "-output-source-map"]
 }
 
- project.ext.sentryCli = [
-	logLevel: "debug",
-	sentryProperties: System.getenv('SENTRY_PROPERTIES') ? System.getenv('SENTRY_PROPERTIES') : '../../sentry.properties'
+// Override default React Native to generate source maps for Hermes
+project.ext.react = [
+  bundleCommand: "ram-bundle",
+  bundleAssetName: "index.bundle",
+  entryFile: "index.js",
+  hermesCommand: "../../node_modules/hermes-engine/%OS-BIN%/hermesc",
+  cliPath: "../../node_modules/react-native/cli.js",
+  composeSourceMapsPath: "../../node_modules/react-native/scripts/compose-source-maps.js",
 ]
 
+// Sentry environment variables used by Sentry CLI to upload files. Upload is disabled by default
+// TODO - Move to JS side to be shared between platform - Android sets these automatically
+// System.env.SENTRY_DIST
+// System.env.SENTRY_RELEASE
+
+// Configure sentry properties
+project.ext.sentryCli = [
+    logLevel: "debug",
+    sentryProperties: System.getenv('SENTRY_PROPERTIES') ?: '../../sentry.properties'
+]
+
+// Sentry gradle from React Native (@sentry/react-native) that handles uploads Sentry source maps.
 apply from: "../../node_modules/@sentry/react-native/sentry.gradle"
+
+// Sentry configuration used by Sentry Android gradle plugin (io.sentry.android.gradle), which handles uploading symbols.
+sentry {
+    // Enables or disables the automatic configuration of Native Symbols
+    // for Sentry. This executes sentry-cli automatically so
+    // you don't need to do it manually.
+    // Default is disabled.
+    autoUploadProguardMapping = shouldSentryAutoUpload()
+    uploadNativeSymbols = shouldSentryAutoUpload()
+
+    // Enables or disables the automatic upload of the app's native source code to Sentry.
+    // This executes sentry-cli with the --include-sources param automatically so
+    // you don't need to do it manually.
+    // This option has an effect only when [uploadNativeSymbols] is enabled.
+    // Default is disabled.
+    includeNativeSources = true
+
+    // `@sentry/react-native` ships with compatible `sentry-android`
+    // This option would install the latest version that ships with the SDK or SAGP (Sentry Android Gradle Plugin)
+    // which might be incompatible with the React Native SDK
+    // Enable auto-installation of Sentry components (sentry-android SDK and okhttp, timber and fragment integrations).
+    // Default is enabled.
+    autoInstallation {
+      enabled = false
+    }
+}
 
 def getPassword(String currentUser, String keyChain) {
 	def stdout = new ByteArrayOutputStream()
@@ -81,14 +124,6 @@ def getPassword(String currentUser, String keyChain) {
 	//noinspection GroovyAssignabilityCheck
 	stdout.toString().trim()
 }
-
-/**
- * Set this to true to create four separate APKs instead of one,
- * one for each native architecture. This is useful if you don't
- * use App Bundles (https://developer.android.com/guide/app-bundle/)
- * and want to have separate APKs to upload to the Play Store.
- */
-def enableSeparateBuildPerCPUArchitecture = false
 
 /**
  * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
@@ -118,6 +153,7 @@ def reactNativeArchitectures() {
     return value ? value.split(",") : ["armeabi-v7a", "x86", "x86_64", "arm64-v8a"]
 }
 
+
 /**
 * Adding function that will retuen the Bitrise ndkPath if it is a QA or Production Build
 */
@@ -137,18 +173,25 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1235
-        versionName "7.12.5"
+        versionCode 1397
+        versionName "7.29.0"
         testBuildType System.getProperty('testBuildType', 'debug')
         missingDimensionStrategy 'react-native-camera', 'general'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders.MM_BRANCH_KEY_TEST = "$System.env.MM_BRANCH_KEY_TEST"
         manifestPlaceholders.MM_BRANCH_KEY_LIVE = "$System.env.MM_BRANCH_KEY_LIVE"
-        manifestPlaceholders.MM_MIXPANEL_TOKEN = "$System.env.MM_MIXPANEL_TOKEN"
     }
 
 	  packagingOptions {
 		  exclude 'META-INF/DEPENDENCIES'
+      pickFirst 'lib/x86/libc++_shared.so'
+      pickFirst 'lib/x86_64/libc++_shared.so'
+      pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+      pickFirst 'lib/arm64-v8a/libc++_shared.so'
+      pickFirst 'lib/arm64-v8a/libcrypto.so'
+      pickFirst 'lib/armeabi-v7a/libcrypto.so'
+      pickFirst 'lib/x86/libcrypto.so'
+      pickFirst 'lib/x86_64/libcrypto.so'
 	  }
 
 	  signingConfigs {
@@ -176,15 +219,6 @@ android {
         keyAlias System.getenv("BITRISEIO_ANDROID_FLASK_KEYSTORE_ALIAS")
         keyPassword System.getenv("BITRISEIO_ANDROID_FLASK_KEYSTORE_PRIVATE_KEY_PASSWORD")
       }
-    }
-
-    splits {
-        abi {
-            reset()
-            enable enableSeparateBuildPerCPUArchitecture
-            universalApk false  // If true, also generate a universal APK
-            include (*reactNativeArchitectures())
-        }
     }
 
     buildTypes {
@@ -226,21 +260,6 @@ android {
       it.buildConfigField 'String', 'IS_RAMP_UAT', "\"$System.env.RAMP_INTERNAL_BUILD\""
       // Used to point to dev environment API for ramp
       it.buildConfigField 'String', 'IS_RAMP_DEV', "\"$System.env.RAMP_DEV_BUILD\""
-	  }
-    // applicationVariants are e.g. debug, release
-    applicationVariants.all { variant ->
-        variant.outputs.each { output ->
-            // For each separate APK per architecture, set a unique version code as described here:
-            // https://developer.android.com/studio/build/configure-apk-splits.html
-            // Example: versionCode will generate 1001 for armeabi-v7a, 1002 for x86, etc.
-            def versionCodes = ["armeabi-v7a": 1, "x86": 2, "arm64-v8a": 3, "x86_64": 4]
-            def abi = output.getFilter(OutputFile.ABI)
-            if (abi != null) {  // null for the universal-debug, universal-release variants
-                output.versionCodeOverride =
-                        defaultConfig.versionCode * 1000 + versionCodes.get(abi)
-            }
-
-        }
     }
 }
 
@@ -249,8 +268,6 @@ dependencies {
     implementation(files("../libs/ecies.aar"))
     implementation(files("../libs/nativesdk.aar"))
     implementation("com.facebook.react:react-android")
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.0.0")
-    implementation('com.mixpanel.android:mixpanel-android:5.+')
     implementation 'org.apache.commons:commons-compress:1.22'
     androidTestImplementation 'org.mockito:mockito-android:4.2.0'
     androidTestImplementation 'androidx.test:core:1.5.0'
@@ -266,7 +283,7 @@ dependencies {
     } else {
         implementation jscFlavor
     }
-    androidTestImplementation('com.wix:detox:+') {
+    androidTestImplementation('com.wix:detox-legacy:+') {
          exclude module: "protobuf-lite"
      }
     androidTestImplementation ('androidx.test.espresso:espresso-contrib:3.4.0')

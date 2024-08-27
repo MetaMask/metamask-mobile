@@ -1,17 +1,21 @@
 import React from 'react';
-import useApprovalRequest from '../../hooks/useApprovalRequest';
+import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
 import { shallow } from 'enzyme';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import WatchAssetApproval from './WatchAssetApproval';
 
-jest.mock('../../hooks/useApprovalRequest');
+jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockApprovalRequest = (approvalRequest?: ApprovalRequest<any>) => {
   (
     useApprovalRequest as jest.MockedFn<typeof useApprovalRequest>
   ).mockReturnValue({
     approvalRequest,
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
 };
 
@@ -24,6 +28,8 @@ describe('WatchAssetApproval', () => {
     mockApprovalRequest({
       type: ApprovalTypes.WATCH_ASSET,
       requestData: {},
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     const wrapper = shallow(<WatchAssetApproval />);
@@ -34,6 +40,8 @@ describe('WatchAssetApproval', () => {
   it('returns null if no request data', () => {
     mockApprovalRequest({
       type: ApprovalTypes.WATCH_ASSET,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     const wrapper = shallow(<WatchAssetApproval />);
@@ -52,6 +60,8 @@ describe('WatchAssetApproval', () => {
     mockApprovalRequest({
       type: ApprovalTypes.ADD_ETHEREUM_CHAIN,
       requestData: {},
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     const wrapper = shallow(<WatchAssetApproval />);

@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   TouchableOpacity,
@@ -24,19 +18,20 @@ import Avatar, {
   AvatarVariant,
   AvatarSize,
 } from '../../../component-library/components/Avatars/Avatar';
-import {
-  getNetworkImageSource,
-  getNetworkNameFromProviderConfig,
-} from '../../../util/networks';
+import { getDecimalChainId } from '../../../util/networks';
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import { selectProviderConfig } from '../../../selectors/networkController';
+import {
+  selectNetworkName,
+  selectNetworkImageSource,
+} from '../../../selectors/networkInfos';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import Analytics from '../../../core/Analytics/Analytics';
 import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/AccountOverview.selectors';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const styles = StyleSheet.create({
   leftButton: {
@@ -66,8 +61,11 @@ const AccountRightButton = ({
   // Placeholder ref for dismissing keyboard. Works when the focused input is within a Webview.
   const placeholderInputRef = useRef<TextInput>(null);
   const { navigate } = useNavigation();
+  const { trackEvent } = useMetrics();
   const [isKeyboardVisible, setIsKeyboardVisible] = useState<boolean>(false);
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -122,12 +120,9 @@ const AccountRightButton = ({
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.NETWORK_SELECTOR,
       });
-      Analytics.trackEventWithParameters(
-        MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
-        {
-          chain_id: providerConfig.chainId,
-        },
-      );
+      trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
+        chain_id: getDecimalChainId(providerConfig.chainId),
+      });
     } else {
       onPress?.();
     }
@@ -138,21 +133,11 @@ const AccountRightButton = ({
     onPress,
     navigate,
     providerConfig.chainId,
+    trackEvent,
   ]);
 
-  const networkName = useMemo(
-    () => getNetworkNameFromProviderConfig(providerConfig),
-    [providerConfig],
-  );
-
-  const networkImageSource = useMemo(
-    () =>
-      getNetworkImageSource({
-        networkType: providerConfig.type,
-        chainId: providerConfig.chainId,
-      }),
-    [providerConfig],
-  );
+  const networkName = useSelector(selectNetworkName);
+  const networkImageSource = useSelector(selectNetworkImageSource);
 
   const renderAvatarAccount = () => (
     <AvatarAccount type={accountAvatarType} accountAddress={selectedAddress} />

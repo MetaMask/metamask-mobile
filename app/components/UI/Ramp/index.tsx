@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Order } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
-import WebView from 'react-native-webview';
+import WebView from '@metamask/react-native-webview';
 import AppConstants from '../../../core/AppConstants';
 import NotificationManager from '../../../core/NotificationManager';
 import { FIAT_ORDER_STATES } from '../../../constants/on-ramp';
@@ -22,15 +22,15 @@ import {
 } from '../../../reducers/fiatOrders';
 import useInterval from '../../hooks/useInterval';
 import useThunkDispatch, { ThunkAction } from '../../hooks/useThunkDispatch';
-import processOrder from './common/orderProcessor';
-import processCustomOrderIdData from './common/orderProcessor/customOrderId';
-import { aggregatorOrderToFiatOrder } from './common/orderProcessor/aggregator';
-import { trackEvent } from './common/hooks/useAnalytics';
-import { AnalyticsEvents } from './common/types';
+import processOrder from './orderProcessor';
+import processCustomOrderIdData from './orderProcessor/customOrderId';
+import { aggregatorOrderToFiatOrder } from './orderProcessor/aggregator';
+import { trackEvent } from './hooks/useAnalytics';
+import { AnalyticsEvents } from './types';
 import { CustomIdData } from '../../../reducers/fiatOrders/types';
-import { callbackBaseUrl } from './common/sdk';
-import useFetchRampNetworks from './common/hooks/useFetchRampNetworks';
-import { getNotificationDetails, stateHasOrder } from './common/utils';
+import { callbackBaseUrl } from './sdk';
+import useFetchRampNetworks from './hooks/useFetchRampNetworks';
+import { getNotificationDetails, stateHasOrder } from './utils';
 import Routes from '../../../constants/navigation/Routes';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
@@ -220,8 +220,14 @@ function FiatOrders() {
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
   const navigation = useNavigation();
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const pendingOrders = useSelector<any, FiatOrder[]>(getPendingOrders);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const customOrderIds = useSelector<any, CustomIdData[]>(getCustomOrderIds);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const authenticationUrls = useSelector<any, string[]>(getAuthenticationUrls);
 
   const dispatchAddFiatOrder = useCallback(

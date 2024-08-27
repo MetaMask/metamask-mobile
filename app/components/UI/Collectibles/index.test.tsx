@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
 import Collectibles from './';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 
 describe('Collectibles', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<Collectibles />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<Collectibles />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

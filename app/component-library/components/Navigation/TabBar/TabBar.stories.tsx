@@ -7,7 +7,7 @@ import { createStore } from 'redux';
 import { Provider } from 'react-redux';
 
 // External dependencies.
-import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 
 // Internal dependencies.
 import { default as TabBarComponent } from './TabBar';
@@ -18,7 +18,7 @@ const mockInitialState = {
     step: 1,
   },
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 const rootReducer = (state = mockInitialState) => state;
@@ -29,6 +29,8 @@ const TabBarStorybook = () => {
     { name: 'WalletRoute', key: 'WalletRoute' },
     { name: 'BrowserRoute', key: 'BrowserRoute' },
   ];
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mockTabBarProps: any = {
     state: {
       routes,
@@ -62,6 +64,8 @@ const TabBarStorybook = () => {
 const TabBarMeta = {
   title: 'Component Library / Navigation',
   decorators: [
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (Story: any) => (
       <Provider store={store}>
         <Story />

@@ -1,9 +1,9 @@
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
-import Encryptor from './Encryptor';
+import { Encryptor, LEGACY_DERIVATION_OPTIONS } from './Encryptor';
 import { strings } from '../../locales/i18n';
-import AsyncStorage from '../store/async-storage-wrapper';
+import StorageWrapper from '../store/storage-wrapper';
 import { Platform } from 'react-native';
-import { MetaMetricsEvents } from '../core/Analytics';
+import { MetaMetricsEvents, MetaMetrics } from '../core/Analytics';
 import {
   BIOMETRY_CHOICE,
   BIOMETRY_CHOICE_DISABLED,
@@ -12,10 +12,11 @@ import {
   TRUE,
 } from '../constants/storage';
 import Device from '../util/device';
-import AnalyticsV2 from '../util/analyticsV2';
 
 const privates = new WeakMap();
-const encryptor = new Encryptor();
+const encryptor = new Encryptor({
+  keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
+});
 const defaultOptions = {
   service: 'com.metamask',
   authenticationPromptTitle: strings('authentication.auth_prompt_title'),
@@ -25,8 +26,9 @@ const defaultOptions = {
   fingerprintPromptDesc: strings('authentication.fingerprint_prompt_desc'),
   fingerprintPromptCancel: strings('authentication.fingerprint_prompt_cancel'),
 };
-import Analytics from './Analytics/Analytics';
 import AUTHENTICATION_TYPE from '../constants/userProperties';
+import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+
 /**
  * Class that wraps Keychain from react-native-keychain
  * abstracting metamask specific functionality and settings
@@ -60,7 +62,9 @@ export default {
     instance = new SecureKeychain(salt);
 
     if (Device.isAndroid && Keychain.SECURITY_LEVEL?.SECURE_HARDWARE)
-      AnalyticsV2.trackEvent(MetaMetricsEvents.ANDROID_HARDWARE_KEYSTORE);
+      MetaMetrics.getInstance().trackEvent(
+        MetaMetricsEvents.ANDROID_HARDWARE_KEYSTORE,
+      );
 
     Object.freeze(instance);
     return instance;
@@ -76,10 +80,12 @@ export default {
 
   async resetGenericPassword() {
     const options = { service: defaultOptions.service };
-    await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-    await AsyncStorage.removeItem(PASSCODE_CHOICE);
+    await StorageWrapper.removeItem(BIOMETRY_CHOICE);
+    await StorageWrapper.removeItem(PASSCODE_CHOICE);
     // This is called to remove other auth types and set the user back to the default password login
-    Analytics.applyUserProperty(AUTHENTICATION_TYPE.PASSWORD);
+    await MetaMetrics.getInstance().addTraitsToUser({
+      [UserProfileProperty.AUTHENTICATION_TYPE]: AUTHENTICATION_TYPE.PASSWORD,
+    });
     return Keychain.resetGenericPassword(options);
   },
 
@@ -111,14 +117,23 @@ export default {
       accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
     };
 
+    const metrics = MetaMetrics.getInstance();
     if (type === this.TYPES.BIOMETRICS) {
       authOptions.accessControl = Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET;
-      Analytics.applyUserProperty(AUTHENTICATION_TYPE.BIOMETRIC);
+      await metrics.addTraitsToUser({
+        [UserProfileProperty.AUTHENTICATION_TYPE]:
+          AUTHENTICATION_TYPE.BIOMETRIC,
+      });
     } else if (type === this.TYPES.PASSCODE) {
       authOptions.accessControl = Keychain.ACCESS_CONTROL.DEVICE_PASSCODE;
-      Analytics.applyUserProperty(AUTHENTICATION_TYPE.PASSCODE);
+      await metrics.addTraitsToUser({
+        [UserProfileProperty.AUTHENTICATION_TYPE]: AUTHENTICATION_TYPE.PASSCODE,
+      });
     } else if (type === this.TYPES.REMEMBER_ME) {
-      Analytics.applyUserProperty(AUTHENTICATION_TYPE.REMEMBER_ME);
+      await metrics.addTraitsToUser({
+        [UserProfileProperty.AUTHENTICATION_TYPE]:
+          AUTHENTICATION_TYPE.REMEMBER_ME,
+      });
       //Don't need to add any parameter
     } else {
       // Setting a password without a type does not save it
@@ -132,10 +147,10 @@ export default {
     });
 
     if (type === this.TYPES.BIOMETRICS) {
-      await AsyncStorage.setItem(BIOMETRY_CHOICE, TRUE);
-      await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
-      await AsyncStorage.removeItem(PASSCODE_CHOICE);
-      await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+      await StorageWrapper.setItem(BIOMETRY_CHOICE, TRUE);
+      await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
+      await StorageWrapper.removeItem(PASSCODE_CHOICE);
+      await StorageWrapper.removeItem(BIOMETRY_CHOICE_DISABLED);
 
       // If the user enables biometrics, we're trying to read the password
       // immediately so we get the permission prompt
@@ -143,15 +158,15 @@ export default {
         await this.getGenericPassword();
       }
     } else if (type === this.TYPES.PASSCODE) {
-      await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-      await AsyncStorage.removeItem(PASSCODE_DISABLED);
-      await AsyncStorage.setItem(PASSCODE_CHOICE, TRUE);
-      await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+      await StorageWrapper.removeItem(BIOMETRY_CHOICE);
+      await StorageWrapper.removeItem(PASSCODE_DISABLED);
+      await StorageWrapper.setItem(PASSCODE_CHOICE, TRUE);
+      await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
     } else if (type === this.TYPES.REMEMBER_ME) {
-      await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-      await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
-      await AsyncStorage.removeItem(PASSCODE_CHOICE);
-      await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+      await StorageWrapper.removeItem(BIOMETRY_CHOICE);
+      await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
+      await StorageWrapper.removeItem(PASSCODE_CHOICE);
+      await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
       //Don't need to add any parameter
     }
   },

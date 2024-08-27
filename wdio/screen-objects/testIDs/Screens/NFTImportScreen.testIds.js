@@ -3,3 +3,5 @@ export const NFT_ADDRESS_WARNING_MESSAGE_ID = 'collectible-address-warning';
 export const NFT_IDENTIFIER_WARNING_MESSAGE_ID =
   'collectible-identifier-warning';
 export const NFT_IDENTIFIER_INPUT_BOX_ID = 'input-token-decimals';
+export const NEXT_BUTTON_CUSTOM_IMPORT = 'next-button-custom-import';
+

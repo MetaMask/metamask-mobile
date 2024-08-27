@@ -3,13 +3,13 @@
 import { SmokeConfirmations } from '../../tags';
 import TestHelpers from '../../helpers';
 
-import AmountView from '../../pages/AmountView';
-import SendView from '../../pages/SendView';
-import TransactionConfirmationView from '../../pages/TransactionConfirmView';
+import AmountView from '../../pages/Send/AmountView';
+import SendView from '../../pages/Send/SendView';
+import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
-import root from '../../../locales/languages/en.json';
+import enContent from '../../../locales/languages/en.json';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   withFixtures,
@@ -18,7 +18,7 @@ import {
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 
 describe(SmokeConfirmations('Send ETH'), () => {
-  const TOKEN_NAME = root.unit.eth;
+  const TOKEN_NAME = enContent.unit.eth;
   const AMOUNT = '0.12345';
 
   beforeAll(async () => {

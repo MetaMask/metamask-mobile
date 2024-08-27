@@ -5,20 +5,34 @@ import { fireEvent } from '@testing-library/react-native';
 // Internal dependencies
 import EditAccountName from './EditAccountName';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
+import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
+import EditAccountNameSelectorIDs from '../../../../e2e/selectors/EditAccountName.selectors';
 
-const mockSetAccountLabel = jest.fn();
+const mockPreferencesSetAccountLabel = jest.fn();
+const mockEngineSetAccountLabel = jest.fn();
+const mockAccountsControllerSetAccountName = jest.fn();
+
+const MOCK_ADDRESS = '0x0';
+const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
+  MOCK_ADDRESS,
+]);
 
 jest.mock('../../../core/Engine', () => ({
+  setAccountLabel: () => mockEngineSetAccountLabel,
   context: {
     PreferencesController: {
-      setAccountLabel: () => mockSetAccountLabel,
+      setAccountLabel: () => mockPreferencesSetAccountLabel,
+    },
+    AccountsController: {
+      setAccountName: () => mockAccountsControllerSetAccountName,
+      ...MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
 }));
 
 const mockInitialState = {
-  swaps: { '1': { isLive: true }, hasOnboarded: false, isLive: true },
+  swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
   wizard: {
     step: 0,
   },
@@ -27,12 +41,9 @@ const mockInitialState = {
   },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
-      PreferencesController: {
-        selectedAddress: '0x',
-        identities: {
-          '0x': { name: 'Account 1', address: '0x' },
-        },
+      ...backgroundState,
+      AccountsController: {
+        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
       },
     },
   },
@@ -61,6 +72,8 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderComponent = (state: any) =>
   renderWithProvider(<EditAccountName />, { state });
 
@@ -69,6 +82,9 @@ describe('EditAccountName', () => {
     mockNavigate.mockClear();
     mockGoBack.mockClear();
     mockSetOptions.mockClear();
+    mockPreferencesSetAccountLabel.mockClear();
+    mockEngineSetAccountLabel.mockClear();
+    mockAccountsControllerSetAccountName.mockClear();
   });
   it('should render correctly', () => {
     const { getByText, toJSON } = renderComponent(mockInitialState);
@@ -81,8 +97,10 @@ describe('EditAccountName', () => {
 
   it('should enable the save button when text input changes', () => {
     const { getByTestId } = renderComponent(mockInitialState);
-    const input = getByTestId('account-name-input');
-    const saveButton = getByTestId('save-button');
+    const input = getByTestId(EditAccountNameSelectorIDs.ACCOUNT_NAME_INPUT);
+    const saveButton = getByTestId(
+      EditAccountNameSelectorIDs.EDIT_ACCOUNT_NAME_SAVE,
+    );
 
     fireEvent.changeText(input, '');
 
@@ -101,8 +119,10 @@ describe('EditAccountName', () => {
 
   it('should call navigate when save button is pressed', () => {
     const { getByTestId } = renderComponent(mockInitialState);
-    const input = getByTestId('account-name-input');
-    const saveButton = getByTestId('save-button');
+    const input = getByTestId(EditAccountNameSelectorIDs.ACCOUNT_NAME_INPUT);
+    const saveButton = getByTestId(
+      EditAccountNameSelectorIDs.EDIT_ACCOUNT_NAME_SAVE,
+    );
     fireEvent.changeText(input, 'New Name');
     fireEvent.press(saveButton);
     expect(mockNavigate).toHaveBeenCalled();

@@ -1,21 +1,22 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { getHasOrders } from '../../../reducers/fiatOrders';
 import { getTransactionsNavbarOptions } from '../../UI/Navbar';
 import TransactionsView from '../TransactionsView';
 import TabBar from '../../Base/TabBar';
 import { strings } from '../../../../locales/i18n';
-import RampOrdersList from '../../UI/Ramp/common/Views/OrdersList/';
+import RampOrdersList from '../../UI/Ramp/Views/OrdersList';
 import ErrorBoundary from '../ErrorBoundary';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useParams } from '../../../util/navigation/navUtils';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -25,20 +26,26 @@ const styles = StyleSheet.create({
 
 const ActivityView = () => {
   const { colors } = useTheme();
+  const { trackEvent } = useMetrics();
   const navigation = useNavigation();
-  const selectedAddress = useSelector(selectSelectedAddress);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountChecksummedAddress,
+  );
   const hasOrders = useSelector((state) => getHasOrders(state) || false);
-  const accounts = useSelector(selectAccounts);
+  const accountsByChainId = useSelector(selectAccountsByChainId);
+  const tabViewRef = useRef();
+  const params = useParams();
 
   const openAccountSelector = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.ACCOUNT_SELECTOR,
     });
     // Track Event: "Opened Acount Switcher"
-    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH, {
-      number_of_accounts: Object.keys(accounts ?? {}).length,
+    trackEvent(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH, {
+      number_of_accounts: Object.keys(accountsByChainId[selectedAddress] ?? {})
+        .length,
     });
-  }, [navigation, accounts]);
+  }, [navigation, accountsByChainId, selectedAddress, trackEvent]);
 
   useEffect(
     () => {
@@ -60,13 +67,22 @@ const ActivityView = () => {
 
   const renderTabBar = () => (hasOrders ? <TabBar /> : <View />);
 
+  useFocusEffect(
+    useCallback(() => {
+      if (hasOrders && params.redirectToOrders) {
+        navigation.setParams({ redirectToOrders: false });
+        tabViewRef.current?.goToPage(1);
+      }
+    }, [hasOrders, navigation, params.redirectToOrders]),
+  );
+
   return (
     <ErrorBoundary navigation={navigation} view="ActivityView">
       <View style={styles.wrapper}>
         <ScrollableTabView
+          ref={tabViewRef}
           renderTabBar={renderTabBar}
           locked={!hasOrders}
-          page={!hasOrders ? 0 : undefined}
         >
           <TransactionsView tabLabel={strings('transactions_view.title')} />
           {hasOrders && (

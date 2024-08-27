@@ -1,11 +1,11 @@
-import messages from '../../../locales/languages/en.json';
+import enContent from '../../../locales/languages/en.json';
 
 export const ContractApprovalModalSelectorsText = {
-  ADD_NICKNAME: messages.nickname.add_nickname,
-  EDIT_NICKNAME: messages.nickname.edit_nickname,
-  APPROVE: messages.transactions.tx_review_approve,
-  REJECT: messages.transaction.reject,
-  NEXT: messages.transaction.next,
+  ADD_NICKNAME: enContent.nickname.add_nickname,
+  EDIT_NICKNAME: enContent.nickname.edit_nickname,
+  APPROVE: enContent.transactions.tx_review_approve,
+  REJECT: enContent.transaction.reject,
+  NEXT: enContent.transaction.next,
 };
 
 export const ContractApprovalModalSelectorsIDs = {

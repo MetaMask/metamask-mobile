@@ -3,9 +3,9 @@
 exports[`CustomInput should render correctly 1`] = `
 <View
   style={
-    Array [
-      Object {
-        "backgroundColor": "#FFFFFF",
+    [
+      {
+        "backgroundColor": "#ffffff",
         "borderRadius": 8,
         "flexDirection": "row",
         "justifyContent": "space-between",
@@ -18,7 +18,7 @@ exports[`CustomInput should render correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
         "flex": 1,
         "flexDirection": "row",
@@ -31,9 +31,9 @@ exports[`CustomInput should render correctly 1`] = `
       onChangeText={[Function]}
       placeholder="Enter a number here"
       style={
-        Array [
-          Object {
-            "color": "#24272A",
+        [
+          {
+            "color": "#141618",
             "flexGrow": 1,
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
@@ -54,8 +54,8 @@ exports[`CustomInput should render correctly 1`] = `
   <Text
     onPress={[Function]}
     style={
-      Object {
-        "color": "#535A61",
+      {
+        "color": "#6a737d",
       }
     }
     testID="custom-spend-cap-max-test-id"

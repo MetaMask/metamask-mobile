@@ -1,29 +1,37 @@
+// Third party dependencies
 import React, { useRef, useState, useCallback, useMemo } from 'react';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
+import { Token as TokenType } from '@metamask/assets-controllers';
+import { useNavigation } from '@react-navigation/native';
+import { FlatList } from 'react-native-gesture-handler';
+
+// External Dependencies
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
-import { Token as TokenType } from '@metamask/assets-controllers';
 import Token from './components/Token';
 import Engine from '../../../core/Engine';
-import { useNavigation } from '@react-navigation/native';
 import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
 import { useTheme } from '../../../util/theme';
-import AnalyticsV2 from '../../../util/analyticsV2';
-
 import { getDecimalChainId } from '../../../util/networks';
-import { FlatList } from 'react-native-gesture-handler';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
-import SheetBottom, {
-  SheetBottomRef,
-} from '../../../component-library/components/Sheet/SheetBottom';
 import { selectDetectedTokens } from '../../../selectors/tokensController';
-import { selectChainId } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkClientId,
+} from '../../../selectors/networkController';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
+import { useMetrics } from '../../../components/hooks/useMetrics';
+import { DetectedTokensSelectorIDs } from '../../../../e2e/selectors/wallet/DetectedTokensView.selectors';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     fill: {
@@ -45,6 +53,8 @@ const createStyles = (colors: any) =>
     },
     headerLabel: {
       textAlign: 'center',
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...(fontStyles.normal as any),
       fontSize: 18,
       paddingVertical: 16,
@@ -66,9 +76,11 @@ interface IgnoredTokensByAddress {
 
 const DetectedTokens = () => {
   const navigation = useNavigation();
-  const sheetRef = useRef<SheetBottomRef>(null);
+  const { trackEvent } = useMetrics();
+  const sheetRef = useRef<BottomSheetRef>(null);
   const detectedTokens = useSelector(selectDetectedTokens);
   const chainId = useSelector(selectChainId);
+  const networkClientId = useSelector(selectNetworkClientId);
   const [ignoredTokens, setIgnoredTokens] = useState<IgnoredTokensByAddress>(
     {},
   );
@@ -82,6 +94,8 @@ const DetectedTokens = () => {
 
   const dismissModalAndTriggerAction = useCallback(
     (ignoreAllTokens?: boolean) => {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { TokensController } = Engine.context as any;
       let title = '';
       let description = '';
@@ -115,15 +129,15 @@ const DetectedTokens = () => {
         errorMsg = 'DetectedTokens: Failed to import detected tokens!';
       }
 
-      sheetRef.current?.hide(async () => {
+      sheetRef.current?.onCloseBottomSheet(async () => {
         try {
           tokensToIgnore.length > 0 &&
             (await TokensController.ignoreTokens(tokensToIgnore));
           if (tokensToImport.length > 0) {
-            await TokensController.addTokens(tokensToImport);
+            await TokensController.addTokens(tokensToImport, networkClientId);
             InteractionManager.runAfterInteractions(() =>
               tokensToImport.forEach(({ address, symbol }) =>
-                AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_ADDED, {
+                trackEvent(MetaMetricsEvents.TOKEN_ADDED, {
                   token_address: address,
                   token_symbol: symbol,
                   chain_id: getDecimalChainId(chainId),
@@ -143,7 +157,7 @@ const DetectedTokens = () => {
         }
       });
     },
-    [chainId, detectedTokens, ignoredTokens],
+    [chainId, detectedTokens, ignoredTokens, trackEvent, networkClientId],
   );
 
   const triggerIgnoreAllTokens = () => {
@@ -151,15 +165,14 @@ const DetectedTokens = () => {
       onConfirm: () => dismissModalAndTriggerAction(true),
       isHidingAll: true,
     });
-    InteractionManager.runAfterInteractions(() =>
-      AnalyticsV2.trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
-        location: 'token_detection',
-        token_standard: 'ERC20',
-        asset_type: 'token',
-        tokens: detectedTokensForAnalytics,
-        chain_id: getDecimalChainId(chainId),
-      }),
-    );
+
+    trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
+      location: 'token_detection',
+      token_standard: 'ERC20',
+      asset_type: 'token',
+      tokens: detectedTokensForAnalytics,
+      chain_id: getDecimalChainId(chainId),
+    });
   };
 
   const triggerImportTokens = async () => {
@@ -236,6 +249,7 @@ const DetectedTokens = () => {
           containerStyle={styles.fill}
           type={'confirm'}
           disabled={importTokenCount <= 0}
+          testID={DetectedTokensSelectorIDs.IMPORT_BUTTON_ID}
         >
           {strings('detected_tokens.import_cta', {
             tokenCount: importTokenCount,
@@ -245,11 +259,11 @@ const DetectedTokens = () => {
     );
   };
 
-  const trackCancelWithoutAction = (hasPendingAction: boolean) => {
+  const trackCancelWithoutAction = (hasPendingAction?: boolean) => {
     if (hasPendingAction) {
       return;
     }
-    AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CANCELED, {
+    trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CANCELED, {
       source: 'detected',
       tokens: detectedTokensForAnalytics,
       chain_id: getDecimalChainId(chainId),
@@ -257,15 +271,11 @@ const DetectedTokens = () => {
   };
 
   return (
-    <SheetBottom
-      ref={sheetRef}
-      reservedMinOverlayHeight={250}
-      onDismissed={trackCancelWithoutAction}
-    >
+    <BottomSheet ref={sheetRef} onClose={trackCancelWithoutAction}>
       {renderHeader()}
       {renderDetectedTokens()}
       {renderButtons()}
-    </SheetBottom>
+    </BottomSheet>
   );
 };
 

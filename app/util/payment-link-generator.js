@@ -1,5 +1,6 @@
 import { build } from 'eth-url-parser';
 import AppConstants from '../core/AppConstants';
+import { getDecimalChainId } from './networks';
 
 /**
  * Generate a universal link / app link based on EIP-681 / EIP-831 URLs
@@ -35,7 +36,7 @@ export function generateUniversalLinkRequest(ethereum_link) {
  */
 export function generateETHLink(receiverAddress, value, chainId) {
   const data = {
-    chain_id: chainId,
+    chain_id: getDecimalChainId(chainId),
     function_name: undefined,
     parameters: {
       value,
@@ -63,7 +64,7 @@ export function generateERC20Link(
   chainId,
 ) {
   const data = {
-    chain_id: chainId,
+    chain_id: getDecimalChainId(chainId),
     function_name: 'transfer',
     parameters: {
       address: receiverAddress,

@@ -1,23 +1,25 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
-
-// External dependencies.
-import { IconName } from '../../Icons/Icon';
+import { render } from '@testing-library/react-native';
 
 // Internal dependencies.
 import ButtonIcon from './ButtonIcon';
-import { ButtonIconVariants } from './ButtonIcon.types';
+import {
+  DEFAULT_BUTTONICON_SIZE,
+  DEFAULT_BUTTONICON_ICONCOLOR,
+  DEFAULT_BUTTONICON_ICONNAME,
+} from './ButtonIcon.constants';
 
 describe('ButtonIcon', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <ButtonIcon
-        variant={ButtonIconVariants.Primary}
-        iconName={IconName.AddSquare}
+        iconColor={DEFAULT_BUTTONICON_ICONCOLOR}
+        iconName={DEFAULT_BUTTONICON_ICONNAME}
+        size={DEFAULT_BUTTONICON_SIZE}
         onPress={jest.fn}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

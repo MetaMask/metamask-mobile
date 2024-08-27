@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { Observer, Subscription } from 'rxjs';
+import { useEffect, useState } from 'react';
+import { Observable, Observer, Subscription } from 'rxjs';
 
 export interface BluetoothDevice {
   id: string;
@@ -14,6 +14,8 @@ export interface BluetoothInterface {
       descriptor: { id: string };
     }>,
   ): { unsubscribe: () => void };
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   on(event: string, callback: (event: any) => void): void;
   close(): void;
 }
@@ -22,12 +24,41 @@ const useBluetoothDevices = (
   hasBluetoothPermissions: boolean,
   bluetoothOn: boolean,
 ) => {
-  const devices = {};
-  const deviceScanError = false;
+  const [devices, setDevices] = useState<Record<string, BluetoothDevice>>({});
+  const [deviceScanError, setDeviceScanError] = useState<boolean>(false);
 
   // Initiate scanning and pairing if bluetooth is enabled
   useEffect(() => {
     let subscription: Subscription;
+
+    if (hasBluetoothPermissions && bluetoothOn) {
+      import('@ledgerhq/react-native-hw-transport-ble').then(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (bluetoothInterface: any) => {
+          subscription = new Observable(
+            bluetoothInterface.default.listen,
+          ).subscribe({
+            // TODO: Replace "any" with type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            next: (e: any) => {
+              const deviceFound = devices[e?.descriptor.id];
+
+              if (e.type === 'add' && !deviceFound) {
+                setDevices((prevValues) => ({
+                  ...prevValues,
+                  [e.descriptor.id]: e.descriptor,
+                }));
+                setDeviceScanError(false);
+              }
+            },
+            error: (_error) => {
+              setDeviceScanError(true);
+            },
+          });
+        },
+      );
+    }
 
     return () => {
       subscription?.unsubscribe();

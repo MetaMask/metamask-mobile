@@ -8,6 +8,9 @@ import Enzyme from 'enzyme';
 
 Enzyme.configure({ adapter: new Adapter() });
 
+jest.mock('react-native-quick-crypto', () => ({}));
+jest.mock('react-native-blob-jsi-helper', () => ({}));
+
 jest.mock('react-native', () => {
   const originalModule = jest.requireActual('react-native');
 
@@ -17,7 +20,23 @@ jest.mock('react-native', () => {
   return originalModule;
 });
 
-jest.mock('react-native-fs', () => ({
+/*
+ * NOTE: react-native-webview requires a jest mock starting on v12.
+ * More info on https://github.com/react-native-webview/react-native-webview/issues/2934
+ */
+jest.mock('@metamask/react-native-webview', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const { View } = require('react-native');
+  const WebView = (props) => <View {...props} />;
+
+  return {
+    WebView,
+  };
+});
+
+jest.mock('../../lib/snaps/preinstalled-snaps');
+
+const mockFs = {
   CachesDirectoryPath: jest.fn(),
   DocumentDirectoryPath: jest.fn(),
   ExternalDirectoryPath: jest.fn(),
@@ -33,12 +52,16 @@ jest.mock('react-native-fs', () => ({
   copyFileAssets: jest.fn(),
   copyFileAssetsIOS: jest.fn(),
   downloadFile: jest.fn(),
-  exists: jest.fn(),
+  exists: () =>
+    new Promise((resolve) => {
+      resolve('console.log()');
+    }),
   existsAssets: jest.fn(),
   getAllExternalFilesDirs: jest.fn(),
   getFSInfo: jest.fn(),
   hash: jest.fn(),
   isResumable: jest.fn(),
+  ls: jest.fn(),
   mkdir: jest.fn(),
   moveFile: jest.fn(),
   pathForBundle: jest.fn(),
@@ -62,6 +85,20 @@ jest.mock('react-native-fs', () => ({
   uploadFiles: jest.fn(),
   write: jest.fn(),
   writeFile: jest.fn(),
+};
+
+jest.mock('react-native-fs', () => mockFs);
+
+jest.mock('react-native-blob-util', () => ({
+  fs: {
+    dirs: {
+      DocumentDir: 'docs',
+    },
+    ...mockFs,
+  },
+  ios: {
+    excludeFromBackupKey: jest.fn(),
+  },
 }));
 
 Date.now = jest.fn(() => 123);
@@ -74,6 +111,13 @@ jest.mock('../../core/NotificationManager', () => ({
   gotIncomingTransaction: jest.fn(),
   requestPushNotificationsPermission: jest.fn(),
   showSimpleNotification: jest.fn(),
+}));
+
+jest.mock('../../store', () => ({
+  store: {
+    getState: jest.fn(),
+    dispatch: jest.fn(),
+  },
 }));
 
 jest.mock('../../core/NotificationManager');
@@ -139,7 +183,7 @@ jest.mock('react-native-branch', () => ({
   },
 }));
 jest.mock('react-native-sensors', () => 'RNSensors');
-jest.mock('react-native-search-api', () => 'SearchApi');
+jest.mock('@metamask/react-native-search-api', () => 'SearchApi');
 jest.mock('react-native-reanimated', () =>
   require('react-native-reanimated/mock'),
 );
@@ -168,14 +212,35 @@ NativeModules.RNCNetInfo = {
   getCurrentState: jest.fn(() => Promise.resolve()),
 };
 
-NativeModules.RCTAnalytics = {
-  optIn: jest.fn(),
-  trackEvent: jest.fn(),
-  getRemoteVariables: jest.fn(),
+NativeModules.NotifeeApiModule = {
+  addListener: jest.fn(),
+  eventsAddListener: jest.fn(),
+  eventsNotifyReady: jest.fn(),
 };
 
 NativeModules.PlatformConstants = {
   forceTouchAvailable: false,
+};
+
+NativeModules.Aes = {
+  sha256: jest.fn().mockImplementation((address) => {
+    const uniqueAddressChar = address[2]; // Assuming 0x prefix is present, so actual third character is at index 2
+    const hashBase = '012345678987654';
+    return Promise.resolve(hashBase + uniqueAddressChar);
+  }),
+  pbkdf2: jest.fn().mockResolvedValue('mockedKey'),
+  randomKey: jest.fn().mockResolvedValue('mockedIV'),
+  encrypt: jest.fn().mockResolvedValue('mockedCipher'),
+  decrypt: jest.fn().mockResolvedValue('{"mockData": "mockedPlainText"}'),
+};
+
+NativeModules.AesForked = {
+  pbkdf2: jest.fn().mockResolvedValue('mockedKeyForked'),
+  decrypt: jest.fn().mockResolvedValue('{"mockData": "mockedPlainTextForked"}'),
+};
+
+NativeModules.RNTar = {
+  unTar: jest.fn().mockResolvedValue('/document-dir/archive'),
 };
 
 jest.mock(
@@ -200,65 +265,35 @@ jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
   setDeadline: jest.fn(),
 }));
 
-jest.mock('../../images/static-logos.js', () => ({}));
-
 jest.mock('@react-native-clipboard/clipboard', () => mockClipboard);
-
-jest.mock('react-native-permissions', () => ({
-  check: jest.fn().mockRejectedValue('granted'),
-  checkMultiple: jest.fn().mockRejectedValue({
-    'android.permission.ACCESS_FINE_LOCATION': 'granted',
-    'android.permission.BLUETOOTH_SCAN': 'granted',
-    'android.permission.BLUETOOTH_CONNECT': 'granted',
-  }),
-  PERMISSIONS: {
-    IOS: {
-      BLUETOOTH_PERIPHERAL: 'ios.permission.BLUETOOTH_PERIPHERAL',
-    },
-    ANDROID: {
-      ACCESS_FINE_LOCATION: 'android.permission.ACCESS_FINE_LOCATION',
-      BLUETOOTH_SCAN: 'android.permission.BLUETOOTH_SCAN',
-      BLUETOOTH_CONNECT: 'android.permission.BLUETOOTH_CONNECT',
-    },
-  },
-  openSettings: jest.fn(),
-}));
 
 jest.mock('../theme', () => ({
   ...jest.requireActual('../theme'),
   useAppThemeFromContext: () => ({ ...mockTheme }),
 }));
 
-jest.mock('@segment/analytics-react-native', () => ({
-  ...jest.requireActual('@segment/analytics-react-native'),
-  createClient: () => ({
-    identify: jest.fn(),
+global.segmentMockClient = null;
+
+const initializeMockClient = () => {
+  global.segmentMockClient = {
+    screen: jest.fn(),
     track: jest.fn(),
+    identify: jest.fn(),
+    flush: jest.fn(),
     group: jest.fn(),
-  }),
+    alias: jest.fn(),
+    reset: jest.fn(),
+  };
+  return global.segmentMockClient;
+};
+
+jest.mock('@segment/analytics-react-native', () => ({
+  createClient: jest.fn(() => initializeMockClient()),
 }));
 
-jest.mock('react-native-push-notification', () => ({
-  configure: jest.fn(),
-  localNotification: jest.fn(),
-  localNotificationSchedule: jest.fn(),
-  cancelLocalNotifications: jest.fn(),
-  cancelAllLocalNotifications: jest.fn(),
-  removeAllDeliveredNotifications: jest.fn(),
-  getDeliveredNotifications: jest.fn(),
-  getScheduledLocalNotifications: jest.fn(),
-  requestPermissions: jest.fn(),
-  abandonPermissions: jest.fn(),
-  checkPermissions: jest.fn(),
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  invokeApp: jest.fn(),
-  getChannels: jest.fn(),
-  createChannel: jest.fn(),
-  channelExists: jest.fn(),
-  deleteChannel: jest.fn(),
-  popInitialNotification: jest.fn(),
-}));
+jest.mock('@notifee/react-native', () =>
+  require('@notifee/react-native/jest-mock'),
+);
 
 jest.mock('react-native/Libraries/Image/resolveAssetSource', () => ({
   __esModule: true,
@@ -276,14 +311,15 @@ jest.mock('redux-persist', () => ({
   createMigrate: jest.fn(),
 }));
 
-jest.mock('react-native-default-preference', () => ({
-  get: jest.fn(),
-  set: jest.fn(),
+jest.mock('../../store/storage-wrapper', () => ({
+  getItem: jest.fn(),
+  setItem: jest.fn(),
 }));
 
 // eslint-disable-next-line import/no-commonjs
 require('react-native-reanimated/lib/module/reanimated2/jestUtils').setUpTests();
 global.__reanimatedWorkletInit = jest.fn();
+global.__DEV__ = false;
 
 jest.mock(
   '../../core/Engine',
@@ -294,3 +330,13 @@ afterEach(() => {
   jest.restoreAllMocks();
   global.gc && global.gc(true);
 });
+
+global.crypto = {
+  getRandomValues: (arr) => {
+    const uint8Max = 255;
+    for (let i = 0; i < arr.length; i++) {
+      arr[i] = Math.floor(Math.random() * (uint8Max + 1));
+    }
+    return arr;
+  },
+};

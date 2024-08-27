@@ -6,7 +6,7 @@ import { interruptBiometrics, lockApp } from '../../actions/user';
 jest.mock('../Engine', () => ({
   context: {
     KeyringController: {
-      setLocked: jest.fn().mockImplementation(() => Promise.resolve({})),
+      setLocked: jest.fn().mockResolvedValue(true),
     },
   },
 }));

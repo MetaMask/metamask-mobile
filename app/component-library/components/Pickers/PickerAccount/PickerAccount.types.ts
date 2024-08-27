@@ -31,7 +31,7 @@ export interface PickerAccountProps extends Omit<PickerBaseProps, 'children'> {
   /**
    * Account type label.
    */
-  accountTypeLabel?: string;
+  accountTypeLabel?: string | null;
 }
 
 /**

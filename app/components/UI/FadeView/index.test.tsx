@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import FadeView from './';
 
 describe('FadeView', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<FadeView visible />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<FadeView visible />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

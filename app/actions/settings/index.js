@@ -19,6 +19,13 @@ export function setShowCustomNonce(showCustomNonce) {
   };
 }
 
+export function setShowFiatOnTestnets(showFiatOnTestnets) {
+  return {
+    type: 'SET_SHOW_FIAT_ON_TESTNETS',
+    showFiatOnTestnets,
+  };
+}
+
 export function setHideZeroBalanceTokens(hideZeroBalanceTokens) {
   return {
     type: 'SET_HIDE_ZERO_BALANCE_TOKENS',
@@ -47,9 +54,9 @@ export function setUseBlockieIcon(useBlockieIcon) {
   };
 }
 
-export function setLedgerBetaEnabled(ledgerBetaEnabled) {
+export function toggleBasicFunctionality(basicFunctionalityEnabled) {
   return {
-    type: 'SET_LEDGER_BETA_ENABLED',
-    ledgerBetaEnabled,
+    type: 'TOGGLE_BASIC_FUNCTIONALITY',
+    basicFunctionalityEnabled,
   };
 }

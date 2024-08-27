@@ -4,7 +4,7 @@ import Engine from '../Engine';
 import Logger from '../../util/Logger';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
-import AsyncStorage from '../../store/async-storage-wrapper';
+import StorageWrapper from '../../store/storage-wrapper';
 import {
   CLIENT_OPTIONS,
   WALLET_CONNECT_ORIGIN,
@@ -22,6 +22,7 @@ import AppConstants from '../AppConstants';
 import { strings } from '../../../locales/i18n';
 import NotificationManager from '../NotificationManager';
 import { msBetweenDates, msToHours } from '../../util/date';
+import { addTransaction } from '../../util/transaction-controller';
 import URL from 'url-parse';
 import parseWalletConnectUri from './wc-utils';
 import { store } from '../../store';
@@ -58,7 +59,10 @@ const persistSessions = async () => {
       lastTimeConnected: new Date(),
     }));
 
-  await AsyncStorage.setItem(WALLETCONNECT_SESSIONS, JSON.stringify(sessions));
+  await StorageWrapper.setItem(
+    WALLETCONNECT_SESSIONS,
+    JSON.stringify(sessions),
+  );
 };
 
 const waitForInitialization = async () => {
@@ -168,10 +172,9 @@ class WalletConnect {
 
           // We have to implement this method here since the eth_sendTransaction in Engine is not working because we can't send correct origin
           if (payload.method === 'eth_sendTransaction') {
-            const { TransactionController } = Engine.context;
             try {
               const selectedAddress =
-                Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
+                Engine.context.AccountsController.getSelectedAccount().address?.toLowerCase();
 
               checkActiveAccountAndChainId({
                 address: payload.params[0].from,
@@ -181,21 +184,19 @@ class WalletConnect {
                 hostname: payloadHostname,
               });
 
-              const trx = await TransactionController.addTransaction(
-                payload.params[0],
-                {
-                  deviceConfirmedOn: WalletDevice.MM_MOBILE,
-                  origin: this.url.current
-                    ? WALLET_CONNECT_ORIGIN + this.url.current
-                    : undefined,
-                },
-              );
+              const trx = await addTransaction(payload.params[0], {
+                deviceConfirmedOn: WalletDevice.MM_MOBILE,
+                origin: this.url.current
+                  ? WALLET_CONNECT_ORIGIN + this.url.current
+                  : undefined,
+              });
 
               const id = trx.transactionMeta.id;
               const reqObject = {
                 id: payload.id,
                 jsonrpc: '2.0',
                 method: payload.method,
+                origin: this.url.current,
                 params: [
                   {
                     from: payload.params[0].from,
@@ -307,7 +308,7 @@ class WalletConnect {
   startSession = async (sessionData, existing) => {
     const chainId = selectChainId(store.getState());
     const selectedAddress =
-      Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
+      Engine.context.AccountsController.getSelectedAccount().address?.toLowerCase();
     const approveData = {
       chainId: parseInt(chainId, 10),
       accounts: [selectedAddress],
@@ -383,7 +384,7 @@ class WalletConnect {
 
 const instance = {
   async init() {
-    const sessionData = await AsyncStorage.getItem(WALLETCONNECT_SESSIONS);
+    const sessionData = await StorageWrapper.getItem(WALLETCONNECT_SESSIONS);
     if (sessionData) {
       const sessions = JSON.parse(sessionData);
 
@@ -444,7 +445,7 @@ const instance = {
   },
   getSessions: async () => {
     let sessions = [];
-    const sessionData = await AsyncStorage.getItem(WALLETCONNECT_SESSIONS);
+    const sessionData = await StorageWrapper.getItem(WALLETCONNECT_SESSIONS);
     if (sessionData) {
       sessions = JSON.parse(sessionData);
     }

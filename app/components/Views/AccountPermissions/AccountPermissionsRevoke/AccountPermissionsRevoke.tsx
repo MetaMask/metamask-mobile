@@ -25,7 +25,6 @@ import { ToastOptions } from '../../../../component-library/components/Toast/Toa
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import getAccountNameWithENS from '../../../../util/accounts';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import AnalyticsV2 from '../../../../util/analyticsV2';
 import { selectAccountsLength } from '../../../../selectors/accountTrackerController';
 
 // Internal dependencies.
@@ -37,6 +36,7 @@ import Avatar from '../../../../component-library/components/Avatars/Avatar/Avat
 import { AvatarVariant } from '../../../../component-library/components/Avatars/Avatar';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectedAccountModal.selectors';
+import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 const AccountPermissionsRevoke = ({
   ensByAccountAddress,
@@ -50,14 +50,19 @@ const AccountPermissionsRevoke = ({
   secureIcon,
   accountAvatarType,
 }: AccountPermissionsRevokeProps) => {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Engine = UntypedEngine as any;
   const { styles } = useStyles(styleSheet, {});
+  const { trackEvent } = useMetrics();
   const activeAddress = permittedAddresses[0];
   const { toastRef } = useContext(ToastContext);
 
   const accountsLength = useSelector(selectAccountsLength);
 
   const nonTestnetNetworks = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => Object.keys(selectNetworkConfigurations(state)).length + 1,
   );
 
@@ -67,20 +72,17 @@ const AccountPermissionsRevoke = ({
         await Engine.context.PermissionController.revokeAllPermissions(
           hostname,
         );
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS,
-          {
-            number_of_accounts: accountsLength,
-            number_of_accounts_connected: permittedAddresses.length,
-            number_of_networks: nonTestnetNetworks,
-          },
-        );
+        trackEvent(MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS, {
+          number_of_accounts: accountsLength,
+          number_of_accounts_connected: permittedAddresses.length,
+          number_of_networks: nonTestnetNetworks,
+        });
       } catch (e) {
         Logger.log(`Failed to revoke all accounts for ${hostname}`, e);
       }
     },
     /* eslint-disable-next-line */
-    [hostname],
+    [hostname, trackEvent],
   );
 
   const renderSheetAction = useCallback(
@@ -149,7 +151,7 @@ const AccountPermissionsRevoke = ({
                   },
                   { label: strings('toast.disconnected') },
                 ];
-                if (activeAddress === address) {
+                if (activeAddress.toLowerCase() === address.toLowerCase()) {
                   const nextActiveAddress = permittedAddresses[1];
                   const newActiveAccountName = getAccountNameWithENS({
                     accountAddress: nextActiveAddress,
@@ -169,6 +171,7 @@ const AccountPermissionsRevoke = ({
                     labelOptions,
                     accountAddress: nextActiveAddress,
                     accountAvatarType,
+                    hasNoTimeout: false,
                   });
                 } else {
                   // Just disconnect
@@ -176,16 +179,14 @@ const AccountPermissionsRevoke = ({
                   toastRef?.current?.showToast({
                     variant: ToastVariants.Plain,
                     labelOptions,
+                    hasNoTimeout: false,
                   });
                 }
-                AnalyticsV2.trackEvent(
-                  MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS,
-                  {
-                    number_of_accounts: accountsLength,
-                    number_of_accounts_connected: permittedAddresses.length,
-                    number_of_networks: nonTestnetNetworks,
-                  },
-                );
+                trackEvent(MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS, {
+                  number_of_accounts: accountsLength,
+                  number_of_accounts_connected: permittedAddresses.length,
+                  number_of_networks: nonTestnetNetworks,
+                });
               }
             }}
             label={strings('accounts.disconnect')}

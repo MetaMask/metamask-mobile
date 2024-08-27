@@ -1,0 +1,162 @@
+diff --git a/node_modules/@segment/analytics-react-native/lib/typescript/src/types.d.ts b/node_modules/@segment/analytics-react-native/lib/typescript/src/types.d.ts
+index a258c27..442ba56 100644
+--- a/node_modules/@segment/analytics-react-native/lib/typescript/src/types.d.ts
++++ b/node_modules/@segment/analytics-react-native/lib/typescript/src/types.d.ts
+@@ -121,6 +121,7 @@ export declare type Config = {
+     proxy?: string;
+     cdnProxy?: string;
+     errorHandler?: (error: SegmentError) => void;
++    anonymousId?: string;
+ };
+ export declare type ClientMethods = {
+     screen: (name: string, properties?: JsonMap) => Promise<void>;
+diff --git a/node_modules/@segment/analytics-react-native/src/analytics.ts b/node_modules/@segment/analytics-react-native/src/analytics.ts
+index 79cc609..fff7c9b 100644
+--- a/node_modules/@segment/analytics-react-native/src/analytics.ts
++++ b/node_modules/@segment/analytics-react-native/src/analytics.ts
+@@ -62,6 +62,23 @@ import {
+ 
+ type OnPluginAddedCallback = (plugin: Plugin) => void;
+ 
++/**
++* ============================== PATCH INFORMATION ==============================
++* This patch goal is to make Segment SDK compliant with Metamask advanced privacy
++* The requirement is to disable all tracking by default and to enable it only
++* when the user explicitly agrees to it. This is done by using generated userID and
++* anonymousID that allows to send events to Segment without identifying the user.
++* Original Segment SDK anoonymous idea is not the same as Metamask requirement.
++* The Segment or anonymity still allowd to link anonymous actions with user
++* after when the user agrees to it. This is not allowed in Metamask.
++* The patch adds:
++* - conditional userId generation.
++* - introduces the concept of anonymous events through the anonymous property.
++* - stores the userId and anonymousId in the storage to prevent having to pass them
++*  as parameters through the whole functions call stack.
++* ===============================================================================
++*/
++
+ export class SegmentClient {
+   // the config parameters for the client - a merge of user provided and default options
+   private config: Config;
+@@ -679,7 +696,8 @@ export class SegmentClient {
+   async reset(resetAnonymousId = true) {
+     try {
+       const { anonymousId: currentId } = await this.store.userInfo.get(true);
+-      const anonymousId = resetAnonymousId === true ? getUUID() : currentId;
++      const defaultAnonymousId = this.config.anonymousId ?? getUUID();
++      const anonymousId = resetAnonymousId === true ? defaultAnonymousId : currentId;
+ 
+       await this.store.userInfo.set({
+         anonymousId,
+@@ -875,9 +893,28 @@ export class SegmentClient {
+     }
+ 
+     const userInfo = await this.userInfo.get(true);
++
++    const isTrackEvent = event.type === EventType.TrackEvent;
++    const isAnonymousEvent = isTrackEvent && event.properties?.anonymous;
++    // remove the anonymous property from the event as it doesn't have to be sent to the server
++    isTrackEvent && delete event.properties?.anonymous;
++    const hasProperties =
++      isTrackEvent &&
++      event.properties &&
++      Object.entries(event.properties).length > 0;
++
++    // anonymousId events that contains properties are sent with the anonymousId
++    // otherwise if they don't contain propertie, they are sent with the userId
++    // regular non anonymous events are sent with the userId if it exists,
++    // otherwise with the anonymousId (non identified user case)
++    const userId =
++      isAnonymousEvent && hasProperties
++        ? userInfo.anonymousId
++        : userInfo.userId ?? userInfo.anonymousId;
++
+     return {
+       anonymousId: userInfo.anonymousId,
+-      userId: userInfo.userId,
++      userId: userId,
+     };
+   };
+ }
+diff --git a/node_modules/@segment/analytics-react-native/src/client.tsx b/node_modules/@segment/analytics-react-native/src/client.tsx
+index 4acae00..54498b9 100644
+--- a/node_modules/@segment/analytics-react-native/src/client.tsx
++++ b/node_modules/@segment/analytics-react-native/src/client.tsx
+@@ -21,6 +21,7 @@ export const createClient = (config: Config) => {
+     storeId: config.writeKey,
+     storePersistor: config.storePersistor,
+     storePersistorSaveDelay: config.storePersistorSaveDelay,
++    anonymousId: config.anonymousId,
+   });
+ 
+   const client = new SegmentClient({
+diff --git a/node_modules/@segment/analytics-react-native/src/storage/sovranStorage.ts b/node_modules/@segment/analytics-react-native/src/storage/sovranStorage.ts
+index 2e0c144..4c74972 100644
+--- a/node_modules/@segment/analytics-react-native/src/storage/sovranStorage.ts
++++ b/node_modules/@segment/analytics-react-native/src/storage/sovranStorage.ts
+@@ -38,19 +38,6 @@ type Data = {
+   filters: DestinationFilters;
+ };
+ 
+-const INITIAL_VALUES: Data = {
+-  events: [],
+-  eventsToRetry: [],
+-  context: {},
+-  settings: {},
+-  filters: {},
+-  userInfo: {
+-    anonymousId: getUUID(),
+-    userId: undefined,
+-    traits: undefined,
+-  },
+-};
+-
+ const isEverythingReady = (state: ReadinessStore) =>
+   Object.values(state).every((v) => v === true);
+ 
+@@ -164,6 +151,23 @@ export class SovranStorage implements Storage {
+   readonly deepLinkData: Watchable<DeepLinkData>;
+ 
+   constructor(config: StorageConfig) {
++    // allows to use config for overriding the anonymousId in storage and persist the value on reset
++    // also prevents the generation of UUID when not needed
++    const anonymousId = config.anonymousId ?? getUUID();
++
++    const INITIAL_VALUES: Data = {
++      events: [],
++      eventsToRetry: [],
++      context: {},
++      settings: {},
++      filters: {},
++      userInfo: {
++        anonymousId: anonymousId,
++        userId: anonymousId,
++        traits: undefined,
++      },
++    };
++
+     this.storeId = config.storeId;
+     this.storePersistor = config.storePersistor;
+     this.storePersistorSaveDelay = config.storePersistorSaveDelay;
+diff --git a/node_modules/@segment/analytics-react-native/src/storage/types.ts b/node_modules/@segment/analytics-react-native/src/storage/types.ts
+index 02868f8..abded6e 100644
+--- a/node_modules/@segment/analytics-react-native/src/storage/types.ts
++++ b/node_modules/@segment/analytics-react-native/src/storage/types.ts
+@@ -88,4 +88,5 @@ export type StorageConfig = {
+   storeId: string;
+   storePersistor?: Persistor;
+   storePersistorSaveDelay?: number;
++  anonymousId?: string;
+ };
+diff --git a/node_modules/@segment/analytics-react-native/src/types.ts b/node_modules/@segment/analytics-react-native/src/types.ts
+index 709d0ad..4179880 100644
+--- a/node_modules/@segment/analytics-react-native/src/types.ts
++++ b/node_modules/@segment/analytics-react-native/src/types.ts
+@@ -149,6 +149,7 @@ export type Config = {
+   proxy?: string;
+   cdnProxy?: string;
+   errorHandler?: (error: SegmentError) => void;
++  anonymousId?: string;
+ };
+ 
+ export type ClientMethods = {

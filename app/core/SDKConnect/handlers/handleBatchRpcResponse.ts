@@ -13,7 +13,11 @@ export const handleBatchRpcResponse = async ({
   chainRpcs: BatchRPCState;
   batchRPCManager: BatchRPCManager;
   backgroundBridge?: BackgroundBridge;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   sendMessage: ({ msg }: { msg: any }) => Promise<void>;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   msg: any;
 }): Promise<boolean> => {
   const isLastRpc = chainRpcs.index === chainRpcs.rpcs.length - 1;

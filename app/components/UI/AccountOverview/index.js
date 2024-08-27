@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import {
   InteractionManager,
-  Platform,
   ScrollView,
   StyleSheet,
   TextInput,
@@ -11,12 +10,7 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
-import {
-  WALLET_ACCOUNT_ICON,
-  WALLET_ACCOUNT_NAME_LABEL_INPUT,
-  WALLET_ACCOUNT_NAME_LABEL_TEXT,
-} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import generateTestId from '../../../../wdio/utils/generateTestId';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { showAlert } from '../../../actions/alert';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -37,20 +31,21 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import EthereumAddress from '../EthereumAddress';
 import Identicon from '../Identicon';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
 import { selectChainId } from '../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
+  selectInternalAccounts,
+  selectSelectedInternalAccountChecksummedAddress,
+} from '../../../selectors/accountsController';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
-import { regex } from '../../../util/regex';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
+import { isPortfolioUrl } from '../../../util/url';
+import { toLowerCaseEquals } from '../../../util/general';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -159,17 +154,13 @@ class AccountOverview extends PureComponent {
      */
     selectedAddress: PropTypes.string,
     /**
-    /* Identities object required to get account name
+    /* InternalAccounts object required to get account name
     */
-    identities: PropTypes.object,
+    internalAccounts: PropTypes.object,
     /**
      * Object that represents the selected account
      */
     account: PropTypes.object,
-    /**
-    /* Selected currency
-    */
-    currentCurrency: PropTypes.string,
     /**
     /* Triggers global alert
     */
@@ -187,18 +178,10 @@ class AccountOverview extends PureComponent {
      */
     protectWalletModalVisible: PropTypes.func,
     /**
-     * Start transaction with asset
-     */
-    newAssetTransaction: PropTypes.func,
-    /**
     /* navigation object required to access the props
     /* passed by the parent component
     */
     navigation: PropTypes.object,
-    /**
-     * Action that toggles the receive modal
-     */
-    toggleReceiveModal: PropTypes.func,
     /**
      * The chain ID for the current selected network
      */
@@ -207,6 +190,10 @@ class AccountOverview extends PureComponent {
      * Current opens tabs in browser
      */
     browserTabs: PropTypes.array,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -232,17 +219,16 @@ class AccountOverview extends PureComponent {
   input = React.createRef();
 
   componentDidMount = () => {
-    const { identities, selectedAddress, onRef } = this.props;
-    const accountLabel = renderAccountName(selectedAddress, identities);
+    const { internalAccounts, selectedAddress, onRef } = this.props;
+    const accountLabel = renderAccountName(selectedAddress, internalAccounts);
     this.setState({ accountLabel });
     onRef && onRef(this);
     InteractionManager.runAfterInteractions(() => {
       this.doENSLookup();
     });
 
-    const { PreferencesController } = Engine.context;
     if (!this.isAccountLabelDefined(accountLabel)) {
-      PreferencesController.setAccountLabel(selectedAddress, 'Account');
+      Engine.setAccountLabel(selectedAddress, 'Account');
     }
   };
 
@@ -258,17 +244,18 @@ class AccountOverview extends PureComponent {
   }
 
   setAccountLabel = () => {
-    const { PreferencesController } = Engine.context;
-    const { selectedAddress, identities } = this.props;
+    const { selectedAddress, internalAccounts } = this.props;
     const { accountLabel } = this.state;
 
-    const lastAccountLabel = identities[selectedAddress].name;
+    const accountWithMatchingToAddress = internalAccounts.find((account) =>
+      toLowerCaseEquals(account.address, selectedAddress),
+    );
 
-    PreferencesController.setAccountLabel(
+    Engine.setAccountLabel(
       selectedAddress,
       this.isAccountLabelDefined(accountLabel)
         ? accountLabel
-        : lastAccountLabel,
+        : accountWithMatchingToAddress.metadata.name,
     );
     this.setState({ accountLabelEditable: false });
   };
@@ -278,8 +265,8 @@ class AccountOverview extends PureComponent {
   };
 
   setAccountLabelEditable = () => {
-    const { identities, selectedAddress } = this.props;
-    const accountLabel = renderAccountName(selectedAddress, identities);
+    const { internalAccounts, selectedAddress } = this.props;
+    const accountLabel = renderAccountName(selectedAddress, internalAccounts);
     this.setState({ accountLabelEditable: true, accountLabel });
     setTimeout(() => {
       this.input && this.input.current && this.input.current.focus();
@@ -287,8 +274,8 @@ class AccountOverview extends PureComponent {
   };
 
   cancelAccountLabelEdition = () => {
-    const { identities, selectedAddress } = this.props;
-    const accountLabel = renderAccountName(selectedAddress, identities);
+    const { internalAccounts, selectedAddress } = this.props;
+    const accountLabel = renderAccountName(selectedAddress, internalAccounts);
     this.setState({ accountLabelEditable: false, accountLabel });
   };
 
@@ -302,9 +289,8 @@ class AccountOverview extends PureComponent {
       data: { msg: strings('account_details.account_copied_to_clipboard') },
     });
     setTimeout(() => this.props.protectWalletModalVisible(), 2000);
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.WALLET_COPIED_ADDRESS);
-    });
+
+    this.props.metrics.trackEvent(MetaMetricsEvents.WALLET_COPIED_ADDRESS);
   };
 
   doENSLookup = async () => {
@@ -319,14 +305,14 @@ class AccountOverview extends PureComponent {
   onOpenPortfolio = () => {
     const { navigation, browserTabs } = this.props;
     const existingPortfolioTab = browserTabs.find((tab) =>
-      tab.url.match(regex.portfolioUrl),
+      isPortfolioUrl(tab.url),
     );
     let existingTabId;
     let newTabUrl;
     if (existingPortfolioTab) {
       existingTabId = existingPortfolioTab.id;
     } else {
-      newTabUrl = `${AppConstants.PORTFOLIO_URL}/?metamaskEntry=mobile`;
+      newTabUrl = `${AppConstants.PORTFOLIO.URL}/?metamaskEntry=mobile`;
     }
     const params = {
       ...(newTabUrl && { newTabUrl }),
@@ -337,8 +323,8 @@ class AccountOverview extends PureComponent {
       screen: Routes.BROWSER.VIEW,
       params,
     });
-    Analytics.trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
-      portfolioUrl: AppConstants.PORTFOLIO_URL,
+    this.props.metrics.trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
+      portfolioUrl: AppConstants.PORTFOLIO.URL,
     });
   };
 
@@ -369,7 +355,7 @@ class AccountOverview extends PureComponent {
               style={styles.identiconBorder}
               disabled={onboardingWizard}
               onPress={this.openAccountSelector}
-              {...generateTestId(Platform, WALLET_ACCOUNT_ICON)}
+              testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
             >
               <Identicon
                 address={address}
@@ -396,7 +382,7 @@ class AccountOverview extends PureComponent {
                   onChangeText={this.onAccountLabelChange}
                   onSubmitEditing={this.setAccountLabel}
                   onBlur={this.setAccountLabel}
-                  {...generateTestId(Platform, WALLET_ACCOUNT_NAME_LABEL_INPUT)}
+                  testID={WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_INPUT}
                   value={accountLabel}
                   selectTextOnFocus
                   ref={this.input}
@@ -421,10 +407,7 @@ class AccountOverview extends PureComponent {
                         },
                       ]}
                       numberOfLines={1}
-                      {...generateTestId(
-                        Platform,
-                        WALLET_ACCOUNT_NAME_LABEL_TEXT,
-                      )}
+                      testID={WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT}
                     >
                       {isDefaultAccountName(name) && ens ? ens : name}
                     </Text>
@@ -461,8 +444,8 @@ class AccountOverview extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedAddress(state),
-  identities: selectIdentities(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  internalAccounts: selectInternalAccounts(state),
   currentCurrency: selectCurrentCurrency(state),
   chainId: selectChainId(state),
   browserTabs: state.browser.tabs,
@@ -478,4 +461,7 @@ const mapDispatchToProps = (dispatch) => ({
 
 AccountOverview.contextType = ThemeContext;
 
-export default connect(mapStateToProps, mapDispatchToProps)(AccountOverview);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(AccountOverview));

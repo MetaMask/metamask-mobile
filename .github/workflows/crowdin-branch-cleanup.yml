@@ -1,0 +1,78 @@
+name: Crowdin - Branch and Label Cleanup for merged localization PR
+# This action should delete the branch from Crowdin after the localization PR is
+# merged to the original branch. It should also remove the "ready-for-translation" label
+
+# TODO: Add trigger for merge of localization PR.
+on: workflow_dispatch
+
+jobs:
+  prestep:
+    runs-on: ubuntu-latest
+    outputs:
+      branch: ${{ steps.extract_current_branch.outputs.branch }}
+      pr: ${{ steps.get-prs.outputs.pr }}
+      modified_branch_name: ${{ steps.extract_modified_branch_name.outputs.modified_branch_name }}
+    steps:
+      - name: Extract current branch name
+        shell: bash
+        run: |
+          echo "running on branch ${GITHUB_REF##*/}"
+          echo "other version: ${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
+          echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> "$GITHUB_OUTPUT"
+        id: extract_current_branch
+
+      - name: Get PR with Label for this branch
+        id: get-prs
+        run: |
+          LABEL="ready-for-translation"
+          API_URL="https://api.github.com/repos/Metamask/crowdin-sandbox/pulls?head:${{steps.extract_current_branch.outputs.branch}}&state=open&per_page=100"
+          # Fetch the list of open pull requests with the specified label using curl
+          PRS=$(curl -sS --header "Authorization: Bearer $GITHUB_TOKEN" "$API_URL")
+          PR=$(echo "$PRS" | jq -r '.[] | select(.labels[].name == "'"$LABEL"'") | .number | @json')
+          echo "Found PR: $PR"
+          echo "pr=$PR" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CURRENT_BRANCH: ${{ steps.extract_current_branch.outputs.branch }}
+
+      - name: Modified branch name
+        run: echo "modified_branch_name="${{ steps.extract_current_branch.outputs.branch }} | sed 's#/#-#g'"" >> "$GITHUB_OUTPUT"
+        id: extract_modified_branch_name
+
+  github_cleanup:
+    runs-on: ubuntu-latest
+    needs: prestep
+    steps:
+      - name: Remove label from PR
+        uses: actions/github-script@v7
+        if: needs.prestep.outputs.pr != null || needs.prestep.outputs.pr != ''
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const label = "ready-for-translation";
+            await github.issues.removeLabel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ needs.prestep.outputs.pr }},
+              name: label
+            });
+
+  crowdin_cleanup:
+    runs-on: ubuntu-latest
+    needs: prestep
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+      CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prestep.outputs.branch }}
+
+      - name: Delete branch within Crowdin
+        if: needs.prestep.outputs.branch != 'main'
+        uses: crowdin/github-action@c953b17499daa6be3e5afbf7a63616fb02d8b18d
+        with:
+          command: ${{ needs.prestep.outputs.modified_branch_name }}
+          command_args: -v

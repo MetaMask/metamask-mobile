@@ -1,56 +1,48 @@
 import React, { useCallback, useEffect } from 'react';
-import {
-  StyleSheet,
-  ScrollView,
-  InteractionManager,
-  Alert,
-} from 'react-native';
+import { StyleSheet, ScrollView, Alert } from 'react-native';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import SettingsDrawer from '../../UI/SettingsDrawer';
 import { getSettingsNavigationOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
-import Analytics from '../../../core/Analytics/Analytics';
-import { IMetaMetricsEvent, MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { Authentication } from '../../../core/';
 import { Colors } from '../../../util/theme/models';
-import {
-  ABOUT_METAMASK_SETTINGS,
-  ADVANCED_SETTINGS,
-  CONTACT_SETTINGS,
-  CONTACTS_SETTINGS,
-  EXPERIMENTAL_SETTINGS,
-  GENERAL_SETTINGS,
-  LOCK_SETTINGS,
-  NETWORKS_SETTINGS,
-  ON_RAMP_SETTINGS,
-  REQUEST_SETTINGS,
-  SECURITY_SETTINGS,
-} from '../../../../wdio/screen-objects/testIDs/Screens/Settings.testIds';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+import { SettingsViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SettingsView.selectors';
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/SnapsSettingsList';
 ///: END:ONLY_INCLUDE_IF
+import { TextColor } from '../../../component-library/components/Texts/Text';
+import { useMetrics } from '../../../components/hooks/useMetrics';
+import { isNotificationsFeatureEnabled } from '../../../util/notifications';
+import { isTest } from '../../../util/test/utils';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
-      paddingLeft: 18,
       zIndex: 99999999999999,
     },
   });
 
 const Settings = () => {
   const { colors } = useTheme();
+  const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<any>();
 
   const seedphraseBackedUp = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.user.seedphraseBackedUp,
   );
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const passwordSet = useSelector((state: any) => state.user.passwordSet);
 
   const updateNavBar = useCallback(() => {
@@ -63,12 +55,6 @@ const Settings = () => {
     updateNavBar();
   }, [updateNavBar]);
 
-  const trackEvent = (event: IMetaMetricsEvent) => {
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(event);
-    });
-  };
-
   const onPressGeneral = () => {
     trackEvent(MetaMetricsEvents.SETTINGS_GENERAL);
     navigation.navigate('GeneralSettings');
@@ -77,6 +63,11 @@ const Settings = () => {
   const onPressAdvanced = () => {
     trackEvent(MetaMetricsEvents.SETTINGS_ADVANCED);
     navigation.navigate('AdvancedSettings');
+  };
+
+  const onPressNotifications = () => {
+    trackEvent(MetaMetricsEvents.SETTINGS_NOTIFICATIONS);
+    navigation.navigate(Routes.SETTINGS.NOTIFICATIONS);
   };
 
   const onPressSecurity = () => {
@@ -98,6 +89,10 @@ const Settings = () => {
     navigation.navigate('ExperimentalSettings');
   };
 
+  const onPressAesCryptoTestForm = () => {
+    navigation.navigate('AesCryptoTestForm');
+  };
+
   const onPressInfo = () => {
     trackEvent(MetaMetricsEvents.SETTINGS_ABOUT);
     navigation.navigate('CompanySettings');
@@ -117,7 +112,7 @@ const Settings = () => {
     });
   };
 
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   const onPressSnaps = () => {
     navigation.navigate(...createSnapsSettingsListNavDetails());
   };
@@ -183,40 +178,51 @@ const Settings = () => {
   ///: END:ONLY_INCLUDE_IF
 
   return (
-    <ScrollView style={styles.wrapper}>
+    <ScrollView
+      style={styles.wrapper}
+      testID={SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID}
+    >
       <SettingsDrawer
         description={strings('app_settings.general_desc')}
         onPress={onPressGeneral}
         title={strings('app_settings.general_title')}
-        testID={GENERAL_SETTINGS}
+        testID={SettingsViewSelectorsIDs.GENERAL}
       />
       <SettingsDrawer
         description={strings('app_settings.security_desc')}
         onPress={onPressSecurity}
         title={strings('app_settings.security_title')}
-        warning={!seedphraseBackedUp}
-        testID={SECURITY_SETTINGS}
+        warning={!seedphraseBackedUp ? strings('drawer.settings_warning') : ''}
+        testID={SettingsViewSelectorsIDs.SECURITY}
       />
       <SettingsDrawer
         description={strings('app_settings.advanced_desc')}
         onPress={onPressAdvanced}
         title={strings('app_settings.advanced_title')}
-        testID={ADVANCED_SETTINGS}
+        testID={SettingsViewSelectorsIDs.ADVANCED}
       />
+      {isNotificationsFeatureEnabled() && (
+        <SettingsDrawer
+          description={strings('app_settings.notifications_desc')}
+          onPress={onPressNotifications}
+          title={strings('app_settings.notifications_title')}
+          testID={SettingsViewSelectorsIDs.NOTIFICATIONS}
+        />
+      )}
       <SettingsDrawer
         description={strings('app_settings.contacts_desc')}
         onPress={onPressContacts}
         title={strings('app_settings.contacts_title')}
-        testID={CONTACTS_SETTINGS}
+        testID={SettingsViewSelectorsIDs.CONTACTS}
       />
       <SettingsDrawer
         title={strings('app_settings.networks_title')}
         description={strings('app_settings.networks_desc')}
         onPress={onPressNetworks}
-        testID={NETWORKS_SETTINGS}
+        testID={SettingsViewSelectorsIDs.NETWORKS}
       />
       {
-        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+        ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
       }
       <SettingsDrawer
         title={strings('app_settings.snaps.title')}
@@ -230,37 +236,55 @@ const Settings = () => {
         title={strings('app_settings.fiat_on_ramp.title')}
         description={strings('app_settings.fiat_on_ramp.description')}
         onPress={onPressOnRamp}
-        testID={ON_RAMP_SETTINGS}
+        testID={SettingsViewSelectorsIDs.ON_RAMP}
       />
       <SettingsDrawer
         title={strings('app_settings.experimental_title')}
         description={strings('app_settings.experimental_desc')}
         onPress={onPressExperimental}
-        testID={EXPERIMENTAL_SETTINGS}
+        testID={SettingsViewSelectorsIDs.EXPERIMENTAL}
       />
+      {
+        /**
+         * This drawer is only visible in test mode.
+         * It is used to test the AES crypto functions.
+         *
+         * If this is shown in production, it is a bug.
+         */
+        isTest && (
+          <SettingsDrawer
+            title={strings('app_settings.aes_crypto_test_form_title')}
+            description={strings(
+              'app_settings.aes_crypto_test_form_description',
+            )}
+            onPress={onPressAesCryptoTestForm}
+            testID={SettingsViewSelectorsIDs.AES_CRYPTO_TEST_FORM}
+          />
+        )
+      }
       <SettingsDrawer
         title={aboutMetaMaskTitle}
         onPress={onPressInfo}
-        testID={ABOUT_METAMASK_SETTINGS}
+        testID={SettingsViewSelectorsIDs.ABOUT_METAMASK}
       />
       <SettingsDrawer
         title={strings('app_settings.request_feature')}
         onPress={submitFeedback}
         renderArrowRight={false}
-        testID={REQUEST_SETTINGS}
+        testID={SettingsViewSelectorsIDs.REQUEST}
       />
       <SettingsDrawer
         title={strings('app_settings.contact_support')}
         onPress={showHelp}
         renderArrowRight={false}
-        testID={CONTACT_SETTINGS}
+        testID={SettingsViewSelectorsIDs.CONTACT}
       />
       <SettingsDrawer
         title={strings('drawer.lock')}
         onPress={lock}
         renderArrowRight={false}
-        testID={LOCK_SETTINGS}
-        titleColor={colors.primary.default}
+        testID={SettingsViewSelectorsIDs.LOCK}
+        titleColor={TextColor.Primary}
       />
     </ScrollView>
   );

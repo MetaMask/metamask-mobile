@@ -26,7 +26,6 @@ import AppConstants from '../../../core/AppConstants';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import Engine from '../../../core/Engine';
 import { selectChainId } from '../../../selectors/networkController';
-import { colors as importedColors } from '../../../styles/common';
 import { isValidAddressInputViaQRCode } from '../../../util/address';
 import { getURLProtocol } from '../../../util/general';
 import {
@@ -37,13 +36,18 @@ import {
   failedSeedPhraseRequirements,
   isValidMnemonic,
 } from '../../../util/validators';
-import styles from './styles';
+import createStyles from './styles';
+import { useTheme } from '../../../util/theme';
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
 
 export interface QRScannerParams {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onScanSuccess: (data: any, content?: string) => void;
   onScanError?: (error: string) => void;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onStartScan?: (data: any) => Promise<void>;
   origin?: string;
 }
@@ -63,10 +67,18 @@ const QRScanner = () => {
   const shouldReadBarCodeRef = useRef<boolean>(true);
 
   const currentChainId = useSelector(selectChainId);
+  const theme = useTheme();
+  const styles = createStyles(theme);
 
   const goBack = useCallback(() => {
     navigation.goBack();
-    onScanError?.('USER_CANCELLED');
+    try {
+      onScanError?.('USER_CANCELLED');
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      console.warn(`Error setting onScanError: ${error.message}`);
+    }
   }, [onScanError, navigation]);
 
   const end = useCallback(() => {
@@ -112,7 +124,7 @@ const QRScanner = () => {
 
   const onBarCodeRead = useCallback(
     async (response) => {
-      const content = response.data;
+      let content = response.data;
       /**
        * Barcode read triggers multiple times
        * shouldReadBarCodeRef controls how often the logic below runs
@@ -136,9 +148,13 @@ const QRScanner = () => {
       const contentProtocol = getURLProtocol(content);
       if (
         (contentProtocol === PROTOCOLS.HTTP ||
-          contentProtocol === PROTOCOLS.HTTPS) &&
+          contentProtocol === PROTOCOLS.HTTPS ||
+          contentProtocol === PROTOCOLS.DAPP) &&
         !content.startsWith(MM_SDK_DEEPLINK)
       ) {
+        if (contentProtocol === PROTOCOLS.DAPP) {
+          content = content.replace(PROTOCOLS.DAPP, PROTOCOLS.HTTPS);
+        }
         const redirect = await showAlertForURLRedirection(content);
 
         if (!redirect) {
@@ -175,6 +191,8 @@ const QRScanner = () => {
           onScanSuccess(data, content);
           return;
         }
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { KeyringController } = Engine.context as any;
         const isUnlocked = KeyringController.isUnlocked();
 
@@ -209,6 +227,8 @@ const QRScanner = () => {
         const handledByDeeplink = SharedDeeplinkManager.parse(content, {
           origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
           // TODO: Check is pop is still valid.
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           onHandled: () => (navigation as any).pop(2),
         });
 
@@ -305,7 +325,7 @@ const QRScanner = () => {
       >
         <SafeAreaView style={styles.innerView}>
           <TouchableOpacity style={styles.closeIcon} onPress={goBack}>
-            <Icon name={'ios-close'} size={50} color={importedColors.white} />
+            <Icon name="ios-close" size={50} color={styles.closeIcon.color} />
           </TouchableOpacity>
           <Image source={frameImage} style={styles.frame} />
           <Text style={styles.text}>{strings('qr_scanner.scanning')}</Text>

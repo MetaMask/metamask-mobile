@@ -5,15 +5,15 @@ exports[`TabBarItem should render correctly 1`] = `
   label="Tab"
   onPress={[Function]}
   style={
-    Object {
+    {
       "alignItems": "center",
       "flex": 1,
     }
   }
 >
   <Avatar
-    backgroundColor="#FFFFFF"
-    iconColor="#0376C9"
+    backgroundColor="#ffffff"
+    iconColor="#0376c9"
     name="Bank"
     size="32"
     variant="Icon"

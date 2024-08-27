@@ -1,24 +1,29 @@
-import React from 'react';
-import { shallow } from 'enzyme';
+import { renderScreen } from '../../../util/test/renderWithProvider';
 import SearchTokenAutocomplete from './';
-import { Provider } from 'react-redux';
-import configureMockStore from 'redux-mock-store';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
+import { FunctionComponent } from 'react';
 
-const mockStore = configureMockStore();
-const store = mockStore({
+const mockInitialState = {
+  settings: {},
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState: {
+      ...backgroundState,
+      PreferencesController: {
+        useTokenDetection: true,
+      },
+    },
   },
-});
+};
 
 describe('SearchTokenAutocomplete', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <SearchTokenAutocomplete navigation={{}} />
-      </Provider>,
+    const { toJSON } = renderScreen(
+      SearchTokenAutocomplete as FunctionComponent,
+      { name: 'SearchTokenAutocomplete' },
+      {
+        state: mockInitialState,
+      },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

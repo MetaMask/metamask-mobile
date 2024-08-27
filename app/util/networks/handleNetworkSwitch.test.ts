@@ -1,5 +1,5 @@
 import Engine from '../../core/Engine';
-import { NETWORKS_CHAIN_ID, SEPOLIA } from '../../constants/network';
+import { SEPOLIA } from '../../constants/network';
 import { store } from '../../store';
 import handleNetworkSwitch from './handleNetworkSwitch';
 
@@ -9,7 +9,7 @@ const mockStore = jest.mocked(store);
 jest.mock('../../core/Engine', () => ({
   context: {
     CurrencyRateController: {
-      setNativeCurrency: jest.fn(),
+      updateExchangeRate: jest.fn(),
     },
     NetworkController: {
       setActiveNetwork: jest.fn(),
@@ -35,22 +35,24 @@ function setupGetStateMock() {
               networkConfigurations: {
                 networkId1: {
                   rpcUrl: 'custom-testnet-rpc-url',
-                  chainId: '1338',
+                  chainId: '0x53a',
                   ticker: 'TEST',
                   nickname: 'Testnet',
                 },
               },
               providerConfig: {
                 type: 'mainnet',
-                chainId: '1',
+                chainId: '0x1',
               },
               networkDetails: {
-                isEIP1559Compatible: false,
+                EIPS: { 1559: false },
               },
             },
           },
         },
         // Cast to 'any' because we don't have a complete Redux mock to use
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any),
   );
 }
@@ -67,7 +69,7 @@ describe('useHandleNetworkSwitch', () => {
     const result = handleNetworkSwitch('');
 
     expect(
-      mockEngine.context.CurrencyRateController.setNativeCurrency,
+      mockEngine.context.CurrencyRateController.updateExchangeRate,
     ).not.toBeCalled();
     expect(
       mockEngine.context.NetworkController.setActiveNetwork,
@@ -84,7 +86,7 @@ describe('useHandleNetworkSwitch', () => {
     const result = handleNetworkSwitch('1');
 
     expect(
-      mockEngine.context.CurrencyRateController.setNativeCurrency,
+      mockEngine.context.CurrencyRateController.updateExchangeRate,
     ).not.toBeCalled();
     expect(
       mockEngine.context.NetworkController.setActiveNetwork,
@@ -109,7 +111,7 @@ describe('useHandleNetworkSwitch', () => {
     const nickname = handleNetworkSwitch('1338');
 
     expect(
-      mockEngine.context.CurrencyRateController.setNativeCurrency,
+      mockEngine.context.CurrencyRateController.updateExchangeRate,
     ).toBeCalledWith('TEST');
     expect(
       mockEngine.context.NetworkController.setActiveNetwork,
@@ -123,11 +125,11 @@ describe('useHandleNetworkSwitch', () => {
   it('switches to a built-in network', () => {
     setupGetStateMock();
 
-    const networkType = handleNetworkSwitch(NETWORKS_CHAIN_ID.SEPOLIA);
+    const networkType = handleNetworkSwitch('11155111');
 
     // TODO: This is a bug, it should be set to SepoliaETH
     expect(
-      mockEngine.context.CurrencyRateController.setNativeCurrency,
+      mockEngine.context.CurrencyRateController.updateExchangeRate,
     ).toBeCalledWith('ETH');
     expect(mockEngine.context.NetworkController.setProviderType).toBeCalledWith(
       SEPOLIA,

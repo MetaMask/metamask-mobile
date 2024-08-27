@@ -8,13 +8,12 @@ class Gestures {
    * Tap an element and long press.
    *
    * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to tap
-   * @param {number} index - Index of the element (default: 0)
    * @param {number} timeout - Timeout for waiting (default: 2000ms)
    */
-  static async tapAndLongPress(elementID, index = 0, timeout = 2000) {
+  static async tapAndLongPress(elementID, timeout = 2000) {
     const element = await elementID;
 
-    await element.atIndex(index).longPress(timeout);
+    await element.longPress(timeout);
   }
 
   /**
@@ -32,6 +31,7 @@ class Gestures {
    * Wait for an element to be visible and then tap it.
    *
    * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to tap
+
    */
   static async tap(elementID) {
     const element = await elementID;
@@ -39,16 +39,24 @@ class Gestures {
   }
 
   /**
+   * Tap an element with text partial text matching before tapping it
+   *
+   * @param {string} textPattern - Regular expression pattern to match the text
+   */
+  static async tapTextBeginingWith(textPattern) {
+    await element(by.text(new RegExp(`^/${textPattern} .*$/`))).tap();
+  }
+
+  /**
    * Wait for an element to be visible and then tap it.
    *
    * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to tap
-   * @param {number} index - Index of the element (default: 0)
    * @param {number} timeout - Timeout for waiting (default: 8000ms)
    */
-  static async waitAndTap(elementID, index = 0, timeout = 8000) {
+  static async waitAndTap(elementID, timeout = 15000) {
     const element = await elementID;
     await waitFor(element).toBeVisible().withTimeout(timeout);
-    await element.atIndex(index).tap();
+    await element.tap();
   }
 
   /**
@@ -65,21 +73,23 @@ class Gestures {
    * Double tap an element by text.
    *
    * @param {Promise<Detox.IndexableNativeElement>} elementID - Text of the element to double tap
-   * @param {number} index - Index of the element (default: 0)
    */
-  static async doubleTap(elementID, index = 0) {
+  static async doubleTap(elementID) {
     const element = await elementID;
 
-    await element.atIndex(index).multiTap(2);
+    await element.multiTap(2);
   }
 
   /**
    * Clear the text field of an element identified by ID.
    *
    * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to clear
-   */
-  static async clearField(elementID) {
+   * @param {number} timeout - Timeout for waiting (default: 8000ms)
+
+  */
+  static async clearField(elementID, timeout = 2500) {
     const element = await elementID;
+    await waitFor(element).toBeVisible().withTimeout(timeout);
 
     await element.replaceText('');
   }
@@ -92,9 +102,8 @@ class Gestures {
    */
   static async typeTextAndHideKeyboard(elementID, text) {
     const element = await elementID;
-    if (device.getPlatform() === 'android') {
-      await this.clearField(element);
-    }
+    await this.clearField(elementID);
+
     await element.typeText(text + '\n');
   }
 
@@ -151,6 +160,15 @@ class Gestures {
     await element
       .atIndex(index)
       .swipe(direction, speed, percentage, xStart, yStart);
+  }
+
+  /**
+   * Scrolls the web element until its top is at the top of the viewport.
+   * @param {Promise<Element>} elementID - A promise resolving to the target element.
+   */
+  static async scrollToWebViewPort(elem) {
+    const element = await elem;
+    await element.scrollToView();
   }
 
   /**

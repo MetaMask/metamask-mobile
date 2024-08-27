@@ -6,10 +6,6 @@ import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 
 class ConnectedAccountsModal {
-  get container() {
-    return Matchers.getElementByID(ConnectedAccountsSelectorsIDs.CONTAINER);
-  }
-
   get permissionsButton() {
     return Matchers.getElementByText(
       ConnectedAccountModalSelectorsText.PERMISSION_LINK,
@@ -34,6 +30,10 @@ class ConnectedAccountsModal {
     );
   }
 
+  get title() {
+    return Matchers.getElementByText(ConnectedAccountModalSelectorsText.TITLE);
+  }
+
   async tapPermissionsButton() {
     await Gestures.waitAndTap(this.permissionsButton);
   }
@@ -50,7 +50,7 @@ class ConnectedAccountsModal {
   // }
 
   async scrollToBottomOfModal() {
-    await Gestures.swipe(this.container, 'down', 'fast');
+    await Gestures.swipe(this.title, 'down', 'fast');
   }
 
   async tapConnectMoreAccountsButton() {

@@ -42,8 +42,18 @@ class WelcomeScreen {
     }
   }
 
+  async waitForSplashAnimationToComplete() {
+    const elem = await this.splashScreenMetamaskAnimationId;
+    await elem.waitForExist();
+    await elem.waitForExist({ reverse: true });
+  }
+
   async isScreenDisplayed() {
     expect(this.screen).toBeDisplayed();
+  }
+
+  async isGetStartedButtonDisplayed() {
+    expect(this.getStartedButton).toBeDisplayed();
   }
 
   async waitForSplashAnimationToNotExit() {
@@ -94,7 +104,7 @@ class WelcomeScreen {
 
     while (screenExist) {
       await Gestures.waitAndTap(this.getStartedButton);
-      await driver.pause(5000);
+      await driver.pause(7000);
       screenExist = await element.isExisting();
     }
   }

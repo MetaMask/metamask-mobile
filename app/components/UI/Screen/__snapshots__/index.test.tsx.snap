@@ -3,14 +3,14 @@
 exports[`Screen should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
 >
   <RCTSafeAreaView
     style={
-      Object {
+      {
         "flex": 1,
       }
     }

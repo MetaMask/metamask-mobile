@@ -14,7 +14,7 @@ import {
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import AsyncStorage from '../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import StyledButton from '../../UI/StyledButton';
 import {
   fontStyles,
@@ -26,8 +26,6 @@ import { strings } from '../../../../locales/i18n';
 import Button from '@metamask/react-native-button';
 import { connect } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import Analytics from '../../../core/Analytics/Analytics';
-import { saveOnboardingEvent } from '../../../actions/onboarding';
 import {
   getTransparentBackOnboardingNavbarOptions,
   getTransparentOnboardingNavbarOptions,
@@ -36,21 +34,21 @@ import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
+import { storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction } from '../../../reducers/legalNotices';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
-import { EXISTING_USER, METRICS_OPT_IN } from '../../../constants/storage';
+import { EXISTING_USER } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-
-import DefaultPreference from 'react-native-default-preference';
+import { withMetricsAwareness } from '../../hooks/useMetrics';
 import { Authentication } from '../../../core';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import AnimatedFox from 'react-native-animated-fox';
+import AnimatedFox from '../../Base/AnimatedFox';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
 
 import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -132,6 +130,7 @@ const createStyles = (colors) =>
  */
 class Onboarding extends PureComponent {
   static propTypes = {
+    disableNewPrivacyPolicyToast: PropTypes.func,
     /**
      * The navigator object
      */
@@ -140,10 +139,6 @@ class Onboarding extends PureComponent {
      * redux flag that indicates if the user set a password
      */
     passwordSet: PropTypes.bool,
-    /**
-     * Save onboarding event to state
-     */
-    saveOnboardingEvent: PropTypes.func,
     /**
      * loading status
      */
@@ -164,6 +159,10 @@ class Onboarding extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   notificationAnimated = new Animated.Value(100);
@@ -225,6 +224,7 @@ class Onboarding extends PureComponent {
     this.updateNavBar();
     this.mounted = true;
     this.checkIfExistingUser();
+    this.props.disableNewPrivacyPolicyToast();
 
     InteractionManager.runAfterInteractions(() => {
       PreventScreenshot.forbid();
@@ -249,7 +249,7 @@ class Onboarding extends PureComponent {
   };
 
   async checkIfExistingUser() {
-    const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+    const existingUser = await StorageWrapper.getItem(EXISTING_USER);
     if (existingUser !== null) {
       this.setState({ existingUser: true });
     }
@@ -276,8 +276,8 @@ class Onboarding extends PureComponent {
 
   onPressCreate = () => {
     const action = async () => {
-      const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-      if (metricsOptIn) {
+      const { metrics } = this.props;
+      if (metrics.isEnabled()) {
         this.props.navigation.navigate('ChoosePassword', {
           [PREVIOUS_SCREEN]: ONBOARDING,
         });
@@ -298,8 +298,8 @@ class Onboarding extends PureComponent {
 
   onPressImport = () => {
     const action = async () => {
-      const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-      if (metricsOptIn) {
+      const { metrics } = this.props;
+      if (metrics.isEnabled()) {
         this.props.navigation.push(
           Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
         );
@@ -318,17 +318,8 @@ class Onboarding extends PureComponent {
     this.handleExistingUser(action);
   };
 
-  track = (...eventArgs) => {
-    InteractionManager.runAfterInteractions(async () => {
-      if (Analytics.checkEnabled()) {
-        AnalyticsV2.trackEvent(...eventArgs);
-        return;
-      }
-      const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-      if (!metricsOptIn) {
-        this.props.saveOnboardingEvent(eventArgs);
-      }
-    });
+  track = (event) => {
+    trackOnboarding(event);
   };
 
   alertExistingUser = (callback) => {
@@ -497,7 +488,11 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   setLoading: (msg) => dispatch(loadingSet(msg)),
   unsetLoading: () => dispatch(loadingUnset()),
-  saveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
+  disableNewPrivacyPolicyToast: () =>
+    dispatch(storePrivacyPolicyClickedOrClosedAction()),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Onboarding);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(Onboarding));

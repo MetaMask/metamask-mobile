@@ -1,8 +1,9 @@
+import { Nft } from '@metamask/assets-controllers';
 import { ViewStyle } from 'react-native';
 
 export interface Collectible {
   name: string;
-  tokenId: number;
+  tokenId: string;
   image: string;
   imagePreview: string;
   address: string;
@@ -11,11 +12,15 @@ export interface Collectible {
   tokenURI: string;
   contractName?: string;
   standard: string;
+  imageOriginal?: string;
   error: string | undefined;
+  description?: string;
+  rarityRank?: number;
+  isCurrentlyOwned?: boolean;
 }
 
 export interface CollectibleMediaProps {
-  collectible: Collectible;
+  collectible: Nft;
   tiny?: boolean;
   small?: boolean;
   big?: boolean;
@@ -24,4 +29,6 @@ export interface CollectibleMediaProps {
   style?: ViewStyle;
   onClose?: () => void;
   onPressColectible?: () => void;
+  isTokenImage?: boolean;
+  isFullRatio?: boolean;
 }

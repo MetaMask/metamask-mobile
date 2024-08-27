@@ -16,6 +16,7 @@ async function reconnect({
   otherPublicKey: string;
   context?: string;
   updateKey?: boolean;
+  protocolVersion?: ConnectionProps['protocolVersion'];
   trigger?: ConnectionProps['trigger'];
   initialConnection: boolean;
   instance: SDKConnect;
@@ -29,6 +30,7 @@ async function reconnect({
     if (trigger) {
       instance.state.connected[channelId].setTrigger('deeplink');
     }
+    instance.updateSDKLoadingState({ channelId, loading: false });
 
     return;
   }
@@ -50,6 +52,9 @@ async function reconnect({
       DevLogger.log(`SDKConnect::reconnect[${context}] - same otherPublicKey`);
     }
   }
+
+  // Update initial connection state
+  instance.state.connections[channelId].initialConnection = initialConnection;
 
   const wasPaused = existingConnection?.remote.isPaused();
   // Make sure the connection has resumed from pause before reconnecting.
@@ -87,11 +92,11 @@ async function reconnect({
     //   instance.removeChannel(channelId, true);
     // }
 
-    // instance condition should not happen keeping it for debug purpose.
-    console.warn(`Priotity to deeplink - overwrite previous connection`);
-    instance.removeChannel({ channelId, sendTerminate: true });
+    // issue can happen during dev because bundle takes too long to load via metro.
+    // should not happen but keeping it for reference / debug purpose.
+    console.warn(`BUNDLE WARNING: Already connecting --- Priotity to deeplink`);
+    // instance.removeChannel({ channelId, sendTerminate: true });
   }
-
   if (!instance.state.connections[channelId]) {
     interruptReason = 'no connection';
   }
@@ -106,27 +111,35 @@ async function reconnect({
   if (existingConnection) {
     const connected = existingConnection?.remote.isConnected();
     const ready = existingConnection?.isReady;
-    if (connected) {
-      if (trigger) {
-        instance.state.connected[channelId].setTrigger(trigger);
-      }
+    if (trigger) {
+      instance.state.connected[channelId].setTrigger(trigger);
       DevLogger.log(
-        `SDKConnect::reconnect - already connected [connected] -- trigger updated to '${trigger}'`,
+        `SDKConnect::reconnect - connected=${connected} -- trigger updated to '${trigger}'`,
       );
-      return;
+      instance.updateSDKLoadingState({ channelId, loading: false });
     }
 
     if (ready) {
       DevLogger.log(
         `SDKConnect::reconnect - already connected [ready=${ready}] -- ignoring`,
       );
+      instance.updateSDKLoadingState({ channelId, loading: false });
       return;
+    } else if (connected) {
+      // disconnect socket before reconnecting to avoid room being full
+      DevLogger.log(
+        `SDKConnect::reconnect - disconnecting socket before reconnecting`,
+      );
+      existingConnection.remote.disconnect();
     }
   }
 
-  DevLogger.log(`SDKConnect::reconnect - starting reconnection`);
+  DevLogger.log(
+    `SDKConnect::reconnect - starting reconnection channel=${channelId}`,
+  );
 
   const connection = instance.state.connections[channelId];
+  DevLogger.log(`SDKConnect::reconnect - connection`, connection);
   instance.state.connecting[channelId] = true;
   instance.state.connected[channelId] = new Connection({
     ...connection,
@@ -150,12 +163,13 @@ async function reconnect({
   });
   instance.state.connected[channelId].connect({
     withKeyExchange: true,
+    authorized: connection.originatorInfo !== undefined,
   });
+
   instance.watchConnection(instance.state.connected[channelId]);
   const afterConnected =
     instance.state.connected[channelId].remote.isConnected() ?? false;
   instance.state.connecting[channelId] = !afterConnected; // If not connected, it means it's connecting.
-  instance.emit('refresh');
 }
 
 export default reconnect;

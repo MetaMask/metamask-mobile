@@ -1,4 +1,4 @@
-import { Theme } from '@metamask/design-tokens';
+import type { Theme } from '@metamask/design-tokens';
 import { StyleSheet, TextStyle } from 'react-native';
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -51,6 +51,10 @@ const styleSheet = (params: { theme: Theme }) => {
       marginLeft: 8,
     },
     aboutWrapper: {
+      marginBottom: 20,
+      paddingHorizontal: 16,
+    },
+    tokenDetailsWrapper: {
       marginBottom: 20,
       paddingHorizontal: 16,
     },

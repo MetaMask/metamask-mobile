@@ -1,4 +1,4 @@
-import messages from '../../../locales/languages/en.json';
+import enContent from '../../../locales/languages/en.json';
 
 export const DeleteWalletModalSelectorsIDs = {
   CONTAINER: 'delete-wallet-modal-container',
@@ -11,6 +11,6 @@ export const DeleteWalletModalSelectorsIDs = {
 };
 
 export const DeleteWalletModalSelectorsText = {
-  UNDERSTAND_BUTTON: messages.login.i_understand,
-  DELETE_MY: messages.login.delete_my,
+  UNDERSTAND_BUTTON: enContent.login.i_understand,
+  DELETE_MY: enContent.login.delete_my,
 };

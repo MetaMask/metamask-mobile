@@ -31,6 +31,8 @@ const BannerTipMeta = {
 export default BannerTipMeta;
 
 export const BannerTip = {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   render: (args: any) => (
     <BannerTipComponent
       {...args}

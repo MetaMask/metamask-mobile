@@ -28,9 +28,17 @@ Optional prop to toggle full screen state of BottomSheetDialog.
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | boolean                                              | No                                                     | false                                                  |
 
-### `onDismissed`
+### `onClose`
 
-Optional callback that gets triggered when sheet is dismissed.
+Optional callback that gets triggered when sheet is closed.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| Function                                              | No                                                     | false                                                  |
+
+### `onOpen`
+
+Optional callback that gets triggered when sheet is opened.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
@@ -42,7 +50,8 @@ Optional callback that gets triggered when sheet is dismissed.
 <BottomSheetDialog 
   isFullscreen 
   isInteractable 
-  onDismissed={SAMPLE_DISMISS_FUNCTION}>
+  onClose={SAMPLE_CLOSE_FUNCTION}
+  onOpen={SAMPLE_OPEN_FUNCTION}>
   {SAMPLE_CONTENT}
 </BottomSheetDialog>
 ```

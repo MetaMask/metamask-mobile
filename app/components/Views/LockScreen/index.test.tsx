@@ -1,24 +1,34 @@
-import React from 'react';
-import { shallow } from 'enzyme';
+import {
+  DeepPartial,
+  renderScreen,
+} from '../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import LockScreen from './';
-import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
+import Routes from '../../../constants/navigation/Routes';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+import { RootState } from '../../../reducers';
 
-const mockStore = configureMockStore();
-const initialState = {
-  user: {
-    passwordSet: false,
+const mockInitialState: DeepPartial<RootState> = {
+  settings: {},
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      PreferencesController: {
+        securityAlertsEnabled: true,
+      },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+    },
   },
 };
-const store = mockStore(initialState);
 
 describe('LockScreen', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <LockScreen />
-      </Provider>,
+    const { toJSON } = renderScreen(
+      LockScreen,
+      { name: Routes.LOCK_SCREEN },
+      { state: mockInitialState },
+      { bioStateMachineId: '' },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

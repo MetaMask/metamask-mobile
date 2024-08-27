@@ -16,7 +16,7 @@ export default function migrate(state) {
     state.engine.backgroundState.PreferencesController;
   const networkControllerState = state.engine.backgroundState.NetworkController;
   const frequentRpcList = preferencesControllerState?.frequentRpcList;
-  if (networkControllerState && frequentRpcList?.length) {
+  if (networkControllerState && frequentRpcList) {
     const networkConfigurations = frequentRpcList.reduce(
       (networkConfigs, networkConfig) => {
         const networkConfigurationId = v4();
@@ -35,7 +35,7 @@ export default function migrate(state) {
     );
     delete preferencesControllerState.frequentRpcList;
 
-    networkControllerState.networkConfigurations = networkConfigurations;
+    networkControllerState.networkConfigurations = networkConfigurations ?? {};
   }
   return state;
 }

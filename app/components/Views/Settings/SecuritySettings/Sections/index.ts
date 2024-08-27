@@ -9,6 +9,7 @@ import RevealPrivateKey from './RevealPrivateKey/RevealPrivateKey';
 import ChangePassword from './ChangePassword/ChangePassword';
 import AutoLock from './AutoLock/AutoLock';
 import ClearPrivacy from './ClearPrivacy/ClearPrivacy';
+import BlockaidSettings from './BlockaidSettings';
 
 export {
   AutomaticSecurityChecks,
@@ -22,4 +23,5 @@ export {
   ChangePassword,
   AutoLock,
   ClearPrivacy,
+  BlockaidSettings,
 };

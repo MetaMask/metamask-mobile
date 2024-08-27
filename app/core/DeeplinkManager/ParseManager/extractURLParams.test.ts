@@ -32,19 +32,23 @@ describe('extractURLParams', () => {
     jest.clearAllMocks();
   });
   it('should correctly extract parameters from a valid URL with query parameters', () => {
-    const url = `${PROTOCOLS.DAPP}/https://example.com?uri=test&redirect=true&channelId=123&comm=test&pubkey=abc`;
+    const url = `${PROTOCOLS.DAPP}/https://example.com?uri=test&redirect=true&channelId=123&comm=test&pubkey=abc&v=2`;
     const expectedParams = {
       uri: 'test',
       redirect: 'true',
+      originatorInfo: '',
+      rpc: '',
+      sdkVersion: '',
       channelId: '123',
       comm: 'test',
-      pubkey: 'abc',
+      v: '2',
     };
 
     mockUrlParser.mockImplementation(
       () =>
         ({
-          query: '?uri=test&redirect=true&channelId=123&comm=test&pubkey=abc',
+          query:
+            '?uri=test&redirect=true&channelId=123&comm=test&pubkey=abc&v=2',
         } as unknown as UrlParser<string>),
     );
 
@@ -70,9 +74,13 @@ describe('extractURLParams', () => {
     expect(params).toEqual({
       uri: '',
       redirect: '',
+      originatorInfo: '',
+      rpc: '',
+      sdkVersion: '',
       channelId: '',
       comm: '',
       pubkey: '',
+      v: '',
     });
   });
 
@@ -98,9 +106,13 @@ describe('extractURLParams', () => {
     expect(params).toEqual({
       uri: '',
       redirect: '',
+      originatorInfo: '',
+      rpc: '',
+      sdkVersion: '',
       channelId: '',
       comm: '',
       pubkey: '',
+      v: '',
     });
 
     expect(alertSpy).toHaveBeenCalledWith(
@@ -116,6 +128,10 @@ describe('extractURLParams', () => {
       redirect: 'false',
       channelId: '456',
       comm: 'other',
+      v: '',
+      originatorInfo: '',
+      rpc: '',
+      sdkVersion: '',
       pubkey: 'xyz',
     };
 

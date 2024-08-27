@@ -1,8 +1,8 @@
 import UntypedEngine from '../Engine';
 import AppConstants from '../AppConstants';
 import { getVaultFromBackup } from '../BackupVault';
-import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 import { store as importedStore } from '../../store';
+import Logger from '../../util/Logger';
 import {
   NO_VAULT_IN_BACKUP_ERROR,
   VAULT_CREATION_ERROR,
@@ -13,10 +13,8 @@ interface InitializeEngineResult {
   error?: string;
 }
 
-const UPDATE_BG_STATE_KEY = (controllerName: string) =>
-  `UPDATE_BG_STATE_${controllerName}`;
-const INIT_BG_STATE_KEY = (controllerName: string) =>
-  `INIT_BG_STATE_${controllerName}`;
+const UPDATE_BG_STATE_KEY = 'UPDATE_BG_STATE';
+const INIT_BG_STATE_KEY = 'INIT_BG_STATE';
 class EngineService {
   private engineInitialized = false;
 
@@ -26,23 +24,41 @@ class EngineService {
    * @param store - Redux store
    */
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initalizeEngine = (store: any) => {
     const reduxState = store.getState?.();
     const state = reduxState?.engine?.backgroundState || {};
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const Engine = UntypedEngine as any;
-
     Engine.init(state);
     this.updateControllers(store, Engine);
   };
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private updateControllers = (store: any, engine: any) => {
+    if (!engine.context) {
+      Logger.error(
+        new Error(
+          'Engine context does not exists. Redux will not be updated from controller state updates!',
+        ),
+      );
+      return;
+    }
+
     const controllers = [
-      { name: 'AccountTrackerController' },
       { name: 'AddressBookController' },
       { name: 'AssetsContractController' },
       { name: 'NftController' },
-      { name: 'TokensController' },
-      { name: 'TokenDetectionController' },
+      {
+        name: 'TokensController',
+      },
+      {
+        name: 'TokenDetectionController',
+        key: `${engine.context.TokenDetectionController.name}:stateChange`,
+      },
       { name: 'NftDetectionController' },
       {
         name: 'KeyringController',
@@ -53,11 +69,24 @@ class EngineService {
         name: 'NetworkController',
         key: AppConstants.NETWORK_STATE_CHANGE_EVENT,
       },
-      { name: 'PhishingController' },
-      { name: 'PreferencesController' },
-      { name: 'TokenBalancesController' },
+      {
+        name: 'PhishingController',
+        key: `${engine.context.PhishingController.name}:maybeUpdateState`,
+      },
+      {
+        name: 'PreferencesController',
+        key: `${engine.context.PreferencesController.name}:stateChange`,
+      },
+      {
+        name: 'TokenBalancesController',
+        key: `${engine.context.TokenBalancesController.name}:stateChange`,
+      },
       { name: 'TokenRatesController' },
-      { name: 'TransactionController' },
+      {
+        name: 'TransactionController',
+        key: `${engine.context.TransactionController.name}:stateChange`,
+      },
+      { name: 'SmartTransactionsController' },
       { name: 'SwapsController' },
       {
         name: 'TokenListController',
@@ -75,14 +104,26 @@ class EngineService {
         name: 'ApprovalController',
         key: `${engine.context.ApprovalController.name}:stateChange`,
       },
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       {
         name: 'SnapController',
         key: `${engine.context.SnapController.name}:stateChange`,
       },
       {
-        name: 'subjectMetadataController',
+        name: 'SubjectMetadataController',
         key: `${engine.context.SubjectMetadataController.name}:stateChange`,
+      },
+      {
+        name: 'AuthenticationController',
+        key: 'AuthenticationController:stateChange',
+      },
+      {
+        name: 'UserStorageController',
+        key: 'UserStorageController:stateChange',
+      },
+      {
+        name: 'NotificationServicesController',
+        key: 'NotificationServicesController:stateChange',
       },
       ///: END:ONLY_INCLUDE_IF
       {
@@ -93,24 +134,34 @@ class EngineService {
         name: 'LoggingController',
         key: `${engine.context.LoggingController.name}:stateChange`,
       },
-    ];
-
-    if (isBlockaidFeatureEnabled()) {
-      controllers.push({
+      {
+        name: 'AccountsController',
+        key: `${engine.context.AccountsController.name}:stateChange`,
+      },
+      {
         name: 'PPOMController',
         key: `${engine.context.PPOMController.name}:stateChange`,
-      });
-    }
+      },
+      {
+        name: 'AuthenticationController',
+        key: `AuthenticationController:stateChange`,
+      },
+      {
+        name: 'UserStorageController',
+        key: `UserStorageController:stateChange`,
+      },
+      {
+        name: 'NotificationServicesController',
+        key: `NotificationServicesController:stateChange`,
+      },
+    ];
 
     engine?.datamodel?.subscribe?.(() => {
+      if (!engine.context.KeyringController.metadata.vault) {
+        Logger.log('keyringController vault missing for INIT_BG_STATE_KEY');
+      }
       if (!this.engineInitialized) {
-        controllers.forEach((controller) => {
-          const { name } = controller;
-          store.dispatch({
-            type: INIT_BG_STATE_KEY(name),
-            payload: { key: name },
-          });
-        });
+        store.dispatch({ type: INIT_BG_STATE_KEY });
         this.engineInitialized = true;
       }
     });
@@ -118,10 +169,10 @@ class EngineService {
     controllers.forEach((controller) => {
       const { name, key = undefined } = controller;
       const update_bg_state_cb = () => {
-        store.dispatch({
-          type: UPDATE_BG_STATE_KEY(name),
-          payload: { key: name },
-        });
+        if (!engine.context.KeyringController.metadata.vault) {
+          Logger.log('keyringController vault missing for UPDATE_BG_STATE_KEY');
+        }
+        store.dispatch({ type: UPDATE_BG_STATE_KEY, payload: { key: name } });
       };
       if (key) {
         engine.controllerMessenger.subscribe(key, update_bg_state_cb);
@@ -144,6 +195,8 @@ class EngineService {
     const keyringState = await getVaultFromBackup();
     const reduxState = importedStore.getState?.();
     const state = reduxState?.engine?.backgroundState || {};
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const Engine = UntypedEngine as any;
     // This ensures we create an entirely new engine
     await Engine.destroyEngine();

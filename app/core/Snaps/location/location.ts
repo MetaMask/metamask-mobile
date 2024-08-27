@@ -1,10 +1,11 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
-import { NpmLocation, NpmOptions } from './npm';
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+import { NpmLocation } from './npm';
 import {
   HttpLocation,
   type DetectSnapLocationOptions as DetectSnapLocationOptionsFromPackage,
   type SnapLocation,
   LocalLocation,
+  type NpmOptions,
 } from '@metamask/snaps-controllers';
 
 export type DetectSnapLocationOptions = DetectSnapLocationOptionsFromPackage &

@@ -3,8 +3,8 @@
 exports[`AssetActionButtons should render correctly 1`] = `
 <TouchableOpacity
   style={
-    Array [
-      Object {
+    [
+      {
         "alignItems": "center",
         "flexShrink": 1,
         "justifyContent": "center",
@@ -17,10 +17,10 @@ exports[`AssetActionButtons should render correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "alignContent": "center",
         "alignItems": "center",
-        "backgroundColor": "#0376C9",
+        "backgroundColor": "#0376c9",
         "borderRadius": 18,
         "height": 36,
         "justifyContent": "center",
@@ -34,8 +34,8 @@ exports[`AssetActionButtons should render correctly 1`] = `
     centered={true}
     numberOfLines={1}
     style={
-      Object {
-        "color": "#0376C9",
+      {
+        "color": "#0376c9",
         "fontSize": 14,
         "marginHorizontal": 3,
         "marginTop": 8,
@@ -50,8 +50,8 @@ exports[`AssetActionButtons should render correctly 1`] = `
 exports[`AssetActionButtons should render type add correctly 1`] = `
 <TouchableOpacity
   style={
-    Array [
-      Object {
+    [
+      {
         "alignItems": "center",
         "flexShrink": 1,
         "justifyContent": "center",
@@ -64,10 +64,10 @@ exports[`AssetActionButtons should render type add correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "alignContent": "center",
         "alignItems": "center",
-        "backgroundColor": "#0376C9",
+        "backgroundColor": "#0376c9",
         "borderRadius": 18,
         "height": 36,
         "justifyContent": "center",
@@ -82,9 +82,9 @@ exports[`AssetActionButtons should render type add correctly 1`] = `
       name="ios-add"
       size={30}
       style={
-        Object {
+        {
           "alignContent": "center",
-          "color": "#FCFCFC",
+          "color": "#ffffff",
           "justifyContent": "center",
           "textAlign": "center",
         }
@@ -95,8 +95,8 @@ exports[`AssetActionButtons should render type add correctly 1`] = `
     centered={true}
     numberOfLines={1}
     style={
-      Object {
-        "color": "#0376C9",
+      {
+        "color": "#0376c9",
         "fontSize": 14,
         "marginHorizontal": 3,
         "marginTop": 8,
@@ -111,8 +111,8 @@ exports[`AssetActionButtons should render type add correctly 1`] = `
 exports[`AssetActionButtons should render type information correctly 1`] = `
 <TouchableOpacity
   style={
-    Array [
-      Object {
+    [
+      {
         "alignItems": "center",
         "flexShrink": 1,
         "justifyContent": "center",
@@ -125,10 +125,10 @@ exports[`AssetActionButtons should render type information correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "alignContent": "center",
         "alignItems": "center",
-        "backgroundColor": "#0376C9",
+        "backgroundColor": "#0376c9",
         "borderRadius": 18,
         "height": 36,
         "justifyContent": "center",
@@ -143,9 +143,9 @@ exports[`AssetActionButtons should render type information correctly 1`] = `
       name="md-information"
       size={30}
       style={
-        Object {
+        {
           "alignContent": "center",
-          "color": "#FCFCFC",
+          "color": "#ffffff",
           "justifyContent": "center",
           "textAlign": "center",
         }
@@ -156,8 +156,8 @@ exports[`AssetActionButtons should render type information correctly 1`] = `
     centered={true}
     numberOfLines={1}
     style={
-      Object {
-        "color": "#0376C9",
+      {
+        "color": "#0376c9",
         "fontSize": 14,
         "marginHorizontal": 3,
         "marginTop": 8,
@@ -172,8 +172,8 @@ exports[`AssetActionButtons should render type information correctly 1`] = `
 exports[`AssetActionButtons should render type receive correctly 1`] = `
 <TouchableOpacity
   style={
-    Array [
-      Object {
+    [
+      {
         "alignItems": "center",
         "flexShrink": 1,
         "justifyContent": "center",
@@ -186,10 +186,10 @@ exports[`AssetActionButtons should render type receive correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "alignContent": "center",
         "alignItems": "center",
-        "backgroundColor": "#0376C9",
+        "backgroundColor": "#0376c9",
         "borderRadius": 18,
         "height": 36,
         "justifyContent": "center",
@@ -201,22 +201,22 @@ exports[`AssetActionButtons should render type receive correctly 1`] = `
   >
     <Icon
       allowFontScaling={false}
-      color="#FCFCFC"
+      color="#ffffff"
       name="keyboard-tab"
       size={20}
       style={
-        Array [
-          Object {
+        [
+          {
             "alignContent": "center",
-            "color": "#FCFCFC",
+            "color": "#ffffff",
             "justifyContent": "center",
             "textAlign": "center",
           },
-          Object {
+          {
             "bottom": 1,
             "right": 1,
-            "transform": Array [
-              Object {
+            "transform": [
+              {
                 "rotate": "90deg",
               },
             ],
@@ -229,8 +229,8 @@ exports[`AssetActionButtons should render type receive correctly 1`] = `
     centered={true}
     numberOfLines={1}
     style={
-      Object {
-        "color": "#0376C9",
+      {
+        "color": "#0376c9",
         "fontSize": 14,
         "marginHorizontal": 3,
         "marginTop": 8,
@@ -245,8 +245,8 @@ exports[`AssetActionButtons should render type receive correctly 1`] = `
 exports[`AssetActionButtons should render type send correctly 1`] = `
 <TouchableOpacity
   style={
-    Array [
-      Object {
+    [
+      {
         "alignItems": "center",
         "flexShrink": 1,
         "justifyContent": "center",
@@ -259,10 +259,10 @@ exports[`AssetActionButtons should render type send correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "alignContent": "center",
         "alignItems": "center",
-        "backgroundColor": "#0376C9",
+        "backgroundColor": "#0376c9",
         "borderRadius": 18,
         "height": 36,
         "justifyContent": "center",
@@ -277,9 +277,9 @@ exports[`AssetActionButtons should render type send correctly 1`] = `
       name="arrow-top-right"
       size={20}
       style={
-        Object {
+        {
           "alignContent": "center",
-          "color": "#FCFCFC",
+          "color": "#ffffff",
           "justifyContent": "center",
           "textAlign": "center",
         }
@@ -290,8 +290,8 @@ exports[`AssetActionButtons should render type send correctly 1`] = `
     centered={true}
     numberOfLines={1}
     style={
-      Object {
-        "color": "#0376C9",
+      {
+        "color": "#0376c9",
         "fontSize": 14,
         "marginHorizontal": 3,
         "marginTop": 8,
@@ -306,8 +306,8 @@ exports[`AssetActionButtons should render type send correctly 1`] = `
 exports[`AssetActionButtons should render type swap correctly 1`] = `
 <TouchableOpacity
   style={
-    Array [
-      Object {
+    [
+      {
         "alignItems": "center",
         "flexShrink": 1,
         "justifyContent": "center",
@@ -320,10 +320,10 @@ exports[`AssetActionButtons should render type swap correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "alignContent": "center",
         "alignItems": "center",
-        "backgroundColor": "#0376C9",
+        "backgroundColor": "#0376c9",
         "borderRadius": 18,
         "height": 36,
         "justifyContent": "center",
@@ -338,14 +338,14 @@ exports[`AssetActionButtons should render type swap correctly 1`] = `
       name="repeat"
       size={22}
       style={
-        Array [
-          Object {
+        [
+          {
             "alignContent": "center",
-            "color": "#FCFCFC",
+            "color": "#ffffff",
             "justifyContent": "center",
             "textAlign": "center",
           },
-          Object {
+          {
             "bottom": 0,
             "right": 0,
           },
@@ -357,8 +357,8 @@ exports[`AssetActionButtons should render type swap correctly 1`] = `
     centered={true}
     numberOfLines={1}
     style={
-      Object {
-        "color": "#0376C9",
+      {
+        "color": "#0376c9",
         "fontSize": 14,
         "marginHorizontal": 3,
         "marginTop": 8,

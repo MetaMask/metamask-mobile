@@ -23,6 +23,8 @@ const mockBioStateMachineId = '123';
 const mockNavigate = jest.fn();
 jest.mock('../../core/NavigationService', () => ({
   navigation: {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     navigate: (screen: any, params?: any) => {
       params ? mockNavigate(screen, params) : mockNavigate(screen);
     },

@@ -33,6 +33,12 @@ const createStyles = (colors: Colors) =>
     switchElement: {
       marginLeft: 16,
     },
+    blockaidSwitchElement: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
     setting: {
       marginTop: 32,
     },

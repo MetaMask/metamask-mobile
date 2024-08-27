@@ -1,3 +1,5 @@
+import { Hex } from '@metamask/utils';
+import { getDecimalChainId } from '../../util/networks';
 import { useState, useEffect } from 'react';
 
 export type TimePeriod = '1d' | '1w' | '7d' | '1m' | '3m' | '1y' | '3y';
@@ -14,7 +16,7 @@ const useTokenHistoricalPrices = ({
   vsCurrency,
 }: {
   address: string;
-  chainId: string;
+  chainId: Hex;
   timePeriod: TimePeriod;
   from?: number | undefined;
   to?: number | undefined;
@@ -31,9 +33,11 @@ const useTokenHistoricalPrices = ({
     const fetchPrices = async () => {
       setIsLoading(true);
       try {
-        const baseUri = 'https://price-api.metafi.codefi.network/v1';
+        const baseUri = 'https://price.api.cx.metamask.io/v1';
         const uri = new URL(
-          `${baseUri}/chains/${chainId}/historical-prices/${address}`,
+          `${baseUri}/chains/${getDecimalChainId(
+            chainId,
+          )}/historical-prices/${address}`,
         );
         uri.searchParams.set(
           'timePeriod',
@@ -49,6 +53,8 @@ const useTokenHistoricalPrices = ({
         const data: { prices: TokenPrice[] } = await response.json();
 
         setPrices(data.prices as TokenPrice[]);
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
         setError(e);
       } finally {

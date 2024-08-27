@@ -6,7 +6,7 @@ import {
   removeCurrentNotification,
   hideCurrentNotification,
 } from '../../../actions/notification';
-import notificationTypes from '../../../util/notifications';
+import { NotificationTypes } from '../../../util/notifications';
 import TransactionNotification from './TransactionNotification';
 import SimpleNotification from './SimpleNotification';
 import { currentNotificationSelector } from '../../../reducers/notification';
@@ -20,7 +20,7 @@ import {
   runOnJS,
 } from 'react-native-reanimated';
 
-const { TRANSACTION, SIMPLE } = notificationTypes;
+const { TRANSACTION, SIMPLE } = NotificationTypes;
 
 const BROWSER_ROUTE = 'BrowserView';
 

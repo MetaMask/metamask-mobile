@@ -10,6 +10,7 @@ import {
 } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { speedUpTransaction } from '../../../util/transaction-controller';
 
 export const createLedgerTransactionModalNavDetails =
   createNavigationDetails<LedgerTransactionModalParams>(
@@ -40,6 +41,8 @@ const LedgerTransactionModal = () => {
   const modalRef = useRef<ReusableModalRef | null>(null);
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { TransactionController, ApprovalController } = Engine.context as any;
 
   const { transactionId, onConfirmationComplete, deviceId, replacementParams } =
@@ -49,10 +52,8 @@ const LedgerTransactionModal = () => {
 
   const executeOnLedger = useCallback(async () => {
     if (replacementParams?.type === LedgerReplacementTxTypes.SPEED_UP) {
-      await TransactionController.speedUpTransaction(
-        transactionId,
-        replacementParams.eip1559GasFee,
-      );
+      //@ts-expect-error Will defer this typescript issue to the hardware wallet team, confirmations or transactions team
+      await speedUpTransaction(transactionId, replacementParams.eip1559GasFee);
     } else if (replacementParams?.type === LedgerReplacementTxTypes.CANCEL) {
       await TransactionController.stopTransaction(
         transactionId,

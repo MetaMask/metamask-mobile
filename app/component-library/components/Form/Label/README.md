@@ -1,4 +1,4 @@
-# Label
+# [Label](https://metamask-consensys.notion.site/Label-d6aa56ac40044195a5078d37d3118223)
 
 ![Label](./Label.png)
 

@@ -1,7 +1,10 @@
 source 'https://rubygems.org'
 
-# You may use http://rbenv.org/ or https://rvm.io/ to install and use this version
-ruby '>= 3.0.0'
+# Recommended to use http://rbenv.org/ to install and use this version
+ruby '>= 3.1.5'
 
+# Allow minor version updates up to but excluding 2.0.0
 gem 'cocoapods', '~> 1.12'
+
+# Allow all version updates up to but excluding 7.1.0
 gem 'activesupport', '>= 6.1.7.3', '< 7.1.0'

@@ -1,14 +1,13 @@
 import React, { useCallback, useState } from 'react';
 import { Platform, Switch, Text, View } from 'react-native';
-import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { createStyles } from './styles';
 import { LOGIN_WITH_REMEMBER_ME_SWITCH } from '../../../../wdio/screen-objects/testIDs/Screens/LoginScreen.testIds';
 import { useSelector } from 'react-redux';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { colors as staticColors } from '../../../styles/common';
 import { LoginOptionsSwitchSelectorsIDs } from '../../../../e2e/selectors/LoginOptionsSwitch.selectors';
+import { useTheme } from '../../../util/theme';
 
 interface Props {
   shouldRenderBiometricOption: BIOMETRY_TYPE | null;
@@ -29,9 +28,12 @@ const LoginOptionsSwitch = ({
   onUpdateBiometryChoice,
   onUpdateRememberMe,
 }: Props) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const theme = useTheme();
+  const { colors } = theme;
   const styles = createStyles(colors);
   const allowLoginWithRememberMe = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.security.allowLoginWithRememberMe,
   );
   const [rememberMeEnabled, setRememberMeEnabled] = useState<boolean>(false);
@@ -66,7 +68,7 @@ const LoginOptionsSwitch = ({
             true: colors.primary.default,
             false: colors.border.muted,
           }}
-          thumbColor={staticColors.white}
+          thumbColor={theme.brandColors.white}
           ios_backgroundColor={colors.border.muted}
           testID={LoginOptionsSwitchSelectorsIDs.BIOMETRICS_SWITCH}
         />
@@ -86,7 +88,7 @@ const LoginOptionsSwitch = ({
             true: colors.primary.default,
             false: colors.border.muted,
           }}
-          thumbColor={staticColors.white}
+          thumbColor={theme.brandColors.white}
           ios_backgroundColor={colors.border.muted}
           {...generateTestId(Platform, LOGIN_WITH_REMEMBER_ME_SWITCH)}
         />

@@ -6,19 +6,9 @@ import {
   openEthereumAppOnLedger,
   closeRunningAppOnLedger,
 } from '../../../core/Ledger/Ledger';
+import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
+import { LedgerCommunicationErrors } from '../../../core/Ledger/ledgerErrors';
 
-export enum LedgerCommunicationErrors {
-  LedgerDisconnected = 'LedgerDisconnected',
-  LedgerHasPendingConfirmation = 'LedgerHasPendingConfirmation',
-  FailedToOpenApp = 'FailedToOpenApp',
-  FailedToCloseApp = 'FailedToCloseApp',
-  UserRefusedConfirmation = 'UserRefusedConfirmation',
-  AppIsNotInstalled = 'AppIsNotInstalled',
-  LedgerIsLocked = 'LedgerIsLocked',
-  NotSupported = 'NotSupported',
-  UnknownError = 'UnknownError',
-  NonceTooLow = 'NonceTooLow',
-}
 class LedgerError extends Error {
   public readonly code: LedgerCommunicationErrors;
 
@@ -43,7 +33,7 @@ const RESTART_LIMIT = 5;
 // Assumptions
 // 1. One big code block - logic all encapsulated in logicToRun
 // 2. logicToRun calls setUpBluetoothConnection
-function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
+function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
   // This is to track if we are expecting code to run or connection operational
   const [isSendingLedgerCommands, setIsSendingLedgerCommands] =
     useState<boolean>(false);
@@ -90,10 +80,15 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
 
     if (!transportRef.current && deviceId) {
       try {
-        const BluetoothTransport: any = {};
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const BluetoothTransport: any = await import(
+          '@ledgerhq/react-native-hw-transport-ble'
+        );
         transportRef.current = await BluetoothTransport.default.open(deviceId);
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        transportRef.current?.on('disconnect', (e: any) => {
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        transportRef.current?.on('disconnect', () => {
           transportRef.current = undefined;
           // Restart connection if more code is to be run
           if (
@@ -135,12 +130,12 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
       // Must do this at start of every code block to run to ensure transport is set
       await setUpBluetoothConnection();
 
-      if (!transportRef.current || !deviceId) {
+      if (!transportRef.current) {
         throw new Error('transportRef.current is undefined');
       }
       // Initialise the keyring and check for pre-conditions (is the correct app running?)
       const appName = await connectLedgerHardware(
-        transportRef.current as any,
+        transportRef.current as unknown as BleTransport,
         deviceId,
       );
 
@@ -150,6 +145,8 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
         try {
           setIsAppLaunchConfirmationNeeded(true);
           await openEthereumAppOnLedger();
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {
           if (e.name === 'TransportStatusError') {
             switch (e.statusCode) {
@@ -204,6 +201,8 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
         }
         return await finalLogicFunc();
       }
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       if (e.name === 'TransportStatusError') {
         switch (e.statusCode) {

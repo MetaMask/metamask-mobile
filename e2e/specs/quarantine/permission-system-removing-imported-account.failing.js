@@ -1,11 +1,11 @@
 'use strict';
 import TestHelpers from '../../helpers';
 import { Regression } from '../../tags';
-import WalletView from '../../pages/WalletView';
+import WalletView from '../../pages/wallet/WalletView';
 import ImportAccountView from '../../pages/ImportAccountView';
 import TabBarComponent from '../../pages/TabBarComponent';
 
-import Browser from '../../pages/Browser';
+import Browser from '../../pages/Browser/BrowserView';
 import AccountListView from '../../pages/AccountListView';
 
 import ConnectModal from '../../pages/modals/ConnectModal';
@@ -14,12 +14,13 @@ import NetworkListModal from '../../pages/modals/NetworkListModal';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
 
 import Accounts from '../../../wdio/helpers/Accounts';
+import { TestDApp } from '../../pages/Browser/TestDApp';
 
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import AddAccountModal from '../../pages/modals/AddAccountModal';
 import Assertions from '../../utils/Assertions';
 
-const SEPOLIA = 'Sepolia Test Network';
+const SEPOLIA = 'Sepolia';
 
 const accountPrivateKey = Accounts.getAccountPrivateKey();
 describe(
@@ -38,12 +39,13 @@ describe(
     it('should navigate to browser', async () => {
       await TestHelpers.delay(2000);
       await TabBarComponent.tapBrowser();
-      await Browser.isVisible();
+      await Assertions.checkIfVisible(Browser.browserScreenID);
     });
 
     it('should trigger connect modal in the test dapp', async () => {
       await TestHelpers.delay(3000);
-      await Browser.goToTestDappAndTapConnectButton();
+      //TODO: Create goToTestDappAndTapConnectButton method.
+      await TestDApp.goToTestDappAndTapConnectButton();
     });
 
     it('should go to multiconnect in the connect account modal', async () => {
@@ -67,18 +69,17 @@ describe(
     });
 
     it('should switch to Sepolia', async () => {
-      await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
+      await Browser.tapNetworkAvatarButtonOnBrowser();
       await ConnectedAccountsModal.tapNetworksPicker();
-      await NetworkListModal.isVisible();
-      await TestHelpers.delay(2000);
+      await Assertions.checkIfVisible(NetworkListModal.networkScroll);
       await NetworkListModal.tapTestNetworkSwitch();
       await NetworkListModal.changeNetwork(SEPOLIA);
     });
 
     it('should dismiss the network education modal', async () => {
-      await NetworkEducationModal.isVisible();
+      await Assertions.checkIfVisible(NetworkEducationModal.container);
       await NetworkEducationModal.tapGotItButton();
-      await NetworkEducationModal.isNotVisible();
+      await Assertions.checkIfNotVisible(NetworkEducationModal.container);
     });
 
     it('should set the imported account as primary account', async () => {
@@ -88,7 +89,7 @@ describe(
     it('should navigate to wallet view', async () => {
       await TestHelpers.delay(1500);
       await TabBarComponent.tapWallet();
-      await WalletView.isVisible();
+      await Assertions.checkIfVisible(WalletView.container);
     });
 
     it('should remove imported account', async () => {
@@ -105,12 +106,12 @@ describe(
       await TestHelpers.delay(4500);
       await TabBarComponent.tapBrowser();
       // Check that we are on the browser screen
-      await Browser.isVisible();
+      await Assertions.checkIfVisible(Browser.browserScreenID);
     });
 
     it('imported account is not visible', async () => {
-      await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
-      await Assertions.checkIfNotVisible(ConnectedAccountsModal.container);
+      await Browser.tapNetworkAvatarButtonOnBrowser();
+      await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
       await AccountListView.accountNameNotVisible('Account 2');
     });
   },

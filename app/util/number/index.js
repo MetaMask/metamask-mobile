@@ -96,11 +96,17 @@ export function fromWei(value = 0, unit = 'ether') {
  *
  * @param {number|string|Object} minimalInput - Token minimal unit to convert
  * @param {number|string} decimals - Token decimals to convert
+ * @param {boolean} [isRounding=true] - If true, minimalInput is converted to number and rounded for large numbers.
  * @returns {string} - String containing the new number
  */
-export function fromTokenMinimalUnit(minimalInput, decimals) {
-  minimalInput = addHexPrefix(Number(minimalInput).toString(16));
-  let minimal = safeNumberToBN(minimalInput);
+export function fromTokenMinimalUnit(
+  minimalInput,
+  decimals,
+  isRounding = true,
+) {
+  minimalInput = isRounding ? Number(minimalInput) : minimalInput;
+  const prefixedInput = addHexPrefix(minimalInput.toString(16));
+  let minimal = safeNumberToBN(prefixedInput);
   const negative = minimal.lt(new BN(0));
   const base = toBN(Math.pow(10, decimals).toString());
 
@@ -605,7 +611,7 @@ export function fastSplit(value, divider = '.') {
  * Calculates fiat balance of an asset
  *
  * @param {number|string} balance - Number corresponding to a balance of an asset
- * @param {number|null} conversionRate - ETH to current currency conversion rate
+ * @param {number|null|undefined} conversionRate - ETH to current currency conversion rate
  * @param {number|undefined} exchangeRate - Asset to ETH conversion rate
  * @param {string} currencyCode - Current currency code to display
  * @returns {string} - Currency-formatted string
@@ -620,6 +626,7 @@ export function balanceToFiat(
     balance === undefined ||
     balance === null ||
     exchangeRate === undefined ||
+    conversionRate === undefined ||
     exchangeRate === 0
   ) {
     return undefined;
@@ -851,4 +858,48 @@ export const formatValueToMatchTokenDecimals = (value, decimal) => {
     }
   }
   return value;
+};
+
+export const safeBNToHex = (value) => {
+  if (value === null || value === undefined) {
+    return value;
+  }
+
+  return BNToHex(value);
+};
+
+/**
+ * Formats a potentially large number to the nearest unit.
+ * e.g. 1T for trillions, 2.3B for billions, 4.56M for millions, 7,890 for thousands, etc.
+ *
+ * @param t - An I18nContext translator.
+ * @param number - The number to format.
+ * @returns A localized string of the formatted number + unit.
+ */
+export const localizeLargeNumber = (i18n, number) => {
+  const oneTrillion = 1000000000000;
+  const oneBillion = 1000000000;
+  const oneMillion = 1000000;
+
+  if (number >= oneTrillion) {
+    return `${(number / oneTrillion).toFixed(2)}${i18n.t(
+      'token.trillion_abbreviation',
+    )}`;
+  } else if (number >= oneBillion) {
+    return `${(number / oneBillion).toFixed(2)}${i18n.t(
+      'token.billion_abbreviation',
+    )}`;
+  } else if (number >= oneMillion) {
+    return `${(number / oneMillion).toFixed(2)}${i18n.t(
+      'token.million_abbreviation',
+    )}`;
+  }
+  return number.toFixed(2);
+};
+
+export const convertDecimalToPercentage = (decimal) => {
+  if (typeof decimal !== 'number' || isNaN(decimal)) {
+    throw new Error('Input must be a valid number');
+  }
+  return (decimal * 100).toFixed(2) + '%';
 };

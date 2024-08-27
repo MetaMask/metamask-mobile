@@ -1,19 +1,47 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import DrawerView from './';
-import { Provider } from 'react-redux';
-import configureMockStore from 'redux-mock-store';
 
-const mockStore = configureMockStore();
-const store = mockStore({});
+import { backgroundState } from '../../../util/test/initial-root-state';
+import Engine from '../../../core/Engine';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+
+const mockedEngine = Engine;
+
+const mockInitialState = {
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+    },
+  },
+};
+
+jest.mock('../../../core/Engine', () => ({
+  init: () => mockedEngine.init({}),
+  getTotalFiatAccountBalance: () => ({ ethFiat: 0, tokenFiat: 0 }),
+  context: {
+    NetworkController: {
+      state: {
+        providerConfig: { chainId: '0x1' },
+      },
+    },
+    KeyringController: {
+      state: {
+        keyrings: [],
+      },
+    },
+  },
+}));
 
 describe('DrawerView', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <DrawerView />
-      </Provider>,
+    const { toJSON } = renderWithProvider(
+      <DrawerView navigation={{ goBack: () => null }} />,
+      {
+        state: mockInitialState,
+      },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

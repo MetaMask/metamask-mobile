@@ -8,16 +8,14 @@ import {
   View,
   TextInput,
   SafeAreaView,
-  InteractionManager,
   Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
-import AsyncStorage from '../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { OutlinedTextField } from 'react-native-material-textfield';
-import DefaultPreference from 'react-native-default-preference';
 import Clipboard from '@react-native-clipboard/clipboard';
 import AppConstants from '../../../core/AppConstants';
 import Device from '../../../util/device';
@@ -35,7 +33,6 @@ import {
 } from '../../../util/password';
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 
 import { useTheme } from '../../../util/theme';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
@@ -65,6 +62,8 @@ import {
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { useProfileSyncing } from '../../../util/notifications/hooks/useProfileSyncing';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -102,8 +101,14 @@ const ImportFromSecretRecoveryPhrase = ({
   const [inputWidth, setInputWidth] = useState({ width: '99%' });
   const [hideSeedPhraseInput, setHideSeedPhraseInput] = useState(true);
 
+  const { enableProfileSyncing } = useProfileSyncing();
+
   const passwordInput = React.createRef();
   const confirmPasswordInput = React.createRef();
+
+  const track = (event, properties) => {
+    trackOnboarding(event, properties);
+  };
 
   const updateNavBar = () => {
     navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
@@ -114,10 +119,10 @@ const ImportFromSecretRecoveryPhrase = ({
 
     const setBiometricsOption = async () => {
       const authData = await Authentication.getType();
-      const previouslyDisabled = await AsyncStorage.getItem(
+      const previouslyDisabled = await StorageWrapper.getItem(
         BIOMETRY_CHOICE_DISABLED,
       );
-      const passcodePreviouslyDisabled = await AsyncStorage.getItem(
+      const passcodePreviouslyDisabled = await StorageWrapper.getItem(
         PASSCODE_DISABLED,
       );
       if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
@@ -184,9 +189,7 @@ const ImportFromSecretRecoveryPhrase = ({
     setSeed(parsedSeed);
 
     if (loading) return;
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_IMPORT_ATTEMPTED);
-    });
+    track(MetaMetricsEvents.WALLET_IMPORT_ATTEMPTED);
     let error = null;
     if (!passwordRequirementsMet(password)) {
       error = strings('import_from_seed.password_length_error');
@@ -202,11 +205,9 @@ const ImportFromSecretRecoveryPhrase = ({
 
     if (error) {
       Alert.alert(strings('import_from_seed.error'), error);
-      InteractionManager.runAfterInteractions(() => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
-          wallet_setup_type: 'import',
-          error_type: error,
-        });
+      track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+        wallet_setup_type: 'import',
+        error_type: error,
       });
     } else {
       try {
@@ -229,29 +230,27 @@ const ImportFromSecretRecoveryPhrase = ({
             await handleRejectedOsBiometricPrompt(parsedSeed);
         }
         // Get onboarding wizard state
-        const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
+        const onboardingWizard = await StorageWrapper.getItem(
+          ONBOARDING_WIZARD,
+        );
         setLoading(false);
         passwordSet();
         setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
         seedphraseBackedUp();
-        InteractionManager.runAfterInteractions(() => {
-          AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_IMPORTED, {
-            biometrics_enabled: Boolean(biometryType),
-          });
-          AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
-            wallet_setup_type: 'import',
-            new_wallet: false,
-          });
+        track(MetaMetricsEvents.WALLET_IMPORTED, {
+          biometrics_enabled: Boolean(biometryType),
         });
-        if (onboardingWizard) {
-          navigation.replace(Routes.ONBOARDING.MANUAL_BACKUP.STEP_3);
-        } else {
-          setOnboardingWizardStep(1);
-          navigation.replace(Routes.ONBOARDING.HOME_NAV, {
-            screen: Routes.WALLET_VIEW,
-          });
-        }
+        track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
+          wallet_setup_type: 'import',
+          new_wallet: false,
+        });
+        !onboardingWizard && setOnboardingWizardStep(1);
+        navigation.reset({
+          index: 1,
+          routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
+        });
         await importAdditionalAccounts();
+        await enableProfileSyncing();
       } catch (error) {
         // Should we force people to enable passcode / biometrics?
         if (error.toString() === PASSCODE_NOT_SET_ERROR) {
@@ -265,11 +264,9 @@ const ImportFromSecretRecoveryPhrase = ({
           setError(error.message);
           Logger.log('Error with seed phrase import', error.message);
         }
-        InteractionManager.runAfterInteractions(() => {
-          AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
-            wallet_setup_type: 'import',
-            error_type: error.toString(),
-          });
+        track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+          wallet_setup_type: 'import',
+          error_type: error.toString(),
         });
       }
     }

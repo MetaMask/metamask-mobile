@@ -8,7 +8,6 @@ import {
   View,
   TouchableWithoutFeedback,
   ActivityIndicator,
-  InteractionManager,
 } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
@@ -54,12 +53,13 @@ import {
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
-import { selectSelectedAddress } from '../../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
+import { useMetrics } from '../../../../components/hooks/useMetrics';
 
-import Analytics from '../../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
-import { SWAP_SEARCH_TOKEN } from '../../../../../wdio/screen-objects/testIDs/Screens/QuoteView.js';
+import { QuoteViewSelectorIDs } from '../../../../../e2e/selectors/swaps/QuoteView.selectors';
+import { getDecimalChainId } from '../../../../util/networks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -157,6 +157,8 @@ function TokenSelectModal({
   balances,
 }) {
   const navigation = useNavigation();
+  const { trackEvent } = useMetrics();
+
   const searchInput = useRef(null);
   const list = useRef();
   const [searchString, setSearchString] = useState('');
@@ -184,7 +186,8 @@ function TokenSelectModal({
       initialTokens?.length > 0
         ? initialTokens.filter(
             (token) =>
-              !excludedAddresses.includes(token.address?.toLowerCase()),
+              typeof token !== 'undefined' &&
+              !excludedAddresses.includes(token?.address?.toLowerCase()),
           )
         : filteredTokens,
     [excludedAddresses, filteredTokens, initialTokens],
@@ -239,8 +242,8 @@ function TokenSelectModal({
         );
       } else {
         const exchangeRate =
-          itemAddress in tokenExchangeRates
-            ? tokenExchangeRates[itemAddress]
+          tokenExchangeRates && itemAddress in tokenExchangeRates
+            ? tokenExchangeRates[itemAddress]?.price
             : undefined;
         balance =
           itemAddress in balances
@@ -301,17 +304,17 @@ function TokenSelectModal({
   const handlePressImportToken = useCallback(
     (item) => {
       const { address, symbol } = item;
-      InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEventWithParameters(
-          MetaMetricsEvents.CUSTOM_TOKEN_IMPORTED,
-          { address, symbol, chain_id: chainId },
-          true,
-        );
+      trackEvent(MetaMetricsEvents.CUSTOM_TOKEN_IMPORTED, {
+        sensitiveProperties: {
+          address,
+          symbol,
+          chain_id: getDecimalChainId(chainId),
+        },
       });
       hideTokenImportModal();
       onItemPress(item);
     },
-    [chainId, hideTokenImportModal, onItemPress],
+    [chainId, hideTokenImportModal, onItemPress, trackEvent],
   );
 
   const handleBlockExplorerPress = useCallback(() => {
@@ -414,7 +417,7 @@ function TokenSelectModal({
               value={searchString}
               onChangeText={handleSearchTextChange}
               keyboardAppearance={themeAppearance}
-              testID={SWAP_SEARCH_TOKEN}
+              testID={QuoteViewSelectorIDs.SEARCH_TOKEN}
             />
             {searchString.length > 0 && (
               <TouchableOpacity onPress={handleClearSearch}>
@@ -569,7 +572,7 @@ const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   tokenExchangeRates: selectContractExchangeRates(state),
   balances: selectContractBalances(state),
   chainId: selectChainId(state),

@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import ActionModal from './';
 
 describe('ActionModal', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<ActionModal />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<ActionModal />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

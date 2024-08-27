@@ -37,6 +37,8 @@ const styleSheet = (params: { theme: Theme; vars: TagUrlStyleSheetVars }) => {
     ) as ViewStyle,
     favicon: {
       marginRight: 8,
+      width: 24,
+      height: 24,
     },
     label: {
       color: colors.text.alternative,

@@ -27,6 +27,8 @@ const ListItemSelectMeta = {
 export default ListItemSelectMeta;
 
 export const ListItemSelect = {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   render: (args: any) => (
     <ListItemSelectComponent {...args}>
       <ListItemColumn>

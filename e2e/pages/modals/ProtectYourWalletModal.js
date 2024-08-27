@@ -1,26 +1,27 @@
-import TestHelpers from '../../helpers';
-
-import {
-  NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
-  SECURE_WALLET_BACKUP_ALERT_MODAL,
-} from '../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import { ProtectWalletModalSelectorsIDs } from '../../selectors/Modals/ProtectWalletModal.selectors';
-export default class ProtectYourWalletModal {
-  static async tapRemindMeLaterButton() {
-    await TestHelpers.tap(NOTIFICATION_REMIND_ME_LATER_BUTTON_ID);
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
+
+class ProtectYourWalletModal {
+  get container() {
+    return Matchers.getElementByID(ProtectWalletModalSelectorsIDs.CONTAINER);
   }
 
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(ProtectWalletModalSelectorsIDs.CONTAINER);
-  }
-
-  static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(
-      ProtectWalletModalSelectorsIDs.CONTAINER,
+  get remindMeLaterButton() {
+    return Matchers.getElementByID(
+      ProtectWalletModalSelectorsIDs.REMIND_ME_LATER_BUTTON,
     );
   }
 
-  static async isCollapsedBackUpYourWalletModalVisible() {
-    await TestHelpers.checkIfVisible(SECURE_WALLET_BACKUP_ALERT_MODAL);
+  get collapseWalletModal() {
+    return Matchers.getElementByID(
+      ProtectWalletModalSelectorsIDs.COLLAPSED_WALLET_MODAL,
+    );
+  }
+
+  async tapRemindMeLaterButton() {
+    await Gestures.waitAndTap(this.remindMeLaterButton);
   }
 }
+
+export default new ProtectYourWalletModal();

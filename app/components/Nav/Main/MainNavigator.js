@@ -1,11 +1,10 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
-import PropTypes from 'prop-types';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
-import { NetworksChainId } from '@metamask/controller-utils';
+import { ChainId } from '@metamask/controller-utils';
 import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
 import Settings from '../../Views/Settings';
@@ -14,6 +13,10 @@ import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NetworksSettings from '../../Views/Settings/NetworksSettings';
+import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
+import NotificationsView from '../../Views/Notifications';
+import NotificationsDetails from '../../Views/Notifications/Details';
+import OptIn from '../../Views/Notifications/OptIn';
 import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
 import Wallet from '../../Views/Wallet';
@@ -21,8 +24,8 @@ import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
-import Send from '../../Views/Send';
-import SendTo from '../../Views/SendFlow/SendTo';
+import Send from '../../Views/confirmations/Send';
+import SendTo from '../../Views/confirmations/SendFlow/SendTo';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
@@ -37,8 +40,8 @@ import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import PaymentRequest from '../../UI/PaymentRequest';
 import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
-import Amount from '../../Views/SendFlow/Amount';
-import Confirm from '../../Views/SendFlow/Confirm';
+import Amount from '../../Views/confirmations/SendFlow/Amount';
+import Confirm from '../../Views/confirmations/SendFlow/Confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import SwapsAmountView from '../../UI/Swaps';
@@ -47,28 +50,21 @@ import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
 
-import { RampSDKProvider } from '../../UI/Ramp/common/sdk';
-import { RampType } from '../../UI/Ramp/common/types';
-import GetStarted from '../../UI/Ramp/buy/Views/GetStarted';
-import PaymentMethods from '../../UI/Ramp/buy/Views/PaymentMethods/PaymentMethods';
-import BuildQuote from '../../UI/Ramp/buy/Views/BuildQuote/BuildQuote';
-import Quotes from '../../UI/Ramp/buy/Views/Quotes';
-import CheckoutWebView from '../../UI/Ramp/buy/Views/Checkout';
-import RampSettings from '../../UI/Ramp/common/Views/Settings';
-import NetworkSwitcher from '../../UI/Ramp/common/Views/NetworkSwitcher';
-import RampAddActivationKey from '../../UI/Ramp/common/Views/Settings/AddActivationKey';
-import Regions from '../../UI/Ramp/buy/Views/Regions';
+import RampRoutes from '../../UI/Ramp/routes';
+import { RampType } from '../../UI/Ramp/types';
+import RampSettings from '../../UI/Ramp/Views/Settings';
+import RampActivationKeyForm from '../../UI/Ramp/Views/Settings/ActivationKeyForm';
+
 import { colors as importedColors } from '../../../styles/common';
-import OrderDetails from '../../UI/Ramp/common/Views/OrderDetails';
-import SendTransaction from '../../UI/Ramp/common/Views/SendTransaction';
+import OrderDetails from '../../UI/Ramp/Views/OrderDetails';
+import SendTransaction from '../../UI/Ramp/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import { SnapSettings } from '../../Views/Snaps/SnapSettings';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { getPermittedAccountsByHostname } from '../../../core/Permissions';
@@ -77,9 +73,19 @@ import { isEqual } from 'lodash';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import isUrl from 'is-url';
-import SDKSessionsManager from '../../Views/SDKSessionsManager/SDKSessionsManager';
+import SDKSessionsManager from '../../Views/SDK/SDKSessionsManager/SDKSessionsManager';
 import URL from 'url-parse';
 import Logger from '../../../util/Logger';
+import { getDecimalChainId } from '../../../util/networks';
+import { useMetrics } from '../../../components/hooks/useMetrics';
+import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
+import ConfirmAddAsset from '../../UI/ConfirmAddAsset';
+import { AesCryptoTestForm } from '../../Views/AesCryptoTestForm';
+import { isTest } from '../../../util/test/utils';
+import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
+
+import NftDetails from '../../Views/NftDetails';
+import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -163,6 +169,11 @@ const WalletTabStackFlow = () => (
       options={Collectible.navigationOptions}
     />
     <Stack.Screen
+      name="ConfirmAddAsset"
+      component={ConfirmAddAsset}
+      options={ConfirmAddAsset.navigationOptions}
+    />
+    <Stack.Screen
       name="RevealPrivateCredentialView"
       component={RevealPrivateCredential}
     />
@@ -208,7 +219,7 @@ const BrowserFlow = () => (
 
 export const DrawerContext = React.createContext({ drawerRef: null });
 
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 const SnapsSettingsStack = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -224,6 +235,22 @@ const SnapsSettingsStack = () => (
   </Stack.Navigator>
 );
 ///: END:ONLY_INCLUDE_IF
+
+const NotificationsOptInStack = () => (
+  <Stack.Navigator initialRouteName={Routes.NOTIFICATIONS.OPT_IN}>
+    <Stack.Screen
+      mode={'modal'}
+      name={Routes.NOTIFICATIONS.OPT_IN}
+      component={OptIn}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.SETTINGS.NOTIFICATIONS}
+      component={NotificationsSettings}
+      options={NotificationsSettings.navigationOptions}
+    />
+  </Stack.Navigator>
+);
 
 const SettingsFlow = () => (
   <Stack.Navigator initialRouteName={'Settings'}>
@@ -250,9 +277,24 @@ const SettingsFlow = () => (
     />
     <Stack.Screen name={Routes.RAMP.SETTINGS} component={RampSettings} />
     <Stack.Screen
-      name={Routes.RAMP.ADD_ACTIVATION_KEY}
-      component={RampAddActivationKey}
+      name={Routes.RAMP.ACTIVATION_KEY_FORM}
+      component={RampActivationKeyForm}
     />
+    {
+      /**
+       * This screen should only accessed in test mode.
+       * It is used to test the AES crypto functions.
+       *
+       * If this is in production, it is a bug.
+       */
+      isTest && (
+        <Stack.Screen
+          name="AesCryptoTestForm"
+          component={AesCryptoTestForm}
+          options={AesCryptoTestForm.navigationOptions}
+        />
+      )
+    }
     <Stack.Screen
       name="ExperimentalSettings"
       component={ExperimentalSettings}
@@ -283,7 +325,7 @@ const SettingsFlow = () => (
       component={RevealPrivateCredential}
     />
     <Stack.Screen
-      name="WalletConnectSessionsView"
+      name={Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW}
       component={WalletConnectSessions}
       options={WalletConnectSessions.navigationOptions}
     />
@@ -317,8 +359,13 @@ const SettingsFlow = () => (
       component={EnterPasswordSimple}
       options={EnterPasswordSimple.navigationOptions}
     />
+    <Stack.Screen
+      name={Routes.SETTINGS.NOTIFICATIONS}
+      component={NotificationsSettings}
+      options={NotificationsSettings.navigationOptions}
+    />
     {
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
     }
     <Stack.Screen
       name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
@@ -332,6 +379,7 @@ const SettingsFlow = () => (
 );
 
 const HomeTabs = () => {
+  const { trackEvent } = useMetrics();
   const drawerRef = useRef(null);
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
@@ -339,7 +387,7 @@ const HomeTabs = () => {
 
   const chainId = useSelector((state) => {
     const providerConfig = selectProviderConfig(state);
-    return NetworksChainId[providerConfig.type];
+    return ChainId[providerConfig.type];
   });
 
   const amountOfBrowserOpenTabs = useSelector(
@@ -352,8 +400,7 @@ const HomeTabs = () => {
     const activeTabUrl = getActiveTabUrl(state);
     if (!isUrl(activeTabUrl)) return [];
     try {
-      const permissionsControllerState =
-        state.engine.backgroundState.PermissionController;
+      const permissionsControllerState = selectPermissionControllerState(state);
       const hostname = new URL(activeTabUrl).hostname;
       const permittedAcc = getPermittedAccountsByHostname(
         permissionsControllerState,
@@ -371,9 +418,9 @@ const HomeTabs = () => {
     home: {
       tabBarIconKey: TabBarIconKey.Wallet,
       callback: () => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_OPENED, {
+        trackEvent(MetaMetricsEvents.WALLET_OPENED, {
           number_of_accounts: accountsLength,
-          chain_id: chainId,
+          chain_id: getDecimalChainId(chainId),
         });
       },
       rootScreenName: Routes.WALLET_VIEW,
@@ -385,9 +432,9 @@ const HomeTabs = () => {
     browser: {
       tabBarIconKey: TabBarIconKey.Browser,
       callback: () => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
+        trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
           number_of_accounts: accountsLength,
-          chain_id: chainId,
+          chain_id: getDecimalChainId(chainId),
           source: 'Navigation Tab',
           active_connected_dapp: activeConnectedDapp,
           number_of_open_tabs: amountOfBrowserOpenTabs,
@@ -398,16 +445,14 @@ const HomeTabs = () => {
     activity: {
       tabBarIconKey: TabBarIconKey.Activity,
       callback: () => {
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY,
-        );
+        trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY);
       },
       rootScreenName: Routes.TRANSACTIONS_VIEW,
     },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
       callback: () => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS);
+        trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS);
       },
       rootScreenName: Routes.SETTINGS_VIEW,
       unmountOnBlur: true,
@@ -500,6 +545,32 @@ const SendView = () => (
   </Stack.Navigator>
 );
 
+/* eslint-disable react/prop-types */
+const NftDetailsModeView = (props) => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name=" " // No name here because this title will be displayed in the header of the page
+      component={NftDetails}
+      initialParams={{
+        collectible: props.route.params?.collectible,
+      }}
+    />
+  </Stack.Navigator>
+);
+
+/* eslint-disable react/prop-types */
+const NftDetailsFullImageModeView = (props) => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name=" " // No name here because this title will be displayed in the header of the page
+      component={NftDetailsFullImage}
+      initialParams={{
+        collectible: props.route.params?.collectible,
+      }}
+    />
+  </Stack.Navigator>
+);
+
 const SendFlowView = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -555,40 +626,37 @@ const PaymentRequestView = () => (
   </Stack.Navigator>
 );
 
-const Ramps = ({ rampType }) => (
-  <RampSDKProvider rampType={rampType}>
-    <Stack.Navigator initialRouteName={Routes.RAMP.GET_STARTED}>
-      <Stack.Screen name={Routes.RAMP.GET_STARTED} component={GetStarted} />
-      <Stack.Screen
-        name={Routes.RAMP.NETWORK_SWITCHER}
-        component={NetworkSwitcher}
-        options={{ animationEnabled: false }}
-      />
-      <Stack.Screen
-        name={Routes.RAMP.PAYMENT_METHOD}
-        component={PaymentMethods}
-      />
-      <Stack.Screen
-        name={Routes.RAMP.PAYMENT_METHOD_HAS_STARTED}
-        component={PaymentMethods}
-        options={{ animationEnabled: false }}
-      />
-      <Stack.Screen name={Routes.RAMP.BUILD_QUOTE} component={BuildQuote} />
-      <Stack.Screen name={Routes.RAMP.QUOTES} component={Quotes} />
-      <Stack.Screen name={Routes.RAMP.CHECKOUT} component={CheckoutWebView} />
-      <Stack.Screen name={Routes.RAMP.REGION} component={Regions} />
-      <Stack.Screen
-        name={Routes.RAMP.REGION_HAS_STARTED}
-        component={Regions}
-        options={{ animationEnabled: false }}
-      />
-    </Stack.Navigator>
-  </RampSDKProvider>
+/* eslint-disable react/prop-types */
+const NotificationsModeView = (props) => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name={Routes.NOTIFICATIONS.VIEW}
+      component={NotificationsView}
+      options={NotificationsView.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.SETTINGS.NOTIFICATIONS}
+      component={NotificationsSettings}
+      options={NotificationsSettings.navigationOptions}
+    />
+    <Stack.Screen
+      mode={'modal'}
+      name={Routes.NOTIFICATIONS.OPT_IN}
+      component={OptIn}
+      options={OptIn.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.NOTIFICATIONS.DETAILS}
+      component={NotificationsDetails}
+      options={NotificationsDetails.navigationOptions}
+    />
+    <Stack.Screen
+      name="ContactForm"
+      component={ContactForm}
+      options={ContactForm.navigationOptions}
+    />
+  </Stack.Navigator>
 );
-
-Ramps.propTypes = {
-  rampType: PropTypes.string,
-};
 
 const Swaps = () => (
   <Stack.Navigator>
@@ -666,6 +734,19 @@ const MainNavigator = () => (
         }),
       }}
     />
+    <Stack.Screen
+      name={Routes.DEPRECATED_NETWORK_DETAILS}
+      component={DeprecatedNetworkDetails}
+      options={{
+        //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+        cardStyle: { backgroundColor: importedColors.transparent },
+        cardStyleInterpolator: () => ({
+          overlayStyle: {
+            opacity: 0,
+          },
+        }),
+      }}
+    />
     <Stack.Screen name="Home" component={HomeTabs} />
     <Stack.Screen name="Asset" component={AssetModalFlow} />
     <Stack.Screen name="Webview" component={Webview} />
@@ -678,13 +759,22 @@ const MainNavigator = () => (
     />
     <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
     <Stack.Screen name="OfflineModeView" component={OfflineModeView} />
+    <Stack.Screen
+      name={Routes.NOTIFICATIONS.VIEW}
+      component={NotificationsModeView}
+    />
+    <Stack.Screen name="NftDetails" component={NftDetailsModeView} />
+    <Stack.Screen
+      name="NftDetailsFullImage"
+      component={NftDetailsFullImageModeView}
+    />
     <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
     <Stack.Screen name={Routes.RAMP.BUY}>
-      {() => <Ramps rampType={RampType.BUY} />}
+      {() => <RampRoutes rampType={RampType.BUY} />}
     </Stack.Screen>
     <Stack.Screen name={Routes.RAMP.SELL}>
-      {() => <Ramps rampType={RampType.SELL} />}
+      {() => <RampRoutes rampType={RampType.SELL} />}
     </Stack.Screen>
     <Stack.Screen name="Swaps" component={Swaps} />
     <Stack.Screen
@@ -699,6 +789,11 @@ const MainNavigator = () => (
       )}
       // eslint-disable-next-line react-native/no-inline-styles
       headerStyle={{ borderBottomWidth: 0 }}
+    />
+    <Stack.Screen
+      name={Routes.NOTIFICATIONS.OPT_IN_STACK}
+      component={NotificationsOptInStack}
+      options={NotificationsOptInStack.navigationOptions}
     />
   </Stack.Navigator>
 );

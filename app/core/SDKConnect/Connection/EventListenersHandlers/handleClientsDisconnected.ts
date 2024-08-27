@@ -18,6 +18,7 @@ function handleClientsDisconnected({
         instance.origin
       }`,
     );
+
     // Disapprove a given host everytime there is a disconnection to prevent hijacking.
     if (!instance.remote.isPaused()) {
       // don't disapprove on deeplink
@@ -30,21 +31,30 @@ function handleClientsDisconnected({
 
     // detect interruption of connection (can happen on mobile browser ios) - We need to warm the user to redo the connection.
     if (!instance.receivedClientsReady && !instance.remote.isPaused()) {
-      // SOCKET CONNECTION WAS INTERRUPTED
-      console.warn(
-        `Connected::clients_disconnected dApp connection disconnected before ready`,
-      );
-      // Terminate to prevent bypassing initial approval when auto-reconnect on deeplink.
-      instance.disconnect({ terminate: true, context: 'CLIENTS_DISCONNECTED' });
+      // Only disconnect on deeplinks
+      if (instance.origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
+        // SOCKET CONNECTION WAS INTERRUPTED
+        console.warn(
+          `Connected::clients_disconnected dApp connection disconnected before ready`,
+        );
+        // Terminate to prevent bypassing initial approval when auto-reconnect on deeplink.
+        instance.disconnect({
+          terminate: true,
+          context: 'CLIENTS_DISCONNECTED',
+        });
+      }
     }
 
     instance.receivedDisconnect = true;
-    // Reset connection state
-    instance.isReady = false;
-    instance.receivedClientsReady = false;
-    DevLogger.log(
-      `Connection::CLIENTS_DISCONNECTED id=${instance.channelId} switch isReady ==> false`,
-    );
+    if (!instance.remote.hasRelayPersistence()) {
+      // Reset connection state
+      instance.isReady = false;
+      instance.approvalPromise = undefined;
+      instance.receivedClientsReady = false;
+      DevLogger.log(
+        `Connection::CLIENTS_DISCONNECTED id=${instance.channelId} switch isReady ==> false`,
+      );
+    }
   };
 }
 

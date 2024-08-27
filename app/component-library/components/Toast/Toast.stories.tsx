@@ -22,6 +22,8 @@ const ToastMeta = {
   title: 'Component Library / Toast',
   component: ToastComponent,
   decorators: [
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (Story: any) => (
       <SafeAreaProvider>
         <ToastContextWrapper>
@@ -43,9 +45,13 @@ const ToastMeta = {
 export default ToastMeta;
 
 export const Toast = {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   render: (args: any) => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const { toastRef } = useContext(ToastContext);
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let otherToastProps: any;
 
     switch (args.variant) {

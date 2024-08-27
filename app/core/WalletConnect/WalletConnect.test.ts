@@ -29,6 +29,7 @@ jest.mock('../Engine', () => ({
     },
   },
 }));
+const MockEngine = jest.mocked(Engine);
 jest.mock('uuid', () => ({
   v1: jest.fn(() => mockRandomId),
 }));
@@ -97,7 +98,9 @@ describe('WalletConnect', () => {
   it('should call rejectSession when user rejects wallet connect session', async () => {
     // eslint-disable-next-line
     const WalletConnect = require('./WalletConnect').default;
-    Engine.context.ApprovalController.add.mockRejectedValueOnce();
+    MockEngine.context.ApprovalController.add.mockRejectedValueOnce(
+      new Error('Test error'),
+    );
 
     await WalletConnect.init();
     await WalletConnect.newSession(

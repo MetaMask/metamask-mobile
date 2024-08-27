@@ -1,13 +1,12 @@
 'use strict';
-
 import { SmokeSwaps } from '../../tags';
-import WalletView from '../../pages/WalletView';
+import WalletView from '../../pages/wallet/WalletView';
 import TokenOverview from '../../pages/TokenOverview';
 import {
-  switchToGoreliNetwork,
   importWalletWithRecoveryPhrase,
+  switchToSepoliaNetwork,
 } from '../../viewHelper';
-import Networks from '../../resources/networks.json';
+import { CustomNetworks } from '../../resources/networks.e2e';
 
 describe(SmokeSwaps('Token Chart Tests'), () => {
   beforeAll(async () => {
@@ -21,7 +20,6 @@ describe(SmokeSwaps('Token Chart Tests'), () => {
 
   it('should view the token chart', async () => {
     await WalletView.tapOnToken();
-    await TokenOverview.isVisible();
     await TokenOverview.TokenQuoteIsNotZero();
     await TokenOverview.checkIfChartIsVisible();
     await TokenOverview.scrollOnScreen();
@@ -31,11 +29,10 @@ describe(SmokeSwaps('Token Chart Tests'), () => {
     await TokenOverview.tapBackButton();
   });
 
-  it('should not display the chart when using Goerli test network', async () => {
-    await switchToGoreliNetwork();
-    await WalletView.tapOnToken(Networks.Goerli.providerConfig.ticker);
-    await TokenOverview.isVisible();
+  it('should not display the chart when using Sepolia test network', async () => {
+    await switchToSepoliaNetwork();
+    await WalletView.tapOnToken(CustomNetworks.Sepolia.providerConfig.ticker);
     await TokenOverview.ChartNotVisible();
-    await TokenOverview.TokenQuoteIsNotZero();
+    await TokenOverview.TokenQuoteIsZero();
   });
 });

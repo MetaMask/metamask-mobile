@@ -1,97 +1,194 @@
-import TestHelpers from '../../helpers';
-import {
-  INPUT_NETWORK_NAME,
-  INPUT_RPC_URL_FIELD,
-  INPUT_CHAIN_ID_FIELD,
-  NETWORKS_SYMBOL_INPUT_FIELD,
-  RPC_WARNING_BANNER_ID,
-  NETWORK_SCREEN_ID,
-  CUSTOM_NETWORK_NAME_NETWORK_LIST,
-} from '../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import {
   NetworksViewSelectorsIDs,
   NetworkViewSelectorsText,
 } from '../../selectors/Settings/NetworksView.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 
-export default class NetworkView {
-  static async tapAddNetworkButton() {
-    if (device.getPlatform() === 'ios') {
-      await TestHelpers.tap(NetworksViewSelectorsIDs.ADD_NETWORKS_BUTTON);
-    } else {
-      await TestHelpers.waitAndTapByLabel(
-        NetworksViewSelectorsIDs.ADD_NETWORKS_BUTTON,
-      );
-    }
+class NetworkView {
+  get networkContainer() {
+    return Matchers.getElementByID(NetworksViewSelectorsIDs.NETWORK_CONTAINER);
   }
 
-  static async switchToCustomNetworks() {
-    await TestHelpers.waitAndTapText(
+  get rpcContainer() {
+    return Matchers.getElementByID(NetworksViewSelectorsIDs.RPC_CONTAINER);
+  }
+
+  get noMatchingText() {
+    return Matchers.getElementByText(
+      NetworkViewSelectorsText.NO_MATCHING_SEARCH_RESULTS,
+    );
+  }
+
+  get emptyPopularNetworksText() {
+    return Matchers.getElementByText(
+      NetworkViewSelectorsText.EMPTY_POPULAR_NETWORKS,
+    );
+  }
+
+  get closeIcon() {
+    return Matchers.getElementByID(NetworksViewSelectorsIDs.CLOSE_ICON);
+  }
+
+  get deleteNetworkButton() {
+    return Matchers.getElementByID(
+      NetworksViewSelectorsIDs.REMOVE_NETWORK_BUTTON,
+    );
+  }
+
+  get networkSearchInput() {
+    return Matchers.getElementByID(
+      NetworksViewSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID,
+    );
+  }
+
+  get addNetworkButton() {
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(NetworksViewSelectorsIDs.ADD_NETWORKS_BUTTON)
+      : Matchers.getElementByLabel(
+          NetworksViewSelectorsIDs.ADD_NETWORKS_BUTTON,
+        );
+  }
+
+  get customNetworkTab() {
+    return Matchers.getElementByText(
       NetworkViewSelectorsText.CUSTOM_NETWORK_TAB,
     );
   }
 
-  static async tapPopularNetworkByName(networkName) {
-    await TestHelpers.tapByText(networkName);
+  get networkNameInput() {
+    return Matchers.getElementByID(NetworksViewSelectorsIDs.NETWORK_NAME_INPUT);
   }
-  static async typeInNetworkName(networkName) {
-    await TestHelpers.typeTextAndHideKeyboard(INPUT_NETWORK_NAME, networkName);
+
+  get rpcURLInput() {
+    return Matchers.getElementByID(NetworksViewSelectorsIDs.RPC_URL_INPUT);
   }
-  static async typeInRpcUrl(rPCUrl) {
-    await TestHelpers.typeTextAndHideKeyboard(INPUT_RPC_URL_FIELD, rPCUrl);
+
+  get chainIDInput() {
+    return Matchers.getElementByID(NetworksViewSelectorsIDs.CHAIN_INPUT);
   }
-  static async typeInChainId(chainID) {
-    await TestHelpers.typeTextAndHideKeyboard(INPUT_CHAIN_ID_FIELD, chainID);
+
+  get networkSymbolInput() {
+    return Matchers.getElementByID(
+      NetworksViewSelectorsIDs.NETWORKS_SYMBOL_INPUT,
+    );
   }
-  static async typeInNetworkSymbol(networkSymbol) {
-    await TestHelpers.typeTextAndHideKeyboard(
-      NETWORKS_SYMBOL_INPUT_FIELD,
+
+  get rpcAddButton() {
+    return device.getPlatform() === 'android'
+      ? Matchers.getElementByLabel(
+          NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON,
+        )
+      : Matchers.getElementByID(
+          NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON,
+        );
+  }
+
+  get blockExplorer() {
+    return Matchers.getElementByLabel(NetworkViewSelectorsText.BLOCK_EXPLORER);
+  }
+
+  get chainIdLabel() {
+    return Matchers.getElementByLabel(NetworkViewSelectorsText.CHAIN_ID_LABEL);
+  }
+
+  get rpcWarningBanner() {
+    return Matchers.getElementByID(NetworksViewSelectorsIDs.RPC_WARNING_BANNER);
+  }
+
+  get customNetworkList() {
+    return Matchers.getElementByID(
+      NetworksViewSelectorsIDs.CUSTOM_NETWORK_LIST,
+    );
+  }
+
+  get removeNetwork() {
+    return Matchers.getElementByText(NetworkViewSelectorsText.REMOVE_NETWORK);
+  }
+
+  get saveButton() {
+    return Matchers.getElementByText(NetworkViewSelectorsText.SAVE_BUTTON);
+  }
+
+  async getnetworkName(networkName) {
+    return Matchers.getElementByText(networkName);
+  }
+  async tapAddNetworkButton() {
+    await Gestures.waitAndTap(this.addNetworkButton);
+  }
+
+  async switchToCustomNetworks() {
+    await Gestures.waitAndTap(this.customNetworkTab);
+  }
+
+  async tapNetworkByName(networkName) {
+    const network = this.getnetworkName(networkName);
+    await Gestures.waitAndTap(network);
+  }
+
+  async SearchNetworkName(networkName) {
+    await Gestures.typeTextAndHideKeyboard(
+      this.networkSearchInput,
+      networkName,
+    );
+  }
+  async longPressToRemoveNetwork(networkName) {
+    const network = this.getnetworkName(networkName);
+    await Gestures.tapAndLongPress(network);
+    await Gestures.waitAndTap(this.removeNetwork);
+  }
+
+  async tapDeleteButton() {
+    await Gestures.waitAndTap(this.deleteNetworkButton);
+  }
+
+  async tapClearSearch() {
+    await Gestures.waitAndTap(this.closeIcon);
+  }
+  async closePopularNetwork() {
+    await Gestures.waitAndTap(this.closeIcon);
+  }
+
+  // CUSTOM NETWORK SCREEN
+  async typeInNetworkName(networkName) {
+    await Gestures.typeTextAndHideKeyboard(this.networkNameInput, networkName);
+  }
+  async typeInRpcUrl(rPCUrl) {
+    await Gestures.typeTextAndHideKeyboard(this.rpcURLInput, rPCUrl);
+  }
+  async typeInChainId(chainID) {
+    await Gestures.typeTextAndHideKeyboard(this.chainIDInput, chainID);
+  }
+
+  async typeInNetworkSymbol(networkSymbol) {
+    await Gestures.typeTextAndHideKeyboard(
+      this.networkSymbolInput,
       networkSymbol,
     );
   }
 
-  static async clearRpcInputBox() {
-    await TestHelpers.clearField(INPUT_RPC_URL_FIELD);
+  async clearRpcInputBox() {
+    await Gestures.clearField(this.rpcURLInput);
   }
 
-  static async tapRpcNetworkAddButton() {
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.waitAndTapByLabel(
-        NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON,
-      ); // make me better
-    } else {
-      await TestHelpers.waitAndTap(
-        NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON,
-      );
-    }
+  async tapRpcNetworkAddButton() {
+    await Gestures.waitAndTap(this.rpcAddButton);
   }
 
-  static async swipeToRPCTitleAndDismissKeyboard() {
+  async tapChainIDLabel() {
     // Because in bitrise the keyboard is blocking the "Add" CTA
-    await TestHelpers.waitAndTapByLabel(
-      NetworkViewSelectorsText.BLOCK_EXPLORER,
-    );
-    await TestHelpers.delay(3000);
+    await Gestures.waitAndTap(this.chainIdLabel);
   }
 
-  static async removeNetwork() {
-    await TestHelpers.tapAndLongPressAtIndex(
-      CUSTOM_NETWORK_NAME_NETWORK_LIST,
-      0,
-    );
-    //Remove xDAI and verify removed on wallet view
-    //Tap remove
-    await TestHelpers.tapByText(NetworkViewSelectorsText.REMOVE_NETWORK);
-  }
-
-  static async isNetworkViewVisible() {
-    await TestHelpers.checkIfVisible(NETWORK_SCREEN_ID);
-  }
-
-  static async isRpcViewVisible() {
-    await TestHelpers.checkIfVisible(NetworksViewSelectorsIDs.CONTAINER);
-  }
-
-  static async isRPCWarningVisble() {
-    await TestHelpers.checkIfVisible(RPC_WARNING_BANNER_ID);
+  async tapSave() {
+    device.getPlatform() === 'ios'
+      ? await (async () => {
+          //swipe to dismiss iOS keypad
+          await Gestures.swipe(this.chainIDInput, 'up', 'fast', 0.3);
+          await Gestures.doubleTap(this.saveButton);
+        })()
+      : await Gestures.waitAndTap(this.saveButton);
   }
 }
+
+export default new NetworkView();

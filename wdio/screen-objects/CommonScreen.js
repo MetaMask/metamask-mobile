@@ -1,24 +1,36 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
-import { ANDROID_PROGRESS_BAR, TOAST_ID } from './testIDs/Common.testIds';
+import {
+  ToastSelectorsIDs,
+  ToastSelectorsText,
+} from '../../e2e/selectors/Modals/ToastModal.selectors';
+import { CommonSelectorsIDs } from '../../e2e/selectors/Common.selectors';
 import { NOTIFICATION_TITLE } from './testIDs/Components/Notification.testIds';
 
 class CommonScreen {
   get toast() {
-    return Selectors.getElementByPlatform(TOAST_ID);
+    return Selectors.getXpathElementByResourceId(ToastSelectorsIDs.CONTAINER);
   }
 
   get androidProgressBar() {
-    return Selectors.getElementByCss(ANDROID_PROGRESS_BAR);
+    return Selectors.getElementByCss(CommonSelectorsIDs.ANDROID_PROGRESS_BAR);
   }
 
   get TokenNotificationTitle() {
     return Selectors.getElementByPlatform(NOTIFICATION_TITLE);
   }
 
+  get toastCloseButton() {
+    return Selectors.getXpathElementByText(ToastSelectorsText.CLOSE_BUTTON);
+  }
+
   async waitForToastToDisplay() {
     const element = await this.toast;
     await element.waitForExist();
+  }
+
+  async tapToastCloseButton() {
+    await Gestures.waitAndTap(this.toastCloseButton);
   }
 
   async waitForToastToDisappear() {

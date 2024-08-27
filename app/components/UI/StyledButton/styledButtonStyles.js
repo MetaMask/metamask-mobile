@@ -20,11 +20,11 @@ const createStyles = (colors) =>
       color: colors.primary.inverse,
     },
     orange: {
-      borderColor: colors.secondary.default,
+      borderColor: colors.warning.default,
       borderWidth: 1,
     },
     orangeText: {
-      color: colors.secondary.default,
+      color: colors.warning.default,
     },
     infoText: {
       color: colors.primary.default,

@@ -4,10 +4,10 @@ exports[`PickerNetwork renders correctly 1`] = `
 <TouchableOpacity
   onPress={[Function]}
   style={
-    Object {
+    {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#F2F4F6",
+      "backgroundColor": "#f2f4f6",
       "borderRadius": 16,
       "flexDirection": "row",
       "height": 32,
@@ -17,10 +17,12 @@ exports[`PickerNetwork renders correctly 1`] = `
 >
   <View
     style={
-      Object {
-        "backgroundColor": "#FFFFFF",
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
         "borderRadius": 8,
         "height": 16,
+        "justifyContent": "center",
         "overflow": "hidden",
         "width": 16,
       }
@@ -30,15 +32,14 @@ exports[`PickerNetwork renders correctly 1`] = `
       onError={[Function]}
       resizeMode="contain"
       source={
-        Object {
+        {
           "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
         }
       }
       style={
-        Object {
-          "flex": 1,
-          "height": undefined,
-          "width": undefined,
+        {
+          "height": 16,
+          "width": 16,
         }
       }
       testID="network-avatar-image"
@@ -48,8 +49,8 @@ exports[`PickerNetwork renders correctly 1`] = `
     accessibilityRole="text"
     numberOfLines={1}
     style={
-      Object {
-        "color": "#24272A",
+      {
+        "color": "#141618",
         "flexShrink": 1,
         "fontFamily": "Euclid Circular B",
         "fontSize": 14,
@@ -64,11 +65,11 @@ exports[`PickerNetwork renders correctly 1`] = `
     Ethereum Mainnet
   </Text>
   <SvgMock
-    color="#24272A"
+    color="#141618"
     height={12}
     name="ArrowDown"
     style={
-      Object {
+      {
         "height": 12,
         "width": 12,
       }

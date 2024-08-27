@@ -1,19 +1,20 @@
 import React from 'react';
-import { shallow } from 'enzyme';
 import Step2 from './';
-import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
 
-const mockStore = configureMockStore();
-const store = mockStore({});
-
+const coachmarkRef = {
+  yourAccountRef: {
+    current: {
+      measure: jest.fn(),
+    },
+  },
+};
+const closeOnboardingWizard = jest.fn();
 describe('Step2', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <Step2 />
-      </Provider>,
+    const { toJSON } = renderWithProvider(
+      <Step2 coachmarkRef={coachmarkRef} onClose={closeOnboardingWizard} />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

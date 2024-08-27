@@ -1,5 +1,7 @@
+import { disconnectAll } from '../../../../app/actions/sdk';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
+import { store } from '../../../../app/store';
 
 function pause(instance: SDKConnect) {
   if (instance.state.paused) return;
@@ -20,6 +22,8 @@ function pause(instance: SDKConnect) {
   }
   instance.state.paused = true;
   instance.state.connecting = {};
+  // Set disconnected status for all connections
+  store.dispatch(disconnectAll());
 }
 
 export default pause;

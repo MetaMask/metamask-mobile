@@ -16,7 +16,6 @@ import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
 import Device from '../../../util/device';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 
 import { useTheme } from '../../../util/theme';
 import { CUSTOM_TOKEN_CONTAINER_ID } from '../../../../wdio/screen-objects/testIDs/Screens/AddCustomToken.testIds';
@@ -28,8 +27,12 @@ import {
   NFT_IDENTIFIER_INPUT_BOX_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/NFTImportScreen.testIds';
 import { selectChainId } from '../../../selectors/networkController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { getDecimalChainId } from '../../../util/networks';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     wrapper: {
@@ -41,6 +44,8 @@ const createStyles = (colors: any) =>
     },
     rowTitleText: {
       paddingBottom: 3,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...(fontStyles.normal as any),
       color: colors.text.default,
     },
@@ -49,17 +54,23 @@ const createStyles = (colors: any) =>
       borderRadius: 4,
       borderColor: colors.border.default,
       padding: 16,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...(fontStyles.normal as any),
       color: colors.text.default,
     },
     warningText: {
       marginTop: 15,
       color: colors.error.default,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...(fontStyles.normal as any),
     },
   });
 
 interface AddCustomCollectibleProps {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation?: any;
   collectibleContract?: {
     address: string;
@@ -79,11 +90,16 @@ const AddCustomCollectible = ({
     Device.isAndroid() ? '99%' : undefined,
   );
   const [loading, setLoading] = useState(false);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const assetTokenIdInput = React.createRef() as any;
   const { colors, themeAppearance } = useTheme();
+  const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
 
-  const selectedAddress = useSelector(selectSelectedAddress);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountChecksummedAddress,
+  );
   const chainId = useSelector(selectChainId);
 
   useEffect(() => {
@@ -102,7 +118,7 @@ const AddCustomCollectible = ({
   const getAnalyticsParams = () => {
     try {
       return {
-        chain_id: chainId,
+        chain_id: getDecimalChainId(chainId),
       };
     } catch (error) {
       return {};
@@ -151,6 +167,8 @@ const AddCustomCollectible = ({
    */
   const validateCollectibleOwnership = async (): Promise<boolean> => {
     try {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { NftController } = Engine.context as any;
       const isOwner = await NftController.isNftOwner(
         selectedAddress,
@@ -186,13 +204,12 @@ const AddCustomCollectible = ({
       return;
     }
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { NftController } = Engine.context as any;
     NftController.addNft(address, tokenId);
 
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.COLLECTIBLE_ADDED,
-      getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.COLLECTIBLE_ADDED, getAnalyticsParams());
     setLoading(false);
     navigation.goBack();
   };

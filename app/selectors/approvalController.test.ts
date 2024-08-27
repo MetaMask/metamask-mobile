@@ -55,6 +55,8 @@ describe('Approval Controller Selectors', () => {
               },
             },
           },
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
       ).toEqual(PENDING_APPROVALS_MOCK);
     });
@@ -71,6 +73,8 @@ describe('Approval Controller Selectors', () => {
               },
             },
           },
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
       ).toEqual(APPROVAL_FLOWS_MOCK);
     });

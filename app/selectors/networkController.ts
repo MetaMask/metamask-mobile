@@ -1,15 +1,12 @@
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
-import {
-  ProviderConfig,
-  NetworkState,
-  NetworkStatus,
-} from '@metamask/network-controller';
+import { ProviderConfig, NetworkState } from '@metamask/network-controller';
+import { createDeepEqualSelector } from './util';
 
 const selectNetworkControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.NetworkController;
 
-export const selectProviderConfig = createSelector(
+export const selectProviderConfig = createDeepEqualSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) =>
     networkControllerState?.providerConfig,
@@ -32,19 +29,17 @@ export const selectNickname = createSelector(
   selectProviderConfig,
   (providerConfig: ProviderConfig) => providerConfig?.nickname,
 );
-export const selectRpcTarget = createSelector(
+export const selectRpcUrl = createSelector(
   selectProviderConfig,
-  (providerConfig: ProviderConfig) => providerConfig.rpcTarget,
-);
-export const selectNetworkId = createSelector(
-  selectNetworkControllerState,
-  (networkControllerState: NetworkState) => networkControllerState?.networkId,
+  (providerConfig: ProviderConfig) => providerConfig.rpcUrl,
 );
 
 export const selectNetworkStatus = createSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) =>
-    networkControllerState?.networkStatus,
+    networkControllerState?.networksMetadata[
+      networkControllerState.selectedNetworkClientId
+    ].status,
 );
 
 export const selectNetworkConfigurations = createSelector(
@@ -53,17 +48,8 @@ export const selectNetworkConfigurations = createSelector(
     networkControllerState.networkConfigurations,
 );
 
-/**
- * Derive a value matching the now-removed property `network` that had been
- * included in the NetworkController state. It's set to "loading" if the
- * network is loading, but otherwise is set to the network ID.
- *
- * @deprecated Use networkStatus and networkId instead
- */
-export const selectLegacyNetwork = createSelector(
+export const selectNetworkClientId = createSelector(
   selectNetworkControllerState,
-  (networkControllerState: NetworkState) => {
-    const { networkId, networkStatus } = networkControllerState;
-    return networkStatus !== NetworkStatus.Available ? 'loading' : networkId;
-  },
+  (networkControllerState: NetworkState) =>
+    networkControllerState.selectedNetworkClientId,
 );

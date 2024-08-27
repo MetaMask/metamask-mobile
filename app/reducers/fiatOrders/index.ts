@@ -1,8 +1,8 @@
 import { Order } from '@consensys/on-ramp-sdk';
 import { createSelector } from 'reselect';
-import { Region } from '../../components/UI/Ramp/common/types';
+import { Region } from '../../components/UI/Ramp/types';
 import { selectChainId } from '../../selectors/networkController';
-import { selectSelectedAddress } from '../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../selectors/accountsController';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
@@ -15,7 +15,9 @@ import {
   FiatOrdersState,
 } from './types';
 import type { RootState } from '../';
-import { isTestNet } from '../../util/networks';
+import { getDecimalChainId, isTestNet } from '../../util/networks';
+import { toHex } from '@metamask/controller-utils';
+
 export type { FiatOrder } from './types';
 
 /** Action Creators */
@@ -73,9 +75,9 @@ export const removeAuthenticationUrl = (authenticationUrl: string) => ({
   type: ACTIONS.FIAT_REMOVE_AUTHENTICATION_URL,
   payload: authenticationUrl,
 });
-export const addActivationKey = (activationKey: string) => ({
+export const addActivationKey = (activationKey: string, label?: string) => ({
   type: ACTIONS.FIAT_ADD_ACTIVATION_KEY,
-  payload: activationKey,
+  payload: { key: activationKey, label },
 });
 export const removeActivationKey = (activationKey: string) => ({
   type: ACTIONS.FIAT_REMOVE_ACTIVATION_KEY,
@@ -83,10 +85,11 @@ export const removeActivationKey = (activationKey: string) => ({
 });
 export const updateActivationKey = (
   activationKey: string,
+  label: string,
   active: boolean,
 ) => ({
   type: ACTIONS.FIAT_UPDATE_ACTIVATION_KEY,
-  payload: { key: activationKey, active },
+  payload: { key: activationKey, active, label },
 });
 
 export const updateOnRampNetworks = (
@@ -143,11 +146,11 @@ const ordersSelector = (state: RootState) =>
   (state.fiatOrders.orders as FiatOrdersState['orders']) || [];
 export const chainIdSelector: (state: RootState) => string = (
   state: RootState,
-) => selectChainId(state);
-
-export const selectedAddressSelector: (state: RootState) => string = (
+) => getDecimalChainId(selectChainId(state));
+export const selectedAddressSelector: (
   state: RootState,
-) => selectSelectedAddress(state);
+) => string | undefined = (state: RootState) =>
+  selectSelectedInternalAccountChecksummedAddress(state);
 export const fiatOrdersRegionSelectorAgg: (
   state: RootState,
 ) => FiatOrdersState['selectedRegionAgg'] = (state: RootState) =>
@@ -165,6 +168,18 @@ export const fiatOrdersGetStartedSell: (
 ) => FiatOrdersState['getStartedSell'] = (state: RootState) =>
   state.fiatOrders.getStartedSell;
 
+export const getOrdersProviders = createSelector(ordersSelector, (orders) => {
+  const providers = orders
+    .filter(
+      (order) =>
+        order.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR &&
+        order.state === FIAT_ORDER_STATES.COMPLETED &&
+        (order.data as Order)?.provider?.id,
+    )
+    .map((order) => (order.data as Order).provider.id);
+  return Array.from(new Set(providers));
+});
+
 export const getOrders = createSelector(
   ordersSelector,
   selectedAddressSelector,
@@ -174,7 +189,7 @@ export const getOrders = createSelector(
       (order) =>
         !order.excludeFromPurchases &&
         order.account === selectedAddress &&
-        (isTestNet(chainId) || Number(order.network) === Number(chainId)),
+        (order.network === chainId || isTestNet(toHex(chainId))),
     ),
 );
 
@@ -186,7 +201,7 @@ export const getPendingOrders = createSelector(
     orders.filter(
       (order) =>
         order.account === selectedAddress &&
-        Number(order.network) === Number(chainId) &&
+        order.network === chainId &&
         order.state === FIAT_ORDER_STATES.PENDING,
     ),
 );
@@ -204,7 +219,7 @@ export const getCustomOrderIds = createSelector(
     customOrderIds.filter(
       (customOrderId) =>
         customOrderId.account === selectedAddress &&
-        Number(customOrderId.chainId) === Number(chainId),
+        customOrderId.chainId === chainId,
     ),
 );
 
@@ -234,16 +249,17 @@ export const getHasOrders = createSelector(
 export const getRampNetworks: (
   state: RootState,
 ) => FiatOrdersState['networks'] = (state: RootState) =>
-  state.fiatOrders.networks;
+  state.fiatOrders.networks || [];
 
 export const networkShortNameSelector = createSelector(
   chainIdSelector,
   getRampNetworks,
   (chainId, networks) => {
     const network = networks.find(
-      (aggregatorNetwork) =>
-        Number(aggregatorNetwork.chainId) === Number(chainId),
+      // TODO(ramp, chainId-string): remove once chainId is a string
+      (aggregatorNetwork) => `${aggregatorNetwork.chainId}` === chainId,
     );
+
     return network?.shortName;
   },
 );
@@ -427,7 +443,7 @@ const fiatOrderReducer: (
     }
     case ACTIONS.FIAT_ADD_ACTIVATION_KEY: {
       const activationKeys = state.activationKeys;
-      const key = action.payload;
+      const { key, label } = action.payload;
       const index = activationKeys.findIndex(
         (activationKey) => activationKey.key === key,
       );
@@ -436,7 +452,7 @@ const fiatOrderReducer: (
       }
       return {
         ...state,
-        activationKeys: [...state.activationKeys, { key, active: true }],
+        activationKeys: [...state.activationKeys, { key, label, active: true }],
       };
     }
     case ACTIONS.FIAT_REMOVE_ACTIVATION_KEY: {
@@ -458,7 +474,7 @@ const fiatOrderReducer: (
     }
     case ACTIONS.FIAT_UPDATE_ACTIVATION_KEY: {
       const activationKeys = state.activationKeys;
-      const { key, active } = action.payload;
+      const { key, active, label } = action.payload;
       const index = activationKeys.findIndex(
         (activationKey) => activationKey.key === key,
       );
@@ -471,6 +487,7 @@ const fiatOrderReducer: (
           ...activationKeys.slice(0, index),
           {
             ...activationKeys[index],
+            label: label ?? activationKeys[index].label,
             active,
           },
           ...activationKeys.slice(index + 1),

@@ -9,7 +9,6 @@ import com.airbnb.android.react.lottie.LottiePackage;
 import cl.json.ShareApplication;
 import io.branch.rnbranch.RNBranchModule;
 import io.metamask.nativeModules.RCTMinimizerPackage;
-import io.metamask.nativeModules.RCTAnalyticsPackage;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.soloader.SoLoader;
@@ -24,6 +23,12 @@ import java.lang.reflect.Field;
 
 import io.metamask.nativesdk.NativeSDKPackage;
 import io.metamask.nativeModules.RNTar.RNTarPackage;
+
+import android.content.Context;
+import android.content.Intent;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
+import android.os.Build;
 
 public class MainApplication extends Application implements ShareApplication, ReactApplication {
 
@@ -45,7 +50,6 @@ public class MainApplication extends Application implements ShareApplication, Re
 			packages.add(new LottiePackage());
 			packages.add(new PreventScreenshotPackage());
 			packages.add(new ReactVideoPackage());
-			packages.add(new RCTAnalyticsPackage());
       packages.add(new RCTMinimizerPackage());
       packages.add(new NativeSDKPackage());
       packages.add(new RNTarPackage());
@@ -73,6 +77,14 @@ public class MainApplication extends Application implements ShareApplication, Re
 		return mReactNativeHost;
 	}
 
+	@Override
+	public Intent registerReceiver(BroadcastReceiver receiver, IntentFilter filter) {
+		if (Build.VERSION.SDK_INT >= 34 && getApplicationInfo().targetSdkVersion >= 34) {
+			return super.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED);
+		} else {
+			return super.registerReceiver(receiver, filter);
+		}
+	}
 	@Override
 	public void onCreate() {
 		super.onCreate();

@@ -1,6 +1,6 @@
 import Routes from '../../../../constants/navigation/Routes';
 import AppConstants from '../../../../core/AppConstants';
-import { Analytics, MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -8,8 +8,9 @@ import { selectChainId } from '../../../../selectors/networkController';
 
 import type { BrowserTab } from '../../Tokens/types';
 import type { BrowserParams } from '../../../../components/Views/Browser/Browser.types';
-
-const BRIDGE_URL = `${AppConstants.PORTFOLIO_URL}/bridge`;
+import { getDecimalChainId } from '../../../../util/networks';
+import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { isBridgeUrl } from '../../../../util/url';
 
 /**
  * Returns a function that is used to navigate to the MetaMask Bridges webpage.
@@ -18,12 +19,14 @@ const BRIDGE_URL = `${AppConstants.PORTFOLIO_URL}/bridge`;
  */
 export default function useGoToBridge(location: string) {
   const chainId = useSelector(selectChainId);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserTabs = useSelector((state: any) => state.browser.tabs);
   const { navigate } = useNavigation();
-
+  const { trackEvent } = useMetrics();
   return (address?: string) => {
     const existingBridgeTab = browserTabs.find((tab: BrowserTab) =>
-      tab.url.match(new RegExp(BRIDGE_URL)),
+      isBridgeUrl(tab.url),
     );
 
     const params: BrowserParams & { existingTabId?: string } = {
@@ -34,7 +37,9 @@ export default function useGoToBridge(location: string) {
       params.newTabUrl = undefined;
       params.existingTabId = existingBridgeTab.id;
     } else {
-      params.newTabUrl = `${BRIDGE_URL}/?metamaskEntry=mobile&srcChain=${chainId}${
+      params.newTabUrl = `${
+        AppConstants.BRIDGE.URL
+      }/?metamaskEntry=mobile&srcChain=${getDecimalChainId(chainId)}${
         address ? `&token=${address}` : ''
       }`;
     }
@@ -43,10 +48,10 @@ export default function useGoToBridge(location: string) {
       screen: Routes.BROWSER.VIEW,
       params,
     });
-    Analytics.trackEventWithParameters(MetaMetricsEvents.BRIDGE_LINK_CLICKED, {
-      bridgeUrl: BRIDGE_URL,
+    trackEvent(MetaMetricsEvents.BRIDGE_LINK_CLICKED, {
+      bridgeUrl: AppConstants.BRIDGE.URL,
       location,
-      chain_id_source: chainId,
+      chain_id_source: getDecimalChainId(chainId),
       token_address_source: address,
     });
   };

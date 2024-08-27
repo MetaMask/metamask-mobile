@@ -10,6 +10,7 @@ export enum AccountConnectMultiSelectorScreens {
 }
 
 // External dependencies.
+import { ConnectionProps } from '../../../../core/SDKConnect/Connection';
 import { UseAccounts } from '../../../hooks/useAccounts';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { USER_INTENT } from '../../../../constants/permissions';
@@ -23,8 +24,10 @@ export interface AccountConnectMultiSelectorProps extends UseAccounts {
   isLoading?: boolean;
   onUserAction: React.Dispatch<React.SetStateAction<USER_INTENT>>;
   urlWithProtocol: string;
+  hostname: string;
   favicon: ImageSourcePropType;
   secureIcon: IconName;
   isAutoScrollEnabled?: boolean;
   onBack: () => void;
+  connection?: ConnectionProps;
 }

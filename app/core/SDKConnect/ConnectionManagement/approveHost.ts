@@ -1,8 +1,12 @@
+import {
+  resetApprovedHosts,
+  resetConnections,
+} from '../../../../app/actions/sdk';
+import { store } from '../../../../app/store';
 import AppConstants from '../../../core/AppConstants';
 import SDKConnect, { approveHostProps } from '../SDKConnect';
 import { DEFAULT_SESSION_TIMEOUT_MS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
-import DefaultPreference from 'react-native-default-preference';
 
 function approveHost({
   host,
@@ -27,15 +31,10 @@ function approveHost({
     if (instance.state.connected[channelId]) {
       instance.state.connected[channelId].lastAuthorized = approvedUntil;
     }
-    // Prevent disabled hosts from being persisted.
-    DefaultPreference.set(
-      AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
-      JSON.stringify(instance.state.approvedHosts),
-    ).catch((err) => {
-      throw err;
-    });
+
+    store.dispatch(resetConnections(instance.state.connections));
+    store.dispatch(resetApprovedHosts(instance.state.approvedHosts));
   }
-  instance.emit('refresh');
 }
 
 export default approveHost;

@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       branch_name:
-        description: 'Branch name you want the cherry-pick branch to be based from'     
+        description: 'Target branch name to merge the cherry-picked branch into'
         required: true
       commit_hash:
-        description: 'Commit Hash'     
+        description: 'Commit Hash'
         required: true
       PR_number:
-        description: 'PR # Associated with Cherry Pick'     
+        description: 'PR # Associated with Cherry Pick'
         required: true
 jobs:
   cherry-pick:
@@ -21,8 +21,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: ${{ vars.GITHUB_REF }}
           fetch-depth: 0
+          ref: ${{ vars.branch_name }}
           token: ${{ secrets.BUG_REPORT_TOKEN }}
       - name: Get Node.js version
         id: nvm

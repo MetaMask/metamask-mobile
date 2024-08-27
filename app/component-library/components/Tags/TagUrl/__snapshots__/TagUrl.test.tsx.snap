@@ -3,11 +3,11 @@
 exports[`TagUrl should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#FFFFFF",
-      "borderColor": "#BBC0C5",
+      "backgroundColor": "#ffffff",
+      "borderColor": "#bbc0c5",
       "borderRadius": 99,
       "borderWidth": 1,
       "flexDirection": "row",
@@ -19,22 +19,24 @@ exports[`TagUrl should render correctly 1`] = `
 >
   <Avatar
     imageSource={
-      Object {
+      {
         "uri": "https://uniswap.org/favicon.ico",
       }
     }
     size="32"
     style={
-      Object {
+      {
+        "height": 24,
         "marginRight": 8,
+        "width": 24,
       }
     }
     variant="Favicon"
   />
   <Text
     style={
-      Object {
-        "color": "#535A61",
+      {
+        "color": "#6a737d",
         "flexShrink": 1,
       }
     }

@@ -7,11 +7,11 @@ import Gestures from '../../helpers/Gestures';
 
 class AddAccountModal {
   get newAccountButton() {
-    return Selectors.getElementByPlatform(ADD_ACCOUNT_NEW_ACCOUNT_BUTTON);
+    return Selectors.getXpathElementByResourceId(ADD_ACCOUNT_NEW_ACCOUNT_BUTTON);
   }
 
   get importAccountButton() {
-    return Selectors.getElementByPlatform(ADD_ACCOUNT_IMPORT_ACCOUNT_BUTTON);
+    return Selectors.getXpathElementByResourceId(ADD_ACCOUNT_IMPORT_ACCOUNT_BUTTON);
   }
 
   async tapNewAccountButton() {

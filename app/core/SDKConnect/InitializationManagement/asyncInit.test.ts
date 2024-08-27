@@ -1,26 +1,30 @@
 import { NavigationContainerRef } from '@react-navigation/native';
-import DefaultPreference from 'react-native-default-preference';
-import AppConstants from '../../AppConstants';
 import SDKConnect from '../SDKConnect';
 import { wait } from '../utils/wait.util';
 import asyncInit from './asyncInit';
 
 jest.mock('@react-navigation/native');
-jest.mock('react-native-default-preference', () => ({
-  getMultiple: jest.fn().mockResolvedValue([]),
-  setMultiple: jest.fn().mockResolvedValue([]),
-  clearMultiple: jest.fn().mockResolvedValue([]),
-  set: jest.fn().mockResolvedValue([]),
-  clear: jest.fn().mockResolvedValue([]),
-  getAll: jest.fn().mockResolvedValue([]),
-  getAllKeys: jest.fn().mockResolvedValue([]),
-  get: jest.fn().mockResolvedValue(JSON.stringify({})),
+jest.mock('../../../store/storage-wrapper', () => ({
+  getItem: jest.fn().mockResolvedValue([]),
+  setItem: jest.fn(),
+  clearAll: jest.fn().mockResolvedValue([]),
 }));
 jest.mock('../../AppConstants');
 jest.mock('../../../util/Logger');
 jest.mock('../SDKConnect');
 jest.mock('../utils/DevLogger');
 jest.mock('../utils/wait.util');
+jest.mock('../../../store', () => ({
+  store: {
+    getState: jest.fn(() => ({
+      sdk: {
+        connections: {},
+        approvedHosts: {},
+      },
+    })),
+    dispatch: jest.fn(),
+  },
+}));
 
 describe('asyncInit', () => {
   let mockInstance = {} as unknown as SDKConnect;
@@ -72,18 +76,6 @@ describe('asyncInit', () => {
   });
 
   describe('Loading connections and hosts from storage', () => {
-    it('should load connections and approved hosts from DefaultPreference', async () => {
-      await asyncInit({
-        instance: mockInstance,
-        navigation: mockNavigation,
-      });
-
-      expect(DefaultPreference.get).toHaveBeenCalledTimes(2);
-      expect(DefaultPreference.get).toHaveBeenCalledWith(
-        AppConstants.MM_SDK.SDK_CONNECTIONS,
-      );
-    });
-
     it('should parse and set connections from the storage', async () => {
       await asyncInit({
         instance: mockInstance,

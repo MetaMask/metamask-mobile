@@ -1,6 +1,5 @@
 import Engine from '../../core/Engine';
-import { MetaMetricsEvents } from '../../core/Analytics';
-import AnalyticsV2 from '../analyticsV2';
+import { MetaMetrics, MetaMetricsEvents } from '../../core/Analytics';
 import { getAddressAccountType } from '../address';
 import NotificationManager from '../../core/NotificationManager';
 import { WALLET_CONNECT_ORIGIN } from '../walletconnect';
@@ -11,6 +10,7 @@ import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import { getBlockaidMetricsParams } from '../blockaid';
 import Device from '../device';
+import { getDecimalChainId } from '../networks';
 
 export const typedSign = {
   V1: 'eth_signTypedData',
@@ -39,7 +39,7 @@ export const getAnalyticsParams = (
     return {
       account_type: getAddressAccountType(messageParams.from),
       dapp_host_name: url && url?.host,
-      chain_id: chainId,
+      chain_id: getDecimalChainId(chainId),
       signature_type: signType,
       version: messageParams?.version,
       ...pageInfo?.analytics,
@@ -94,7 +94,7 @@ export const handleSignatureAction = async (
 ) => {
   await onAction();
   showWalletConnectNotification(messageParams, confirmation);
-  AnalyticsV2.trackEvent(
+  MetaMetrics.getInstance().trackEvent(
     confirmation
       ? MetaMetricsEvents.SIGNATURE_APPROVED
       : MetaMetricsEvents.SIGNATURE_REJECTED,

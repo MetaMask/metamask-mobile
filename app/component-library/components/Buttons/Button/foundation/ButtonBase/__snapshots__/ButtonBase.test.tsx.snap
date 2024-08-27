@@ -2,13 +2,15 @@
 
 exports[`ButtonBase should render correctly 1`] = `
 <TouchableOpacity
+  accessibilityRole="button"
+  accessible={true}
   activeOpacity={1}
   onPress={[Function]}
   style={
-    Object {
+    {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#F2F4F6",
+      "backgroundColor": "#f2f4f6",
       "borderRadius": 20,
       "flexDirection": "row",
       "height": 40,
@@ -22,15 +24,16 @@ exports[`ButtonBase should render correctly 1`] = `
     name="Bank"
     size="16"
     style={
-      Object {
+      {
         "marginRight": 8,
       }
     }
   />
   <Text
+    accessibilityRole="none"
     style={
-      Object {
-        "color": "#24272A",
+      {
+        "color": "#141618",
       }
     }
     variant="sBodyMD"
@@ -42,14 +45,16 @@ exports[`ButtonBase should render correctly 1`] = `
 
 exports[`ButtonBase should render correctly when disabled 1`] = `
 <TouchableOpacity
+  accessibilityRole="button"
+  accessible={true}
   activeOpacity={1}
   disabled={true}
   onPress={[Function]}
   style={
-    Object {
+    {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#F2F4F6",
+      "backgroundColor": "#f2f4f6",
       "borderRadius": 20,
       "flexDirection": "row",
       "height": 40,
@@ -64,15 +69,16 @@ exports[`ButtonBase should render correctly when disabled 1`] = `
     name="Bank"
     size="16"
     style={
-      Object {
+      {
         "marginRight": 8,
       }
     }
   />
   <Text
+    accessibilityRole="none"
     style={
-      Object {
-        "color": "#24272A",
+      {
+        "color": "#141618",
       }
     }
     variant="sBodyMD"

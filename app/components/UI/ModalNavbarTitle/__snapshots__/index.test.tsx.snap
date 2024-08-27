@@ -3,7 +3,7 @@
 exports[`ModalNavbarTitle should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "flex": 1,
     }
@@ -11,7 +11,7 @@ exports[`ModalNavbarTitle should render correctly 1`] = `
 >
   <Text
     style={
-      Object {
+      {
         "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 18,
         "fontWeight": "400",

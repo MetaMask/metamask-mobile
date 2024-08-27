@@ -1,6 +1,6 @@
 /* eslint-disable import/no-commonjs */
 import URL from 'url-parse';
-import { NetworksChainId } from '@metamask/controller-utils';
+import { ChainId } from '@metamask/controller-utils';
 import { JsonRpcEngine } from 'json-rpc-engine';
 import MobilePortStream from '../MobilePortStream';
 import { setupMultiplex } from '../../util/streams';
@@ -19,12 +19,10 @@ import WalletConnectPort from './WalletConnectPort';
 import Port from './Port';
 import {
   selectChainId,
-  selectNetworkId,
   selectProviderConfig,
-  selectLegacyNetwork,
 } from '../../selectors/networkController';
 import { store } from '../../store';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
 import { SubjectType } from '@metamask/permission-controller';
 ///: END:ONLY_INCLUDE_IF
@@ -36,6 +34,24 @@ const pump = require('pump');
 // eslint-disable-next-line import/no-nodejs-modules
 const EventEmitter = require('events').EventEmitter;
 const { NOTIFICATION_NAMES } = AppConstants;
+import DevLogger from '../SDKConnect/utils/DevLogger';
+import { getPermittedAccounts } from '../Permissions';
+import { NetworkStatus } from '@metamask/network-controller';
+import { NETWORK_ID_LOADING } from '../redux/slices/inpageProvider';
+import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMethodMiddleware';
+import createLegacyMethodMiddleware from '../RPCMethods/createLegacyMethodMiddleware';
+
+const legacyNetworkId = () => {
+  const { networksMetadata, selectedNetworkClientId } =
+    store.getState().engine.backgroundState.NetworkController;
+
+  const { networkId } = store.getState().inpageProvider;
+
+  return networksMetadata?.[selectedNetworkClientId].status !==
+    NetworkStatus.Available
+    ? NETWORK_ID_LOADING
+    : networkId;
+};
 
 export class BackgroundBridge extends EventEmitter {
   constructor({
@@ -50,6 +66,7 @@ export class BackgroundBridge extends EventEmitter {
     getApprovedHosts,
     remoteConnHost,
     isMMSDK,
+    channelId,
   }) {
     super();
     this.url = url;
@@ -63,6 +80,7 @@ export class BackgroundBridge extends EventEmitter {
     this._webviewRef = webview && webview.current;
     this.disconnected = false;
     this.getApprovedHosts = getApprovedHosts;
+    this.channelId = channelId;
 
     this.createMiddleware = getRpcMethodMiddleware;
 
@@ -75,11 +93,11 @@ export class BackgroundBridge extends EventEmitter {
     this.engine = null;
 
     this.chainIdSent = selectChainId(store.getState());
-    this.networkVersionSent = selectNetworkId(store.getState());
+    this.networkVersionSent = store.getState().inpageProvider.networkId;
 
     // This will only be used for WalletConnect for now
     this.addressSent =
-      Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
+      Engine.context.AccountsController.getSelectedAccount().address.toLowerCase();
 
     const portStream = new MobilePortStream(this.port, url);
     // setup multiplexing
@@ -95,7 +113,11 @@ export class BackgroundBridge extends EventEmitter {
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
       this.sendStateUpdate,
     );
-    Engine.context.PreferencesController.subscribe(this.sendStateUpdate);
+
+    Engine.controllerMessenger.subscribe(
+      'PreferencesController:stateChange',
+      this.sendStateUpdate,
+    );
 
     Engine.controllerMessenger.subscribe(
       'KeyringController:lock',
@@ -105,6 +127,26 @@ export class BackgroundBridge extends EventEmitter {
       'KeyringController:unlock',
       this.onUnlock.bind(this),
     );
+
+    try {
+      const pc = Engine.context.PermissionController;
+      const controllerMessenger = Engine.controllerMessenger;
+      controllerMessenger.subscribe(
+        `${pc.name}:stateChange`,
+        (subjectWithPermission) => {
+          DevLogger.log(
+            `PermissionController:stateChange event`,
+            subjectWithPermission,
+          );
+          // Inform dapp about updated permissions
+          const selectedAddress = this.getState().selectedAddress;
+          this.notifySelectedAddressChanged(selectedAddress);
+        },
+        (state) => state.subjects[this.channelId],
+      );
+    } catch (err) {
+      DevLogger.log(`Error in BackgroundBridge: ${err}`);
+    }
 
     this.on('update', this.onStateUpdate);
 
@@ -174,7 +216,7 @@ export class BackgroundBridge extends EventEmitter {
     let chainId;
 
     if (isInitialNetwork) {
-      chainId = NetworksChainId[networkType];
+      chainId = ChainId[networkType];
     } else if (networkType === 'rpc') {
       chainId = providerConfig.chainId;
     }
@@ -184,32 +226,58 @@ export class BackgroundBridge extends EventEmitter {
     }
 
     const result = {
-      networkVersion: selectLegacyNetwork(store.getState()),
+      networkVersion: legacyNetworkId(),
       chainId,
     };
     return result;
   }
 
   notifyChainChanged(params) {
+    DevLogger.log(`notifyChainChanged: `, params);
     this.sendNotification({
       method: NOTIFICATION_NAMES.chainChanged,
       params,
     });
   }
 
-  notifySelectedAddressChanged(selectedAddress) {
-    if (this.isRemoteConn) {
-      // Pass the remoteConnHost to getApprovedHosts as AndroidSDK requires it
-      if (
-        !this.getApprovedHosts?.(this.remoteConnHost)?.[this.remoteConnHost]
-      ) {
-        return;
+  async notifySelectedAddressChanged(selectedAddress) {
+    try {
+      let approvedAccounts = [];
+      DevLogger.log(
+        `notifySelectedAddressChanged: ${selectedAddress} wc=${this.isWalletConnect} url=${this.url}`,
+      );
+      if (this.isWalletConnect) {
+        approvedAccounts = await getPermittedAccounts(this.url);
+      } else {
+        approvedAccounts = await getPermittedAccounts(
+          this.channelId ?? this.hostname,
+        );
       }
+      // Check if selectedAddress is approved
+      const found = approvedAccounts
+        .map((addr) => addr.toLowerCase())
+        .includes(selectedAddress.toLowerCase());
+
+      if (found) {
+        // Set selectedAddress as first value in array
+        approvedAccounts = [
+          selectedAddress,
+          ...approvedAccounts.filter(
+            (addr) => addr.toLowerCase() !== selectedAddress.toLowerCase(),
+          ),
+        ];
+      }
+      DevLogger.log(
+        `notifySelectedAddressChanged url: ${this.url} hostname: ${this.hostname}: ${selectedAddress}`,
+        approvedAccounts,
+      );
+      this.sendNotification({
+        method: NOTIFICATION_NAMES.accountsChanged,
+        params: approvedAccounts,
+      });
+    } catch (err) {
+      console.error(`notifySelectedAddressChanged: ${err}`);
     }
-    this.sendNotification({
-      method: NOTIFICATION_NAMES.accountsChanged,
-      params: [selectedAddress],
-    });
   }
 
   onStateUpdate(memState) {
@@ -220,18 +288,20 @@ export class BackgroundBridge extends EventEmitter {
 
     // Check if update already sent
     if (
-      this.chainIdSent !== publicState.chainId &&
-      this.networkVersionSent !== publicState.networkVersion &&
-      publicState.networkVersion !== 'loading'
+      this.chainIdSent !== publicState.chainId ||
+      (this.networkVersionSent !== publicState.networkVersion &&
+        publicState.networkVersion !== NETWORK_ID_LOADING)
     ) {
       this.chainIdSent = publicState.chainId;
       this.networkVersionSent = publicState.networkVersion;
       this.notifyChainChanged(publicState);
     }
-
     // ONLY NEEDED FOR WC FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
     if (this.isWalletConnect || this.isRemoteConn) {
-      if (this.addressSent !== memState.selectedAddress) {
+      if (
+        this.addressSent?.toLowerCase() !==
+        memState.selectedAddress?.toLowerCase()
+      ) {
         this.addressSent = memState.selectedAddress;
         this.notifySelectedAddressChanged(memState.selectedAddress);
       }
@@ -263,7 +333,11 @@ export class BackgroundBridge extends EventEmitter {
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
       this.sendStateUpdate,
     );
-    Engine.context.PreferencesController.unsubscribe(this.sendStateUpdate);
+    Engine.controllerMessenger.unsubscribe(
+      'PreferencesController:stateChange',
+      this.sendStateUpdate,
+    );
+
     this.port.emit('disconnect', { name: this.port.name, data: null });
   };
 
@@ -316,16 +390,36 @@ export class BackgroundBridge extends EventEmitter {
     // filter and subscription polyfills
     engine.push(filterMiddleware);
     engine.push(subscriptionManager.middleware);
-    // watch asset
 
-    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+    // Handle unsupported RPC Methods
+    engine.push(createUnsupportedMethodMiddleware());
+
+    // Legacy RPC methods that need to be implemented ahead of the permission middleware
+    engine.push(
+      createLegacyMethodMiddleware({
+        getAccounts: async () =>
+          await getPermittedAccounts(this.isMMSDK ? this.channelId : origin),
+      }),
+    );
+
+    // Append PermissionController middleware
+    engine.push(
+      Engine.context.PermissionController.createPermissionMiddleware({
+        // FIXME: This condition exists so that both WC and SDK are compatible with the permission middleware.
+        // This is not a long term solution. BackgroundBridge should be not contain hardcoded logic pertaining to WC, SDK, or browser.
+        origin: this.isMMSDK ? this.channelId : origin,
+      }),
+    );
+
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     // Snaps middleware
     engine.push(
       snapMethodMiddlewareBuilder(
         Engine.context,
         Engine.controllerMessenger,
         origin,
-        SubjectType.Snap,
+        // We assume that origins connecting through the BackgroundBridge are websites
+        SubjectType.Website,
       ),
     );
     ///: END:ONLY_INCLUDE_IF
@@ -338,23 +432,15 @@ export class BackgroundBridge extends EventEmitter {
       }),
     );
 
-    // TODO - Remove this condition when WalletConnect and MMSDK uses Permission System.
-    if (!this.isMMSDK && !this.isWalletConnect) {
-      const permissionController = Engine.context.PermissionController;
-      engine.push(
-        permissionController.createPermissionMiddleware({
-          origin,
-        }),
-      );
-    }
-
     engine.push(createSanitizationMiddleware());
+
     // forward to metamask primary provider
     engine.push(providerAsMiddleware(provider));
     return engine;
   }
 
   sendNotification(payload) {
+    DevLogger.log(`BackgroundBridge::sendNotification: `, payload);
     this.engine && this.engine.emit('notification', payload);
   }
 
@@ -371,7 +457,7 @@ export class BackgroundBridge extends EventEmitter {
     return {
       isInitialized: !!vault,
       isUnlocked: true,
-      network: selectLegacyNetwork(store.getState()),
+      network: legacyNetworkId(),
       selectedAddress,
     };
   }

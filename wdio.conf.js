@@ -160,7 +160,18 @@ export const config = {
   // your test setup with almost no effort. Unlike plugins, they don't add new
   // commands. Instead, they hook themselves up into the test process.
   /** services: ['chromedriver','appium'], ***/
-  services: ['appium'],
+  services: [
+    [
+      'appium',
+      {
+        args: {
+          address: 'localhost',
+          port: 4723
+        },
+        logPath: './'
+      }
+    ]
+  ],
 
   // Appium service with custom chrome driver path
   /*services: [

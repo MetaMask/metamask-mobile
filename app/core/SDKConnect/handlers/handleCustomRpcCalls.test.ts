@@ -16,11 +16,15 @@ describe('handleCustomRpcCalls', () => {
   let batchRPCManager = {} as unknown as BatchRPCManager;
   const selectedAddress = '0x123';
   const selectedChainId = '1';
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let rpc = {} as any;
 
   beforeEach(() => {
     jest.clearAllMocks();
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockOverwriteRPCWith.mockImplementation((params) => params as any);
 
     batchRPCManager = {
@@ -45,6 +49,10 @@ describe('handleCustomRpcCalls', () => {
       selectedChainId,
     });
 
+    if (!result) {
+      throw new Error('result is undefined');
+    }
+
     expect(result.method).toBe(rpc.params[0].method);
     expect(result.params).toEqual(rpc.params[0].params);
   });
@@ -59,6 +67,10 @@ describe('handleCustomRpcCalls', () => {
       selectedAddress,
       selectedChainId,
     });
+
+    if (!result) {
+      throw new Error('result is undefined');
+    }
 
     expect(result.method).toBe(RPC_METHODS.PERSONAL_SIGN);
     expect(result.params).toEqual([...rpc.params, selectedAddress]);
@@ -82,6 +94,10 @@ describe('handleCustomRpcCalls', () => {
       id: rpc.id,
       rpcs: rpc.params,
     });
+
+    if (!result) {
+      throw new Error('result is undefined');
+    }
     expect(result.method).toBe(rpc.params[0].method);
     expect(result.params).toEqual(rpc.params[0].params);
   });

@@ -4,13 +4,11 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { connect } from 'react-redux';
-import Icon from 'react-native-vector-icons/Ionicons';
-import ActionSheet from 'react-native-actionsheet';
+import ActionSheet from '@metamask/react-native-actionsheet';
 import { fontStyles } from '../../../../styles/common';
 import CustomText from '../../../../components/Base/Text';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
@@ -27,11 +25,7 @@ import { LINEA_MAINNET, MAINNET, RPC } from '../../../../constants/network';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
 import ImageIcons from '../../../UI/ImageIcon';
-import {
-  ADD_NETWORK_BUTTON,
-  NETWORK_SCREEN_ID,
-  CUSTOM_NETWORK_NAME_NETWORK_LIST,
-} from '../../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
+import { ADD_NETWORK_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { compareSanitizedUrl } from '../../../../util/sanitizeUrl';
 import {
   selectNetworkConfigurations,
@@ -43,6 +37,10 @@ import {
 } from '../../../../component-library/components/Avatars/Avatar';
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import Routes from '../../../../constants/navigation/Routes';
+import { NetworksViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/NetworksView.selectors';
+import { updateIncomingTransactions } from '../../../../util/transaction-controller';
+import { NetworksTicker } from '@metamask/controller-utils';
+import NetworkSearchTextInput from '../../NetworkSelector/NetworkSearchTextInput';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -157,7 +155,11 @@ class NetworksSettings extends PureComponent {
     this.updateNavBar();
   };
 
-  componentDidUpdate = () => {
+  componentDidUpdate = (prevProps) => {
+    if (this.props.networkConfigurations !== prevProps.networkConfigurations) {
+      this.handleSearchTextChange(this.state.searchString);
+    }
+
     this.updateNavBar();
   };
 
@@ -165,7 +167,9 @@ class NetworksSettings extends PureComponent {
 
   onNetworkPress = (networkTypeOrRpcUrl) => {
     const { navigation } = this.props;
-    navigation.navigate(Routes.ADD_NETWORK, { network: networkTypeOrRpcUrl });
+    navigation.navigate(Routes.ADD_NETWORK, {
+      network: networkTypeOrRpcUrl,
+    });
   };
 
   onAddNetwork = () => {
@@ -179,14 +183,13 @@ class NetworksSettings extends PureComponent {
   };
 
   switchToMainnet = () => {
-    const { NetworkController, CurrencyRateController, TransactionController } =
-      Engine.context;
+    const { NetworkController, CurrencyRateController } = Engine.context;
 
-    CurrencyRateController.setNativeCurrency('ETH');
+    CurrencyRateController.updateExchangeRate(NetworksTicker.mainnet);
     NetworkController.setProviderType(MAINNET);
 
     setTimeout(async () => {
-      await TransactionController.updateIncomingTransactions();
+      await updateIncomingTransactions();
     }, 1000);
   };
 
@@ -194,7 +197,7 @@ class NetworksSettings extends PureComponent {
     // Check if it's the selected network and then switch to mainnet first
     const { providerConfig } = this.props;
     if (
-      compareSanitizedUrl(providerConfig.rpcTarget, this.networkToRemove) &&
+      compareSanitizedUrl(providerConfig.rpcUrl, this.networkToRemove) &&
       providerConfig.type === RPC
     ) {
       this.switchToMainnet();
@@ -312,7 +315,7 @@ class NetworksSettings extends PureComponent {
 
     if (Object.keys(networkConfigurations).length > 0) {
       return (
-        <View testID={CUSTOM_NETWORK_NAME_NETWORK_LIST}>
+        <View testID={NetworksViewSelectorsIDs.CUSTOM_NETWORK_LIST}>
           <Text style={styles.sectionLabel}>
             {strings('app_settings.custom_network_name')}
           </Text>
@@ -454,25 +457,21 @@ class NetworksSettings extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View style={styles.wrapper} testID={NETWORK_SCREEN_ID}>
-        <View style={styles.inputWrapper}>
-          <Icon name="ios-search" size={20} color={colors.icon.default} />
-          <TextInput
-            style={styles.input}
-            placeholder={strings('networks.search')}
-            placeholderTextColor={colors.text.default}
-            value={this.state.searchString}
-            onChangeText={this.handleSearchTextChange}
+      <View
+        style={styles.wrapper}
+        testID={NetworksViewSelectorsIDs.NETWORK_CONTAINER}
+      >
+        {
+          <NetworkSearchTextInput
+            searchString={this.state.searchString}
+            handleSearchTextChange={this.handleSearchTextChange}
+            clearSearchInput={this.clearSearchInput}
+            testIdSearchInput={
+              NetworksViewSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID
+            }
+            testIdCloseIcon={NetworksViewSelectorsIDs.CLOSE_ICON}
           />
-          {this.state.searchString.length > 0 && (
-            <Icon
-              name="ios-close"
-              size={20}
-              color={colors.icon.default}
-              onPress={this.clearSearchInput}
-            />
-          )}
-        </View>
+        }
         <ScrollView style={styles.networksWrapper}>
           {this.state.searchString.length > 0 ? (
             this.filteredResult()

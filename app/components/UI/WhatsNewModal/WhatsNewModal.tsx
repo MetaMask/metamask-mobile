@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
-import AsyncStorage from '../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import {
   CURRENT_APP_VERSION,
   WHATS_NEW_APP_VERSION_SEEN,
@@ -32,6 +32,16 @@ import { Colors } from '../../../util/theme/models';
 import { WhatsNewModalSelectorsIDs } from '../../../../e2e/selectors/Modals/WhatsNewModal.selectors';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+
+// NOTE: This modal is currently disabled.
+// Reasons for disabling:
+// 1. It was found to be disruptive to user experience.
+// 2. It became repetitive for frequent users.
+// 3. Its functionality now overlaps with:
+//    - New notification system for product announcements
+//    - Opt-in prompts for new features
+// See issue: https://github.com/MetaMask/MetaMask-planning/issues/2614
+// TODO: Consider removing or refactoring this component if it remains unused.
 
 const modalMargin = 24;
 const modalPadding = 24;
@@ -123,8 +133,8 @@ const WhatsNewModal = () => {
   const styles = createStyles(colors);
 
   const recordSeenModal = async () => {
-    const version = await AsyncStorage.getItem(CURRENT_APP_VERSION);
-    await AsyncStorage.setItem(WHATS_NEW_APP_VERSION_SEEN, version as string);
+    const version = await StorageWrapper.getItem(CURRENT_APP_VERSION);
+    await StorageWrapper.setItem(WHATS_NEW_APP_VERSION_SEEN, version as string);
   };
 
   const dismissModal = (callback?: () => void) =>
@@ -132,12 +142,16 @@ const WhatsNewModal = () => {
 
   const navigation = useNavigation();
   const callButton = useCallback(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (onPress: any) => {
       dismissModal(() => onPress({ navigation }));
     },
     [navigation],
   );
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const renderSlideElement = (elementInfo: any) => {
     switch (elementInfo.type) {
       case 'title':
@@ -185,16 +199,24 @@ const WhatsNewModal = () => {
     return null;
   };
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const renderSlide = (slideInfo: any, index: number) => {
     const key = `slide-info-${index}`;
     return (
       <ScrollView key={key} style={styles.slideItemContainer}>
         <TouchableWithoutFeedback>
           <View>
-            {slideInfo.map((elementInfo: any, elIndex: number) => {
-              const elKey = `${key}-${elIndex}`;
-              return <View key={elKey}>{renderSlideElement(elementInfo)}</View>;
-            })}
+            {
+              // TODO: Replace "any" with type
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              slideInfo.map((elementInfo: any, elIndex: number) => {
+                const elKey = `${key}-${elIndex}`;
+                return (
+                  <View key={elKey}>{renderSlideElement(elementInfo)}</View>
+                );
+              })
+            }
           </View>
         </TouchableWithoutFeedback>
       </ScrollView>

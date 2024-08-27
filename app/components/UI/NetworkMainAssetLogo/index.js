@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { NetworksChainId } from '@metamask/controller-utils';
+import { ChainId } from '@metamask/controller-utils';
 import { connect } from 'react-redux';
 import TokenIcon from '../Swaps/components/TokenIcon';
 import {
@@ -8,14 +8,33 @@ import {
   selectTicker,
 } from '../../../selectors/networkController';
 
-function NetworkMainAssetLogo({ chainId, ticker, style, big, biggest }) {
-  if (chainId === NetworksChainId.mainnet) {
+function NetworkMainAssetLogo({
+  chainId,
+  ticker,
+  style,
+  big,
+  biggest,
+  testID,
+}) {
+  if (chainId === ChainId.mainnet) {
     return (
-      <TokenIcon big={big} biggest={biggest} symbol={'ETH'} style={style} />
+      <TokenIcon
+        big={big}
+        biggest={biggest}
+        symbol={'ETH'}
+        style={style}
+        testID={testID}
+      />
     );
   }
   return (
-    <TokenIcon big={big} biggest={biggest} symbol={ticker} style={style} />
+    <TokenIcon
+      big={big}
+      biggest={biggest}
+      symbol={ticker}
+      style={style}
+      testID={testID}
+    />
   );
 }
 
@@ -30,6 +49,7 @@ NetworkMainAssetLogo.propTypes = {
   style: PropTypes.object,
   big: PropTypes.bool,
   biggest: PropTypes.bool,
+  testID: PropTypes.string,
 };
 
 export default connect(mapStateToProps)(NetworkMainAssetLogo);

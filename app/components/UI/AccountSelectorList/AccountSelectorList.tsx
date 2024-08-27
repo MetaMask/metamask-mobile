@@ -46,10 +46,16 @@ const AccountSelectorList = ({
   isAutoScrollEnabled = true,
   ...props
 }: AccountSelectorListProps) => {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Engine = UntypedEngine as any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountListRef = useRef<any>(null);
   const accountsLengthRef = useRef<number>(0);
   const { styles } = useStyles(styleSheet, {});
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -68,7 +74,14 @@ const AccountSelectorList = ({
         )}
       >
         <Text style={styles.balanceLabel}>{fiatBalance}</Text>
-        {tokens && <AvatarGroup tokenList={tokens} />}
+        {tokens && (
+          <AvatarGroup
+            avatarPropsList={tokens.map((tokenObj) => ({
+              ...tokenObj,
+              variant: AvatarVariant.Token,
+            }))}
+          />
+        )}
       </View>
     ),
     [styles.balancesContainer, styles.balanceLabel],
@@ -114,7 +127,7 @@ const AccountSelectorList = ({
                 nextActiveAddress = accounts[nextActiveIndex]?.address;
               }
               // Switching accounts on the PreferencesController must happen before account is removed from the KeyringController, otherwise UI will break.
-              // If needed, place PreferencesController.setSelectedAddress in onRemoveImportedAccount callback.
+              // If needed, place Engine.setSelectedAddress in onRemoveImportedAccount callback.
               onRemoveImportedAccount?.({
                 removedAddress: address,
                 nextActiveAddress,
@@ -154,7 +167,12 @@ const AccountSelectorList = ({
         : CellVariant.Select;
       let isSelectedAccount = isSelected;
       if (selectedAddresses) {
-        isSelectedAccount = selectedAddresses.includes(address);
+        const lowercasedSelectedAddresses = selectedAddresses.map(
+          (selectedAddress: string) => selectedAddress.toLowerCase(),
+        );
+        isSelectedAccount = lowercasedSelectedAddresses.includes(
+          address.toLowerCase(),
+        );
       }
 
       const cellStyle = {

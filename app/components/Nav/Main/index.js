@@ -12,7 +12,6 @@ import {
   StyleSheet,
   View,
   Linking,
-  PushNotificationIOS, // eslint-disable-line react-native/split-platform-components
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
@@ -22,13 +21,14 @@ import BackgroundTimer from 'react-native-background-timer';
 import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
-import PushNotification from 'react-native-push-notification';
+import notifee from '@notifee/react-native';
 import I18n, { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import Device from '../../../util/device';
 import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
 import RampOrders from '../../UI/Ramp';
+import Device from '../../../util/device';
+import Routes from '../../../constants/navigation/Routes';
 import {
   showTransactionNotification,
   hideCurrentNotification,
@@ -41,6 +41,7 @@ import MainNavigator from './MainNavigator';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import { query } from '@metamask/controller-utils';
 import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
+import useNotificationHandler from '../../../util/notifications/hooks';
 
 import {
   setInfuraAvailabilityBlocked,
@@ -53,10 +54,6 @@ import { useTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
 import { colors as importedColors } from '../../../styles/common';
 import {
-  getNetworkImageSource,
-  getNetworkNameFromProviderConfig,
-} from '../../../util/networks';
-import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
@@ -68,14 +65,22 @@ import {
   selectProviderConfig,
   selectProviderType,
 } from '../../../selectors/networkController';
+import {
+  selectNetworkName,
+  selectNetworkImageSource,
+} from '../../../selectors/networkInfos';
 import { selectShowIncomingTransactionNetworks } from '../../../selectors/preferencesController';
-import { addHexPrefix, toHexadecimal } from '../../../util/number';
-import { NETWORKS_CHAIN_ID } from '../../../constants/network';
+import {
+  DEPRECATED_NETWORKS,
+  NETWORKS_CHAIN_ID,
+} from '../../../constants/network';
 import WarningAlert from '../../../components/UI/WarningAlert';
 import { GOERLI_DEPRECATED_ARTICLE } from '../../../constants/urls';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
-import { SnapsExecutionWebView } from '../../UI/SnapsExecutionWebView';
-///: END:ONLY_INCLUDE_IF
+import {
+  updateIncomingTransactions,
+  startIncomingTransactionPolling,
+  stopIncomingTransactionPolling,
+} from '../../../util/transaction-controller';
 
 const Stack = createStackNavigator();
 
@@ -111,13 +116,20 @@ const Main = (props) => {
   useMinimumVersions();
 
   useEffect(() => {
-    const { TransactionController } = Engine.context;
-    const currentHexChainId = addHexPrefix(toHexadecimal(props.chainId));
-
-    if (props.showIncomingTransactionsNetworks[currentHexChainId]) {
-      TransactionController.startIncomingTransactionPolling();
+    if (DEPRECATED_NETWORKS.includes(props.chainId)) {
+      setShowDeprecatedAlert(true);
     } else {
-      TransactionController.stopIncomingTransactionPolling();
+      setShowDeprecatedAlert(false);
+    }
+  }, [props.chainId]);
+
+  useEffect(() => {
+    const chainId = props.chainId;
+
+    if (props.showIncomingTransactionsNetworks[chainId]) {
+      startIncomingTransactionPolling();
+    } else {
+      stopIncomingTransactionPolling();
     }
   }, [props.showIncomingTransactionsNetworks, props.chainId]);
 
@@ -139,8 +151,8 @@ const Main = (props) => {
   const checkInfuraAvailability = useCallback(async () => {
     if (props.providerType !== 'rpc') {
       try {
-        const { TransactionController } = Engine.context;
-        await query(TransactionController.ethQuery, 'blockNumber', []);
+        const ethQuery = Engine.getGlobalEthQuery();
+        await query(ethQuery, 'blockNumber', []);
         props.setInfuraAvailabilityNotBlocked();
       } catch (e) {
         if (e.message === AppConstants.ERRORS.INFURA_BLOCKED_MESSAGE) {
@@ -162,7 +174,6 @@ const Main = (props) => {
   const handleAppStateChange = useCallback(
     (appState) => {
       const newModeIsBackground = appState === 'background';
-      const { TransactionController } = Engine.context;
 
       // If it was in background and it's not anymore
       // we need to stop the Background timer
@@ -178,7 +189,7 @@ const Main = (props) => {
         removeNotVisibleNotifications();
 
         BackgroundTimer.runBackgroundTimer(async () => {
-          await TransactionController.updateIncomingTransactions();
+          await updateIncomingTransactions();
         }, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
       }
     },
@@ -223,8 +234,10 @@ const Main = (props) => {
    * Current network
    */
   const providerConfig = useSelector(selectProviderConfig);
+  const networkName = useSelector(selectNetworkName);
   const previousProviderConfig = useRef(undefined);
   const { toastRef } = useContext(ToastContext);
+  const networkImage = useSelector(selectNetworkImageSource);
 
   // Show network switch confirmation.
   useEffect(() => {
@@ -233,12 +246,6 @@ const Main = (props) => {
       (providerConfig.chainId !== previousProviderConfig.current.chainId ||
         providerConfig.type !== previousProviderConfig.current.type)
     ) {
-      const { type, chainId } = providerConfig;
-      const networkImage = getNetworkImageSource({
-        networkType: type,
-        chainId,
-      });
-      const networkName = getNetworkNameFromProviderConfig(providerConfig);
       toastRef?.current?.showToast({
         variant: ToastVariants.Network,
         labelOptions: [
@@ -248,12 +255,11 @@ const Main = (props) => {
           },
           { label: strings('toast.now_active') },
         ],
-        networkName,
         networkImageSource: networkImage,
       });
     }
     previousProviderConfig.current = providerConfig;
-  }, [providerConfig, toastRef]);
+  }, [providerConfig, networkName, networkImage, toastRef]);
 
   useEffect(() => {
     if (locale.current !== I18n.locale) {
@@ -262,6 +268,22 @@ const Main = (props) => {
       return;
     }
   });
+
+  const bootstrapAndroidInitialNotification = useCallback(async () => {
+    if (Device.isAndroid()) {
+      const initialNotification = await notifee.getInitialNotification();
+
+      if (
+        initialNotification?.data?.action === 'tx' &&
+        initialNotification.data.id
+      ) {
+        NotificationManager.setTransactionToView(initialNotification.data.id);
+        props.navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      }
+    }
+  }, [props.navigation]);
+
+  useNotificationHandler(bootstrapAndroidInitialNotification, props.navigation);
 
   // Remove all notifications that aren't visible
   useEffect(() => {
@@ -273,29 +295,6 @@ const Main = (props) => {
       'change',
       handleAppStateChange,
     );
-    PushNotification.configure({
-      requestPermissions: false,
-      onNotification: (notification) => {
-        let data = null;
-        if (Device.isAndroid()) {
-          if (notification.tag) {
-            data = JSON.parse(notification.tag);
-          }
-        } else if (notification.data) {
-          data = notification.data;
-        }
-        if (data && data.action === 'tx') {
-          if (data.id) {
-            NotificationManager.setTransactionToView(data.id);
-          }
-          props.navigation.navigate('TransactionsHome');
-        }
-
-        if (Device.isIos()) {
-          notification.finish(PushNotificationIOS.FetchResult.NoData);
-        }
-      },
-    });
 
     setTimeout(() => {
       NotificationManager.init({
@@ -334,7 +333,16 @@ const Main = (props) => {
   };
 
   const renderDeprecatedNetworkAlert = (chainId, backUpSeedphraseVisible) => {
-    if (chainId === NETWORKS_CHAIN_ID.GOERLI && showDeprecatedAlert) {
+    if (DEPRECATED_NETWORKS.includes(chainId) && showDeprecatedAlert) {
+      if (NETWORKS_CHAIN_ID.MUMBAI === chainId) {
+        return (
+          <WarningAlert
+            text={strings('networks.network_deprecated_title')}
+            dismissAlert={() => setShowDeprecatedAlert(false)}
+            precedentAlert={backUpSeedphraseVisible}
+          />
+        );
+      }
       return (
         <WarningAlert
           text={strings('networks.deprecated_goerli')}
@@ -354,15 +362,6 @@ const Main = (props) => {
         ) : (
           renderLoader()
         )}
-        {
-          ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-        }
-        <View>
-          <SnapsExecutionWebView />
-        </View>
-        {
-          ///: END:ONLY_INCLUDE_IF
-        }
         <GlobalAlert />
         <FadeOutOverlay />
         <Notification navigation={props.navigation} />

@@ -1,4 +1,4 @@
-# BadgeStatus
+# [BadgeStatus](https://metamask-consensys.notion.site/Badge-Status-5caf000de32549f8ad67c0b89469ce4d)
 
 ![BadgeStatus](./BadgeStatus.png)
 

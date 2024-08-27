@@ -6,7 +6,7 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = theme;
   return StyleSheet.create({
     base: {
-      paddingHorizontal: 16,
+      paddingHorizontal: 32,
     },
     wrapper: {
       flex: 1,
@@ -15,7 +15,6 @@ const styleSheet = (params: { theme: Theme }) => {
     infoWrapper: {
       alignItems: 'center',
       marginTop: 10,
-      paddingHorizontal: 16,
     },
     tabUnderlineStyle: {
       height: 2,
@@ -29,7 +28,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 8,
     },
     textStyle: {
-      textTransform: 'capitalize',
       ...params.theme.typography.sBodyMD,
       fontWeight: '500',
     },

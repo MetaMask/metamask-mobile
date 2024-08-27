@@ -24,18 +24,19 @@ import StatusText from '../../Base/StatusText';
 import DetailsModal from '../../Base/DetailsModal';
 import { isMainNet } from '../../../util/networks';
 import { weiHexToGweiDec } from '@metamask/controller-utils';
-import { WalletDevice } from '@metamask/transaction-controller';
-// TODO: Update after this function has been exported from the package
-import { isEIP1559Transaction } from '@metamask/transaction-controller/dist/utils';
+import {
+  WalletDevice,
+  isEIP1559Transaction,
+} from '@metamask/transaction-controller';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import { selectPrimaryCurrency } from '../../../selectors/settings';
+import { selectSwapsTransactions } from '../../../selectors/transactionController';
+import { swapsControllerTokens } from '../../../reducers/swaps';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -130,13 +131,9 @@ class TransactionElement extends PureComponent {
      */
     tx: PropTypes.object,
     /**
-     * String of selected address
-     */
-    selectedAddress: PropTypes.string,
-    /**
-    /* Identities object required to get import time name
+    /* InternalAccount object required to get import time name
     */
-    identities: PropTypes.object,
+    selectedInternalAccount: PropTypes.object,
     /**
      * Current element of the list index
      */
@@ -217,15 +214,16 @@ class TransactionElement extends PureComponent {
   };
 
   renderTxTime = () => {
-    const { tx, selectedAddress } = this.props;
-    const incoming =
-      safeToChecksumAddress(tx.transaction.to) === selectedAddress;
+    const { tx, selectedInternalAccount } = this.props;
+    const selectedAddress = safeToChecksumAddress(
+      selectedInternalAccount?.address,
+    );
+    const incoming = safeToChecksumAddress(tx.txParams.to) === selectedAddress;
     const selfSent =
-      incoming &&
-      safeToChecksumAddress(tx.transaction.from) === selectedAddress;
+      incoming && safeToChecksumAddress(tx.txParams.from) === selectedAddress;
     return `${
       (!incoming || selfSent) && tx.deviceConfirmedOn === WalletDevice.MM_MOBILE
-        ? `#${parseInt(tx.transaction.nonce, 16)} - ${toDateFormat(
+        ? `#${parseInt(tx.txParams.nonce, 16)} - ${toDateFormat(
             tx.time,
           )} ${strings(
             'transactions.from_device_label',
@@ -241,11 +239,10 @@ class TransactionElement extends PureComponent {
    * @returns Account added to wallet view
    */
   renderImportTime = () => {
-    const { tx, identities, selectedAddress } = this.props;
+    const { tx, selectedInternalAccount } = this.props;
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
-
-    const accountImportTime = identities[selectedAddress]?.importTime;
+    const accountImportTime = selectedInternalAccount?.metadata.importTime;
     if (tx.insertImportTime && accountImportTime) {
       return (
         <>
@@ -298,6 +295,8 @@ class TransactionElement extends PureComponent {
           : transactionIconSwap;
         break;
       case TRANSACTION_TYPES.APPROVE:
+      case TRANSACTION_TYPES.INCREASE_ALLOWANCE:
+      case TRANSACTION_TYPES.SET_APPROVAL_FOR_ALL:
         icon = isFailedTransaction
           ? transactionIconApproveFailed
           : transactionIconApprove;
@@ -313,23 +312,23 @@ class TransactionElement extends PureComponent {
    */
   renderTxElement = (transactionElement) => {
     const {
-      identities,
+      selectedInternalAccount,
       chainId,
-      selectedAddress,
       isQRHardwareAccount,
       isLedgerAccount,
-      tx: { time, status },
+      tx: { time, status, isSmartTransaction },
     } = this.props;
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
     const { value, fiatValue = false, actionKey } = transactionElement;
     const renderNormalActions =
-      status === 'submitted' ||
-      (status === 'approved' && !isQRHardwareAccount && !isLedgerAccount);
+      (status === 'submitted' ||
+        (status === 'approved' && !isQRHardwareAccount && !isLedgerAccount)) &&
+      !isSmartTransaction;
     const renderUnsignedQRActions =
       status === 'approved' && isQRHardwareAccount;
     const renderLedgerActions = status === 'approved' && isLedgerAccount;
-    const accountImportTime = identities[selectedAddress]?.importTime;
+    const accountImportTime = selectedInternalAccount?.metadata.importTime;
     return (
       <>
         {accountImportTime > time && this.renderImportTime()}
@@ -401,7 +400,7 @@ class TransactionElement extends PureComponent {
     const { tx } = this.props;
 
     let existingGas = {};
-    const transaction = tx?.transaction;
+    const transaction = tx?.txParams;
     if (transaction) {
       if (isEIP1559Transaction(transaction)) {
         existingGas = {
@@ -412,9 +411,7 @@ class TransactionElement extends PureComponent {
           ),
         };
       } else {
-        const existingGasPrice = tx.transaction
-          ? tx.transaction.gasPrice
-          : '0x0';
+        const existingGasPrice = tx.txParams ? tx.txParams.gasPrice : '0x0';
         const existingGasPriceDecimal = parseInt(
           existingGasPrice === undefined ? '0x0' : existingGasPrice,
           16,
@@ -607,12 +604,10 @@ class TransactionElement extends PureComponent {
 const mapStateToProps = (state) => ({
   ticker: selectTicker(state),
   chainId: selectChainId(state),
-  identities: selectIdentities(state),
-  primaryCurrency: state.settings.primaryCurrency,
-  selectedAddress: selectSelectedAddress(state),
-  swapsTransactions:
-    state.engine.backgroundState.TransactionController.swapsTransactions || {},
-  swapsTokens: state.engine.backgroundState.SwapsController.tokens,
+  selectedInternalAccount: selectSelectedInternalAccount(state),
+  primaryCurrency: selectPrimaryCurrency(state),
+  swapsTransactions: selectSwapsTransactions(state),
+  swapsTokens: swapsControllerTokens(state),
 });
 
 TransactionElement.contextType = ThemeContext;

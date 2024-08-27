@@ -4,22 +4,27 @@ import EthContract from 'ethjs-contract';
 import { getContractFactory } from '@eth-optimism/contracts/dist/contract-defs';
 import { predeploys } from '@eth-optimism/contracts/dist/predeploys';
 import networksWithImages from 'images/image-icons';
-import AppConstants from '../../core/AppConstants';
 import {
-  GOERLI,
   MAINNET,
   NETWORKS_CHAIN_ID,
   SEPOLIA,
   RPC,
   LINEA_GOERLI,
   LINEA_MAINNET,
+  LINEA_SEPOLIA,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
-import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
+import {
+  ChainId,
+  NetworkType,
+  convertHexToDecimal,
+  toHex,
+} from '@metamask/controller-utils';
+import { isStrictHexString } from '@metamask/utils';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
-import { buildUnserializedTransaction } from '../transactions/optimismTransaction';
+import buildUnserializedTransaction from '../transactions/optimismTransaction';
 import handleNetworkSwitch from './handleNetworkSwitch';
 import { regex } from '../../../app/util/regex';
 
@@ -27,13 +32,12 @@ export { handleNetworkSwitch };
 
 /* eslint-disable */
 const ethLogo = require('../../images/eth-logo-new.png');
-const goerliLogo = require('../../images/goerli-logo-dark.png');
 const sepoliaLogo = require('../../images/sepolia-logo-dark.png');
-const lineaGoerliLogo = require('../../images/linea-testnet-logo.png');
+const lineaTestnetLogo = require('../../images/linea-testnet-logo.png');
 const lineaMainnetLogo = require('../../images/linea-mainnet-logo.png');
 
 /* eslint-enable */
-import PopularList from './customNetworks';
+import { PopularList, UnpopularNetworkList } from './customNetworks';
 import { strings } from '../../../locales/i18n';
 import {
   getEtherscanAddressUrl,
@@ -41,6 +45,7 @@ import {
   getEtherscanTransactionUrl,
 } from '../etherscan';
 import { LINEA_FAUCET, SEPOLIA_FAUCET } from '../../constants/urls';
+import { getNonceLock } from '../../util/transaction-controller';
 
 /**
  * List of the supported networks
@@ -49,13 +54,14 @@ import { LINEA_FAUCET, SEPOLIA_FAUCET } from '../../constants/urls';
  * This values are used in certain places like
  * navbar and the network switcher.
  */
-const NetworkList = {
+export const NetworkList = {
   [MAINNET]: {
     name: 'Ethereum Main Network',
     shortName: 'Ethereum',
     networkId: 1,
-    chainId: 1,
-    hexChainId: '0x1',
+    chainId: toHex('1'),
+    // Third party color
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#3cc29e',
     networkType: 'mainnet',
     imageSource: ethLogo,
@@ -64,51 +70,79 @@ const NetworkList = {
     name: 'Linea Main Network',
     shortName: 'Linea',
     networkId: 59144,
-    chainId: 59144,
-    hexChainId: '0xe708',
+    chainId: toHex('59144'),
+    // Third party color
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#121212',
     networkType: 'linea-mainnet',
     imageSource: lineaMainnetLogo,
   },
-  [GOERLI]: {
-    name: 'Goerli Test Network',
-    shortName: 'Goerli',
-    networkId: 5,
-    chainId: 5,
-    hexChainId: '0x5',
-    color: '#3099f2',
-    networkType: 'goerli',
-    imageSource: goerliLogo,
-  },
   [SEPOLIA]: {
-    name: 'Sepolia Test Network',
+    name: 'Sepolia',
     shortName: 'Sepolia',
     networkId: 11155111,
-    chainId: 11155111,
-    hexChainId: '0xaa36a7',
+    chainId: toHex('11155111'),
+    // Third party color
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#cfb5f0',
     networkType: 'sepolia',
     imageSource: sepoliaLogo,
   },
-  [LINEA_GOERLI]: {
-    name: 'Linea Goerli Test Network',
-    shortName: 'Linea Goerli',
-    networkId: 59140,
-    chainId: 59140,
-    hexChainId: '0xe704',
+  [LINEA_SEPOLIA]: {
+    name: 'Linea Sepolia',
+    shortName: 'Linea Sepolia',
+    networkId: 59141,
+    chainId: toHex('59141'),
+    // Third party color
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#61dfff',
-    networkType: 'linea-goerli',
-    imageSource: lineaGoerliLogo,
+    networkType: 'linea-sepolia',
+    imageSource: lineaTestnetLogo,
   },
   [RPC]: {
     name: 'Private Network',
     shortName: 'Private',
+    // Third party color
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#f2f3f4',
     networkType: 'rpc',
   },
 };
 
 const NetworkListKeys = Object.keys(NetworkList);
+
+export const BLOCKAID_SUPPORTED_CHAIN_IDS = [
+  NETWORKS_CHAIN_ID.MAINNET,
+  NETWORKS_CHAIN_ID.BSC,
+  NETWORKS_CHAIN_ID.BASE,
+  NETWORKS_CHAIN_ID.POLYGON,
+  NETWORKS_CHAIN_ID.ARBITRUM,
+  NETWORKS_CHAIN_ID.OPTIMISM,
+  NETWORKS_CHAIN_ID.AVAXCCHAIN,
+  NETWORKS_CHAIN_ID.LINEA_MAINNET,
+  NETWORKS_CHAIN_ID.SEPOLIA,
+  NETWORKS_CHAIN_ID.OPBNB,
+  NETWORKS_CHAIN_ID.ZKSYNC_ERA,
+  NETWORKS_CHAIN_ID.SCROLL,
+  NETWORKS_CHAIN_ID.BERACHAIN,
+  NETWORKS_CHAIN_ID.METACHAIN_ONE,
+];
+
+export const BLOCKAID_SUPPORTED_NETWORK_NAMES = {
+  [NETWORKS_CHAIN_ID.MAINNET]: 'Ethereum Mainnet',
+  [NETWORKS_CHAIN_ID.BSC]: 'Binance Smart Chain',
+  [NETWORKS_CHAIN_ID.BASE]: 'Base',
+  [NETWORKS_CHAIN_ID.OPTIMISM]: 'Optimism',
+  [NETWORKS_CHAIN_ID.POLYGON]: 'Polygon',
+  [NETWORKS_CHAIN_ID.ARBITRUM]: 'Arbitrum',
+  [NETWORKS_CHAIN_ID.LINEA_MAINNET]: 'Linea',
+  [NETWORKS_CHAIN_ID.SEPOLIA]: 'Sepolia',
+  [NETWORKS_CHAIN_ID.OPBNB]: 'opBNB',
+  [NETWORKS_CHAIN_ID.ZKSYNC_ERA]: 'zkSync Era Mainnet',
+  [NETWORKS_CHAIN_ID.SCROLL]: 'Scroll',
+  [NETWORKS_CHAIN_ID.BERACHAIN]: 'Berachain Artio',
+  [NETWORKS_CHAIN_ID.METACHAIN_ONE]: 'Metachain One Mainnet',
+};
 
 export default NetworkList;
 
@@ -129,7 +163,7 @@ export const isDefaultMainnet = (networkType) => networkType === MAINNET;
  * @param {string} chainId - The chain ID to check.
  * @returns True if the chain ID is Ethereum Mainnet, false otherwise.
  */
-export const isMainNet = (chainId) => chainId === String(1);
+export const isMainNet = (chainId) => chainId === '0x1';
 
 export const isLineaMainnet = (networkType) => networkType === LINEA_MAINNET;
 
@@ -157,23 +191,23 @@ export const isMultiLayerFeeNetwork = (chainId) =>
  */
 export const getTestNetImage = (networkType) => {
   if (
-    networkType === GOERLI ||
     networkType === SEPOLIA ||
-    networkType === LINEA_GOERLI
+    networkType === LINEA_GOERLI ||
+    networkType === LINEA_SEPOLIA
   ) {
     return networksWithImages?.[networkType.toUpperCase()];
   }
 };
 
 export const getTestNetImageByChainId = (chainId) => {
-  if (NETWORKS_CHAIN_ID.GOERLI === chainId) {
-    return networksWithImages?.GOERLI;
-  }
   if (NETWORKS_CHAIN_ID.SEPOLIA === chainId) {
     return networksWithImages?.SEPOLIA;
   }
   if (NETWORKS_CHAIN_ID.LINEA_GOERLI === chainId) {
     return networksWithImages?.['LINEA-GOERLI'];
+  }
+  if (NETWORKS_CHAIN_ID.LINEA_SEPOLIA === chainId) {
+    return networksWithImages?.['LINEA-SEPOLIA'];
   }
 };
 
@@ -181,17 +215,18 @@ export const getTestNetImageByChainId = (chainId) => {
  * A list of chain IDs for known testnets
  */
 const TESTNET_CHAIN_IDS = [
-  NetworksChainId[NetworkType.goerli],
-  NetworksChainId[NetworkType.sepolia],
-  NetworksChainId[NetworkType['linea-goerli']],
+  ChainId[NetworkType.sepolia],
+  ChainId[NetworkType['linea-goerli']],
+  ChainId[NetworkType['linea-sepolia']],
 ];
 
 /**
  * A map of testnet chainId and its faucet link
  */
 export const TESTNET_FAUCETS = {
-  [NetworksChainId[NetworkType.sepolia]]: SEPOLIA_FAUCET,
-  [NetworksChainId[NetworkType['linea-goerli']]]: LINEA_FAUCET,
+  [ChainId[NetworkType.sepolia]]: SEPOLIA_FAUCET,
+  [ChainId[NetworkType['linea-goerli']]]: LINEA_FAUCET,
+  [ChainId[NetworkType['linea-sepolia']]]: LINEA_FAUCET,
 };
 
 export const isTestNetworkWithFaucet = (chainId) =>
@@ -241,6 +276,16 @@ export function hasBlockExplorer(key) {
 
 export function isprivateConnection(hostname) {
   return hostname === 'localhost' || regex.localNetwork.test(hostname);
+}
+
+/**
+ * Set the value of safe chain validation using preference controller
+ *
+ * @param {boolean} value
+ */
+export function toggleUseSafeChainsListValidation(value) {
+  const { PreferencesController } = Engine.context;
+  PreferencesController.setUseSafeChainsListValidation(value);
 }
 
 /**
@@ -298,22 +343,6 @@ export function getBlockExplorerName(blockExplorerUrl) {
 }
 
 /**
- * Checks whether the given number primitive chain ID is safe.
- * Because some cryptographic libraries we use expect the chain ID to be a
- * number primitive, it must not exceed a certain size.
- *
- * @param {number} chainId - The chain ID to check for safety.
- * @returns {boolean} Whether the given chain ID is safe.
- */
-export function isSafeChainId(chainId) {
-  return (
-    Number.isSafeInteger(chainId) &&
-    chainId > 0 &&
-    chainId <= AppConstants.MAX_SAFE_CHAIN_ID
-  );
-}
-
-/**
  * Checks whether the given value is a 0x-prefixed, non-zero, non-zero-padded,
  * hexadecimal string.
  *
@@ -329,11 +358,7 @@ export function isPrefixedFormattedHexString(value) {
 }
 
 export const getNetworkNonce = async ({ from }) => {
-  const { TransactionController } = Engine.context;
-
-  const { nextNonce, releaseLock } = await TransactionController.getNonceLock(
-    from,
-  );
+  const { nextNonce, releaseLock } = await getNonceLock(from);
 
   releaseLock();
 
@@ -398,11 +423,17 @@ export const getNetworkImageSource = ({ networkType, chainId }) => {
     return defaultNetwork.imageSource;
   }
 
+  const unpopularNetwork = UnpopularNetworkList.find(
+    (networkConfig) => networkConfig.chainId === chainId,
+  );
+
   const popularNetwork = PopularList.find(
     (networkConfig) => networkConfig.chainId === chainId,
   );
-  if (popularNetwork) {
-    return popularNetwork.rpcPrefs.imageSource;
+
+  const network = unpopularNetwork || popularNetwork;
+  if (network) {
+    return network.rpcPrefs.imageSource;
   }
   return getTestNetImage(networkType);
 };
@@ -497,3 +528,50 @@ export const getBlockExplorerTxUrl = (
  */
 export const getIsNetworkOnboarded = (chainId, networkOnboardedState) =>
   networkOnboardedState[chainId];
+
+/**
+ * Convert the given value into a valid network ID. The ID is accepted
+ * as either a number, a decimal string, or a 0x-prefixed hex string.
+ *
+ * @param value - The network ID to convert, in an unknown format.
+ * @returns A valid network ID (as a decimal string)
+ * @throws If the given value cannot be safely parsed.
+ */
+export function convertNetworkId(value) {
+  if (typeof value === 'number' && !Number.isNaN(value)) {
+    return `${value}`;
+  } else if (isStrictHexString(value)) {
+    return `${convertHexToDecimal(value)}`;
+  } else if (typeof value === 'string' && /^\d+$/u.test(value)) {
+    return value;
+  }
+  throw new Error(`Cannot parse as a valid network ID: '${value}'`);
+}
+/**
+ * This function is only needed to get the `networkId` to support the deprecated
+ * `networkVersion` provider property and the deprecated `networkChanged` provider event.
+ * @deprecated
+ * @returns - network id of the current network
+ */
+export const deprecatedGetNetworkId = async () => {
+  const ethQuery = Engine.controllerMessenger.call(
+    'NetworkController:getEthQuery',
+  );
+
+  if (!ethQuery) {
+    throw new Error('Provider has not been initialized');
+  }
+
+  return new Promise((resolve, reject) => {
+    ethQuery.sendAsync({ method: 'net_version' }, (error, result) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(convertNetworkId(result));
+      }
+    });
+  });
+};
+
+export const isMutichainVersion1Enabled =
+  process.env.MM_MULTICHAIN_V1_ENABLED === '1';

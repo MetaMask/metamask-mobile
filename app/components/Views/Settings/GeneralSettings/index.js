@@ -18,7 +18,6 @@ import I18n, {
 } from '../../../../../locales/i18n';
 import SelectComponent from '../../../UI/SelectComponent';
 import infuraCurrencies from '../../../../util/infura-conversion.json';
-import { colors as importedColors } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import {
   setSearchEngine,
@@ -31,12 +30,13 @@ import { toDataUrl } from '../../../../util/blockies.js';
 import Jazzicon from 'react-native-jazzicon';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import { selectSelectedAddress } from '../../../../selectors/preferencesController';
-// import { AppThemeKey } from '../../../../util/theme/models';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
+import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
+import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 const diameter = 40;
 const spacing = 8;
@@ -205,6 +205,14 @@ class Settings extends PureComponent {
 
   selectPrimaryCurrency = (primaryCurrency) => {
     this.props.setPrimaryCurrency(primaryCurrency);
+
+    const metrics = MetaMetrics.getInstance();
+    const traits = { [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency };
+    metrics.addTraitsToUser(traits);
+    metrics.trackEvent(MetaMetricsEvents.PRIMARY_CURRENCY_TOGGLE, {
+      ...traits,
+      location: 'app_settings',
+    });
   };
 
   toggleHideZeroBalanceTokens = (toggleHideZeroBalanceTokens) => {
@@ -292,7 +300,8 @@ class Settings extends PureComponent {
       selectedAddress,
       hideZeroBalanceTokens,
     } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
+    const themeTokens = this.context || mockTheme;
+    const { colors } = themeTokens;
     const styles = createStyles(colors);
 
     return (
@@ -409,7 +418,7 @@ class Settings extends PureComponent {
                     true: colors.primary.default,
                     false: colors.border.muted,
                   }}
-                  thumbColor={importedColors.white}
+                  thumbColor={themeTokens.brandColors.white}
                   style={styles.switch}
                   ios_backgroundColor={colors.border.muted}
                 />
@@ -482,7 +491,7 @@ const mapStateToProps = (state) => ({
   searchEngine: state.settings.searchEngine,
   primaryCurrency: state.settings.primaryCurrency,
   useBlockieIcon: state.settings.useBlockieIcon,
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens,
   // appTheme: state.user.appTheme,
 });

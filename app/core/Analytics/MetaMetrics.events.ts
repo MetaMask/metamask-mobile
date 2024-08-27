@@ -22,21 +22,23 @@ const generateOpt = (
   return { category: name };
 };
 
-const ONBOARDING_WIZARD_STEP_DESCRIPTION = {
+const ONBOARDING_WIZARD_STEP_DESCRIPTION: { [key: number]: string } = {
   1: 'Welcome',
   2: 'Accounts',
   3: 'Account Name',
-  4: 'Main Navigation',
-  5: 'Browser',
-  6: 'Search',
+  4: 'Notifications',
+  5: 'Main Navigation',
+  6: 'Browser',
+  7: 'Search',
 };
 
 /**
- * V2 Analytics Tracking Events
+ * Analytics Tracking Events
  */
 enum EVENT_NAME {
   // Error
   ERROR = 'Error occurred',
+  ERROR_SCREEN_VIEWED = 'Error Screen Viewed',
 
   // Approval
   APPROVAL_STARTED = 'Approval Started',
@@ -70,6 +72,8 @@ enum EVENT_NAME {
   WALLET_OPENED = 'Wallet Opened',
   TOKEN_ADDED = 'Token Added',
   COLLECTIBLE_ADDED = 'Collectible Added',
+  COLLECTIBLE_DETAILS_OPENED = 'Collectible Details Opened',
+  COLLECTIBLE_REMOVED = 'Collectible Removed',
 
   // Network
   NETWORK_SWITCHED = 'Network Switched',
@@ -151,6 +155,7 @@ enum EVENT_NAME {
   BROWSER_RELOAD = 'Reload Browser',
   BROWSER_ADD_FAVORITES = 'Added Site To Favorites',
   BROWSER_SWITCH_TAB = 'Switched tab within Browser',
+  DAPP_VIEWED = 'Dapp Viewed',
 
   // Security & Privacy Settings
   VIEW_SECURITY_SETTINGS = 'Views Security & Privacy',
@@ -194,6 +199,7 @@ enum EVENT_NAME {
   TOKEN_IMPORT_CLICKED = 'Token Import Clicked',
   TOKEN_IMPORT_CANCELED = 'Token Import Canceled',
   TOKENS_HIDDEN = 'Tokens Hidden',
+  EXTERNAL_LINK_CLICKED = 'External Link Clicked',
 
   // On Ramp
   BUY_BUTTON_CLICKED = 'Buy Button Clicked',
@@ -204,6 +210,7 @@ enum EVENT_NAME {
   ONRAMP_QUOTES_REQUESTED = 'On-ramp Quotes Requested',
   ONRAMP_CANCELED = 'On-ramp Canceled',
   ONRAMP_QUOTES_RECEIVED = 'On-ramp Quotes Received',
+  ONRAMP_QUOTES_EXPANDED = 'On-ramp Quotes Expanded',
   ONRAMP_PROVIDER_SELECTED = 'On-ramp Provider Selected',
   ONRAMP_PROVIDER_DETAILS_VIEWED = 'On-ramp Provider Details Viewed',
   ONRAMP_DIRECT_PROVIDER_CLICKED = 'On-ramp Provider Custom Action Clicked',
@@ -226,6 +233,7 @@ enum EVENT_NAME {
   OFFRAMP_QUOTES_REQUESTED = 'Off-ramp Quotes Requested',
   OFFRAMP_CANCELED = 'Off-ramp Canceled',
   OFFRAMP_QUOTES_RECEIVED = 'Off-ramp Quotes Received',
+  OFFRAMP_QUOTES_EXPANDED = 'Off-ramp Quotes Expanded',
   OFFRAMP_PROVIDER_SELECTED = 'Off-ramp Provider Selected',
   OFFRAMP_PROVIDER_DETAILS_VIEWED = 'Off-ramp Provider Details Viewed',
   OFFRAMP_DIRECT_PROVIDER_CLICKED = 'Off-ramp Provider Custom Action Clicked',
@@ -255,7 +263,6 @@ enum EVENT_NAME {
   RECEIVE_OPTIONS = 'Receive Options',
   SEND_FLOW = 'Send Flow',
   DAPP_INTERACTIONS = 'Dapp Interactions',
-  WALLET = 'Wallet',
   PAYMENTS = 'Payments',
 
   // Swaps
@@ -276,6 +283,9 @@ enum EVENT_NAME {
 
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
+
+  // Stake
+  STAKE_BUTTON_CLICKED = 'Stake Button Clicked',
 
   // Force Upgrade | Automatic Security Checks
   FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED = 'Force Upgrade Update Needed Prompt Viewed',
@@ -345,7 +355,28 @@ enum EVENT_NAME {
   CONNECT_LEDGER_SUCCESS = 'Connected Account with hardware wallet',
   LEDGER_HARDWARE_TRANSACTION_CANCELLED = 'User canceled Ledger hardware transaction',
   LEDGER_HARDWARE_WALLET_ERROR = 'Ledger hardware wallet error',
-  LEDGER_HARDWARE_WALLET_FORGOTTEN = 'Ledger hardware wallet forgotten',
+
+  // common hardware wallet
+  HARDWARE_WALLET_FORGOTTEN = 'Hardware wallet forgotten',
+
+  // Remove an account
+  ACCOUNT_REMOVED = 'Account removed',
+
+  //Notifications
+  ALL_NOTIFICATIONS = 'All Notifications',
+  WALLET_NOTIFICATIONS = 'Wallet Notifications',
+  ANNOUCEMENTS_NOTIFICATIONS = 'Annoucements Notifications',
+  // Smart transactions
+  SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
+
+  // Simulations
+  INCOMPLETE_ASSET_DISPLAYED = 'Incomplete Asset Displayed',
+  // Nft auto detection modal
+  NFT_AUTO_DETECTION_ENABLED_MODAL = 'Nft Autodetection Enabled from modal',
+  NFT_AUTO_DETECTION_DISBLED_MODAL = 'Nft Autodetection Disabled from modal',
+  // NFT auto detection events
+  NFT_AUTO_DETECTION_ENABLED = 'nft_autodetection_enabled',
+  PRIMARY_CURRENCY_TOGGLE = 'primary_currency_toggle',
 }
 
 enum ACTIONS {
@@ -354,7 +385,6 @@ enum ACTIONS {
   IMPORT_OR_CREATE = 'Import or Create',
   IMPORT_OR_SYNC = 'Import or Sync',
   ONBOARDING_NEXT = 'Onboarding Next',
-  ONBOARDING_SKIP = 'Onboarding Skip',
   // Navigation Drawer
   NAVIGATION_DRAWER = 'Navigation Drawer',
   // Common Navigation
@@ -394,10 +424,16 @@ enum ACTIONS {
   ADVANCED_SETTINGS_ETH_SIGN_FRICTION_SECOND_STEP = 'eth_sign_input_seen',
   ADVANCED_SETTINGS_ETH_SIGN_ENABLED = 'eth_sign_enabled',
   ADVANCED_SETTINGS_ETH_SIGN_DISABLED = 'eth_sign_disabled',
+  STAKE = 'Stake',
+  // Notifications
+  SELECTS_ALL_NOTIFICATIONS = 'Selects All Notifications',
+  SELECTS_WALLET_NOTIFICATIONS = 'Selects Wallet Notifications',
+  SELECTS_ANNOUCEMENTS_NOTIFICATIONS = 'Selects Annoucements Notifications',
 }
 
 const events = {
   ERROR: generateOpt(EVENT_NAME.ERROR),
+  ERROR_SCREEN_VIEWED: generateOpt(EVENT_NAME.ERROR_SCREEN_VIEWED),
   APPROVAL_STARTED: generateOpt(EVENT_NAME.APPROVAL_STARTED),
   APPROVAL_COMPLETED: generateOpt(EVENT_NAME.APPROVAL_COMPLETED),
   APPROVAL_CANCELLED: generateOpt(EVENT_NAME.APPROVAL_CANCELLED),
@@ -429,6 +465,10 @@ const events = {
   WALLET_OPENED: generateOpt(EVENT_NAME.WALLET_OPENED),
   TOKEN_ADDED: generateOpt(EVENT_NAME.TOKEN_ADDED),
   COLLECTIBLE_ADDED: generateOpt(EVENT_NAME.COLLECTIBLE_ADDED),
+  COLLECTIBLE_DETAILS_OPENED: generateOpt(
+    EVENT_NAME.COLLECTIBLE_DETAILS_OPENED,
+  ),
+  COLLECTIBLE_REMOVED: generateOpt(EVENT_NAME.COLLECTIBLE_REMOVED),
   NETWORK_SWITCHED: generateOpt(EVENT_NAME.NETWORK_SWITCHED),
   NETWORK_ADDED: generateOpt(EVENT_NAME.NETWORK_ADDED),
   NETWORK_REQUESTED: generateOpt(EVENT_NAME.NETWORK_REQUESTED),
@@ -437,6 +477,7 @@ const events = {
   SEND_TRANSACTION_COMPLETED: generateOpt(
     EVENT_NAME.SEND_TRANSACTION_COMPLETED,
   ),
+  EXTERNAL_LINK_CLICKED: generateOpt(EVENT_NAME.EXTERNAL_LINK_CLICKED),
   ONRAMP_OPENED: generateOpt(EVENT_NAME.ONRAMP_OPENED),
   ONRAMP_CLOSED: generateOpt(EVENT_NAME.ONRAMP_CLOSED),
   ONRAMP_PURCHASE_EXITED: generateOpt(EVENT_NAME.ONRAMP_PURCHASE_EXITED),
@@ -531,6 +572,7 @@ const events = {
   BROWSER_SHARE_SITE: generateOpt(EVENT_NAME.BROWSER_SHARE_SITE),
   BROWSER_RELOAD: generateOpt(EVENT_NAME.BROWSER_RELOAD),
   BROWSER_ADD_FAVORITES: generateOpt(EVENT_NAME.BROWSER_ADD_FAVORITES),
+  DAPP_VIEWED: generateOpt(EVENT_NAME.DAPP_VIEWED),
   // Security & Privacy Settings
   VIEW_SECURITY_SETTINGS: generateOpt(EVENT_NAME.VIEW_SECURITY_SETTINGS),
   // Reveal SRP
@@ -590,6 +632,7 @@ const events = {
   ONRAMP_QUOTES_REQUESTED: generateOpt(EVENT_NAME.ONRAMP_QUOTES_REQUESTED),
   ONRAMP_CANCELED: generateOpt(EVENT_NAME.ONRAMP_CANCELED),
   ONRAMP_QUOTES_RECEIVED: generateOpt(EVENT_NAME.ONRAMP_QUOTES_RECEIVED),
+  ONRAMP_QUOTES_EXPANDED: generateOpt(EVENT_NAME.ONRAMP_QUOTES_EXPANDED),
   ONRAMP_PROVIDER_SELECTED: generateOpt(EVENT_NAME.ONRAMP_PROVIDER_SELECTED),
   ONRAMP_PROVIDER_DETAILS_VIEWED: generateOpt(
     EVENT_NAME.ONRAMP_PROVIDER_DETAILS_VIEWED,
@@ -626,6 +669,7 @@ const events = {
   OFFRAMP_QUOTES_REQUESTED: generateOpt(EVENT_NAME.OFFRAMP_QUOTES_REQUESTED),
   OFFRAMP_CANCELED: generateOpt(EVENT_NAME.OFFRAMP_CANCELED),
   OFFRAMP_QUOTES_RECEIVED: generateOpt(EVENT_NAME.OFFRAMP_QUOTES_RECEIVED),
+  OFFRAMP_QUOTES_EXPANDED: generateOpt(EVENT_NAME.OFFRAMP_QUOTES_EXPANDED),
   OFFRAMP_PROVIDER_SELECTED: generateOpt(EVENT_NAME.OFFRAMP_PROVIDER_SELECTED),
   OFFRAMP_PROVIDER_DETAILS_VIEWED: generateOpt(
     EVENT_NAME.OFFRAMP_PROVIDER_DETAILS_VIEWED,
@@ -798,9 +842,7 @@ const events = {
   ),
 
   // Experimental Settings
-  SETTINGS_EXPERIMENTAL_SECURITY_ALERTS_ENABLED: generateOpt(
-    EVENT_NAME.SETTINGS_UPDATED,
-  ),
+  SETTINGS_SECURITY_ALERTS_ENABLED: generateOpt(EVENT_NAME.SETTINGS_UPDATED),
 
   // Ledger
   CONNECT_LEDGER: generateOpt(EVENT_NAME.CONNECT_LEDGER),
@@ -814,9 +856,43 @@ const events = {
   LEDGER_HARDWARE_WALLET_ERROR: generateOpt(
     EVENT_NAME.LEDGER_HARDWARE_WALLET_ERROR,
   ),
-  LEDGER_HARDWARE_WALLET_FORGOTTEN: generateOpt(
-    EVENT_NAME.LEDGER_HARDWARE_WALLET_FORGOTTEN,
+  HARDWARE_WALLET_FORGOTTEN: generateOpt(EVENT_NAME.HARDWARE_WALLET_FORGOTTEN),
+
+  // Remove an account
+  ACCOUNT_REMOVED: generateOpt(EVENT_NAME.ACCOUNT_REMOVED),
+
+  // Smart transactions
+  SMART_TRANSACTION_OPT_IN: generateOpt(EVENT_NAME.SMART_TRANSACTION_OPT_IN),
+
+  // Notifications
+  ALL_NOTIFICATIONS: generateOpt(
+    EVENT_NAME.ALL_NOTIFICATIONS,
+    ACTIONS.SELECTS_ALL_NOTIFICATIONS,
   ),
+  WALLET_NOTIFICATIONS: generateOpt(
+    EVENT_NAME.WALLET_NOTIFICATIONS,
+    ACTIONS.SELECTS_WALLET_NOTIFICATIONS,
+  ),
+  ANNOUCEMENTS_NOTIFICATIONS: generateOpt(
+    EVENT_NAME.ANNOUCEMENTS_NOTIFICATIONS,
+    ACTIONS.SELECTS_ANNOUCEMENTS_NOTIFICATIONS,
+  ),
+  // Simulations
+  INCOMPLETE_ASSET_DISPLAYED: generateOpt(
+    EVENT_NAME.INCOMPLETE_ASSET_DISPLAYED,
+  ),
+  // Nft auto detection modal
+  NFT_AUTO_DETECTION_MODAL_ENABLE: generateOpt(
+    EVENT_NAME.NFT_AUTO_DETECTION_ENABLED_MODAL,
+  ),
+  NFT_AUTO_DETECTION_MODAL_DISABLE: generateOpt(
+    EVENT_NAME.NFT_AUTO_DETECTION_DISBLED_MODAL,
+  ),
+  // Nft detection event
+  NFT_AUTO_DETECTION_ENABLED: generateOpt(
+    EVENT_NAME.NFT_AUTO_DETECTION_ENABLED,
+  ),
+  PRIMARY_CURRENCY_TOGGLE: generateOpt(EVENT_NAME.PRIMARY_CURRENCY_TOGGLE),
 };
 
 /**
@@ -834,7 +910,6 @@ enum DESCRIPTION {
   ONBOARDING_SELECTED_WITH_SEEDPHRASE = 'Selected Import with Seedphrase',
   ONBOARDING_SELECTED_TAKE_THE_TOUR = `Onboarding wizard 'Take the tour'`,
   ONBOARDING_SELECTED_NO_THANKS = `Onboarding wizard 'No thanks'`,
-  ONBOARDING_SELECTED_SKIP = 'Onboarding wizard Skip',
   ONBOARDING_SELECTED_SKIP_TUTORIAL = 'Onboarding wizard Skip',
   // Navigation Drawer
   NAVIGATION_TAPS_ACCOUNT_NAME = 'Tapped Account Name / Profile',
@@ -870,6 +945,7 @@ enum DESCRIPTION {
   WALLET_QR_SCANNER = 'QR scanner',
   WALLET_COPIED_ADDRESS = 'Copied Address',
   WALLET_ADD_COLLECTIBLES = 'Add Collectibles',
+
   // Transactions
   TRANSACTIONS_CONFIRM_STARTED = 'Confirm Started',
   TRANSACTIONS_EDIT_TRANSACTION = 'Edit Transaction',
@@ -890,6 +966,7 @@ enum DESCRIPTION {
   // Settings
   SETTINGS_GENERAL = 'General',
   SETTINGS_ADVANCED = 'Advanced',
+  SETTINGS_NOTIFICATIONS = 'Notifications',
   SETTINGS_SECURITY_AND_PRIVACY = 'Security & Privacy',
   SETTINGS_ABOUT = 'About MetaMask',
   SETTINGS_EXPERIMENTAL = 'Experimental',
@@ -914,6 +991,8 @@ enum DESCRIPTION {
   PAYMENTS_SELECTS_APPLE_PAY = 'Selects Apple Pay as payment method',
   SWAPS = 'Swaps',
   BRIDGE = 'Bridge',
+  STAKE = 'Stake',
+  NOTIFICATIONS = 'Notifications',
 }
 
 const legacyMetaMetricsEvents = {
@@ -1118,6 +1197,7 @@ const legacyMetaMetricsEvents = {
     ACTIONS.WALLET_VIEW,
     DESCRIPTION.WALLET_ADD_COLLECTIBLES,
   ),
+
   // Transactions
   TRANSACTIONS_CONFIRM_STARTED: generateOpt(
     EVENT_NAME.TRANSACTIONS,
@@ -1216,6 +1296,11 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.SETTINGS,
     ACTIONS.SETTINGS,
     DESCRIPTION.SETTINGS_EXPERIMENTAL,
+  ),
+  SETTINGS_NOTIFICATIONS: generateOpt(
+    EVENT_NAME.SETTINGS,
+    ACTIONS.SETTINGS,
+    DESCRIPTION.SETTINGS_NOTIFICATIONS,
   ),
   // Receive Options
   RECEIVE_OPTIONS_SHARE_ADDRESS: generateOpt(
@@ -1375,6 +1460,11 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.BRIDGE_LINK_CLICKED,
     ACTIONS.BRIDGE,
     DESCRIPTION.BRIDGE,
+  ),
+  STAKE_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.STAKE_BUTTON_CLICKED,
+    ACTIONS.STAKE,
+    DESCRIPTION.STAKE,
   ),
 };
 

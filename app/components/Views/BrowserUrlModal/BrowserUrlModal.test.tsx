@@ -20,6 +20,8 @@ jest.mock('@react-navigation/native', () => {
     params: {},
   };
   return {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...jest.requireActual<any>('@react-navigation/native'),
     useRoute: jest.fn(() => ({ params: navigation.params })),
     useNavigation: jest.fn(() => mockNavigation),

@@ -1,7 +1,7 @@
 const nock = require('nock');
 
 export const gasApiDown = () => {
-  const mockServer = nock(new URL('https://gas-api.metaswap.codefi.network'))
+  const mockServer = nock(new URL('https://gas.api.cx.metamask.io'))
     .persist()
     .get('/networks/1/suggestedGasFees')
     .reply(500);

@@ -1,7 +1,8 @@
 import React, { Component, RefObject } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { WebView } from 'react-native-webview';
+import { WebView } from '@metamask/react-native-webview';
 import createInvoke from 'react-native-webview-invoke/native';
+import { fromByteArray } from 'react-native-quick-base64';
 
 import Logger from '../../util/Logger';
 import asyncInvoke from './invoke-lib';
@@ -17,14 +18,20 @@ const styles = StyleSheet.create({
   },
 });
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let invoke: any;
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let invokeResolve: any = null;
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const convertFilesToBase64 = (files: any[][]) =>
   files.map(([key, value]) => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    const base64 = window.Buffer.from(value).toString('base64');
+    const base64 = fromByteArray(value).toString('base64');
     return [key, base64];
   });
 
@@ -35,6 +42,8 @@ class PPOMInner {
   _validateJsonRpc = invoke.bindAsync('PPOM.validateJsonRpc');
   initPromise: PPOMInner | undefined = undefined;
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(jsoRpc: any, files: any[][]) {
     invoke.defineAsync('PPOM.jsonRpc', jsoRpc);
     files = convertFilesToBase64(files);
@@ -52,6 +61,8 @@ class PPOMInner {
     return await this._test();
   }
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async validateJsonRpc(...args: any[]) {
     await this.initPromise;
     return await this._validateJsonRpc(...args);
@@ -59,6 +70,8 @@ class PPOMInner {
 }
 
 export const PPOM = {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   new: (arg1: any, arg2: any) => new PPOMInner(arg1, arg2),
 };
 
@@ -76,16 +89,25 @@ export class PPOMView extends Component {
   webViewRef: RefObject<WebView> = React.createRef();
   invoke = createInvoke(() => this.webViewRef?.current);
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(props: any) {
     super(props);
     asyncInvoke(this.invoke);
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.invoke.define('console.log', (...args: any[]) =>
       Logger.log('[PPOMView]', ...args),
     );
-    this.invoke.define('console.error', (...args: any[]) =>
-      Logger.error('[PPOMView]', args),
-    );
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    this.invoke.define('console.error', (...args: any[]) => {
+      const PPOMError = new Error('[PPOMView]');
+      return Logger.error(PPOMError, args);
+    });
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.invoke.define('console.warn', (...args: any[]) =>
       Logger.log('[PPOMView]', ...args),
     );

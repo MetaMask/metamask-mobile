@@ -21,7 +21,7 @@ function useBlockExplorer(providerConfig, networkConfigurations) {
     if (providerConfig.type === RPC) {
       try {
         const blockExplorer = findBlockExplorerForRpc(
-          providerConfig.rpcTarget,
+          providerConfig.rpcUrl,
           networkConfigurations,
         );
         if (!blockExplorer) {

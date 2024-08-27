@@ -6,6 +6,8 @@ export const overwriteRPCWith = ({
   accountAddress,
   selectedChainId,
 }: {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rpc: { method: string; params: any; [key: string]: any };
   accountAddress: string;
   selectedChainId: string;

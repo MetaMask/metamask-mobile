@@ -1,14 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TabBar renders correctly 1`] = `
-Array [
+[
   <View
     style={
-      Object {
-        "backgroundColor": "#FFFFFF",
+      {
+        "backgroundColor": "#ffffff",
         "flexBasis": 1,
         "shadowColor": "#00000099",
-        "shadowOffset": Object {
+        "shadowOffset": {
           "height": 4,
           "width": 0,
         },
@@ -19,9 +19,9 @@ Array [
   />,
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#ffffff",
         "flexDirection": "row",
         "height": 48,
         "marginBottom": 0,
@@ -32,7 +32,7 @@ Array [
     <TouchableOpacity
       onPress={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "flex": 1,
         }
@@ -41,7 +41,7 @@ Array [
     >
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
             "backgroundColor": "transparent",
             "borderRadius": 20,
@@ -53,11 +53,11 @@ Array [
         }
       >
         <SvgMock
-          color="#0376C9"
+          color="#0376c9"
           height={24}
           name="Wallet"
           style={
-            Object {
+            {
               "height": 24,
               "width": 24,
             }
@@ -69,7 +69,7 @@ Array [
     <TouchableOpacity
       onPress={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "flex": 1,
         }
@@ -78,7 +78,7 @@ Array [
     >
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
             "backgroundColor": "transparent",
             "borderRadius": 20,
@@ -90,11 +90,11 @@ Array [
         }
       >
         <SvgMock
-          color="#BBC0C5"
+          color="#9fa6ae"
           height={24}
           name="Activity"
           style={
-            Object {
+            {
               "height": 24,
               "width": 24,
             }
@@ -106,7 +106,7 @@ Array [
     <TouchableOpacity
       onPress={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "flex": 1,
         }
@@ -115,9 +115,9 @@ Array [
     >
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
-            "backgroundColor": "#0376C9",
+            "backgroundColor": "#0376c9",
             "borderRadius": 16,
             "height": 32,
             "justifyContent": "center",
@@ -127,11 +127,11 @@ Array [
         }
       >
         <SvgMock
-          color="#FCFCFC"
+          color="#ffffff"
           height={20}
-          name="SwapVertival"
+          name="SwapVertical"
           style={
-            Object {
+            {
               "height": 20,
               "width": 20,
             }
@@ -143,7 +143,7 @@ Array [
     <TouchableOpacity
       onPress={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "flex": 1,
         }
@@ -152,7 +152,7 @@ Array [
     >
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
             "backgroundColor": "transparent",
             "borderRadius": 20,
@@ -164,11 +164,11 @@ Array [
         }
       >
         <SvgMock
-          color="#BBC0C5"
+          color="#9fa6ae"
           height={24}
           name="Explore"
           style={
-            Object {
+            {
               "height": 24,
               "width": 24,
             }
@@ -180,7 +180,7 @@ Array [
     <TouchableOpacity
       onPress={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "flex": 1,
         }
@@ -189,7 +189,7 @@ Array [
     >
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
             "backgroundColor": "transparent",
             "borderRadius": 20,
@@ -201,11 +201,11 @@ Array [
         }
       >
         <SvgMock
-          color="#BBC0C5"
+          color="#9fa6ae"
           height={24}
           name="Setting"
           style={
-            Object {
+            {
               "height": 24,
               "width": 24,
             }

@@ -1,25 +1,23 @@
-import React from 'react';
-import { shallow } from 'enzyme';
+import { renderScreen } from '../../../util/test/renderWithProvider';
 import QrScanner from './';
-import { Provider } from 'react-redux';
-import configureMockStore from 'redux-mock-store';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
+import Routes from '../../../constants/navigation/Routes';
 
-const mockStore = configureMockStore();
 const initialState = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
-const store = mockStore(initialState);
+
+// create mock for react-native-permissions
 
 describe('QrScanner', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <QrScanner />
-      </Provider>,
+    const { toJSON } = renderScreen(
+      QrScanner,
+      { name: Routes.QR_SCANNER },
+      { state: initialState },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

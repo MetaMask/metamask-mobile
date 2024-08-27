@@ -1,5 +1,9 @@
-import DefaultPreference from 'react-native-default-preference';
-import AppConstants from '../../AppConstants';
+import {
+  resetDappConnections,
+  resetApprovedHosts,
+  resetConnections,
+} from '../../../../app/actions/sdk';
+import { store } from '../../../../app/store';
 import SDKConnect from '../SDKConnect';
 
 async function removeAll(instance: SDKConnect) {
@@ -7,34 +11,28 @@ async function removeAll(instance: SDKConnect) {
     instance.removeChannel({
       channelId: id,
       sendTerminate: true,
-      emitRefresh: false,
     });
   }
 
-  for (const id in await instance.loadAndroidConnections()) {
+  for (const id in await instance.loadDappConnections()) {
     instance.removeChannel({
       channelId: id,
       sendTerminate: true,
-      emitRefresh: false,
     });
   }
-
-  // Remove all android connections
-  await DefaultPreference.clear(AppConstants.MM_SDK.ANDROID_CONNECTIONS);
 
   // Also remove approved hosts that may have been skipped.
   instance.state.approvedHosts = {};
   instance.state.disabledHosts = {};
   instance.state.connections = {};
+  instance.state.dappConnections = {};
   instance.state.connected = {};
   instance.state.connecting = {};
   instance.state.paused = false;
 
-  await DefaultPreference.clear(AppConstants.MM_SDK.SDK_CONNECTIONS);
-  await DefaultPreference.clear(AppConstants.MM_SDK.SDK_APPROVEDHOSTS);
-
-  // Delayed ui refresh
-  setTimeout(() => instance.emit('refresh'), 100);
+  store.dispatch(resetConnections({}));
+  store.dispatch(resetApprovedHosts({}));
+  store.dispatch(resetDappConnections({}));
 }
 
 export default removeAll;

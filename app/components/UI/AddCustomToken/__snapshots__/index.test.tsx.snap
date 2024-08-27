@@ -1,95 +1,177 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AddCustomToken should render correctly 1`] = `
+exports[`AddCustomToken render matches previous snapshot 1`] = `
 <View
   style={
-    Object {
-      "backgroundColor": "#FFFFFF",
+    {
+      "backgroundColor": "#ffffff",
       "flex": 1,
     }
   }
   testID="add-custom-token-screen"
 >
-  <ActionView
-    cancelTestID="add-custom-asset-cancel-button"
-    cancelText="CANCEL"
-    confirmButtonMode="normal"
-    confirmDisabled={true}
-    confirmTestID="add-custom-asset-confirm-button"
-    confirmText="IMPORT"
-    confirmed={false}
-    onCancelPress={[Function]}
-    onConfirmPress={[Function]}
-    showCancelButton={true}
-    showConfirmButton={true}
-    testID="add-asset-cancel-button"
-  >
+  <RCTScrollView>
     <View>
-      <Alert
-        renderIcon={[Function]}
-        style={
-          Object {
-            "marginHorizontal": 20,
-            "marginTop": 20,
-          }
-        }
-        type="Info"
-      >
-        <Text
-          style={
-            Object {
-              "color": "#24272A",
-            }
-          }
-        >
-          Token detection is not available on this network yet. Please import token manually and make sure you trust it. Learn about 
-        </Text>
-        <Text
-          onPress={[Function]}
-          style={
-            Object {
-              "color": "#0376C9",
-            }
-          }
-          suppressHighlighting={true}
-        >
-          token scams and security risks.
-        </Text>
-      </Alert>
       <View
         style={
-          Object {
-            "padding": 20,
+          [
+            {
+              "borderRadius": 8,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "paddingHorizontal": 12,
+              "paddingVertical": 8,
+            },
+            undefined,
+            {
+              "backgroundColor": "#0376c91a",
+              "borderColor": "#0376c9",
+            },
+            {
+              "marginHorizontal": 20,
+              "marginTop": 20,
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+            }
+          }
+        >
+          <Text
+            allowFontScaling={false}
+            style={
+              [
+                {
+                  "color": "#0376c9",
+                  "fontSize": 18,
+                },
+                {
+                  "paddingRight": 8,
+                  "paddingTop": 4,
+                },
+                {
+                  "fontFamily": "FontAwesome",
+                  "fontStyle": "normal",
+                  "fontWeight": "normal",
+                },
+                {},
+              ]
+            }
+          >
+            
+          </Text>
+        </View>
+        <Text
+          style={
+            [
+              {
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 30,
+                "fontWeight": "400",
+                "marginVertical": 2,
+              },
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              [
+                {
+                  "color": "#141618",
+                  "flex": 1,
+                  "fontSize": 14,
+                  "lineHeight": 17,
+                },
+                {
+                  "marginRight": 12,
+                },
+              ],
+            ]
+          }
+        >
+          <Text
+            style={
+              {
+                "color": "#141618",
+              }
+            }
+          >
+            Token detection is not available on this network yet. Please import token manually and make sure you trust it. Learn about 
+          </Text>
+          <Text
+            onPress={[Function]}
+            style={
+              {
+                "color": "#0376c9",
+              }
+            }
+            suppressHighlighting={true}
+          >
+            token scams and security risks.
+          </Text>
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "paddingHorizontal": 16,
+            "paddingTop": 16,
           }
         }
       >
         <Text
           style={
-            Object {
-              "color": "#24272A",
+            {
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
             }
           }
         >
-          Token Address
+          Token contract address
         </Text>
         <TextInput
           keyboardAppearance="light"
+          onBlur={[Function]}
           onChangeText={[Function]}
+          onFocus={[Function]}
           onSubmitEditing={[Function]}
           placeholder="0x..."
-          placeholderTextColor="#BBC0C5"
+          placeholderTextColor="#9fa6ae"
           returnKeyType="next"
           style={
-            Object {
-              "borderColor": "#BBC0C5",
-              "borderRadius": 4,
+            {
+              "borderColor": "#bbc0c5",
+              "borderRadius": 8,
               "borderWidth": 1,
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
-              "padding": 16,
+              "paddingHorizontal": 16,
+              "paddingVertical": 12,
             }
           }
           testID="input-token-address"
@@ -97,124 +179,72 @@ exports[`AddCustomToken should render correctly 1`] = `
         />
         <Text
           style={
-            Object {
-              "color": "#D73847",
+            {
+              "color": "#d73847",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
-              "marginTop": 15,
+              "marginTop": 0,
+              "paddingBottom": 8,
             }
           }
           testID="token-address-warning"
         />
       </View>
-      <View
-        style={
-          Object {
-            "padding": 20,
-          }
-        }
-      >
-        <Text
-          style={
-            Object {
-              "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontWeight": "400",
-            }
-          }
-        >
-          Token Symbol
-        </Text>
-        <TextInput
-          editable={true}
-          keyboardAppearance="light"
-          onBlur={[Function]}
-          onChangeText={[Function]}
-          onSubmitEditing={[Function]}
-          placeholder="GNO"
-          placeholderTextColor="#BBC0C5"
-          returnKeyType="next"
-          style={
-            Object {
-              "borderColor": "#BBC0C5",
-              "borderRadius": 4,
-              "borderWidth": 1,
-              "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontWeight": "400",
-              "padding": 16,
-            }
-          }
-          testID="input-token-symbol"
-          value=""
-        />
-        <Text
-          style={
-            Object {
-              "color": "#D73847",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontWeight": "400",
-              "marginTop": 15,
-            }
-          }
-        />
-      </View>
-      <View
-        style={
-          Object {
-            "padding": 20,
-          }
-        }
-      >
-        <Text
-          style={
-            Object {
-              "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontWeight": "400",
-            }
-          }
-        >
-          Token Decimal
-        </Text>
-        <TextInput
-          editable={true}
-          keyboardAppearance="light"
-          keyboardType="numeric"
-          maxLength={2}
-          onBlur={[Function]}
-          onChangeText={[Function]}
-          onSubmitEditing={[Function]}
-          placeholder="18"
-          placeholderTextColor="#BBC0C5"
-          returnKeyType="done"
-          style={
-            Object {
-              "borderColor": "#BBC0C5",
-              "borderRadius": 4,
-              "borderWidth": 1,
-              "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontWeight": "400",
-              "padding": 16,
-            }
-          }
-          testID="input-token-decimals"
-          value=""
-        />
-        <Text
-          style={
-            Object {
-              "color": "#D73847",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontWeight": "400",
-              "marginTop": 15,
-            }
-          }
-          testID="token-decimals-warning"
-        />
-      </View>
     </View>
-  </ActionView>
+  </RCTScrollView>
+  <View
+    style={
+      {
+        "paddingVertical": 20,
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      disabled={true}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "center",
+          "backgroundColor": "#0376c9",
+          "borderRadius": 24,
+          "color": "#0376c9",
+          "flexDirection": "row",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 18,
+          "fontWeight": "400",
+          "height": 48,
+          "justifyContent": "center",
+          "opacity": 0.5,
+          "paddingHorizontal": 16,
+          "position": "relative",
+          "width": "90%",
+        }
+      }
+      testID="next-button-custom-import"
+      variant="Primary"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Next
+      </Text>
+    </TouchableOpacity>
+  </View>
 </View>
 `;

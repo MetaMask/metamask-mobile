@@ -31,15 +31,13 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import {
-  setSwapsHasOnboarded,
+  getFeatureFlagChainId,
   setSwapsLiveness,
   swapsControllerTokens,
-  swapsHasOnboardedSelector,
   swapsTokensSelector,
   swapsTokensWithBalanceSelector,
   swapsTopAssetsSelector,
 } from '../../../reducers/swaps';
-import Analytics from '../../../core/Analytics/Analytics';
 import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
@@ -80,13 +78,12 @@ import {
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
-import AccountSelector from '../Ramp/common/components/AccountSelector';
-import {
-  SWAP_SOURCE_TOKEN,
-  SWAP_DEST_TOKEN,
-  SWAP_MAX_SLIPPAGE,
-} from '../../../../wdio/screen-objects/testIDs/Screens/QuoteView.js';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import AccountSelector from '../Ramp/components/AccountSelector';
+import { QuoteViewSelectorIDs } from '../../../../e2e/selectors/swaps/QuoteView.selectors';
+import { getDecimalChainId } from '../../../util/networks';
+import { useMetrics } from '../../../components/hooks/useMetrics';
+import { getSwapsLiveness } from '../../../reducers/swaps/utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -195,13 +192,12 @@ function SwapsAmountView({
   conversionRate,
   tokenExchangeRates,
   currentCurrency,
-  userHasOnboarded,
-  setHasOnboarded,
   setLiveness,
 }) {
   const navigation = useNavigation();
   const route = useRoute();
   const { colors } = useTheme();
+  const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
 
   const previousSelectedAddress = useRef();
@@ -258,49 +254,35 @@ function SwapsAmountView({
   useEffect(() => {
     (async () => {
       try {
-        const data = await swapsUtils.fetchSwapsFeatureLiveness(
-          chainId,
+        const featureFlags = await swapsUtils.fetchSwapsFeatureFlags(
+          getFeatureFlagChainId(chainId),
           AppConstants.SWAPS.CLIENT_ID,
         );
-        const isIphone = Device.isIos();
-        const isAndroid = Device.isAndroid();
-        const featureFlagKey = isIphone
-          ? 'mobileActiveIOS'
-          : isAndroid
-          ? 'mobileActiveAndroid'
-          : 'mobileActive';
-        const liveness =
-          typeof data === 'boolean' ? data : data?.[featureFlagKey] ?? false;
-        setLiveness(liveness, chainId);
+
+        const liveness = getSwapsLiveness(featureFlags, chainId);
+        setLiveness(chainId, featureFlags);
+
         if (liveness) {
           // Triggered when a user enters the MetaMask Swap feature
           InteractionManager.runAfterInteractions(() => {
             const parameters = {
-              source:
-                initialSource === SWAPS_NATIVE_ADDRESS
-                  ? 'MainView'
-                  : 'TokenView',
+              source: route.params?.sourcePage,
               activeCurrency: swapsTokens?.find((token) =>
                 toLowerCaseEquals(token.address, initialSource),
               )?.symbol,
-              chain_id: chainId,
+              chain_id: getDecimalChainId(chainId),
             };
-            Analytics.trackEventWithParameters(
-              MetaMetricsEvents.SWAPS_OPENED,
-              {},
-            );
-            Analytics.trackEventWithParameters(
-              MetaMetricsEvents.SWAPS_OPENED,
-              parameters,
-              true,
-            );
+
+            trackEvent(MetaMetricsEvents.SWAPS_OPENED, {
+              sensitiveProperties: { ...parameters },
+            });
           });
         } else {
           navigation.pop();
         }
       } catch (error) {
         Logger.error(error, 'Swaps: error while fetching swaps liveness');
-        setLiveness(false, chainId);
+        setLiveness(chainId, null);
         navigation.pop();
       }
     })();
@@ -511,8 +493,8 @@ function SwapsAmountView({
     } else {
       const sourceAddress = safeToChecksumAddress(sourceToken.address);
       const exchangeRate =
-        sourceAddress in tokenExchangeRates
-          ? tokenExchangeRates[sourceAddress]
+        tokenExchangeRates && sourceAddress in tokenExchangeRates
+          ? tokenExchangeRates[sourceAddress]?.price
           : undefined;
       balanceFiat = balanceToFiat(
         amount,
@@ -550,7 +532,7 @@ function SwapsAmountView({
     ) {
       const { TokensController } = Engine.context;
       const { address, symbol, decimals, name } = sourceToken;
-      await TokensController.addToken(address, symbol, decimals, { name });
+      await TokensController.addToken({ address, symbol, decimals, name });
     }
     return navigation.navigate(
       'SwapsQuotesView',
@@ -681,7 +663,7 @@ function SwapsAmountView({
         <View
           style={[styles.tokenButtonContainer, disabledView && styles.disabled]}
           pointerEvents={disabledView ? 'none' : 'auto'}
-          testID={SWAP_SOURCE_TOKEN}
+          testID={QuoteViewSelectorIDs.SOURCE_TOKEN}
         >
           {isInitialLoadingTokens ? (
             <ActivityIndicator size="small" />
@@ -762,7 +744,10 @@ function SwapsAmountView({
           </TouchableOpacity>
           <View style={styles.horizontalRule} />
         </View>
-        <View style={styles.tokenButtonContainer} testID={SWAP_DEST_TOKEN}>
+        <View
+          style={styles.tokenButtonContainer}
+          testID={QuoteViewSelectorIDs.DEST_TOKEN}
+        >
           {isInitialLoadingTokens ? (
             <ActivityIndicator size="small" />
           ) : (
@@ -902,7 +887,11 @@ function SwapsAmountView({
               hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
               disabled={isDirectWrapping}
             >
-              <Text bold link={!isDirectWrapping} testID={SWAP_MAX_SLIPPAGE}>
+              <Text
+                bold
+                link={!isDirectWrapping}
+                testID={QuoteViewSelectorIDs.MAX_SLIPPAGE}
+              >
                 {strings('swaps.max_slippage_amount', {
                   slippage: `${slippage}%`,
                 })}
@@ -988,14 +977,6 @@ SwapsAmountView.propTypes = {
    */
   tokenExchangeRates: PropTypes.object,
   /**
-   * Wether the user has been onboarded or not
-   */
-  userHasOnboarded: PropTypes.bool,
-  /**
-   * Function to set hasOnboarded
-   */
-  setHasOnboarded: PropTypes.func,
-  /**
    * Current network provider configuration
    */
   providerConfig: PropTypes.object,
@@ -1018,7 +999,7 @@ const mapStateToProps = (state) => ({
   swapsControllerTokens: swapsControllerTokens(state),
   accounts: selectAccounts(state),
   balances: selectContractBalances(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   tokenExchangeRates: selectContractExchangeRates(state),
@@ -1027,14 +1008,11 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   tokensWithBalance: swapsTokensWithBalanceSelector(state),
   tokensTopAssets: swapsTopAssetsSelector(state),
-  userHasOnboarded: swapsHasOnboardedSelector(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  setHasOnboarded: (hasOnboarded) =>
-    dispatch(setSwapsHasOnboarded(hasOnboarded)),
-  setLiveness: (liveness, chainId) =>
-    dispatch(setSwapsLiveness(liveness, chainId)),
+  setLiveness: (chainId, featureFlags) =>
+    dispatch(setSwapsLiveness(chainId, featureFlags)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(SwapsAmountView);

@@ -4,7 +4,7 @@ exports[`Checkbox should render correctly 1`] = `
 <TouchableOpacity
   disabled={false}
   style={
-    Object {
+    {
       "alignItems": "center",
       "flexDirection": "row",
       "height": 24,
@@ -15,10 +15,10 @@ exports[`Checkbox should render correctly 1`] = `
   <View
     accessibilityRole="checkbox"
     style={
-      Object {
+      {
         "alignItems": "center",
-        "backgroundColor": "#FFFFFF",
-        "borderColor": "#24272A",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#141618",
         "borderRadius": 4,
         "borderWidth": 2,
         "height": 20,

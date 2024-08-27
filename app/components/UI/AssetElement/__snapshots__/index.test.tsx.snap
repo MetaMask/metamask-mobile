@@ -5,7 +5,7 @@ exports[`AssetElement should render correctly 1`] = `
   onLongPress={[Function]}
   onPress={[Function]}
   style={
-    Object {
+    {
       "alignItems": "flex-start",
       "flex": 1,
       "flexDirection": "row",
@@ -14,5 +14,15 @@ exports[`AssetElement should render correctly 1`] = `
     }
   }
   testID="asset-DAI"
-/>
+>
+  <View
+    style={
+      {
+        "alignItems": "flex-end",
+        "alignSelf": "flex-end",
+        "flex": 1,
+      }
+    }
+  />
+</TouchableOpacity>
 `;

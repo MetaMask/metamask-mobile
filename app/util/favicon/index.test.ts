@@ -22,6 +22,7 @@ jest.mock('../../store', () => {
           ],
         },
       })),
+      dispatch: jest.fn(),
     },
   };
 });
@@ -73,6 +74,24 @@ describe('favicon utility getFaviconURLFromHtml() function', () => {
     );
     expect(faviconUrl).toEqual(
       new URL('https://metamask.github.io/test-dapp/metamask-fox.svg'),
+    );
+  });
+
+  it('ensures fetch is not overriding cookies policy', async () => {
+    // mocking with an actual html page content
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        text: () => Promise.resolve(''),
+        ok: true,
+      } as Response),
+    );
+
+    await getFaviconURLFromHtml('metamask.github.io/test-dapp/');
+
+    // Ensure fetch credentials is set to 'omit'
+    // non regression test for https://github.com/MetaMask/mobile-planning/issues/1561
+    expect((global.fetch as jest.Mock).mock.calls[0][1]).toEqual(
+      expect.objectContaining({ credentials: 'omit' }),
     );
   });
 

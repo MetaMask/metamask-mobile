@@ -3,8 +3,8 @@
 exports[`EditAccountName should render correctly 1`] = `
 <RCTSafeAreaView
   style={
-    Object {
-      "backgroundColor": "#FFFFFF",
+    {
+      "backgroundColor": "#ffffff",
       "flex": 1,
       "paddingHorizontal": 16,
     }
@@ -12,9 +12,8 @@ exports[`EditAccountName should render correctly 1`] = `
 >
   <View
     collapsable={false}
-    forwardedRef={[Function]}
     style={
-      Object {
+      {
         "flex": 1,
         "marginHorizontal": 16,
       }
@@ -22,9 +21,8 @@ exports[`EditAccountName should render correctly 1`] = `
   >
     <View
       collapsable={false}
-      forwardedRef={[Function]}
       style={
-        Object {
+        {
           "marginTop": 24,
         }
       }
@@ -32,8 +30,8 @@ exports[`EditAccountName should render correctly 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
-            "color": "#24272A",
+          {
+            "color": "#141618",
             "fontFamily": "Euclid Circular B",
             "fontSize": 16,
             "fontWeight": "500",
@@ -46,10 +44,10 @@ exports[`EditAccountName should render correctly 1`] = `
       </Text>
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
-            "backgroundColor": "#FFFFFF",
-            "borderColor": "#BBC0C5",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#bbc0c5",
             "borderRadius": 8,
             "borderWidth": 1,
             "flexDirection": "row",
@@ -62,7 +60,7 @@ exports[`EditAccountName should render correctly 1`] = `
       >
         <View
           style={
-            Object {
+            {
               "flex": 1,
             }
           }
@@ -74,11 +72,11 @@ exports[`EditAccountName should render correctly 1`] = `
             onChangeText={[Function]}
             onFocus={[Function]}
             style={
-              Object {
-                "backgroundColor": "#FFFFFF",
+              {
+                "backgroundColor": "#ffffff",
                 "borderColor": "transparent",
                 "borderWidth": 1,
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -96,9 +94,8 @@ exports[`EditAccountName should render correctly 1`] = `
     </View>
     <View
       collapsable={false}
-      forwardedRef={[Function]}
       style={
-        Object {
+        {
           "marginTop": 24,
         }
       }
@@ -106,8 +103,8 @@ exports[`EditAccountName should render correctly 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
-            "color": "#24272A",
+          {
+            "color": "#141618",
             "fontFamily": "Euclid Circular B",
             "fontSize": 16,
             "fontWeight": "500",
@@ -120,10 +117,10 @@ exports[`EditAccountName should render correctly 1`] = `
       </Text>
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
-            "backgroundColor": "#FFFFFF",
-            "borderColor": "#BBC0C5",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#bbc0c5",
             "borderRadius": 8,
             "borderWidth": 1,
             "flexDirection": "row",
@@ -136,7 +133,7 @@ exports[`EditAccountName should render correctly 1`] = `
       >
         <View
           style={
-            Object {
+            {
               "flex": 1,
             }
           }
@@ -146,13 +143,13 @@ exports[`EditAccountName should render correctly 1`] = `
             editable={false}
             onBlur={[Function]}
             onFocus={[Function]}
-            placeholder="0x"
+            placeholder="0x0"
             style={
-              Object {
-                "backgroundColor": "#FFFFFF",
+              {
+                "backgroundColor": "#ffffff",
                 "borderColor": "transparent",
                 "borderWidth": 1,
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -170,25 +167,26 @@ exports[`EditAccountName should render correctly 1`] = `
   </View>
   <View
     collapsable={false}
-    forwardedRef={[Function]}
     style={
-      Object {
+      {
         "flexDirection": "row",
         "marginHorizontal": 16,
       }
     }
   >
     <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
       activeOpacity={1}
       onPress={[MockFunction]}
       onPressIn={[Function]}
       onPressOut={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "alignSelf": "stretch",
           "backgroundColor": "transparent",
-          "borderColor": "#0376C9",
+          "borderColor": "#0376c9",
           "borderRadius": 24,
           "borderWidth": 1,
           "flex": 1,
@@ -204,8 +202,8 @@ exports[`EditAccountName should render correctly 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
-            "color": "#0376C9",
+          {
+            "color": "#0376c9",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
@@ -218,16 +216,18 @@ exports[`EditAccountName should render correctly 1`] = `
       </Text>
     </TouchableOpacity>
     <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
       activeOpacity={1}
       disabled={false}
       onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#0376C9",
+          "backgroundColor": "#0376c9",
           "borderRadius": 24,
           "flex": 1,
           "flexDirection": "row",
@@ -237,14 +237,14 @@ exports[`EditAccountName should render correctly 1`] = `
           "paddingHorizontal": 16,
         }
       }
-      testID="save-button"
+      testID="edit-account-name-save-button"
       variant="Primary"
     >
       <Text
         accessibilityRole="text"
         style={
-          Object {
-            "color": "#FCFCFC",
+          {
+            "color": "#ffffff",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",

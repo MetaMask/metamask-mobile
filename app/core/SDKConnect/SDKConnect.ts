@@ -4,11 +4,11 @@ import AppConstants from '../AppConstants';
 
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { NavigationContainerRef } from '@react-navigation/native';
-import { EventEmitter2 } from 'eventemitter2';
+import Engine from '../../core/Engine';
 import AndroidService from './AndroidSDK/AndroidService';
-import addAndroidConnection from './AndroidSDK/addAndroidConnection';
+import addDappConnection from './AndroidSDK/addDappConnection';
 import bindAndroidSDK from './AndroidSDK/bindAndroidSDK';
-import loadAndroidConnections from './AndroidSDK/loadAndroidConnections';
+import loadDappConnections from './AndroidSDK/loadDappConnections';
 import { Connection, ConnectionProps } from './Connection';
 import {
   approveHost,
@@ -24,6 +24,7 @@ import {
 import { init, postInit } from './InitializationManagement';
 import RPCQueueManager from './RPCQueueManager';
 import { DEFAULT_SESSION_TIMEOUT_MS } from './SDKConnectConstants';
+import DeeplinkProtocolService from './SDKDeeplinkProtocol/DeeplinkProtocolService';
 import { pause, resume, unmount } from './SessionManagement';
 import {
   handleAppState,
@@ -31,6 +32,7 @@ import {
   updateOriginatorInfos,
   updateSDKLoadingState,
 } from './StateManagement';
+import DevLogger from './utils/DevLogger';
 
 export interface ConnectedSessions {
   [id: string]: Connection;
@@ -69,7 +71,9 @@ export interface SDKConnectState {
   androidSDKStarted: boolean;
   androidSDKBound: boolean;
   androidService?: AndroidService;
-  androidConnections: SDKSessions;
+  deeplinkingServiceStarted: boolean;
+  deeplinkingService?: DeeplinkProtocolService;
+  dappConnections: SDKSessions;
   connecting: { [channelId: string]: boolean };
   approvedHosts: ApprovedHosts;
   sdkLoadingState: { [channelId: string]: boolean };
@@ -83,7 +87,7 @@ export interface SDKConnectState {
 
 export type SDKEventListener = (event: string) => void;
 
-export class SDKConnect extends EventEmitter2 {
+export class SDKConnect {
   private static instance: SDKConnect;
 
   public state: SDKConnectState = {
@@ -99,10 +103,12 @@ export class SDKConnect extends EventEmitter2 {
     appState: undefined,
     connected: {},
     connections: {},
-    androidConnections: {},
+    dappConnections: {},
     androidSDKStarted: false,
     androidSDKBound: false,
+    deeplinkingServiceStarted: false,
     androidService: undefined,
+    deeplinkingService: undefined,
     connecting: {},
     approvedHosts: {},
     sdkLoadingState: {},
@@ -121,14 +127,20 @@ export class SDKConnect extends EventEmitter2 {
     trigger,
     otherPublicKey,
     origin,
+    protocolVersion,
+    originatorInfo,
+    initialConnection,
     validUntil = Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
   }: ConnectionProps) {
     return connectToChannel({
       id,
       trigger,
       otherPublicKey,
+      protocolVersion,
       origin,
+      originatorInfo,
       validUntil,
+      initialConnection,
       instance: this,
     });
   }
@@ -169,6 +181,7 @@ export class SDKConnect extends EventEmitter2 {
     channelId,
     otherPublicKey,
     initialConnection,
+    protocolVersion,
     trigger,
     updateKey,
     context,
@@ -176,6 +189,7 @@ export class SDKConnect extends EventEmitter2 {
     channelId: string;
     otherPublicKey: string;
     context?: string;
+    protocolVersion?: ConnectionProps['protocolVersion'];
     updateKey?: boolean;
     trigger?: ConnectionProps['trigger'];
     initialConnection: boolean;
@@ -184,6 +198,7 @@ export class SDKConnect extends EventEmitter2 {
       channelId,
       otherPublicKey,
       context,
+      protocolVersion,
       updateKey,
       trigger,
       initialConnection,
@@ -211,18 +226,29 @@ export class SDKConnect extends EventEmitter2 {
     return this.state.androidSDKBound;
   }
 
-  async loadAndroidConnections(): Promise<{
+  async loadDappConnections(): Promise<{
     [id: string]: ConnectionProps;
   }> {
-    return loadAndroidConnections();
+    return loadDappConnections();
   }
 
   getAndroidConnections() {
     return this.state.androidService?.getConnections();
   }
 
-  async addAndroidConnection(connection: ConnectionProps) {
-    return addAndroidConnection(connection, this);
+  async addDappConnection(connection: ConnectionProps) {
+    return addDappConnection(connection, this);
+  }
+
+  public async refreshChannel({ channelId }: { channelId: string }) {
+    const session = this.state.connected[channelId];
+    if (!session) {
+      DevLogger.log(`SDKConnect::refreshChannel - session not found`);
+      return;
+    }
+    DevLogger.log(`SDKConnect::refreshChannel channelId=${channelId}`);
+    // Force enitting updated accounts
+    session.backgroundBridge?.notifySelectedAddressChanged();
   }
 
   /**
@@ -239,22 +265,23 @@ export class SDKConnect extends EventEmitter2 {
   public removeChannel({
     channelId,
     sendTerminate,
-    emitRefresh,
   }: {
     channelId: string;
     sendTerminate?: boolean;
-    emitRefresh?: boolean;
   }) {
     return removeChannel({
       channelId,
+      engine: Engine,
       sendTerminate,
       instance: this,
-      emitRefresh,
     });
   }
 
   public async removeAll() {
-    return removeAll(this);
+    const removeAllPromise = removeAll(this);
+    // Force close loading status
+    removeAllPromise.finally(() => this.hideLoadingState());
+    return removeAllPromise;
   }
 
   public getConnected() {
@@ -263,6 +290,12 @@ export class SDKConnect extends EventEmitter2 {
 
   public getConnections() {
     return this.state.connections;
+  }
+
+  public getConnection({ channelId }: { channelId: string }) {
+    return (
+      this.state.connections[channelId] ?? this.state.dappConnections[channelId]
+    );
   }
 
   public getApprovedHosts(_context?: string) {
@@ -330,8 +363,8 @@ export class SDKConnect extends EventEmitter2 {
     return init({ navigation, context, instance: this });
   }
 
-  async postInit() {
-    return postInit(this);
+  async postInit(callback?: () => void) {
+    return postInit(this, callback);
   }
 
   hasInitialized() {

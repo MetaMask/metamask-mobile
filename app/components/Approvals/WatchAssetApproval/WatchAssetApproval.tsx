@@ -1,6 +1,6 @@
 import React from 'react';
-import useApprovalRequest from '../../hooks/useApprovalRequest';
-import WatchAssetRequest from '../../UI/WatchAssetRequest';
+import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
+import WatchAssetRequest from '../../Views/confirmations/components/WatchAssetRequest';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import ApprovalModal from '../ApprovalModal';
 

@@ -1,6 +1,7 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TextStyle } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { Colors } from 'app/util/theme/models';
+import { typography } from '@metamask/design-tokens';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -86,6 +87,13 @@ const createStyles = (colors: Colors) =>
     centered: {
       textAlign: 'center',
     },
+    assetName: {
+      flexDirection: 'row',
+    },
+    stakeButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
     networth: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -100,6 +108,44 @@ const createStyles = (colors: Colors) =>
       fontWeight: '500',
     },
     portfolioLink: { marginLeft: 8 },
+    bottomModal: {
+      justifyContent: 'flex-end',
+      margin: 0,
+    },
+    box: {
+      backgroundColor: colors.background.default,
+      paddingHorizontal: 8,
+      paddingBottom: 20,
+      borderWidth: 0,
+      padding: 0,
+    },
+    boxContent: {
+      backgroundColor: colors.background.default,
+      paddingBottom: 21,
+      paddingTop: 0,
+      borderWidth: 0,
+    },
+    boxContentHeader: {
+      borderWidth: 0,
+      color: colors.text.default,
+      alignItems: 'center',
+    },
+
+    textMoadlHeader: {
+      ...typography.lBodyMDBold,
+      fontSize: 18,
+    } as TextStyle,
+    editNetworkButton: {
+      width: '100%',
+    },
+    notch: {
+      width: 40,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.border.muted,
+      alignSelf: 'center',
+      marginTop: 4,
+    },
   });
 
 export default createStyles;

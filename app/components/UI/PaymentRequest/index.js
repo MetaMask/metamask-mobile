@@ -40,13 +40,13 @@ import {
 } from '../../../util/payment-link-generator';
 import Device from '../../../util/device';
 import currencySymbols from '../../../util/currency-symbols.json';
-import { NetworksChainId } from '@metamask/controller-utils';
+import { ChainId } from '@metamask/controller-utils';
 import { getTicker } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
 import { utils as ethersUtils } from 'ethers';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { isTestNet } from '../../../util/networks';
-import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
+import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
 import {
   selectChainId,
   selectTicker,
@@ -58,7 +58,7 @@ import {
 import { selectTokenListArray } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 
 import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/RequestPaymentView.selectors';
 
@@ -433,13 +433,13 @@ class PaymentRequest extends PureComponent {
 
     if (isTDSupportedForNetwork) {
       const defaults =
-        chainId === NetworksChainId.mainnet
+        chainId === ChainId.mainnet
           ? defaultAssets
           : [{ ...defaultEth, symbol: getTicker(ticker), name: '' }];
       results = this.state.searchInputValue ? this.state.results : defaults;
     } else if (
       //Check to see if it is not a test net ticker symbol
-      Object.values(NetworksChainId).find((value) => value === chainId) &&
+      Object.values(ChainId).find((value) => value === chainId) &&
       !(parseInt(chainId, 10) > 1 && parseInt(chainId, 10) < 6)
     ) {
       results = [defaultEth];
@@ -553,7 +553,7 @@ class PaymentRequest extends PureComponent {
     const exchangeRate =
       selectedAsset &&
       selectedAsset.address &&
-      contractExchangeRates[selectedAsset.address];
+      contractExchangeRates?.[selectedAsset.address]?.price;
     if (selectedAsset.symbol !== 'ETH') {
       secondaryAmount = exchangeRate
         ? balanceToFiat(
@@ -587,7 +587,8 @@ class PaymentRequest extends PureComponent {
     const exchangeRate =
       selectedAsset &&
       selectedAsset.address &&
-      contractExchangeRates[selectedAsset.address];
+      contractExchangeRates &&
+      contractExchangeRates[selectedAsset.address]?.price;
     const undefAmount = (isDecimal(amount) && amount) || 0;
     let secondaryAmount, cryptoAmount;
     if (selectedAsset.symbol !== 'ETH' && exchangeRate && exchangeRate !== 0) {
@@ -631,7 +632,8 @@ class PaymentRequest extends PureComponent {
     const exchangeRate =
       selectedAsset &&
       selectedAsset.address &&
-      contractExchangeRates[selectedAsset.address];
+      contractExchangeRates &&
+      contractExchangeRates[selectedAsset.address]?.price;
     let res;
     // If primary currency is not crypo we need to know if there are conversion and exchange rates to handle0,
     // fiat conversion for the payment request
@@ -745,7 +747,8 @@ class PaymentRequest extends PureComponent {
     const exchangeRate =
       selectedAsset &&
       selectedAsset.address &&
-      contractExchangeRates[selectedAsset.address];
+      contractExchangeRates &&
+      contractExchangeRates[selectedAsset.address]?.price;
     let switchable = true;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
@@ -893,7 +896,7 @@ const mapStateToProps = (state) => ({
   contractExchangeRates: selectContractExchangeRates(state),
   searchEngine: state.settings.searchEngine,
   tokens: selectTokens(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   primaryCurrency: state.settings.primaryCurrency,
   ticker: selectTicker(state),
   chainId: selectChainId(state),

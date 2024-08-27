@@ -17,10 +17,10 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { MM_APP_STORE_LINK, MM_PLAY_STORE_LINK } from '../../../constants/urls';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 
 import { ScrollView } from 'react-native-gesture-handler';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const onboardingDeviceImage = require('../../../images/swaps_onboard_device.png');
@@ -32,40 +32,40 @@ export const createUpdateNeededNavDetails = createNavigationDetails(
 
 const UpdateNeeded = () => {
   const { colors } = useTheme();
+  const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
   const modalRef = useRef<ReusableModalRef | null>(null);
 
   useEffect(() => {
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED,
-      generateDeviceAnalyticsMetaData(),
-    );
-  }, []);
+    trackEvent(MetaMetricsEvents.FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED, {
+      ...generateDeviceAnalyticsMetaData(),
+    });
+  }, [trackEvent]);
 
   const dismissModal = (cb?: () => void): void =>
     modalRef?.current?.dismissModal(cb);
 
   const triggerClose = () =>
     dismissModal(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.FORCE_UPGRADE_REMIND_ME_LATER_CLICKED,
-        generateDeviceAnalyticsMetaData(),
-      );
+      trackEvent(MetaMetricsEvents.FORCE_UPGRADE_REMIND_ME_LATER_CLICKED, {
+        ...generateDeviceAnalyticsMetaData(),
+      });
     });
 
   const openAppStore = useCallback(() => {
     const link = Platform.OS === 'ios' ? MM_APP_STORE_LINK : MM_PLAY_STORE_LINK;
-    AnalyticsV2.trackEvent(
+    trackEvent(
       MetaMetricsEvents.FORCE_UPGRADE_UPDATE_TO_THE_LATEST_VERSION_CLICKED,
       { ...generateDeviceAnalyticsMetaData(), link },
     );
+
     Linking.canOpenURL(link).then(
       (supported) => {
         supported && Linking.openURL(link);
       },
       (err) => Logger.error(err, 'Unable to perform update'),
     );
-  }, []);
+  }, [trackEvent]);
 
   const onUpdatePressed = useCallback(() => {
     dismissModal(openAppStore);

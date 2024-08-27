@@ -1,19 +1,24 @@
-import React from 'react';
-import { shallow } from 'enzyme';
+import { renderScreen } from '../../../util/test/renderWithProvider';
 import Onboarding from './';
-import { Provider } from 'react-redux';
-import configureMockStore from 'redux-mock-store';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
-const mockStore = configureMockStore();
-const store = mockStore({});
+const mockInitialState = {
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+    },
+  },
+};
 
 describe('Onboarding', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <Onboarding />
-      </Provider>,
+    const { toJSON } = renderScreen(
+      Onboarding,
+      { name: 'Onboarding' },
+      {
+        state: mockInitialState,
+      },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -1,25 +1,20 @@
 import React from 'react';
 import Step3 from './';
-import { shallow } from 'enzyme';
-import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
-import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
 
-const mockStore = configureMockStore();
-const initialState = {
-  engine: {
-    backgroundState: initialBackgroundState,
+const coachmarkRef = {
+  yourAccountRef: {
+    current: {
+      measure: jest.fn(),
+    },
   },
 };
-const store = mockStore(initialState);
-
+const closeOnboardingWizard = jest.fn();
 describe('Step3', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <Step3 coachmarkRef={{}} />
-      </Provider>,
+    const { toJSON } = renderWithProvider(
+      <Step3 coachmarkRef={coachmarkRef} onClose={closeOnboardingWizard} />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

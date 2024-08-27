@@ -4,7 +4,7 @@ import { v1 as random } from 'uuid';
 import { safeComponentList } from './SafeComponentList';
 import { TemplateRendererComponent, TemplateRendererInput } from './types';
 import Text from '../../../component-library/components/Texts/Text';
-import { isValidElementName } from '../Approval/TemplateConfirmation/util';
+import { isValidElementName } from '../../Views/confirmations/components/Approval/TemplateConfirmation/util';
 
 interface TemplateRendererProps {
   sections?: TemplateRendererInput;
@@ -12,6 +12,8 @@ interface TemplateRendererProps {
 
 function getElement(
   section: TemplateRendererComponent,
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): React.ComponentType<any> {
   const component = section?.element;
   if (!component && !isValidElementName(component)) {

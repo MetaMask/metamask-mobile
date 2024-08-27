@@ -6,7 +6,7 @@ const initialState = {
   lockTime: -1, // Disabled by default
   useBlockieIcon: true,
   hideZeroBalanceTokens: false,
-  ledgerBetaEnabled: false,
+  basicFunctionalityEnabled: true,
 };
 
 const settingsReducer = (state = initialState, action) => {
@@ -46,11 +46,17 @@ const settingsReducer = (state = initialState, action) => {
         ...state,
         primaryCurrency: action.primaryCurrency,
       };
-    case 'SET_LEDGER_BETA_ENABLED':
+    case 'SET_SHOW_FIAT_ON_TESTNETS':
       return {
         ...state,
-        ledgerBetaEnabled: action.ledgerBetaEnabled,
+        showFiatOnTestnets: action.showFiatOnTestnets,
       };
+    case 'TOGGLE_BASIC_FUNCTIONALITY':
+      return {
+        ...state,
+        basicFunctionalityEnabled: action.basicFunctionalityEnabled,
+      };
+
     default:
       return state;
   }

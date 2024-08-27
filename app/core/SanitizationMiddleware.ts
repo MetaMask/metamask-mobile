@@ -83,6 +83,8 @@ export function createSanitizationMiddleware(): JsonRpcMiddleware<
   unknown,
   unknown
 > {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (req: JsonRpcRequest<unknown>, _: any, next: () => any) => {
     if (!Array.isArray(req.params)) {
       next();

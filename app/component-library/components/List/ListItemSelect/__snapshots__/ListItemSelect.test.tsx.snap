@@ -4,8 +4,8 @@ exports[`ListItemSelect should render snapshot correctly 1`] = `
 <TouchableOpacity
   disabled={false}
   style={
-    Object {
-      "backgroundColor": "#FFFFFF",
+    {
+      "backgroundColor": "#ffffff",
       "borderRadius": 4,
       "opacity": 1,
       "padding": 16,
@@ -17,7 +17,7 @@ exports[`ListItemSelect should render snapshot correctly 1`] = `
     accessibilityRole="none"
     accessible={true}
     style={
-      Object {
+      {
         "alignItems": "center",
         "flexDirection": "row",
         "padding": 0,

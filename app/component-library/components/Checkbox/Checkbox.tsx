@@ -29,11 +29,13 @@ const Checkbox = ({
   isDisabled = false,
   isReadOnly = false,
   isDanger = false,
+  checkboxStyle,
   ...props
 }: CheckboxProps) => {
   const { hitSlop, ...iconProps } = props;
   const { styles } = useStyles(styleSheet, {
     style,
+    checkboxStyle,
     isChecked,
     isIndeterminate,
     isDisabled,

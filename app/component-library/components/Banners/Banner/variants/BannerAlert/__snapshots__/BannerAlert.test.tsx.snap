@@ -3,9 +3,9 @@
 exports[`BannerAlert should render BannerAlert 1`] = `
 <View
   style={
-    Object {
-      "backgroundColor": "#0376C919",
-      "borderColor": "#0376C9",
+    {
+      "backgroundColor": "#0376c91a",
+      "borderColor": "#0376c9",
       "borderLeftWidth": 4,
       "borderRadius": 4,
       "flexDirection": "row",
@@ -17,17 +17,17 @@ exports[`BannerAlert should render BannerAlert 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "marginRight": 8,
       }
     }
   >
     <SvgMock
-      color="#0376C9"
+      color="#0376c9"
       height={24}
       name="Info"
       style={
-        Object {
+        {
           "height": 24,
           "width": 24,
         }
@@ -37,7 +37,7 @@ exports[`BannerAlert should render BannerAlert 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "flex": 1,
       }
     }
@@ -45,8 +45,8 @@ exports[`BannerAlert should render BannerAlert 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        Object {
-          "color": "#24272A",
+        {
+          "color": "#141618",
           "fontFamily": "Euclid Circular B",
           "fontSize": 16,
           "fontWeight": "500",
@@ -60,8 +60,8 @@ exports[`BannerAlert should render BannerAlert 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        Object {
-          "color": "#24272A",
+        {
+          "color": "#141618",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
           "fontWeight": "400",
@@ -73,14 +73,15 @@ exports[`BannerAlert should render BannerAlert 1`] = `
       Sample Banner Alert Description
     </Text>
     <Text
-      accessibilityRole="text"
+      accessibilityRole="link"
+      accessible={true}
       onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
       style={
-        Object {
+        {
           "backgroundColor": "transparent",
-          "color": "#24272A",
+          "color": "#141618",
         }
       }
       suppressHighlighting={true}
@@ -88,8 +89,8 @@ exports[`BannerAlert should render BannerAlert 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
-            "color": "#0376C9",
+          {
+            "color": "#0376c9",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
@@ -104,7 +105,7 @@ exports[`BannerAlert should render BannerAlert 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "marginLeft": 12,
       }
     }
@@ -117,7 +118,7 @@ exports[`BannerAlert should render BannerAlert 1`] = `
       onPressIn={[Function]}
       onPressOut={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "borderRadius": 8,
           "height": 24,
@@ -129,11 +130,11 @@ exports[`BannerAlert should render BannerAlert 1`] = `
       testID="banner-close-button-icon"
     >
       <SvgMock
-        color="#24272A"
+        color="#141618"
         height={16}
         name="Close"
         style={
-          Object {
+          {
             "height": 16,
             "width": 16,
           }

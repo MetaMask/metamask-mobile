@@ -1,6 +1,7 @@
 # Banner
-
+[BannerAlert](https://metamask-consensys.notion.site/Banner-Alert-56177453644641ed8ef5c96db6a7681f)
 ![BannerAlert](./variants/BannerAlert/BannerAlert.png)
+[BannerTip](https://metamask-consensys.notion.site/Banner-Tip-67fdb01ab850472f90abc6f4127395cb)
 ![BannerTip](./variants/BannerTip/BannerTip.png)
 
 This component is a union Banner component, which consists of [BannerAlert](../BannerAlert/BannerAlert.tsx) and [BannerTip](../BannerTip/BannerTip.tsx).

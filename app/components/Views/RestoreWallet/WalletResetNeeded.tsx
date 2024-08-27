@@ -18,8 +18,8 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { createRestoreWalletNavDetails } from './RestoreWallet';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { trackEventV2 as trackEvent } from '../../../util/analyticsV2';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 export const createWalletResetNeededNavDetails = createNavigationDetails(
   Routes.VAULT_RECOVERY.WALLET_RESET_NEEDED,
@@ -27,8 +27,11 @@ export const createWalletResetNeededNavDetails = createNavigationDetails(
 
 const WalletResetNeeded = () => {
   const { colors } = useAppThemeFromContext();
+  const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<StackNavigationProp<any>>();
 
   const deviceMetaData = useMemo(() => generateDeviceAnalyticsMetaData(), []);
@@ -38,7 +41,7 @@ const WalletResetNeeded = () => {
       MetaMetricsEvents.VAULT_CORRUPTION_WALLET_RESET_NEEDED_SCREEN_VIEWED,
       deviceMetaData,
     );
-  }, [deviceMetaData]);
+  }, [trackEvent, deviceMetaData]);
 
   const handleCreateNewWallet = useCallback(async () => {
     trackEvent(
@@ -48,7 +51,7 @@ const WalletResetNeeded = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.DELETE_WALLET,
     });
-  }, [deviceMetaData, navigation]);
+  }, [deviceMetaData, navigation, trackEvent]);
 
   const handleTryAgain = useCallback(async () => {
     trackEvent(
@@ -60,7 +63,7 @@ const WalletResetNeeded = () => {
         previousScreen: Routes.VAULT_RECOVERY.WALLET_RESET_NEEDED,
       }),
     );
-  }, [deviceMetaData, navigation]);
+  }, [deviceMetaData, navigation, trackEvent]);
 
   return (
     <SafeAreaView style={styles.screen}>

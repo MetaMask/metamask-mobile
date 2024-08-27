@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 
-import { Alert, InteractionManager } from 'react-native';
+import { Alert } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
 import { ethers } from 'ethers';
@@ -18,25 +18,27 @@ import WalletConnect from '../../../core/WalletConnect/WalletConnect';
 import {
   getMethodData,
   TOKEN_METHOD_TRANSFER,
-  APPROVE_FUNCTION_SIGNATURE,
   getTokenValueParam,
   getTokenAddressParam,
   calcTokenAmount,
   getTokenValueParamAsHex,
-  isSwapTransaction,
+  getIsSwapApproveOrSwapTransaction,
+  isApprovalTransaction,
 } from '../../../util/transactions';
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { query } from '@metamask/controller-utils';
-import Analytics from '../../../core/Analytics/Analytics';
 import BigNumber from 'bignumber.js';
 import { toLowerCaseEquals } from '../../../util/general';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-import { getAddressAccountType } from '../../../util/address';
+import {
+  getAddressAccountType,
+  isHardwareAccount,
+} from '../../../util/address';
+
 import {
   selectChainId,
   selectProviderType,
@@ -56,14 +58,78 @@ import FlowLoaderModal from '../../Approvals/FlowLoaderModal';
 import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal';
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+import { getDeviceId } from '../../../core/Ledger/Ledger';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
+import ExtendedKeyringTypes from '../../../constants/keyringTypes';
+import { useMetrics } from '../../../components/hooks/useMetrics';
+import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
+import { STX_NO_HASH_ERROR } from '../../../util/smart-transactions/smart-publish-hook';
+import { getSmartTransactionMetricsProperties } from '../../../util/smart-transactions';
+import { cloneDeep, isEqual } from 'lodash';
+import { selectSwapsTransactions } from '../../../selectors/transactionController';
+
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
 ///: END:ONLY_INCLUDE_IF
 
 const hstInterface = new ethers.utils.Interface(abi);
 
+function useSwapsTransactions() {
+  const swapTransactions = useSelector(selectSwapsTransactions, isEqual);
+
+  // Memo prevents fresh fallback empty object on every render.
+  return useMemo(() => swapTransactions ?? {}, [swapTransactions]);
+}
+
+export const useSwapConfirmedEvent = ({ trackSwaps }) => {
+  const [transactionMetaIdsForListening, setTransactionMetaIdsForListening] =
+    useState([]);
+
+  const addTransactionMetaIdForListening = useCallback(
+    (txMetaId) => {
+      setTransactionMetaIdsForListening([
+        ...transactionMetaIdsForListening,
+        txMetaId,
+      ]);
+    },
+    [transactionMetaIdsForListening],
+  );
+  const swapsTransactions = useSwapsTransactions();
+
+  useEffect(() => {
+    // Cannot directly call trackSwaps from the event listener in autoSign due to stale closure of swapsTransactions
+    const [txMetaId, ...restTxMetaIds] = transactionMetaIdsForListening;
+
+    if (txMetaId && swapsTransactions[txMetaId]) {
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionConfirmed',
+        (transactionMeta) => {
+          if (
+            swapsTransactions[transactionMeta.id]?.analytics &&
+            swapsTransactions[transactionMeta.id]?.paramsForAnalytics
+          ) {
+            trackSwaps(
+              MetaMetricsEvents.SWAP_COMPLETED,
+              transactionMeta,
+              swapsTransactions,
+            );
+          }
+        },
+        (transactionMeta) => transactionMeta.id === txMetaId,
+      );
+      setTransactionMetaIdsForListening(restTxMetaIds);
+    }
+  }, [trackSwaps, transactionMetaIdsForListening, swapsTransactions]);
+
+  return {
+    addTransactionMetaIdForListening,
+    transactionMetaIdsForListening,
+  };
+};
+
 const RootRPCMethodsUI = (props) => {
+  const { trackEvent } = useMetrics();
   const [transactionModalType, setTransactionModalType] = useState(undefined);
   const tokenList = useSelector(selectTokenList);
   const setTransactionObject = props.setTransactionObject;
@@ -74,10 +140,11 @@ const RootRPCMethodsUI = (props) => {
   };
 
   const trackSwaps = useCallback(
-    async (event, transactionMeta) => {
+    async (event, transactionMeta, swapsTransactions) => {
       try {
-        const { TransactionController } = Engine.context;
-        const newSwapsTransactions = props.swapsTransactions;
+        const { TransactionController, SmartTransactionsController } =
+          Engine.context;
+        const newSwapsTransactions = swapsTransactions;
         const swapTransaction = newSwapsTransactions[transactionMeta.id];
         const {
           sentAt,
@@ -90,35 +157,31 @@ const RootRPCMethodsUI = (props) => {
           TransactionController.state.transactions.find(
             ({ id }) => id === approvalTransactionMetaId,
           );
-        const ethBalance = await query(
-          TransactionController.ethQuery,
-          'getBalance',
-          [props.selectedAddress],
-        );
-        const receipt = await query(
-          TransactionController.ethQuery,
-          'getTransactionReceipt',
-          [transactionMeta.transactionHash],
-        );
 
-        const currentBlock = await query(
-          TransactionController.ethQuery,
-          'getBlockByHash',
-          [receipt.blockHash, false],
-        );
+        const ethQuery = Engine.getGlobalEthQuery();
+
+        const ethBalance = await query(ethQuery, 'getBalance', [
+          props.selectedAddress,
+        ]);
+        const receipt = await query(ethQuery, 'getTransactionReceipt', [
+          transactionMeta.hash,
+        ]);
+
+        const currentBlock = await query(ethQuery, 'getBlockByHash', [
+          receipt.blockHash,
+          false,
+        ]);
         let approvalReceipt;
-        if (approvalTransaction?.transactionHash) {
-          approvalReceipt = await query(
-            TransactionController.ethQuery,
-            'getTransactionReceipt',
-            [approvalTransaction.transactionHash],
-          );
+        if (approvalTransaction?.hash) {
+          approvalReceipt = await query(ethQuery, 'getTransactionReceipt', [
+            approvalTransaction.hash,
+          ]);
         }
         const tokensReceived = swapsUtils.getSwapsTokensReceived(
           receipt,
           approvalReceipt,
-          transactionMeta?.transaction,
-          approvalTransaction?.transaction,
+          transactionMeta?.txParams,
+          approvalTransaction?.txParams,
           swapTransaction.destinationToken,
           ethAccountBalance,
           ethBalance,
@@ -129,8 +192,8 @@ const RootRPCMethodsUI = (props) => {
           newSwapsTransactions[transactionMeta.id].receivedDestinationAmount =
             new BigNumber(tokensReceived, 16).toString(10);
         }
-        TransactionController.update({
-          swapsTransactions: newSwapsTransactions,
+        TransactionController.update((state) => {
+          state.swapsTransactions = newSwapsTransactions;
         });
 
         const timeToMine = currentBlock.timestamp - sentAt;
@@ -153,67 +216,102 @@ const RootRPCMethodsUI = (props) => {
 
         const analyticsParams = {
           ...swapTransaction.analytics,
-          account_type: getAddressAccountType(transactionMeta.transaction.from),
+          account_type: getAddressAccountType(transactionMeta.txParams.from),
         };
         delete newSwapsTransactions[transactionMeta.id].analytics;
         delete newSwapsTransactions[transactionMeta.id].paramsForAnalytics;
 
-        InteractionManager.runAfterInteractions(() => {
-          const parameters = {
-            ...analyticsParams,
-            time_to_mine: timeToMine,
-            estimated_vs_used_gasRatio: estimatedVsUsedGasRatio,
-            quote_vs_executionRatio: quoteVsExecutionRatio,
-            token_to_amount_received: tokenToAmountReceived.toString(),
-          };
-          Analytics.trackEventWithParameters(event, {});
-          Analytics.trackEventWithParameters(event, parameters, true);
-        });
+        const smartTransactionMetricsProperties =
+          getSmartTransactionMetricsProperties(
+            SmartTransactionsController,
+            transactionMeta,
+          );
+
+        const parameters = {
+          ...analyticsParams,
+          time_to_mine: timeToMine,
+          estimated_vs_used_gasRatio: estimatedVsUsedGasRatio,
+          quote_vs_executionRatio: quoteVsExecutionRatio,
+          token_to_amount_received: tokenToAmountReceived.toString(),
+          is_smart_transaction: props.shouldUseSmartTransaction,
+          ...smartTransactionMetricsProperties,
+        };
+
+        trackEvent(event, { sensitiveProperties: { ...parameters } });
       } catch (e) {
         Logger.error(e, MetaMetricsEvents.SWAP_TRACKING_FAILED);
-        InteractionManager.runAfterInteractions(() => {
-          Analytics.trackEvent(MetaMetricsEvents.SWAP_TRACKING_FAILED, {
-            error: e,
-          });
+        trackEvent(MetaMetricsEvents.SWAP_TRACKING_FAILED, {
+          error: e,
         });
       }
     },
-    [props.selectedAddress, props.swapsTransactions],
+    [props.selectedAddress, props.shouldUseSmartTransaction, trackEvent],
   );
+
+  const { addTransactionMetaIdForListening } = useSwapConfirmedEvent({
+    trackSwaps,
+  });
+  const swapsTransactions = useSwapsTransactions();
 
   const autoSign = useCallback(
     async (transactionMeta) => {
-      const { TransactionController, KeyringController } = Engine.context;
+      const { KeyringController } = Engine.context;
+      const { id: transactionId } = transactionMeta;
+
       try {
-        TransactionController.hub.once(
-          `${transactionMeta.id}:finished`,
+        Engine.controllerMessenger.subscribeOnceIf(
+          'TransactionController:transactionFinished',
           (transactionMeta) => {
             if (transactionMeta.status === 'submitted') {
               NotificationManager.watchSubmittedTransaction({
                 ...transactionMeta,
-                assetType: transactionMeta.transaction.assetType,
+                assetType: transactionMeta.txParams.assetType,
               });
             } else {
-              if (props.swapsTransactions[transactionMeta.id]?.analytics) {
-                trackSwaps(MetaMetricsEvents.SWAP_FAILED, transactionMeta);
+              if (swapsTransactions[transactionMeta.id]?.analytics) {
+                trackSwaps(
+                  MetaMetricsEvents.SWAP_FAILED,
+                  transactionMeta,
+                  swapsTransactions,
+                );
               }
               throw transactionMeta.error;
             }
           },
+          (transactionMeta) => transactionMeta.id === transactionId,
         );
-        TransactionController.hub.once(
-          `${transactionMeta.id}:confirmed`,
-          (transactionMeta) => {
-            if (props.swapsTransactions[transactionMeta.id]?.analytics) {
-              trackSwaps(MetaMetricsEvents.SWAP_COMPLETED, transactionMeta);
-            }
-          },
-        );
+
+        // Queue txMetaId to listen for confirmation event
+        addTransactionMetaIdForListening(transactionMeta.id);
+
         await KeyringController.resetQRKeyringState();
 
-        Engine.acceptPendingApproval(transactionMeta.id);
+        const isLedgerAccount = isHardwareAccount(
+          transactionMeta.txParams.from,
+          [ExtendedKeyringTypes.ledger],
+        );
+
+        // For Ledger Accounts we handover the signing to the confirmation flow
+        if (isLedgerAccount) {
+          const deviceId = await getDeviceId();
+
+          props.navigation.navigate(
+            ...createLedgerTransactionModalNavDetails({
+              transactionId: transactionMeta.id,
+              deviceId,
+              // eslint-disable-next-line no-empty-function
+              onConfirmationComplete: () => {},
+              type: 'signTransaction',
+            }),
+          );
+        } else {
+          Engine.acceptPendingApproval(transactionMeta.id);
+        }
       } catch (error) {
-        if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+        if (
+          !error?.message.startsWith(KEYSTONE_TX_CANCELED) &&
+          !error?.message.startsWith(STX_NO_HASH_ERROR)
+        ) {
           Alert.alert(
             strings('transactions.transaction_error'),
             error && error.message,
@@ -221,31 +319,44 @@ const RootRPCMethodsUI = (props) => {
           );
           Logger.error(error, 'error while trying to send transaction (Main)');
         } else {
-          AnalyticsV2.trackEvent(
-            MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-          );
+          trackEvent(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED);
         }
       }
     },
-    [props.swapsTransactions, trackSwaps],
+    [
+      props.navigation,
+      trackSwaps,
+      trackEvent,
+      swapsTransactions,
+      addTransactionMetaIdForListening,
+    ],
   );
 
   const onUnapprovedTransaction = useCallback(
-    async (transactionMeta) => {
+    async (transactionMetaOriginal) => {
+      const transactionMeta = cloneDeep(transactionMetaOriginal);
+
       if (transactionMeta.origin === TransactionTypes.MMM) return;
 
-      const to = transactionMeta.transaction.to?.toLowerCase();
-      const { data } = transactionMeta.transaction;
+      const to = transactionMeta.txParams.to?.toLowerCase();
+      const { data } = transactionMeta.txParams;
 
-      if (isSwapTransaction(data, transactionMeta.origin, to, props.chainId)) {
+      if (
+        getIsSwapApproveOrSwapTransaction(
+          data,
+          transactionMeta.origin,
+          to,
+          props.chainId,
+        )
+      ) {
         autoSign(transactionMeta);
       } else {
         const {
-          transaction: { value, gas, gasPrice, data },
+          txParams: { value, gas, gasPrice, data },
         } = transactionMeta;
         const { AssetsContractController } = Engine.context;
-        transactionMeta.transaction.gas = hexToBN(gas);
-        transactionMeta.transaction.gasPrice = gasPrice && hexToBN(gasPrice);
+        transactionMeta.txParams.gas = hexToBN(gas);
+        transactionMeta.txParams.gasPrice = gasPrice && hexToBN(gasPrice);
 
         if (
           (value === '0x0' || !value) &&
@@ -284,39 +395,34 @@ const RootRPCMethodsUI = (props) => {
           const tokenAmount =
             tokenData && calcTokenAmount(tokenValue, asset.decimals).toFixed();
 
-          transactionMeta.transaction.value = hexToBN(
+          transactionMeta.txParams.value = hexToBN(
             getTokenValueParamAsHex(tokenData),
           );
-          transactionMeta.transaction.readableValue = tokenAmount;
-          transactionMeta.transaction.to = toAddress;
+          transactionMeta.txParams.readableValue = tokenAmount;
+          transactionMeta.txParams.to = toAddress;
 
           setTransactionObject({
-            type: 'INDIVIDUAL_TOKEN_TRANSACTION',
             selectedAsset: asset,
             id: transactionMeta.id,
             origin: transactionMeta.origin,
             securityAlertResponse: transactionMeta.securityAlertResponse,
-            ...transactionMeta.transaction,
+            ...transactionMeta.txParams,
           });
         } else {
-          transactionMeta.transaction.value = hexToBN(value);
-          transactionMeta.transaction.readableValue = fromWei(
-            transactionMeta.transaction.value,
+          transactionMeta.txParams.value = hexToBN(value);
+          transactionMeta.txParams.readableValue = fromWei(
+            transactionMeta.txParams.value,
           );
 
           setEtherTransaction({
             id: transactionMeta.id,
             origin: transactionMeta.origin,
             securityAlertResponse: transactionMeta.securityAlertResponse,
-            ...transactionMeta.transaction,
+            ...transactionMeta.txParams,
           });
         }
 
-        if (
-          data &&
-          data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
-          (!value || isZeroValue(value))
-        ) {
+        if (isApprovalTransaction(data) && (!value || isZeroValue(value))) {
           setTransactionModalType(TransactionModalType.Transaction);
         } else {
           setTransactionModalType(TransactionModalType.Dapp);
@@ -339,13 +445,13 @@ const RootRPCMethodsUI = (props) => {
 
   // unapprovedTransaction effect
   useEffect(() => {
-    Engine.context.TransactionController.hub.on(
-      'unapprovedTransaction',
+    Engine.controllerMessenger.subscribe(
+      'TransactionController:unapprovedTransactionAdded',
       onUnapprovedTransaction,
     );
     return () => {
-      Engine.context.TransactionController.hub.removeListener(
-        'unapprovedTransaction',
+      Engine.controllerMessenger.unsubscribe(
+        'TransactionController:unapprovedTransactionAdded',
         onUnapprovedTransaction,
       );
     };
@@ -378,7 +484,7 @@ const RootRPCMethodsUI = (props) => {
       <FlowLoaderModal />
       <TemplateConfirmationModal />
       {
-        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       }
       <InstallSnapApproval />
       {
@@ -389,7 +495,6 @@ const RootRPCMethodsUI = (props) => {
 };
 
 RootRPCMethodsUI.propTypes = {
-  swapsTransactions: PropTypes.object,
   /**
    * Object that represents the navigator
    */
@@ -414,15 +519,18 @@ RootRPCMethodsUI.propTypes = {
    * Chain id
    */
   chainId: PropTypes.string,
+  /**
+   * If smart transactions should be used
+   */
+  shouldUseSmartTransaction: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   chainId: selectChainId(state),
   tokens: selectTokens(state),
-  swapsTransactions:
-    state.engine.backgroundState.TransactionController.swapsTransactions || {},
   providerType: selectProviderType(state),
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

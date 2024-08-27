@@ -3,15 +3,15 @@
 exports[`EnterPasswordSimple should render correctly 1`] = `
 <ContextProvider
   value={
-    Object {
+    {
       "options": undefined,
     }
   }
 >
   <ThemeProvider
     value={
-      Object {
-        "colors": Object {
+      {
+        "colors": {
           "background": "rgb(242, 242, 242)",
           "border": "rgb(216, 216, 216)",
           "card": "rgb(255, 255, 255)",
@@ -26,8 +26,8 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
     <ForwardRef(BaseNavigationContainer)>
       <EnterPasswordSimple
         route={
-          Object {
-            "params": Object {},
+          {
+            "params": {},
           }
         }
       />

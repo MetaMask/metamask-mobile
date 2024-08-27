@@ -3,6 +3,8 @@ import { scale } from 'react-native-size-matters';
 import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     mainWrapper: {

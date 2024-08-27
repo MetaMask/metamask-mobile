@@ -1,27 +1,26 @@
-// Third party dependencies.
-import { ImageSourcePropType } from 'react-native';
-
 // External dependencies.
 import { BadgeBaseProps } from '../../foundation/BadgeBase/BadgeBase.types';
+import { AvatarNetworkProps } from '../../../../Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.types';
 
 /**
  * BadgeNetwork component props.
  */
-export interface BadgeNetworkProps extends Omit<BadgeBaseProps, 'children'> {
+export interface BadgeNetworkProps
+  extends Omit<BadgeBaseProps, 'children'>,
+    AvatarNetworkProps {
   /**
-   * Optional prop for name of the network.
+   * Optional prop to control whether the Badge should be scaled to the content.
+   * @default true
    */
-  name?: string;
-  /**
-   * Optional prop to control the image source of the network
-   * from either a local or remote source.
-   */
-  imageSource?: ImageSourcePropType;
+  isScaled?: boolean;
 }
 
 /**
  * Style sheet BadgeNetwork parameters.
  */
-export type BadgeNetworkStyleSheetVars = Pick<BadgeNetworkProps, 'style'> & {
+export type BadgeNetworkStyleSheetVars = Pick<
+  BadgeNetworkProps,
+  'style' | 'size' | 'isScaled'
+> & {
   containerSize: { width: number; height: number } | null;
 };

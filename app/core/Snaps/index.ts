@@ -1,13 +1,9 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import SnapBridge from './SnapBridge';
-import SnapDuplex from './SnapDuplex';
-import WebviewExecutionService from './WebviewExecutionService';
-import WebviewPostMessageStream from './WebviewPostMessageStream';
-import SnapWebviewPostMessageStream from './SnapWebviewPostMessageStream';
-import snapsState from './SnapsState';
 import {
   ExcludedSnapPermissions,
   ExcludedSnapEndowments,
+  EndowmentPermissions,
 } from './permissions/permissions';
 import {
   detectSnapLocation,
@@ -16,14 +12,10 @@ import {
 } from './location';
 
 export {
-  snapsState,
-  SnapDuplex,
   SnapBridge,
-  WebviewExecutionService,
-  WebviewPostMessageStream,
-  SnapWebviewPostMessageStream,
   ExcludedSnapPermissions,
   ExcludedSnapEndowments,
+  EndowmentPermissions,
   fetchFunction,
   detectSnapLocation,
 };

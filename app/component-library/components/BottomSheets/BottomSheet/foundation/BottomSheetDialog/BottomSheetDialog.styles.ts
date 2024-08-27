@@ -22,18 +22,13 @@ const styleSheet = (params: {
   const { vars, theme } = params;
   const { colors, shadows } = theme;
   const { maxSheetHeight, screenBottomPadding, isFullscreen } = vars;
-  const positionObject = isFullscreen
-    ? { ...StyleSheet.absoluteFillObject }
-    : {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-      };
 
   return StyleSheet.create({
     base: Object.assign({
-      ...positionObject,
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
     } as ViewStyle) as ViewStyle,
     sheet: {
       backgroundColor: colors.background.default,

@@ -281,15 +281,6 @@ describe('REGEX :: regex.number', () => {
   });
 });
 
-describe('REGEX :: regex.portfolioUrl', () => {
-  it('should not match empty string', () => {
-    expect(regex.portfolioUrl.test('')).toEqual(false);
-  });
-  it('should empty url', () => {
-    expect(regex.portfolioUrl.test('http://')).toEqual(false);
-  });
-});
-
 describe('REGEX :: regex.prefixedFormattedHexString', () => {
   it('should match a formatted hexadecimal string with "0x" prefix', () => {
     expect(regex.prefixedFormattedHexString.test('0x1A2B3C')).toEqual(true);

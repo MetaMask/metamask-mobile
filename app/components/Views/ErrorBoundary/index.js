@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, useCallback } from 'react';
 import {
   Text,
   TouchableOpacity,
@@ -9,6 +9,8 @@ import {
   Alert,
 } from 'react-native';
 import PropTypes from 'prop-types';
+import { lastEventId as getLatestSentryId } from '@sentry/react-native';
+import { captureSentryFeedback } from '../../../util/sentry/utils';
 import { RevealPrivateCredential } from '../RevealPrivateCredential';
 import Logger from '../../../util/Logger';
 import { fontStyles } from '../../../styles/common';
@@ -18,6 +20,10 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { mockTheme, ThemeContext, useTheme } from '../../../util/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  MetaMetricsEvents,
+  withMetricsAwareness,
+} from '../../../components/hooks/useMetrics';
 
 // eslint-disable-next-line import/no-commonjs
 const metamaskErrorImage = require('../../../images/metamask-error.png');
@@ -101,6 +107,46 @@ const createStyles = (colors) =>
     },
   });
 
+const UserFeedbackSection = ({ styles, sentryId }) => {
+  /**
+   * Prompt bug report form
+   */
+  const promptBugReport = useCallback(() => {
+    Alert.prompt(
+      strings('error_screen.bug_report_prompt_title'),
+      strings('error_screen.bug_report_prompt_description'),
+      [
+        { text: strings('error_screen.cancel'), style: 'cancel' },
+        {
+          text: strings('error_screen.send'),
+          onPress: (comments = '') => {
+            // Send Sentry feedback
+            captureSentryFeedback({ sentryId, comments });
+            Alert.alert(strings('error_screen.bug_report_thanks'));
+          },
+        },
+      ],
+    );
+  }, [sentryId]);
+
+  return (
+    <Text style={[styles.reportStep, styles.text]}>
+      <Icon name="bug" size={14} />
+      {'  '}
+      {strings('error_screen.submit_ticket_8')}{' '}
+      <Text onPress={promptBugReport} style={styles.link}>
+        {strings('error_screen.submit_ticket_6')}
+      </Text>{' '}
+      {strings('error_screen.submit_ticket_9')}
+    </Text>
+  );
+};
+
+UserFeedbackSection.propTypes = {
+  styles: PropTypes.object,
+  sentryId: PropTypes.string,
+};
+
 const Fallback = (props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -153,6 +199,7 @@ const Fallback = (props) => {
             </Text>{' '}
             {strings('error_screen.submit_ticket_7')}
           </Text>
+          <UserFeedbackSection styles={styles} sentryId={props.sentryId} />
         </View>
         <Text style={styles.text}>
           {strings('error_screen.save_seedphrase_1')}{' '}
@@ -172,6 +219,7 @@ Fallback.propTypes = {
   showExportSeedphrase: PropTypes.func,
   copyErrorToClipboard: PropTypes.func,
   openTicket: PropTypes.func,
+  sentryId: PropTypes.string,
 };
 
 class ErrorBoundary extends Component {
@@ -184,13 +232,35 @@ class ErrorBoundary extends Component {
     ]),
     view: PropTypes.string.isRequired,
     navigation: PropTypes.object,
+    metrics: PropTypes.object,
   };
 
   static getDerivedStateFromError(error) {
     return { error };
   }
 
+  generateErrorReport = (error, errorInfo = '') => {
+    const {
+      view,
+      metrics: { trackEvent },
+    } = this.props;
+    const analyticsParams = { error: error?.toString(), boundary: view };
+    // Organize stack trace
+    const stackList = (errorInfo.split('\n') || []).map((stack) =>
+      stack.trim(),
+    );
+    // Limit to 5 levels
+    analyticsParams.stack = stackList.slice(1, 5).join(', ');
+
+    trackEvent(MetaMetricsEvents.ERROR_SCREEN_VIEWED, analyticsParams);
+  };
+
   componentDidCatch(error, errorInfo) {
+    // Note: Sentry briefly removed this in the next version but eventually added it back in later versions.
+    // Read more here - https://github.com/getsentry/sentry-javascript/issues/11951
+    const sentryId = getLatestSentryId();
+    this.setState({ sentryId });
+    this.generateErrorReport(error, errorInfo?.componentStack);
     Logger.error(error, { View: this.props.view, ...errorInfo });
   }
 
@@ -222,7 +292,7 @@ class ErrorBoundary extends Component {
   };
 
   openTicket = () => {
-    const url = 'https://metamask.zendesk.com/hc/en-us';
+    const url = 'https://support.metamask.io';
     Linking.openURL(url);
   };
 
@@ -250,6 +320,7 @@ class ErrorBoundary extends Component {
             showExportSeedphrase={this.showExportSeedphrase}
             copyErrorToClipboard={this.copyErrorToClipboard}
             openTicket={this.openTicket}
+            sentryId={this.state.sentryId}
           />,
         )
       : this.props.children;
@@ -258,4 +329,4 @@ class ErrorBoundary extends Component {
 
 ErrorBoundary.contextType = ThemeContext;
 
-export default ErrorBoundary;
+export default withMetricsAwareness(ErrorBoundary);

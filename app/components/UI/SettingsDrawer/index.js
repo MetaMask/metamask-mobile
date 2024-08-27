@@ -1,63 +1,44 @@
 import React from 'react';
-import {
-  Text,
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  Platform,
-} from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import SettingsNotification from '../SettingsNotification';
-import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
+import ListItem from '../../../component-library/components/List/ListItem/ListItem';
+import ListItemColumn, {
+  WidthType,
+} from '../../../component-library/components/List/ListItemColumn';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 
 const createStyles = (colors, titleColor) =>
   StyleSheet.create({
     root: {
       backgroundColor: colors.background.default,
-      borderBottomColor: colors.border.muted,
-      borderBottomWidth: 1,
-      flexDirection: 'row',
-      minHeight: 100,
-      paddingVertical: 18,
-    },
-    content: {
-      flex: 1,
-      justifyContent: 'center',
-    },
-    title: {
-      ...fontStyles.normal,
-      color: titleColor || colors.text.default,
-      fontSize: 20,
-      marginBottom: 8,
-    },
-    description: {
-      ...fontStyles.normal,
-      color: colors.text.alternative,
-      fontSize: 14,
-      lineHeight: 20,
-      paddingRight: 8,
+      padding: 16,
     },
     action: {
-      flex: 0,
-      paddingHorizontal: 16,
-      justifyContent: 'center',
+      paddingLeft: 16,
     },
-    icon: {
-      bottom: 8,
-      color: colors.icon.alternative,
-      left: 4,
-      position: 'relative',
-    },
-    noBorder: {
-      borderBottomWidth: 0,
-    },
-    warning: {
+    warningTag: {
+      flexDirection: 'row',
       alignSelf: 'flex-start',
-      marginTop: 20,
+      alignItems: 'center',
+      height: 24,
+      paddingHorizontal: 8,
+      marginTop: 8,
+      borderRadius: 12,
+      backgroundColor: colors.error.muted,
+    },
+    warningText: {
+      marginLeft: 4,
     },
     menuItemWarningText: {
       color: colors.text.default,
@@ -83,7 +64,7 @@ const propTypes = {
   /**
    * Display SettingsNotification
    */
-  warning: PropTypes.bool,
+  warning: PropTypes.string,
   /**
    * Display arrow right
    */
@@ -105,42 +86,53 @@ const defaultProps = {
 const SettingsDrawer = ({
   title,
   description,
-  noBorder,
   onPress,
   warning,
   renderArrowRight = true,
   testID,
-  titleColor,
+  titleColor = TextColor.Default,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors, titleColor);
-
   return (
     <TouchableOpacity onPress={onPress} {...generateTestId(Platform, testID)}>
-      <View style={noBorder ? [styles.root, styles.noBorder] : styles.root}>
-        <View style={styles.content}>
-          <Text style={styles.title}>{title}</Text>
-          {description && <Text style={styles.description}>{description}</Text>}
-          <View>
-            {warning ? (
-              <SettingsNotification
-                style={styles.warning}
-                isWarning
-                isNotification
+      <ListItem style={styles.root} gap={16}>
+        <ListItemColumn widthType={WidthType.Fill}>
+          <Text variant={TextVariant.BodyLGMedium} color={titleColor}>
+            {title}
+          </Text>
+          {description && (
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {description}
+            </Text>
+          )}
+          {warning && (
+            <View style={styles.warningTag}>
+              <Icon
+                size={IconSize.Sm}
+                color={IconColor.Error}
+                name={IconName.Danger}
+              />
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Error}
+                style={styles.warningText}
               >
-                <Text style={styles.menuItemWarningText}>
-                  {strings('drawer.settings_warning')}
-                </Text>
-              </SettingsNotification>
-            ) : null}
-          </View>
-        </View>
+                {warning}
+              </Text>
+            </View>
+          )}
+        </ListItemColumn>
         {renderArrowRight && (
-          <View style={styles.action}>
-            <Icon name="angle-right" size={36} style={styles.icon} />
-          </View>
+          <ListItemColumn>
+            <Icon
+              style={styles.action}
+              size={IconSize.Md}
+              name={IconName.ArrowRight}
+            />
+          </ListItemColumn>
         )}
-      </View>
+      </ListItem>
     </TouchableOpacity>
   );
 };

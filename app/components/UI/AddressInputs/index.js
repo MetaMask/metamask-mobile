@@ -93,7 +93,6 @@ const createStyles = (colors, layout = 'horizontal') => {
     },
     accountNameLabelText: {
       marginLeft: 4,
-      horizontalAlign: 'center',
       textAlign: 'center',
       paddingHorizontal: 8,
       color: colors.text.alternative,
@@ -467,7 +466,9 @@ export const AddressTo = (props) => {
                 <AddToAddressBookWrapper address={toSelectedAddress}>
                   <View style={styles.toAddressTextWrapper}>
                     <Text style={styles.textInput} numberOfLines={1}>
-                      {renderSlightlyLongAddress(toSelectedAddress, 4, 9)}
+                      {toSelectedAddress
+                        ? renderSlightlyLongAddress(toSelectedAddress, 4, 9)
+                        : ''}
                     </Text>
                   </View>
                 </AddToAddressBookWrapper>

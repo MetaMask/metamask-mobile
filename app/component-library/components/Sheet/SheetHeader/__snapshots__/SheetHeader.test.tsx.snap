@@ -3,9 +3,9 @@
 exports[`SheetHeader should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "flexDirection": "row",
       "height": 32,
       "justifyContent": "space-between",
@@ -15,7 +15,7 @@ exports[`SheetHeader should render correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "flex": 1,
       }
     }
@@ -27,7 +27,7 @@ exports[`SheetHeader should render correctly 1`] = `
   </Text>
   <View
     style={
-      Object {
+      {
         "alignItems": "flex-end",
         "flex": 1,
       }

@@ -1,6 +1,7 @@
 # Badge
-
+[BadgeNetwork](https://metamask-consensys.notion.site/Badge-Network-94a679c50cb446f4844dc624b4f74946)
 ![BadgeNetwork](./variants/BadgeNetwork/BadgeNetwork.png)
+[BadgeStatus](https://metamask-consensys.notion.site/Badge-Status-5caf000de32549f8ad67c0b89469ce4d)
 ![BadgeStatus](./variants/BadgeStatus/BadgeStatus.png)
 
 Badge is a union component, which currently only consist of [BadgeNetwork](./variants/BadgeNetwork/BadgeNetwork.tsx)

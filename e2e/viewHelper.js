@@ -9,14 +9,15 @@ import NetworkView from './pages/Settings/NetworksView';
 import OnboardingView from './pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from './pages/Onboarding/OnboardingCarouselView';
 import OnboardingWizardModal from './pages/modals/OnboardingWizardModal';
+import ExperienceEnhancerModal from './pages/modals/ExperienceEnhancerModal';
 import SettingsView from './pages/Settings/SettingsView';
-import WalletView from './pages/WalletView';
-import WhatsNewModal from './pages/modals/WhatsNewModal';
+import WalletView from './pages/wallet/WalletView';
 import Accounts from '../wdio/helpers/Accounts';
 import SkipAccountSecurityModal from './pages/modals/SkipAccountSecurityModal';
 import ProtectYourWalletModal from './pages/modals/ProtectYourWalletModal';
 import CreatePasswordView from './pages/Onboarding/CreatePasswordView';
 import ProtectYourWalletView from './pages/Onboarding/ProtectYourWalletView';
+import OnboardingSuccessView from './pages/Onboarding/OnboardingSuccessView';
 
 import TestHelpers from './helpers';
 
@@ -25,25 +26,57 @@ import TabBarComponent from './pages/TabBarComponent';
 import LoginView from './pages/LoginView';
 import { getGanachePort } from './fixtures/utils';
 import Assertions from './utils/Assertions';
-
-const GOERLI = 'Goerli Test Network';
+import { CustomNetworks } from './resources/networks.e2e';
+import ToastModal from './pages/modals/ToastModal';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
-
-// detox on ios does not have a clean way of interacting with webview elements. You would need to tap by coordinates
-export const testDappConnectButtonCooridinates = { x: 170, y: 280 };
-export const testDappSendEIP1559ButtonCoordinates = { x: 320, y: 500 };
 const validAccount = Accounts.getValidAccount();
 
 export const acceptTermOfUse = async () => {
   // tap on accept term of use screen
-  await TestHelpers.delay(3500);
-  await TermsOfUseModal.isDisplayed();
+  await Assertions.checkIfVisible(TermsOfUseModal.container);
   await TermsOfUseModal.tapScrollEndButton();
   await TermsOfUseModal.tapAgreeCheckBox();
-  await TestHelpers.delay(3500);
   await TermsOfUseModal.tapAcceptButton();
-  await TermsOfUseModal.isNotDisplayed();
+  await Assertions.checkIfNotVisible(TermsOfUseModal.container);
+};
+export const closeOnboardingModals = async () => {
+  /*
+These onboarding modals are becoming a bit wild. We need less of these so we don't
+have to have all these workarounds in the tests
+  */
+  await TestHelpers.delay(1000);
+
+  // Handle Onboarding wizard
+  try {
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
+    await OnboardingWizardModal.tapNoThanksButton();
+    await Assertions.checkIfNotVisible(OnboardingWizardModal.stepOneContainer);
+  } catch {
+    /* eslint-disable no-console */
+
+    console.log('The onboarding modal is not visible');
+  }
+
+  try {
+    // Handle Marketing consent modal
+
+    await Assertions.checkIfVisible(ExperienceEnhancerModal.container);
+    await ExperienceEnhancerModal.tapNoThanks();
+    await Assertions.checkIfNotVisible(ExperienceEnhancerModal.container);
+  } catch {
+    console.log('The marketing consent modal is not visible');
+  }
+
+  try {
+    await Assertions.checkIfVisible(ToastModal.container);
+    await ToastModal.tapToastCloseButton();
+    await Assertions.checkIfNotVisible(ToastModal.container);
+  } catch {
+    /* eslint-disable no-undef */
+
+    console.log('The marketing toast is not visible');
+  }
 };
 
 export const importWalletWithRecoveryPhrase = async () => {
@@ -63,28 +96,13 @@ export const importWalletWithRecoveryPhrase = async () => {
 
   // Should dismiss Automatic Security checks screen
   await TestHelpers.delay(3500);
+  await OnboardingSuccessView.tapDone();
   await EnableAutomaticSecurityChecksView.isVisible();
   await EnableAutomaticSecurityChecksView.tapNoThanks();
 
   // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.
-  await TestHelpers.delay(1000);
-  try {
-    await OnboardingWizardModal.isVisible();
-    await OnboardingWizardModal.tapNoThanksButton();
-    await OnboardingWizardModal.isNotVisible();
-  } catch {
-    //
-  }
-
-  // should tap on the close button to dismiss the whats new modal
-  await TestHelpers.delay(2500);
-  try {
-    await WhatsNewModal.isVisible();
-    await WhatsNewModal.tapCloseButton();
-  } catch {
-    //
-  }
+  await this.closeOnboardingModals();
 };
 
 export const CreateNewWallet = async () => {
@@ -111,40 +129,21 @@ export const CreateNewWallet = async () => {
   await SkipAccountSecurityModal.tapIUnderstandCheckBox();
   await SkipAccountSecurityModal.tapSkipButton();
   await device.enableSynchronization();
-  await WalletView.isVisible();
+  await Assertions.checkIfVisible(WalletView.container);
 
   //'Should dismiss Automatic Security checks screen'
   await TestHelpers.delay(3500);
+  await OnboardingSuccessView.tapDone();
   await EnableAutomaticSecurityChecksView.isVisible();
   await EnableAutomaticSecurityChecksView.tapNoThanks();
 
   // 'should dismiss the onboarding wizard'
   // dealing with flakiness on bitrise.
-  await TestHelpers.delay(1000);
-  try {
-    await OnboardingWizardModal.isVisible();
-    await OnboardingWizardModal.tapNoThanksButton();
-    await OnboardingWizardModal.isNotVisible();
-  } catch {
-    //
-  }
+  await this.closeOnboardingModals();
 
-  //should tap on the close button to dismiss the whats new modal'
-  // dealing with flakiness on bitrise.
-  await TestHelpers.delay(2000);
-  try {
-    await WhatsNewModal.isVisible();
-    await WhatsNewModal.tapCloseButton();
-  } catch {
-    //
-  }
-
-  // Dismissing the protect your wallet modal
-  await ProtectYourWalletModal.isCollapsedBackUpYourWalletModalVisible();
-  await TestHelpers.delay(1000);
-
+  // Dismissing to protect your wallet modal
+  await Assertions.checkIfVisible(ProtectYourWalletModal.collapseWalletModal);
   await ProtectYourWalletModal.tapRemindMeLaterButton();
-
   await SkipAccountSecurityModal.tapIUnderstandCheckBox();
   await SkipAccountSecurityModal.tapSkipButton();
 };
@@ -152,7 +151,7 @@ export const CreateNewWallet = async () => {
 export const addLocalhostNetwork = async () => {
   await TabBarComponent.tapSettings();
   await SettingsView.tapNetworks();
-  await NetworkView.isNetworkViewVisible();
+  await Assertions.checkIfVisible(NetworkView.networkContainer);
 
   await TestHelpers.delay(3000);
   await NetworkView.tapAddNetworkButton();
@@ -164,37 +163,45 @@ export const addLocalhostNetwork = async () => {
   await NetworkView.typeInNetworkSymbol('ETH\n');
 
   if (device.getPlatform() === 'ios') {
-    await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
+    // await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
     await NetworkView.tapRpcNetworkAddButton();
   }
   await TestHelpers.delay(3000);
 
-  await NetworkEducationModal.isVisible();
-  await NetworkEducationModal.isNetworkNameCorrect('Localhost');
+  await Assertions.checkIfVisible(NetworkEducationModal.container);
+  await Assertions.checkIfElementToHaveText(
+    NetworkEducationModal.networkName,
+    'Localhost',
+  );
   await NetworkEducationModal.tapGotItButton();
-  await NetworkEducationModal.isNotVisible();
+  await Assertions.checkIfNotVisible(NetworkEducationModal.container);
 };
 
-export const switchToGoreliNetwork = async () => {
+export const switchToSepoliaNetwork = async () => {
   await WalletView.tapNetworksButtonOnNavBar();
   await NetworkListModal.tapTestNetworkSwitch();
-  await NetworkListModal.isTestNetworkToggleOn();
-  await NetworkListModal.changeNetwork(GOERLI);
-  await WalletView.isNetworkNameVisible(GOERLI);
+  await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
+  await NetworkListModal.changeNetworkTo(
+    CustomNetworks.Sepolia.providerConfig.nickname,
+  );
+  await Assertions.checkIfVisible(NetworkEducationModal.container);
+  await Assertions.checkIfElementToHaveText(
+    NetworkEducationModal.networkName,
+    CustomNetworks.Sepolia.providerConfig.nickname,
+  );
   await NetworkEducationModal.tapGotItButton();
+  await Assertions.checkIfNotVisible(NetworkEducationModal.container);
+  try {
+    await Assertions.checkIfVisible(ToastModal.container);
+    await Assertions.checkIfNotVisible(ToastModal.container);
+  } catch {
+    // eslint-disable-next-line no-console
+    console.log('Toast is not visible');
+  }
 };
 
 export const loginToApp = async () => {
   const PASSWORD = '123123123';
   await LoginView.isVisible();
   await LoginView.enterPassword(PASSWORD);
-
-  await WalletView.isVisible();
-  await TestHelpers.delay(2500);
-  try {
-    await WhatsNewModal.isVisible();
-    await WhatsNewModal.tapCloseButton();
-  } catch {
-    //
-  }
 };

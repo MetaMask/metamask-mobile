@@ -33,13 +33,13 @@ exports[`ApprovalModal renders 1`] = `
   scrollTo={null}
   statusBarTranslucent={false}
   style={
-    Object {
+    {
       "justifyContent": "flex-end",
       "margin": 0,
     }
   }
   supportedOrientations={
-    Array [
+    [
       "portrait",
       "landscape",
     ]
