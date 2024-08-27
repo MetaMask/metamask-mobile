@@ -1213,6 +1213,8 @@ workflows:
           inputs:
             - ipa_path: $BITRISE_APP_STORE_IPA_PATH
   build_ios_release:
+    envs:
+      - NO_FLIPPER: '1'
     before_run:
       - code_setup
     after_run:
@@ -1252,6 +1254,8 @@ workflows:
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
   build_ios_qa:
+    envs:
+      - NO_FLIPPER: '1'
     before_run:
       - code_setup
     after_run:
