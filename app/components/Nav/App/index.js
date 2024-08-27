@@ -553,413 +553,413 @@ const App = ({ userLoggedIn, basicFunctionalityEnabled }) => {
 
   useEffect(() => {
     if (!basicFunctionalityEnabled) {
-        Engine.context.SnapController.stopSnap(
-          'npm:@metamask/message-signing-snap',
-        ).catch(console.error);
-     }
+      Engine.context.SnapController.stopSnap(
+        'npm:@metamask/message-signing-snap',
+      ).catch(console.error);
     }
+  }
   }, [basicFunctionalityEnabled]);
 
-  const setNavigatorRef = (ref) => {
-    if (!prevNavigator.current) {
-      setNavigator(ref);
-      NavigationService.setNavigationRef(ref);
-    }
-  };
+const setNavigatorRef = (ref) => {
+  if (!prevNavigator.current) {
+    setNavigator(ref);
+    NavigationService.setNavigationRef(ref);
+  }
+};
 
-  const onAnimationFinished = useCallback(() => {
-    Animated.timing(opacity, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-      isInteraction: false,
-    }).start(() => {
-      setAnimationPlayed(true);
-    });
-  }, [opacity]);
+const onAnimationFinished = useCallback(() => {
+  Animated.timing(opacity, {
+    toValue: 0,
+    duration: 300,
+    useNativeDriver: true,
+    isInteraction: false,
+  }).start(() => {
+    setAnimationPlayed(true);
+  });
+}, [opacity]);
 
-  const renderSplash = () => {
-    if (!animationPlayed) {
-      return (
-        <MetaMaskAnimation
-          animationRef={animationRef}
-          animationName={animationNameRef}
-          opacity={opacity}
-          onAnimationFinish={onAnimationFinished}
-        />
-      );
-    }
-    return null;
-  };
+const renderSplash = () => {
+  if (!animationPlayed) {
+    return (
+      <MetaMaskAnimation
+        animationRef={animationRef}
+        animationName={animationNameRef}
+        opacity={opacity}
+        onAnimationFinish={onAnimationFinished}
+      />
+    );
+  }
+  return null;
+};
 
-  const DetectedTokensFlow = () => (
-    <Stack.Navigator
-      mode={'modal'}
-      screenOptions={clearStackNavigatorOptions}
-      initialRouteName={'DetectedTokens'}
-    >
-      <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
-      <Stack.Screen
-        name={'DetectedTokensConfirmation'}
-        component={DetectedTokensConfirmation}
-      />
-    </Stack.Navigator>
-  );
+const DetectedTokensFlow = () => (
+  <Stack.Navigator
+    mode={'modal'}
+    screenOptions={clearStackNavigatorOptions}
+    initialRouteName={'DetectedTokens'}
+  >
+    <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
+    <Stack.Screen
+      name={'DetectedTokensConfirmation'}
+      component={DetectedTokensConfirmation}
+    />
+  </Stack.Navigator>
+);
 
-  const RootModalFlow = (props) => (
-    <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
-      <Stack.Screen
-        name={Routes.MODAL.WALLET_ACTIONS}
-        component={WalletActions}
-      />
-      <Stack.Screen
-        name={Routes.MODAL.DELETE_WALLET}
-        component={DeleteWalletModal}
-      />
-      <Stack.Screen
-        name={Routes.MODAL.MODAL_CONFIRMATION}
-        component={ModalConfirmation}
-      />
-      <Stack.Screen
-        name={Routes.MODAL.MODAL_MANDATORY}
-        component={ModalMandatory}
-      />
-      <Stack.Screen
-        name={Routes.MODAL.SMART_TRANSACTIONS_OPT_IN}
-        component={SmartTransactionsOptInModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.ACCOUNT_SELECTOR}
-        component={AccountSelector}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.SDK_LOADING}
-        component={SDKLoadingModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.SDK_FEEDBACK}
-        component={SDKFeedbackModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.SDK_MANAGE_CONNECTIONS}
-        component={SDKSessionModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.EXPERIENCE_ENHANCER}
-        component={ExperienceEnhancerModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.DATA_COLLECTION}
-        component={DataCollectionModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.SDK_DISCONNECT}
-        component={SDKDisconnectModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.ACCOUNT_CONNECT}
-        component={AccountConnect}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.ACCOUNT_PERMISSIONS}
-        component={AccountPermissions}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS}
-        component={AccountPermissionsConfirmRevokeAll}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.NETWORK_SELECTOR}
-        component={NetworkSelector}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.BASIC_FUNCTIONALITY}
-        component={BasicFunctionalityModal}
-        {...props}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.PROFILE_SYNCING}
-        component={ProfileSyncingModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
-        component={ReturnToAppModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.AMBIGUOUS_ADDRESS}
-        component={AmbiguousAddressSheet}
-      />
-      <Stack.Screen
-        name={Routes.MODAL.TURN_OFF_REMEMBER_ME}
-        component={TurnOffRememberMeModal}
-      />
-      <Stack.Screen
-        name={'AssetHideConfirmation'}
-        component={AssetHideConfirmation}
-      />
-      <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
-      <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
-      <Stack.Screen name={'NftOptions'} component={NftOptions} />
-      <Stack.Screen
-        name={Routes.MODAL.UPDATE_NEEDED}
-        component={UpdateNeeded}
-      />
-      <Stack.Screen
-        name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
-        component={EnableAutomaticSecurityChecksModal}
-      />
-      <Stack.Screen name={Routes.MODAL.SRP_REVEAL_QUIZ} component={SRPQuiz} />
-      <Stack.Screen
-        name={Routes.SHEET.ACCOUNT_ACTIONS}
-        component={AccountActions}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.ETH_SIGN_FRICTION}
-        component={EthSignFriction}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.FIAT_ON_TESTNETS_FRICTION}
-        component={FiatOnTestnetsFriction}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.SHOW_IPFS}
-        component={ShowIpfsGatewaySheet}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA}
-        component={ShowDisplayNftMediaSheet}
-      />
-      <Stack.Screen
-        name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}
-        component={NFTAutoDetectionModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.SHOW_TOKEN_ID}
-        component={ShowTokenIdSheet}
-      />
+const RootModalFlow = (props) => (
+  <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
+    <Stack.Screen
+      name={Routes.MODAL.WALLET_ACTIONS}
+      component={WalletActions}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.DELETE_WALLET}
+      component={DeleteWalletModal}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.MODAL_CONFIRMATION}
+      component={ModalConfirmation}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.MODAL_MANDATORY}
+      component={ModalMandatory}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.SMART_TRANSACTIONS_OPT_IN}
+      component={SmartTransactionsOptInModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.ACCOUNT_SELECTOR}
+      component={AccountSelector}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.SDK_LOADING}
+      component={SDKLoadingModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.SDK_FEEDBACK}
+      component={SDKFeedbackModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.SDK_MANAGE_CONNECTIONS}
+      component={SDKSessionModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.EXPERIENCE_ENHANCER}
+      component={ExperienceEnhancerModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.DATA_COLLECTION}
+      component={DataCollectionModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.SDK_DISCONNECT}
+      component={SDKDisconnectModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.ACCOUNT_CONNECT}
+      component={AccountConnect}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.ACCOUNT_PERMISSIONS}
+      component={AccountPermissions}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS}
+      component={AccountPermissionsConfirmRevokeAll}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.NETWORK_SELECTOR}
+      component={NetworkSelector}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.BASIC_FUNCTIONALITY}
+      component={BasicFunctionalityModal}
+      {...props}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.PROFILE_SYNCING}
+      component={ProfileSyncingModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
+      component={ReturnToAppModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.AMBIGUOUS_ADDRESS}
+      component={AmbiguousAddressSheet}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.TURN_OFF_REMEMBER_ME}
+      component={TurnOffRememberMeModal}
+    />
+    <Stack.Screen
+      name={'AssetHideConfirmation'}
+      component={AssetHideConfirmation}
+    />
+    <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
+    <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
+    <Stack.Screen name={'NftOptions'} component={NftOptions} />
+    <Stack.Screen
+      name={Routes.MODAL.UPDATE_NEEDED}
+      component={UpdateNeeded}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
+      component={EnableAutomaticSecurityChecksModal}
+    />
+    <Stack.Screen name={Routes.MODAL.SRP_REVEAL_QUIZ} component={SRPQuiz} />
+    <Stack.Screen
+      name={Routes.SHEET.ACCOUNT_ACTIONS}
+      component={AccountActions}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.ETH_SIGN_FRICTION}
+      component={EthSignFriction}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.FIAT_ON_TESTNETS_FRICTION}
+      component={FiatOnTestnetsFriction}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.SHOW_IPFS}
+      component={ShowIpfsGatewaySheet}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA}
+      component={ShowDisplayNftMediaSheet}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}
+      component={NFTAutoDetectionModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.SHOW_TOKEN_ID}
+      component={ShowTokenIdSheet}
+    />
 
-      <Stack.Screen
-        name={Routes.SHEET.ORIGIN_SPAM_MODAL}
-        component={OriginSpamModal}
-      />
-    </Stack.Navigator>
-  );
+    <Stack.Screen
+      name={Routes.SHEET.ORIGIN_SPAM_MODAL}
+      component={OriginSpamModal}
+    />
+  </Stack.Navigator>
+);
 
-  const ImportPrivateKeyView = () => (
-    <Stack.Navigator
+const ImportPrivateKeyView = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+    }}
+  >
+    <Stack.Screen name="ImportPrivateKey" component={ImportPrivateKey} />
+    <Stack.Screen
+      name="ImportPrivateKeySuccess"
+      component={ImportPrivateKeySuccess}
+    />
+    <Stack.Screen
+      name={Routes.QR_SCANNER}
+      component={QRScanner}
       screenOptions={{
         headerShown: false,
       }}
-    >
-      <Stack.Screen name="ImportPrivateKey" component={ImportPrivateKey} />
-      <Stack.Screen
-        name="ImportPrivateKeySuccess"
-        component={ImportPrivateKeySuccess}
-      />
-      <Stack.Screen
-        name={Routes.QR_SCANNER}
-        component={QRScanner}
-        screenOptions={{
-          headerShown: false,
+    />
+  </Stack.Navigator>
+);
+
+const ConnectQRHardwareFlow = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+    }}
+  >
+    <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
+  </Stack.Navigator>
+);
+
+const LedgerConnectFlow = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+    }}
+    initialRouteName={Routes.HW.LEDGER_CONNECT}
+  >
+    <Stack.Screen
+      name={Routes.HW.LEDGER_CONNECT}
+      component={LedgerSelectAccount}
+    />
+  </Stack.Navigator>
+);
+
+const ConnectHardwareWalletFlow = () => (
+  <Stack.Navigator name="ConnectHardwareWallet">
+    <Stack.Screen
+      name={Routes.HW.SELECT_DEVICE}
+      component={SelectHardwareWallet}
+      options={SelectHardwareWallet.navigationOptions}
+    />
+  </Stack.Navigator>
+);
+
+const EditAccountNameFlow = () => (
+  <Stack.Navigator>
+    <Stack.Screen name="EditAccountName" component={EditAccountName} />
+  </Stack.Navigator>
+);
+
+// eslint-disable-next-line react/prop-types
+const AddNetworkFlow = ({ route }) => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name="AddNetwork"
+      component={NetworkSettings}
+      // eslint-disable-next-line react/prop-types
+      initialParams={route?.params}
+    />
+  </Stack.Navigator>
+);
+
+return (
+  // do not render unless a route is defined
+  (route && (
+    <>
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+      }
+      <View>
+        <SnapsExecutionWebView basicFunctionalityEnabled={basicFunctionalityEnabled} />
+      </View>
+      {
+        ///: END:ONLY_INCLUDE_IF
+      }
+      <PPOMView />
+      <NavigationContainer
+        // Prevents artifacts when navigating between screens
+        theme={{
+          colors: {
+            background: colors.background.default,
+          },
         }}
-      />
-    </Stack.Navigator>
-  );
-
-  const ConnectQRHardwareFlow = () => (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
-    </Stack.Navigator>
-  );
-
-  const LedgerConnectFlow = () => (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-      initialRouteName={Routes.HW.LEDGER_CONNECT}
-    >
-      <Stack.Screen
-        name={Routes.HW.LEDGER_CONNECT}
-        component={LedgerSelectAccount}
-      />
-    </Stack.Navigator>
-  );
-
-  const ConnectHardwareWalletFlow = () => (
-    <Stack.Navigator name="ConnectHardwareWallet">
-      <Stack.Screen
-        name={Routes.HW.SELECT_DEVICE}
-        component={SelectHardwareWallet}
-        options={SelectHardwareWallet.navigationOptions}
-      />
-    </Stack.Navigator>
-  );
-
-  const EditAccountNameFlow = () => (
-    <Stack.Navigator>
-      <Stack.Screen name="EditAccountName" component={EditAccountName} />
-    </Stack.Navigator>
-  );
-
-  // eslint-disable-next-line react/prop-types
-  const AddNetworkFlow = ({ route }) => (
-    <Stack.Navigator>
-      <Stack.Screen
-        name="AddNetwork"
-        component={NetworkSettings}
-        // eslint-disable-next-line react/prop-types
-        initialParams={route?.params}
-      />
-    </Stack.Navigator>
-  );
-
-  return (
-    // do not render unless a route is defined
-    (route && (
-      <>
-        {
-          ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-        }
-        <View>
-          <SnapsExecutionWebView />
-        </View>
-        {
-          ///: END:ONLY_INCLUDE_IF
-        }
-        <PPOMView />
-        <NavigationContainer
-          // Prevents artifacts when navigating between screens
-          theme={{
-            colors: {
-              background: colors.background.default,
-            },
-          }}
-          ref={setNavigatorRef}
-          onStateChange={(state) => {
-            // Updates redux with latest route. Used by DrawerView component.
-            const currentRoute = findRouteNameFromNavigatorState(state.routes);
-            triggerSetCurrentRoute(currentRoute);
+        ref={setNavigatorRef}
+        onStateChange={(state) => {
+          // Updates redux with latest route. Used by DrawerView component.
+          const currentRoute = findRouteNameFromNavigatorState(state.routes);
+          triggerSetCurrentRoute(currentRoute);
+        }}
+      >
+        <Stack.Navigator
+          initialRouteName={route}
+          mode={'modal'}
+          screenOptions={{
+            headerShown: false,
+            cardStyle: { backgroundColor: importedColors.transparent },
+            animationEnabled: false,
           }}
         >
-          <Stack.Navigator
-            initialRouteName={route}
-            mode={'modal'}
-            screenOptions={{
-              headerShown: false,
+          <Stack.Screen
+            name={Routes.ONBOARDING.LOGIN}
+            component={Login}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="OnboardingRootNav"
+            component={OnboardingRootNav}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.ONBOARDING.SUCCESS_FLOW}
+            component={OnboardingSuccessFlow}
+            options={{ headerShown: false }}
+          />
+          {userLoggedIn && (
+            <Stack.Screen
+              name={Routes.ONBOARDING.HOME_NAV}
+              component={Main}
+              options={{ headerShown: false }}
+            />
+          )}
+          <Stack.Screen
+            name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
+            component={VaultRecoveryFlow}
+          />
+          <Stack.Screen
+            name={Routes.MODAL.ROOT_MODAL_FLOW}
+            component={RootModalFlow}
+          />
+          <Stack.Screen
+            name="ImportPrivateKeyView"
+            component={ImportPrivateKeyView}
+            options={{ animationEnabled: true }}
+          />
+          <Stack.Screen
+            name="ConnectQRHardwareFlow"
+            component={ConnectQRHardwareFlow}
+            options={{ animationEnabled: true }}
+          />
+          <Stack.Screen
+            name={Routes.HW.CONNECT_LEDGER}
+            component={LedgerConnectFlow}
+          />
+          <Stack.Screen
+            name={Routes.HW.CONNECT}
+            component={ConnectHardwareWalletFlow}
+          />
+          <Stack.Screen
+            options={{
+              //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
               cardStyle: { backgroundColor: importedColors.transparent },
-              animationEnabled: false,
+              cardStyleInterpolator: () => ({
+                overlayStyle: {
+                  opacity: 0,
+                },
+              }),
             }}
-          >
+            name={Routes.LEDGER_TRANSACTION_MODAL}
+            component={LedgerTransactionModal}
+          />
+          <Stack.Screen
+            options={{
+              //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+              cardStyle: { backgroundColor: importedColors.transparent },
+              cardStyleInterpolator: () => ({
+                overlayStyle: {
+                  opacity: 0,
+                },
+              }),
+            }}
+            name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
+            component={LedgerMessageSignModal}
+          />
+          <Stack.Screen
+            name="EditAccountName"
+            component={EditAccountNameFlow}
+            options={{ animationEnabled: true }}
+          />
+          <Stack.Screen
+            name={Routes.ADD_NETWORK}
+            component={AddNetworkFlow}
+            options={{ animationEnabled: true }}
+          />
+          {isNetworkUiRedesignEnabled() ? (
             <Stack.Screen
-              name={Routes.ONBOARDING.LOGIN}
-              component={Login}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="OnboardingRootNav"
-              component={OnboardingRootNav}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name={Routes.ONBOARDING.SUCCESS_FLOW}
-              component={OnboardingSuccessFlow}
-              options={{ headerShown: false }}
-            />
-            {userLoggedIn && (
-              <Stack.Screen
-                name={Routes.ONBOARDING.HOME_NAV}
-                component={Main}
-                options={{ headerShown: false }}
-              />
-            )}
-            <Stack.Screen
-              name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
-              component={VaultRecoveryFlow}
-            />
-            <Stack.Screen
-              name={Routes.MODAL.ROOT_MODAL_FLOW}
-              component={RootModalFlow}
-            />
-            <Stack.Screen
-              name="ImportPrivateKeyView"
-              component={ImportPrivateKeyView}
-              options={{ animationEnabled: true }}
-            />
-            <Stack.Screen
-              name="ConnectQRHardwareFlow"
-              component={ConnectQRHardwareFlow}
-              options={{ animationEnabled: true }}
-            />
-            <Stack.Screen
-              name={Routes.HW.CONNECT_LEDGER}
-              component={LedgerConnectFlow}
-            />
-            <Stack.Screen
-              name={Routes.HW.CONNECT}
-              component={ConnectHardwareWalletFlow}
-            />
-            <Stack.Screen
-              options={{
-                //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-                cardStyle: { backgroundColor: importedColors.transparent },
-                cardStyleInterpolator: () => ({
-                  overlayStyle: {
-                    opacity: 0,
-                  },
-                }),
-              }}
-              name={Routes.LEDGER_TRANSACTION_MODAL}
-              component={LedgerTransactionModal}
-            />
-            <Stack.Screen
-              options={{
-                //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-                cardStyle: { backgroundColor: importedColors.transparent },
-                cardStyleInterpolator: () => ({
-                  overlayStyle: {
-                    opacity: 0,
-                  },
-                }),
-              }}
-              name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
-              component={LedgerMessageSignModal}
-            />
-            <Stack.Screen
-              name="EditAccountName"
-              component={EditAccountNameFlow}
-              options={{ animationEnabled: true }}
-            />
-            <Stack.Screen
-              name={Routes.ADD_NETWORK}
+              name={Routes.EDIT_NETWORK}
               component={AddNetworkFlow}
               options={{ animationEnabled: true }}
             />
-            {isNetworkUiRedesignEnabled() ? (
-              <Stack.Screen
-                name={Routes.EDIT_NETWORK}
-                component={AddNetworkFlow}
-                options={{ animationEnabled: true }}
-              />
-            ) : null}
+          ) : null}
 
-            <Stack.Screen
-              name={Routes.LOCK_SCREEN}
-              component={LockScreen}
-              options={{ gestureEnabled: false }}
-            />
-          </Stack.Navigator>
-        </NavigationContainer>
-        {renderSplash()}
-        <Toast ref={toastRef} />
-      </>
-    )) ||
-    null
-  );
+          <Stack.Screen
+            name={Routes.LOCK_SCREEN}
+            component={LockScreen}
+            options={{ gestureEnabled: false }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+      {renderSplash()}
+      <Toast ref={toastRef} />
+    </>
+  )) ||
+  null
+);
 };
 
 const mapStateToProps = (state) => ({

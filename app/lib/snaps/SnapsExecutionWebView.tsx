@@ -29,9 +29,11 @@ export const getSnapsWebViewPromise = new Promise<WebViewInterface>(
     rejectGetWebView = reject;
   },
 );
-
+interface SnapsExecutionWebViewState {
+  basicFunctionalityEnabled: boolean;
+}
 // This is a class component because storing the references we are don't work in functional components.
-export class SnapsExecutionWebView extends Component {
+export class SnapsExecutionWebView extends Component<SnapsExecutionWebViewState> {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   webViewRef: RefObject<WebView> | any = null;
@@ -82,23 +84,32 @@ export class SnapsExecutionWebView extends Component {
   }
 
   render() {
-    return (
-      <ScrollView testID={'load-snap-webview'}>
-        <View style={styles.webview}>
-          <WebView
-            ref={
-              this.setWebViewRef as unknown as React.RefObject<WebView> | null
-            }
-            source={{ uri: SNAPS_EE_URL }}
-            onMessage={this.onWebViewMessage}
-            onError={this.onWebViewError}
-            onLoadEnd={this.onWebViewLoad}
-            originWhitelist={['https://execution.metamask.io*']}
-            javaScriptEnabled
-          />
-        </View>
-      </ScrollView>
-    );
+    const { basicFunctionalityEnabled } = this.props;
+
+    if (basicFunctionalityEnabled) {
+      return (
+        <ScrollView testID={'load-snap-webview'}>
+          <View style={styles.webview}>
+            <WebView
+              ref={
+                this.setWebViewRef as unknown as React.RefObject<WebView> | null
+              }
+              source={{ uri: SNAPS_EE_URL }}
+              onMessage={this.onWebViewMessage}
+              onError={this.onWebViewError}
+              onLoadEnd={this.onWebViewLoad}
+              originWhitelist={['https://execution.metamask.io*']}
+              javaScriptEnabled
+            />
+          </View>
+        </ScrollView>
+      );
+    }
+    /**
+     * In the case where basicFunctionalityEnabled is false, we want to just render an empty view.
+     */
+
+    return <View style={styles.webview} />;
   }
 }
 
