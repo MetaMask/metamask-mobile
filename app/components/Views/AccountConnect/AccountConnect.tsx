@@ -69,6 +69,7 @@ import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
 import { RootState } from '../../../reducers';
+import { PermissionsRequest } from '@metamask/permission-controller';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -350,7 +351,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   const handleConnect = useCallback(async () => {
-    const request = {
+    const request: PermissionsRequest = {
       ...hostInfo,
       metadata: {
         ...hostInfo.metadata,
@@ -601,19 +602,19 @@ const AccountConnect = (props: AccountConnectProps) => {
         onUserAction={setUserIntent}
         onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
         connection={sdkConnection}
+        hostname={hostname}
       />
     ),
     [
       accounts,
       ensByAccountAddress,
       selectedAddresses,
-      setSelectedAddresses,
       isLoading,
-      setUserIntent,
       faviconSource,
-      urlWithProtocol,
       secureIcon,
+      urlWithProtocol,
       sdkConnection,
+      hostname,
     ],
   );
 
