@@ -83,7 +83,6 @@ import {
   ApprovalControllerState,
 } from '@metamask/approval-controller';
 import {
-  METAMASK_DOMAIN,
   SelectedNetworkController,
   SelectedNetworkControllerState,
 } from '@metamask/selected-network-controller';

@@ -40,7 +40,11 @@ import { NetworkStatus } from '@metamask/network-controller';
 import { NETWORK_ID_LOADING } from '../redux/slices/inpageProvider';
 import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMethodMiddleware';
 import createLegacyMethodMiddleware from '../RPCMethods/createLegacyMethodMiddleware';
-import { createSelectedNetworkMiddleware } from '@metamask/selected-network-controller';
+import {
+  createSelectedNetworkMiddleware,
+  METAMASK_DOMAIN,
+} from '@metamask/selected-network-controller';
+import EthQuery from '@metamask/eth-query';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -82,6 +86,7 @@ export class BackgroundBridge extends EventEmitter {
     this.disconnected = false;
     this.getApprovedHosts = getApprovedHosts;
     this.channelId = channelId;
+    this.deprecatedNetworkVersions = {};
 
     this.createMiddleware = getRpcMethodMiddleware;
 
@@ -93,7 +98,9 @@ export class BackgroundBridge extends EventEmitter {
 
     this.engine = null;
 
+    // const providerNetworkState = await this.getProviderNetworkState();
     this.chainIdSent = selectChainId(store.getState());
+
     this.networkVersionSent = store.getState().inpageProvider.networkId;
 
     // This will only be used for WalletConnect for now
@@ -149,13 +156,12 @@ export class BackgroundBridge extends EventEmitter {
       DevLogger.log(`Error in BackgroundBridge: ${err}`);
     }
 
-    this.on('update', this.onStateUpdate);
+    this.on('update', async () => await this.onStateUpdate());
 
     if (this.isRemoteConn) {
       const memState = this.getState();
-      const publicState = this.getProviderNetworkState();
       const selectedAddress = memState.selectedAddress;
-      this.notifyChainChanged(publicState);
+      this.notifyChainChanged();
       this.notifySelectedAddressChanged(selectedAddress);
     }
   }
@@ -208,38 +214,83 @@ export class BackgroundBridge extends EventEmitter {
     });
   }
 
-  getProviderNetworkState() {
+  async getProviderNetworkState(origin = METAMASK_DOMAIN) {
     // TODO update to use SelectedNetworkController
-    const providerConfig = selectProviderConfig(store.getState());
-    const networkType = providerConfig.type;
+    const networkClientId = Engine.controllerMessenger.call(
+      'SelectedNetworkController:getNetworkClientIdForDomain',
+      origin,
+    );
 
-    const isInitialNetwork =
-      networkType && getAllNetworks().includes(networkType);
-    let chainId;
+    const networkClient = Engine.controllerMessenger.call(
+      'NetworkController:getNetworkClientById',
+      networkClientId,
+    );
 
-    if (isInitialNetwork) {
-      chainId = ChainId[networkType];
-    } else if (networkType === 'rpc') {
-      chainId = providerConfig.chainId;
+    const { chainId } = networkClient.configuration;
+
+    let networkVersion = this.deprecatedNetworkVersions[networkClientId];
+    if (!networkVersion) {
+      const ethQuery = new EthQuery(networkClient.provider);
+      networkVersion = await new Promise((resolve) => {
+        ethQuery.sendAsync({ method: 'net_version' }, (error, result) => {
+          if (error) {
+            console.error(error);
+            resolve(null);
+          } else {
+            if (result && !result.startsWith('0x')) {
+              // Convert to hex
+              result = `0x${parseInt(result, 10).toString(16)}`;
+            }
+            resolve(result);
+          }
+        });
+      });
+      this.deprecatedNetworkVersions[networkClientId] = networkVersion;
     }
-    if (chainId && !chainId.startsWith('0x')) {
-      // Convert to hex
-      chainId = `0x${parseInt(chainId, 10).toString(16)}`;
-    }
 
-    const result = {
-      networkVersion: legacyNetworkId(),
+    return {
       chainId,
+      networkVersion: networkVersion ?? 'loading',
     };
-    return result;
+    // const providerConfig = selectProviderConfig(store.getState());
+    // const networkType = providerConfig.type;
+
+    // const isInitialNetwork =
+    //   networkType && getAllNetworks().includes(networkType);
+    // let chainId;
+
+    // if (isInitialNetwork) {
+    //   chainId = ChainId[networkType];
+    // } else if (networkType === 'rpc') {
+    //   chainId = providerConfig.chainId;
+    // }
+    // if (chainId && !chainId.startsWith('0x')) {
+    //   // Convert to hex
+    //   chainId = `0x${parseInt(chainId, 10).toString(16)}`;
+    // }
+
+    // const result = {
+    //   networkVersion: legacyNetworkId(),
+    //   chainId,
+    // };
+    // return result;
   }
 
-  notifyChainChanged(params) {
+  async notifyChainChanged(params) {
     DevLogger.log(`notifyChainChanged: `, params);
-    this.sendNotification({
-      method: NOTIFICATION_NAMES.chainChanged,
-      params,
-    });
+    console.log('ALEX LOGGGING____ notifyChainChanged:', params);
+    if (process.env.MULTICHAIN_V1) {
+      this.sendNotification({
+        method: NOTIFICATION_NAMES.chainChanged,
+        // TODO where is origin?
+        params: await this.getProviderNetworkState('origin'),
+      });
+    } else {
+      this.sendNotification({
+        method: NOTIFICATION_NAMES.chainChanged,
+        params: await this.getProviderNetworkState(),
+      });
+    }
   }
 
   async notifySelectedAddressChanged(selectedAddress) {
@@ -282,11 +333,18 @@ export class BackgroundBridge extends EventEmitter {
     }
   }
 
-  onStateUpdate(memState) {
+  async onStateUpdate(memState) {
     if (!memState) {
       memState = this.getState();
     }
-    const publicState = this.getProviderNetworkState();
+    const publicState = await this.getProviderNetworkState();
+
+    console.log(
+      'ALEX LOGGGING____ chainIdSent:',
+      this.chainIdSent,
+      'publicState.chainId: ',
+      publicState.chainId,
+    );
 
     // Check if update already sent
     if (
@@ -296,7 +354,8 @@ export class BackgroundBridge extends EventEmitter {
     ) {
       this.chainIdSent = publicState.chainId;
       this.networkVersionSent = publicState.networkVersion;
-      this.notifyChainChanged(publicState);
+      //ALEX NOTE: THIS IS SHOULD BE DISABLED WHEN MULTICHAIN IS ENABLED
+      await this.notifyChainChanged();
     }
     // ONLY NEEDED FOR WC FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
     if (this.isWalletConnect || this.isRemoteConn) {
@@ -314,10 +373,10 @@ export class BackgroundBridge extends EventEmitter {
     return Engine.context.KeyringController.isUnlocked();
   }
 
-  getProviderState() {
+  async getProviderState() {
     return {
       isUnlocked: this.isUnlocked(),
-      ...this.getProviderNetworkState(),
+      ...(await this.getProviderNetworkState()),
     };
   }
 
@@ -326,7 +385,6 @@ export class BackgroundBridge extends EventEmitter {
   };
 
   onMessage = (msg) => {
-    console.log('message', msg);
     this.port.emit('message', { name: msg.name, data: msg.data });
   };
 
@@ -440,6 +498,7 @@ export class BackgroundBridge extends EventEmitter {
     engine.push(
       this.createMiddleware({
         hostname: this.hostname,
+        // TODO ALEX this is async now...
         getProviderState: this.getProviderState.bind(this),
       }),
     );
@@ -453,6 +512,7 @@ export class BackgroundBridge extends EventEmitter {
 
   sendNotification(payload) {
     DevLogger.log(`BackgroundBridge::sendNotification: `, payload);
+    console.log('ALEX LOGGGING____ sendNotification:', payload);
     this.engine && this.engine.emit('notification', payload);
   }
 
