@@ -227,7 +227,7 @@ exports[`AccountConnect renders correctly 1`] = `
               }
             }
           >
-            https://test
+            https://mockOrigin
           </Text>
         </View>
         <Text
