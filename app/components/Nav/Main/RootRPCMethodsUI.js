@@ -129,7 +129,7 @@ export const useSwapConfirmedEvent = ({ trackSwaps }) => {
 };
 
 const RootRPCMethodsUI = (props) => {
-  const { trackEvent, trackAnonymousEvent } = useMetrics();
+  const { trackEvent } = useMetrics();
   const [transactionModalType, setTransactionModalType] = useState(undefined);
   const tokenList = useSelector(selectTokenList);
   const setTransactionObject = props.setTransactionObject;
@@ -237,7 +237,7 @@ const RootRPCMethodsUI = (props) => {
           ...smartTransactionMetricsProperties,
         };
 
-        trackAnonymousEvent(event, parameters);
+        trackEvent(event, { sensitiveProperties: { ...parameters } });
       } catch (e) {
         Logger.error(e, MetaMetricsEvents.SWAP_TRACKING_FAILED);
         trackEvent(MetaMetricsEvents.SWAP_TRACKING_FAILED, {
@@ -245,12 +245,7 @@ const RootRPCMethodsUI = (props) => {
         });
       }
     },
-    [
-      props.selectedAddress,
-      props.shouldUseSmartTransaction,
-      trackAnonymousEvent,
-      trackEvent,
-    ],
+    [props.selectedAddress, props.shouldUseSmartTransaction, trackEvent],
   );
 
   const { addTransactionMetaIdForListening } = useSwapConfirmedEvent({
