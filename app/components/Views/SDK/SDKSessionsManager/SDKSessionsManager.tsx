@@ -24,6 +24,9 @@ import { RootState } from '../../../../reducers';
 import { SDKSelectorsIDs } from '../../../../../e2e/selectors/Settings/SDK.selectors';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import SDKSessionItem from './SDKSessionItem';
+import PermissionItem from './PermissionItem';
+import { isMutichainVersion1Enabled } from '../../../../util/networks';
+import mockPermissionItems from './PermissionItem/PermissionItem.constants';
 
 interface SDKSessionsManagerProps {
   // TODO: Replace "any" with type
@@ -117,6 +120,10 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
               connection={androidSession}
             />
           ))}
+          {isMutichainVersion1Enabled &&
+            mockPermissionItems.map((mockPermissionItem, _index) => (
+              <PermissionItem key={`${_index}`} item={mockPermissionItem} />
+            ))}
         </ScrollView>
         <View style={styles.disconnectAllContainer}>
           <Button
@@ -156,7 +163,8 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
       style={styles.wrapper}
       testID={SDKSelectorsIDs.SESSION_MANAGER_CONTAINER}
     >
-      {connectionsList.length + dappConnectionsList.length > 0
+      {connectionsList.length + dappConnectionsList.length > 0 ||
+      (isMutichainVersion1Enabled && mockPermissionItems.length)
         ? renderSDKSessions()
         : renderEmptyResult()}
     </View>

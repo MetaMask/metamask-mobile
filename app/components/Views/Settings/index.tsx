@@ -103,6 +103,10 @@ const Settings = () => {
     navigation.navigate('ContactsSettings');
   };
 
+  const goToManagePermissions = () => {
+    navigation.navigate('SDKSessionsManager');
+  };
+
   const goToBrowserUrl = (url: string, title: string) => {
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
@@ -213,7 +217,7 @@ const Settings = () => {
       {isMutichainVersion1Enabled && (
         <SettingsDrawer
           description={strings('app_settings.permissions_desc')}
-          onPress={onPressContacts}
+          onPress={goToManagePermissions}
           title={strings('app_settings.permissions_title')}
           testID={SettingsViewSelectorsIDs.PERMISSIONS}
         />
