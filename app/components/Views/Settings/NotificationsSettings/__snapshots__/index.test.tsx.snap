@@ -130,7 +130,7 @@ exports[`NotificationsSettings should render correctly 1`] = `
             }
           }
         >
-          Learn how we protect your privacy while using this feature. 
+          Learn how we protect your privacy while using this feature.
         </Text>
       </Text>
     </View>
