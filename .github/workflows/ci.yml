@@ -25,23 +25,20 @@ jobs:
         env:
           PACKAGE_READ_TOKEN: ${{ secrets.PACKAGE_READ_TOKEN }}
       - run: yarn setup:node
-      - name: Ingore changes in specific file
-        shell: bash
-        run: |
-          git update-index --assume-unchanged app/util/termsOfUse/termsOfUseContent.ts
-      - run: yarn setup:node
       - name: Require clean working directory
         shell: bash
         run: |
-          if ! git diff --exit-code; then
+          # Read the exclude paths from the file
+          exclude_paths=$(awk '{print ":(exclude)" $0}' git-diff-exclusions.txt | tr '\n' ' ')
+
+          # Construct the git diff command
+          git_diff_command="git diff -- . $exclude_paths --exit-code"
+
+          # Execute the git diff command
+          if ! eval $git_diff_command; then
             echo "Working tree dirty at end of job"
             exit 1
           fi
-      - run: yarn setup:node
-      - name: Revert ignore changes in specific file
-        shell: bash
-        run: |
-          git update-index --no-assume-unchanged app/util/termsOfUse/termsOfUseContent.ts
   dedupe:
     runs-on: ubuntu-20.04
     needs: setup
@@ -80,23 +77,20 @@ jobs:
           cache: yarn
       - run: yarn setup:node
       - run: yarn ${{ matrix['scripts'] }}
-      - run: yarn setup:node
-      - name: Ingore changes in specific file
-        shell: bash
-        run: |
-          git update-index --assume-unchanged app/util/termsOfUse/termsOfUseContent.ts
       - name: Require clean working directory
         shell: bash
         run: |
-          if ! git diff --exit-code; then
+          # Read the exclude paths from the file
+          exclude_paths=$(awk '{print ":(exclude)" $0}' git-diff-exclusions.txt | tr '\n' ' ')
+
+          # Construct the git diff command
+          git_diff_command="git diff -- . $exclude_paths --exit-code"
+
+          # Execute the git diff command
+          if ! eval $git_diff_command; then
             echo "Working tree dirty at end of job"
             exit 1
           fi
-      - run: yarn setup:node
-      - name: Revert ignore changes in specific file
-        shell: bash
-        run: |
-          git update-index --no-assume-unchanged app/util/termsOfUse/termsOfUseContent.ts
   unit-tests:
     runs-on: ubuntu-20.04
     needs: setup
@@ -124,23 +118,20 @@ jobs:
           name: coverage-${{ matrix.shard }}
           path: ./tests/coverage/coverage-${{ matrix.shard }}.json
           if-no-files-found: error
-      - run: yarn setup:node
-      - name: Ingore changes in specific file
-        shell: bash
-        run: |
-          git update-index --assume-unchanged app/util/termsOfUse/termsOfUseContent.ts
       - name: Require clean working directory
         shell: bash
         run: |
-          if ! git diff --exit-code; then
+          # Read the exclude paths from the file
+          exclude_paths=$(awk '{print ":(exclude)" $0}' git-diff-exclusions.txt | tr '\n' ' ')
+
+          # Construct the git diff command
+          git_diff_command="git diff -- . $exclude_paths --exit-code"
+
+          # Execute the git diff command
+          if ! eval $git_diff_command; then
             echo "Working tree dirty at end of job"
             exit 1
           fi
-      - run: yarn setup:node
-      - name: Revert ignore changes in specific file
-        shell: bash
-        run: |
-          git update-index --no-assume-unchanged app/util/termsOfUse/termsOfUseContent.ts
   merge-unit-tests:
     runs-on: ubuntu-20.04
     needs: unit-tests
@@ -165,23 +156,20 @@ jobs:
           name: coverage
           path: ./tests/merged-coverage/lcov.info
           if-no-files-found: error
-      - run: yarn setup:node
-      - name: Ingore changes in specific file
-        shell: bash
-        run: |
-          git update-index --assume-unchanged app/util/termsOfUse/termsOfUseContent.ts
       - name: Require clean working directory
         shell: bash
         run: |
-          if ! git diff --exit-code; then
+          # Read the exclude paths from the file
+          exclude_paths=$(awk '{print ":(exclude)" $0}' git-diff-exclusions.txt | tr '\n' ' ')
+
+          # Construct the git diff command
+          git_diff_command="git diff -- . $exclude_paths --exit-code"
+
+          # Execute the git diff command
+          if ! eval $git_diff_command; then
             echo "Working tree dirty at end of job"
             exit 1
           fi
-      - run: yarn setup:node
-      - name: Revert ignore changes in specific file
-        shell: bash
-        run: |
-          git update-index --no-assume-unchanged app/util/termsOfUse/termsOfUseContent.ts
   sonar-cloud:
     runs-on: ubuntu-20.04
     needs: merge-unit-tests
@@ -206,23 +194,20 @@ jobs:
         env:
           HAVE_SONAR_TOKEN: ${{ secrets.SONAR_TOKEN != '' }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      - run: yarn setup:node
-      - name: Ingore changes in specific file
-        shell: bash
-        run: |
-          git update-index --assume-unchanged app/util/termsOfUse/termsOfUseContent.ts
       - name: Require clean working directory
         shell: bash
         run: |
-          if ! git diff --exit-code; then
+          # Read the exclude paths from the file
+          exclude_paths=$(awk '{print ":(exclude)" $0}' git-diff-exclusions.txt | tr '\n' ' ')
+
+          # Construct the git diff command
+          git_diff_command="git diff -- . $exclude_paths --exit-code"
+
+          # Execute the git diff command
+          if ! eval $git_diff_command; then
             echo "Working tree dirty at end of job"
             exit 1
           fi
-      - run: yarn setup:node
-      - name: Revert ignore changes in specific file
-        shell: bash
-        run: |
-          git update-index --no-assume-unchanged app/util/termsOfUse/termsOfUseContent.ts
   check-workflows:
     name: Check workflows
     runs-on: ubuntu-latest
