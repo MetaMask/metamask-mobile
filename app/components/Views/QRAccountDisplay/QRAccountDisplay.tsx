@@ -44,8 +44,8 @@ const copyAddressToClipboard = async (address: string) => {
   });
 };
 
-const PREFIX_LEN = 6;
-const SUFFIX_LEN = 5;
+const ADDRESS_PREFIX_LENGTH = 6;
+const ADDRESS_SUFFIX_LENGTH = 5;
 
 const QRAccountDisplay = (props: { accountAddress: string }) => {
   const theme = useTheme();
@@ -54,12 +54,14 @@ const QRAccountDisplay = (props: { accountAddress: string }) => {
   const identities = useSelector(selectInternalAccounts);
   const accountLabel = renderAccountName(addr, identities);
   const { toastRef } = useContext(ToastContext);
-  const addressStart = addr.substring(0, PREFIX_LEN);
+  const addressStart = addr.substring(0, ADDRESS_PREFIX_LENGTH);
   const addressMiddle: string = addr.substring(
-    PREFIX_LEN,
-    addr.length - SUFFIX_LEN,
+    ADDRESS_PREFIX_LENGTH,
+    addr.length - ADDRESS_SUFFIX_LENGTH,
   );
-  const addressEnd: string = addr.substring(addr.length - SUFFIX_LEN);
+  const addressEnd: string = addr.substring(
+    addr.length - ADDRESS_SUFFIX_LENGTH,
+  );
 
   const showCopyNotificationToast = () => {
     toastRef?.current?.showToast({
