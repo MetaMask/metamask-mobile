@@ -1,9 +1,9 @@
 // Third party dependencies.
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { Hex } from '@metamask/utils';
 
 // External dependencies.
-import { AvatarGroupToken } from '../../../component-library/components/Avatars/AvatarGroup/AvatarGroup.types';
-import { Hex } from '@metamask/utils';
+import { AvatarTokenProps } from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken.types';
 
 /**
  * Asset information associated with the account, which includes both the fiat balance and owned tokens.
@@ -16,7 +16,7 @@ export interface Assets {
   /**
    * Tokens owned by this account.
    */
-  tokens?: AvatarGroupToken[];
+  tokens?: AvatarTokenProps[];
 }
 
 /**
