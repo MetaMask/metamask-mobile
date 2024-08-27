@@ -38,7 +38,7 @@ jest.mock('../QRScanner', () => jest.fn(() => null));
 jest.mock('../../UI/ReceiveRequest', () => jest.fn(() => null));
 
 describe('QRTabSwitcher', () => {
-  it('render QRScanner by default', () => {
+  it('renders QRScanner by default', () => {
     const { getByText } = render(<QRTabSwitcher />);
     expect(getByText(strings('qr_tab_switcher.scanner_tab'))).toBeTruthy();
   });
