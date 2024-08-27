@@ -11,6 +11,10 @@ on:
         description: 'Branch to run the workflow on'
         required: true
         default: ''
+      rc_number:
+        description: 'Release candidate number (optional)'
+        required: true
+        default: '1'
 
 jobs:
   update-versions:
@@ -43,9 +47,49 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Update build version
-        run: yarn update-build-version
+      - name: Run shell script to update versions
+        run: ./scripts/update-versions.sh
 
-      - name: Conditionally update release version
-        if: ${{ github.event.inputs.release_version != '' }}
-        run: yarn update-release-version ${{ github.event.inputs.release_version }}
+      - name: Extract build version
+        id: extract-build-version
+        run: |
+          BUILD_VERSION=$(grep -oP 'version\s*=\s*"\K[0-9.]+' path/to/version/file)
+          echo "::set-output name=build_version::$BUILD_VERSION"
+
+      - name: Determine release version
+        id: determine-release-version
+        run: |
+          if [ -z "${{ github.event.inputs.release_version }}" ]; then
+            RELEASE_VERSION=$(grep -oP 'version\s*=\s*"\K[0-9.]+' path/to/current-release-version/file)
+            echo "::set-output name=release_version::$RELEASE_VERSION"
+          else
+            echo "::set-output name=release_version::${{ github.event.inputs.release_version }}"
+          fi
+
+      - name: Create new branch
+        id: create-new-branch
+        run: |
+          NEW_BRANCH="chore/bump-release-version-${{ steps.determine-release-version.outputs.release_version }}-${{ steps.extract-build-version.outputs.build_version }}"
+          git checkout -b $NEW_BRANCH
+          echo "::set-output name=new_branch::$NEW_BRANCH"
+
+      - name: Commit changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "chore: bump release version to ${{ steps.determine-release-version.outputs.release_version }} and build version"
+
+      - name: Push changes
+        run: |
+          git push origin ${{ steps.create-new-branch.outputs.new_branch }}
+
+      - name: Create pull request
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_TITLE="chore: bump release version ${{ steps.determine-release-version.outputs.release_version }} - ${{ steps.extract-build-version.outputs.build_version }}"
+          if [ -n "${{ github.event.inputs.rc_number }}" ]; then
+            PR_TITLE="$PR_TITLE - RC${{ github.event.inputs.rc_number }}"
+          fi
+          gh pr create --base ${{ steps.determine-branch.outputs.branch }} --head ${{ steps.create-new-branch.outputs.new_branch }} --title "$PR_TITLE" --body "This PR updates the release version to ${{ steps.determine-release-version.outputs.release_version }} and build version to ${{ steps.extract-build-version.outputs.build_version }}."
