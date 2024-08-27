@@ -10,7 +10,7 @@ export type FontWeight =
   | '900';
 type FontStyle = 'normal' | 'italic';
 
-export const getFontFamily = (
+export const getFontStyleVariant = (
   fontWeight: FontWeight = '400',
   fontStyle: FontStyle = 'normal',
 ): string => {

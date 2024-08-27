@@ -5,7 +5,7 @@ import { render } from '@testing-library/react-native';
 // External dependencies.
 import Text, { TextVariant } from '../Texts/Text';
 import { mockTheme } from '../../../util/theme';
-import { getFontFamily, FontWeight } from '../Texts/Text/Text.utils';
+import { getFontStyleVariant, FontWeight } from '../Texts/Text/Text.utils';
 
 // Internal dependencies.
 import RadioButton from './RadioButton';
@@ -39,7 +39,7 @@ describe('RadioButton', () => {
     const { getByRole } = render(
       <RadioButton label={'Sample RadioButton Label'} />,
     );
-    const fontFamily = getFontFamily(
+    const fontFamily = getFontStyleVariant(
       mockTheme.typography[DEFAULT_RADIOBUTTON_LABEL_TEXTVARIANT]
         .fontWeight as FontWeight,
       'normal',
@@ -56,7 +56,7 @@ describe('RadioButton', () => {
       />,
     );
 
-    const fontFamily = getFontFamily(
+    const fontFamily = getFontStyleVariant(
       mockTheme.typography[testTextVariant].fontWeight as FontWeight,
       'normal',
     );

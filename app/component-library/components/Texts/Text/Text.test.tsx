@@ -8,7 +8,7 @@ import { mockTheme } from '../../../../util/theme';
 // Internal dependencies
 import Text from './Text';
 import { SAMPLE_TEXT_PROPS, DEFAULT_TEXT_VARIANT } from './Text.constants';
-import { getFontFamily, FontWeight } from './Text.utils';
+import { getFontStyleVariant, FontWeight } from './Text.utils';
 
 describe('Text', () => {
   it('should render correctly', () => {
@@ -18,7 +18,7 @@ describe('Text', () => {
 
   it('should render the correct fontFamily', () => {
     const { getByRole } = render(<Text {...SAMPLE_TEXT_PROPS} />);
-    const fontFamily = getFontFamily(
+    const fontFamily = getFontStyleVariant(
       mockTheme.typography[DEFAULT_TEXT_VARIANT].fontWeight as FontWeight,
       'normal',
     );

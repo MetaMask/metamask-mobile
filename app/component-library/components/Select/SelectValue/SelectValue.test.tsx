@@ -4,7 +4,7 @@ import { render } from '@testing-library/react-native';
 
 // External dependencies.
 import { mockTheme } from '../../../../util/theme';
-import { getFontFamily, FontWeight } from '../../Texts/Text/Text.utils';
+import { getFontStyleVariant, FontWeight } from '../../Texts/Text/Text.utils';
 
 // Internal dependencies.
 import SelectValue from './SelectValue';
@@ -24,7 +24,7 @@ describe('SelectValue', () => {
       <SelectValue label={SAMPLE_SELECTVALUE_PROPS.label} />,
     );
 
-    const fontFamily = getFontFamily(
+    const fontFamily = getFontStyleVariant(
       mockTheme.typography[DEFAULT_SELECTVALUE_LABEL_TEXTVARIANT]
         .fontWeight as FontWeight,
       'normal',
@@ -37,7 +37,7 @@ describe('SelectValue', () => {
       <SelectValue description={SAMPLE_SELECTVALUE_PROPS.description} />,
     );
 
-    const fontFamily = getFontFamily(
+    const fontFamily = getFontStyleVariant(
       mockTheme.typography[DEFAULT_SELECTVALUE_DESCRIPTION_TEXTVARIANT]
         .fontWeight as FontWeight,
       'normal',

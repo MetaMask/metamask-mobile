@@ -5,7 +5,7 @@ import { render } from '@testing-library/react-native';
 // External dependencies.
 import Text, { TextVariant } from '../Texts/Text';
 import { mockTheme } from '../../../util/theme';
-import { getFontFamily, FontWeight } from '../Texts/Text/Text.utils';
+import { getFontStyleVariant, FontWeight } from '../Texts/Text/Text.utils';
 
 // Internal dependencies.
 import Checkbox from './Checkbox';
@@ -48,7 +48,7 @@ describe('Checkbox', () => {
 
   it('should render Checkbox with the right text variant if typeof label === string', () => {
     const { getByRole } = render(<Checkbox label={'Sample Checkbox Label'} />);
-    const fontFamily = getFontFamily(
+    const fontFamily = getFontStyleVariant(
       mockTheme.typography[DEFAULT_CHECKBOX_LABEL_TEXTVARIANT]
         .fontWeight as FontWeight,
       'normal',
@@ -63,7 +63,7 @@ describe('Checkbox', () => {
         label={<Text variant={testTextVariant}>Sample Checkbox Label</Text>}
       />,
     );
-    const fontFamily = getFontFamily(
+    const fontFamily = getFontStyleVariant(
       mockTheme.typography[testTextVariant].fontWeight as FontWeight,
       'normal',
     );

@@ -5,7 +5,7 @@ import { render } from '@testing-library/react-native';
 // External dependencies.
 import Text, { TextVariant } from '../Texts/Text';
 import { mockTheme } from '../../../util/theme';
-import { getFontFamily, FontWeight } from '../Texts/Text/Text.utils';
+import { getFontStyleVariant, FontWeight } from '../Texts/Text/Text.utils';
 
 // Internal dependencies.
 import HeaderBase from './HeaderBase';
@@ -30,7 +30,7 @@ describe('HeaderBase', () => {
     const { getByRole } = render(
       <HeaderBase>Sample HeaderBase Title</HeaderBase>,
     );
-    const fontFamily = getFontFamily(
+    const fontFamily = getFontStyleVariant(
       mockTheme.typography[DEFAULT_HEADERBASE_TITLE_TEXTVARIANT]
         .fontWeight as FontWeight,
       'normal',
@@ -48,7 +48,7 @@ describe('HeaderBase', () => {
       </HeaderBase>,
     );
 
-    const fontFamily = getFontFamily(
+    const fontFamily = getFontStyleVariant(
       mockTheme.typography[testTextVariant].fontWeight as FontWeight,
       'normal',
     );

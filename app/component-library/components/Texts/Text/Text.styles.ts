@@ -6,7 +6,7 @@ import { Theme } from '../../../../util/theme/models';
 
 // Internal dependencies.
 import { TextColor, TextVariant } from './Text.types';
-import { getFontFamily, FontWeight } from './Text.utils';
+import { getFontStyleVariant, FontWeight } from './Text.utils';
 
 /**
  * Style sheet function for Text component.
@@ -64,7 +64,7 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
   const fontObject = {
     ...variantObject,
     color: textColor,
-    fontFamily: getFontFamily(
+    fontFamily: getFontStyleVariant(
       variantObject.fontWeight as FontWeight,
       style?.fontStyle,
     ),
