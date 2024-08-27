@@ -921,9 +921,11 @@ class Engine {
         ],
       }),
       state: initialState.SelectedNetworkController || { domains: {} },
-      useRequestQueuePreference: !!process.env.MULTICHAIN_V1,
-      // @ts-expect-error TODO: Resolve mismatch between PreferenceController versions.
-      onPreferencesStateChange,
+      // useRequestQueuePreference: !!process.env.MULTICHAIN_V1,
+      useRequestQueuePreference: true,
+      onPreferencesStateChange: (
+        listener: ({ useRequestQueue }: { useRequestQueue: boolean }) => void,
+      ) => listener({ useRequestQueue: true }),
       domainProxyMap: new DomainProxyMap(),
     });
 

@@ -99,7 +99,7 @@ export class BackgroundBridge extends EventEmitter {
     this.engine = null;
 
     // const providerNetworkState = await this.getProviderNetworkState();
-    this.chainIdSent = selectChainId(store.getState());
+    this.lastChainIdSent = selectChainId(store.getState());
 
     this.networkVersionSent = store.getState().inpageProvider.networkId;
 
@@ -248,7 +248,7 @@ export class BackgroundBridge extends EventEmitter {
     }
 
     // THIS APPEARS TO BE LOGGING CORRECT ORIGIN AND CHAINID
-    console.log('ALEX LOGGGING____ origin:', origin, '& chainId:', chainId);
+    // console.log('ALEX LOGGGING____ origin:', origin, '& chainId:', chainId);
 
     return {
       chainId,
@@ -308,26 +308,16 @@ export class BackgroundBridge extends EventEmitter {
     if (!memState) {
       memState = this.getState();
     }
-    const publicState = await this.getProviderNetworkState();
-
-    console.log(
-      'ALEX LOGGGING____ chainIdSent:',
-      this.chainIdSent,
-      'publicState.chainId: ',
-      publicState.chainId,
-    );
+    const publicState = await this.getProviderNetworkState(this.hostname);
 
     // Check if update already sent
-    
-    // TODO ALEX the logic here needs to be updated to use selectedNetworkController state
     if (
-      this.chainIdSent !== publicState.chainId ||
+      this.lastChainIdSent !== publicState.chainId ||
       (this.networkVersionSent !== publicState.networkVersion &&
         publicState.networkVersion !== NETWORK_ID_LOADING)
     ) {
-      this.chainIdSent = publicState.chainId;
+      this.lastChainIdSent = publicState.chainId;
       this.networkVersionSent = publicState.networkVersion;
-      //ALEX NOTE: THIS IS SHOULD BE DISABLED WHEN MULTICHAIN IS ENABLED
       await this.notifyChainChanged();
     }
     // ONLY NEEDED FOR WC FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF

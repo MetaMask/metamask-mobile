@@ -461,35 +461,15 @@ export const getRpcMethodMiddleware = ({
         );
       },
       eth_chainId: async () => {
-        // if (process.env.MULTICHAIN_V1) {
         const origin = isWalletConnect ? hostname : channelId ?? hostname;
         const networkProviderState = await getProviderState(origin);
         /* eslint-disable no-console */
-        console.log(
-          'ALEX LOGGGING____ eth_chainId handler || networkProviderState',
-          networkProviderState,
-        );
+        // console.log(
+        //   'ALEX LOGGGING____ eth_chainId handler || networkProviderState',
+        //   networkProviderState,
+        // );
         /* eslint-enable no-console */
         res.result = networkProviderState.chainId;
-        // } else {
-        //   const providerConfig = selectProviderConfig(store.getState());
-        //   const networkType = providerConfig.type as NetworkType;
-        //   const isInitialNetwork =
-        //     networkType && getAllNetworks().includes(networkType);
-        //   let chainId;
-
-        //   if (isInitialNetwork) {
-        //     chainId = ChainId[networkType as keyof typeof ChainId];
-        //   } else if (networkType === RPC) {
-        //     chainId = providerConfig.chainId;
-        //   }
-
-        //   if (chainId && !chainId.startsWith('0x')) {
-        //     chainId = toHex(chainId);
-        //   }
-
-        //   res.result = chainId;
-        // }
       },
       eth_hashrate: () => {
         res.result = '0x00';

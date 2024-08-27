@@ -12,6 +12,7 @@ import {
 } from '../../selectors/networkController';
 import { store } from '../../store';
 import { NetworksTicker, isSafeChainId } from '@metamask/controller-utils';
+import { RestrictedMethods } from '../Permissions/constants';
 
 const wallet_switchEthereumChain = async ({
   req,
@@ -19,8 +20,14 @@ const wallet_switchEthereumChain = async ({
   requestUserApproval,
   analytics,
 }) => {
-  const { CurrencyRateController, NetworkController } = Engine.context;
+  const {
+    CurrencyRateController,
+    NetworkController,
+    PermissionController,
+    SelectedNetworkController,
+  } = Engine.context;
   const params = req.params?.[0];
+  const { origin } = req;
 
   if (!params || typeof params !== 'object') {
     throw rpcErrors.invalidParams({
@@ -108,12 +115,33 @@ const wallet_switchEthereumChain = async ({
       requestData: { ...requestData, type: 'switch' },
     });
 
+    // TODO ALEX add networkConfigurationId to SelectedNetworkController domains state
+    // if the origin has eth_accounts permission
     if (networkConfiguration) {
       CurrencyRateController.updateExchangeRate(networkConfiguration.ticker);
       NetworkController.setActiveNetwork(networkConfigurationId);
     } else {
       CurrencyRateController.updateExchangeRate(NetworksTicker.mainnet);
-      NetworkController.setProviderType(existingNetworkDefault.networkType);
+      NetworkController.setActiveNetwork(existingNetworkDefault.networkType);
+    }
+
+    const originHasAccountsPermission = PermissionController.hasPermission(
+      origin,
+      RestrictedMethods.eth_accounts,
+    );
+
+    /* eslint-disable no-console */
+    console.log(
+      'ALEX LOGGING____ originHasAccountsPermission',
+      originHasAccountsPermission,
+    );
+    /* eslint-disable no-console */
+
+    if (originHasAccountsPermission) {
+      SelectedNetworkController.setNetworkClientIdForDomain(
+        origin,
+        networkConfigurationId,
+      );
     }
 
     MetaMetrics.getInstance().trackEvent(
