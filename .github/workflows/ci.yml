@@ -28,19 +28,19 @@ jobs:
       - name: Require clean working directory
         shell: bash
         run: |
-          # Read the exclude paths from the file
+          # Initialize an empty array to store the exclude paths
           exclude_paths=()
+
+          # Read the exclude paths from the file
           while IFS= read -r line; do
             exclude_paths+=(":(exclude)$line")
           done < git-diff-exclusions.txt
 
-          # Construct the git diff command
-          git_diff_command=("git diff -- .")
-          git_diff_command+=("${exclude_paths[@]}")
-          git_diff_command+=("--exit-code")
+          # Print the exclude paths for debugging
+          echo "Exclude paths: ${exclude_paths[@]}"
 
           # Execute the git diff command
-          if ! "${git_diff_command[@]}"; then
+          if ! "git diff -- . ${exclude_paths[@]} --exit-code"; then
             echo "Working tree dirty at end of job"
             exit 1
           fi
@@ -85,19 +85,19 @@ jobs:
       - name: Require clean working directory
         shell: bash
         run: |
-          # Read the exclude paths from the file
+          # Initialize an empty array to store the exclude paths
           exclude_paths=()
+
+          # Read the exclude paths from the file
           while IFS= read -r line; do
             exclude_paths+=(":(exclude)$line")
           done < git-diff-exclusions.txt
 
-          # Construct the git diff command
-          git_diff_command=("git diff -- .")
-          git_diff_command+=("${exclude_paths[@]}")
-          git_diff_command+=("--exit-code")
+          # Print the exclude paths for debugging
+          echo "Exclude paths: ${exclude_paths[@]}"
 
           # Execute the git diff command
-          if ! "${git_diff_command[@]}"; then
+          if ! "git diff -- . ${exclude_paths[@]} --exit-code"; then
             echo "Working tree dirty at end of job"
             exit 1
           fi
@@ -131,19 +131,19 @@ jobs:
       - name: Require clean working directory
         shell: bash
         run: |
-          # Read the exclude paths from the file
+          # Initialize an empty array to store the exclude paths
           exclude_paths=()
+
+          # Read the exclude paths from the file
           while IFS= read -r line; do
             exclude_paths+=(":(exclude)$line")
           done < git-diff-exclusions.txt
 
-          # Construct the git diff command
-          git_diff_command=("git diff -- .")
-          git_diff_command+=("${exclude_paths[@]}")
-          git_diff_command+=("--exit-code")
+          # Print the exclude paths for debugging
+          echo "Exclude paths: ${exclude_paths[@]}"
 
           # Execute the git diff command
-          if ! "${git_diff_command[@]}"; then
+          if ! "git diff -- . ${exclude_paths[@]} --exit-code"; then
             echo "Working tree dirty at end of job"
             exit 1
           fi
@@ -174,19 +174,19 @@ jobs:
       - name: Require clean working directory
         shell: bash
         run: |
-          # Read the exclude paths from the file
+          # Initialize an empty array to store the exclude paths
           exclude_paths=()
+
+          # Read the exclude paths from the file
           while IFS= read -r line; do
             exclude_paths+=(":(exclude)$line")
           done < git-diff-exclusions.txt
 
-          # Construct the git diff command
-          git_diff_command=("git diff -- .")
-          git_diff_command+=("${exclude_paths[@]}")
-          git_diff_command+=("--exit-code")
+          # Print the exclude paths for debugging
+          echo "Exclude paths: ${exclude_paths[@]}"
 
           # Execute the git diff command
-          if ! "${git_diff_command[@]}"; then
+          if ! "git diff -- . ${exclude_paths[@]} --exit-code"; then
             echo "Working tree dirty at end of job"
             exit 1
           fi
@@ -217,19 +217,19 @@ jobs:
       - name: Require clean working directory
         shell: bash
         run: |
-          # Read the exclude paths from the file
+          # Initialize an empty array to store the exclude paths
           exclude_paths=()
+
+          # Read the exclude paths from the file
           while IFS= read -r line; do
             exclude_paths+=(":(exclude)$line")
           done < git-diff-exclusions.txt
 
-          # Construct the git diff command
-          git_diff_command=("git diff -- .")
-          git_diff_command+=("${exclude_paths[@]}")
-          git_diff_command+=("--exit-code")
+          # Print the exclude paths for debugging
+          echo "Exclude paths: ${exclude_paths[@]}"
 
           # Execute the git diff command
-          if ! "${git_diff_command[@]}"; then
+          if ! "git diff -- . ${exclude_paths[@]} --exit-code"; then
             echo "Working tree dirty at end of job"
             exit 1
           fi
