@@ -1,4 +1,4 @@
-import { Dimensions, StyleSheet } from 'react-native';
+import { Dimensions, StyleSheet, TextStyle } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 
 const createStyles = (theme: Theme) => {
@@ -59,11 +59,11 @@ const createStyles = (theme: Theme) => {
       marginRight: 2,
     },
     text: {
-      ...theme.typography.sBodyMD,
+      ...(theme.typography.sBodyMD as TextStyle),
       color: theme.colors.text.default,
     },
     selectedText: {
-      ...theme.typography.sBodyMDMedium,
+      ...(theme.typography.sBodyMDMedium as TextStyle),
       color: theme.colors.primary.default,
     },
   });

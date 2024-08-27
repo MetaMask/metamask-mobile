@@ -15,7 +15,7 @@ const initialState = {
     networks: [
       {
         active: true,
-        chainId: 1,
+        chainId: '1',
         nativeTokenSupported: true,
       },
     ],
