@@ -122,12 +122,15 @@ import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetrics } from '../../../../core/Analytics';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import { selectIsProfileSyncingEnabled } from '../../../../selectors/notifications';
+import {
+  selectIsMetamaskNotificationsEnabled,
+  selectIsProfileSyncingEnabled,
+} from '../../../../selectors/notifications';
 import { useProfileSyncing } from '../../../../util/notifications/hooks/useProfileSyncing';
 import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
 import { RootState } from '../../../../reducers';
 import { EtherscanSupportedHexChainId } from '@metamask/preferences-controller';
-
+import { useDisableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -169,7 +172,11 @@ const Settings: React.FC = () => {
 
   const scrollViewRef = useRef<ScrollView>(null);
   const detectNftComponentRef = useRef<View>(null);
-
+  const {
+    disableNotifications,
+    loading: disableNotificationsLoading,
+    error: disableNotificationsError,
+  } = useDisableNotifications();
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserHistory = useSelector((state: any) => state.browser.history);
@@ -191,6 +198,10 @@ const Settings: React.FC = () => {
   );
 
   const useNftDetection = useSelector(selectUseNftDetection);
+
+  const isNotificationEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
 
   const seedphraseBackedUp = useSelector(
     // TODO: Replace "any" with type
@@ -271,8 +282,20 @@ const Settings: React.FC = () => {
   ]);
 
   useEffect(() => {
-    !isBasicFunctionalityEnabled && disableProfileSyncing();
-  }, [disableProfileSyncing, isBasicFunctionalityEnabled]);
+    const triggerCascadeBasicFunctionalityDisable = async () => {
+      if (!isBasicFunctionalityEnabled) {
+        isNotificationEnabled && (await disableNotifications());
+        isProfileSyncingEnabled && (await disableProfileSyncing());
+      }
+    };
+    triggerCascadeBasicFunctionalityDisable();
+  }, [
+    disableNotifications,
+    disableProfileSyncing,
+    isBasicFunctionalityEnabled,
+    isNotificationEnabled,
+    isProfileSyncingEnabled,
+  ]);
 
   const scrollToDetectNFTs = useCallback(() => {
     if (detectNftComponentRef.current) {
@@ -910,7 +933,9 @@ const Settings: React.FC = () => {
               key={chainId}
               variant={CellVariant.Display}
               title={name}
-              secondaryText={myNetworks[chainId].domain}
+              secondaryText={
+                myNetworks[chainId as keyof typeof myNetworks].domain
+              }
               avatarProps={{
                 variant: AvatarVariant.Network,
                 name,
@@ -950,7 +975,9 @@ const Settings: React.FC = () => {
             key={chainId}
             variant={CellVariant.Display}
             title={name}
-            secondaryText={myNetworks[chainId]?.domain}
+            secondaryText={
+              myNetworks[chainId as keyof typeof myNetworks].domain
+            }
             avatarProps={{
               variant: AvatarVariant.Network,
               name,
@@ -961,7 +988,11 @@ const Settings: React.FC = () => {
             <Switch
               value={showIncomingTransactionsNetworks[chainId]}
               onValueChange={(value) => {
-                chainId && toggleEnableIncomingTransactions(chainId, value);
+                chainId &&
+                  toggleEnableIncomingTransactions(
+                    chainId as keyof typeof myNetworks,
+                    value,
+                  );
               }}
               trackColor={{
                 true: colors.primary.default,
@@ -1029,6 +1060,9 @@ const Settings: React.FC = () => {
     ? strings('app_settings.enabling_profile_sync')
     : strings('app_settings.disabling_profile_sync');
 
+  const modalLoading = profileSyncLoading || disableNotificationsLoading;
+  const modalError = profileSyncError || disableNotificationsError;
+
   return (
     <ScrollView
       style={styles.wrapper}
@@ -1066,7 +1100,11 @@ const Settings: React.FC = () => {
             handleSwitchToggle={toggleBasicFunctionality}
           />
         </View>
-        <ProfileSyncingComponent handleSwitchToggle={toggleProfileSyncing} />
+        <ProfileSyncingComponent
+          handleSwitchToggle={toggleProfileSyncing}
+          isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
+          isProfileSyncingEnabled={isProfileSyncingEnabled}
+        />
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}
@@ -1131,9 +1169,9 @@ const Settings: React.FC = () => {
         {renderHint()}
       </View>
       <SwitchLoadingModal
-        loading={profileSyncLoading}
+        loading={modalLoading}
         loadingText={profileSyncModalMessage}
-        error={profileSyncError}
+        error={modalError}
       />
     </ScrollView>
   );
