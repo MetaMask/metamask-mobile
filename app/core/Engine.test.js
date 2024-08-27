@@ -54,8 +54,7 @@ describe('Engine', () => {
     expect(initialBackgroundState).toStrictEqual({
       ...backgroundState,
 
-      // JSON cannot store the value undefined, so we
-      // append it here
+      // JSON cannot store the value undefined, so we append it here
       SmartTransactionsController: {
         smartTransactionsState: {
           fees: {
