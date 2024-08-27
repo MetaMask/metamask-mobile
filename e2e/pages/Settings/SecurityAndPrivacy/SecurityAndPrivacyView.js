@@ -94,6 +94,12 @@ class SecurityAndPrivacy {
     await Gestures.waitAndTap(this.deleteWalletButton);
   }
 
+  async scrollToRevealPrivateKey() {
+    await Gestures.scrollToElement(
+      this.showPrivateKey,
+      this.scrollViewIdentifier,
+    );
+  }
   async scrollToChangePasswordView() {
     await Gestures.scrollToElement(
       this.changePasswordButton,
@@ -128,6 +134,10 @@ class SecurityAndPrivacy {
 
   async tapTurnOnRememberMeToggle() {
     await Gestures.waitAndTap(this.rememberMeToggle);
+  }
+
+  async tapShowPrivateKey() {
+    await Gestures.waitAndTap(this.showPrivateKey);
   }
 }
 
