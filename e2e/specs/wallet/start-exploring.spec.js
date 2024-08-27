@@ -11,7 +11,6 @@ import EnableAutomaticSecurityChecksView from '../../pages/EnableAutomaticSecuri
 import Browser from '../../pages/Browser/BrowserView';
 import SkipAccountSecurityModal from '../../pages/modals/SkipAccountSecurityModal';
 import OnboardingWizardModal from '../../pages/modals/OnboardingWizardModal';
-import WhatsNewModal from '../../pages/modals/WhatsNewModal';
 import { acceptTermOfUse } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
 
@@ -115,12 +114,6 @@ describe(SmokeCore('Start Exploring'), () => {
     // Check that we are on the Browser page
     // dealing with flakiness on bitrise.
     await TestHelpers.delay(2500);
-    try {
-      await Assertions.checkIfVisible(WhatsNewModal.container);
-      await WhatsNewModal.tapCloseButton();
-    } catch {
-      //
-    }
     await Assertions.checkIfVisible(Browser.browserScreenID);
   });
 });

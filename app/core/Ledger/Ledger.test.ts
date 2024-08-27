@@ -11,7 +11,7 @@ import {
 import Engine from '../../core/Engine';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
-import OperationTypes from './types';
+import PAGINATION_OPERATIONS from '../../constants/pagination';
 
 jest.mock('../../core/Engine', () => ({
   context: {
@@ -165,15 +165,17 @@ describe('Ledger core', () => {
 
   describe('getLedgerAccountsByOperation', () => {
     it('calls ledgerKeyring.getNextPage on ledgerKeyring', async () => {
-      await getLedgerAccountsByOperation(OperationTypes.GET_NEXT_PAGE);
+      await getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_NEXT_PAGE);
       expect(ledgerKeyring.getNextPage).toHaveBeenCalled();
     });
     it('calls getPreviousPage on ledgerKeyring', async () => {
-      await getLedgerAccountsByOperation(OperationTypes.GET_PREVIOUS_PAGE);
+      await getLedgerAccountsByOperation(
+        PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE,
+      );
       expect(ledgerKeyring.getPreviousPage).toHaveBeenCalled();
     });
     it('calls getFirstPage on ledgerKeyring', async () => {
-      await getLedgerAccountsByOperation(OperationTypes.GET_FIRST_PAGE);
+      await getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE);
       expect(ledgerKeyring.getFirstPage).toHaveBeenCalled();
     });
   });

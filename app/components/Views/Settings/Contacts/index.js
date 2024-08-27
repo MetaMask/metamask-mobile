@@ -13,6 +13,7 @@ import { selectChainId } from '../../../../selectors/networkController';
 import Routes from '../../../../../app/constants/navigation/Routes';
 
 import { ContactsViewSelectorIDs } from '../../../../../e2e/selectors/Settings/Contacts/ContacsView.selectors';
+import { selectAddressBook } from '../../../../selectors/addressBookController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -175,7 +176,7 @@ class Contacts extends PureComponent {
 Contacts.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  addressBook: state.engine.backgroundState.AddressBookController.addressBook,
+  addressBook: selectAddressBook(state),
   chainId: selectChainId(state),
 });
 

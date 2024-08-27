@@ -28,8 +28,8 @@ const styleSheet = (params: {
         position: 'relative',
         opacity: isDisabled ? 0.5 : 1,
         padding: 16,
-        backgroundColor: colors.background.default,
         width: '95%',
+        zIndex: 1,
       } as ViewStyle,
       style,
     ) as ViewStyle,
@@ -37,6 +37,7 @@ const styleSheet = (params: {
       ...StyleSheet.absoluteFillObject,
       flexDirection: 'row',
       backgroundColor: colors.primary.muted,
+      width: 4,
     },
     underlayBar: {
       marginVertical: 4,
@@ -51,6 +52,21 @@ const styleSheet = (params: {
       paddingBottom: 0,
       paddingLeft: 0,
     },
+    containerColumn: {
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+      paddingRight: 0,
+      paddingTop: 0,
+      paddingBottom: 0,
+      paddingLeft: 0,
+      zIndex: 2,
+    },
+    containerRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      marginBottom: 0,
+      marginLeft: 40,
+    },
     container: {
       backgroundColor: isSelected
         ? colors.primary.muted
@@ -58,6 +74,17 @@ const styleSheet = (params: {
       paddingRight: 20,
       flexDirection: 'row',
       alignItems: 'center',
+      width: '100%',
+    },
+    itemColumn: {
+      display: 'flex',
+      marginTop: 0,
+      marginBottom: 0,
+      color: colors.text.alternative,
+    },
+    arrowStyle: {
+      paddingLeft: 8,
+      paddingTop: 32,
     },
   });
 };

@@ -29,7 +29,9 @@ import {
   selectProviderConfig,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { selectPrimaryCurrency } from '../../../selectors/settings';
 import { selectTokensByAddress } from '../../../selectors/tokensController';
+import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeController';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import { isHardwareAccount } from '../../../util/address';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
@@ -41,7 +43,7 @@ import {
   getBlockExplorerName,
   isMainnetByChainId,
 } from '../../../util/networks';
-import { renderFromWei } from '../../../util/number';
+import { addHexPrefix, hexToBN, renderFromWei } from '../../../util/number';
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import { validateTransactionActionBalance } from '../../../util/transactions';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
@@ -73,6 +75,7 @@ import {
   updateIncomingTransactions,
 } from '../../../util/transaction-controller';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
+import { decGWEIToHexWEI } from '../../../util/conversions';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -203,6 +206,7 @@ class Transactions extends PureComponent {
      * On scroll past navbar callback
      */
     onScrollThroughContent: PropTypes.func,
+    gasFeeEstimates: PropTypes.object,
   };
 
   static defaultProps = {
@@ -541,10 +545,7 @@ class Transactions extends PureComponent {
       } else {
         await speedUpTransaction(
           this.speedUpTxId,
-          transactionObject?.suggestedMaxFeePerGasHex && {
-            maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
-            maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
-          },
+          this.getCancelOrSpeedupValues(transactionObject),
         );
       }
       this.onSpeedUpCompleted();
@@ -613,10 +614,7 @@ class Transactions extends PureComponent {
       } else {
         await Engine.context.TransactionController.stopTransaction(
           this.cancelTxId,
-          transactionObject?.suggestedMaxFeePerGasHex && {
-            maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
-            maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
-          },
+          this.getCancelOrSpeedupValues(transactionObject),
         );
       }
       this.onCancelCompleted();
@@ -758,21 +756,23 @@ class Transactions extends PureComponent {
             .concat(confirmedTransactions)
         : this.props.transactions;
 
-    const renderSpeedUpGas = () => {
+    const renderRetryGas = (rate) => {
       if (!this.existingGas) return null;
-      if (!this.existingGas.isEIP1559Transaction)
-        return `${renderFromWei(
-          Math.floor(this.existingGas.gasPrice * SPEED_UP_RATE),
-        )} ${strings('unit.eth')}`;
+
+      if (this.existingGas.isEIP1559Transaction) return null;
+
+      const gasPrice = this.existingGas.gasPrice;
+
+      const increasedGasPrice =
+        gasPrice === 0
+          ? hexToBN(this.getGasPriceEstimate())
+          : Math.floor(gasPrice * rate);
+
+      return `${renderFromWei(increasedGasPrice)} ${strings('unit.eth')}`;
     };
 
-    const renderCancelGas = () => {
-      if (!this.existingGas) return null;
-      if (!this.existingGas.isEIP1559Transaction)
-        return `${renderFromWei(
-          Math.floor(this.existingGas.gasPrice * CANCEL_RATE),
-        )} ${strings('unit.eth')}`;
-    };
+    const renderSpeedUpGas = () => renderRetryGas(SPEED_UP_RATE);
+    const renderCancelGas = () => renderRetryGas(CANCEL_RATE);
 
     return (
       <View style={styles.wrapper}>
@@ -865,6 +865,37 @@ class Transactions extends PureComponent {
       </PriceChartProvider>
     );
   };
+
+  getCancelOrSpeedupValues(transactionObject) {
+    const { suggestedMaxFeePerGasHex, suggestedMaxPriorityFeePerGasHex } =
+      transactionObject ?? {};
+
+    if (suggestedMaxFeePerGasHex) {
+      return {
+        maxFeePerGas: `0x${suggestedMaxFeePerGasHex}`,
+        maxPriorityFeePerGas: `0x${suggestedMaxPriorityFeePerGasHex}`,
+      };
+    }
+
+    if (this.existingGas.gasPrice !== 0) {
+      // Transaction controller will multiply existing gas price by the rate.
+      return undefined;
+    }
+
+    return { gasPrice: this.getGasPriceEstimate() };
+  }
+
+  getGasPriceEstimate() {
+    const { gasFeeEstimates } = this.props;
+
+    const estimateGweiDecimal =
+      gasFeeEstimates?.medium?.suggestedMaxFeePerGas ??
+      gasFeeEstimates?.medium ??
+      gasFeeEstimates.gasPrice ??
+      '0';
+
+    return addHexPrefix(decGWEIToHexWEI(estimateGweiDecimal));
+  }
 }
 
 const mapStateToProps = (state) => ({
@@ -878,10 +909,9 @@ const mapStateToProps = (state) => ({
   networkConfigurations: selectNetworkConfigurations(state),
   providerConfig: selectProviderConfig(state),
   gasFeeEstimates: selectGasFeeEstimates(state),
-  primaryCurrency: state.settings.primaryCurrency,
+  primaryCurrency: selectPrimaryCurrency(state),
   tokens: selectTokensByAddress(state),
-  gasEstimateType:
-    state.engine.backgroundState.GasFeeController.gasEstimateType,
+  gasEstimateType: selectGasFeeControllerEstimateType(state),
   networkType: selectProviderType(state),
 });
 
