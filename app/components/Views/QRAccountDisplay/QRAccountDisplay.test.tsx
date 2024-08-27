@@ -36,7 +36,7 @@ const TestWrapper = () => (
 );
 
 describe('QRAccountDisplay', () => {
-  it('renders correctly', () => {
+  it('render matches snapshot', () => {
     const { toJSON } = renderScreen(
       TestWrapper,
       { name: 'QRAccountDisplay' },
