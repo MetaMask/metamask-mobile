@@ -52,6 +52,7 @@ import styleSheet from './AssetOverview.styles';
 import { useStyles } from '../../../component-library/hooks';
 import { Screens } from '../../../components/Views/QRTabSwitcher';
 import Routes from '../../../constants/navigation/Routes';
+import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
 
 interface AssetOverviewProps {
@@ -172,10 +173,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   );
 
   const itemAddress = safeToChecksumAddress(asset.address);
-  const exchangeRate =
-    itemAddress && itemAddress in tokenExchangeRates
-      ? tokenExchangeRates?.[itemAddress]?.price
-      : undefined;
+  const exchangeRate = itemAddress
+    ? tokenExchangeRates?.[itemAddress]?.price
+    : undefined;
 
   let balance, balanceFiat;
   if (asset.isETH) {
@@ -193,7 +193,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     );
   } else {
     balance =
-      itemAddress && itemAddress in tokenBalances
+      itemAddress && tokenBalances?.[itemAddress]
         ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], asset.decimals)
         : 0;
     balanceFiat = balanceToFiat(
@@ -260,7 +260,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
                 size={ButtonSize.Lg}
                 label={strings('asset_overview.receive_button')}
                 onPress={onReceive}
-                testID={TOKEN_OVERVIEW_RECEIVE_BUTTON}
+                {...generateTestId(Platform, TOKEN_OVERVIEW_RECEIVE_BUTTON)}
               />
               <Button
                 style={{ ...styles.footerButton, ...styles.sendButton }}
@@ -271,6 +271,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
                 {...generateTestId(Platform, TOKEN_OVERVIEW_SEND_BUTTON)}
               />
             </View>
+          </View>
+          <View style={styles.tokenDetailsWrapper}>
+            <TokenDetails asset={asset} />
           </View>
           {/*  Commented out since we are going to re enable it after curating content */}
           {/* <View style={styles.aboutWrapper}>

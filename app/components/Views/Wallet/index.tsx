@@ -79,7 +79,10 @@ import {
 } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { selectIsMetamaskNotificationsEnabled } from '../../../selectors/notifications';
+import {
+  getMetamaskNotificationsUnreadCount,
+  selectIsMetamaskNotificationsEnabled,
+} from '../../../selectors/notifications';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 
 const createStyles = ({ colors, typography }: Theme) =>
@@ -272,6 +275,10 @@ const Wallet = ({
     selectIsMetamaskNotificationsEnabled,
   );
 
+  const unreadNotificationCount = useSelector(
+    getMetamaskNotificationsUnreadCount,
+  );
+
   const networkName = useSelector(selectNetworkName);
 
   const networkImageSource = useSelector(selectNetworkImageSource);
@@ -406,6 +413,7 @@ const Wallet = ({
     networkImageSource,
     onTitlePress,
     isNotificationEnabled,
+    unreadNotificationCount,
   ]);
 
   const renderTabBar = useCallback(
