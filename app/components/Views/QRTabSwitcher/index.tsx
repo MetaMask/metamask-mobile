@@ -1,1 +1,1 @@
-export { default, Screens } from './QRTabSwitcher';
+export { default, Screens, createQRScannerNavDetails } from './QRTabSwitcher';

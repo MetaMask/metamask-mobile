@@ -546,7 +546,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                               {
                                 "alignSelf": "center",
                                 "color": "#141618",
-                                "fontFamily": "Euclid Circular B",
+                                "fontFamily": "EuclidCircularB-Medium",
                                 "fontSize": 16,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
@@ -560,7 +560,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                             style={
                               {
                                 "color": "#141618",
-                                "fontFamily": "Euclid Circular B",
+                                "fontFamily": "EuclidCircularB-Regular",
                                 "fontSize": 14,
                                 "fontWeight": "400",
                                 "letterSpacing": 0,
@@ -576,7 +576,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#9fa6ae",
-                                  "fontFamily": "Euclid Circular B",
+                                  "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 14,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
@@ -608,7 +608,6 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                               }
                             }
                             testID="qr-account-display-copy-button"
-                            variant="Link"
                           >
                             <SvgMock
                               color="#0376c9"
@@ -628,7 +627,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#0376c9",
-                                  "fontFamily": "Euclid Circular B",
+                                  "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 14,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
@@ -1294,7 +1293,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                               {
                                 "alignSelf": "center",
                                 "color": "#141618",
-                                "fontFamily": "Euclid Circular B",
+                                "fontFamily": "EuclidCircularB-Medium",
                                 "fontSize": 16,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
@@ -1308,7 +1307,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                             style={
                               {
                                 "color": "#141618",
-                                "fontFamily": "Euclid Circular B",
+                                "fontFamily": "EuclidCircularB-Regular",
                                 "fontSize": 14,
                                 "fontWeight": "400",
                                 "letterSpacing": 0,
@@ -1324,7 +1323,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#9fa6ae",
-                                  "fontFamily": "Euclid Circular B",
+                                  "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 14,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
@@ -1356,7 +1355,6 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                               }
                             }
                             testID="qr-account-display-copy-button"
-                            variant="Link"
                           >
                             <SvgMock
                               color="#0376c9"
@@ -1376,7 +1374,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#0376c9",
-                                  "fontFamily": "Euclid Circular B",
+                                  "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 14,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
@@ -2042,7 +2040,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                               {
                                 "alignSelf": "center",
                                 "color": "#141618",
-                                "fontFamily": "Euclid Circular B",
+                                "fontFamily": "EuclidCircularB-Medium",
                                 "fontSize": 16,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
@@ -2056,7 +2054,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                             style={
                               {
                                 "color": "#141618",
-                                "fontFamily": "Euclid Circular B",
+                                "fontFamily": "EuclidCircularB-Regular",
                                 "fontSize": 14,
                                 "fontWeight": "400",
                                 "letterSpacing": 0,
@@ -2072,7 +2070,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#9fa6ae",
-                                  "fontFamily": "Euclid Circular B",
+                                  "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 14,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
@@ -2104,7 +2102,6 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                               }
                             }
                             testID="qr-account-display-copy-button"
-                            variant="Link"
                           >
                             <SvgMock
                               color="#0376c9"
@@ -2124,7 +2121,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#0376c9",
-                                  "fontFamily": "Euclid Circular B",
+                                  "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 14,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
