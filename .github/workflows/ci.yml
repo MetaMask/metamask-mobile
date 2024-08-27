@@ -29,18 +29,13 @@ jobs:
         shell: bash
         run: |
           # Initialize an empty array to store the exclude paths
-          exclude_paths=()
-
-          # Read the exclude paths from the file
-          while IFS= read -r line; do
-            exclude_paths+=(":(exclude)$line")
-          done < git-diff-exclusions.txt
+          EXCLUDES=$(awk '{print ":! " $0}' git-diff-exclusion.diff | tr '\n' ' ')
 
           # Print the exclude paths for debugging
-          echo "Exclude paths: ${exclude_paths[@]}"
+          echo "Exclude paths: ${EXCLUDES}"
 
           # Execute the git diff command
-          if ! "git diff -- . ${exclude_paths[@]} --exit-code"; then
+          if ! git diff --exit-code -- . $EXCLUDES; then
             echo "Working tree dirty at end of job"
             exit 1
           fi
@@ -86,18 +81,13 @@ jobs:
         shell: bash
         run: |
           # Initialize an empty array to store the exclude paths
-          exclude_paths=()
-
-          # Read the exclude paths from the file
-          while IFS= read -r line; do
-            exclude_paths+=(":(exclude)$line")
-          done < git-diff-exclusions.txt
+          EXCLUDES=$(awk '{print ":! " $0}' git-diff-exclusion.diff | tr '\n' ' ')
 
           # Print the exclude paths for debugging
-          echo "Exclude paths: ${exclude_paths[@]}"
+          echo "Exclude paths: ${EXCLUDES}"
 
           # Execute the git diff command
-          if ! "git diff -- . ${exclude_paths[@]} --exit-code"; then
+          if ! git diff --exit-code -- . $EXCLUDES; then
             echo "Working tree dirty at end of job"
             exit 1
           fi
@@ -132,18 +122,13 @@ jobs:
         shell: bash
         run: |
           # Initialize an empty array to store the exclude paths
-          exclude_paths=()
-
-          # Read the exclude paths from the file
-          while IFS= read -r line; do
-            exclude_paths+=(":(exclude)$line")
-          done < git-diff-exclusions.txt
+          EXCLUDES=$(awk '{print ":! " $0}' git-diff-exclusion.diff | tr '\n' ' ')
 
           # Print the exclude paths for debugging
-          echo "Exclude paths: ${exclude_paths[@]}"
+          echo "Exclude paths: ${EXCLUDES}"
 
           # Execute the git diff command
-          if ! "git diff -- . ${exclude_paths[@]} --exit-code"; then
+          if ! git diff --exit-code -- . $EXCLUDES; then
             echo "Working tree dirty at end of job"
             exit 1
           fi
@@ -175,18 +160,13 @@ jobs:
         shell: bash
         run: |
           # Initialize an empty array to store the exclude paths
-          exclude_paths=()
-
-          # Read the exclude paths from the file
-          while IFS= read -r line; do
-            exclude_paths+=(":(exclude)$line")
-          done < git-diff-exclusions.txt
+          EXCLUDES=$(awk '{print ":! " $0}' git-diff-exclusion.diff | tr '\n' ' ')
 
           # Print the exclude paths for debugging
-          echo "Exclude paths: ${exclude_paths[@]}"
+          echo "Exclude paths: ${EXCLUDES}"
 
           # Execute the git diff command
-          if ! "git diff -- . ${exclude_paths[@]} --exit-code"; then
+          if ! git diff --exit-code -- . $EXCLUDES; then
             echo "Working tree dirty at end of job"
             exit 1
           fi
@@ -218,18 +198,13 @@ jobs:
         shell: bash
         run: |
           # Initialize an empty array to store the exclude paths
-          exclude_paths=()
-
-          # Read the exclude paths from the file
-          while IFS= read -r line; do
-            exclude_paths+=(":(exclude)$line")
-          done < git-diff-exclusions.txt
+          EXCLUDES=$(awk '{print ":! " $0}' git-diff-exclusion.diff | tr '\n' ' ')
 
           # Print the exclude paths for debugging
-          echo "Exclude paths: ${exclude_paths[@]}"
+          echo "Exclude paths: ${EXCLUDES}"
 
           # Execute the git diff command
-          if ! "git diff -- . ${exclude_paths[@]} --exit-code"; then
+          if ! git diff --exit-code -- . $EXCLUDES; then
             echo "Working tree dirty at end of job"
             exit 1
           fi
