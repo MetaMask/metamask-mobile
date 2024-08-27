@@ -12,7 +12,7 @@ export const RevealSeedViewSelectorsIDs = {
     'reveal-private-credential-cancel-button',
   SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID:
     'reveal-private-credential-next-button',
-  REVEAL_CREDENTIAL_BUTTON_ID: 'reveal-credential -button',
+  REVEAL_CREDENTIAL_BUTTON_ID: 'reveal-credential-button',
   PASSWORD_INPUT_BOX_ID: 'private-credential-password-text-input',
   REVEAL_CREDENTIAL_MODAL_ID: 'reveal-credential-modal',
   REVEAL_CREDENTIAL_QR_CODE_IMAGE_ID: `reveal-credential-qr-code-image`,
