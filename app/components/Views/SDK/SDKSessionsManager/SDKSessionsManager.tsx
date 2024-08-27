@@ -125,16 +125,18 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
               <PermissionItem key={`${_index}`} item={mockPermissionItem} />
             ))}
         </ScrollView>
-        <View style={styles.disconnectAllContainer}>
-          <Button
-            variant={ButtonVariants.Secondary}
-            label={strings('sdk.disconnect_all')}
-            style={styles.btnAction}
-            onPress={() => {
-              toggleClearMMSDKConnectionModal();
-            }}
-          />
-        </View>
+        {!isMutichainVersion1Enabled && (
+          <View style={styles.disconnectAllContainer}>
+            <Button
+              variant={ButtonVariants.Secondary}
+              label={strings('sdk.disconnect_all')}
+              style={styles.btnAction}
+              onPress={() => {
+                toggleClearMMSDKConnectionModal();
+              }}
+            />
+          </View>
+        )}
       </>
     ),
     [
