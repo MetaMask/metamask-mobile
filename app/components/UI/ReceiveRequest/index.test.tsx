@@ -45,7 +45,7 @@ describe('ReceiveRequest', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('render correctly with different ticker', () => {
+  it('render with different ticker matches snapshot', () => {
     const state = cloneDeep(initialState);
     state.engine.backgroundState.NetworkController.providerConfig.ticker =
       'DIFF';
