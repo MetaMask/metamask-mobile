@@ -1,6 +1,7 @@
 import React from 'react';
 import QRAccountDisplay from './index';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
+import ClipboardManager from '../../../core/ClipboardManager';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
@@ -45,7 +46,7 @@ describe('QRAccountDisplay', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('copies address to clipboard when copy button is pressed', async () => {
+  it('copies address to clipboard and checks clipboard content', async () => {
     const { getByTestId } = renderScreen(
       TestWrapper,
       { name: 'QRAccountDisplay' },
@@ -56,5 +57,13 @@ describe('QRAccountDisplay', () => {
     fireEvent.press(copyButton);
 
     expect(copyButton).toBeTruthy();
+    expect(ClipboardManager.setString).toHaveBeenCalledTimes(1);
+
+    await waitFor(async () => {
+      const clipboardContent = await ClipboardManager.getString();
+      expect(clipboardContent).toBe(
+        '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+      );
+    });
   });
 });
