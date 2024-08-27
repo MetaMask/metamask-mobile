@@ -7,7 +7,6 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../util/theme';
 import { SafeAreaView } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { IconName } from '../../../component-library/components/Icons/Icon';
@@ -15,6 +14,8 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
+import { useStyles } from '../../../component-library/hooks';
+import styleSheet from './QRAccountDisplay.styles';
 import ClipboardManager from '../../../core/ClipboardManager';
 import {
   ToastContext,
@@ -24,7 +25,6 @@ import { showAlert } from '../../../actions/alert';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { useSelector } from 'react-redux';
 import { renderAccountName } from '../../../util/address';
-import createStyles from './styles';
 
 const copyAddressToClipboard = async (address: string) => {
   let alertData;
@@ -48,8 +48,7 @@ const ADDRESS_PREFIX_LENGTH = 6;
 const ADDRESS_SUFFIX_LENGTH = 5;
 
 const QRAccountDisplay = (props: { accountAddress: string }) => {
-  const theme = useTheme();
-  const styles = createStyles(theme);
+  const { styles } = useStyles(styleSheet, {});
   const addr = props.accountAddress;
   const identities = useSelector(selectInternalAccounts);
   const accountLabel = renderAccountName(addr, identities);

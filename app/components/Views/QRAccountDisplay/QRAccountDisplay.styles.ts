@@ -1,8 +1,9 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 
-const createStyles = (theme: Theme) =>
-  StyleSheet.create({
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  return StyleSheet.create({
     wrapper: {
       backgroundColor: theme.colors.background.default,
       marginVertical: 32,
@@ -19,5 +20,6 @@ const createStyles = (theme: Theme) =>
       alignSelf: 'center',
     },
   });
+};
 
-export default createStyles;
+export default styleSheet;
