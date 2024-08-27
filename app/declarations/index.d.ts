@@ -277,7 +277,7 @@ declare module '@metamask/contract-metadata' {
   export default content;
 }
 
-declare module './util/termsOfUse/termsOfUseContent' {
+declare module './util/termsOfUse/termsOfUseContent.js' {
   const content: string;
   export default content;
 }

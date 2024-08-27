@@ -4,7 +4,7 @@ import Routes from '../../constants/navigation/Routes';
 import { strings } from '../../../locales/i18n';
 import { TermsOfUseModalSelectorsIDs } from '../../../e2e/selectors/Modals/TermsOfUseModal.selectors';
 import StorageWrapper from '../../store/storage-wrapper';
-import termsOfUse from './termsOfUseContent';
+import termsOfUse from './termsOfUseContent.js';
 
 interface TermsOfUseParamsI {
   screen: string;
