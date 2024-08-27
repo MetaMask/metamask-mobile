@@ -1,1 +1,1 @@
-export { default } from './QRTabSwitcher';
+export { default, Screens } from './QRTabSwitcher';
