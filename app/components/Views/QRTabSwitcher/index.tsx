@@ -1,1 +1,8 @@
-export { default, Screens, createQRScannerNavDetails } from './QRTabSwitcher';
+export {
+  default,
+  createQRScannerNavDetails,
+  Screens,
+  type QRTabSwitcherParams,
+  type ScanSuccess,
+  type StartScan,
+} from './QRTabSwitcher';
