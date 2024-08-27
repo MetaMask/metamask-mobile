@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
@@ -25,8 +25,22 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
+import Routes from '../../../../constants/navigation/Routes';
+import {
+  asyncAlert,
+  requestPushNotificationsPermission,
+} from '../../../../util/notifications';
+import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 
-const BasicFunctionalityModal = () => {
+interface Props {
+  route: {
+    params: {
+      caller: string;
+    };
+  };
+}
+
+const BasicFunctionalityModal = ({ route }: Props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -36,10 +50,34 @@ const BasicFunctionalityModal = () => {
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
 
-  const closeBottomSheet = () => {
+  const { enableNotifications } = useEnableNotifications();
+
+  const enableNotificationsFromModal = useCallback(async () => {
+    const nativeNotificationStatus = await requestPushNotificationsPermission(
+      asyncAlert,
+    );
+
+    if (nativeNotificationStatus) {
+      /**
+       * Although this is an async function, we are dispatching an action (firing & forget)
+       * to emulate optimistic UI.
+       *
+       */
+      enableNotifications();
+    }
+  }, [enableNotifications]);
+
+  const closeBottomSheet = async () => {
     bottomSheetRef.current?.onCloseBottomSheet(() =>
       dispatch(toggleBasicFunctionality(!isEnabled)),
     );
+
+    if (
+      route.params.caller === Routes.SETTINGS.NOTIFICATIONS ||
+      route.params.caller === Routes.NOTIFICATIONS.OPT_IN
+    ) {
+      await enableNotificationsFromModal();
+    }
   };
 
   const handleSwitchToggle = () => {
