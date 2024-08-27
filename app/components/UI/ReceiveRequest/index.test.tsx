@@ -36,7 +36,7 @@ jest.mock('../../../core/ClipboardManager', () => ({
 }));
 
 describe('ReceiveRequest', () => {
-  it('render correctly', () => {
+  it('render matches snapshot', () => {
     const { toJSON } = renderScreen(
       ReceiveRequest,
       { name: 'ReceiveRequest' },
