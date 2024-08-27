@@ -32,7 +32,7 @@ jobs:
           exclude_paths=$(awk '{print ":(exclude)" $0}' git-diff-exclusions.txt | tr '\n' ' ')
 
           # Construct the git diff command
-          git_diff_command="git diff -- . $exclude_paths --exit-code"
+          git_diff_command="git diff -- . \"$exclude_paths\" --exit-code"
 
           # Execute the git diff command
           if ! eval $git_diff_command; then
@@ -84,7 +84,7 @@ jobs:
           exclude_paths=$(awk '{print ":(exclude)" $0}' git-diff-exclusions.txt | tr '\n' ' ')
 
           # Construct the git diff command
-          git_diff_command="git diff -- . $exclude_paths --exit-code"
+          git_diff_command="git diff -- . \"$exclude_paths\" --exit-code"
 
           # Execute the git diff command
           if ! eval $git_diff_command; then
@@ -125,7 +125,7 @@ jobs:
           exclude_paths=$(awk '{print ":(exclude)" $0}' git-diff-exclusions.txt | tr '\n' ' ')
 
           # Construct the git diff command
-          git_diff_command="git diff -- . $exclude_paths --exit-code"
+          git_diff_command="git diff -- . \"$exclude_paths\" --exit-code"
 
           # Execute the git diff command
           if ! eval $git_diff_command; then
@@ -163,7 +163,7 @@ jobs:
           exclude_paths=$(awk '{print ":(exclude)" $0}' git-diff-exclusions.txt | tr '\n' ' ')
 
           # Construct the git diff command
-          git_diff_command="git diff -- . $exclude_paths --exit-code"
+          git_diff_command="git diff -- . \"$exclude_paths\" --exit-code"
 
           # Execute the git diff command
           if ! eval $git_diff_command; then
@@ -201,7 +201,7 @@ jobs:
           exclude_paths=$(awk '{print ":(exclude)" $0}' git-diff-exclusions.txt | tr '\n' ' ')
 
           # Construct the git diff command
-          git_diff_command="git diff -- . $exclude_paths --exit-code"
+          git_diff_command="git diff -- . \"$exclude_paths\" --exit-code"
 
           # Execute the git diff command
           if ! eval $git_diff_command; then
