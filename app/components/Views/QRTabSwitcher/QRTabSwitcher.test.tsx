@@ -43,7 +43,7 @@ describe('QRTabSwitcher', () => {
     expect(getByText(strings('qr_tab_switcher.scanner_tab'))).toBeTruthy();
   });
 
-  it('not render tabber when disableTabber is true', () => {
+  it('does not render tabber when disableTabber is true', () => {
     useRoute.mockReturnValue({
       params: {
         disableTabber: true,
