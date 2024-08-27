@@ -1,6 +1,7 @@
 import Engine from './Engine';
 import { backgroundState } from '../util/test/initial-root-state';
 import { zeroAddress } from 'ethereumjs-util';
+import { createMockAccountsControllerState } from '../util/test/accountsControllerTestUtils';
 
 jest.unmock('./Engine');
 jest.mock('../store', () => ({ store: { getState: jest.fn(() => ({})) } }));
@@ -53,7 +54,8 @@ describe('Engine', () => {
     expect(initialBackgroundState).toStrictEqual({
       ...backgroundState,
 
-      // JSON cannot store the value undefined, so we append it here
+      // JSON cannot store the value undefined, so we
+      // append it here
       SmartTransactionsController: {
         smartTransactionsState: {
           fees: {
@@ -99,24 +101,15 @@ describe('Engine', () => {
     afterEach(() => engine?.destroyEngineInstance());
 
     const selectedAddress = '0x9DeE4BF1dE9E3b930E511Db5cEBEbC8d6F855Db0';
-    const selectedAccountId = 'cf8dace4-9439-4bd4-b3a8-88c821c8fcb3';
     const chainId = '0x1';
     const ticker = 'ETH';
     const ethConversionRate = 4000; // $4,000 / ETH
 
     const state = {
-      AccountsController: {
-        internalAccounts: {
-          selectedAccount: selectedAccountId,
-          accounts: {
-            [selectedAccountId]: {
-              address: selectedAddress,
-              id: selectedAccountId,
-              type: 'eip155:eoa',
-            },
-          },
-        },
-      },
+      AccountsController: createMockAccountsControllerState(
+        [selectedAddress],
+        selectedAddress,
+      ),
       NetworkController: {
         state: { providerConfig: { chainId, ticker } },
       },
