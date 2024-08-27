@@ -3,7 +3,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { Hex } from '@metamask/utils';
 
 // External dependencies.
-import { AvatarProps } from '../../..//component-library/components/Avatars/Avatar/Avatar.types';
+import { AvatarTokenProps } from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken.types';
 
 /**
  * Asset information associated with the account, which includes both the fiat balance and owned tokens.
@@ -16,7 +16,7 @@ export interface Assets {
   /**
    * Tokens owned by this account.
    */
-  tokens?: AvatarProps[];
+  tokens?: AvatarTokenProps[];
 }
 
 /**
