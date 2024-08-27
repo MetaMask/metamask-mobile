@@ -294,9 +294,6 @@ buildIosRelease(){
 	# Enable Sentry to auto upload source maps and debug symbols
 	export SENTRY_DISABLE_AUTO_UPLOAD="false"
 
-	# Disable Flipper
-	export NO_FLIPPER="1"
-
 	prebuild_ios
 
 	# Replace release.xcconfig with ENV vars
@@ -319,9 +316,6 @@ buildIosFlaskRelease(){
 	# remap flask env variables to match what the app expects
 	remapFlaskEnvVariables
 
-	# Disable Flipper
-	export NO_FLIPPER="1"
-
 	prebuild_ios
 
 	# Replace release.xcconfig with ENV vars
@@ -341,9 +335,6 @@ buildIosFlaskRelease(){
 }
 
 buildIosReleaseE2E(){
-	# Disable Flipper
-	export NO_FLIPPER="1"
-
 	prebuild_ios
 
 	# Replace release.xcconfig with ENV vars
@@ -365,9 +356,6 @@ buildIosReleaseE2E(){
 
 buildIosQA(){
   	remapEnvVariableQA
-	
-	# Disable Flipper
-	export NO_FLIPPER="1"
 
 	prebuild_ios
 
