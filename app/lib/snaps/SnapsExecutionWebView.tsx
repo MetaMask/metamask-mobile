@@ -8,6 +8,8 @@ import { PostMessageEvent } from '@metamask/post-message-stream';
 import { WebViewInterface } from '@metamask/snaps-controllers/dist/types/services/webview/WebViewMessageStream';
 
 import { createStyles } from './styles';
+import { RootState } from 'app/reducers';
+import { useSelector } from 'react-redux';
 
 const SNAPS_EE_URL = 'https://execution.metamask.io/webview/6.6.2/index.html';
 
@@ -22,14 +24,16 @@ interface SnapsExecutionWebViewProps {
 let resolveGetWebView: (arg0: SnapsExecutionWebViewProps) => void;
 let rejectGetWebView: (error: NativeSyntheticEvent<WebViewError>) => void;
 
-export const getSnapsWebViewPromise = new Promise<WebViewInterface>(
-  (resolve, reject) => {
+export const getSnapsWebViewPromise = () =>
+  new Promise<WebViewInterface>((resolve, reject) => {
     resolveGetWebView = resolve;
     rejectGetWebView = reject;
-  },
-);
+  });
 
 export const SnapsExecutionWebView: React.FC = () => {
+  const isBasicFunctionalityEnabled = useSelector(
+    (state: RootState) => state?.settings?.basicFunctionalityEnabled,
+  );
   const webViewRef = useRef<WebView>(null);
   const listenerRef = useRef<any>(null);
 
@@ -66,33 +70,42 @@ export const SnapsExecutionWebView: React.FC = () => {
     }
   }, []);
 
-  useEffect(
-    () =>
-      // Cleanup function to reset the promise handlers when the component unmounts
-      () => {
-        resolveGetWebView = () => {
-          console.log('Reset resolveGetWebView');
-        };
-        rejectGetWebView = () => {
-          console.log('Reset rejectGetWebView');
-        };
-      },
-    [],
-  );
+  useEffect(() => {
+    // Recreate the promise when the component mounts
+    getSnapsWebViewPromise();
 
-  return (
-    <ScrollView testID={'load-snap-webview'}>
-      <View style={styles.webview}>
-        <WebView
-          ref={webViewRef}
-          source={{ uri: SNAPS_EE_URL }}
-          onMessage={onWebViewMessage}
-          onError={onWebViewError}
-          onLoadEnd={onWebViewLoad}
-          originWhitelist={['https://execution.metamask.io*']}
-          javaScriptEnabled
-        />
-      </View>
-    </ScrollView>
-  );
+    // Cleanup function to reset the promise handlers when the component unmounts
+    return () => {
+      resolveGetWebView = () => {
+        console.log('Reset resolveGetWebView');
+      };
+      rejectGetWebView = () => {
+        console.log('Reset rejectGetWebView');
+      };
+    };
+  }, [isBasicFunctionalityEnabled]);
+
+  if (isBasicFunctionalityEnabled) {
+    console.log('loading the webview', isBasicFunctionalityEnabled);
+    return (
+      <ScrollView testID={'load-snap-webview'}>
+        <View style={styles.webview}>
+          <WebView
+            ref={webViewRef}
+            source={{ uri: SNAPS_EE_URL }}
+            onMessage={onWebViewMessage}
+            onError={onWebViewError}
+            onLoadEnd={onWebViewLoad}
+            originWhitelist={['https://execution.metamask.io*']}
+            javaScriptEnabled
+          />
+        </View>
+      </ScrollView>
+    );
+  }
+  /**
+   * In the case where basicFunctionalityEnabled is false, we want to just render an empty view.
+   */
+  console.log('UNloading the webview', isBasicFunctionalityEnabled);
+  return <View style={styles.webview} />;
 };
