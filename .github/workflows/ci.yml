@@ -29,13 +29,18 @@ jobs:
         shell: bash
         run: |
           # Read the exclude paths from the file
-          exclude_paths=$(awk '{print ":(exclude)" $0}' git-diff-exclusions.txt | tr '\n' ' ')
+          exclude_paths=()
+          while IFS= read -r line; do
+            exclude_paths+=(":(exclude)$line")
+          done < git-diff-exclusions.txt
 
           # Construct the git diff command
-          git_diff_command="git diff -- . \"$exclude_paths\" --exit-code"
+          git_diff_command=("git diff -- .")
+          git_diff_command+=("${exclude_paths[@]}")
+          git_diff_command+=("--exit-code")
 
           # Execute the git diff command
-          if ! eval $git_diff_command; then
+          if ! "${git_diff_command[@]}"; then
             echo "Working tree dirty at end of job"
             exit 1
           fi
@@ -81,13 +86,18 @@ jobs:
         shell: bash
         run: |
           # Read the exclude paths from the file
-          exclude_paths=$(awk '{print ":(exclude)" $0}' git-diff-exclusions.txt | tr '\n' ' ')
+          exclude_paths=()
+          while IFS= read -r line; do
+            exclude_paths+=(":(exclude)$line")
+          done < git-diff-exclusions.txt
 
           # Construct the git diff command
-          git_diff_command="git diff -- . \"$exclude_paths\" --exit-code"
+          git_diff_command=("git diff -- .")
+          git_diff_command+=("${exclude_paths[@]}")
+          git_diff_command+=("--exit-code")
 
           # Execute the git diff command
-          if ! eval $git_diff_command; then
+          if ! "${git_diff_command[@]}"; then
             echo "Working tree dirty at end of job"
             exit 1
           fi
@@ -122,13 +132,18 @@ jobs:
         shell: bash
         run: |
           # Read the exclude paths from the file
-          exclude_paths=$(awk '{print ":(exclude)" $0}' git-diff-exclusions.txt | tr '\n' ' ')
+          exclude_paths=()
+          while IFS= read -r line; do
+            exclude_paths+=(":(exclude)$line")
+          done < git-diff-exclusions.txt
 
           # Construct the git diff command
-          git_diff_command="git diff -- . \"$exclude_paths\" --exit-code"
+          git_diff_command=("git diff -- .")
+          git_diff_command+=("${exclude_paths[@]}")
+          git_diff_command+=("--exit-code")
 
           # Execute the git diff command
-          if ! eval $git_diff_command; then
+          if ! "${git_diff_command[@]}"; then
             echo "Working tree dirty at end of job"
             exit 1
           fi
@@ -160,13 +175,18 @@ jobs:
         shell: bash
         run: |
           # Read the exclude paths from the file
-          exclude_paths=$(awk '{print ":(exclude)" $0}' git-diff-exclusions.txt | tr '\n' ' ')
+          exclude_paths=()
+          while IFS= read -r line; do
+            exclude_paths+=(":(exclude)$line")
+          done < git-diff-exclusions.txt
 
           # Construct the git diff command
-          git_diff_command="git diff -- . \"$exclude_paths\" --exit-code"
+          git_diff_command=("git diff -- .")
+          git_diff_command+=("${exclude_paths[@]}")
+          git_diff_command+=("--exit-code")
 
           # Execute the git diff command
-          if ! eval $git_diff_command; then
+          if ! "${git_diff_command[@]}"; then
             echo "Working tree dirty at end of job"
             exit 1
           fi
@@ -198,13 +218,18 @@ jobs:
         shell: bash
         run: |
           # Read the exclude paths from the file
-          exclude_paths=$(awk '{print ":(exclude)" $0}' git-diff-exclusions.txt | tr '\n' ' ')
+          exclude_paths=()
+          while IFS= read -r line; do
+            exclude_paths+=(":(exclude)$line")
+          done < git-diff-exclusions.txt
 
           # Construct the git diff command
-          git_diff_command="git diff -- . \"$exclude_paths\" --exit-code"
+          git_diff_command=("git diff -- .")
+          git_diff_command+=("${exclude_paths[@]}")
+          git_diff_command+=("--exit-code")
 
           # Execute the git diff command
-          if ! eval $git_diff_command; then
+          if ! "${git_diff_command[@]}"; then
             echo "Working tree dirty at end of job"
             exit 1
           fi
