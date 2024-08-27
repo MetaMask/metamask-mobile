@@ -120,7 +120,7 @@ import {
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
 } from '@metamask/snaps-rpc-methods';
-import type { EnumToUnion, DialogType } from '@metamask/snaps-sdk';
+import type { EnumToUnion, DialogType, SnapId } from '@metamask/snaps-sdk';
 // eslint-disable-next-line import/no-nodejs-modules
 import { Duplex } from 'stream';
 ///: END:ONLY_INCLUDE_IF
@@ -218,6 +218,14 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
 import EthQuery from '@metamask/eth-query';
 import { TransactionControllerOptions } from '@metamask/transaction-controller/dist/types/TransactionController';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import {
+  getLocalizedSnapManifest,
+  stripSnapPrefix,
+} from '@metamask/snaps-utils';
+import { snapKeyringBuilder } from './SnapKeyring';
+import { removeAccountsFromPermissions } from './Permissions';
+///: END:ONLY_INCLUDE_IF
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1130,6 +1138,76 @@ class Engine {
           },
         },
       });
+    ///: END:ONLY_INCLUDE_IF
+
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+
+    /**
+     * Removes an account from state / storage.
+     *
+     * @param {string[]} address - A hex address
+     */
+    async function removeAccount(address: string) {
+      // Remove all associated permissions
+      await removeAccountsFromPermissions([address]);
+      // Remove account from the keyring
+      await keyringController.removeAccount(address as Hex);
+      return address;
+    }
+
+    const snapKeyringBuildMessenger = this.controllerMessenger.getRestricted({
+      name: 'SnapKeyringBuilder',
+      allowedActions: [
+        'ApprovalController:addRequest',
+        'ApprovalController:acceptRequest',
+        'ApprovalController:rejectRequest',
+        'ApprovalController:startFlow',
+        'ApprovalController:endFlow',
+        'ApprovalController:showSuccess',
+        'ApprovalController:showError',
+        'PhishingController:test',
+        'PhishingController:maybeUpdateState',
+        'KeyringController:getAccounts',
+        'AccountsController:setSelectedAccount',
+        'AccountsController:getAccountByAddress',
+        'AccountsController:setAccountName',
+      ],
+    });
+
+    const getSnapController = () => snapController;
+
+    // Necessary to persist the keyrings and update the accounts both within the keyring controller and accounts controller
+    const persistAndUpdateAccounts = async () => {
+      await keyringController.persistAllKeyrings();
+      await accountsController.updateAccounts();
+    };
+
+    const getSnapName = (id: string) => {
+      const { snaps } = snapController.state;
+      const snapId = id as SnapId;
+      const snap = snaps[snapId];
+
+      if (!snap) {
+        return stripSnapPrefix(id);
+      }
+
+      return snap.manifest.proposedName;
+    };
+
+    const isSnapPreinstalled = (id: SnapId) =>
+      PREINSTALLED_SNAPS.some((snap) => snap.snapId === id);
+
+    additionalKeyrings.push(
+      snapKeyringBuilder(
+        snapKeyringBuildMessenger,
+        getSnapController,
+        persistAndUpdateAccounts,
+        (address) => removeAccount(address),
+        getSnapName,
+        isSnapPreinstalled,
+      ),
+    );
+
     ///: END:ONLY_INCLUDE_IF
 
     this.transactionController = new TransactionController({
