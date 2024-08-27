@@ -132,7 +132,7 @@ const wallet_switchEthereumChain = async ({
 
     /* eslint-disable no-console */
     console.log(
-      'ALEX LOGGING____ originHasAccountsPermission',
+      'ALEX LOGGGING____ originHasAccountsPermission',
       originHasAccountsPermission,
     );
     /* eslint-disable no-console */
@@ -140,7 +140,7 @@ const wallet_switchEthereumChain = async ({
     if (originHasAccountsPermission) {
       SelectedNetworkController.setNetworkClientIdForDomain(
         origin,
-        networkConfigurationId,
+        networkConfigurationId || existingNetworkDefault.networkType,
       );
     }
 

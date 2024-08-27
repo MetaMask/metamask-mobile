@@ -99,7 +99,23 @@ export class BackgroundBridge extends EventEmitter {
     this.engine = null;
 
     // const providerNetworkState = await this.getProviderNetworkState();
-    this.lastChainIdSent = selectChainId(store.getState());
+    const networkClientId = Engine.controllerMessenger.call(
+      'SelectedNetworkController:getNetworkClientIdForDomain',
+      this.hostname,
+    );
+
+    const networkClient = Engine.controllerMessenger.call(
+      'NetworkController:getNetworkClientById',
+      networkClientId,
+    );
+
+    this.lastChainIdSent = networkClient.configuration.chainId;
+    console.log(
+      'ALEX LOGGGING____ lastChainIdSent:',
+      this.lastChainIdSent,
+      'origin:',
+      this.hostname,
+    );
 
     this.networkVersionSent = store.getState().inpageProvider.networkId;
 
@@ -260,7 +276,7 @@ export class BackgroundBridge extends EventEmitter {
     DevLogger.log(`notifyChainChanged: `, params);
     this.sendNotification({
       method: NOTIFICATION_NAMES.chainChanged,
-      params: await this.getProviderNetworkState(this.hostname),
+      params: params ?? (await this.getProviderNetworkState(this.hostname)),
     });
   }
 
@@ -318,7 +334,11 @@ export class BackgroundBridge extends EventEmitter {
     ) {
       this.lastChainIdSent = publicState.chainId;
       this.networkVersionSent = publicState.networkVersion;
-      await this.notifyChainChanged();
+      console.log(
+        'ALEX LOGGGING____ going to notify of chainChanged',
+        this.hostname,
+      );
+      await this.notifyChainChanged(publicState);
     }
     // ONLY NEEDED FOR WC FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
     if (this.isWalletConnect || this.isRemoteConn) {
