@@ -29,7 +29,7 @@ jobs:
         shell: bash
         run: |
           # Initialize an empty array to store the exclude paths
-          EXCLUDES=$(awk '{print ":! " $0}' git-diff-exclusion.diff | tr '\n' ' ')
+          EXCLUDES=$(awk '{print ":! " $0}' git-diff-exclusion.txt | tr '\n' ' ')
 
           # Print the exclude paths for debugging
           echo "Exclude paths: ${EXCLUDES}"
@@ -81,7 +81,7 @@ jobs:
         shell: bash
         run: |
           # Initialize an empty array to store the exclude paths
-          EXCLUDES=$(awk '{print ":! " $0}' git-diff-exclusion.diff | tr '\n' ' ')
+          EXCLUDES=$(awk '{print ":! " $0}' git-diff-exclusion.txt | tr '\n' ' ')
 
           # Print the exclude paths for debugging
           echo "Exclude paths: ${EXCLUDES}"
@@ -122,7 +122,7 @@ jobs:
         shell: bash
         run: |
           # Initialize an empty array to store the exclude paths
-          EXCLUDES=$(awk '{print ":! " $0}' git-diff-exclusion.diff | tr '\n' ' ')
+          EXCLUDES=$(awk '{print ":! " $0}' git-diff-exclusion.txt | tr '\n' ' ')
 
           # Print the exclude paths for debugging
           echo "Exclude paths: ${EXCLUDES}"
@@ -160,7 +160,7 @@ jobs:
         shell: bash
         run: |
           # Initialize an empty array to store the exclude paths
-          EXCLUDES=$(awk '{print ":! " $0}' git-diff-exclusion.diff | tr '\n' ' ')
+          EXCLUDES=$(awk '{print ":! " $0}' git-diff-exclusion.txt | tr '\n' ' ')
 
           # Print the exclude paths for debugging
           echo "Exclude paths: ${EXCLUDES}"
@@ -198,7 +198,7 @@ jobs:
         shell: bash
         run: |
           # Initialize an empty array to store the exclude paths
-          EXCLUDES=$(awk '{print ":! " $0}' git-diff-exclusion.diff | tr '\n' ' ')
+          EXCLUDES=$(awk '{print ":! " $0}' git-diff-exclusion.txt | tr '\n' ' ')
 
           # Print the exclude paths for debugging
           echo "Exclude paths: ${EXCLUDES}"
