@@ -125,10 +125,21 @@ describe(Regression('Secret Recovery Phrase Reveal from Settings'), () => {
     // See details here: https://github.com/MetaMask/metamask-mobile/pull/4170
     await RevealSecretRecoveryPhrase.tapToCopyPrivateCredentialToClipboard();
 
-    // Tap done
+    // Tap to reveal QR code and confirm it is displayed
+    await RevealSecretRecoveryPhrase.tapToRevealSecretCredentialQRCode();
+    await Assertions.checkIfVisible(
+      RevealSecretRecoveryPhrase.secretCredentialQRCodeImage,
+    );
+
+    // scroll to done and tap after opening QR code
+    await RevealSecretRecoveryPhrase.scrollToDone();
     await TestHelpers.waitAndTapText(
       RevealSeedViewSelectorsText.REVEAL_SECRET_CREDENTIAL_DONE,
     );
-    await Assertions.checkIfNotVisible(RevealSecretRecoveryPhrase.container);
+
+    // Confirm that the security and privacy screen is displayed
+    await Assertions.checkIfVisible(
+      SecurityAndPrivacy.securityAndPrivacyHeading,
+    );
   });
 });

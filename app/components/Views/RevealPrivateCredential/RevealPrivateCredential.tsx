@@ -383,7 +383,10 @@ const RevealPrivateCredential = ({
         tabLabel={strings(`reveal_credential.qr_code`)}
         style={styles.tabContent}
       >
-        <View style={styles.qrCodeWrapper}>
+        <View
+          style={styles.qrCodeWrapper}
+          testID={RevealSeedViewSelectorsIDs.SECRET_CREDENTIAL_QR_CODE_IMAGE_ID}
+        >
           <QRCode
             value={clipboardPrivateCredential}
             size={Dimensions.get('window').width - 176}
@@ -564,6 +567,9 @@ const RevealPrivateCredential = ({
         }
         confirmTestID={
           RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID
+        }
+        scrollViewTestID={
+          RevealSeedViewSelectorsIDs.SECRET_CREDENTIAL_SCROLL_ID
         }
       >
         <>
