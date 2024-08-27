@@ -1,18 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`NotificationRoot matches snapshot 1`] = `
-<View
-  style={
-    [
-      {},
-      {
-        "height": undefined,
-        "opacity": 1,
-        "paddingVertical": 10,
-      },
-    ]
-  }
->
+<View>
   <View
     collapsable={false}
     onGestureHandlerEvent={[Function]}
