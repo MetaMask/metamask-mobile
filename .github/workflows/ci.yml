@@ -28,7 +28,7 @@ jobs:
       - name: Ingore changes in specific file
         shell: bash
         run: |
-          git update-index --asume-unchanged app/util/termsOfUse/termsOfUseContent.js
+          git update-index --assume-unchanged app/util/termsOfUse/termsOfUseContent.js
       - run: yarn setup:node
       - name: Require clean working directory
         shell: bash
