@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.29.0",
+  "version": "7.31.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -94,7 +94,8 @@
     "storybook-generate": "sb-rn-get-stories",
     "storybook-watch": "sb-rn-watcher",
     "start:flipper": "npx flipper-server",
-    "update-build-version": "./scripts/update-build-version.sh"
+    "update-build-version": "./scripts/update-build-version.sh",
+    "update-release-version": "./scripts/update-release-version.sh"
   },
   "husky": {
     "hooks": {
