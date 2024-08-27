@@ -93,7 +93,8 @@
     "patch:approval": "./scripts/patch-approval-controller.sh",
     "storybook-generate": "sb-rn-get-stories",
     "storybook-watch": "sb-rn-watcher",
-    "start:flipper": "npx flipper-server"
+    "start:flipper": "npx flipper-server",
+    "update-build-version": "./scripts/update-build-version.sh"
   },
   "husky": {
     "hooks": {
