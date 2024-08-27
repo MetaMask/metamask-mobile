@@ -36,6 +36,8 @@ const createStoreAndPersistor = async () => {
   // Create the store and apply middlewares. In E2E tests, an optional initialState
   // from fixtures can be provided to preload the store; otherwise, it remains undefined.
 
+  const middlewares = [sagaMiddleware, thunk];
+
   if (__DEV__) {
     // Add redux flipper middleware for debugging Redux with Flipper
     // Flipper's client side plugin is https://github.com/jk-gan/flipper-plugin-redux-debugger, which needs to be added as a plugin
@@ -49,7 +51,7 @@ const createStoreAndPersistor = async () => {
     store,
     configureStore({
       reducer: pReducer,
-      middleware: [sagaMiddleware, thunk],
+      middleware: middlewares,
       preloadedState: initialState,
     }),
   );
