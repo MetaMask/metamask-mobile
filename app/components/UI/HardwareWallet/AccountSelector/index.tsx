@@ -27,7 +27,7 @@ interface ISelectQRAccountsProps {
   onCheck?: (index: number) => void;
   onUnlock: (accountIndex: number[]) => void;
   onForget: () => void;
-  title?: string;
+  title: string;
 }
 
 const AccountSelector = (props: ISelectQRAccountsProps) => {
@@ -84,8 +84,7 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
 
   return (
     <View style={styles.container}>
-      {title && <Text style={styles.title}>{title}</Text>}
-      {/*<Text style={styles.title}>{title}</Text>*/}
+      <Text style={styles.title}>{title}</Text>
       <FlatList
         data={formattedAccounts}
         keyExtractor={(item) => `address-${item.index}`}

@@ -1,4 +1,5 @@
 const LEDGER_LIVE_PATH = `m/44'/60'/0'/0/0`;
+
 const LEDGER_BIP44_PATH = `m/44'/60'/0'/0`;
 const LEDGER_LEGACY_PATH = `m/44'/60'/0'`;
 

@@ -1,47 +1,63 @@
-import TestHelpers from '../../helpers';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 import {
-  SWAP_SOURCE_TOKEN,
-  SWAP_DEST_TOKEN,
-  SWAP_MAX_SLIPPAGE,
-  SWAP_SEARCH_TOKEN,
-} from '../../../wdio/screen-objects/testIDs/Screens/QuoteView.js';
-import enContent from '../../../locales/languages/en.json';
+  QuoteViewSelectorIDs,
+  QuoteViewSelectorText,
+} from '../../selectors/swaps/QuoteView.selectors';
 
-export default class QuoteView {
-  static async isVisible() {
-    await TestHelpers.checkIfElementByTextIsVisible(enContent.swaps.get_quotes);
+class QuoteView {
+  get getQuotes() {
+    return Matchers.getElementByText(QuoteViewSelectorText.GET_QUOTES);
   }
 
-  static async findKeypadButton(digit) {
-    return await TestHelpers.waitAndTapText(digit);
+  get sourceToken() {
+    return Matchers.getElementByID(QuoteViewSelectorIDs.SOURCE_TOKEN);
   }
-  static async enterSwapAmount(amount) {
+
+  get destToken() {
+    return Matchers.getElementByID(QuoteViewSelectorIDs.DEST_TOKEN);
+  }
+
+  get searchToken() {
+    return Matchers.getElementByID(QuoteViewSelectorIDs.SEARCH_TOKEN);
+  }
+
+  get maxSlippage() {
+    return Matchers.getElementByID(QuoteViewSelectorIDs.MAX_SLIPPAGE);
+  }
+
+  async enterSwapAmount(amount) {
     for (let idx = 0; idx < amount.length; idx++) {
-      await TestHelpers.waitAndTapText(amount[idx]);
+      const element = Matchers.getElementByText(amount[idx]);
+      await Gestures.waitAndTap(element);
     }
   }
 
-  static async tapOnSelectSourceToken() {
-    await TestHelpers.waitAndTap(SWAP_SOURCE_TOKEN);
+  async tapOnSelectSourceToken() {
+    await Gestures.waitAndTap(this.sourceToken);
   }
 
-  static async tapOnSelectDestToken() {
-    await TestHelpers.waitAndTap(SWAP_DEST_TOKEN);
+  async tapOnSelectDestToken() {
+    await Gestures.waitAndTap(this.destToken);
   }
 
-  static async selectToken(symbol) {
-    await TestHelpers.waitAndTap(SWAP_SEARCH_TOKEN);
-    await TestHelpers.typeText(SWAP_SEARCH_TOKEN, symbol);
-    await TestHelpers.delay(1000);
-    await TestHelpers.tapByText(symbol, 1);
+  async tapSearchToken() {
+    await Gestures.waitAndTap(this.searchToken);
   }
 
-  static async tapOnGetQuotes() {
+  async typeSearchToken(symbol) {
+    await Gestures.typeTextAndHideKeyboard(this.searchToken, symbol);
+  }
+
+  async selectToken(symbol) {
+    const element = Matchers.getElementByText(symbol, 1);
+    await Gestures.waitAndTap(element);
+  }
+
+  async tapOnGetQuotes() {
     await device.disableSynchronization();
-    await TestHelpers.waitAndTapText(enContent.swaps.get_quotes);
-  }
-
-  static async checkMaxSlippage(text) {
-    await TestHelpers.checkIfElementHasString(SWAP_MAX_SLIPPAGE, text);
+    await Gestures.waitAndTap(this.getQuotes);
   }
 }
+
+export default new QuoteView();

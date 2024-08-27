@@ -274,7 +274,7 @@ const LedgerSelectAccount = () => {
             setForgetDevice(true);
             setBlockingModalVisible(true);
           }}
-          // title={strings('ledger.select_accounts')}
+          title={strings('ledger.select_accounts')}
         />
       </View>
       <BlockingActionModal
