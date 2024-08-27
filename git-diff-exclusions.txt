@@ -1,2 +1,1 @@
 app/util/termsOfUse/termsOfUseContent.ts
-app/util/regex
