@@ -228,6 +228,13 @@ import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
 import EthQuery from '@metamask/eth-query';
 import { TransactionControllerOptions } from '@metamask/transaction-controller/dist/types/TransactionController';
 import DomainProxyMap from '../lib/DomainProxyMap/DomainProxyMap';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { snapKeyringBuilder } from './SnapKeyring';
+import { removeAccountsFromPermissions } from './Permissions';
+import { keyringSnapPermissionsBuilder } from './SnapKeyring/keyringSnapsPermissions';
+import { HandleSnapRequestArgs } from './Snaps/types';
+import { handleSnapRequest } from './Snaps/utils';
+///: END:ONLY_INCLUDE_IF
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -406,6 +413,20 @@ type RequiredControllers = Omit<Controllers, 'PPOMController'>;
 type OptionalControllers = Pick<Controllers, 'PPOMController'>;
 
 /**
+ * Combines required and optional controllers for the Engine context type.
+ */
+export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
+
+/**
+ * Type definition for the controller messenger used in the Engine.
+ * It extends the base ControllerMessenger with global actions and events.
+ */
+export type ControllerMessenger = ExtendedControllerMessenger<
+  GlobalActions,
+  GlobalEvents
+>;
+
+/**
  * Core controller responsible for composing other metamask controllers together
  * and exposing convenience methods for common wallet operations.
  */
@@ -417,11 +438,11 @@ class Engine {
   /**
    * A collection of all controller instances
    */
-  context: RequiredControllers & Partial<OptionalControllers>;
+  context: EngineContext;
   /**
    * The global controller messenger.
    */
-  controllerMessenger: ExtendedControllerMessenger<GlobalActions, GlobalEvents>;
+  controllerMessenger: ControllerMessenger;
   /**
    * ComposableController reference containing all child controllers
    */
@@ -442,11 +463,15 @@ class Engine {
    * Object that runs and manages the execution of Snaps
    */
   snapExecutionService: WebViewExecutionService;
+  snapController: SnapController;
+  subjectMetadataController: SubjectMetadataController;
 
   ///: END:ONLY_INCLUDE_IF
 
   transactionController: TransactionController;
   smartTransactionsController: SmartTransactionsController;
+
+  keyringController: KeyringController;
 
   /**
    * Creates a CoreController instance
@@ -729,6 +754,8 @@ class Engine {
     });
     phishingController.maybeUpdateState();
 
+    const additionalKeyrings = [];
+
     const qrKeyringBuilder = () => {
       const keyring = new QRHardwareKeyring();
       // to fix the bug in #9560, forgetDevice will reset all keyring properties to default.
@@ -737,11 +764,69 @@ class Engine {
     };
     qrKeyringBuilder.type = QRHardwareKeyring.type;
 
+    additionalKeyrings.push(qrKeyringBuilder);
+
     const bridge = new LedgerMobileBridge(new LedgerTransportMiddleware());
     const ledgerKeyringBuilder = () => new LedgerKeyring({ bridge });
     ledgerKeyringBuilder.type = LedgerKeyring.type;
 
-    const keyringController = new KeyringController({
+    additionalKeyrings.push(ledgerKeyringBuilder);
+
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+
+    /**
+     * Removes an account from state / storage.
+     *
+     * @param {string[]} address - A hex address
+     */
+    const removeAccount = async (address: string) => {
+      // Remove all associated permissions
+      await removeAccountsFromPermissions([address]);
+      // Remove account from the keyring
+      await this.keyringController.removeAccount(address as Hex);
+      return address;
+    };
+
+    const snapKeyringBuildMessenger = this.controllerMessenger.getRestricted({
+      name: 'SnapKeyringBuilder',
+      allowedActions: [
+        `${approvalController.name}:addRequest`,
+        `${approvalController.name}:acceptRequest`,
+        `${approvalController.name}:rejectRequest`,
+        `${approvalController.name}:startFlow`,
+        `${approvalController.name}:endFlow`,
+        `${approvalController.name}:showSuccess`,
+        `${approvalController.name}:showError`,
+        `${phishingController.name}:testOrigin`,
+        `${phishingController.name}:maybeUpdateState`,
+        `KeyringController:getAccounts`,
+        'AccountsController:setSelectedAccount',
+        'AccountsController:getAccountByAddress',
+        'AccountsController:setAccountName',
+      ],
+      allowedEvents: [],
+    });
+
+    const getSnapController = () => this.snapController;
+
+    // Necessary to persist the keyrings and update the accounts both within the keyring controller and accounts controller
+    const persistAndUpdateAccounts = async () => {
+      await this.keyringController.persistAllKeyrings();
+      await accountsController.updateAccounts();
+    };
+
+    additionalKeyrings.push(
+      snapKeyringBuilder(
+        snapKeyringBuildMessenger,
+        getSnapController,
+        persistAndUpdateAccounts,
+        (address) => removeAccount(address),
+      ),
+    );
+
+    ///: END:ONLY_INCLUDE_IF
+
+    this.keyringController = new KeyringController({
       removeIdentity: preferencesController.removeIdentity.bind(
         preferencesController,
       ),
@@ -754,17 +839,17 @@ class Engine {
       }),
       state: initialKeyringState || initialState.KeyringController,
       // @ts-expect-error To Do: Update the type of QRHardwareKeyring to Keyring<Json>
-      keyringBuilders: [qrKeyringBuilder, ledgerKeyringBuilder],
+      keyringBuilders: additionalKeyrings,
     });
 
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps,keyring-snaps)
     /**
      * Gets the mnemonic of the user's primary keyring.
      */
     const getPrimaryKeyringMnemonic = () => {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const [keyring]: any = keyringController.getKeyringsByType(
+      const [keyring]: any = this.keyringController.getKeyringsByType(
         KeyringTypes.hd,
       );
       if (!keyring.mnemonic) {
@@ -796,12 +881,8 @@ class Engine {
             this.controllerMessenger,
             'SnapController:get',
           ),
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          handleSnapRpcRequest: this.controllerMessenger.call.bind(
-            this.controllerMessenger,
-            'SnapController:handleRequest',
-          ),
+          handleSnapRpcRequest: async (args: HandleSnapRequestArgs) =>
+            await handleSnapRequest(this.controllerMessenger, args),
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           getSnapState: this.controllerMessenger.call.bind(
@@ -852,10 +933,21 @@ class Engine {
               origin,
             );
           },
+          getAllowedKeyringMethods: (origin: string) =>
+            keyringSnapPermissionsBuilder(origin),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          hasPermission: (origin: string, target: any) =>
+            this.controllerMessenger.call<'PermissionController:hasPermission'>(
+              'PermissionController:hasPermission',
+              origin,
+              target,
+            ),
+          getSnapKeyring: this.getSnapKeyring.bind(this),
         },
       ),
     });
     ///: END:ONLY_INCLUDE_IF
+
     const accountTrackerController = new AccountTrackerController({
       onPreferencesStateChange,
       getIdentities: () => preferencesController.state.identities,
@@ -897,7 +989,7 @@ class Engine {
       // @ts-expect-error Typecast permissionType from getPermissionSpecifications to be of type PermissionType.RestrictedMethod
       permissionSpecifications: {
         ...getPermissionSpecifications({
-          getAllAccounts: () => keyringController.getAccounts(),
+          getAllAccounts: () => this.keyringController.getAccounts(),
           getInternalAccounts:
             accountsController.listAccounts.bind(accountsController),
           captureKeyringTypesWithMissingIdentities: (
@@ -912,7 +1004,7 @@ class Engine {
             });
             const keyringTypesWithMissingIdentities =
               accountsMissingIdentities.map((address) =>
-                keyringController.getAccountKeyringType(address),
+                this.keyringController.getAccountKeyringType(address),
               );
 
             const internalAccountCount = internalAccounts.length;
@@ -961,7 +1053,7 @@ class Engine {
     });
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-    const subjectMetadataController = new SubjectMetadataController({
+    this.subjectMetadataController = new SubjectMetadataController({
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'SubjectMetadataController',
@@ -1064,8 +1156,8 @@ class Engine {
         `${approvalController.name}:addRequest`,
         `${approvalController.name}:updateRequestState`,
         `${permissionController.name}:grantPermissions`,
-        `${subjectMetadataController.name}:getSubjectMetadata`,
-        `${subjectMetadataController.name}:addSubjectMetadata`,
+        `${this.subjectMetadataController.name}:getSubjectMetadata`,
+        `${this.subjectMetadataController.name}:addSubjectMetadata`,
         `${phishingController.name}:maybeUpdateState`,
         `${phishingController.name}:testOrigin`,
         `${snapsRegistry.name}:get`,
@@ -1082,7 +1174,7 @@ class Engine {
       ],
     });
 
-    const snapController = new SnapController({
+    this.snapController = new SnapController({
       environmentEndowmentPermissions: Object.values(EndowmentPermissions),
       featureFlags: {
         requireAllowlist,
@@ -1265,8 +1357,8 @@ class Engine {
       },
       // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
       provider: networkController.getProviderAndBlockTracker().provider,
-      sign: keyringController.signTransaction.bind(
-        keyringController,
+      sign: this.keyringController.signTransaction.bind(
+        this.keyringController,
       ) as unknown as TransactionControllerOptions['sign'],
       state: initialState.TransactionController,
     });
@@ -1329,7 +1421,7 @@ class Engine {
     );
 
     const controllers: Controllers[keyof Controllers][] = [
-      keyringController,
+      this.keyringController,
       accountTrackerController,
       new AddressBookController({
         messenger: this.controllerMessenger.getRestricted({
@@ -1486,9 +1578,9 @@ class Engine {
           name: 'SignatureController',
           allowedActions: [
             `${approvalController.name}:addRequest`,
-            `${keyringController.name}:signPersonalMessage`,
-            `${keyringController.name}:signMessage`,
-            `${keyringController.name}:signTypedMessage`,
+            `${this.keyringController.name}:signPersonalMessage`,
+            `${this.keyringController.name}:signMessage`,
+            `${this.keyringController.name}:signTypedMessage`,
             `${loggingController.name}:add`,
           ],
           allowedEvents: [],
@@ -1501,8 +1593,8 @@ class Engine {
       }),
       loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-      snapController,
-      subjectMetadataController,
+      this.snapController,
+      this.subjectMetadataController,
       authenticationController,
       userStorageController,
       notificationServicesController,
@@ -1832,6 +1924,20 @@ class Engine {
       tokenFiat1dAgo: 0,
     };
   };
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  getSnapKeyring = async () => {
+    let [snapKeyring] = this.keyringController.getKeyringsByType(
+      KeyringTypes.snap,
+    );
+    if (!snapKeyring) {
+      snapKeyring = await this.keyringController.addNewKeyring(
+        KeyringTypes.snap,
+      );
+    }
+    return snapKeyring;
+  };
+  ///: END:ONLY_INCLUDE_IF
 
   /**
    * Returns true or false whether the user has funds or not
