@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ReceiveRequest render correctly 1`] = `
+exports[`ReceiveRequest render matches snapshot 1`] = `
 <View
   style={
     {
@@ -748,7 +748,7 @@ exports[`ReceiveRequest render correctly 1`] = `
 </View>
 `;
 
-exports[`ReceiveRequest render correctly with different ticker 1`] = `
+exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
 <View
   style={
     {
@@ -1496,7 +1496,7 @@ exports[`ReceiveRequest render correctly with different ticker 1`] = `
 </View>
 `;
 
-exports[`ReceiveRequest render correctly without buy 1`] = `
+exports[`ReceiveRequest render without buy matches snapshot 1`] = `
 <View
   style={
     {
