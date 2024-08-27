@@ -215,7 +215,6 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   async getProviderNetworkState(origin = METAMASK_DOMAIN) {
-    // TODO update to use SelectedNetworkController
     const networkClientId = Engine.controllerMessenger.call(
       'SelectedNetworkController:getNetworkClientIdForDomain',
       origin,
@@ -248,49 +247,21 @@ export class BackgroundBridge extends EventEmitter {
       this.deprecatedNetworkVersions[networkClientId] = networkVersion;
     }
 
+    // THIS APPEARS TO BE LOGGING CORRECT ORIGIN AND CHAINID
+    console.log('ALEX LOGGGING____ origin:', origin, '& chainId:', chainId);
+
     return {
       chainId,
       networkVersion: networkVersion ?? 'loading',
     };
-    // const providerConfig = selectProviderConfig(store.getState());
-    // const networkType = providerConfig.type;
-
-    // const isInitialNetwork =
-    //   networkType && getAllNetworks().includes(networkType);
-    // let chainId;
-
-    // if (isInitialNetwork) {
-    //   chainId = ChainId[networkType];
-    // } else if (networkType === 'rpc') {
-    //   chainId = providerConfig.chainId;
-    // }
-    // if (chainId && !chainId.startsWith('0x')) {
-    //   // Convert to hex
-    //   chainId = `0x${parseInt(chainId, 10).toString(16)}`;
-    // }
-
-    // const result = {
-    //   networkVersion: legacyNetworkId(),
-    //   chainId,
-    // };
-    // return result;
   }
 
   async notifyChainChanged(params) {
     DevLogger.log(`notifyChainChanged: `, params);
-    console.log('ALEX LOGGGING____ notifyChainChanged:', params);
-    if (process.env.MULTICHAIN_V1) {
-      this.sendNotification({
-        method: NOTIFICATION_NAMES.chainChanged,
-        // TODO where is origin?
-        params: await this.getProviderNetworkState('origin'),
-      });
-    } else {
-      this.sendNotification({
-        method: NOTIFICATION_NAMES.chainChanged,
-        params: await this.getProviderNetworkState(),
-      });
-    }
+    this.sendNotification({
+      method: NOTIFICATION_NAMES.chainChanged,
+      params: await this.getProviderNetworkState(this.hostname),
+    });
   }
 
   async notifySelectedAddressChanged(selectedAddress) {
@@ -347,6 +318,8 @@ export class BackgroundBridge extends EventEmitter {
     );
 
     // Check if update already sent
+    
+    // TODO ALEX the logic here needs to be updated to use selectedNetworkController state
     if (
       this.chainIdSent !== publicState.chainId ||
       (this.networkVersionSent !== publicState.networkVersion &&
@@ -498,7 +471,6 @@ export class BackgroundBridge extends EventEmitter {
     engine.push(
       this.createMiddleware({
         hostname: this.hostname,
-        // TODO ALEX this is async now...
         getProviderState: this.getProviderState.bind(this),
       }),
     );
@@ -512,7 +484,6 @@ export class BackgroundBridge extends EventEmitter {
 
   sendNotification(payload) {
     DevLogger.log(`BackgroundBridge::sendNotification: `, payload);
-    console.log('ALEX LOGGGING____ sendNotification:', payload);
     this.engine && this.engine.emit('notification', payload);
   }
 

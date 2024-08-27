@@ -10,7 +10,11 @@ import {
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
-import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
+import {
+  ChainId,
+  NetworkType,
+  // toHex
+} from '@metamask/controller-utils';
 import {
   PermissionController,
   permissionRpcMethods,
@@ -77,7 +81,7 @@ export interface RPCMethodsMiddleParameters {
   channelId?: string; // Used for remote connections
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getProviderState: () => any;
+  getProviderState: (origin?: string) => any;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
@@ -457,23 +461,35 @@ export const getRpcMethodMiddleware = ({
         );
       },
       eth_chainId: async () => {
-        const providerConfig = selectProviderConfig(store.getState());
-        const networkType = providerConfig.type as NetworkType;
-        const isInitialNetwork =
-          networkType && getAllNetworks().includes(networkType);
-        let chainId;
+        // if (process.env.MULTICHAIN_V1) {
+        const origin = isWalletConnect ? hostname : channelId ?? hostname;
+        const networkProviderState = await getProviderState(origin);
+        /* eslint-disable no-console */
+        console.log(
+          'ALEX LOGGGING____ eth_chainId handler || networkProviderState',
+          networkProviderState,
+        );
+        /* eslint-enable no-console */
+        res.result = networkProviderState.chainId;
+        // } else {
+        //   const providerConfig = selectProviderConfig(store.getState());
+        //   const networkType = providerConfig.type as NetworkType;
+        //   const isInitialNetwork =
+        //     networkType && getAllNetworks().includes(networkType);
+        //   let chainId;
 
-        if (isInitialNetwork) {
-          chainId = ChainId[networkType as keyof typeof ChainId];
-        } else if (networkType === RPC) {
-          chainId = providerConfig.chainId;
-        }
+        //   if (isInitialNetwork) {
+        //     chainId = ChainId[networkType as keyof typeof ChainId];
+        //   } else if (networkType === RPC) {
+        //     chainId = providerConfig.chainId;
+        //   }
 
-        if (chainId && !chainId.startsWith('0x')) {
-          chainId = toHex(chainId);
-        }
+        //   if (chainId && !chainId.startsWith('0x')) {
+        //     chainId = toHex(chainId);
+        //   }
 
-        res.result = chainId;
+        //   res.result = chainId;
+        // }
       },
       eth_hashrate: () => {
         res.result = '0x00';
@@ -880,7 +896,7 @@ export const getRpcMethodMiddleware = ({
         const origin = isWalletConnect ? hostname : channelId ?? hostname;
         const accounts = await getPermittedAccounts(origin);
         res.result = {
-          ...getProviderState(),
+          ...(await getProviderState()),
           accounts,
         };
       },
