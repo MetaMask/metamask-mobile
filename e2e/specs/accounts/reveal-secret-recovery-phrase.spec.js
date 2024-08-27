@@ -115,7 +115,7 @@ describe(Regression('Secret Recovery Phrase Reveal from Settings'), () => {
     // Confirm that the SRP container, title, and text are displayed
     await Assertions.checkIfVisible(RevealSecretRecoveryPhrase.container);
     await Assertions.checkIfTextIsDisplayed(
-      RevealSeedViewSelectorsText.REVEAL_SECRET_CREDENTIAL_TITLE_TEXT,
+      RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_TITLE_TEXT,
     );
     await Assertions.checkIfTextIsDisplayed(defaultGanacheOptions.mnemonic);
 
@@ -123,18 +123,18 @@ describe(Regression('Secret Recovery Phrase Reveal from Settings'), () => {
     // Android devices running OS version < 11 (API level 29) will not see the copy to clipboard button presented
     // This will cause the following step to fail if e2e were being run on an older android OS prior to our minimum API level 29
     // See details here: https://github.com/MetaMask/metamask-mobile/pull/4170
-    await RevealSecretRecoveryPhrase.tapToCopyPrivateCredentialToClipboard();
+    await RevealSecretRecoveryPhrase.tapToCopyCredentialToClipboard();
 
     // Tap to reveal QR code and confirm it is displayed
-    await RevealSecretRecoveryPhrase.tapToRevealSecretCredentialQRCode();
+    await RevealSecretRecoveryPhrase.tapToRevealPrivateCredentialQRCode();
     await Assertions.checkIfVisible(
-      RevealSecretRecoveryPhrase.secretCredentialQRCodeImage,
+      RevealSecretRecoveryPhrase.revealCredentialQRCodeImage,
     );
 
     // scroll to done and tap after opening QR code
     await RevealSecretRecoveryPhrase.scrollToDone();
     await TestHelpers.waitAndTapText(
-      RevealSeedViewSelectorsText.REVEAL_SECRET_CREDENTIAL_DONE,
+      RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_DONE,
     );
 
     // Confirm that the security and privacy screen is displayed

@@ -25,7 +25,7 @@ class RevealSecretRecoveryPhrase {
   }
 
   // This is the password requested to expose secret credentials
-  get passwordInputToRevealSecretCredential() {
+  get passwordInputToRevealCredential() {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
     );
@@ -33,7 +33,7 @@ class RevealSecretRecoveryPhrase {
 
   get scrollViewIdentifier() {
     return Matchers.getIdentifier(
-      RevealSeedViewSelectorsIDs.SECRET_CREDENTIAL_SCROLL_ID,
+      RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_SCROLL_ID,
     );
   }
 
@@ -44,31 +44,31 @@ class RevealSecretRecoveryPhrase {
   }
   get revealSecretRecoveryPhraseButton() {
     return Matchers.getElementByID(
-      RevealSeedViewSelectorsIDs.SECRET_CREDENTIAL_REVEAL_BUTTON_ID,
+      RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
     );
   }
 
-  get copyPrivateCredentialToClipboardButton() {
+  get revealCredentialCopyToClipboardButton() {
     return Matchers.getElementByID(
-      RevealSeedViewSelectorsIDs.COPY_PRIVATE_CREDENTIAL_TO_CLIPBOARD_BUTTON,
+      RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON,
     );
   }
 
-  get secretCredentialQRCodeTab() {
+  get revealCredentialQRCodeTab() {
     return Matchers.getElementByText(
-      RevealSeedViewSelectorsText.SECRET_CREDENTIAL_QR_CODE_TAB_ID,
+      RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_QR_CODE_TAB_ID,
     );
   }
 
-  get secretCredentialQRCodeImage() {
+  get revealCredentialQRCodeImage() {
     return Matchers.getElementByID(
-      RevealSeedViewSelectorsIDs.SECRET_CREDENTIAL_QR_CODE_IMAGE_ID,
+      RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_QR_CODE_IMAGE_ID,
     );
   }
 
   get doneButton() {
     return Matchers.getElementByText(
-      RevealSeedViewSelectorsText.REVEAL_SECRET_CREDENTIAL_DONE,
+      RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_DONE,
     );
   }
 
@@ -80,7 +80,7 @@ class RevealSecretRecoveryPhrase {
   // This is the password requested to expose secret credentials
   async enterPasswordToRevealSecretCredential(password) {
     await Gestures.typeTextAndHideKeyboard(
-      this.passwordInputToRevealSecretCredential,
+      this.passwordInputToRevealCredential,
       password,
     );
   }
@@ -89,12 +89,12 @@ class RevealSecretRecoveryPhrase {
     await Gestures.waitAndTap(this.revealSecretRecoveryPhraseButton);
   }
 
-  async tapToCopyPrivateCredentialToClipboard() {
-    await Gestures.tap(this.copyPrivateCredentialToClipboardButton);
+  async tapToCopyCredentialToClipboard() {
+    await Gestures.tap(this.revealCredentialCopyToClipboardButton);
   }
 
-  async tapToRevealSecretCredentialQRCode() {
-    await Gestures.tap(this.secretCredentialQRCodeTab);
+  async tapToRevealPrivateCredentialQRCode() {
+    await Gestures.tap(this.revealCredentialQRCodeTab);
   }
 
   async scrollToDone() {
