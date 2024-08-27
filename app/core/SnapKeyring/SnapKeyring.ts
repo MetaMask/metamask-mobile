@@ -110,7 +110,7 @@ export const snapKeyringBuilder = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   removeAccountHelper: (address: string) => Promise<any>,
   getSnapName: (snapId: string) => string,
-  isSnapPreinstalled: (snapId: string) => boolean,
+  isSnapPreinstalled: (snapId: SnapId) => boolean,
 ) => {
   const builder = (() =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -180,7 +180,7 @@ export const snapKeyringBuilder = (
 
           // If snap is preinstalled and does not request confirmation, skip the confirmation dialog
           const skipConfirmation =
-            isSnapPreinstalled(snapId) && !displayConfirmation;
+            isSnapPreinstalled(snapId as SnapId) && !displayConfirmation;
           // If confirmation dialog are skipped, we consider the account creation to be confirmed until the account name dialog is closed
           const accountCreationConfirmationResult =
             skipConfirmation ||
@@ -229,13 +229,7 @@ export const snapKeyringBuilder = (
               }
 
               if (!skipConfirmation) {
-                // TODO: Add events tracking to the dialog itself, so that events are more
-                // "linked" to UI actions
-                // User should now see the "Successfully added account" page
-                // trackSnapAccountEvent(
-                //   MetaMetricsEventName.AddSnapAccountSuccessViewed,
-                // );
-                await showSuccess(
+                showSuccess(
                   controllerMessenger,
                   snapId,
                   {
@@ -248,13 +242,7 @@ export const snapKeyringBuilder = (
                     learnMoreLink,
                   },
                 );
-                // // User has clicked on "OK"
-                // trackSnapAccountEvent(
-                //   MetaMetricsEventName.AddSnapAccountSuccessClicked,
-                // );
               }
-
-              // trackSnapAccountEvent(MetaMetricsEventName.AccountAdded);
             } catch (e) {
               // Error occurred while naming the account
               const error = (e as Error).message;
@@ -305,20 +293,6 @@ export const snapKeyringBuilder = (
 
         const learnMoreLink =
           'https://support.metamask.io/managing-my-wallet/accounts-and-addresses/how-to-remove-an-account-from-your-metamask-wallet/';
-
-        // const trackSnapAccountEvent = (event: MetaMetricsEventName) => {
-        //   trackEvent({
-        //     event,
-        //     category: MetaMetricsEventCategory.Accounts,
-        //     properties: {
-        //       account_type: MetaMetricsEventAccountType.Snap,
-        //       snap_id: snapId,
-        //       snap_name: snapName,
-        //     },
-        //   });
-        // };
-
-        // Since we use this in the finally, better to give it a default value if the controller call fails
         let confirmationResult = false;
         try {
           confirmationResult = Boolean(
