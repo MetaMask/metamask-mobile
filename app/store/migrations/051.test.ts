@@ -96,6 +96,24 @@ describe('Migration #51', () => {
         "FATAL ERROR: Migration 51: Invalid AccountsController internalAccounts accounts state error: 'object'",
       scenario: 'AccountsController internalAccounts accounts state is invalid',
     },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            AccountsController: {
+              internalAccounts: {
+                accounts: {},
+                selectedAccount: null,
+              },
+            },
+          },
+        },
+      }),
+      errorMessage:
+        "FATAL ERROR: Migration 51: Invalid AccountsController internalAccounts selectedAccount state error: 'object'",
+      scenario:
+        'AccountsController internalAccounts selectedAccount is not a string',
+    },
   ];
 
   for (const { errorMessage, scenario, state } of invalidStates) {
@@ -165,5 +183,38 @@ describe('Migration #51', () => {
     ) as Pick<RootState, 'engine'>;
 
     expect(newState).toStrictEqual(emptyAccountsState);
+  });
+
+  it('should update selectedAccount to the first account if current selection is invalid', () => {
+    const invalidSelectedState = merge({}, oldState, {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: 'non-existent-uuid',
+            },
+          },
+        },
+      },
+    });
+
+    const newState: Pick<RootState, 'engine'> = migration(
+      invalidSelectedState,
+    ) as Pick<RootState, 'engine'>;
+
+    expect(
+      newState.engine.backgroundState.AccountsController.internalAccounts
+        .selectedAccount,
+    ).toEqual(expectedUuid);
+  });
+
+  it('should not modify the state if selectedAccount is valid', () => {
+    const validState = merge({}, oldState);
+    const newState: Pick<RootState, 'engine'> = migration(validState) as Pick<
+      RootState,
+      'engine'
+    >;
+
+    expect(newState).toStrictEqual(validState);
   });
 });

@@ -51,13 +51,25 @@ export default function migrate(state: unknown) {
     return state;
   }
 
-  const typedAccountsControllerState =
-    accountsControllerState as AccountsControllerState;
-  const { accounts, selectedAccount } =
-    typedAccountsControllerState.internalAccounts;
+  if (
+    !hasProperty(accountsControllerState.internalAccounts, 'selectedAccount') ||
+    typeof accountsControllerState.internalAccounts.selectedAccount !== 'string'
+  ) {
+    captureException(
+      new Error(
+        `FATAL ERROR: Migration 51: Invalid AccountsController internalAccounts selectedAccount state error: '${typeof accountsControllerState
+          .internalAccounts.selectedAccount}'`,
+      ),
+    );
+    return state;
+  }
+
+  const { accounts, selectedAccount } = (
+    accountsControllerState as AccountsControllerState
+  ).internalAccounts;
 
   if (Object.values(accounts).length > 0 && !accounts[selectedAccount]) {
-    typedAccountsControllerState.internalAccounts.selectedAccount =
+    accountsControllerState.internalAccounts.selectedAccount =
       Object.values(accounts)[0].id;
   }
 
