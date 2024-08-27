@@ -3,6 +3,7 @@ import AppConstants from '../../../app/core/AppConstants';
 if (process.env.JEST_WORKER_ID !== undefined) {
   // monkeypatch for Jest
   // TODO: mock properly in test setup; ideally without xhr2
+  // see https://github.com/MetaMask/metamask-mobile/issues/10390
   // eslint-disable-next-line @typescript-eslint/no-require-imports,@typescript-eslint/no-var-requires
   const { XMLHttpRequest: _XMLHttpRequest } = require('xhr2');
   class FakeXMLHttpRequest extends _XMLHttpRequest {
@@ -34,6 +35,7 @@ export function overrideXMLHttpRequest() {
 
   // TODO: This should operate on an allowlist rather than fuzzy-blocklist approach
   // Only known "good" URLs should be explicitly allowed, as opposed to only "bad" ones disallowed
+  // see https://github.com/MetaMask/metamask-mobile/issues/10391
   const shouldBlockRequest = (url: string) =>
     AppConstants.BASIC_FUNCTIONALITY_BLOCK_LIST.some((blockedUrl) =>
       url.includes(blockedUrl),
