@@ -133,8 +133,7 @@ exports[`PermissionItem renders correctly 1`] = `
         }
       >
         5
-         account
-        s
+        accounts
       </Text>
       <Text
         accessibilityRole="text"
@@ -166,8 +165,7 @@ exports[`PermissionItem renders correctly 1`] = `
         }
       >
         2
-         network
-        s
+        networks
       </Text>
     </View>
     <View
