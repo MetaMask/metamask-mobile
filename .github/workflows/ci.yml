@@ -29,13 +29,10 @@ jobs:
         shell: bash
         run: |
           # Initialize an empty array to store the exclude paths
-          EXCLUDES=$(awk '{print ":! " $0}' git-diff-exclusions.txt | tr '\n' ' ')
-
-          # Print the exclude paths for debugging
-          echo "Exclude paths: ${EXCLUDES}"
+          mapfile -t EXCLUDES < <(awk '{print ":! " $0}' git-diff-exclusions.txt)
 
           # Execute the git diff command
-          if ! git diff --exit-code -- . $EXCLUDES; then
+          if ! git diff --exit-code -- . "${EXCLUDES[@]}"; then
             echo "Working tree dirty at end of job"
             exit 1
           fi
@@ -81,13 +78,10 @@ jobs:
         shell: bash
         run: |
           # Initialize an empty array to store the exclude paths
-          EXCLUDES=$(awk '{print ":! " $0}' git-diff-exclusions.txt | tr '\n' ' ')
-
-          # Print the exclude paths for debugging
-          echo "Exclude paths: ${EXCLUDES}"
+          mapfile -t EXCLUDES < <(awk '{print ":! " $0}' git-diff-exclusions.txt)
 
           # Execute the git diff command
-          if ! git diff --exit-code -- . $EXCLUDES; then
+          if ! git diff --exit-code -- . "${EXCLUDES[@]}"; then
             echo "Working tree dirty at end of job"
             exit 1
           fi
@@ -122,13 +116,10 @@ jobs:
         shell: bash
         run: |
           # Initialize an empty array to store the exclude paths
-          EXCLUDES=$(awk '{print ":! " $0}' git-diff-exclusions.txt | tr '\n' ' ')
-
-          # Print the exclude paths for debugging
-          echo "Exclude paths: ${EXCLUDES}"
+          mapfile -t EXCLUDES < <(awk '{print ":! " $0}' git-diff-exclusions.txt)
 
           # Execute the git diff command
-          if ! git diff --exit-code -- . $EXCLUDES; then
+          if ! git diff --exit-code -- . "${EXCLUDES[@]}"; then
             echo "Working tree dirty at end of job"
             exit 1
           fi
@@ -160,13 +151,10 @@ jobs:
         shell: bash
         run: |
           # Initialize an empty array to store the exclude paths
-          EXCLUDES=$(awk '{print ":! " $0}' git-diff-exclusions.txt | tr '\n' ' ')
-
-          # Print the exclude paths for debugging
-          echo "Exclude paths: ${EXCLUDES}"
+          mapfile -t EXCLUDES < <(awk '{print ":! " $0}' git-diff-exclusions.txt)
 
           # Execute the git diff command
-          if ! git diff --exit-code -- . $EXCLUDES; then
+          if ! git diff --exit-code -- . "${EXCLUDES[@]}"; then
             echo "Working tree dirty at end of job"
             exit 1
           fi
