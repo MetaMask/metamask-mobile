@@ -1,11 +1,13 @@
-name: Update Versions
-
 on:
   workflow_dispatch:
     inputs:
       release_version:
         description: 'Release version to update (optional)'
         required: false
+        default: ''
+      branch:
+        description: 'Branch to run the workflow on'
+        required: true
         default: ''
 
 jobs:
@@ -15,6 +17,21 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+
+      - name: Determine branch
+        id: determine-branch
+        run: |
+          if [ -z "${{ github.event.inputs.branch }}" ]; then
+            BRANCH=$(git ls-remote --heads origin | grep 'refs/heads/release/' | awk '{print $2}' | sort -r | head -n 1 | sed 's/refs\/heads\///')
+            echo "::set-output name=branch::$BRANCH"
+          else
+            echo "::set-output name=branch::${{ github.event.inputs.branch }}"
+          fi
+
+      - name: Checkout specified branch
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ steps.determine-branch.outputs.branch }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
