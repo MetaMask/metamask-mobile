@@ -95,7 +95,9 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
     const { navigation } = props;
     navigation.setOptions(
       getNavigationOptionsTitle(
-        strings('app_settings.manage_sdk_connections_title'),
+        isMutichainVersion1Enabled
+          ? strings('app_settings.permissions_title')
+          : strings('app_settings.manage_sdk_connections_title'),
         navigation,
         false,
         colors,
