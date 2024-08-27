@@ -28,7 +28,7 @@ jobs:
       - name: Ingore changes in specific file
         shell: bash
         run: |
-          git update-index --assume-unchanged app/util/termsOfUse/termsOfUseContent.js
+          git update-index --assume-unchanged app/util/termsOfUse/termsOfUseContent.ts
       - run: yarn setup:node
       - name: Require clean working directory
         shell: bash
@@ -41,7 +41,7 @@ jobs:
       - name: Revert ignore changes in specific file
         shell: bash
         run: |
-          git update-index --no-assume-unchanged app/util/termsOfUse/termsOfUseContent.js
+          git update-index --no-assume-unchanged app/util/termsOfUse/termsOfUseContent.ts
   dedupe:
     runs-on: ubuntu-20.04
     needs: setup
@@ -84,7 +84,7 @@ jobs:
       - name: Ingore changes in specific file
         shell: bash
         run: |
-          git update-index --assume-unchanged app/util/termsOfUse/termsOfUseContent.js
+          git update-index --assume-unchanged app/util/termsOfUse/termsOfUseContent.ts
       - name: Require clean working directory
         shell: bash
         run: |
@@ -96,7 +96,7 @@ jobs:
       - name: Revert ignore changes in specific file
         shell: bash
         run: |
-          git update-index --no-assume-unchanged app/util/termsOfUse/termsOfUseContent.js
+          git update-index --no-assume-unchanged app/util/termsOfUse/termsOfUseContent.ts
   unit-tests:
     runs-on: ubuntu-20.04
     needs: setup
@@ -128,7 +128,7 @@ jobs:
       - name: Ingore changes in specific file
         shell: bash
         run: |
-          git update-index --assume-unchanged app/util/termsOfUse/termsOfUseContent.js
+          git update-index --assume-unchanged app/util/termsOfUse/termsOfUseContent.ts
       - name: Require clean working directory
         shell: bash
         run: |
@@ -140,7 +140,7 @@ jobs:
       - name: Revert ignore changes in specific file
         shell: bash
         run: |
-          git update-index --no-assume-unchanged app/util/termsOfUse/termsOfUseContent.js
+          git update-index --no-assume-unchanged app/util/termsOfUse/termsOfUseContent.ts
   merge-unit-tests:
     runs-on: ubuntu-20.04
     needs: unit-tests
@@ -169,7 +169,7 @@ jobs:
       - name: Ingore changes in specific file
         shell: bash
         run: |
-          git update-index --assume-unchanged app/util/termsOfUse/termsOfUseContent.js
+          git update-index --assume-unchanged app/util/termsOfUse/termsOfUseContent.ts
       - name: Require clean working directory
         shell: bash
         run: |
@@ -181,7 +181,7 @@ jobs:
       - name: Revert ignore changes in specific file
         shell: bash
         run: |
-          git update-index --no-assume-unchanged app/util/termsOfUse/termsOfUseContent.js
+          git update-index --no-assume-unchanged app/util/termsOfUse/termsOfUseContent.ts
   sonar-cloud:
     runs-on: ubuntu-20.04
     needs: merge-unit-tests
@@ -207,7 +207,7 @@ jobs:
       - name: Ingore changes in specific file
         shell: bash
         run: |
-          git update-index --assume-unchanged app/util/termsOfUse/termsOfUseContent.js
+          git update-index --assume-unchanged app/util/termsOfUse/termsOfUseContent.ts
       - name: Require clean working directory
         shell: bash
         run: |
@@ -219,7 +219,7 @@ jobs:
       - name: Revert ignore changes in specific file
         shell: bash
         run: |
-          git update-index --no-assume-unchanged app/util/termsOfUse/termsOfUseContent.js
+          git update-index --no-assume-unchanged app/util/termsOfUse/termsOfUseContent.ts
   check-workflows:
     name: Check workflows
     runs-on: ubuntu-latest
