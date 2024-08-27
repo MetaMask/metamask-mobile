@@ -14,15 +14,15 @@ import {
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase.js';
 import { RevealSeedViewSelectorsText } from '../../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors.js';
 
-import FixtureServer from '../../fixtures/fixture-server';
+import FixtureServer from '../../fixtures/fixture-server.js';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
 import {
   defaultGanacheOptions,
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
-} from '../../fixtures/fixture-helper';
-import { getFixturesServerPort } from '../../fixtures/utils';
+} from '../../fixtures/fixture-helper.js';
+import { getFixturesServerPort } from '../../fixtures/utils.js';
 import Assertions from '../../utils/Assertions.js';
 
 const fixtureServer = new FixtureServer();
