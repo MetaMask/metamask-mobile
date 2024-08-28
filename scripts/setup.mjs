@@ -212,7 +212,7 @@ const generateTermsOfUseContentTask = {
   task: async () => {
     const termsOfUsePath = path.resolve('./docs/assets/termsOfUse.html');
     const outputDir = path.resolve('./app/util/termsOfUse');
-    const outputPath = path.join(outputDir, 'termsOfUseContent.js'); 
+    const outputPath = path.join(outputDir, 'termsOfUseContent.ts'); 
 
     let termsOfUse = '';
     try {
