@@ -61,9 +61,6 @@ buck-out/
 
 # bundle artifact
 *.jsbundle
-./js-bundle-exports
-./ios/js-bundle-exports
-./android/js-bundle-exports
 
 # testing
 tests
