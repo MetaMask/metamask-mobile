@@ -741,20 +741,21 @@ class Engine {
     const snapKeyringBuildMessenger = this.controllerMessenger.getRestricted({
       name: 'SnapKeyringBuilder',
       allowedActions: [
-        'ApprovalController:addRequest',
-        'ApprovalController:acceptRequest',
-        'ApprovalController:rejectRequest',
-        'ApprovalController:startFlow',
-        'ApprovalController:endFlow',
-        'ApprovalController:showSuccess',
-        'ApprovalController:showError',
-        'PhishingController:test',
-        'PhishingController:maybeUpdateState',
-        'KeyringController:getAccounts',
+        `${approvalController.name}:addRequest`,
+        `${approvalController.name}:acceptRequest`,
+        `${approvalController.name}:rejectRequest`,
+        `${approvalController.name}:startFlow`,
+        `${approvalController.name}:endFlow`,
+        `${approvalController.name}:showSuccess`,
+        `${approvalController.name}:showError`,
+        `${phishingController.name}:testOrigin`,
+        `${phishingController.name}:maybeUpdateState`,
+        `KeyringController:getAccounts`,
         'AccountsController:setSelectedAccount',
         'AccountsController:getAccountByAddress',
         'AccountsController:setAccountName',
       ],
+      allowedEvents: [],
     });
 
     const getSnapController = () => this.snapController;
