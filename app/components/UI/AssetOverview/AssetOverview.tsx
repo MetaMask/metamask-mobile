@@ -169,10 +169,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   );
 
   const itemAddress = safeToChecksumAddress(asset.address);
-  const exchangeRate =
-    itemAddress && itemAddress in tokenExchangeRates
-      ? tokenExchangeRates?.[itemAddress]?.price
-      : undefined;
+  const exchangeRate = itemAddress
+    ? tokenExchangeRates?.[itemAddress]?.price
+    : undefined;
 
   let balance, balanceFiat;
   if (asset.isETH) {
@@ -190,7 +189,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     );
   } else {
     balance =
-      itemAddress && itemAddress in tokenBalances
+      itemAddress && tokenBalances?.[itemAddress]
         ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], asset.decimals)
         : 0;
     balanceFiat = balanceToFiat(
