@@ -252,6 +252,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -344,6 +345,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -2196,6 +2198,7 @@ exports[`OrderDetails renders a completed order 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -2288,6 +2291,7 @@ exports[`OrderDetails renders a completed order 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -4151,6 +4155,7 @@ exports[`OrderDetails renders a created order 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -4243,6 +4248,7 @@ exports[`OrderDetails renders a created order 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -6038,6 +6044,7 @@ exports[`OrderDetails renders a failed order 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -6130,6 +6137,7 @@ exports[`OrderDetails renders a failed order 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -7982,6 +7990,7 @@ exports[`OrderDetails renders a pending order 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -8074,6 +8083,7 @@ exports[`OrderDetails renders a pending order 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -9869,6 +9879,7 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -9961,6 +9972,7 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -10312,6 +10324,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -10404,6 +10417,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -10996,6 +11010,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -11088,6 +11103,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -12994,6 +13010,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -13086,6 +13103,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -15057,6 +15075,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -15149,6 +15168,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -16944,6 +16964,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -17036,6 +17057,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={

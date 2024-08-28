@@ -252,6 +252,7 @@ exports[`Regions View renders correctly 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -344,6 +345,7 @@ exports[`Regions View renders correctly 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1080,6 +1082,7 @@ exports[`Regions View renders correctly while loading 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -1172,6 +1175,7 @@ exports[`Regions View renders correctly while loading 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1690,6 +1694,7 @@ exports[`Regions View renders correctly with error 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -1782,6 +1787,7 @@ exports[`Regions View renders correctly with error 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -2374,6 +2380,7 @@ exports[`Regions View renders correctly with no data 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -2466,6 +2473,7 @@ exports[`Regions View renders correctly with no data 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -2984,6 +2992,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -3076,6 +3085,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -3668,6 +3678,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -3760,6 +3771,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -4494,6 +4506,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -4586,6 +4599,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -5040,6 +5054,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                             accessible={true}
                             collapsable={false}
                             focusable={true}
+                            forwardedRef={[Function]}
                             onClick={[Function]}
                             onResponderGrant={[Function]}
                             onResponderMove={[Function]}
@@ -5096,6 +5111,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                               collapsable={false}
                               deviceHeight={null}
                               deviceWidth={null}
+                              forwardedRef={[Function]}
                               hideModalContentWhileAnimating={false}
                               onBackdropPress={[MockFunction]}
                               onModalHide={[Function]}
@@ -5694,6 +5710,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -5786,6 +5803,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -6240,6 +6258,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                             accessible={true}
                             collapsable={false}
                             focusable={true}
+                            forwardedRef={[Function]}
                             onClick={[Function]}
                             onResponderGrant={[Function]}
                             onResponderMove={[Function]}
@@ -6296,6 +6315,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                               collapsable={false}
                               deviceHeight={null}
                               deviceWidth={null}
+                              forwardedRef={[Function]}
                               hideModalContentWhileAnimating={false}
                               onBackdropPress={[MockFunction]}
                               onModalHide={[Function]}
@@ -6894,6 +6914,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
+        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -6986,6 +7007,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
           >
             <View
               collapsable={false}
+              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -7469,6 +7491,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                             accessible={true}
                             collapsable={false}
                             focusable={true}
+                            forwardedRef={[Function]}
                             onClick={[Function]}
                             onResponderGrant={[Function]}
                             onResponderMove={[Function]}
@@ -7526,6 +7549,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                               collapsable={false}
                               deviceHeight={null}
                               deviceWidth={null}
+                              forwardedRef={[Function]}
                               hideModalContentWhileAnimating={false}
                               onBackdropPress={[Function]}
                               onModalHide={[Function]}
