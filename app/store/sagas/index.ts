@@ -20,6 +20,7 @@ import {
   getFeatureFlagsSuccess,
   getFeatureFlagsError,
 } from '../../core/redux/slices/featureFlags';
+import launchDarklyURL from '../../../app/util/featureFlags';
 
 if (typeof global.XMLHttpRequest === 'undefined') {
   global.XMLHttpRequest = _XMLHttpRequest;
@@ -188,7 +189,7 @@ function* fetchFeatureFlags(): Generator {
       status: '',
       data: [],
     };
-    yield fetch('http://localhost:3000/flags')
+    yield fetch(launchDarklyURL())
       .then((res) => res.json())
       .then((res) => (response = res));
 
