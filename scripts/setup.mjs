@@ -262,10 +262,7 @@ const yarnSetupNodeTask = {
 };
 
 const taskList = IS_NODE
-  ? [
-      yarnSetupNodeTask,
-      // generateTermsOfUseTask
-    ]
+  ? [yarnSetupNodeTask, generateTermsOfUseTask]
   : [
       gemInstallTask,
       patchModulesTask,
