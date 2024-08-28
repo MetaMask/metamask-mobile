@@ -1,7 +1,7 @@
 import {
   SrpQuizGetStartedModalSelectors,
-  SrpSecurityQuestionOneModalSelectors,
-  SrpSecurityQuestionTwoModalSelectors,
+  SrpSecurityQuestionOneSelectors,
+  SrpSecurityQuestionTwoSelectors,
 } from '../../selectors/Modals/SrpQuizModal.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
@@ -31,62 +31,52 @@ class SrpQuizModal {
   // Getters for question elements
   getQuestionContainer(questionNumber) {
     return questionNumber === 1
-      ? Matchers.getElementByID(
-          SrpSecurityQuestionOneModalSelectors.IDs.CONTAINER,
-        )
-      : Matchers.getElementByID(
-          SrpSecurityQuestionTwoModalSelectors.IDs.CONTAINER,
-        );
+      ? Matchers.getElementByID(SrpSecurityQuestionOneSelectors.IDs.CONTAINER)
+      : Matchers.getElementByID(SrpSecurityQuestionTwoSelectors.IDs.CONTAINER);
   }
 
   getQuestionDismiss(questionNumber) {
     return questionNumber === 1
-      ? Matchers.getElementByID(
-          SrpSecurityQuestionOneModalSelectors.IDs.DISMISS,
-        )
-      : Matchers.getElementByID(
-          SrpSecurityQuestionTwoModalSelectors.IDs.DISMISS,
-        );
+      ? Matchers.getElementByID(SrpSecurityQuestionOneSelectors.IDs.DISMISS)
+      : Matchers.getElementByID(SrpSecurityQuestionTwoSelectors.IDs.DISMISS);
   }
 
   getQuizQuestion(questionNumber) {
     return questionNumber === 1
-      ? Matchers.getElementByText(
-          SrpSecurityQuestionOneModalSelectors.Text.QUESTION,
-        )
+      ? Matchers.getElementByText(SrpSecurityQuestionOneSelectors.Text.QUESTION)
       : Matchers.getElementByText(
-          SrpSecurityQuestionTwoModalSelectors.Text.QUESTION,
+          SrpSecurityQuestionTwoSelectors.Text.QUESTION,
         );
   }
 
   getQuestionWrongAnswer(questionNumber) {
     return questionNumber === 1
       ? Matchers.getElementByID(
-          SrpSecurityQuestionOneModalSelectors.IDs.WRONG_ANSWER,
+          SrpSecurityQuestionOneSelectors.IDs.WRONG_ANSWER,
         )
       : Matchers.getElementByID(
-          SrpSecurityQuestionTwoModalSelectors.IDs.WRONG_ANSWER,
+          SrpSecurityQuestionTwoSelectors.IDs.WRONG_ANSWER,
         );
   }
 
   getQuestionWrongAnswerResponseTitle(questionNumber) {
     return questionNumber === 1
       ? Matchers.getElementByText(
-          SrpSecurityQuestionOneModalSelectors.Text.WRONG_ANSWER_RESPONSE_TITLE,
+          SrpSecurityQuestionOneSelectors.Text.WRONG_ANSWER_RESPONSE_TITLE,
         )
       : Matchers.getElementByText(
-          SrpSecurityQuestionTwoModalSelectors.Text.WRONG_ANSWER_RESPONSE_TITLE,
+          SrpSecurityQuestionTwoSelectors.Text.WRONG_ANSWER_RESPONSE_TITLE,
         );
   }
 
   getQuestionWrongAnswerResponseDescription(questionNumber) {
     return questionNumber === 1
       ? Matchers.getElementByText(
-          SrpSecurityQuestionOneModalSelectors.Text
+          SrpSecurityQuestionOneSelectors.Text
             .WRONG_ANSWER_RESPONSE_DESCRIPTION,
         )
       : Matchers.getElementByText(
-          SrpSecurityQuestionTwoModalSelectors.Text
+          SrpSecurityQuestionTwoSelectors.Text
             .WRONG_ANSWER_RESPONSE_DESCRIPTION,
         );
   }
@@ -94,43 +84,41 @@ class SrpQuizModal {
   getQuestionWrongAnswerTryAgainButton(questionNumber) {
     return questionNumber === 1
       ? Matchers.getElementByID(
-          SrpSecurityQuestionOneModalSelectors.IDs
-            .WRONG_ANSWER_TRY_AGAIN_BUTTON,
+          SrpSecurityQuestionOneSelectors.IDs.WRONG_ANSWER_TRY_AGAIN_BUTTON,
         )
       : Matchers.getElementByID(
-          SrpSecurityQuestionTwoModalSelectors.IDs
-            .WRONG_ANSWER_TRY_AGAIN_BUTTON,
+          SrpSecurityQuestionTwoSelectors.IDs.WRONG_ANSWER_TRY_AGAIN_BUTTON,
         );
   }
 
   getQuestionRightAnswerButton(questionNumber) {
     return questionNumber === 1
       ? Matchers.getElementByID(
-          SrpSecurityQuestionOneModalSelectors.IDs.RIGHT_ANSWER,
+          SrpSecurityQuestionOneSelectors.IDs.RIGHT_ANSWER,
         )
       : Matchers.getElementByID(
-          SrpSecurityQuestionTwoModalSelectors.IDs.RIGHT_ANSWER,
+          SrpSecurityQuestionTwoSelectors.IDs.RIGHT_ANSWER,
         );
   }
 
   getQuestionRightAnswerResponseTitle(questionNumber) {
     return questionNumber === 1
       ? Matchers.getElementByText(
-          SrpSecurityQuestionOneModalSelectors.Text.RIGHT_ANSWER_RESPONSE_TITLE,
+          SrpSecurityQuestionOneSelectors.Text.RIGHT_ANSWER_RESPONSE_TITLE,
         )
       : Matchers.getElementByText(
-          SrpSecurityQuestionTwoModalSelectors.Text.RIGHT_ANSWER_RESPONSE_TITLE,
+          SrpSecurityQuestionTwoSelectors.Text.RIGHT_ANSWER_RESPONSE_TITLE,
         );
   }
 
   getQuestionRightAnswerResponseDescription(questionNumber) {
     return questionNumber === 1
       ? Matchers.getElementByText(
-          SrpSecurityQuestionOneModalSelectors.Text
+          SrpSecurityQuestionOneSelectors.Text
             .RIGHT_ANSWER_RESPONSE_DESCRIPTION,
         )
       : Matchers.getElementByText(
-          SrpSecurityQuestionTwoModalSelectors.Text
+          SrpSecurityQuestionTwoSelectors.Text
             .RIGHT_ANSWER_RESPONSE_DESCRIPTION,
         );
   }
@@ -138,10 +126,10 @@ class SrpQuizModal {
   getQuestionRightContinueButton(questionNumber) {
     return questionNumber === 1
       ? Matchers.getElementByID(
-          SrpSecurityQuestionOneModalSelectors.IDs.RIGHT_CONTINUE,
+          SrpSecurityQuestionOneSelectors.IDs.RIGHT_CONTINUE,
         )
       : Matchers.getElementByID(
-          SrpSecurityQuestionTwoModalSelectors.IDs.RIGHT_CONTINUE,
+          SrpSecurityQuestionTwoSelectors.IDs.RIGHT_CONTINUE,
         );
   }
 

@@ -11,7 +11,7 @@ export const SrpQuizGetStartedModalSelectors = {
   },
 };
 
-export const SrpSecurityQuestionOneModalSelectors = {
+export const SrpSecurityQuestionOneSelectors = {
   IDs: {
     CONTAINER: 'srp-question-one-modal',
     DISMISS: 'srp-question-one-dismiss-button',
@@ -33,7 +33,7 @@ export const SrpSecurityQuestionOneModalSelectors = {
   },
 };
 
-export const SrpSecurityQuestionTwoModalSelectors = {
+export const SrpSecurityQuestionTwoSelectors = {
   IDs: {
     CONTAINER: 'srp-question-two-modal',
     DISMISS: 'srp-question-two-dismiss-button',

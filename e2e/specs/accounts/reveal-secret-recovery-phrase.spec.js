@@ -8,8 +8,8 @@ import SettingsView from '../../pages/Settings/SettingsView.js';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView.js';
 import SrpQuizModal from '../../pages/modals/SrpQuizModal.js';
 import {
-  SrpSecurityQuestionOneModalSelectors,
-  SrpSecurityQuestionTwoModalSelectors,
+  SrpSecurityQuestionOneSelectors,
+  SrpSecurityQuestionTwoSelectors,
 } from '../../selectors/Modals/SrpQuizModal.selectors';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase.js';
 import { RevealSeedViewSelectorsText } from '../../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors.js';
@@ -120,13 +120,13 @@ describe(Regression('Secret Recovery Phrase Reveal from Settings'), () => {
     // Handle Question 1 with incorrect and correct answers
     await SrpQuizHelper.handleQuestionWithIncorrectAndCorrectAnswers(
       1,
-      SrpSecurityQuestionOneModalSelectors,
+      SrpSecurityQuestionOneSelectors,
     );
 
     // Handle Question 2 with incorrect and correct answers
     await SrpQuizHelper.handleQuestionWithIncorrectAndCorrectAnswers(
       2,
-      SrpSecurityQuestionTwoModalSelectors,
+      SrpSecurityQuestionTwoSelectors,
     );
 
     // Enter password and tap to reveal
@@ -178,13 +178,13 @@ describe(Regression('Secret Recovery Phrase Reveal from Settings'), () => {
     // Handle Question 1 with correct answers only
     await SrpQuizHelper.handleQuestionWithCorrectAnswersOnly(
       1,
-      SrpSecurityQuestionOneModalSelectors,
+      SrpSecurityQuestionOneSelectors,
     );
 
     // Handle Question 2 with correct answers only
     await SrpQuizHelper.handleQuestionWithCorrectAnswersOnly(
       2,
-      SrpSecurityQuestionTwoModalSelectors,
+      SrpSecurityQuestionTwoSelectors,
     );
 
     // Enter incorrect password and attempt to reveal
