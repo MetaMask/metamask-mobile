@@ -1,0 +1,31 @@
+"use strict";
+var _c;
+exports.__esModule = true;
+exports.NATIVE_ADDRESS = exports.FORMATTED_NETWORK_NAMES = exports.FIAT_ORDER_STATES = exports.FIAT_ORDER_PROVIDERS = void 0;
+var network_1 = require("./network");
+var FIAT_ORDER_PROVIDERS;
+(function (FIAT_ORDER_PROVIDERS) {
+    FIAT_ORDER_PROVIDERS["WYRE"] = "WYRE";
+    FIAT_ORDER_PROVIDERS["WYRE_APPLE_PAY"] = "WYRE_APPLE_PAY";
+    FIAT_ORDER_PROVIDERS["TRANSAK"] = "TRANSAK";
+    FIAT_ORDER_PROVIDERS["MOONPAY"] = "MOONPAY";
+    // The key for fiat on-ramp aggregator
+    FIAT_ORDER_PROVIDERS["AGGREGATOR"] = "AGGREGATOR";
+})(FIAT_ORDER_PROVIDERS = exports.FIAT_ORDER_PROVIDERS || (exports.FIAT_ORDER_PROVIDERS = {}));
+var FIAT_ORDER_STATES;
+(function (FIAT_ORDER_STATES) {
+    FIAT_ORDER_STATES["PENDING"] = "PENDING";
+    FIAT_ORDER_STATES["FAILED"] = "FAILED";
+    FIAT_ORDER_STATES["COMPLETED"] = "COMPLETED";
+    FIAT_ORDER_STATES["CANCELLED"] = "CANCELLED";
+    FIAT_ORDER_STATES["CREATED"] = "CREATED";
+})(FIAT_ORDER_STATES = exports.FIAT_ORDER_STATES || (exports.FIAT_ORDER_STATES = {}));
+exports.FORMATTED_NETWORK_NAMES = (_c = {},
+    _c[network_1.NETWORKS_CHAIN_ID.MAINNET] = 'Ethereum Mainnet',
+    _c[network_1.NETWORKS_CHAIN_ID.BSC] = 'Binance Smart Chain',
+    _c[network_1.NETWORKS_CHAIN_ID.POLYGON] = 'Polygon',
+    _c[network_1.NETWORKS_CHAIN_ID.AVAXCCHAIN] = 'Avalanche',
+    _c[network_1.NETWORKS_CHAIN_ID.CELO] = 'Celo',
+    _c[network_1.NETWORKS_CHAIN_ID.FANTOM] = 'Fantom',
+    _c);
+exports.NATIVE_ADDRESS = '0x0000000000000000000000000000000000000000';

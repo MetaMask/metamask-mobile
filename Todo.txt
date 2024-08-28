@@ -1,0 +1,5 @@
+- [x] app/core/BackgroundBridge/BackgroundBridge.js
+- [x] app/core/Permissions/specifications.js
+- [x] app/core/RPCMethods/index.js
+- [x] app/core/RPCMethods/wallet_addEthereumChain.js
+- [x] app/core/RPCMethods/wallet_switchEthereumChain.js

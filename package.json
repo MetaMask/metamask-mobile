@@ -227,7 +227,7 @@
     "@xmldom/xmldom": "^0.8.10",
     "appium-adb": "^9.11.4",
     "asyncstorage-down": "4.2.0",
-    "axios": "^1.6.8",
+    "axios": "^1.7.4",
     "base-64": "1.0.0",
     "bignumber.js": "^9.0.1",
     "buffer": "6.0.3",
@@ -264,6 +264,8 @@
     "lottie-ios": "3.4.1",
     "lottie-react-native": "5.1.5",
     "multihashes": "0.4.14",
+    "node-fetch": "^2.6.7",
+    "nth-check": "^2.0.1",
     "number-to-bn": "1.7.0",
     "obs-store": "4.0.3",
     "path": "0.12.7",
@@ -356,7 +358,10 @@
     "url-parse": "1.5.9",
     "uuid": "^8.3.2",
     "valid-url": "1.0.9",
+    "validator": "^13.7.0",
     "vm-browserify": "1.1.2",
+    "ws": "^8.17.1",
+    "xmldom": "npm:@xmldom/xmldom@0.7.13",
     "zxcvbn": "4.4.2"
   },
   "devDependencies": {
@@ -477,12 +482,14 @@
     "prettier-plugin-gherkin": "^1.1.1",
     "react-dom": "18.2.0",
     "react-native-cli": "2.0.1",
+    "react-native-flipper": "^0.263.0",
     "react-native-launch-arguments": "^4.0.1",
     "react-native-performance": "^5.1.2",
     "react-native-storybook-loader": "^2.0.4",
     "react-native-svg-asset-plugin": "^0.5.0",
     "react-native-svg-transformer": "^1.0.0",
     "react-test-renderer": "18.2.0",
+    "redux-flipper": "^2.0.3",
     "regenerator-runtime": "0.13.9",
     "rn-nodeify": "10.3.0",
     "serve-handler": "^6.1.5",
@@ -493,10 +500,8 @@
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
     "xhr2": "^0.2.1",
-    "xml2js": "^0.5.0",
-    "yarn-deduplicate": "^6.0.2",
-    "redux-flipper": "^2.0.3",
-    "react-native-flipper": "^0.263.0"
+    "xml2js": ">=0.5.0",
+    "yarn-deduplicate": "^6.0.2"
   },
   "config": {
     "react-native-storybook-loader": {

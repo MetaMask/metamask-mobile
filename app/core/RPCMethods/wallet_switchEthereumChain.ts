@@ -11,14 +11,51 @@ import {
   selectNetworkConfigurations,
 } from '../../selectors/networkController';
 import { store } from '../../store';
-import { NetworksTicker, isSafeChainId } from '@metamask/controller-utils';
+import {
+  NetworksTicker,
+  isSafeChainId,
+  NetworkType,
+} from '@metamask/controller-utils';
+import { NetworkController } from '@metamask/network-controller';
+
+interface WalletSwitchEthereumChainParams {
+  req: {
+    params?: { chainId: string }[];
+  };
+  res: {
+    result: null;
+  };
+  requestUserApproval: (data: {
+    type: string;
+    requestData: Record<string, unknown>;
+  }) => Promise<void>;
+  analytics: Record<string, unknown>;
+}
+
+interface NetworkConfiguration {
+  rpcUrl?: string;
+  chainId: string;
+  nickname?: string;
+  ticker: string;
+}
+
+interface DefaultNetwork {
+  color: string;
+  shortName: string;
+  networkType: NetworkType;
+}
+
+interface ExtendedNetworkController {
+  setActiveNetwork: (networkConfigurationId: string) => void;
+  setProviderType: (networkType: NetworkType) => void;
+}
 
 const wallet_switchEthereumChain = async ({
   req,
   res,
   requestUserApproval,
   analytics,
-}) => {
+}: WalletSwitchEthereumChainParams): Promise<void> => {
   const { CurrencyRateController, NetworkController } = Engine.context;
   const params = req.params?.[0];
 
@@ -32,11 +69,13 @@ const wallet_switchEthereumChain = async ({
 
   const { chainId } = params;
 
-  const allowedKeys = {
+  const allowedKeys: Record<string, boolean> = {
     chainId: true,
   };
 
-  const extraKeys = Object.keys(params).filter((key) => !allowedKeys[key]);
+  const extraKeys = Object.keys(params).filter(
+    (key) => !allowedKeys[key as keyof typeof allowedKeys],
+  );
   if (extraKeys.length) {
     throw rpcErrors.invalidParams(
       `Received unexpected keys on object parameter. Unsupported keys:\n${extraKeys}`,
@@ -51,14 +90,16 @@ const wallet_switchEthereumChain = async ({
     );
   }
 
-  if (!isSafeChainId(_chainId)) {
+  if (!_chainId || !isSafeChainId(_chainId as `0x${string}`)) {
     throw rpcErrors.invalidParams(
       `Invalid chain ID "${_chainId}": numerical value greater than max safe value. Received:\n${chainId}`,
     );
   }
 
   const networkConfigurations = selectNetworkConfigurations(store.getState());
-  const existingNetworkDefault = getDefaultNetworkByChainId(_chainId);
+  const existingNetworkDefault = getDefaultNetworkByChainId(_chainId) as
+    | DefaultNetwork
+    | undefined;
   const existingEntry = Object.entries(networkConfigurations).find(
     ([, networkConfiguration]) => networkConfiguration.chainId === _chainId,
   );
@@ -69,13 +110,14 @@ const wallet_switchEthereumChain = async ({
       return;
     }
 
-    let networkConfigurationId, networkConfiguration;
+    let networkConfigurationId: string | undefined;
+    let networkConfiguration: NetworkConfiguration | undefined;
     if (existingEntry) {
       [networkConfigurationId, networkConfiguration] = existingEntry;
     }
 
-    let requestData;
-    let analyticsParams = {
+    let requestData: Record<string, unknown>;
+    let analyticsParams: Record<string, unknown> = {
       chain_id: getDecimalChainId(_chainId),
       source: 'Switch Network API',
       ...analytics,
@@ -89,9 +131,9 @@ const wallet_switchEthereumChain = async ({
       };
       analyticsParams = {
         ...analyticsParams,
-        symbol: networkConfiguration?.ticker,
+        symbol: networkConfiguration.ticker,
       };
-    } else {
+    } else if (existingNetworkDefault) {
       requestData = {
         chainId: _chainId,
         chainColor: existingNetworkDefault.color,
@@ -101,6 +143,10 @@ const wallet_switchEthereumChain = async ({
       analyticsParams = {
         ...analyticsParams,
       };
+    } else {
+      throw new Error(
+        'Unexpected state: neither networkConfiguration nor existingNetworkDefault is defined',
+      );
     }
 
     await requestUserApproval({
@@ -108,12 +154,20 @@ const wallet_switchEthereumChain = async ({
       requestData: { ...requestData, type: 'switch' },
     });
 
-    if (networkConfiguration) {
+    if (networkConfiguration && networkConfigurationId) {
       CurrencyRateController.updateExchangeRate(networkConfiguration.ticker);
-      NetworkController.setActiveNetwork(networkConfigurationId);
-    } else {
+      (
+        NetworkController as NetworkController & {
+          setActiveNetwork: (networkConfigurationId: string) => void;
+        }
+      ).setActiveNetwork(networkConfigurationId);
+    } else if (existingNetworkDefault) {
       CurrencyRateController.updateExchangeRate(NetworksTicker.mainnet);
-      NetworkController.setProviderType(existingNetworkDefault.networkType);
+      (
+        NetworkController as NetworkController & {
+          setProviderType: (networkType: NetworkType) => void;
+        }
+      ).setProviderType(existingNetworkDefault.networkType);
     }
 
     MetaMetrics.getInstance().trackEvent(

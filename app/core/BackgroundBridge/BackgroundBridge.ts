@@ -46,7 +46,8 @@ const legacyNetworkId = () => {
 
   const { networkId } = store.getState().inpageProvider;
 
-  return (networksMetadata?.[selectedNetworkClientId] as NetworkMetadata)?.isAvailable === false
+  return (networksMetadata?.[selectedNetworkClientId] as NetworkMetadata)
+    ?.isAvailable === false
     ? NETWORK_ID_LOADING
     : networkId;
 };
@@ -263,7 +264,10 @@ export class BackgroundBridge extends EventEmitter {
     return result;
   }
 
-  notifyChainChanged(params: { networkVersion: string; chainId: string }): void {
+  notifyChainChanged(params: {
+    networkVersion: string;
+    chainId: string;
+  }): void {
     DevLogger.log(`notifyChainChanged: `, params);
     this.sendNotification({
       method: NOTIFICATION_NAMES.chainChanged,
@@ -416,20 +420,30 @@ export class BackgroundBridge extends EventEmitter {
     );
 
     // metadata
-    engine.push(createOriginMiddleware({ origin }) as JsonRpcMiddleware<unknown, unknown>);
-    engine.push(createLoggerMiddleware({ origin }) as JsonRpcMiddleware<unknown, unknown>);
+    engine.push(
+      createOriginMiddleware({ origin }) as JsonRpcMiddleware<unknown, unknown>,
+    );
+    engine.push(
+      createLoggerMiddleware({ origin }) as JsonRpcMiddleware<unknown, unknown>,
+    );
     // filter and subscription polyfills
     engine.push(filterMiddleware);
     engine.push(subscriptionManager.middleware);
 
     // Handle unsupported RPC Methods
-    engine.push(createUnsupportedMethodMiddleware() as JsonRpcMiddleware<unknown, unknown>);
+    engine.push(
+      createUnsupportedMethodMiddleware() as JsonRpcMiddleware<
+        unknown,
+        unknown
+      >,
+    );
 
     // Legacy RPC methods that need to be implemented ahead of the permission middleware
     engine.push(
       createLegacyMethodMiddleware({
         getAccounts: async () => {
-          const accountOrigin = this.isMMSDK && this.channelId ? this.channelId : origin;
+          const accountOrigin =
+            this.isMMSDK && this.channelId ? this.channelId : origin;
           return await getPermittedAccounts(accountOrigin);
         },
       }) as JsonRpcMiddleware<unknown, unknown>,
