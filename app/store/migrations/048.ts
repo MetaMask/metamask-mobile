@@ -26,14 +26,21 @@ export default function migrate(state: unknown) {
   }
 
   const updatedTokenRatesControllerState = { ...tokenRatesControllerState };
-  delete updatedTokenRatesControllerState.contractExchangeRates;
-  delete updatedTokenRatesControllerState.contractExchangeRatesByChainId;
+  const hasContractExchangeRates =
+    'contractExchangeRates' in updatedTokenRatesControllerState;
+  const hasContractExchangeRatesByChainId =
+    'contractExchangeRatesByChainId' in updatedTokenRatesControllerState;
 
-  if (
-    Object.keys(updatedTokenRatesControllerState).length ===
-    Object.keys(tokenRatesControllerState).length
-  ) {
-    return state; // No changes were made, return original state
+  if (hasContractExchangeRates) {
+    delete updatedTokenRatesControllerState.contractExchangeRates;
+  }
+
+  if (hasContractExchangeRatesByChainId) {
+    delete updatedTokenRatesControllerState.contractExchangeRatesByChainId;
+  }
+
+  if (!hasContractExchangeRates && !hasContractExchangeRatesByChainId) {
+    return state; // No changes were needed, return original state
   }
 
   return {
