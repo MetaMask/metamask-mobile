@@ -280,6 +280,7 @@ jobs:
           done
   sonar-cloud-quality-gate-status:
     runs-on: ubuntu-latest
+    needs: sonar-cloud
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
