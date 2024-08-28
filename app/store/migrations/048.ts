@@ -9,6 +9,12 @@ interface MigratedState {
     };
   };
   migrationStatus?: string;
+  migrationDetails?: {
+    changesCount: number;
+    timestamp: number;
+    version: string;
+    changedFields: string[];
+  };
 }
 
 /**
@@ -43,32 +49,48 @@ export default function migrate(state: unknown): MigratedState {
   }
 
   const updatedTokenRatesControllerState = { ...tokenRatesControllerState };
-  let stateChanged = false;
   const changedFields: string[] = [];
 
   if ('contractExchangeRates' in updatedTokenRatesControllerState) {
     delete updatedTokenRatesControllerState.contractExchangeRates;
-    stateChanged = true;
     changedFields.push('contractExchangeRates');
   }
 
   if ('contractExchangeRatesByChainId' in updatedTokenRatesControllerState) {
     delete updatedTokenRatesControllerState.contractExchangeRatesByChainId;
-    stateChanged = true;
     changedFields.push('contractExchangeRatesByChainId');
   }
 
-  if (!stateChanged) {
-    return { ...state as MigratedState, migrationStatus: 'no_changes_needed' };
+  const changesCount = changedFields.length;
+
+  if (changesCount === 0) {
+    return {
+      ...state as MigratedState,
+      migrationStatus: 'no_changes_needed',
+      migrationDetails: {
+        changesCount: 0,
+        timestamp: Date.now(),
+        version: '48.1',
+        changedFields: [],
+      },
+    };
   }
 
   // Add migration metadata
-  updatedTokenRatesControllerState.migrationTimestamp = Date.now();
-  updatedTokenRatesControllerState.migrationVersion = '48.1';
-  updatedTokenRatesControllerState.migrationChanges = changedFields;
+  const migrationDetails = {
+    changesCount,
+    timestamp: Date.now(),
+    version: '48.1',
+    changedFields,
+  };
+
+  updatedTokenRatesControllerState.migrationMetadata = migrationDetails;
 
   // Add a random element to ensure variability
   updatedTokenRatesControllerState.migrationRandomId = Math.random().toString(36).substring(2, 15);
+
+  // Determine migration status based on changes
+  const migrationStatus = changesCount === 1 ? 'partial_success' : 'full_success';
 
   // Return a new state object with the updated TokenRatesController and migration status
   return {
@@ -80,6 +102,7 @@ export default function migrate(state: unknown): MigratedState {
         TokenRatesController: updatedTokenRatesControllerState,
       },
     },
-    migrationStatus: 'success',
+    migrationStatus,
+    migrationDetails,
   };
 }
