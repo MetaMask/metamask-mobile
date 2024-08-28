@@ -128,6 +128,28 @@ const handleDeeplink = async ({
         trigger: 'deeplink',
         otherPublicKey,
       });
+
+      if (rpc) {
+        const connection = sdkConnect.getConnected()[channelId];
+        if (!connection) {
+          DevLogger.log(`handleDeeplink:: connection not found`);
+          return;
+        }
+
+        // Decode rpc and directly process it - simulate network reception
+        const decodedRPC = Buffer.from(rpc, 'base64').toString('utf-8');
+
+        DevLogger.log(`decoded rpc`, decodedRPC);
+
+        const message = JSON.parse(decodedRPC) as CommunicationLayerMessage;
+        DevLogger.log(`handleDeeplink:: message`, message);
+
+        await handleConnectionMessage({
+          message,
+          connection,
+          engine: Engine,
+        });
+      }
     }
   } catch (error) {
     Logger.error(error as Error, 'Failed to connect to channel');
