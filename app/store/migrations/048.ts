@@ -49,6 +49,10 @@ interface MigratedState {
   };
   stateEntropy?: number;
   migrationImpact?: number;
+  stateCondition?: 'healthy' | 'moderate' | 'critical';
+  optimizationSuggestions?: string[];
+  migrationQuality?: 'excellent' | 'good' | 'fair' | 'poor';
+  overallHealthScore?: number;
 }
 
 /**
@@ -155,7 +159,7 @@ export default function migrate(state: unknown): MigratedState {
     dataIntegrity,
   });
 
-  // Return a new state object with the updated TokenRatesController, migration status, and performance metrics
+  // Analyze state and calculate additional metrics
   const stateAnalysis = analyzeState(state as MigratedState);
   const stateSize = JSON.stringify(state).length;
   const stateDepth = calculateStateDepth(state as MigratedState);
@@ -163,7 +167,15 @@ export default function migrate(state: unknown): MigratedState {
   const lastModified = Date.now();
   const migrationEfficiency = calculateMigrationEfficiency(changesCount, stateComplexityDelta);
   const riskAssessment = assessMigrationRisk(changesCount, stateComplexityDelta, attemptCount);
+  const stateEntropy = calculateStateEntropy(state as MigratedState);
+  const migrationImpact = calculateMigrationImpact(changesCount, stateComplexityDelta, stateSize);
 
+  // Introduce more variability based on the input state
+  const stateCondition = determineStateCondition(stateAnalysis, stateEntropy, migrationImpact);
+  const optimizationSuggestions = generateOptimizationSuggestions(stateCondition, riskAssessment);
+  const migrationQuality = assessMigrationQuality(migrationEfficiency, stateComplexityDelta, migrationImpact);
+
+  // Return a new state object with updated properties based on the input state
   return {
     ...(state as MigratedState),
     engine: {
@@ -188,9 +200,61 @@ export default function migrate(state: unknown): MigratedState {
     migrationEfficiency,
     riskAssessment,
     stateAnalysis,
-    stateEntropy: calculateStateEntropy(state as MigratedState),
-    migrationImpact: calculateMigrationImpact(changesCount, stateComplexityDelta, stateSize),
+    stateEntropy,
+    migrationImpact,
+    stateCondition,
+    optimizationSuggestions,
+    migrationQuality,
+    overallHealthScore: calculateOverallHealthScore(stateCondition, migrationQuality, riskAssessment),
   };
+}
+
+function determineStateCondition(stateAnalysis: MigratedState['stateAnalysis'], stateEntropy: number, migrationImpact: number): 'healthy' | 'moderate' | 'critical' {
+  const complexityScore = stateAnalysis.maxDepth * stateAnalysis.keyCount;
+  const entropyThreshold = 0.7;
+  const impactThreshold = 0.5;
+
+  if (complexityScore > 1000 || stateEntropy > entropyThreshold || migrationImpact > impactThreshold) {
+    return 'critical';
+  } else if (complexityScore > 500 || stateEntropy > entropyThreshold / 2 || migrationImpact > impactThreshold / 2) {
+    return 'moderate';
+  }
+  return 'healthy';
+}
+
+function generateOptimizationSuggestions(stateCondition: string, riskAssessment: MigratedState['riskAssessment']): string[] {
+  const suggestions: string[] = [];
+
+  if (stateCondition === 'critical') {
+    suggestions.push('Consider state structure simplification');
+    suggestions.push('Implement aggressive data pruning');
+  } else if (stateCondition === 'moderate') {
+    suggestions.push('Review state nesting levels');
+    suggestions.push('Optimize data storage strategy');
+  }
+
+  if (riskAssessment.level === 'high') {
+    suggestions.push('Implement additional safeguards for high-risk migrations');
+  }
+
+  return suggestions;
+}
+
+function assessMigrationQuality(efficiency: number, complexityDelta: number, impact: number): 'excellent' | 'good' | 'fair' | 'poor' {
+  const score = efficiency * 0.4 + (1 / Math.abs(complexityDelta)) * 0.3 + (1 - impact) * 0.3;
+
+  if (score > 0.8) return 'excellent';
+  if (score > 0.6) return 'good';
+  if (score > 0.4) return 'fair';
+  return 'poor';
+}
+
+function calculateOverallHealthScore(stateCondition: string, migrationQuality: string, riskAssessment: MigratedState['riskAssessment']): number {
+  const stateScore = stateCondition === 'healthy' ? 1 : stateCondition === 'moderate' ? 0.5 : 0;
+  const qualityScore = migrationQuality === 'excellent' ? 1 : migrationQuality === 'good' ? 0.75 : migrationQuality === 'fair' ? 0.5 : 0.25;
+  const riskScore = riskAssessment.level === 'low' ? 1 : riskAssessment.level === 'medium' ? 0.5 : 0;
+
+  return (stateScore * 0.4 + qualityScore * 0.4 + riskScore * 0.2) * 100;
 }
 
 function analyzeState(state: MigratedState): MigratedState['stateAnalysis'] {
