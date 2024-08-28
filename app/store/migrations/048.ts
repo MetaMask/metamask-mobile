@@ -45,6 +45,9 @@ export default function migrate(state: unknown) {
   // Add a timestamp to mark when the migration occurred
   updatedTokenRatesControllerState.migrationTimestamp = Date.now();
 
+  // Add a migration version to further differentiate the state
+  updatedTokenRatesControllerState.migrationVersion = '48.1';
+
   // Return a new state object with the updated TokenRatesController
   return {
     ...state,
