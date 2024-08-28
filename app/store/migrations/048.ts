@@ -1,6 +1,7 @@
 import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
+import crypto from 'crypto';
 
 interface MigratedState {
   engine?: {
@@ -26,6 +27,11 @@ interface MigratedState {
     details: any;
     hash: string;
   };
+  stateHash?: string;
+  dataIntegrity?: {
+    status: string;
+    checksum: string;
+  };
 }
 
 /**
@@ -40,7 +46,7 @@ export default function migrate(state: unknown): MigratedState {
 
   const attemptCount = ((state as MigratedState).migrationDetails?.attemptCount || 0) + 1;
   const timestamp = Date.now();
-  const version = '48.2';
+  const version = '48.3';
 
   const createMigrationDetails = (changesCount: number, changedFields: string[]) => ({
     changesCount,
@@ -53,8 +59,10 @@ export default function migrate(state: unknown): MigratedState {
   const generateMigrationResult = (status: string, details: any) => ({
     status,
     details,
-    hash: Math.random().toString(36).substring(2, 15),
+    hash: crypto.createHash('sha256').update(JSON.stringify(details)).digest('hex').substr(0, 16),
   });
+
+  const stateHash = calculateStateHash(state);
 
   if (!ensureValidState(state, 48)) {
     return {
@@ -62,6 +70,7 @@ export default function migrate(state: unknown): MigratedState {
       migrationStatus: 'invalid_state',
       migrationDetails: createMigrationDetails(0, []),
       migrationResult: generateMigrationResult('invalid_state', { error: 'Invalid state' }),
+      stateHash,
     };
   }
 
@@ -76,6 +85,7 @@ export default function migrate(state: unknown): MigratedState {
       migrationStatus: 'invalid_structure',
       migrationDetails: createMigrationDetails(0, []),
       migrationResult: generateMigrationResult('invalid_structure', { error: 'Invalid state structure' }),
+      stateHash,
     };
   }
 
@@ -92,6 +102,7 @@ export default function migrate(state: unknown): MigratedState {
       migrationStatus: 'invalid_token_rates_controller',
       migrationDetails: createMigrationDetails(0, []),
       migrationResult: generateMigrationResult('invalid_token_rates_controller', { error: 'Invalid TokenRatesController state' }),
+      stateHash,
     };
   }
 
@@ -109,14 +120,18 @@ export default function migrate(state: unknown): MigratedState {
   }
 
   const changesCount = changedFields.length;
+  const stateComplexity = calculateStateComplexity(state as MigratedState);
+  const dataIntegrity = checkDataIntegrity(updatedTokenRatesControllerState);
 
   if (changesCount === 0) {
     return {
       ...state as MigratedState,
       migrationStatus: 'no_changes_needed',
       migrationDetails: createMigrationDetails(0, []),
-      stateComplexity: calculateStateComplexity(state as MigratedState),
-      migrationResult: generateMigrationResult('no_changes_needed', { changesCount: 0 }),
+      stateComplexity,
+      migrationResult: generateMigrationResult('no_changes_needed', { changesCount: 0, stateComplexity }),
+      stateHash,
+      dataIntegrity,
     };
   }
 
@@ -126,7 +141,6 @@ export default function migrate(state: unknown): MigratedState {
   updatedTokenRatesControllerState.migrationMetadata = migrationDetails;
 
   // Determine migration status based on changes, attempt count, and state complexity
-  const stateComplexity = calculateStateComplexity(state as MigratedState);
   const migrationStatus = determineMigrationStatus(changesCount, attemptCount, stateComplexity);
 
   const endTime = process.hrtime(startTime);
@@ -143,6 +157,7 @@ export default function migrate(state: unknown): MigratedState {
     changedFields,
     stateComplexity,
     performance: migrationPerformance,
+    dataIntegrity,
   });
 
   // Return a new state object with the updated TokenRatesController, migration status, and performance metrics
@@ -160,22 +175,36 @@ export default function migrate(state: unknown): MigratedState {
     stateComplexity,
     migrationPerformance,
     migrationResult,
+    stateHash,
+    dataIntegrity,
   };
 }
 
 function calculateStateComplexity(state: MigratedState): number {
-  // Implement a method to calculate state complexity
-  // This could be based on the number of properties, depth of nesting, etc.
-  return Object.keys(state).length + (state.engine ? Object.keys(state.engine).length : 0);
+  const countProperties = (obj: any): number => {
+    if (typeof obj !== 'object' || obj === null) return 1;
+    return Object.keys(obj).reduce((sum, key) => sum + countProperties(obj[key]), 0);
+  };
+  return countProperties(state);
 }
 
 function determineMigrationStatus(changesCount: number, attemptCount: number, stateComplexity: number): string {
   if (changesCount === 0) return 'no_changes_needed';
   if (changesCount === 1) return 'partial_success';
   if (changesCount > 1) {
-    if (stateComplexity > 10) return 'complex_full_success';
+    if (stateComplexity > 50) return 'complex_full_success';
     return 'simple_full_success';
   }
   if (attemptCount > 1) return 'retry_success';
   return 'initial_success';
+}
+
+function calculateStateHash(state: unknown): string {
+  return crypto.createHash('sha256').update(JSON.stringify(state)).digest('hex');
+}
+
+function checkDataIntegrity(state: Record<string, unknown>): { status: string; checksum: string } {
+  const checksum = crypto.createHash('md5').update(JSON.stringify(state)).digest('hex');
+  const status = Object.keys(state).length > 0 ? 'valid' : 'empty';
+  return { status, checksum };
 }
