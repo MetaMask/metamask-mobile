@@ -28,5 +28,14 @@ export default function migrate(state: unknown) {
   delete tokenRatesControllerState.contractExchangeRates;
   delete tokenRatesControllerState.contractExchangeRatesByChainId;
 
-  return state;
+  return {
+    ...state,
+    engine: {
+      ...state.engine,
+      backgroundState: {
+        ...state.engine.backgroundState,
+        TokenRatesController: tokenRatesControllerState,
+      },
+    },
+  };
 }
