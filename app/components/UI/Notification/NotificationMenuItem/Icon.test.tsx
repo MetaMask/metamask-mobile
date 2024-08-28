@@ -29,7 +29,7 @@ describe('NotificationIcon', () => {
   it('matches snapshot when icon is provided', () => {
     const { toJSON } = renderWithProvider(
       <NotificationIcon
-        image={{ url: walletNotification.imageUrl }}
+        image={{ url: walletNotification.imageUrl.name }}
         badgeIcon={walletNotification.badgeIcon}
       />,
       { state: mockInitialState },

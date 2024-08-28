@@ -24,13 +24,15 @@ jobs:
         run: printf '%s\n\n%s' '@metamask:registry=https://npm.pkg.github.com' "//npm.pkg.github.com/:_authToken=${PACKAGE_READ_TOKEN}" > .npmrc
         env:
           PACKAGE_READ_TOKEN: ${{ secrets.PACKAGE_READ_TOKEN }}
-      - run: yarn setup:node
+      - run: yarn setup --node
       - name: Require clean working directory
         shell: bash
         run: |
           if ! git diff --exit-code; then
             echo "Working tree dirty at end of job"
             exit 1
+          else
+            echo "No changes detected"
           fi
   dedupe:
     runs-on: ubuntu-20.04
@@ -41,7 +43,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - run: yarn setup:node
+      - run: yarn setup --node
       - name: Deduplicate dependencies
         run: yarn deduplicate
       - name: Print error if duplicates found
@@ -68,7 +70,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - run: yarn setup:node
+      - run: yarn setup --node
       - run: yarn ${{ matrix['scripts'] }}
       - name: Require clean working directory
         shell: bash
@@ -76,6 +78,8 @@ jobs:
           if ! git diff --exit-code; then
             echo "Working tree dirty at end of job"
             exit 1
+          else
+            echo "No changes detected"
           fi
   unit-tests:
     runs-on: ubuntu-20.04
@@ -110,6 +114,8 @@ jobs:
           if ! git diff --exit-code; then
             echo "Working tree dirty at end of job"
             exit 1
+          else
+            echo "No changes detected"
           fi
   merge-unit-tests:
     runs-on: ubuntu-20.04
@@ -141,6 +147,8 @@ jobs:
           if ! git diff --exit-code; then
             echo "Working tree dirty at end of job"
             exit 1
+          else
+            echo "No changes detected"
           fi
 
   js-bundle-size-check:
@@ -168,6 +176,9 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0 # SonarCloud needs a full checkout to perform necessary analysis
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
       - uses: actions/download-artifact@v3
         with:
           name: coverage
@@ -188,6 +199,8 @@ jobs:
           if ! git diff --exit-code; then
             echo "Working tree dirty at end of job"
             exit 1
+          else
+            echo "No changes detected"
           fi
   check-workflows:
     name: Check workflows
