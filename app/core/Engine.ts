@@ -219,10 +219,7 @@ import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
 import EthQuery from '@metamask/eth-query';
 import { TransactionControllerOptions } from '@metamask/transaction-controller/dist/types/TransactionController';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import {
-  getLocalizedSnapManifest,
-  stripSnapPrefix,
-} from '@metamask/snaps-utils';
+import { stripSnapPrefix } from '@metamask/snaps-utils';
 import { snapKeyringBuilder } from './SnapKeyring';
 import { removeAccountsFromPermissions } from './Permissions';
 ///: END:ONLY_INCLUDE_IF
@@ -434,11 +431,14 @@ class Engine {
    * Object that runs and manages the execution of Snaps
    */
   snapExecutionService: WebViewExecutionService;
+  snapController: SnapController;
 
   ///: END:ONLY_INCLUDE_IF
 
   transactionController: TransactionController;
   smartTransactionsController: SmartTransactionsController;
+
+  keyringController: KeyringController;
 
   /**
    * Creates a CoreController instance
@@ -722,7 +722,77 @@ class Engine {
 
     additionalKeyrings.push(ledgerKeyringBuilder);
 
-    const keyringController = new KeyringController({
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+
+    /**
+     * Removes an account from state / storage.
+     *
+     * @param {string[]} address - A hex address
+     */
+    const removeAccount = async (address: string) => {
+      // Remove all associated permissions
+      await removeAccountsFromPermissions([address]);
+      // Remove account from the keyring
+      await this.keyringController.removeAccount(address as Hex);
+      return address;
+    };
+
+    const snapKeyringBuildMessenger = this.controllerMessenger.getRestricted({
+      name: 'SnapKeyringBuilder',
+      allowedActions: [
+        'ApprovalController:addRequest',
+        'ApprovalController:acceptRequest',
+        'ApprovalController:rejectRequest',
+        'ApprovalController:startFlow',
+        'ApprovalController:endFlow',
+        'ApprovalController:showSuccess',
+        'ApprovalController:showError',
+        'PhishingController:test',
+        'PhishingController:maybeUpdateState',
+        'KeyringController:getAccounts',
+        'AccountsController:setSelectedAccount',
+        'AccountsController:getAccountByAddress',
+        'AccountsController:setAccountName',
+      ],
+    });
+
+    const getSnapController = () => this.snapController;
+
+    // Necessary to persist the keyrings and update the accounts both within the keyring controller and accounts controller
+    const persistAndUpdateAccounts = async () => {
+      await this.keyringController.persistAllKeyrings();
+      await accountsController.updateAccounts();
+    };
+
+    const getSnapName = (id: string) => {
+      const { snaps } = this.snapController.state;
+      const snapId = id as SnapId;
+      const snap = snaps[snapId];
+
+      if (!snap) {
+        return stripSnapPrefix(id);
+      }
+
+      return snap.manifest.proposedName;
+    };
+
+    const isSnapPreinstalled = (id: SnapId) =>
+      PREINSTALLED_SNAPS.some((snap) => snap.snapId === id);
+
+    additionalKeyrings.push(
+      snapKeyringBuilder(
+        snapKeyringBuildMessenger,
+        getSnapController,
+        persistAndUpdateAccounts,
+        (address) => removeAccount(address),
+        getSnapName,
+        isSnapPreinstalled,
+      ),
+    );
+
+    ///: END:ONLY_INCLUDE_IF
+
+    this.keyringController = new KeyringController({
       removeIdentity: preferencesController.removeIdentity.bind(
         preferencesController,
       ),
@@ -734,7 +804,6 @@ class Engine {
         allowedEvents: [],
       }),
       state: initialKeyringState || initialState.KeyringController,
-      // @ts-expect-error To Do: Update the type of QRHardwareKeyring to Keyring<Json>
       keyringBuilders: additionalKeyrings,
     });
 
@@ -745,7 +814,7 @@ class Engine {
     const getPrimaryKeyringMnemonic = () => {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const [keyring]: any = keyringController.getKeyringsByType(
+      const [keyring]: any = this.keyringController.getKeyringsByType(
         KeyringTypes.hd,
       );
       if (!keyring.mnemonic) {
@@ -873,7 +942,7 @@ class Engine {
       // @ts-expect-error Typecast permissionType from getPermissionSpecifications to be of type PermissionType.RestrictedMethod
       permissionSpecifications: {
         ...getPermissionSpecifications({
-          getAllAccounts: () => keyringController.getAccounts(),
+          getAllAccounts: () => this.keyringController.getAccounts(),
           getInternalAccounts:
             accountsController.listAccounts.bind(accountsController),
           captureKeyringTypesWithMissingIdentities: (
@@ -888,7 +957,7 @@ class Engine {
             });
             const keyringTypesWithMissingIdentities =
               accountsMissingIdentities.map((address) =>
-                keyringController.getAccountKeyringType(address),
+                this.keyringController.getAccountKeyringType(address),
               );
 
             const internalAccountCount = internalAccounts.length;
@@ -1036,7 +1105,7 @@ class Engine {
       ],
     });
 
-    const snapController = new SnapController({
+    this.snapController = new SnapController({
       environmentEndowmentPermissions: Object.values(EndowmentPermissions),
       featureFlags: {
         requireAllowlist,
@@ -1145,76 +1214,6 @@ class Engine {
       });
     ///: END:ONLY_INCLUDE_IF
 
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-
-    /**
-     * Removes an account from state / storage.
-     *
-     * @param {string[]} address - A hex address
-     */
-    async function removeAccount(address: string) {
-      // Remove all associated permissions
-      await removeAccountsFromPermissions([address]);
-      // Remove account from the keyring
-      await keyringController.removeAccount(address as Hex);
-      return address;
-    }
-
-    const snapKeyringBuildMessenger = this.controllerMessenger.getRestricted({
-      name: 'SnapKeyringBuilder',
-      allowedActions: [
-        'ApprovalController:addRequest',
-        'ApprovalController:acceptRequest',
-        'ApprovalController:rejectRequest',
-        'ApprovalController:startFlow',
-        'ApprovalController:endFlow',
-        'ApprovalController:showSuccess',
-        'ApprovalController:showError',
-        'PhishingController:test',
-        'PhishingController:maybeUpdateState',
-        'KeyringController:getAccounts',
-        'AccountsController:setSelectedAccount',
-        'AccountsController:getAccountByAddress',
-        'AccountsController:setAccountName',
-      ],
-    });
-
-    const getSnapController = () => snapController;
-
-    // Necessary to persist the keyrings and update the accounts both within the keyring controller and accounts controller
-    const persistAndUpdateAccounts = async () => {
-      await keyringController.persistAllKeyrings();
-      await accountsController.updateAccounts();
-    };
-
-    const getSnapName = (id: string) => {
-      const { snaps } = snapController.state;
-      const snapId = id as SnapId;
-      const snap = snaps[snapId];
-
-      if (!snap) {
-        return stripSnapPrefix(id);
-      }
-
-      return snap.manifest.proposedName;
-    };
-
-    const isSnapPreinstalled = (id: SnapId) =>
-      PREINSTALLED_SNAPS.some((snap) => snap.snapId === id);
-
-    additionalKeyrings.push(
-      snapKeyringBuilder(
-        snapKeyringBuildMessenger,
-        getSnapController,
-        persistAndUpdateAccounts,
-        (address) => removeAccount(address),
-        getSnapName,
-        isSnapPreinstalled,
-      ),
-    );
-
-    ///: END:ONLY_INCLUDE_IF
-
     this.transactionController = new TransactionController({
       // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
       blockTracker: networkController.getProviderAndBlockTracker().blockTracker,
@@ -1291,8 +1290,8 @@ class Engine {
       },
       // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
       provider: networkController.getProviderAndBlockTracker().provider,
-      sign: keyringController.signTransaction.bind(
-        keyringController,
+      sign: this.keyringController.signTransaction.bind(
+        this.keyringController,
       ) as unknown as TransactionControllerOptions['sign'],
       state: initialState.TransactionController,
     });
@@ -1354,7 +1353,7 @@ class Engine {
     );
 
     const controllers: Controllers[keyof Controllers][] = [
-      keyringController,
+      this.keyringController,
       accountTrackerController,
       new AddressBookController(),
       assetsContractController,
@@ -1496,9 +1495,9 @@ class Engine {
           name: 'SignatureController',
           allowedActions: [
             `${approvalController.name}:addRequest`,
-            `${keyringController.name}:signPersonalMessage`,
-            `${keyringController.name}:signMessage`,
-            `${keyringController.name}:signTypedMessage`,
+            `${this.keyringController.name}:signPersonalMessage`,
+            `${this.keyringController.name}:signMessage`,
+            `${this.keyringController.name}:signTypedMessage`,
             `${loggingController.name}:add`,
           ],
           allowedEvents: [],
@@ -1512,7 +1511,7 @@ class Engine {
       }),
       loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-      snapController,
+      this.snapController,
       subjectMetadataController,
       authenticationController,
       userStorageController,
