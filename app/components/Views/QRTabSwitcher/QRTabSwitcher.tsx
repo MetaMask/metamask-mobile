@@ -110,7 +110,11 @@ const QRTabSwitcher = () => {
 
       <View style={styles.overlay}>
         {selectedIndex === Screens.Receive ? (
-          <NavbarTitle title={'Receive'} translate={false} disableNetwork />
+          <NavbarTitle
+            title={strings(`receive.title`)}
+            translate={false}
+            disableNetwork
+          />
         ) : null}
         <ButtonIcon
           style={styles.closeIcon}
