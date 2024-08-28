@@ -59,7 +59,7 @@ const PersonalSign = ({
   currentPageInformation,
   toggleExpandedMessage,
   showExpandedMessage,
-}: PersonalSignProps & { onConfirm: () => Promise<void> }) => {
+}: PersonalSignProps) => {
   const navigation = useNavigation();
   const { trackEvent } = useMetrics();
   const [truncateMessage, setTruncateMessage] = useState<boolean>(false);
@@ -149,7 +149,7 @@ const PersonalSign = ({
   };
 
   const rejectSignature = async () => {
-    onReject();
+    await onReject();
     showWalletConnectNotification(false);
     trackEvent(MetaMetricsEvents.SIGNATURE_REJECTED, getAnalyticsParams());
   };
