@@ -117,7 +117,7 @@ describe('Migration #51', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 51: NetworkController networkConfigurations not found: 'null'",
+        "FATAL ERROR: Migration 51: providerConfig not found: 'null'",
       scenario: 'providerConfig is null',
     },
   ];

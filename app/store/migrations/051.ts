@@ -40,7 +40,7 @@ export default function migrate(state: unknown) {
   if (!isObject(networkControllerState.providerConfig)) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 51: NetworkController networkConfigurations not found: '${JSON.stringify(
+        `FATAL ERROR: Migration 51: providerConfig not found: '${JSON.stringify(
           networkControllerState.providerConfig,
         )}'`,
       ),
