@@ -25,8 +25,16 @@ export default function migrate(state: unknown) {
     return state;
   }
 
-  delete tokenRatesControllerState.contractExchangeRates;
-  delete tokenRatesControllerState.contractExchangeRatesByChainId;
+  const updatedTokenRatesControllerState = { ...tokenRatesControllerState };
+  delete updatedTokenRatesControllerState.contractExchangeRates;
+  delete updatedTokenRatesControllerState.contractExchangeRatesByChainId;
+
+  if (
+    Object.keys(updatedTokenRatesControllerState).length ===
+    Object.keys(tokenRatesControllerState).length
+  ) {
+    return state; // No changes were made, return original state
+  }
 
   return {
     ...state,
@@ -34,7 +42,7 @@ export default function migrate(state: unknown) {
       ...state.engine,
       backgroundState: {
         ...state.engine.backgroundState,
-        TokenRatesController: tokenRatesControllerState,
+        TokenRatesController: updatedTokenRatesControllerState,
       },
     },
   };
