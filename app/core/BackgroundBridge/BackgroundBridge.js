@@ -105,7 +105,10 @@ export class BackgroundBridge extends EventEmitter {
 
     this.lastChainIdSent = networkClient.configuration.chainId;
 
-    this.networkVersionSent = parseInt(networkClient.configuration.chainId, 16).toString();
+    this.networkVersionSent = parseInt(
+      networkClient.configuration.chainId,
+      16,
+    ).toString();
 
     // This will only be used for WalletConnect for now
     this.addressSent =

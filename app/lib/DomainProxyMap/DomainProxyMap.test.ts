@@ -1,11 +1,9 @@
 import DomainProxyMap from './DomainProxyMap';
 import type { NetworkProxy } from '@metamask/selected-network-controller';
-import type { Provider } from '@metamask/network-controller';
-import type { BlockTracker } from '@metamask/base-controller';
 import type {
-  SwappableProxy,
-  ProxyWithAccessibleTarget,
-} from '@metamask/swappable-obj-proxy';
+  ProviderProxy,
+  BlockTrackerProxy,
+} from '@metamask/network-controller';
 
 // Mock the necessary types
 jest.mock('@metamask/selected-network-controller');
@@ -20,11 +18,11 @@ describe('DomainProxyMap', () => {
   const createMockNetworkProxy = (): NetworkProxy => ({
     provider: {
       sendAsync: jest.fn(),
-    } as unknown as SwappableProxy<ProxyWithAccessibleTarget<Provider>>,
+    } as unknown as ProviderProxy,
     blockTracker: {
       destroy: jest.fn(),
       getLatestBlock: jest.fn(),
-    } as SwappableProxy<ProxyWithAccessibleTarget<BlockTracker>>,
+    } as unknown as BlockTrackerProxy,
   });
 
   beforeEach(() => {
