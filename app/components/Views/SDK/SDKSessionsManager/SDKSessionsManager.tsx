@@ -122,10 +122,13 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
               connection={androidSession}
             />
           ))}
-          {isMutichainVersion1Enabled &&
-            mockPermissionItems.map((mockPermissionItem, _index) => (
-              <PermissionItem key={`${_index}`} item={mockPermissionItem} />
-            ))}
+          {
+            /* TODO: replace mock data with real data once available */
+            isMutichainVersion1Enabled &&
+              mockPermissionItems.map((mockPermissionItem, _index) => (
+                <PermissionItem key={`${_index}`} item={mockPermissionItem} />
+              ))
+          }
         </ScrollView>
         {!isMutichainVersion1Enabled && (
           <View style={styles.disconnectAllContainer}>
