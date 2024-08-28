@@ -2,6 +2,7 @@ import migrate from './051';
 import { merge } from 'lodash';
 import initialRootState from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
+import { NetworkState } from '@metamask/network-controller';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -155,10 +156,12 @@ describe('Migration #51', () => {
       },
     });
 
-    const newState = await migrate(modifiedOldState);
+    const newState = (await migrate(modifiedOldState)) as {
+      engine: { backgroundState: { NetworkController: NetworkState } };
+    };
 
     expect(
-      newState.engine.backgroundState.NetworkController.networkConfigurations[
+      newState?.engine.backgroundState.NetworkController.networkConfigurations[
         'network-3-uuid'
       ].ticker,
     ).toBe('KOVAN');
@@ -185,7 +188,9 @@ describe('Migration #51', () => {
       },
     });
 
-    const newState = await migrate(modifiedOldState);
+    const newState = (await migrate(modifiedOldState)) as {
+      engine: { backgroundState: { NetworkController: NetworkState } };
+    };
 
     expect(
       newState.engine.backgroundState.NetworkController.networkConfigurations[
@@ -240,7 +245,9 @@ describe('Migration #51', () => {
       },
     });
 
-    const newState = await migrate(modifiedOldState);
+    const newState = (await migrate(modifiedOldState)) as {
+      engine: { backgroundState: { NetworkController: NetworkState } };
+    };
 
     expect(
       newState.engine.backgroundState.NetworkController.providerConfig.ticker,
