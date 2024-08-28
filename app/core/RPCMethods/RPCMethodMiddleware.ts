@@ -10,11 +10,7 @@ import {
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
-import {
-  ChainId,
-  NetworkType,
-  // toHex
-} from '@metamask/controller-utils';
+import { ChainId, NetworkType } from '@metamask/controller-utils';
 import {
   PermissionController,
   permissionRpcMethods,
@@ -463,12 +459,6 @@ export const getRpcMethodMiddleware = ({
       eth_chainId: async () => {
         const origin = isWalletConnect ? hostname : channelId ?? hostname;
         const networkProviderState = await getProviderState(origin);
-        /* eslint-disable no-console */
-        // console.log(
-        //   'ALEX LOGGGING____ eth_chainId handler || networkProviderState',
-        //   networkProviderState,
-        // );
-        /* eslint-enable no-console */
         res.result = networkProviderState.chainId;
       },
       eth_hashrate: () => {

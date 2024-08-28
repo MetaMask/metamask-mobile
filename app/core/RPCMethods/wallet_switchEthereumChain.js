@@ -115,8 +115,6 @@ const wallet_switchEthereumChain = async ({
       requestData: { ...requestData, type: 'switch' },
     });
 
-    // TODO ALEX add networkConfigurationId to SelectedNetworkController domains state
-    // if the origin has eth_accounts permission
     if (networkConfiguration) {
       CurrencyRateController.updateExchangeRate(networkConfiguration.ticker);
       NetworkController.setActiveNetwork(networkConfigurationId);
@@ -129,13 +127,6 @@ const wallet_switchEthereumChain = async ({
       origin,
       RestrictedMethods.eth_accounts,
     );
-
-    /* eslint-disable no-console */
-    console.log(
-      'ALEX LOGGGING____ originHasAccountsPermission',
-      originHasAccountsPermission,
-    );
-    /* eslint-disable no-console */
 
     if (originHasAccountsPermission) {
       SelectedNetworkController.setNetworkClientIdForDomain(

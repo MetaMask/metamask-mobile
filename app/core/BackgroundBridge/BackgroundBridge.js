@@ -105,7 +105,6 @@ export class BackgroundBridge extends EventEmitter {
 
     this.lastChainIdSent = networkClient.configuration.chainId;
 
-    // TODO ALEX figure out how to get the correct network version synchronously
     this.networkVersionSent = parseInt(networkClient.configuration.chainId, 16).toString();
 
     // This will only be used for WalletConnect for now
@@ -247,9 +246,6 @@ export class BackgroundBridge extends EventEmitter {
       });
       this.deprecatedNetworkVersions[networkClientId] = networkVersion;
     }
-
-    // THIS APPEARS TO BE LOGGING CORRECT ORIGIN AND CHAINID
-    // console.log('ALEX LOGGGING____ origin:', origin, '& chainId:', chainId);
 
     return {
       chainId,
@@ -394,9 +390,6 @@ export class BackgroundBridge extends EventEmitter {
     const origin = this.hostname;
     // setup json rpc engine stack
     const engine = new JsonRpcEngine();
-
-    // const { blockTracker, provider } =
-    //   Engine.context.NetworkController.getProviderAndBlockTracker();
 
     // If the origin is not in the selectedNetworkController's `domains` state
     // when the provider engine is created, the selectedNetworkController will
