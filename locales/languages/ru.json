@@ -500,8 +500,10 @@
     "lists": "Списки токенов",
     "hide_cta": "Скрыть токен",
     "options": {
+      "view_on_portfolio": "View on Portfolio",
       "view_on_block": "Смотреть в обозревателе блоков",
-      "token_details": "Описание токена"
+      "token_details": "Описание токена",
+      "remove_token": "Remove token"
     }
   },
   "activity_view": {
@@ -548,6 +550,7 @@
     "description_title": "Помогите нам улучшить Metamask",
     "description_content_1": "Мы хотели бы собрать базовые данные об использовании для улучшения MetaMask. Помните, что мы никогда не продаем данные, которые вы здесь предоставляете.",
     "description_content_2": "Когда мы собираем показатели, они всегда будут...",
+    "description_content_3": "Learn how we protect your privacy while collecting usage data for your profile.",
     "checkbox": "Мы будем использовать эти данные, чтобы узнать, как вы взаимодействуете с нашими маркетинговыми сообщениями. Мы можем отправлять соответствующие новости (например, о функциях продукта).",
     "action_description_1_prefix": "Приватными:",
     "action_description_2_prefix": "Общедоступными:",
@@ -598,7 +601,21 @@
     "decimals_is_required": "Требуется число десятичных знаков. Найдите его на:",
     "no_tokens_found": "нам не удалось найти токены с таким именем.",
     "select_token": "Выбрать токен",
-    "address_must_be_smart_contract": "Обнаружен личный адрес. Введите адрес контракта токена."
+    "address_must_be_smart_contract": "Обнаружен личный адрес. Введите адрес контракта токена.",
+    "billion_abbreviation": "B",
+    "trillion_abbreviation": "T",
+    "million_abbreviation": "M",
+    "token_details": "Token details",
+    "contract_address": "Contract address",
+    "token_list": "Token list",
+    "market_details": "Market details",
+    "market_cap": "Market Cap",
+    "total_volume": "Total Volume (24h)",
+    "volume_to_marketcap": "Volume / Market Cap",
+    "circulating_supply": "Circulating supply",
+    "all_time_high": "All time high",
+    "all_time_low": "All time low",
+    "fully_diluted": "Fully diluted"
   },
   "collectible": {
     "collectible_address": "Адрес",
@@ -667,7 +684,10 @@
     "address_balance_activity_permission": "Просмотр адреса, баланса счета и активности",
     "suggest_transactions": "Предлагать транзакции для одобрения",
     "disconnect": "Отключиться",
+    "disconnect_all": "Disconnect all",
+    "reconnect_notice": "If you disconnect your accounts from {{dappUrl}}, you’ll need to reconnect to use them again.",
     "disconnect_all_accounts": "Отключить все счета",
+    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
     "deceptive_site_ahead": "Впереди моешеннический сайт",
     "deceptive_site_desc": "Сайт, который вы пытаетесь посетить, небезопасен. Злоумышленники могут обманом заставить вас сделать что-то опасное.",
     "learn_more": "Подробнее",
@@ -685,6 +705,7 @@
     "accounts_connected": "счета подключены.",
     "disconnected": "отключен.",
     "disconnected_all": "Все счета отключены.",
+    "disconnected_from": "Disconnected from {{dappHostName}}",
     "nft_detection_enabled": "Автоопределение NFT включено"
   },
   "connect_qr_hardware": {
@@ -1701,6 +1722,10 @@
     "network_chain_id": "ID блокчейна",
     "network_rpc_url": "URL сети",
     "network_rpc_url_label": "Network RPC URL",
+    "new_default_network_url": "New default network URL",
+    "current_label": "Current",
+    "new_label": "New",
+    "review": "Review",
     "view_details": "Просмотр сведений",
     "network_details": "Сведения о сети",
     "network_select_confirm_use_safe_check": "При выборе «Подтвердить» включается проверка сведений о сети. Вы можете отключить её в ",
@@ -2127,9 +2152,9 @@
     "transaction_id_copied_to_clipboard": "ID транзакции скопирован в буфер обмена",
     "activation_card": {
       "title": "Включить уведомления",
-      "description_1": "Будьте в курсе того, что происходит в вашем кошельке, с помощью уведомлений. ",
+      "description_1": "Stay in the loop on what's happening in your wallet with notifications.",
       "description_2": "Чтобы использовать эту функцию, мы сгенерируем анонимный ID для вашего счета. Он используется только для синхронизации ваших данных в MetaMask и не связывается с вашими действиями или другими ID, обеспечивая вашу конфиденциальность.",
-      "learn_more": "Узнайте, как мы защищаем вашу конфиденциальность при использовании этой функции. ",
+      "learn_more": "Learn how we protect your privacy while using this feature.",
       "manage_preferences_1": "Вы можете отключить уведомления в любое время в ",
       "manage_preferences_2": "Настройки > Уведомления.",
       "cancel": "Отмена",
@@ -2521,7 +2546,8 @@
       "sale_completed_title": "Ордер выполнен",
       "sale_completed_description": "Ваш ордер успешно выполнен!",
       "sale_pending_title": "Купля-продажа {{currency}} обрабатывается",
-      "sale_pending_description": "Ваш ордер обрабатывается."
+      "sale_pending_description": "Ваш ордер обрабатывается.",
+      "no_date": "Unknown"
     }
   },
   "swaps": {
@@ -3148,9 +3174,7 @@
     "how_to_install_eth_webview_title": "Как установить приложение Ethereum",
     "nonce_too_low": "Одноразовый код слишком короткий",
     "nonce_too_low_error": "Установлен слишком короткий одноразовый код",
-    "select_accounts": "Select an Account",
-    "select_accounts_warning": "Note: these accounts might be different to what you're used to.",
-    "select_accounts_sub_msg": "These accounts are derived using the BIP44 derivation path, which is different to the default Ledger Live derivation path on MetaMask Extension, Different derivation paths for Ledger will be available on MetaMask Mobile soon."
+    "select_accounts": "Select an Account"
   },
   "account_actions": {
     "edit_name": "Изменить имя счета",
@@ -3223,7 +3247,7 @@
       "title_off": "Выключить базовый функционал",
       "description_off": "Это означает, что вы не сможете полностью оптимизировать свое время в MetaMask. Вам будут недоступны базовые функции (например, сведения о токенах, оптимальные настройки газа и т. д.).",
       "title_on": "Включить базовый функционал",
-      "description_on": "Чтобы оптимизировать свое время в MetaMask, вам необходимо включить эту функцию. Базовые функции (например, сведения о токенах, оптимальные настройки газа и другие) важны для работы с web3.",
+      "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, notifications, and others) are important to the web3 experience.",
       "checkbox_label": "Я понимаю и хочу продолжить",
       "buttons": {
         "cancel": "Отмена",

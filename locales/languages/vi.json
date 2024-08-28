@@ -500,8 +500,10 @@
     "lists": "Danh sách token",
     "hide_cta": "Ẩn token",
     "options": {
+      "view_on_portfolio": "View on Portfolio",
       "view_on_block": "Xem trên trình khám phá khối",
-      "token_details": "Thông tin chi tiết về token"
+      "token_details": "Thông tin chi tiết về token",
+      "remove_token": "Remove token"
     }
   },
   "activity_view": {
@@ -548,6 +550,7 @@
     "description_title": "Giúp chúng tôi cải thiện MetaMask",
     "description_content_1": "Chúng tôi muốn thu thập dữ liệu sử dụng cơ bản để cải tiến MetaMask. Xin lưu ý, chúng tôi không bao giờ bán dữ liệu mà bạn cung cấp ở đây.",
     "description_content_2": "Khi thu thập số liệu, chúng tôi sẽ luôn cam kết điều này...",
+    "description_content_3": "Learn how we protect your privacy while collecting usage data for your profile.",
     "checkbox": "Chúng tôi sẽ sử dụng dữ liệu này để tìm hiểu cách bạn tương tác với các thông tin tiếp thị. Chúng tôi có thể chia sẻ tin tức liên quan (chẳng hạn như tính năng sản phẩm).",
     "action_description_1_prefix": "Riêng tư:",
     "action_description_2_prefix": "Chung:",
@@ -598,7 +601,21 @@
     "decimals_is_required": "Số thập phân là bắt buộc. Hãy tìm trên:",
     "no_tokens_found": "Chúng tôi không thể tìm ra token nào có tên đó.",
     "select_token": "Chọn token",
-    "address_must_be_smart_contract": "Đã phát hiện địa chỉ cá nhân. Hãy nhập địa chỉ hợp đồng của token."
+    "address_must_be_smart_contract": "Đã phát hiện địa chỉ cá nhân. Hãy nhập địa chỉ hợp đồng của token.",
+    "billion_abbreviation": "B",
+    "trillion_abbreviation": "T",
+    "million_abbreviation": "M",
+    "token_details": "Token details",
+    "contract_address": "Contract address",
+    "token_list": "Token list",
+    "market_details": "Market details",
+    "market_cap": "Market Cap",
+    "total_volume": "Total Volume (24h)",
+    "volume_to_marketcap": "Volume / Market Cap",
+    "circulating_supply": "Circulating supply",
+    "all_time_high": "All time high",
+    "all_time_low": "All time low",
+    "fully_diluted": "Fully diluted"
   },
   "collectible": {
     "collectible_address": "Địa chỉ",
@@ -667,7 +684,10 @@
     "address_balance_activity_permission": "Xem địa chỉ, số dư tài khoản và hoạt động",
     "suggest_transactions": "Đề xuất các giao dịch cần chấp thuận",
     "disconnect": "Ngắt kết nối",
+    "disconnect_all": "Disconnect all",
+    "reconnect_notice": "If you disconnect your accounts from {{dappUrl}}, you’ll need to reconnect to use them again.",
     "disconnect_all_accounts": "Ngắt kết nối tất cả các tài khoản",
+    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
     "deceptive_site_ahead": "Phía trước là trang web lừa đảo",
     "deceptive_site_desc": "Trang web mà bạn đang cố gắng truy cập không an toàn. Những kẻ tấn công có thể lừa bạn thực hiện một hành động nguy hiểm.",
     "learn_more": "Tìm hiểu thêm",
@@ -685,6 +705,7 @@
     "accounts_connected": "tài khoản đã được kết nối.",
     "disconnected": "đã ngắt kết nối.",
     "disconnected_all": "Đã ngắt kết nối tất cả các tài khoản.",
+    "disconnected_from": "Disconnected from {{dappHostName}}",
     "nft_detection_enabled": "Tính năng tự động phát hiện NFT đã được bật"
   },
   "connect_qr_hardware": {
@@ -1701,6 +1722,10 @@
     "network_chain_id": "Mã chuỗi",
     "network_rpc_url": "URL mạng",
     "network_rpc_url_label": "Network RPC URL",
+    "new_default_network_url": "New default network URL",
+    "current_label": "Current",
+    "new_label": "New",
+    "review": "Review",
     "view_details": "Xem chi tiết",
     "network_details": "Chi tiết về mạng",
     "network_select_confirm_use_safe_check": "Chọn Xác nhận để bật Kiểm tra thông tin mạng. Bạn có thể tắt Kiểm tra thông tin mạng trong phần ",
@@ -2127,9 +2152,9 @@
     "transaction_id_copied_to_clipboard": "Đã sao chép ID giao dịch vào bộ nhớ đệm",
     "activation_card": {
       "title": "Bật thông báo",
-      "description_1": "Nhận thông báo để cập nhật tình hình trong ví của bạn. ",
+      "description_1": "Stay in the loop on what's happening in your wallet with notifications.",
       "description_2": "Để sử dụng tính năng này, chúng tôi sẽ tạo một ID ẩn danh cho tài khoản của bạn. ID này chỉ được dùng để đồng bộ dữ liệu của bạn trong MetaMask và không được liên kết với các hoạt động hoặc mã định danh khác của bạn, qua đó đảm bảo quyền riêng tư của bạn.",
-      "learn_more": "Tìm hiểu cách chúng tôi bảo vệ quyền riêng tư của bạn khi sử dụng tính năng này. ",
+      "learn_more": "Learn how we protect your privacy while using this feature.",
       "manage_preferences_1": "Bạn có thể tắt thông báo bất kỳ lúc nào trong phần ",
       "manage_preferences_2": "Cài đặt > Thông báo.",
       "cancel": "Hủy",
@@ -2521,7 +2546,8 @@
       "sale_completed_title": "Lệnh đã hoàn tất",
       "sale_completed_description": "Lệnh của bạn đã thành công!.",
       "sale_pending_title": "Đang xử lý lệnh bán {{currency}}",
-      "sale_pending_description": "Lệnh của bạn hiện đang được xử lý."
+      "sale_pending_description": "Lệnh của bạn hiện đang được xử lý.",
+      "no_date": "Unknown"
     }
   },
   "swaps": {
@@ -3148,9 +3174,7 @@
     "how_to_install_eth_webview_title": "Cách cài đặt Ứng dụng Ethereum",
     "nonce_too_low": "Số nonce quá thấp",
     "nonce_too_low_error": "Số nonce đã đặt quá thấp",
-    "select_accounts": "Select an Account",
-    "select_accounts_warning": "Note: these accounts might be different to what you're used to.",
-    "select_accounts_sub_msg": "These accounts are derived using the BIP44 derivation path, which is different to the default Ledger Live derivation path on MetaMask Extension, Different derivation paths for Ledger will be available on MetaMask Mobile soon."
+    "select_accounts": "Select an Account"
   },
   "account_actions": {
     "edit_name": "Chỉnh sửa tên tài khoản",
@@ -3223,7 +3247,7 @@
       "title_off": "Tắt chức năng cơ bản",
       "description_off": "Điều này có nghĩa là bạn sẽ không thể tối ưu hoàn toàn thời gian sử dụng MetaMask. Các tính năng cơ bản (chẳng hạn như chi tiết token, cài đặt gas tối ưu và các tính năng khác) sẽ không khả dụng.",
       "title_on": "Bật chức năng cơ bản",
-      "description_on": "Để tối ưu thời gian sử dụng MetaMask, bạn cần bật tính năng này. Các chức năng cơ bản (chẳng hạn như chi tiết token, cài đặt gas tối ưu và các chức năng khác) rất quan trọng đối với trải nghiệm web3.",
+      "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, notifications, and others) are important to the web3 experience.",
       "checkbox_label": "Tôi hiểu rõ và muốn tiếp tục",
       "buttons": {
         "cancel": "Hủy",

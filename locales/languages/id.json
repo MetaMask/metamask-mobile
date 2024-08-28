@@ -500,8 +500,10 @@
     "lists": "Daftar Token",
     "hide_cta": "Sembunyikan token",
     "options": {
+      "view_on_portfolio": "View on Portfolio",
       "view_on_block": "Lihat di block explorer",
-      "token_details": "Detail token"
+      "token_details": "Detail token",
+      "remove_token": "Remove token"
     }
   },
   "activity_view": {
@@ -548,6 +550,7 @@
     "description_title": "Bantu kami meningkatkan MetaMask",
     "description_content_1": "Kami ingin mengumpulkan data penggunaan dasar untuk meningkatkan MetaMask. Pahami bahwa kami tidak pernah menjual data yang Anda berikan di sini.",
     "description_content_2": "Saat kami mengumpulkan metrik, maka akan selalu...",
+    "description_content_3": "Learn how we protect your privacy while collecting usage data for your profile.",
     "checkbox": "Kami akan menggunakan data ini untuk mempelajari cara Anda berinteraksi dengan komunikasi pemasaran kami. Kami mungkin akan membagikan berita terkait (seperti fitur produk).",
     "action_description_1_prefix": "Pribadi:",
     "action_description_2_prefix": "Umum:",
@@ -598,7 +601,21 @@
     "decimals_is_required": "Desimal diperlukan. Temukan di:",
     "no_tokens_found": "Kami tidak dapat menemukan token dengan nama tersebut.",
     "select_token": "Pilih Token",
-    "address_must_be_smart_contract": "Alamat pribadi terdeteksi. Masukkan alamat kontrak token."
+    "address_must_be_smart_contract": "Alamat pribadi terdeteksi. Masukkan alamat kontrak token.",
+    "billion_abbreviation": "B",
+    "trillion_abbreviation": "T",
+    "million_abbreviation": "M",
+    "token_details": "Token details",
+    "contract_address": "Contract address",
+    "token_list": "Token list",
+    "market_details": "Market details",
+    "market_cap": "Market Cap",
+    "total_volume": "Total Volume (24h)",
+    "volume_to_marketcap": "Volume / Market Cap",
+    "circulating_supply": "Circulating supply",
+    "all_time_high": "All time high",
+    "all_time_low": "All time low",
+    "fully_diluted": "Fully diluted"
   },
   "collectible": {
     "collectible_address": "Alamat",
@@ -667,7 +684,10 @@
     "address_balance_activity_permission": "Melihat alamat, saldo akun, dan aktivitas",
     "suggest_transactions": "Merekomendasikan transaksi untuk disetujui",
     "disconnect": "Memutus koneksi",
+    "disconnect_all": "Disconnect all",
+    "reconnect_notice": "If you disconnect your accounts from {{dappUrl}}, you’ll need to reconnect to use them again.",
     "disconnect_all_accounts": "Memutus koneksi semua akun",
+    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
     "deceptive_site_ahead": "Situs yang menipu terdeteksi",
     "deceptive_site_desc": "Situs yang akan Anda kunjungi tidak aman. Penyerang dapat mengelabui Anda untuk melakukan sesuatu yang berbahaya.",
     "learn_more": "Selengkapnya",
@@ -685,6 +705,7 @@
     "accounts_connected": "akun terhubung.",
     "disconnected": "koneksi terputus.",
     "disconnected_all": "Semua akun terputus koneksinya.",
+    "disconnected_from": "Disconnected from {{dappHostName}}",
     "nft_detection_enabled": "Autodeteksi NFT diaktifkan"
   },
   "connect_qr_hardware": {
@@ -1701,6 +1722,10 @@
     "network_chain_id": "ID Chain",
     "network_rpc_url": "URL Jaringan",
     "network_rpc_url_label": "Network RPC URL",
+    "new_default_network_url": "New default network URL",
+    "current_label": "Current",
+    "new_label": "New",
+    "review": "Review",
     "view_details": "Lihat detail",
     "network_details": "Detail jaringan",
     "network_select_confirm_use_safe_check": "Memilih Konfirmasikan akan mengaktifkan pemeriksaan detail Jaringan. Anda dapat menonaktifkan pemeriksaan detail Jaringan di ",
@@ -2127,9 +2152,9 @@
     "transaction_id_copied_to_clipboard": "ID Transaksi disalin ke papan klip",
     "activation_card": {
       "title": "Aktifkan notifikasi",
-      "description_1": "Pantau terus segala perkembangan yang terjadi di dompet Anda dengan notifikasi. ",
+      "description_1": "Stay in the loop on what's happening in your wallet with notifications.",
       "description_2": "Untuk menggunakan fitur ini, kami akan membuat ID anonim untuk akun Anda. Ini hanya digunakan untuk menyinkronkan data di MetaMask dan tidak terhubung dengan aktivitas atau pengidentifikasi lainnya, sehingga privasi tetap terjaga.",
-      "learn_more": "Pelajari cara kami melindungi privasi Anda saat menggunakan fitur ini. ",
+      "learn_more": "Learn how we protect your privacy while using this feature.",
       "manage_preferences_1": "Notifikasi dapat dinonaktifkan setiap saat ",
       "manage_preferences_2": "Pengaturan > Notifikasi.",
       "cancel": "Batal",
@@ -2521,7 +2546,8 @@
       "sale_completed_title": "Pesanan selesai",
       "sale_completed_description": "Pesanan berhasil!.",
       "sale_pending_title": "Pemrosesan penjualan {{currency}}",
-      "sale_pending_description": "Pesanan sedang diproses."
+      "sale_pending_description": "Pesanan sedang diproses.",
+      "no_date": "Unknown"
     }
   },
   "swaps": {
@@ -3148,9 +3174,7 @@
     "how_to_install_eth_webview_title": "Cara menginstal Aplikasi Ethereum",
     "nonce_too_low": "Nonce terlalu rendah",
     "nonce_too_low_error": "Nonce yang ditetapkan terlalu rendah",
-    "select_accounts": "Select an Account",
-    "select_accounts_warning": "Note: these accounts might be different to what you're used to.",
-    "select_accounts_sub_msg": "These accounts are derived using the BIP44 derivation path, which is different to the default Ledger Live derivation path on MetaMask Extension, Different derivation paths for Ledger will be available on MetaMask Mobile soon."
+    "select_accounts": "Select an Account"
   },
   "account_actions": {
     "edit_name": "Edit nama akun",
@@ -3223,7 +3247,7 @@
       "title_off": "Nonaktifkan fungsionalitas dasar",
       "description_off": "Artinya, Anda tidak akan benar-benar mengoptimalkan waktu di MetaMask. Fitur dasar (seperti detail token, pengaturan gas optimal, dan lainnya) tidak akan tersedia untuk Anda.",
       "title_on": "Aktifkan fungsionalitas dasar",
-      "description_on": "Untuk mengoptimalkan waktu di MetaMask, Anda perlu mengaktifkan fitur ini. Fungsi dasar (seperti detail token, pengaturan gas optimal, dan lainnya) penting untuk pengalaman web3.",
+      "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, notifications, and others) are important to the web3 experience.",
       "checkbox_label": "Saya memahami dan ingin melanjutkan",
       "buttons": {
         "cancel": "Batal",

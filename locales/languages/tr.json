@@ -500,8 +500,10 @@
     "lists": "Token Listeleri",
     "hide_cta": "Tokeni gizle",
     "options": {
+      "view_on_portfolio": "View on Portfolio",
       "view_on_block": "Blok gezgininde görüntüle",
-      "token_details": "Token bilgileri"
+      "token_details": "Token bilgileri",
+      "remove_token": "Remove token"
     }
   },
   "activity_view": {
@@ -548,6 +550,7 @@
     "description_title": "MetaMask'ı iyileştirmemize yardımcı olun",
     "description_content_1": "MetaMask'i iyileştirmek için temel kullanım verilerini toplamak istiyoruz. Burada sunduğunuz verileri asla satmadığımızı bilmenizi isteriz.",
     "description_content_2": "Topladığımız ölçümler her zaman şu şekilde olacaktır...",
+    "description_content_3": "Learn how we protect your privacy while collecting usage data for your profile.",
     "checkbox": "Bu verileri, pazarlama iletişimlerimizle nasıl etkileşimde bulunduğunuzu öğrenmek için kullanacağız. İlgili haberleri (ürün özellikleri gibi) paylaşabiliriz.",
     "action_description_1_prefix": "Özel:",
     "action_description_2_prefix": "Genel:",
@@ -598,7 +601,21 @@
     "decimals_is_required": "Ondalık gereklidir. Şurada bulabilirsiniz:",
     "no_tokens_found": "Bu isimde token bulamadık.",
     "select_token": "Token Seç",
-    "address_must_be_smart_contract": "Kişisel adres algılandı. Token sözleşme adresini girin."
+    "address_must_be_smart_contract": "Kişisel adres algılandı. Token sözleşme adresini girin.",
+    "billion_abbreviation": "B",
+    "trillion_abbreviation": "T",
+    "million_abbreviation": "M",
+    "token_details": "Token details",
+    "contract_address": "Contract address",
+    "token_list": "Token list",
+    "market_details": "Market details",
+    "market_cap": "Market Cap",
+    "total_volume": "Total Volume (24h)",
+    "volume_to_marketcap": "Volume / Market Cap",
+    "circulating_supply": "Circulating supply",
+    "all_time_high": "All time high",
+    "all_time_low": "All time low",
+    "fully_diluted": "Fully diluted"
   },
   "collectible": {
     "collectible_address": "Adres",
@@ -667,7 +684,10 @@
     "address_balance_activity_permission": "Adres, hesap bakiyesi ve aktiviteyi görme",
     "suggest_transactions": "Onaylanacak işlemleri önerme",
     "disconnect": "Bağlantıyı kes",
+    "disconnect_all": "Disconnect all",
+    "reconnect_notice": "If you disconnect your accounts from {{dappUrl}}, you’ll need to reconnect to use them again.",
     "disconnect_all_accounts": "Tüm hesapların bağlantısını kes",
+    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
     "deceptive_site_ahead": "Aldatıcı siteye gidiliyor",
     "deceptive_site_desc": "Ziyaret etmeye çalıştığınız sayfa güvenli değil. Saldırganlar tehlikeli bir şey yapmanız konusunda sizi aldatabilir.",
     "learn_more": "Daha fazla bilgi",
@@ -685,6 +705,7 @@
     "accounts_connected": "hesap bağlandı.",
     "disconnected": "bağlantısı kesildi.",
     "disconnected_all": "Tüm hesapların bağlantısı kesildi.",
+    "disconnected_from": "Disconnected from {{dappHostName}}",
     "nft_detection_enabled": "NFT otomatik algılama etkinleştirildi"
   },
   "connect_qr_hardware": {
@@ -1701,6 +1722,10 @@
     "network_chain_id": "Zincir Kimliği",
     "network_rpc_url": "Ağ URL adresi",
     "network_rpc_url_label": "Network RPC URL",
+    "new_default_network_url": "New default network URL",
+    "current_label": "Current",
+    "new_label": "New",
+    "review": "Review",
     "view_details": "Ayrıntıları görüntüle",
     "network_details": "Ağ bilgileri",
     "network_select_confirm_use_safe_check": "Onayla seçeneğinin seçilmesi Ağ bilgileri kontrolünü açar. Ağ bilgileri kontrolünü şurada kapatabilirsiniz: ",
@@ -2127,9 +2152,9 @@
     "transaction_id_copied_to_clipboard": "İşlem numarası hafıza panosuna kopyalandı",
     "activation_card": {
       "title": "Bildirimleri aç",
-      "description_1": "Bildirimler ile cüzdanınızda neler olduğundan haberdar olun. ",
+      "description_1": "Stay in the loop on what's happening in your wallet with notifications.",
       "description_2": "Bu özelliği kullanmak üzere hesabınız için anonim bir kimlik oluşturacağız. Bu kimlik sadece MetaMask'teki verilerinizi senkronize etmek için kullanılır ve aktivitelerinizi veya diğer tanımlayıcıları bağlamayarak gizliliğinizi korur.",
-      "learn_more": "Bu özelliği kullanırken gizliliğinizi nasıl koruduğumuzu öğrenin. ",
+      "learn_more": "Learn how we protect your privacy while using this feature.",
       "manage_preferences_1": "Bildirimleri dilediğiniz zaman şurada kapatabilirsiniz: ",
       "manage_preferences_2": "Ayarlar > Bildirimler.",
       "cancel": "İptal",
@@ -2521,7 +2546,8 @@
       "sale_completed_title": "Emir tamamlandı",
       "sale_completed_description": "Emriniz başarılı oldu.",
       "sale_pending_title": "{{currency}} satışı gerçekleştiriliyor",
-      "sale_pending_description": "Emriniz şu anda gerçekleştiriliyor."
+      "sale_pending_description": "Emriniz şu anda gerçekleştiriliyor.",
+      "no_date": "Unknown"
     }
   },
   "swaps": {
@@ -3148,9 +3174,7 @@
     "how_to_install_eth_webview_title": "Ethereum uygulaması nasıl yüklenir?",
     "nonce_too_low": "Nonce çok düşük",
     "nonce_too_low_error": "Ayarlanan nonce çok düşük",
-    "select_accounts": "Select an Account",
-    "select_accounts_warning": "Note: these accounts might be different to what you're used to.",
-    "select_accounts_sub_msg": "These accounts are derived using the BIP44 derivation path, which is different to the default Ledger Live derivation path on MetaMask Extension, Different derivation paths for Ledger will be available on MetaMask Mobile soon."
+    "select_accounts": "Select an Account"
   },
   "account_actions": {
     "edit_name": "Hesap adını düzenleyin",
@@ -3223,7 +3247,7 @@
       "title_off": "Temel işlevselliği kapat",
       "description_off": "Bu, MetaMask'te zamanınızı tamamen optimize edemeyeceğiniz anlamına gelir. Temel özellikler (token bilgileri, en iyi gaz ayarları vb. gibi) sizin için sunulmayacaktır.",
       "title_on": "Temel işlevselliği aç",
-      "description_on": "MetaMask'te zamanınızı tamamen optimize etmek için bu özelliği açmanız gerekecektir. Temel özellikler (token bilgileri, en iyi gaz ayarları vb. gibi) web3 deneyimi için önemlidir.",
+      "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, notifications, and others) are important to the web3 experience.",
       "checkbox_label": "Anlıyorum ve devam etmek istiyorum",
       "buttons": {
         "cancel": "İptal",

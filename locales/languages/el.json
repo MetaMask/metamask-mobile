@@ -500,8 +500,10 @@
     "lists": "Λίστες Token",
     "hide_cta": "Απόκρυψη token",
     "options": {
+      "view_on_portfolio": "View on Portfolio",
       "view_on_block": "Προβολή στο block explorer",
-      "token_details": "Λεπτομέρειες token"
+      "token_details": "Λεπτομέρειες token",
+      "remove_token": "Remove token"
     }
   },
   "activity_view": {
@@ -548,6 +550,7 @@
     "description_title": "Βοηθήστε μας να βελτιώσουμε το MetaMask",
     "description_content_1": "Θέλουμε να συλλέξουμε βασικά δεδομένα χρήσης για να βελτιώσουμε το MetaMask. Λάβετε υπόψη ότι δεν πουλάμε ποτέ τα δεδομένα που μας παρέχετε εδώ.",
     "description_content_2": "Όταν συγκεντρώνουμε μετρήσεις, θα είναι πάντα...",
+    "description_content_3": "Learn how we protect your privacy while collecting usage data for your profile.",
     "checkbox": "Θα χρησιμοποιήσουμε αυτά τα δεδομένα για να μάθουμε πώς αλληλεπιδράτε με τις επικοινωνίες μάρκετινγκ. Ενδέχεται να κοινοποιήσουμε σχετικές ειδήσεις (όπως χαρακτηριστικά προϊόντων).",
     "action_description_1_prefix": "Ιδιωτικές:",
     "action_description_2_prefix": "Γενικές:",
@@ -598,7 +601,21 @@
     "decimals_is_required": "Απαιτείται δεκαδικός αριθμός. Βρείτε τον στο:",
     "no_tokens_found": "Δεν μπορέσαμε να βρούμε κανένα token με αυτό το όνομα.",
     "select_token": "Επιλέξτε Token",
-    "address_must_be_smart_contract": "Εντοπίστηκε προσωπική διεύθυνση. Εισαγάγετε τη διεύθυνση συμβολαίου του token."
+    "address_must_be_smart_contract": "Εντοπίστηκε προσωπική διεύθυνση. Εισαγάγετε τη διεύθυνση συμβολαίου του token.",
+    "billion_abbreviation": "B",
+    "trillion_abbreviation": "T",
+    "million_abbreviation": "M",
+    "token_details": "Token details",
+    "contract_address": "Contract address",
+    "token_list": "Token list",
+    "market_details": "Market details",
+    "market_cap": "Market Cap",
+    "total_volume": "Total Volume (24h)",
+    "volume_to_marketcap": "Volume / Market Cap",
+    "circulating_supply": "Circulating supply",
+    "all_time_high": "All time high",
+    "all_time_low": "All time low",
+    "fully_diluted": "Fully diluted"
   },
   "collectible": {
     "collectible_address": "Διεύθυνση",
@@ -667,7 +684,10 @@
     "address_balance_activity_permission": "Προβολή διεύθυνσης, υπολοίπου λογαριασμού και δραστηριότητας",
     "suggest_transactions": "Προτείνει συναλλαγές προς έγκριση",
     "disconnect": "Αποσύνδεση",
+    "disconnect_all": "Disconnect all",
+    "reconnect_notice": "If you disconnect your accounts from {{dappUrl}}, you’ll need to reconnect to use them again.",
     "disconnect_all_accounts": "Αποσύνδεση όλων των λογαριασμών",
+    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
     "deceptive_site_ahead": "Παραπλανητικός ιστότοπος εν όψει",
     "deceptive_site_desc": "Ο ιστότοπος που προσπαθείτε να επισκεφθείτε δεν είναι ασφαλής. Οι εισβολείς μπορεί να σας εξαπατήσουν για να κάνουν κάτι επικίνδυνο.",
     "learn_more": "Μάθετε περισσότερα",
@@ -685,6 +705,7 @@
     "accounts_connected": "λογαριασμοί συνδεδεμένοι.",
     "disconnected": "αποσυνδέθηκε.",
     "disconnected_all": "Όλοι οι λογαριασμοί αποσυνδέθηκαν.",
+    "disconnected_from": "Disconnected from {{dappHostName}}",
     "nft_detection_enabled": "Ενεργοποιήθηκε η αυτόματη ανίχνευση NFT"
   },
   "connect_qr_hardware": {
@@ -1701,6 +1722,10 @@
     "network_chain_id": "Αναγνωριστικό Αλυσίδας",
     "network_rpc_url": "Διεύθυνση URL του Δικτύου",
     "network_rpc_url_label": "Network RPC URL",
+    "new_default_network_url": "New default network URL",
+    "current_label": "Current",
+    "new_label": "New",
+    "review": "Review",
     "view_details": "Προβολή λεπτομερειών",
     "network_details": "Λεπτομέρειες δικτύου",
     "network_select_confirm_use_safe_check": "Η επιλογή \"Επιβεβαίωση\" ενεργοποιεί τον έλεγχο λεπτομερειών δικτύου. Μπορείτε να απενεργοποιήσετε τον έλεγχο λεπτομερειών δικτύου στις ",
@@ -2127,9 +2152,9 @@
     "transaction_id_copied_to_clipboard": "Αντιγραφή του αναγνωριστικού συναλλαγής στο πρόχειρο",
     "activation_card": {
       "title": "Ενεργοποίηση των ειδοποιήσεων",
-      "description_1": "Μείνετε ενήμεροι για ό,τι συμβαίνει στο πορτοφόλι σας με τις ειδοποιήσεις. ",
+      "description_1": "Stay in the loop on what's happening in your wallet with notifications.",
       "description_2": "Για να χρησιμοποιήσετε αυτή τη λειτουργία, θα δημιουργήσουμε ένα ανώνυμο αναγνωριστικό για τον λογαριασμό σας. Χρησιμοποιείται μόνο για τον συγχρονισμό των δεδομένων σας στο MetaMask και δεν συνδέεται με τις δραστηριότητές σας ή άλλα αναγνωριστικά στοιχεία, διασφαλίζοντας την ιδιωτικότητά σας.",
-      "learn_more": "Μάθετε πώς προστατεύουμε το απόρρητό σας κατά τη χρήση αυτής της λειτουργίας. ",
+      "learn_more": "Learn how we protect your privacy while using this feature.",
       "manage_preferences_1": "Μπορείτε να απενεργοποιήσετε τις ειδοποιήσεις ανά πάσα στιγμή στις ",
       "manage_preferences_2": "Ρυθμίσεις > Ειδοποιήσεις.",
       "cancel": "Άκυρο",
@@ -2521,7 +2546,8 @@
       "sale_completed_title": "Ολοκλήρωση παραγγελίας",
       "sale_completed_description": "Η παραγγελία σας ήταν επιτυχής!.",
       "sale_pending_title": "Επεξεργασία πώλησης {{currency}}",
-      "sale_pending_description": "Η παραγγελία σας βρίσκεται τώρα υπό επεξεργασία."
+      "sale_pending_description": "Η παραγγελία σας βρίσκεται τώρα υπό επεξεργασία.",
+      "no_date": "Unknown"
     }
   },
   "swaps": {
@@ -3148,9 +3174,7 @@
     "how_to_install_eth_webview_title": "Πώς να εγκαταστήσετε την εφαρμογή Ethereum",
     "nonce_too_low": "Πολύ χαμηλό nonce",
     "nonce_too_low_error": "Το καθορισμένο nonce είναι πολύ χαμηλό",
-    "select_accounts": "Select an Account",
-    "select_accounts_warning": "Note: these accounts might be different to what you're used to.",
-    "select_accounts_sub_msg": "These accounts are derived using the BIP44 derivation path, which is different to the default Ledger Live derivation path on MetaMask Extension, Different derivation paths for Ledger will be available on MetaMask Mobile soon."
+    "select_accounts": "Select an Account"
   },
   "account_actions": {
     "edit_name": "Επεξεργασία ονόματος λογαριασμού",
@@ -3223,7 +3247,7 @@
       "title_off": "Απενεργοποίηση βασικών λειτουργιών",
       "description_off": "Αυτό σημαίνει ότι δεν θα βελτιστοποιήσετε πλήρως το χρόνο σας στο MetaMask. Βασικές λειτουργίες (όπως λεπτομέρειες των tokens, βέλτιστες ρυθμίσεις τελών συναλλαγών και άλλα) δεν θα είναι διαθέσιμες σε εσάς.",
       "title_on": "Ενεργοποίηση βασικών λειτουργιών",
-      "description_on": "Για να βελτιστοποιήσετε το χρόνο σας στο MetaMask, θα πρέπει να ενεργοποιήσετε αυτή τη λειτουργία. Οι βασικές λειτουργίες (όπως οι λεπτομέρειες των tokens, οι βέλτιστες ρυθμίσεις τελών συναλλαγών και άλλα) είναι σημαντικές για την εμπειρία στο web3.",
+      "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, notifications, and others) are important to the web3 experience.",
       "checkbox_label": "Το κατανοώ και θέλω να συνεχίσω",
       "buttons": {
         "cancel": "Άκυρο",

@@ -500,8 +500,10 @@
     "lists": "Listas de tokens",
     "hide_cta": "Ocultar token",
     "options": {
+      "view_on_portfolio": "View on Portfolio",
       "view_on_block": "Ver no explorador de blocos",
-      "token_details": "Detalhes do token"
+      "token_details": "Detalhes do token",
+      "remove_token": "Remove token"
     }
   },
   "activity_view": {
@@ -548,6 +550,7 @@
     "description_title": "Ajude a melhorar a MetaMask",
     "description_content_1": "Gostaríamos de coletar dados básicos de uso para melhorar a MetaMask. Saiba que nunca vendemos os dados que você fornece aqui.",
     "description_content_2": "Quando coletamos as métricas, elas sempre são...",
+    "description_content_3": "Learn how we protect your privacy while collecting usage data for your profile.",
     "checkbox": "Usaremos esses dados para saber como você interage com nossas comunicações de marketing. Podemos compartilhar novidades relevantes (como recursos de produtos).",
     "action_description_1_prefix": "Privadas:",
     "action_description_2_prefix": "Gerais:",
@@ -598,7 +601,21 @@
     "decimals_is_required": "O decimal é obrigatório. Encontre-o em:",
     "no_tokens_found": "Não encontramos nenhum token com esse nome.",
     "select_token": "Selecionar token",
-    "address_must_be_smart_contract": "Endereço pessoal detectado. Insira o endereço do contrato do token."
+    "address_must_be_smart_contract": "Endereço pessoal detectado. Insira o endereço do contrato do token.",
+    "billion_abbreviation": "B",
+    "trillion_abbreviation": "T",
+    "million_abbreviation": "M",
+    "token_details": "Token details",
+    "contract_address": "Contract address",
+    "token_list": "Token list",
+    "market_details": "Market details",
+    "market_cap": "Market Cap",
+    "total_volume": "Total Volume (24h)",
+    "volume_to_marketcap": "Volume / Market Cap",
+    "circulating_supply": "Circulating supply",
+    "all_time_high": "All time high",
+    "all_time_low": "All time low",
+    "fully_diluted": "Fully diluted"
   },
   "collectible": {
     "collectible_address": "Endereço",
@@ -667,7 +684,10 @@
     "address_balance_activity_permission": "Visualizar endereço, saldo em conta e atividade",
     "suggest_transactions": "Sugerir transações para aprovar",
     "disconnect": "Desconectar",
+    "disconnect_all": "Disconnect all",
+    "reconnect_notice": "If you disconnect your accounts from {{dappUrl}}, you’ll need to reconnect to use them again.",
     "disconnect_all_accounts": "Desconectar todas as contas",
+    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
     "deceptive_site_ahead": "Site enganoso à vista",
     "deceptive_site_desc": "O site que você está tentando visitar não é seguro. Invasores podem induzir você a fazer algo perigoso por engano.",
     "learn_more": "Saiba mais",
@@ -685,6 +705,7 @@
     "accounts_connected": "contas conectadas.",
     "disconnected": "desconectada.",
     "disconnected_all": "Todas as contas estão desconectadas.",
+    "disconnected_from": "Disconnected from {{dappHostName}}",
     "nft_detection_enabled": "Detecção automática de NFT ativada"
   },
   "connect_qr_hardware": {
@@ -1701,6 +1722,10 @@
     "network_chain_id": "ID da cadeia",
     "network_rpc_url": "URL da rede",
     "network_rpc_url_label": "Network RPC URL",
+    "new_default_network_url": "New default network URL",
+    "current_label": "Current",
+    "new_label": "New",
+    "review": "Review",
     "view_details": "Ver detalhes",
     "network_details": "Detalhes da rede",
     "network_select_confirm_use_safe_check": "Ao selecionar \"confirmar\", a verificação de dados da rede é ativada. Você pode desativar a verificação de dados da rede em ",
@@ -2127,9 +2152,9 @@
     "transaction_id_copied_to_clipboard": "ID da transação copiado para a área de transferência",
     "activation_card": {
       "title": "Ativar notificações",
-      "description_1": "Fique por dentro do que acontece na sua carteira com notificações. ",
+      "description_1": "Stay in the loop on what's happening in your wallet with notifications.",
       "description_2": "Para usar esse recurso, geramos um ID anônimo para sua conta. Ele é usado apenas para sincronizar seus dados na MetaMask e não é vinculado às suas atividades ou outros identificadores, garantindo sua privacidade.",
-      "learn_more": "Saiba como protegemos sua privacidade enquanto usa esse recurso. ",
+      "learn_more": "Learn how we protect your privacy while using this feature.",
       "manage_preferences_1": "Você pode desativar as notificações a qualquer momento em ",
       "manage_preferences_2": "Configurações > Notificações.",
       "cancel": "Cancelar",
@@ -2521,7 +2546,8 @@
       "sale_completed_title": "Ordem concluída",
       "sale_completed_description": "Sua ordem foi bem-sucedida!",
       "sale_pending_title": "Processando venda de {{currency}}",
-      "sale_pending_description": "Sua ordem está sendo processada."
+      "sale_pending_description": "Sua ordem está sendo processada.",
+      "no_date": "Unknown"
     }
   },
   "swaps": {
@@ -3148,9 +3174,7 @@
     "how_to_install_eth_webview_title": "Como instalar o app Ethereum",
     "nonce_too_low": "Nonce muito baixo",
     "nonce_too_low_error": "O nonce definido está muito baixo",
-    "select_accounts": "Select an Account",
-    "select_accounts_warning": "Note: these accounts might be different to what you're used to.",
-    "select_accounts_sub_msg": "These accounts are derived using the BIP44 derivation path, which is different to the default Ledger Live derivation path on MetaMask Extension, Different derivation paths for Ledger will be available on MetaMask Mobile soon."
+    "select_accounts": "Select an Account"
   },
   "account_actions": {
     "edit_name": "Editar nome da conta",
@@ -3223,7 +3247,7 @@
       "title_off": "Desativar funcionalidade básica",
       "description_off": "Isso significa que você não otimizará totalmente seu tempo na MetaMask. Os recursos básicos (como detalhes de tokens, configurações ideais de gás e outros) não estarão disponíveis.",
       "title_on": "Ativar funcionalidade básica",
-      "description_on": "Para otimizar seu tempo na MetaMask, você precisará ativar este recurso. As funções básicas (como detalhes dos tokens, configurações ideais de gás e outras) são importantes para a experiência na web3.",
+      "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, notifications, and others) are important to the web3 experience.",
       "checkbox_label": "Entendo e quero continuar",
       "buttons": {
         "cancel": "Cancelar",

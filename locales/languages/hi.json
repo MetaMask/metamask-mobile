@@ -500,8 +500,10 @@
     "lists": "टोकन सूचियाँ",
     "hide_cta": "टोकन छुपाएं",
     "options": {
+      "view_on_portfolio": "View on Portfolio",
       "view_on_block": "ब्लॉक एक्सप्लोरर पर देखें",
-      "token_details": "टोकन विवरण"
+      "token_details": "टोकन विवरण",
+      "remove_token": "Remove token"
     }
   },
   "activity_view": {
@@ -548,6 +550,7 @@
     "description_title": "MetaMask को बेहतर बनाने में हमारी मदद करें",
     "description_content_1": "हम MetaMask को बेहतर बनाने के लिए बुनियादी यूसेज डेटा एकत्र करना चाहेंगे। जान लें कि हम आपके द्वारा यहां उपलब्ध कराया गया डेटा कभी नहीं बेचते हैं।",
     "description_content_2": "जब हम मेट्रिक्स इकट्ठा करते हैं, तो यह हमेशा... रहेगा",
+    "description_content_3": "Learn how we protect your privacy while collecting usage data for your profile.",
     "checkbox": "हम इस डेटा का उपयोग यह जानने के लिए करेंगे कि आप हमारे मार्केटिंग कम्यूनिकेशन्स के साथ कैसे इंटरैक्ट करते हैं। हम प्रासंगिक समाचार (जैसे प्रॉडक्ट फीचर्स) साझा कर सकते हैं।",
     "action_description_1_prefix": "निजी:",
     "action_description_2_prefix": "सामान्य:",
@@ -598,7 +601,21 @@
     "decimals_is_required": "डेसिमल आवश्यक है। इसे यहां खोजें:",
     "no_tokens_found": "हम उस नाम के साथ कोई टोकन नहीं ढ़ूंढ़ सके।",
     "select_token": "टोकन चुनें",
-    "address_must_be_smart_contract": "व्यक्तिगत पता का पहचान हुई। टोकन अनुबंध पता दर्ज करें।"
+    "address_must_be_smart_contract": "व्यक्तिगत पता का पहचान हुई। टोकन अनुबंध पता दर्ज करें।",
+    "billion_abbreviation": "B",
+    "trillion_abbreviation": "T",
+    "million_abbreviation": "M",
+    "token_details": "Token details",
+    "contract_address": "Contract address",
+    "token_list": "Token list",
+    "market_details": "Market details",
+    "market_cap": "Market Cap",
+    "total_volume": "Total Volume (24h)",
+    "volume_to_marketcap": "Volume / Market Cap",
+    "circulating_supply": "Circulating supply",
+    "all_time_high": "All time high",
+    "all_time_low": "All time low",
+    "fully_diluted": "Fully diluted"
   },
   "collectible": {
     "collectible_address": "पता",
@@ -667,7 +684,10 @@
     "address_balance_activity_permission": "पता, अकाउंट बैलेंस और गतिविधि को देखना",
     "suggest_transactions": "स्वीकृत करने के लिए लेनदेन का सुझाव देना",
     "disconnect": "डिसकनेक्ट करें",
+    "disconnect_all": "Disconnect all",
+    "reconnect_notice": "If you disconnect your accounts from {{dappUrl}}, you’ll need to reconnect to use them again.",
     "disconnect_all_accounts": "सभी खाते डिसकनेक्ट करें",
+    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
     "deceptive_site_ahead": "आगे धोखाधड़ी करने वाली साइट मौजूद है",
     "deceptive_site_desc": "आप जिस साइट पर जाना चाह रहे हैं वह सुरक्षित नहीं है। हमला करने वाले आपको कुछ खतरनाक काम करने के लिए उकसा सकते हैं।",
     "learn_more": "ज़्यादा जानें",
@@ -685,6 +705,7 @@
     "accounts_connected": "खाते कनेक्ट किए गए।",
     "disconnected": "डिसकनेक्ट किया गया।",
     "disconnected_all": "सभी अकाउंट्स डिसकनेक्ट किए गए।",
+    "disconnected_from": "Disconnected from {{dappHostName}}",
     "nft_detection_enabled": "NFT ऑटोडिटेक्शन चालू किया गया"
   },
   "connect_qr_hardware": {
@@ -1701,6 +1722,10 @@
     "network_chain_id": "चेन आईडी",
     "network_rpc_url": "नेटवर्क यूआरएल",
     "network_rpc_url_label": "Network RPC URL",
+    "new_default_network_url": "New default network URL",
+    "current_label": "Current",
+    "new_label": "New",
+    "review": "Review",
     "view_details": "विवरण देखें",
     "network_details": "नेटवर्क विवरण",
     "network_select_confirm_use_safe_check": "कन्फर्म करें को चुनने पर नेटवर्क डिटेल्स की जांच चालू हो जाती है। आप  में नेटवर्क डिटेल्स की जांच बंद कर सकते हैं ",
@@ -2127,9 +2152,9 @@
     "transaction_id_copied_to_clipboard": "ट्रांसेक्शन आईडी क्लिपबोर्ड पर कॉपी किया गया",
     "activation_card": {
       "title": "नोटिफिकेशंस चालू करें",
-      "description_1": "नोटिफिकेशंस के साथ आपके वॉलेट में क्या हो रहा है, इसकी जानकारी रखें। ",
+      "description_1": "Stay in the loop on what's happening in your wallet with notifications.",
       "description_2": "इस सुविधा का उपयोग करने के लिए, हम आपके अकाउंट के लिए एक अनाम आईडी तैयार करेंगे। इसका उपयोग केवल MetaMask में आपके डेटा को सिंक करने के लिए किया जाता है और यह आपकी गोपनीयता सुनिश्चित करते हुए आपकी गतिविधियों या अन्य पहचानकर्ताओं से लिंक नहीं होता है।",
-      "learn_more": "जानें कि इस फीचर का उपयोग करते समय हम आपकी गोपनीयता की सुरक्षा कैसे करते हैं। ",
+      "learn_more": "Learn how we protect your privacy while using this feature.",
       "manage_preferences_1": "आप किसी भी समय नोटिफिकेशंस बंद कर सकते हैं ",
       "manage_preferences_2": "सेटिंग्स > नोटीफिकेशंस में।",
       "cancel": "कैंसिल करें",
@@ -2521,7 +2546,8 @@
       "sale_completed_title": "ऑर्डर पूरा हो गया",
       "sale_completed_description": "आपका ऑर्डर सही से हो गया!",
       "sale_pending_title": "{{currency}} सेल प्रोसेस हो रही है",
-      "sale_pending_description": "आपके ऑर्डर को अब प्रोसेस किया जा रहा है।"
+      "sale_pending_description": "आपके ऑर्डर को अब प्रोसेस किया जा रहा है।",
+      "no_date": "Unknown"
     }
   },
   "swaps": {
@@ -3148,9 +3174,7 @@
     "how_to_install_eth_webview_title": "Ethereum ऐप कैसे इंस्टॉल करें",
     "nonce_too_low": "Nonce बहुत कम है",
     "nonce_too_low_error": "सेट किया हुआ nonce बहुत कम है",
-    "select_accounts": "Select an Account",
-    "select_accounts_warning": "Note: these accounts might be different to what you're used to.",
-    "select_accounts_sub_msg": "These accounts are derived using the BIP44 derivation path, which is different to the default Ledger Live derivation path on MetaMask Extension, Different derivation paths for Ledger will be available on MetaMask Mobile soon."
+    "select_accounts": "Select an Account"
   },
   "account_actions": {
     "edit_name": "खाते का नाम संपादित करें",
@@ -3223,7 +3247,7 @@
       "title_off": "बेसिक फंक्शनलिटी को बंद करें",
       "description_off": "इसका मतलब यह है कि आप MetaMask पर अपना समय सबसे अच्छे तरीके से इस्तेमाल नहीं कर पाएंगे। बेसिक फीचर्स (जैसे, टोकन विवरण, ऑप्टीमल गैस सेटिंग्स और अन्य) आपके लिए उपलब्ध नहीं होंगे।",
       "title_on": "बेसिक फंक्शनलिटी को चालू करें",
-      "description_on": "MetaMask पर अपना समय अच्छे तरीके से इस्तेमाल करने के लिए, आपको इस फीचर को चालू करना होगा। बुनियादी कार्य (जैसे, टोकन विवरण, ऑप्टीमल गैस सेटिंग्स और अन्य) Web3 अनुभव के लिए महत्वपूर्ण हैं।",
+      "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, notifications, and others) are important to the web3 experience.",
       "checkbox_label": "मैं समझता/समझती हूं और जारी रखना चाहता/चाहती हूं",
       "buttons": {
         "cancel": "कैंसिल करें",

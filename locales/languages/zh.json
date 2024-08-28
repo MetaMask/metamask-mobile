@@ -500,8 +500,10 @@
     "lists": "代币列表",
     "hide_cta": "隐藏代币",
     "options": {
+      "view_on_portfolio": "View on Portfolio",
       "view_on_block": "在区块浏览器上查看",
-      "token_details": "代币详情"
+      "token_details": "代币详情",
+      "remove_token": "Remove token"
     }
   },
   "activity_view": {
@@ -548,6 +550,7 @@
     "description_title": "帮助我们改进 MetaMask",
     "description_content_1": "我们希望收集基本的使用数据，以改进 MetaMask。请注意，我们绝不会出卖您在此处提供的数据。",
     "description_content_2": "当我们收集指标时，总是...",
+    "description_content_3": "Learn how we protect your privacy while collecting usage data for your profile.",
     "checkbox": "我们将使用此数据来了解您如何与我们的营销通信交互。我们可能会分享相关资讯（例如产品特点）。",
     "action_description_1_prefix": "私密：",
     "action_description_2_prefix": "通用：",
@@ -598,7 +601,21 @@
     "decimals_is_required": "需要小数位。请在下方查找：",
     "no_tokens_found": "我们无法找到具有该名称的任何代币。",
     "select_token": "选择代币",
-    "address_must_be_smart_contract": "检测到个人地址。输入代币合约地址。"
+    "address_must_be_smart_contract": "检测到个人地址。输入代币合约地址。",
+    "billion_abbreviation": "B",
+    "trillion_abbreviation": "T",
+    "million_abbreviation": "M",
+    "token_details": "Token details",
+    "contract_address": "Contract address",
+    "token_list": "Token list",
+    "market_details": "Market details",
+    "market_cap": "Market Cap",
+    "total_volume": "Total Volume (24h)",
+    "volume_to_marketcap": "Volume / Market Cap",
+    "circulating_supply": "Circulating supply",
+    "all_time_high": "All time high",
+    "all_time_low": "All time low",
+    "fully_diluted": "Fully diluted"
   },
   "collectible": {
     "collectible_address": "地址",
@@ -667,7 +684,10 @@
     "address_balance_activity_permission": "查看地址、账户余额和活动",
     "suggest_transactions": "建议要批准的交易",
     "disconnect": "断开连接",
+    "disconnect_all": "Disconnect all",
+    "reconnect_notice": "If you disconnect your accounts from {{dappUrl}}, you’ll need to reconnect to use them again.",
     "disconnect_all_accounts": "断开所有账户的连接",
+    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
     "deceptive_site_ahead": "前方为欺骗性网站",
     "deceptive_site_desc": "您尝试访问的网站并不安全。攻击者可能会诱使您做一些危险的事情",
     "learn_more": "了解详情",
@@ -685,6 +705,7 @@
     "accounts_connected": "账户已连接。",
     "disconnected": "已断开连接。",
     "disconnected_all": "所有账户都已断开连接。",
+    "disconnected_from": "Disconnected from {{dappHostName}}",
     "nft_detection_enabled": "已启用 NFT 自动检测"
   },
   "connect_qr_hardware": {
@@ -1701,6 +1722,10 @@
     "network_chain_id": "链 ID",
     "network_rpc_url": "网络URL",
     "network_rpc_url_label": "Network RPC URL",
+    "new_default_network_url": "New default network URL",
+    "current_label": "Current",
+    "new_label": "New",
+    "review": "Review",
     "view_details": "查看详情",
     "network_details": "网络详情",
     "network_select_confirm_use_safe_check": "选择“确认”即开启网络详情检查。您可以在下方关闭网络详情检查：",
@@ -2127,9 +2152,9 @@
     "transaction_id_copied_to_clipboard": "交易 ID 已复制到剪贴板",
     "activation_card": {
       "title": "开启通知",
-      "description_1": "通过通知随时了解您的钱包动态。",
+      "description_1": "Stay in the loop on what's happening in your wallet with notifications.",
       "description_2": "要使用此功能，我们将为您的账户生成一个匿名 ID。它仅用于同步您在 MetaMask 中的数据，不会链接到您的活动或其他标识符，从而保护您的隐私。",
-      "learn_more": "了解我们如何在使用此功能时保护您的隐私。",
+      "learn_more": "Learn how we protect your privacy while using this feature.",
       "manage_preferences_1": "您可以随时通过以下方式关闭通知：",
       "manage_preferences_2": "设置 > 通知。",
       "cancel": "取消",
@@ -2521,7 +2546,8 @@
       "sale_completed_title": "订单已完成",
       "sale_completed_description": "您的订单已成功！",
       "sale_pending_title": "正在处理{{currency}}的卖出",
-      "sale_pending_description": "您的订单正在处理中。"
+      "sale_pending_description": "您的订单正在处理中。",
+      "no_date": "Unknown"
     }
   },
   "swaps": {
@@ -3148,9 +3174,7 @@
     "how_to_install_eth_webview_title": "如何安装以太坊应用程序",
     "nonce_too_low": "唯一交易标识号安全性过低",
     "nonce_too_low_error": "设置的唯一交易标识号安全性过低",
-    "select_accounts": "Select an Account",
-    "select_accounts_warning": "Note: these accounts might be different to what you're used to.",
-    "select_accounts_sub_msg": "These accounts are derived using the BIP44 derivation path, which is different to the default Ledger Live derivation path on MetaMask Extension, Different derivation paths for Ledger will be available on MetaMask Mobile soon."
+    "select_accounts": "Select an Account"
   },
   "account_actions": {
     "edit_name": "编辑账户名",
@@ -3223,7 +3247,7 @@
       "title_off": "关闭基本功能",
       "description_off": "这意味着您不能充分优化您在 MetaMask 上的时间。您将无法使用基本功能（例如代币详情、最优燃料设置等）。",
       "title_on": "开启基本功能",
-      "description_on": "如需优化您在 MetaMask 上的时间，您将需要开启此功能。基本功能（例如代币详情、最优燃料设置等）对于 Web3 体验至关重要。",
+      "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, notifications, and others) are important to the web3 experience.",
       "checkbox_label": "我理解并想继续",
       "buttons": {
         "cancel": "取消",

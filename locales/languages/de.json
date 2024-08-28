@@ -500,8 +500,10 @@
     "lists": "Token-Listen",
     "hide_cta": "Token verbergen",
     "options": {
+      "view_on_portfolio": "View on Portfolio",
       "view_on_block": "Im Block-Explorer anzeigen",
-      "token_details": "Token-Details"
+      "token_details": "Token-Details",
+      "remove_token": "Remove token"
     }
   },
   "activity_view": {
@@ -548,6 +550,7 @@
     "description_title": "Helfen Sie uns dabei, MetaMask zu verbessern.",
     "description_content_1": "Wir würden gerne grundlegende Nutzungsdaten sammeln, um MetaMask zu verbessern. Sie sollten wissen, dass wir die Daten, die Sie uns hier zur Verfügung stellen, niemals verkaufen.",
     "description_content_2": "Wenn wir Metriken sammeln, wird es immer wie folgt sein ...",
+    "description_content_3": "Learn how we protect your privacy while collecting usage data for your profile.",
     "checkbox": "Wir verwenden diese Daten, um zu erfahren, wie Sie mit unserer Marketingkommunikation umgehen. Wir können relevante Neuigkeiten (wie Produktmerkmale) teilen.",
     "action_description_1_prefix": "Privat:",
     "action_description_2_prefix": "Allgemein:",
@@ -598,7 +601,21 @@
     "decimals_is_required": "Dezimalstelle ist erforderlich. Finden Sie sie auf:",
     "no_tokens_found": "Wir konnten keine Token mit diesem Namen finden.",
     "select_token": "Token auswählen",
-    "address_must_be_smart_contract": "Privatadresse erkannt. Geben Sie die Token-Contract-Adresse ein."
+    "address_must_be_smart_contract": "Privatadresse erkannt. Geben Sie die Token-Contract-Adresse ein.",
+    "billion_abbreviation": "B",
+    "trillion_abbreviation": "T",
+    "million_abbreviation": "M",
+    "token_details": "Token details",
+    "contract_address": "Contract address",
+    "token_list": "Token list",
+    "market_details": "Market details",
+    "market_cap": "Market Cap",
+    "total_volume": "Total Volume (24h)",
+    "volume_to_marketcap": "Volume / Market Cap",
+    "circulating_supply": "Circulating supply",
+    "all_time_high": "All time high",
+    "all_time_low": "All time low",
+    "fully_diluted": "Fully diluted"
   },
   "collectible": {
     "collectible_address": "Adresse",
@@ -667,7 +684,10 @@
     "address_balance_activity_permission": "Siehe Adresse, Kontostand und Aktivität",
     "suggest_transactions": "Transaktionen zur Bestätigung vorschlagen",
     "disconnect": "Trennen",
+    "disconnect_all": "Disconnect all",
+    "reconnect_notice": "If you disconnect your accounts from {{dappUrl}}, you’ll need to reconnect to use them again.",
     "disconnect_all_accounts": "Alle Konten trennen",
+    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
     "deceptive_site_ahead": "Täuschende Website voraus",
     "deceptive_site_desc": "Die Website, die Sie besuchen wollen, ist nicht sicher. Angreifer könnten Sie dazu verleiten, etwas Gefährliches zu tun.",
     "learn_more": "Mehr erfahren",
@@ -685,6 +705,7 @@
     "accounts_connected": "Konten verbunden.",
     "disconnected": "getrennt.",
     "disconnected_all": "Alle Konten wurden getrennt.",
+    "disconnected_from": "Disconnected from {{dappHostName}}",
     "nft_detection_enabled": "Automatische NFT-Erkennung aktiviert"
   },
   "connect_qr_hardware": {
@@ -1701,6 +1722,10 @@
     "network_chain_id": "Chain-ID",
     "network_rpc_url": "Netzwerk-URL",
     "network_rpc_url_label": "Network RPC URL",
+    "new_default_network_url": "New default network URL",
+    "current_label": "Current",
+    "new_label": "New",
+    "review": "Review",
     "view_details": "Details anzeigen",
     "network_details": "Netzwerkdetails",
     "network_select_confirm_use_safe_check": "Wenn Sie Bestätigen wählen, wird die Prüfung der Netzwerkdetails aktiviert. Sie können die Prüfung der Netzwerkdetails deaktivieren unter",
@@ -2127,9 +2152,9 @@
     "transaction_id_copied_to_clipboard": "Transaktions-ID in die Zwischenablage kopiert",
     "activation_card": {
       "title": "Benachrichtigungen einschalten",
-      "description_1": "Bleiben Sie mit Benachrichtigungen auf dem Laufenden darüber, was in Ihrer Wallet passiert. ",
+      "description_1": "Stay in the loop on what's happening in your wallet with notifications.",
       "description_2": "Um diese Funktion nutzen zu können, generieren wir eine anonyme ID für Ihr Konto. Sie wird nur für die Synchronisierung Ihrer Daten in MetaMask verwendet und ist nicht mit Ihren Aktivitäten oder anderen Identifikatoren verknüpft, sodass Ihre Privatsphäre gewahrt bleibt.",
-      "learn_more": "Erfahren Sie, wie wir Ihre Privatsphäre bei der Nutzung dieser Funktion schützen. ",
+      "learn_more": "Learn how we protect your privacy while using this feature.",
       "manage_preferences_1": "Sie können die Benachrichtigungen jederzeit ausschalten in ",
       "manage_preferences_2": "Einstellungen > Benachrichtigungen.",
       "cancel": "Stornieren",
@@ -2521,7 +2546,8 @@
       "sale_completed_title": "Bestellung abgeschlossen",
       "sale_completed_description": "Ihre Bestellung war erfolgreich!",
       "sale_pending_title": "{{currency}}-Verkaufsabwicklung",
-      "sale_pending_description": "Ihre Order wird soeben verarbeitet."
+      "sale_pending_description": "Ihre Order wird soeben verarbeitet.",
+      "no_date": "Unknown"
     }
   },
   "swaps": {
@@ -3148,9 +3174,7 @@
     "how_to_install_eth_webview_title": "So installieren Sie die Etherum-App",
     "nonce_too_low": "Nonce zu niedrig",
     "nonce_too_low_error": "Die eingestellte Nonce ist zu niedrig",
-    "select_accounts": "Select an Account",
-    "select_accounts_warning": "Note: these accounts might be different to what you're used to.",
-    "select_accounts_sub_msg": "These accounts are derived using the BIP44 derivation path, which is different to the default Ledger Live derivation path on MetaMask Extension, Different derivation paths for Ledger will be available on MetaMask Mobile soon."
+    "select_accounts": "Select an Account"
   },
   "account_actions": {
     "edit_name": "Kontonamen bearbeiten",
@@ -3223,7 +3247,7 @@
       "title_off": "Grundfunktionalität ausschalten",
       "description_off": "Dies bedeutet, dass Sie Ihre Zeit auf MetaMask nicht vollständig optimieren können. Grundlegende Funktionen (wie Token-Details, optimale Gas-Einstellungen und andere) stehen Ihnen nicht zur Verfügung.",
       "title_on": "Grundfunktionalität einschalten",
-      "description_on": "Um Ihre Zeit auf MetaMask zu optimieren, müssen Sie diese Funktion einschalten. Grundlegende Funktionen (wie Token-Details, optimale Gas-Einstellungen und andere) sind für das Web3-Erlebnis wichtig.",
+      "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, notifications, and others) are important to the web3 experience.",
       "checkbox_label": "Ich verstehe und möchte fortfahren",
       "buttons": {
         "cancel": "Abbrechen",
