@@ -14,7 +14,8 @@ const initialState = {
 describe('QrScanner', () => {
   it('should render correctly', () => {
     const { toJSON } = renderScreen(
-      QrScanner,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      QrScanner as any,
       { name: Routes.QR_TAB_SWITCHER },
       { state: initialState },
     );
