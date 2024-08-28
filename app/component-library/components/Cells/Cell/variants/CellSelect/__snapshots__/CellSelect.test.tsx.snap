@@ -209,7 +209,7 @@ exports[`CellSelect should render default settings correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -226,7 +226,7 @@ exports[`CellSelect should render default settings correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -242,7 +242,7 @@ exports[`CellSelect should render default settings correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -272,7 +272,7 @@ exports[`CellSelect should render default settings correctly 1`] = `
             style={
               {
                 "color": "#141618",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,

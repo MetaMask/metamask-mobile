@@ -267,7 +267,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                 style={
                   {
                     "color": "#141618",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -284,7 +284,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                 style={
                   {
                     "color": "#6a737d",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -325,7 +325,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "Euclid Circular B",
+                      "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 14,
                       "fontWeight": "400",
                       "letterSpacing": 0,
@@ -585,7 +585,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                 style={
                   {
                     "color": "#141618",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -602,7 +602,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                 style={
                   {
                     "color": "#6a737d",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -643,7 +643,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "Euclid Circular B",
+                      "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 14,
                       "fontWeight": "400",
                       "letterSpacing": 0,
@@ -933,7 +933,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                 style={
                   {
                     "color": "#141618",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -950,7 +950,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                 style={
                   {
                     "color": "#6a737d",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -1204,7 +1204,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                 style={
                   {
                     "color": "#141618",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -1221,7 +1221,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                 style={
                   {
                     "color": "#6a737d",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -1530,7 +1530,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
                 style={
                   {
                     "color": "#141618",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -1547,7 +1547,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
                 style={
                   {
                     "color": "#6a737d",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -1588,7 +1588,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "Euclid Circular B",
+                      "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 14,
                       "fontWeight": "400",
                       "letterSpacing": 0,
@@ -1848,7 +1848,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
                 style={
                   {
                     "color": "#141618",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -1865,7 +1865,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
                 style={
                   {
                     "color": "#6a737d",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -1906,7 +1906,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "Euclid Circular B",
+                      "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 14,
                       "fontWeight": "400",
                       "letterSpacing": 0,
@@ -2076,7 +2076,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                 style={
                   {
                     "color": "#141618",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -2093,7 +2093,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                 style={
                   {
                     "color": "#6a737d",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -2134,7 +2134,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "Euclid Circular B",
+                      "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 14,
                       "fontWeight": "400",
                       "letterSpacing": 0,
@@ -2278,7 +2278,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                 style={
                   {
                     "color": "#141618",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -2295,7 +2295,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                 style={
                   {
                     "color": "#6a737d",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,

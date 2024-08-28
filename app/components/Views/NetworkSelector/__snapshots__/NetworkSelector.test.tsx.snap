@@ -440,7 +440,7 @@ exports[`Network Selector renders correctly 1`] = `
                               style={
                                 {
                                   "color": "#141618",
-                                  "fontFamily": "Euclid Circular B",
+                                  "fontFamily": "EuclidCircularB-Bold",
                                   "fontSize": 18,
                                   "fontWeight": "700",
                                   "letterSpacing": 0,
@@ -566,7 +566,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         style={
                                           {
                                             "color": "#141618",
-                                            "fontFamily": "Euclid Circular B",
+                                            "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
@@ -707,7 +707,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         style={
                                           {
                                             "color": "#141618",
-                                            "fontFamily": "Euclid Circular B",
+                                            "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
@@ -824,7 +824,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         style={
                                           {
                                             "color": "#141618",
-                                            "fontFamily": "Euclid Circular B",
+                                            "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
@@ -941,7 +941,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         style={
                                           {
                                             "color": "#141618",
-                                            "fontFamily": "Euclid Circular B",
+                                            "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
@@ -1058,7 +1058,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         style={
                                           {
                                             "color": "#141618",
-                                            "fontFamily": "Euclid Circular B",
+                                            "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
@@ -1121,6 +1121,7 @@ exports[`Network Selector renders correctly 1`] = `
                                       <View
                                         style={
                                           {
+<<<<<<< HEAD
                                             "alignItems": "center",
                                             "backgroundColor": "#f2f4f6",
                                             "borderRadius": 16,
@@ -1129,6 +1130,14 @@ exports[`Network Selector renders correctly 1`] = `
                                             "justifyContent": "center",
                                             "overflow": "hidden",
                                             "width": 32,
+=======
+                                            "color": "#141618",
+                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+>>>>>>> f965eb8f79271b51945824086d02e9128bf9ff14
                                           }
                                         }
                                         testID="cellbase-avatar"
@@ -1173,7 +1182,7 @@ exports[`Network Selector renders correctly 1`] = `
                                         style={
                                           {
                                             "color": "#141618",
-                                            "fontFamily": "Euclid Circular B",
+                                            "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
@@ -1204,7 +1213,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   style={
                                     {
                                       "color": "#6a737d",
-                                      "fontFamily": "Euclid Circular B",
+                                      "fontFamily": "EuclidCircularB-Medium",
                                       "fontSize": 16,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
@@ -1265,14 +1274,13 @@ exports[`Network Selector renders correctly 1`] = `
                               }
                             }
                             testID="add-network-button"
-                            variant="Secondary"
                           >
                             <Text
                               accessibilityRole="text"
                               style={
                                 {
                                   "color": "#0376c9",
-                                  "fontFamily": "Euclid Circular B",
+                                  "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 14,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,

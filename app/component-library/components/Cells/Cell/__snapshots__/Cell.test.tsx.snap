@@ -208,7 +208,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
         style={
           {
             "color": "#141618",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -225,7 +225,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
         style={
           {
             "color": "#6a737d",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -241,7 +241,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
         style={
           {
             "color": "#6a737d",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -271,7 +271,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -534,7 +534,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -551,7 +551,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -567,7 +567,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -597,7 +597,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
             style={
               {
                 "color": "#141618",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -823,7 +823,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -840,7 +840,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -856,7 +856,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -886,7 +886,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
             style={
               {
                 "color": "#141618",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
