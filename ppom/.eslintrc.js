@@ -1,12 +1,12 @@
 // eslint-disable-next-line import/no-commonjs
 module.exports = {
   root: true,
-  parser: 'babel-eslint',
+  parser: '@typescript-eslint/parser',
   extends: [
     // @react-native-community
     // - Depends on babel-eslint parser
     // - Migrated to @react-native/eslint-config after v3.2.0
-    '@react-native-community',
+    '@react-native',
     'eslint:recommended',
     'plugin:import/warnings',
     'plugin:react/recommended',
