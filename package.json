@@ -93,7 +93,9 @@
     "patch:approval": "./scripts/patch-approval-controller.sh",
     "storybook-generate": "sb-rn-get-stories",
     "storybook-watch": "sb-rn-watcher",
-    "start:flipper": "npx flipper-server"
+    "start:flipper": "npx flipper-server",
+    "gen-bundle:ios": "npx react-native bundle --platform ios --dev false --entry-file index.js --bundle-output ios/js-bundle-exports/main.jsbundle",
+    "gen-bundle:android": "npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/js-bundle-exports/main.jsbundle"
   },
   "husky": {
     "hooks": {
