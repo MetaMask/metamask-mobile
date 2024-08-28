@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
+import notifee from '@notifee/react-native';
 import { NotificationsViewSelectorsIDs } from '../../../../e2e/selectors/NotificationsView.selectors';
 import styles from './styles';
 import Notifications from '../../UI/Notification/List';
@@ -49,6 +50,7 @@ const NotificationsView = ({
 
   const handleMarkAllAsRead = useCallback(() => {
     markNotificationAsRead(notifications);
+    notifee.setBadgeCount(0);
   }, [markNotificationAsRead, notifications]);
 
   const allNotifications = useMemo(() => {
@@ -74,6 +76,10 @@ const NotificationsView = ({
   // NOTE - We currently do not support web3 notifications
   const announcementNotifications = useMemo(() => [], []);
 
+  const unreadCount = useMemo(
+    () => allNotifications.filter((n) => !n.isRead).length,
+    [allNotifications],
+  );
   // Effect - fetch notifications when component/view is visible.
   useEffect(() => {
     async function updateNotifications() {
@@ -96,7 +102,7 @@ const NotificationsView = ({
             web3Notifications={announcementNotifications}
             loading={isLoading}
           />
-          {!isLoading && (
+          {!isLoading && unreadCount > 0 && (
             <Button
               variant={ButtonVariants.Primary}
               label={strings('notifications.mark_all_as_read')}
