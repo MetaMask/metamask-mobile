@@ -23,6 +23,7 @@ export default function migrate(state: unknown) {
   }
 
   const networkControllerState = state.engine.backgroundState.NetworkController;
+  let stateChanged = false;
 
   if (!isObject(networkControllerState)) {
     captureException(
@@ -79,6 +80,7 @@ export default function migrate(state: unknown) {
     ([networkConfigurationId, networkConfiguration]) => {
       if (isObject(networkConfiguration) && !networkConfiguration.id) {
         networkConfiguration.id = networkConfigurationId;
+        stateChanged = true;
       }
     },
   );
@@ -97,11 +99,13 @@ export default function migrate(state: unknown) {
     if (selectedNetworkId) {
       networkControllerState.selectedNetworkClientId = selectedNetworkId;
       networkControllerState.providerConfig.id = selectedNetworkId;
+      stateChanged = true;
     } else {
       networkControllerState.selectedNetworkClientId =
         InfuraNetworkType.mainnet;
+      stateChanged = true;
     }
   }
 
-  return state;
+  return stateChanged ? { ...state } : state;
 }
