@@ -309,7 +309,7 @@ const NetworkSelector = () => {
     networkName: string,
   ) => {
     const searchResult: ExtendedNetwork[] = networks.filter(({ name }) =>
-      name.toLowerCase().includes(networkName.toLowerCase()),
+      name?.toLowerCase().includes(networkName.toLowerCase()),
     );
 
     return searchResult;
