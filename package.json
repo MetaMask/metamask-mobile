@@ -18,7 +18,7 @@
     "lint:tsc": "tsc --project ./tsconfig.json",
     "format": "prettier '**/*.{js,ts,tsx,json,feature}' --write",
     "setup": "yarn clean && node scripts/setup.mjs",
-    "setup:node": "yarn clean:node && yarn allow-scripts && yarn patch-package",
+    "setup:node": "yarn allow-scripts && yarn patch-package",
     "setup:e2e": "cd wdio && yarn install",
     "setup:detox-e2e": "./scripts/detox-setup.sh",
     "start:ios": "./scripts/build.sh ios debug",
