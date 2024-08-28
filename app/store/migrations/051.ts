@@ -35,6 +35,18 @@ export default function migrate(state: unknown) {
     return state;
   }
 
+  if (!isObject(networkControllerState.providerConfig)) {
+    captureException(
+      new Error(
+        `FATAL ERROR: Migration 51: NetworkController networkConfigurations not found: '${JSON.stringify(
+          networkControllerState.providerConfig,
+        )}'`,
+      ),
+    );
+    return state;
+  }
+
+  // update network settings if chain 0x89 and ticker is MATIC
   for (const networkConfiguration of Object.values(
     networkControllerState.networkConfigurations as Record<
       string,
@@ -51,6 +63,15 @@ export default function migrate(state: unknown) {
       networkConfiguration.ticker = 'POL';
     }
   }
+
+  if (
+    networkControllerState.providerConfig.chainId === '0x89' &&
+    networkControllerState.providerConfig.ticker === 'MATIC'
+  ) {
+    networkControllerState.providerConfig.ticker = 'POL';
+  }
+
+  // update ticker to POL in providerConfig if chainId is 0x89 and ticker is MATIC
 
   console.log('DEBUG: ', networkControllerState);
 
