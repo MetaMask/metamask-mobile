@@ -1,4 +1,5 @@
 import React from 'react';
+import { Hex } from '@metamask/utils';
 
 interface WebViewFocus {
   webviewRef: React.RefObject<{
@@ -7,8 +8,8 @@ interface WebViewFocus {
     reload: () => void;
   }>;
   isFocused: boolean;
-  chainId: string;
-  previousChainId?: string;
+  chainId: Hex;
+  previousChainId?: Hex;
 }
 
 const handleWebViewFocus = ({

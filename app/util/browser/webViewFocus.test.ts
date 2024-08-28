@@ -1,27 +1,35 @@
+import { Hex } from '@metamask/utils';
 import handleWebViewFocus from './webViewFocus';
 
+interface WebViewRef {
+  injectJavaScript: (script: string) => void;
+  stopLoading: () => void;
+  reload: () => void;
+}
+
 describe('handleWebViewFocus', () => {
-  it('should stop loading when not focused', () => {
-    const stopLoading = jest.fn();
-    const reload = jest.fn();
-    const webviewRef = { current: { stopLoading, reload } };
+  let webviewRef: React.RefObject<WebViewRef>;
+  let stopLoading: jest.Mock;
+  let reload: jest.Mock;
 
-    handleWebViewFocus({ webviewRef, isFocused: false, chainId: '1' });
-
-    expect(stopLoading).toHaveBeenCalled();
-    expect(reload).not.toHaveBeenCalled();
+  beforeEach(() => {
+    stopLoading = jest.fn();
+    reload = jest.fn();
+    webviewRef = {
+      current: {
+        injectJavaScript: jest.fn(),
+        stopLoading,
+        reload,
+      },
+    };
   });
 
   it('should reload the webview if chainId has changed', () => {
-    const stopLoading = jest.fn();
-    const reload = jest.fn();
-    const webviewRef = { current: { stopLoading, reload } };
-
     handleWebViewFocus({
       webviewRef,
       isFocused: true,
-      chainId: '2',
-      previousChainId: '1',
+      chainId: '0x1' as Hex,
+      previousChainId: '0x2' as Hex,
     });
 
     expect(reload).toHaveBeenCalled();
@@ -29,15 +37,11 @@ describe('handleWebViewFocus', () => {
   });
 
   it('should not reload the webview if chainId has not changed', () => {
-    const stopLoading = jest.fn();
-    const reload = jest.fn();
-    const webviewRef = { current: { stopLoading, reload } };
-
     handleWebViewFocus({
       webviewRef,
       isFocused: true,
-      chainId: '1',
-      previousChainId: '1',
+      chainId: '0x1' as Hex,
+      previousChainId: '0x1' as Hex,
     });
 
     expect(reload).not.toHaveBeenCalled();
@@ -45,17 +49,26 @@ describe('handleWebViewFocus', () => {
   });
 
   it('should do nothing if webviewRef.current is null', () => {
-    const stopLoading = jest.fn();
-    const reload = jest.fn();
-    const webviewRef = { current: null };
-
     handleWebViewFocus({
-      webviewRef,
+      webviewRef: { current: null },
       isFocused: true,
-      chainId: '1',
+      chainId: '0x1' as Hex,
+      previousChainId: '0x2' as Hex,
     });
 
     expect(stopLoading).not.toHaveBeenCalled();
+    expect(reload).not.toHaveBeenCalled();
+  });
+
+  it('should stop loading if webview is not focused', () => {
+    handleWebViewFocus({
+      webviewRef,
+      isFocused: false,
+      chainId: '0x1' as Hex,
+      previousChainId: '0x1' as Hex,
+    });
+
+    expect(stopLoading).toHaveBeenCalled();
     expect(reload).not.toHaveBeenCalled();
   });
 });
