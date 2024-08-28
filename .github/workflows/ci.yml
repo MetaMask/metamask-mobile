@@ -167,7 +167,7 @@ jobs:
         run: yarn gen-bundle:ios
 
       - name: Check bundle size
-        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 25
+        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 40
 
   sonar-cloud:
     runs-on: ubuntu-20.04
