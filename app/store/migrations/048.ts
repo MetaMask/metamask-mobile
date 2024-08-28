@@ -14,6 +14,7 @@ interface MigratedState {
     timestamp: number;
     version: string;
     changedFields: string[];
+    attemptCount: number;
   };
 }
 
@@ -24,8 +25,20 @@ interface MigratedState {
  * @returns Updated state with migration changes, or original state if no changes were needed
  */
 export default function migrate(state: unknown): MigratedState {
+  const attemptCount = ((state as MigratedState).migrationDetails?.attemptCount || 0) + 1;
+  const timestamp = Date.now();
+  const version = '48.1';
+
+  const createMigrationDetails = (changesCount: number, changedFields: string[]) => ({
+    changesCount,
+    timestamp,
+    version,
+    changedFields,
+    attemptCount,
+  });
+
   if (!ensureValidState(state, 48)) {
-    return { ...state as MigratedState, migrationStatus: 'invalid_state' };
+    return { ...state as MigratedState, migrationStatus: 'invalid_state', migrationDetails: createMigrationDetails(0, []) };
   }
 
   if (!isObject(state) || !isObject((state as MigratedState).engine) || !isObject((state as MigratedState).engine?.backgroundState)) {
@@ -34,7 +47,7 @@ export default function migrate(state: unknown): MigratedState {
         `FATAL ERROR: Migration 48: Invalid state structure: '${JSON.stringify(state)}'`,
       ),
     );
-    return { ...state as MigratedState, migrationStatus: 'invalid_structure' };
+    return { ...state as MigratedState, migrationStatus: 'invalid_structure', migrationDetails: createMigrationDetails(0, []) };
   }
 
   const tokenRatesControllerState = (state as MigratedState).engine?.backgroundState?.TokenRatesController;
@@ -45,7 +58,7 @@ export default function migrate(state: unknown): MigratedState {
         `FATAL ERROR: Migration 48: Invalid TokenRatesController state: '${JSON.stringify(tokenRatesControllerState)}'`,
       ),
     );
-    return { ...state as MigratedState, migrationStatus: 'invalid_token_rates_controller' };
+    return { ...state as MigratedState, migrationStatus: 'invalid_token_rates_controller', migrationDetails: createMigrationDetails(0, []) };
   }
 
   const updatedTokenRatesControllerState = { ...tokenRatesControllerState };
@@ -67,30 +80,22 @@ export default function migrate(state: unknown): MigratedState {
     return {
       ...state as MigratedState,
       migrationStatus: 'no_changes_needed',
-      migrationDetails: {
-        changesCount: 0,
-        timestamp: Date.now(),
-        version: '48.1',
-        changedFields: [],
-      },
+      migrationDetails: createMigrationDetails(0, []),
     };
   }
 
   // Add migration metadata
-  const migrationDetails = {
-    changesCount,
-    timestamp: Date.now(),
-    version: '48.1',
-    changedFields,
-  };
+  const migrationDetails = createMigrationDetails(changesCount, changedFields);
 
   updatedTokenRatesControllerState.migrationMetadata = migrationDetails;
 
   // Add a random element to ensure variability
   updatedTokenRatesControllerState.migrationRandomId = Math.random().toString(36).substring(2, 15);
 
-  // Determine migration status based on changes
-  const migrationStatus = changesCount === 1 ? 'partial_success' : 'full_success';
+  // Determine migration status based on changes and attempt count
+  const migrationStatus = changesCount === 1 ? 'partial_success' :
+                          (changesCount > 1 ? 'full_success' :
+                          (attemptCount > 1 ? 'retry_success' : 'initial_success'));
 
   // Return a new state object with the updated TokenRatesController and migration status
   return {
