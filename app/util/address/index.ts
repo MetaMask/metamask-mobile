@@ -396,143 +396,170 @@ function checkIfAddressAlreadySaved(
 }
 
 /**
- *
  * @param {Object} params - Contains multiple variables that are needed to validate an address or ens
- * This function is needed in two place of the app, SendTo of SendFlow in order to send tokes and
- * is present in ContactForm of Contatcs, in order to add a new contact
- * Variables:
- * toAccount (String) - Represents the account address or ens
- * chainId (Hex String) - Represents the current chain ID
- * addressBook (Object) - Represents all the contacts that we have saved on the address book
- * internalAccounts (Array) InternalAccount - Represents our accounts on the current network of the wallet
- * providerType (String) - Represents the network name
- * @returns the variables that are needed for updating the state of the two flows metioned above
- * Variables:
- * addressError (String) - Contains the message or the error
- * toEnsName (String) - Represents the ens name of the destination account
- * addressReady (Bollean) - Represents if the address is validated or not
- * toEnsAddress (String) - Represents the address of the ens inserted
- * addToAddressToAddressBook (Boolean) - Represents if the address it can be add to the address book
- * toAddressName (String) - Represents the address of the destination account
- * errorContinue (Boolean) - Represents if with one error we can proceed or not to the next step if we wish
- * confusableCollection (Object) - Represents one array with the confusable characters of the ens
- *
+ * This function is needed in two places of the app: SendTo of SendFlow to send tokens and
+ * ContactForm of Contacts to add a new contact
+ * @param {string} toAccount - Represents the account address or ens
+ * @param {AddressBookState['addressBook']} addressBook - Represents all the contacts saved in the address book
+ * @param {InternalAccount[]} internalAccounts - Represents our accounts on the current network of the wallet
+ * @param {Hex} chainId - Represents the current chain ID
+ * @returns {Promise<{
+ * addressError?: string,
+ * toEnsName?: string,
+ * addressReady: boolean,
+ * toEnsAddress?: string,
+ * addToAddressToAddressBook: boolean,
+ * toAddressName?: string,
+ * errorContinue?: boolean,
+ * confusableCollection?: string[]
+ * }>} The variables needed for updating the state of the two flows mentioned above
  */
 export async function validateAddressOrENS(
   toAccount: string,
   addressBook: AddressBookState['addressBook'],
   internalAccounts: InternalAccount[],
   chainId: Hex,
-) {
+): Promise<{
+  addressError?: string;
+  toEnsName?: string;
+  addressReady: boolean;
+  toEnsAddress?: string;
+  addToAddressToAddressBook: boolean;
+  toAddressName?: string;
+  errorContinue?: boolean;
+  confusableCollection?: string[];
+}> {
   const { AssetsContractController } = Engine.context;
 
-  let addressError,
-    toEnsName,
-    toEnsAddress,
-    toAddressName,
-    errorContinue,
-    confusableCollection;
-
-  let [addressReady, addToAddressToAddressBook] = [false, false];
+  const result = {
+    addressError: undefined,
+    toEnsName: undefined,
+    addressReady: false,
+    toEnsAddress: undefined,
+    addToAddressToAddressBook: false,
+    toAddressName: undefined,
+    errorContinue: undefined,
+    confusableCollection: undefined,
+  };
 
   if (isValidHexAddress(toAccount, { mixedCaseUseChecksum: true })) {
-    const contactAlreadySaved = checkIfAddressAlreadySaved(
+    await handleValidHexAddress(
       toAccount,
       addressBook,
-      chainId,
       internalAccounts,
+      chainId,
+      AssetsContractController,
+      result,
     );
-
-    if (contactAlreadySaved) {
-      addressError = checkIfAddressAlreadySaved(
-        toAccount,
-        addressBook,
-        chainId,
-        internalAccounts,
-      );
-    }
-    const checksummedAddress = toChecksumAddress(toAccount);
-    addressReady = true;
-    const ens = await doENSReverseLookup(checksummedAddress);
-    if (ens) {
-      toAddressName = ens;
-      if (!contactAlreadySaved) {
-        addToAddressToAddressBook = true;
-      }
-    } else if (!contactAlreadySaved) {
-      toAddressName = toAccount;
-      // If not in the addressBook nor user accounts
-      addToAddressToAddressBook = true;
-    }
-
-    if (chainId !== undefined) {
-      const isMainnet = isMainnetByChainId(chainId);
-      // Check if it's token contract address on mainnet
-      if (isMainnet) {
-        try {
-          const symbol = await AssetsContractController.getERC721AssetSymbol(
-            checksummedAddress,
-          );
-          if (symbol) {
-            addressError = SYMBOL_ERROR;
-            errorContinue = true;
-          }
-        } catch (e) {
-          // Not a token address
-        }
-      }
-    }
-    /**
-     * Not using this for now; Import isSmartContractAddress from util/transactions and use this for checking smart contract: await isSmartContractAddress(toSelectedAddress);
-     * Check if it's smart contract address
-     */
-    /*
-               const smart = false; //
-
-               if (smart) {
-                    addressError = strings('transaction.smartContractAddressWarning');
-                    isOnlyWarning = true;
-               }
-               */
   } else if (isENS(toAccount)) {
-    toEnsName = toAccount;
-    confusableCollection = collectConfusables(toEnsName);
-    const resolvedAddress = await doENSLookup(toAccount, chainId);
-    const contactAlreadySaved = checkIfAddressAlreadySaved(
-      resolvedAddress,
-      addressBook,
-      chainId,
-      internalAccounts,
-    );
-
-    if (resolvedAddress) {
-      if (!contactAlreadySaved) {
-        addToAddressToAddressBook = true;
-      } else {
-        addressError = contactAlreadySaved;
-      }
-
-      toAddressName = toAccount;
-      toEnsAddress = resolvedAddress;
-      addressReady = true;
-    } else {
-      addressError = strings('transaction.could_not_resolve_ens');
-    }
+    await handleENS(toAccount, addressBook, internalAccounts, chainId, result);
   } else if (toAccount && toAccount.length >= 42) {
-    addressError = strings('transaction.invalid_address');
+    result.addressError = strings('transaction.invalid_address');
   }
 
-  return {
-    addressError,
-    toEnsName,
-    addressReady,
-    toEnsAddress,
-    addToAddressToAddressBook,
-    toAddressName,
-    errorContinue,
-    confusableCollection,
-  };
+  return result;
 }
+
+interface ValidationResult {
+  addressError?: string;
+  toEnsName?: string;
+  addressReady: boolean;
+  toEnsAddress?: string;
+  addToAddressToAddressBook: boolean;
+  toAddressName?: string;
+  errorContinue?: boolean;
+  confusableCollection?: string[];
+}
+
+interface AssetsContractControllerType {
+  getERC721AssetSymbol: (address: string) => Promise<string>;
+}
+
+async function handleValidHexAddress(
+  toAccount: string,
+  addressBook: AddressBookState['addressBook'],
+  internalAccounts: InternalAccount[],
+  chainId: Hex,
+  AssetsContractController: AssetsContractControllerType,
+  result: ValidationResult,
+): Promise<void> {
+  const contactAlreadySaved = checkIfAddressAlreadySaved(
+    toAccount,
+    addressBook,
+    chainId,
+    internalAccounts,
+  );
+  result.addressError = contactAlreadySaved || undefined;
+
+  const checksummedAddress = toChecksumAddress(toAccount);
+  result.addressReady = true;
+
+  const ens = await doENSReverseLookup(checksummedAddress);
+  if (ens) {
+    result.toAddressName = ens;
+    result.addToAddressToAddressBook = !contactAlreadySaved;
+  } else if (!contactAlreadySaved) {
+    result.toAddressName = toAccount;
+    result.addToAddressToAddressBook = true;
+  }
+
+  await checkForTokenContractAddress(
+    chainId,
+    checksummedAddress,
+    AssetsContractController,
+    result,
+  );
+}
+
+async function handleENS(
+  toAccount: string,
+  addressBook: AddressBookState['addressBook'],
+  internalAccounts: InternalAccount[],
+  chainId: Hex,
+  result: ValidationResult,
+): Promise<void> {
+  result.toEnsName = toAccount;
+  result.confusableCollection = collectConfusables(toAccount);
+  const resolvedAddress = await doENSLookup(toAccount, chainId);
+  const contactAlreadySaved = checkIfAddressAlreadySaved(
+    resolvedAddress,
+    addressBook,
+    chainId,
+    internalAccounts,
+  );
+
+  if (resolvedAddress) {
+    result.addToAddressToAddressBook = !contactAlreadySaved;
+    result.addressError = contactAlreadySaved || undefined;
+    result.toAddressName = toAccount;
+    result.toEnsAddress = resolvedAddress;
+    result.addressReady = true;
+  } else {
+    result.addressError = strings('transaction.could_not_resolve_ens');
+  }
+}
+
+async function checkForTokenContractAddress(
+  chainId: Hex,
+  checksummedAddress: string,
+  AssetsContractController: AssetsContractControllerType,
+  result: ValidationResult,
+): Promise<void> {
+  if (chainId !== undefined && isMainnetByChainId(chainId)) {
+    try {
+      const symbol = await AssetsContractController.getERC721AssetSymbol(
+        checksummedAddress,
+      );
+      if (symbol) {
+        result.addressError = SYMBOL_ERROR;
+        result.errorContinue = true;
+      }
+    } catch (e) {
+      // Not a token address
+    }
+  }
+}
+
 /** Method to evaluate if an input is a valid ethereum address
  * via QR code scanning.
  *
