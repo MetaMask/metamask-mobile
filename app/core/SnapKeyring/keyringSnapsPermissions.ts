@@ -9,7 +9,7 @@ import { KeyringRpcMethod } from '@metamask/keyring-api';
  */
 const PORTFOLIO_ORIGINS: string[] = [
   'https://portfolio.metamask.io',
-  ///: BEGIN:ONLY_INCLUDE_IF(build-flask)
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   'https://dev.portfolio.metamask.io',
   'https://stage.portfolio.metamask.io',
   'https://ramps-dev.portfolio.metamask.io',
@@ -64,7 +64,7 @@ const PORTFOLIO_ALLOWED_METHODS: string[] = [
  */
 const ALLOWED_PROTOCOLS: string[] = [
   'https:',
-  ///: BEGIN:ONLY_INCLUDE_IF(build-flask)
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   'http:',
   ///: END:ONLY_INCLUDE_IF
 ];
