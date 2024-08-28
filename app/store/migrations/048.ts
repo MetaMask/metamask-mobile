@@ -42,8 +42,9 @@ export default function migrate(state: unknown) {
     return state; // No changes were needed, return original state
   }
 
-  // Add a timestamp to ensure the state is always different when changes are made
+  // Add a timestamp and a unique identifier to ensure the state is always different when changes are made
   updatedTokenRatesControllerState.lastUpdated = Date.now();
+  updatedTokenRatesControllerState.migrationId = Math.random().toString(36).substring(2, 15);
 
   // Return a new state object with the updated TokenRatesController
   return {
