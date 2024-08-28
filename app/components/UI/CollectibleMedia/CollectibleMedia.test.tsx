@@ -35,11 +35,13 @@ describe('CollectibleMedia', () => {
           name: 'NAME',
           image: 'IMAGE',
           imagePreview: 'IMAGE',
-          tokenId: 123,
+          tokenId: '123',
           address: '0x123',
           backgroundColor: 'red',
           tokenURI:
             'ipfs://QmXt7k3uoihWSyzduXErHFGTTQ3a9rnokzw9s4ywKXKsA7QmXt7k3uoihWSyzduXErHFGTTQ3a9rnokzw9s4ywKXKsA7',
+          description: '123',
+          standard: 'ERC721',
         }}
       />,
       { state: mockInitialState },
@@ -54,11 +56,13 @@ describe('CollectibleMedia', () => {
           name: 'NAME',
           image: 'https://',
           imagePreview: 'https://',
-          tokenId: 123,
+          tokenId: '123',
           address: '0x123',
           backgroundColor: 'red',
           tokenURI:
             'ipfs://QmXt7k3uoihWSyzduXErHFGTTQ3a9rnokzw9s4ywKXKsA7QmXt7k3uoihWSyzduXErHFGTTQ3a9rnokzw9s4ywKXKsA7',
+          description: '123',
+          standard: 'ERC721',
         }}
       />,
       { state: mockInitialState },

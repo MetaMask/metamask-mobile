@@ -1,5 +1,8 @@
 import AppConstants from '../core/AppConstants';
 
+const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
+const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
+
 // Support
 export const SRP_GUIDE_URL =
   'https://support.metamask.io/getting-started/user-guide-secret-recovery-phrase-password-and-private-keys/';
@@ -37,12 +40,20 @@ export const KEYSTONE_LEARN_MORE =
   'https://keyst.one/metamask?rfsn=6088257.656b3e9&utm_source=refersion&utm_medium=affiliate&utm_campaign=6088257.656b3e9';
 export const KEYSTONE_SUPPORT_VIDEO = 'https://keyst.one/mmmvideo';
 
+//NGRAVE
+export const NGRAVE_LEARN_MORE = 'https://ngrave.io/zero';
+export const NGRAVE_BUY = 'https://shop.ngrave.io/';
+
 // Network
 export const CHAINLIST_URL = 'https://chainlist.wtf';
 export const MM_ETHERSCAN_URL = 'https://etherscamdb.info/domain/meta-mask.com';
 export const LINEA_GOERLI_BLOCK_EXPLORER = 'https://goerli.lineascan.build';
 export const LINEA_SEPOLIA_BLOCK_EXPLORER = 'https://sepolia.lineascan.build';
 export const LINEA_MAINNET_BLOCK_EXPLORER = 'https://lineascan.build';
+
+// Rpcs
+export const MAINNET_DEFAULT_RPC_URL = `https://mainnet.infura.io/v3/${infuraProjectId}`;
+export const LINEA_DEFAULT_RPC_URL = `https://linea-mainnet.infura.io/v3/${infuraProjectId}`;
 
 // Phishing
 export const MM_PHISH_DETECT_URL =
