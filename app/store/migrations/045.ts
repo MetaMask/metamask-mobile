@@ -6,7 +6,7 @@ import { ensureValidState } from './util';
  * Migration to update state of GasFeeController
  *
  * @param state Persisted Redux state
- * @returns
+ * @returns Updated state or original state if no changes were made
  */
 export default function migrate(state: unknown) {
   if (!ensureValidState(state, 45)) {
@@ -26,7 +26,21 @@ export default function migrate(state: unknown) {
     return state;
   }
 
-  gasFeeControllerState.nonRPCGasFeeApisDisabled = false;
+  // Check if the nonRPCGasFeeApisDisabled property already exists
+  if (!('nonRPCGasFeeApisDisabled' in gasFeeControllerState)) {
+    gasFeeControllerState.nonRPCGasFeeApisDisabled = false;
+    return {
+      ...state,
+      engine: {
+        ...state.engine,
+        backgroundState: {
+          ...state.engine.backgroundState,
+          GasFeeController: gasFeeControllerState,
+        },
+      },
+    };
+  }
 
+  // If no changes were made, return the original state
   return state;
 }
