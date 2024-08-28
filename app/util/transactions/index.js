@@ -717,6 +717,165 @@ export const calculateERC20EIP1559 = ({
   ];
 };
 
+export const getTimeEstimateColor = (selectedOption, recommended) => {
+  if (!selectedOption) return 'grey';
+  if (recommended === AppConstants.GAS_OPTIONS.HIGH) {
+    return selectedOption === AppConstants.GAS_OPTIONS.HIGH ? 'green' : 'red';
+  }
+  return selectedOption === AppConstants.GAS_OPTIONS.LOW ? 'red' : 'green';
+};
+
+export const hasValidGasFeeEstimates = (selectedOption, gasFeeEstimates) =>
+  selectedOption &&
+  gasFeeEstimates &&
+  gasFeeEstimates[AppConstants.GAS_OPTIONS.LOW] &&
+  gasFeeEstimates[AppConstants.GAS_OPTIONS.MEDIUM] &&
+  gasFeeEstimates[AppConstants.GAS_OPTIONS.HIGH];
+
+export const calculateTimeEstimate = (
+  selectedOption,
+  gasFeeEstimates,
+  timeParams,
+) => {
+  const LOW = AppConstants.GAS_OPTIONS.LOW;
+  const MEDIUM = AppConstants.GAS_OPTIONS.MEDIUM;
+  const HIGH = AppConstants.GAS_OPTIONS.HIGH;
+
+  if (selectedOption === LOW && gasFeeEstimates[LOW].maxWaitTimeEstimate) {
+    return {
+      timeEstimate: `${strings('times_eip1559.maybe')} ${humanizeDuration(
+        gasFeeEstimates[LOW].maxWaitTimeEstimate,
+        timeParams,
+      )}`,
+      timeEstimateId: AppConstants.GAS_TIMES.MAYBE,
+    };
+  } else if (
+    selectedOption === MEDIUM &&
+    gasFeeEstimates[LOW].maxWaitTimeEstimate
+  ) {
+    return {
+      timeEstimate: `${strings('times_eip1559.likely')} ${humanizeDuration(
+        gasFeeEstimates[LOW].maxWaitTimeEstimate,
+        timeParams,
+      )}`,
+      timeEstimateId: AppConstants.GAS_TIMES.LIKELY,
+    };
+  } else if (
+    selectedOption === HIGH &&
+    gasFeeEstimates[HIGH].minWaitTimeEstimate
+  ) {
+    return {
+      timeEstimate: `${strings('times_eip1559.likely_in')} ${humanizeDuration(
+        gasFeeEstimates[HIGH].minWaitTimeEstimate,
+        timeParams,
+      )}`,
+      timeEstimateId: AppConstants.GAS_TIMES.VERY_LIKELY,
+    };
+  }
+  return null;
+};
+
+export const isHighPriorityFee = (
+  suggestedMaxPriorityFeePerGas,
+  gasFeeEstimates,
+) =>
+  Number(suggestedMaxPriorityFeePerGas) >=
+  Number(
+    gasFeeEstimates[AppConstants.GAS_OPTIONS.HIGH]
+      .suggestedMaxPriorityFeePerGas,
+  );
+
+export const getHighPriorityTimeEstimate = (gasFeeEstimates, timeParams) =>
+  `${strings('times_eip1559.likely_in')} ${humanizeDuration(
+    gasFeeEstimates[AppConstants.GAS_OPTIONS.HIGH].minWaitTimeEstimate,
+    timeParams,
+  )}`;
+
+export const getGasFeeControllerTimeEstimate = (
+  suggestedMaxPriorityFeePerGas,
+  suggestedMaxFeePerGas,
+) => {
+  const { GasFeeController } = Engine.context;
+  return GasFeeController.getTimeEstimate(
+    suggestedMaxPriorityFeePerGas,
+    suggestedMaxFeePerGas,
+  );
+};
+
+export const calculateTimeEstimateFromTimes = (
+  times,
+  selectedOption,
+  timeParams,
+) => {
+  if (
+    !times ||
+    times === 'unknown' ||
+    Object.keys(times).length < 2 ||
+    times.upperTimeBound === 'unknown'
+  ) {
+    return {
+      timeEstimate: strings('times_eip1559.unknown'),
+      timeEstimateId: AppConstants.GAS_TIMES.UNKNOWN,
+      timeEstimateColor: 'red',
+    };
+  }
+
+  const LOW = AppConstants.GAS_OPTIONS.LOW;
+  const MEDIUM = AppConstants.GAS_OPTIONS.MEDIUM;
+  const HIGH = AppConstants.GAS_OPTIONS.HIGH;
+
+  if (selectedOption === LOW) {
+    return {
+      timeEstimate: `${strings('times_eip1559.maybe')} ${humanizeDuration(
+        times.upperTimeBound,
+        timeParams,
+      )}`,
+      timeEstimateId: AppConstants.GAS_TIMES.MAYBE,
+    };
+  } else if (selectedOption === MEDIUM) {
+    return {
+      timeEstimate: `${strings('times_eip1559.likely')} ${humanizeDuration(
+        times.upperTimeBound,
+        timeParams,
+      )}`,
+      timeEstimateId: AppConstants.GAS_TIMES.LIKELY,
+    };
+  } else if (selectedOption === HIGH) {
+    return {
+      timeEstimate: `${strings('times_eip1559.very_likely')} ${humanizeDuration(
+        times.upperTimeBound,
+        timeParams,
+      )}`,
+      timeEstimateId: AppConstants.GAS_TIMES.VERY_LIKELY,
+    };
+  } else if (times.upperTimeBound === 0) {
+    return {
+      timeEstimate: `${strings('times_eip1559.at_least')} ${humanizeDuration(
+        times.lowerTimeBound,
+        timeParams,
+      )}`,
+      timeEstimateColor: 'red',
+      timeEstimateId: AppConstants.GAS_TIMES.AT_LEAST,
+    };
+  } else if (times.lowerTimeBound === 0) {
+    return {
+      timeEstimate: `${strings('times_eip1559.less_than')} ${humanizeDuration(
+        times.upperTimeBound,
+        timeParams,
+      )}`,
+      timeEstimateColor: 'green',
+      timeEstimateId: AppConstants.GAS_TIMES.LESS_THAN,
+    };
+  }
+  return {
+    timeEstimate: `${humanizeDuration(
+      times.lowerTimeBound,
+      timeParams,
+    )} - ${humanizeDuration(times.upperTimeBound, timeParams)}`,
+    timeEstimateId: AppConstants.GAS_TIMES.RANGE,
+  };
+};
+
 export const calculateEIP1559Times = ({
   suggestedMaxPriorityFeePerGas,
   suggestedMaxFeePerGas,
@@ -728,145 +887,48 @@ export const calculateEIP1559Times = ({
   let timeEstimateColor = 'grey';
   let timeEstimateId;
 
-  const LOW = AppConstants.GAS_OPTIONS.LOW;
   const MEDIUM = AppConstants.GAS_OPTIONS.MEDIUM;
-  const HIGH = AppConstants.GAS_OPTIONS.HIGH;
 
-  if (!recommended) recommended = MEDIUM;
+  recommended = recommended || MEDIUM;
 
-  if (!selectedOption) {
-    timeEstimateColor = 'grey';
-  } else if (recommended === HIGH) {
-    if (selectedOption === HIGH) timeEstimateColor = 'green';
-    else timeEstimateColor = 'red';
-  } else if (selectedOption === LOW) {
-    timeEstimateColor = 'red';
-  } else {
-    timeEstimateColor = 'green';
-  }
+  timeEstimateColor = getTimeEstimateColor(selectedOption, recommended);
+
+  const language = I18n.locale.substr(0, 2);
+  const timeParams = { language, fallbacks: ['en'] };
 
   try {
-    const language = I18n.locale.substr(0, 2);
+    if (hasValidGasFeeEstimates(selectedOption, gasFeeEstimates)) {
+      const result = calculateTimeEstimate(
+        selectedOption,
+        gasFeeEstimates,
+        timeParams,
+      );
+      if (result) {
+        ({ timeEstimate, timeEstimateId } = result);
 
-    const timeParams = {
-      language,
-      fallbacks: ['en'],
-    };
+        if (isHighPriorityFee(suggestedMaxPriorityFeePerGas, gasFeeEstimates)) {
+          timeEstimate = getHighPriorityTimeEstimate(
+            gasFeeEstimates,
+            timeParams,
+          );
+          timeEstimateColor = 'orange';
+          timeEstimateId = AppConstants.GAS_TIMES.VERY_LIKELY;
+        }
 
-    if (
-      selectedOption &&
-      gasFeeEstimates &&
-      gasFeeEstimates[LOW] &&
-      gasFeeEstimates[MEDIUM] &&
-      gasFeeEstimates[HIGH]
-    ) {
-      let hasTime = false;
-      if (selectedOption === LOW && gasFeeEstimates[LOW].maxWaitTimeEstimate) {
-        timeEstimate = `${strings('times_eip1559.maybe')} ${humanizeDuration(
-          gasFeeEstimates[LOW].maxWaitTimeEstimate,
-          timeParams,
-        )}`;
-        timeEstimateId = AppConstants.GAS_TIMES.MAYBE;
-        hasTime = true;
-      } else if (
-        selectedOption === MEDIUM &&
-        gasFeeEstimates[LOW].maxWaitTimeEstimate
-      ) {
-        timeEstimate = `${strings('times_eip1559.likely')} ${humanizeDuration(
-          gasFeeEstimates[LOW].maxWaitTimeEstimate,
-          timeParams,
-        )}`;
-        timeEstimateId = AppConstants.GAS_TIMES.LIKELY;
-        hasTime = true;
-      } else if (
-        selectedOption === HIGH &&
-        gasFeeEstimates[HIGH].minWaitTimeEstimate
-      ) {
-        timeEstimate = `${strings(
-          'times_eip1559.likely_in',
-        )} ${humanizeDuration(
-          gasFeeEstimates[HIGH].minWaitTimeEstimate,
-          timeParams,
-        )}`;
-        timeEstimateId = AppConstants.GAS_TIMES.VERY_LIKELY;
-        hasTime = true;
-      }
-
-      if (
-        Number(suggestedMaxPriorityFeePerGas) >=
-        Number(gasFeeEstimates[HIGH].suggestedMaxPriorityFeePerGas)
-      ) {
-        timeEstimate = `${strings(
-          'times_eip1559.likely_in',
-        )} ${humanizeDuration(
-          gasFeeEstimates[HIGH].minWaitTimeEstimate,
-          timeParams,
-        )}`;
-        timeEstimateColor = 'orange';
-        timeEstimateId = AppConstants.GAS_TIMES.VERY_LIKELY;
-      }
-
-      if (hasTime) {
         return { timeEstimate, timeEstimateColor, timeEstimateId };
       }
     }
 
-    const { GasFeeController } = Engine.context;
-    const times = GasFeeController.getTimeEstimate(
+    const times = getGasFeeControllerTimeEstimate(
       suggestedMaxPriorityFeePerGas,
       suggestedMaxFeePerGas,
     );
-
-    if (
-      !times ||
-      times === 'unknown' ||
-      Object.keys(times).length < 2 ||
-      times.upperTimeBound === 'unknown'
-    ) {
-      timeEstimate = strings('times_eip1559.unknown');
-      timeEstimateId = AppConstants.GAS_TIMES.UNKNOWN;
-      timeEstimateColor = 'red';
-    } else if (selectedOption === LOW) {
-      timeEstimate = `${strings('times_eip1559.maybe')} ${humanizeDuration(
-        times.upperTimeBound,
-        timeParams,
-      )}`;
-      timeEstimateId = AppConstants.GAS_TIMES.MAYBE;
-    } else if (selectedOption === MEDIUM) {
-      timeEstimate = `${strings('times_eip1559.likely')} ${humanizeDuration(
-        times.upperTimeBound,
-        timeParams,
-      )}`;
-      timeEstimateId = AppConstants.GAS_TIMES.LIKELY;
-    } else if (selectedOption === HIGH) {
-      timeEstimate = `${strings(
-        'times_eip1559.very_likely',
-      )} ${humanizeDuration(times.upperTimeBound, timeParams)}`;
-      timeEstimateId = AppConstants.GAS_TIMES.VERY_LIKELY;
-    } else if (times.upperTimeBound === 0) {
-      timeEstimate = `${strings('times_eip1559.at_least')} ${humanizeDuration(
-        times.lowerTimeBound,
-        timeParams,
-      )}`;
-      timeEstimateColor = 'red';
-      timeEstimateId = AppConstants.GAS_TIMES.AT_LEAST;
-    } else if (times.lowerTimeBound === 0) {
-      timeEstimate = `${strings('times_eip1559.less_than')} ${humanizeDuration(
-        times.upperTimeBound,
-        timeParams,
-      )}`;
-      timeEstimateColor = 'green';
-      timeEstimateId = AppConstants.GAS_TIMES.LESS_THAN;
-    } else {
-      timeEstimate = `${humanizeDuration(
-        times.lowerTimeBound,
-        timeParams,
-      )} - ${humanizeDuration(times.upperTimeBound, timeParams)}`;
-      timeEstimateId = AppConstants.GAS_TIMES.RANGE;
-    }
+    ({ timeEstimate, timeEstimateColor, timeEstimateId } =
+      calculateTimeEstimateFromTimes(times, selectedOption, timeParams));
   } catch (error) {
     Logger.log('ERROR ESTIMATING TIME', error);
   }
+
   if (!timeEstimateId) {
     timeEstimate = AppConstants.GAS_TIMES.UNKNOWN;
   }
