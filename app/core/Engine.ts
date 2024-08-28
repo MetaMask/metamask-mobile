@@ -921,11 +921,11 @@ class Engine {
         ],
       }),
       state: initialState.SelectedNetworkController || { domains: {} },
-      // useRequestQueuePreference: !!process.env.MULTICHAIN_V1,
-      useRequestQueuePreference: true,
+      useRequestQueuePreference: !!process.env.MULTICHAIN_V1,
+      // TODO we need to modify core PreferencesController for better cross client support
       onPreferencesStateChange: (
         listener: ({ useRequestQueue }: { useRequestQueue: boolean }) => void,
-      ) => listener({ useRequestQueue: true }),
+      ) => listener({ useRequestQueue: !!process.env.MULTICHAIN_V1 }),
       domainProxyMap: new DomainProxyMap(),
     });
 
