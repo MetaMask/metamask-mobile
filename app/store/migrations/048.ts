@@ -45,6 +45,7 @@ export default function migrate(state: unknown) {
   // Add a timestamp to ensure the state is always different when changes are made
   updatedTokenRatesControllerState.lastUpdated = Date.now();
 
+  // Return a new state object with the updated TokenRatesController
   return {
     ...state,
     engine: {
