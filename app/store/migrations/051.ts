@@ -1,6 +1,7 @@
 import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
+import { NetworkState } from '@metamask/network-controller';
 
 /**
  * Migration to overwrite MATIC token ticker to POL
@@ -13,7 +14,8 @@ export default function migrate(state: unknown) {
     return state;
   }
 
-  const networkControllerState = state.engine.backgroundState.NetworkController;
+  const networkControllerState = state.engine.backgroundState
+    .NetworkController as NetworkState;
 
   if (!isObject(networkControllerState)) {
     captureException(
