@@ -104,7 +104,7 @@ const Settings = () => {
   };
 
   const goToManagePermissions = () => {
-    navigation.navigate('SDKSessionsManager');
+    navigation.navigate('PermissionsManager');
   };
 
   const goToBrowserUrl = (url: string, title: string) => {

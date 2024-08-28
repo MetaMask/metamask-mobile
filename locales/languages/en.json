@@ -887,6 +887,8 @@
     "contacts_desc": "Add, edit, remove, and manage your accounts",
     "permissions_title": "Permissions",
     "permissions_desc": "Manage the permissions given to sites and apps",
+    "no_permissions": "No permissions",
+    "no_permissions_desc": "If you connect an account to a site or an app, you’ll see it here.",
     "security_title": "Security & Privacy",
     "back": "Back",
     "security_desc": "Privacy settings, MetaMetrics, private key and wallet Secret Recovery Phrase",

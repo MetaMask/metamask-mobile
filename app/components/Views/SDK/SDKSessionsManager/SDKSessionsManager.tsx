@@ -24,9 +24,6 @@ import { RootState } from '../../../../reducers';
 import { SDKSelectorsIDs } from '../../../../../e2e/selectors/Settings/SDK.selectors';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import SDKSessionItem from './SDKSessionItem';
-import PermissionItem from './PermissionItem';
-import { isMutichainVersion1Enabled } from '../../../../util/networks';
-import mockPermissionItems from './PermissionItem/PermissionItem.constants';
 
 interface SDKSessionsManagerProps {
   // TODO: Replace "any" with type
@@ -95,9 +92,7 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
     const { navigation } = props;
     navigation.setOptions(
       getNavigationOptionsTitle(
-        isMutichainVersion1Enabled
-          ? strings('app_settings.permissions_title')
-          : strings('app_settings.manage_sdk_connections_title'),
+        strings('app_settings.manage_sdk_connections_title'),
         navigation,
         false,
         colors,
@@ -122,26 +117,17 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
               connection={androidSession}
             />
           ))}
-          {
-            /* TODO: replace mock data with real data once available */
-            isMutichainVersion1Enabled &&
-              mockPermissionItems.map((mockPermissionItem, _index) => (
-                <PermissionItem key={`${_index}`} item={mockPermissionItem} />
-              ))
-          }
         </ScrollView>
-        {!isMutichainVersion1Enabled && (
-          <View style={styles.disconnectAllContainer}>
-            <Button
-              variant={ButtonVariants.Secondary}
-              label={strings('sdk.disconnect_all')}
-              style={styles.btnAction}
-              onPress={() => {
-                toggleClearMMSDKConnectionModal();
-              }}
-            />
-          </View>
-        )}
+        <View style={styles.disconnectAllContainer}>
+          <Button
+            variant={ButtonVariants.Secondary}
+            label={strings('sdk.disconnect_all')}
+            style={styles.btnAction}
+            onPress={() => {
+              toggleClearMMSDKConnectionModal();
+            }}
+          />
+        </View>
       </>
     ),
     [
@@ -170,8 +156,7 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
       style={styles.wrapper}
       testID={SDKSelectorsIDs.SESSION_MANAGER_CONTAINER}
     >
-      {connectionsList.length + dappConnectionsList.length > 0 ||
-      (isMutichainVersion1Enabled && mockPermissionItems.length)
+      {connectionsList.length + dappConnectionsList.length > 0
         ? renderSDKSessions()
         : renderEmptyResult()}
     </View>
