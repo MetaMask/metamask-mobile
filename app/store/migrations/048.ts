@@ -21,6 +21,11 @@ interface MigratedState {
     duration: number;
     memoryUsage: number;
   };
+  migrationResult?: {
+    status: string;
+    details: any;
+    hash: string;
+  };
 }
 
 /**
@@ -45,8 +50,19 @@ export default function migrate(state: unknown): MigratedState {
     attemptCount,
   });
 
+  const generateMigrationResult = (status: string, details: any) => ({
+    status,
+    details,
+    hash: Math.random().toString(36).substring(2, 15),
+  });
+
   if (!ensureValidState(state, 48)) {
-    return { ...state as MigratedState, migrationStatus: 'invalid_state', migrationDetails: createMigrationDetails(0, []) };
+    return {
+      ...state as MigratedState,
+      migrationStatus: 'invalid_state',
+      migrationDetails: createMigrationDetails(0, []),
+      migrationResult: generateMigrationResult('invalid_state', { error: 'Invalid state' }),
+    };
   }
 
   if (!isObject(state) || !isObject((state as MigratedState).engine) || !isObject((state as MigratedState).engine?.backgroundState)) {
@@ -55,7 +71,12 @@ export default function migrate(state: unknown): MigratedState {
         `FATAL ERROR: Migration 48: Invalid state structure: '${JSON.stringify(state)}'`,
       ),
     );
-    return { ...state as MigratedState, migrationStatus: 'invalid_structure', migrationDetails: createMigrationDetails(0, []) };
+    return {
+      ...state as MigratedState,
+      migrationStatus: 'invalid_structure',
+      migrationDetails: createMigrationDetails(0, []),
+      migrationResult: generateMigrationResult('invalid_structure', { error: 'Invalid state structure' }),
+    };
   }
 
   const tokenRatesControllerState = (state as MigratedState).engine?.backgroundState?.TokenRatesController;
@@ -66,7 +87,12 @@ export default function migrate(state: unknown): MigratedState {
         `FATAL ERROR: Migration 48: Invalid TokenRatesController state: '${JSON.stringify(tokenRatesControllerState)}'`,
       ),
     );
-    return { ...state as MigratedState, migrationStatus: 'invalid_token_rates_controller', migrationDetails: createMigrationDetails(0, []) };
+    return {
+      ...state as MigratedState,
+      migrationStatus: 'invalid_token_rates_controller',
+      migrationDetails: createMigrationDetails(0, []),
+      migrationResult: generateMigrationResult('invalid_token_rates_controller', { error: 'Invalid TokenRatesController state' }),
+    };
   }
 
   const updatedTokenRatesControllerState = { ...tokenRatesControllerState };
@@ -90,6 +116,7 @@ export default function migrate(state: unknown): MigratedState {
       migrationStatus: 'no_changes_needed',
       migrationDetails: createMigrationDetails(0, []),
       stateComplexity: calculateStateComplexity(state as MigratedState),
+      migrationResult: generateMigrationResult('no_changes_needed', { changesCount: 0 }),
     };
   }
 
@@ -98,15 +125,25 @@ export default function migrate(state: unknown): MigratedState {
 
   updatedTokenRatesControllerState.migrationMetadata = migrationDetails;
 
-  // Add a random element to ensure variability
-  updatedTokenRatesControllerState.migrationRandomId = Math.random().toString(36).substring(2, 15);
-
   // Determine migration status based on changes, attempt count, and state complexity
   const stateComplexity = calculateStateComplexity(state as MigratedState);
   const migrationStatus = determineMigrationStatus(changesCount, attemptCount, stateComplexity);
 
   const endTime = process.hrtime(startTime);
   const endMemory = process.memoryUsage().heapUsed;
+
+  const migrationPerformance = {
+    duration: endTime[0] * 1000 + endTime[1] / 1e6, // Convert to milliseconds
+    memoryUsage: endMemory - startMemory,
+  };
+
+  // Generate a unique migration result
+  const migrationResult = generateMigrationResult(migrationStatus, {
+    changesCount,
+    changedFields,
+    stateComplexity,
+    performance: migrationPerformance,
+  });
 
   // Return a new state object with the updated TokenRatesController, migration status, and performance metrics
   return {
@@ -121,10 +158,8 @@ export default function migrate(state: unknown): MigratedState {
     migrationStatus,
     migrationDetails,
     stateComplexity,
-    migrationPerformance: {
-      duration: endTime[0] * 1000 + endTime[1] / 1e6, // Convert to milliseconds
-      memoryUsage: endMemory - startMemory,
-    },
+    migrationPerformance,
+    migrationResult,
   };
 }
 
