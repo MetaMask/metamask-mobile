@@ -1,6 +1,5 @@
 /* eslint-disable import/no-commonjs */
 import URL from 'url-parse';
-import { ChainId } from '@metamask/controller-utils';
 import { JsonRpcEngine } from 'json-rpc-engine';
 import MobilePortStream from '../MobilePortStream';
 import { setupMultiplex } from '../../util/streams';
@@ -10,17 +9,12 @@ import {
 } from '../../util/middlewares';
 import Engine from '../Engine';
 import { createSanitizationMiddleware } from '../SanitizationMiddleware';
-import { getAllNetworks } from '../../util/networks';
 import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
 import { createEngineStream } from 'json-rpc-middleware-stream';
 import RemotePort from './RemotePort';
 import WalletConnectPort from './WalletConnectPort';
 import Port from './Port';
-import {
-  selectChainId,
-  selectProviderConfig,
-} from '../../selectors/networkController';
 import { store } from '../../store';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
@@ -110,14 +104,9 @@ export class BackgroundBridge extends EventEmitter {
     );
 
     this.lastChainIdSent = networkClient.configuration.chainId;
-    console.log(
-      'ALEX LOGGGING____ lastChainIdSent:',
-      this.lastChainIdSent,
-      'origin:',
-      this.hostname,
-    );
 
-    this.networkVersionSent = store.getState().inpageProvider.networkId;
+    // TODO ALEX figure out how to get the correct network version synchronously
+    this.networkVersionSent = parseInt(networkClient.configuration.chainId, 16).toString();
 
     // This will only be used for WalletConnect for now
     this.addressSent =
@@ -252,10 +241,6 @@ export class BackgroundBridge extends EventEmitter {
             console.error(error);
             resolve(null);
           } else {
-            if (result && !result.startsWith('0x')) {
-              // Convert to hex
-              result = `0x${parseInt(result, 10).toString(16)}`;
-            }
             resolve(result);
           }
         });
@@ -334,10 +319,6 @@ export class BackgroundBridge extends EventEmitter {
     ) {
       this.lastChainIdSent = publicState.chainId;
       this.networkVersionSent = publicState.networkVersion;
-      console.log(
-        'ALEX LOGGGING____ going to notify of chainChanged',
-        this.hostname,
-      );
       await this.notifyChainChanged(publicState);
     }
     // ONLY NEEDED FOR WC FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
