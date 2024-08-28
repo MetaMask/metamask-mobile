@@ -16,6 +16,11 @@ interface MigratedState {
     changedFields: string[];
     attemptCount: number;
   };
+  stateComplexity?: number;
+  migrationPerformance?: {
+    duration: number;
+    memoryUsage: number;
+  };
 }
 
 /**
@@ -25,9 +30,12 @@ interface MigratedState {
  * @returns Updated state with migration changes, or original state if no changes were needed
  */
 export default function migrate(state: unknown): MigratedState {
+  const startTime = process.hrtime();
+  const startMemory = process.memoryUsage().heapUsed;
+
   const attemptCount = ((state as MigratedState).migrationDetails?.attemptCount || 0) + 1;
   const timestamp = Date.now();
-  const version = '48.1';
+  const version = '48.2';
 
   const createMigrationDetails = (changesCount: number, changedFields: string[]) => ({
     changesCount,
@@ -81,6 +89,7 @@ export default function migrate(state: unknown): MigratedState {
       ...state as MigratedState,
       migrationStatus: 'no_changes_needed',
       migrationDetails: createMigrationDetails(0, []),
+      stateComplexity: calculateStateComplexity(state as MigratedState),
     };
   }
 
@@ -92,12 +101,14 @@ export default function migrate(state: unknown): MigratedState {
   // Add a random element to ensure variability
   updatedTokenRatesControllerState.migrationRandomId = Math.random().toString(36).substring(2, 15);
 
-  // Determine migration status based on changes and attempt count
-  const migrationStatus = changesCount === 1 ? 'partial_success' :
-                          (changesCount > 1 ? 'full_success' :
-                          (attemptCount > 1 ? 'retry_success' : 'initial_success'));
+  // Determine migration status based on changes, attempt count, and state complexity
+  const stateComplexity = calculateStateComplexity(state as MigratedState);
+  const migrationStatus = determineMigrationStatus(changesCount, attemptCount, stateComplexity);
 
-  // Return a new state object with the updated TokenRatesController and migration status
+  const endTime = process.hrtime(startTime);
+  const endMemory = process.memoryUsage().heapUsed;
+
+  // Return a new state object with the updated TokenRatesController, migration status, and performance metrics
   return {
     ...(state as MigratedState),
     engine: {
@@ -109,5 +120,27 @@ export default function migrate(state: unknown): MigratedState {
     },
     migrationStatus,
     migrationDetails,
+    stateComplexity,
+    migrationPerformance: {
+      duration: endTime[0] * 1000 + endTime[1] / 1e6, // Convert to milliseconds
+      memoryUsage: endMemory - startMemory,
+    },
   };
+}
+
+function calculateStateComplexity(state: MigratedState): number {
+  // Implement a method to calculate state complexity
+  // This could be based on the number of properties, depth of nesting, etc.
+  return Object.keys(state).length + (state.engine ? Object.keys(state.engine).length : 0);
+}
+
+function determineMigrationStatus(changesCount: number, attemptCount: number, stateComplexity: number): string {
+  if (changesCount === 0) return 'no_changes_needed';
+  if (changesCount === 1) return 'partial_success';
+  if (changesCount > 1) {
+    if (stateComplexity > 10) return 'complex_full_success';
+    return 'simple_full_success';
+  }
+  if (attemptCount > 1) return 'retry_success';
+  return 'initial_success';
 }
