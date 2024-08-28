@@ -98,6 +98,8 @@ export default function migrate(state: unknown) {
   }
 
   const accounts = accountsControllerState.internalAccounts.accounts;
+  let migrationPerformed = false;
+
   Object.keys(accountsControllerState.internalAccounts.accounts).forEach(
     (accountId) => {
       const account = accounts[accountId];
@@ -106,6 +108,7 @@ export default function migrate(state: unknown) {
         isObject(account.metadata) &&
         !account.metadata.importTime
       ) {
+        migrationPerformed = true;
         if (Object.keys(preferencesControllerState.identities).length) {
           Object.keys(preferencesControllerState.identities).forEach(
             (identityAddress) => {
@@ -131,5 +134,5 @@ export default function migrate(state: unknown) {
     },
   );
 
-  return state;
+  return migrationPerformed ? { ...state, migrated: true } : state;
 }
