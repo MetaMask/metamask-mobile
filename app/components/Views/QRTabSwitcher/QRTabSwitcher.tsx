@@ -19,6 +19,7 @@ export enum Screens {
 
 export interface ScanSuccess {
   content?: string;
+  chain_id?: string;
   seed?: string;
   private_key?: string;
   target_address?: string;
