@@ -64,16 +64,14 @@ export default function migrate(state: unknown) {
     }
   }
 
+  // update ticker to POL in providerConfig if chainId is 0x89 and ticker is MATIC
+  // needed if user is already on selectedNetworkId that maps to pre-existing MATIC ticker
   if (
     networkControllerState.providerConfig.chainId === '0x89' &&
     networkControllerState.providerConfig.ticker === 'MATIC'
   ) {
     networkControllerState.providerConfig.ticker = 'POL';
   }
-
-  // update ticker to POL in providerConfig if chainId is 0x89 and ticker is MATIC
-
-  console.log('DEBUG: ', networkControllerState);
 
   return state;
 }
