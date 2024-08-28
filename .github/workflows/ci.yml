@@ -142,6 +142,21 @@ jobs:
             echo "Working tree dirty at end of job"
             exit 1
           fi
+
+  js-bundle-size-check:
+    runs-on: ubuntu-20.04
+    needs: setup
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: yarn setup
+
+      - name: Generate iOS bundle
+        run: yarn gen-bundle:ios
+
+      - name: Check bundle size
+        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 50
+
   sonar-cloud:
     runs-on: ubuntu-20.04
     needs: merge-unit-tests
@@ -185,6 +200,6 @@ jobs:
   all-jobs-pass:
     name: All jobs pass
     runs-on: ubuntu-20.04
-    needs: [setup, dedupe, scripts, unit-tests, check-workflows, sonar-cloud]
+    needs: [setup, dedupe, scripts, unit-tests, check-workflows, sonar-cloud, js-bundle-size-check]
     steps:
       - run: echo "Great success!"
