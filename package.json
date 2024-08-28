@@ -17,7 +17,7 @@
     "lint:fix": "eslint '**/*.{js,ts,tsx}' --fix",
     "lint:tsc": "tsc --project ./tsconfig.json",
     "format": "prettier '**/*.{js,ts,tsx,json,feature}' --write",
-    "setup": "yarn clean:node node scripts/setup.mjs",
+    "setup": "yarn clean:node && node scripts/setup.mjs",
     "setup:node": "yarn clean:node && yarn allow-scripts && yarn patch-package",
     "setup:e2e": "cd wdio && yarn install",
     "setup:detox-e2e": "./scripts/detox-setup.sh",
