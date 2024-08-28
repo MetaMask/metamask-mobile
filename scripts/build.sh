@@ -162,9 +162,6 @@ loadJSEnv(){
 
 
 prebuild(){
-	# Import provider
-	yarn --ignore-engines build:static-logos
-
   WATCHER_PORT=${WATCHER_PORT:-8081}
 }
 
@@ -292,11 +289,11 @@ generateArchivePackages() {
 }
 
 buildIosRelease(){
-
-  remapEnvVariableRelease
+  	remapEnvVariableRelease
 
 	# Enable Sentry to auto upload source maps and debug symbols
 	export SENTRY_DISABLE_AUTO_UPLOAD="false"
+
 	prebuild_ios
 
 	# Replace release.xcconfig with ENV vars
@@ -358,7 +355,8 @@ buildIosReleaseE2E(){
 }
 
 buildIosQA(){
-  remapEnvVariableQA
+  	remapEnvVariableQA
+
 	prebuild_ios
 
   	echo "Start QA build..."
@@ -382,7 +380,7 @@ buildIosQA(){
 
 
 buildAndroidQA(){
-  remapEnvVariableQA
+  	remapEnvVariableQA
 
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask.qa
@@ -543,8 +541,7 @@ buildIos() {
 
 startWatcher() {
 	source $JS_ENV_FILE
-  WATCHER_PORT=${WATCHER_PORT:-8081}
-	yarn --ignore-engines build:static-logos
+  	WATCHER_PORT=${WATCHER_PORT:-8081}
 	if [ "$MODE" == "clean" ]; then
 		watchman watch-del-all
 		rm -rf $TMPDIR/metro-cache

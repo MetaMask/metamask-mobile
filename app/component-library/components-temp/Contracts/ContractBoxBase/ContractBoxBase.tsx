@@ -70,7 +70,7 @@ const ContractBoxBase = ({
           <View testID={CONTRACT_BOX_NO_PET_NAME_TEST_ID}>
             <Button
               variant={ButtonVariants.Link}
-              textVariant={TextVariant.HeadingMD}
+              labelTextVariant={TextVariant.HeadingMD}
               label={formattedAddress}
               onPress={onContractPress}
             />

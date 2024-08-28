@@ -1,5 +1,10 @@
 import React, { useContext, useMemo } from 'react';
-import { Image, TouchableOpacity, View } from 'react-native';
+import {
+  Image,
+  ImageSourcePropType,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import ElevatedView from 'react-native-elevated-view';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
@@ -65,7 +70,10 @@ const TabThumbnail = ({
         <View style={styles.tabHeader}>
           <View style={styles.titleButton}>
             {isHomepage ? (
-              <Image style={styles.tabFavicon} source={METAMASK_FOX} />
+              <Image
+                style={styles.tabFavicon}
+                source={METAMASK_FOX as ImageSourcePropType}
+              />
             ) : (
               <WebsiteIcon
                 transparent

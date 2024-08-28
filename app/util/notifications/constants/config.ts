@@ -41,9 +41,8 @@ export enum ModalFieldType {
   STAKING_PROVIDER = 'ModalField-StakingProvider',
   NETWORK_FEE = 'ModalField-NetworkFee',
   NETWORK = 'ModalField-Network',
-  NFT_IMAGE = 'ModalField-NFTCollectionImage',
-  NFT_COLLECTION_IMAGE = 'ModalField-NFTImage',
-  BLOCK_EXPLORER = 'ModalField-BlockExplorer',
+  NFT_IMAGE = 'ModalField-NFTImage',
+  NFT_COLLECTION_IMAGE = 'ModalField-NFTCollectionImage',
   SWAP_RATE = 'ModalField-SwapsRate',
 }
 
