@@ -27,6 +27,8 @@ export default function migrate(state: unknown) {
     return state;
   }
 
+  let stateChanged = false;
+
   if (
     hasProperty(permissionControllerState, 'subjects') &&
     isObject(permissionControllerState.subjects)
@@ -42,17 +44,24 @@ export default function migrate(state: unknown) {
             hasProperty(ethAccounts, 'caveats') &&
             Array.isArray(ethAccounts.caveats)
           ) {
+            const originalCaveats = [...ethAccounts.caveats];
             ethAccounts.caveats = ethAccounts.caveats.map((caveat) => ({
               ...caveat,
               value: caveat.value.map(
                 ({ address }: { address: string }) => address,
               ),
             }));
+            if (
+              JSON.stringify(originalCaveats) !==
+              JSON.stringify(ethAccounts.caveats)
+            ) {
+              stateChanged = true;
+            }
           }
         }
       }
     }
   }
 
-  return state;
+  return stateChanged ? { ...state, migrated: true } : state;
 }
