@@ -97,9 +97,7 @@ const wallet_switchEthereumChain = async ({
   }
 
   const networkConfigurations = selectNetworkConfigurations(store.getState());
-  const existingNetworkDefault = getDefaultNetworkByChainId(_chainId) as
-    | DefaultNetwork
-    | undefined;
+  const existingNetworkDefault = getDefaultNetworkByChainId(_chainId) as DefaultNetwork | undefined;
   const existingEntry = Object.entries(networkConfigurations).find(
     ([, networkConfiguration]) => networkConfiguration.chainId === _chainId,
   );
@@ -163,11 +161,13 @@ const wallet_switchEthereumChain = async ({
       ).setActiveNetwork(networkConfigurationId);
     } else if (existingNetworkDefault) {
       CurrencyRateController.updateExchangeRate(NetworksTicker.mainnet);
-      (
-        NetworkController as NetworkController & {
-          setProviderType: (networkType: NetworkType) => void;
-        }
-      ).setProviderType(existingNetworkDefault.networkType);
+      if ('networkType' in existingNetworkDefault) {
+        (
+          NetworkController as NetworkController & {
+            setProviderType: (networkType: NetworkType) => void;
+          }
+        ).setProviderType(existingNetworkDefault.networkType);
+      }
     }
 
     MetaMetrics.getInstance().trackEvent(
@@ -181,7 +181,7 @@ const wallet_switchEthereumChain = async ({
 
   throw providerErrors.custom({
     code: 4902, // To-be-standardized "unrecognized chain ID" error
-    message: `Unrecognized chain ID "${_chainId}". Try adding the chain using wallet_addEthereumChain first.`,
+    message: `Unrecognized chain ID "${_chainId}"`,
   });
 };
 
