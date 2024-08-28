@@ -705,6 +705,8 @@ class Engine {
     });
     phishingController.maybeUpdateState();
 
+    const additionalKeyrings = [];
+
     const qrKeyringBuilder = () => {
       const keyring = new QRHardwareKeyring();
       // to fix the bug in #9560, forgetDevice will reset all keyring properties to default.
@@ -713,9 +715,13 @@ class Engine {
     };
     qrKeyringBuilder.type = QRHardwareKeyring.type;
 
+    additionalKeyrings.push(qrKeyringBuilder);
+
     const bridge = new LedgerMobileBridge(new LedgerTransportMiddleware());
     const ledgerKeyringBuilder = () => new LedgerKeyring({ bridge });
     ledgerKeyringBuilder.type = LedgerKeyring.type;
+
+    additionalKeyrings.push(ledgerKeyringBuilder);
 
     const keyringController = new KeyringController({
       removeIdentity: preferencesController.removeIdentity.bind(
@@ -730,7 +736,7 @@ class Engine {
       }),
       state: initialKeyringState || initialState.KeyringController,
       // @ts-expect-error To Do: Update the type of QRHardwareKeyring to Keyring<Json>
-      keyringBuilders: [qrKeyringBuilder, ledgerKeyringBuilder],
+      keyringBuilders: additionalKeyrings,
     });
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
