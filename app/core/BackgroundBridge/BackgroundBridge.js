@@ -1,6 +1,11 @@
 /* eslint-disable import/no-commonjs */
 import URL from 'url-parse';
 import { JsonRpcEngine } from 'json-rpc-engine';
+import {
+  createSelectedNetworkMiddleware,
+  METAMASK_DOMAIN,
+} from '@metamask/selected-network-controller';
+import EthQuery from '@metamask/eth-query';
 import MobilePortStream from '../MobilePortStream';
 import { setupMultiplex } from '../../util/streams';
 import {
@@ -34,11 +39,6 @@ import { NetworkStatus } from '@metamask/network-controller';
 import { NETWORK_ID_LOADING } from '../redux/slices/inpageProvider';
 import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMethodMiddleware';
 import createLegacyMethodMiddleware from '../RPCMethods/createLegacyMethodMiddleware';
-import {
-  createSelectedNetworkMiddleware,
-  METAMASK_DOMAIN,
-} from '@metamask/selected-network-controller';
-import EthQuery from '@metamask/eth-query';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -92,7 +92,6 @@ export class BackgroundBridge extends EventEmitter {
 
     this.engine = null;
 
-    // const providerNetworkState = await this.getProviderNetworkState();
     const networkClientId = Engine.controllerMessenger.call(
       'SelectedNetworkController:getNetworkClientIdForDomain',
       this.hostname,
