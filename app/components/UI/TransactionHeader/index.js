@@ -231,6 +231,7 @@ TransactionHeader.propTypes = {
   /**
    * Provider name
    */
+  // eslint-disable-next-line react/no-unused-prop-types
   nickname: PropTypes.string,
 };
 
