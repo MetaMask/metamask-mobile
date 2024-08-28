@@ -44,8 +44,8 @@ describe('QRTabSwitcher', () => {
   });
 
   it('does not render tabber when disableTabber is true', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (useRoute as any).mockReturnValue({
+    // @ts-expect-error useRoute doesn't have mockReturnValue
+    useRoute.mockReturnValue({
       params: {
         disableTabber: true,
         initialScreen: Screens.Scanner,

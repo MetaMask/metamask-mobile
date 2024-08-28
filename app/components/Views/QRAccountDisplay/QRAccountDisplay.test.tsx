@@ -39,8 +39,8 @@ describe('QRAccountDisplay', () => {
     const { toJSON } = renderScreen(
       TestWrapper,
       { name: 'QRAccountDisplay' },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      { state: initialState as any },
+      // @ts-expect-error initialBackgroundState throws error
+      { state: initialState },
     );
     expect(toJSON()).toMatchSnapshot();
   });
@@ -49,8 +49,8 @@ describe('QRAccountDisplay', () => {
     const { getByTestId } = renderScreen(
       TestWrapper,
       { name: 'QRAccountDisplay' },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      { state: initialState as any },
+      // @ts-expect-error initialBackgroundState throws error
+      { state: initialState },
     );
 
     const copyButton = getByTestId('qr-account-display-copy-button');
