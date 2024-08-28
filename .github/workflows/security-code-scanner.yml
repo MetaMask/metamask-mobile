@@ -2,9 +2,10 @@ name: "MetaMask Security Code Scanner"
 
 on:
   push:
-    branches: ["main"]
+    branches: ["merge-queue-test"]
   pull_request:
-    branches: ["main"]
+    branches: ["merge-queue-test"]
+  merge_group:
 
 jobs:
   run-security-scan:
