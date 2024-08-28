@@ -84,8 +84,12 @@ const QRTabSwitcher = () => {
     navigation.goBack();
     try {
       onScanError?.('USER_CANCELLED');
-    } catch (error) {
-      console.warn(`Error setting onScanError: ${error.message}`);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.warn(`Error setting onScanError: ${error.message}`);
+      } else {
+        console.warn('An unknown error occurred');
+      }
     }
   };
 
@@ -111,8 +115,11 @@ const QRTabSwitcher = () => {
       <View style={styles.overlay}>
         {selectedIndex === Screens.Receive ? (
           <NavbarTitle
+            // @ts-expect-error proptypes issue
             title={strings(`receive.title`)}
+            // @ts-expect-error proptypes issue
             translate={false}
+            // @ts-expect-error proptypes issue
             disableNetwork
           />
         ) : null}
