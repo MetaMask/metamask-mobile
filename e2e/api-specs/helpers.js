@@ -62,42 +62,43 @@ const pollResult = async (driver, generatedKey) => {
   return pollResult(driver, generatedKey);
 };
 
-export const createDriverTransport = (driver) => (_, method, params) => {
-  const generatedKey = uuid();
-  return new Promise((resolve, reject) => {
-    const execute = async () => {
-      await addToQueue({
-        name: 'transport',
-        task: async () => {
-          await driver.runScript(
-            (el, m, p, g) => {
-              window.ethereum
-                .request({ method: m, params: p })
-                .then((res) => {
-                  window[g] = JSON.stringify({
-                    result: res,
-                  });
-                })
-                .catch((err) => {
-                  window[g] = JSON.stringify({
-                    error: {
-                      code: err.code,
-                      message: err.message,
-                      data: err.data,
-                    },
-                  });
-                });
+const runEthereumRequest = async (driver, method, params, generatedKey) => {
+  await driver.runScript(
+    (el, m, p, g) => {
+      window.ethereum
+        .request({ method: m, params: p })
+        .then((res) => {
+          window[g] = JSON.stringify({
+            result: res,
+          });
+        })
+        .catch((err) => {
+          window[g] = JSON.stringify({
+            error: {
+              code: err.code,
+              message: err.message,
+              data: err.data,
             },
-            [method, params, generatedKey],
-          );
-        },
-        resolve,
-        reject,
-      });
-    };
-    return execute();
-  }).then(async () => {
-    const result = await pollResult(driver, generatedKey);
-    return result;
+          });
+        });
+    },
+    [method, params, generatedKey],
+  );
+};
+
+const executeTransportTask = async (driver, method, params, generatedKey) => {
+  await addToQueue({
+    name: 'transport',
+    task: async () => {
+      await runEthereumRequest(driver, method, params, generatedKey);
+    },
+    resolve: null,
+    reject: null,
   });
+};
+
+export const createDriverTransport = (driver) => async (_, method, params) => {
+  const generatedKey = uuid();
+  await executeTransportTask(driver, method, params, generatedKey);
+  return pollResult(driver, generatedKey);
 };
