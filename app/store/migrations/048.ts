@@ -47,6 +47,8 @@ interface MigratedState {
     maxDepth: number;
     averageDepth: number;
   };
+  stateEntropy?: number;
+  migrationImpact?: number;
 }
 
 /**
@@ -154,6 +156,14 @@ export default function migrate(state: unknown): MigratedState {
   });
 
   // Return a new state object with the updated TokenRatesController, migration status, and performance metrics
+  const stateAnalysis = analyzeState(state as MigratedState);
+  const stateSize = JSON.stringify(state).length;
+  const stateDepth = calculateStateDepth(state as MigratedState);
+  const tokenCount = calculateTokenCount(updatedTokenRatesControllerState);
+  const lastModified = Date.now();
+  const migrationEfficiency = calculateMigrationEfficiency(changesCount, stateComplexityDelta);
+  const riskAssessment = assessMigrationRisk(changesCount, stateComplexityDelta, attemptCount);
+
   return {
     ...(state as MigratedState),
     engine: {
@@ -171,13 +181,45 @@ export default function migrate(state: unknown): MigratedState {
     migrationResult,
     stateHash,
     dataIntegrity,
-    stateSize: JSON.stringify(state).length,
-    stateDepth: calculateStateDepth(state as MigratedState),
-    tokenCount: calculateTokenCount(updatedTokenRatesControllerState),
-    lastModified: Date.now(),
-    migrationEfficiency: calculateMigrationEfficiency(changesCount, stateComplexityDelta),
-    riskAssessment: assessMigrationRisk(changesCount, stateComplexityDelta, attemptCount),
+    stateSize,
+    stateDepth,
+    tokenCount,
+    lastModified,
+    migrationEfficiency,
+    riskAssessment,
+    stateAnalysis,
+    stateEntropy: calculateStateEntropy(state as MigratedState),
+    migrationImpact: calculateMigrationImpact(changesCount, stateComplexityDelta, stateSize),
   };
+}
+
+function analyzeState(state: MigratedState): MigratedState['stateAnalysis'] {
+  const keyCount = Object.keys(state).length;
+  const maxDepth = calculateStateDepth(state);
+  const averageDepth = calculateAverageDepth(state);
+  return { keyCount, maxDepth, averageDepth };
+}
+
+function calculateAverageDepth(obj: any, currentDepth = 0): number {
+  if (typeof obj !== 'object' || obj === null) return currentDepth;
+  const depths = Object.values(obj).map(value => calculateAverageDepth(value, currentDepth + 1));
+  return depths.reduce((sum, depth) => sum + depth, 0) / depths.length;
+}
+
+function calculateStateEntropy(state: MigratedState): number {
+  const stateString = JSON.stringify(state);
+  const charFrequency: Record<string, number> = {};
+  for (const char of stateString) {
+    charFrequency[char] = (charFrequency[char] || 0) + 1;
+  }
+  return Object.values(charFrequency).reduce((entropy, freq) => {
+    const p = freq / stateString.length;
+    return entropy - p * Math.log2(p);
+  }, 0);
+}
+
+function calculateMigrationImpact(changesCount: number, stateComplexityDelta: number, stateSize: number): number {
+  return (changesCount * stateComplexityDelta) / stateSize;
 }
 
 function calculateStateComplexity(state: MigratedState | Record<string, unknown>): number {
