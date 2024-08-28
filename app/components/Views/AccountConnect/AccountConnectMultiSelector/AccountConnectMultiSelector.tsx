@@ -284,9 +284,6 @@ const AccountConnectMultiSelector = ({
             {isMutichainVersion1Enabled
               ? strings('accounts.select_accounts_description')
               : strings('accounts.connect_description')}
-            {isMutichainVersion1Enabled
-              ? strings('accounts.select_accounts_description')
-              : strings('accounts.connect_description')}
           </Text>
           {isMutichainVersion1Enabled && renderSelectAllCheckbox()}
           {areAllAccountsSelected
