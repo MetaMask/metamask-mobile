@@ -277,7 +277,7 @@ declare module '@metamask/contract-metadata' {
   export default content;
 }
 
-declare module './util/termsOfUse/termsOfUseContent' {
+declare module './util/termsOfUse/termsOfUseContent.ts' {
   const content: string;
   export default content;
 }
@@ -285,4 +285,9 @@ declare module './util/termsOfUse/termsOfUseContent' {
 declare module 'react-native-emoji' {
   const emoji: React.JSX;
   export default emoji;
+}
+
+declare module '@metamask/react-native-actionsheet' {
+  const ActionSheet;
+  export default ActionSheet;
 }

@@ -79,7 +79,11 @@ import {
 } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { selectIsMetamaskNotificationsEnabled } from '../../../selectors/notifications';
+import {
+  getMetamaskNotificationsUnreadCount,
+  selectIsMetamaskNotificationsEnabled,
+} from '../../../selectors/notifications';
+import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -150,7 +154,6 @@ const Wallet = ({
   const styles = createStyles(theme);
   const { colors } = theme;
   const dispatch = useDispatch();
-
   /**
    * Object containing the balance of the current selected account
    */
@@ -236,6 +239,7 @@ const Wallet = ({
       ],
       closeButtonOptions: {
         label: strings(`privacy_policy.toast_action_button`),
+        variant: ButtonVariants.Primary,
         onPress: () => {
           storePrivacyPolicyClickedOrClosed();
           currentToast?.closeToast();
@@ -269,6 +273,10 @@ const Wallet = ({
 
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
+  );
+
+  const unreadNotificationCount = useSelector(
+    getMetamaskNotificationsUnreadCount,
   );
 
   const networkName = useSelector(selectNetworkName);
@@ -405,6 +413,7 @@ const Wallet = ({
     networkImageSource,
     onTitlePress,
     isNotificationEnabled,
+    unreadNotificationCount,
   ]);
 
   const renderTabBar = useCallback(

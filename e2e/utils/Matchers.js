@@ -8,7 +8,8 @@ class Matchers {
    * Get element by ID.
    *
    * @param {string} elementId - Match elements with the specified testID
-   * @return {Promise<Detox.IndexableNativeElement>} - Resolves to the located element
+   * @param {number} [index] - Index of the element (default: 0)
+   * @return {Promise<Detox.IndexableNativeElement> | Promise<Detox.NativeElement>} - Resolves to the located element
    */
   static async getElementByID(elementId, index) {
     if (index) {

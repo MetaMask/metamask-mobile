@@ -56,9 +56,8 @@ const mockInitialState: DeepPartial<RootState> = {
     showHexData: true,
   },
   transaction: {
-    currentTransactionSecurityAlertResponse: {
-      id: 1,
-      response: {
+    securityAlertResponses: {
+      1: {
         result_type: 'Malicious',
         reason: 'blur_farming',
         providerRequestsCount: {},
