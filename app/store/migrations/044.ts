@@ -19,6 +19,7 @@ export default function migrate(state: unknown) {
     return state;
   }
 
+  let stateModified = false;
   const accountsControllerState =
     state.engine.backgroundState.AccountsController;
 
@@ -155,6 +156,7 @@ export default function migrate(state: unknown) {
                 accountsControllerState as AccountsControllerState
               ).internalAccounts.accounts[accountId].metadata.name =
                 identity.name as string;
+              stateModified = true;
             }
           }
         });
@@ -162,5 +164,5 @@ export default function migrate(state: unknown) {
     }
   });
 
-  return state;
+  return stateModified ? { ...state } : state;
 }
