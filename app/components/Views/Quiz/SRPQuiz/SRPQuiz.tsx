@@ -20,7 +20,7 @@ import stylesheet from './styles';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 import {
-  SrpQuizGetStartedModalSelectors,
+  SrpQuizGetStartedSelectors,
   SrpSecurityQuestionOneSelectors,
   SrpSecurityQuestionTwoSelectors,
 } from '../../../../../e2e/selectors/Modals/SrpQuizModal.selectors';
@@ -88,7 +88,7 @@ const SRPQuiz = () => {
         image={introductionImg}
         title={{
           content: strings('srp_security_quiz.introduction'),
-          testID: SrpQuizGetStartedModalSelectors.Text.INTRODUCTION,
+          testID: SrpQuizGetStartedSelectors.Text.INTRODUCTION,
         }}
         buttons={[
           {
@@ -97,7 +97,7 @@ const SRPQuiz = () => {
               trackEvent(MetaMetricsEvents.SRP_REVEAL_START_CTA_SELECTED, {});
               setStage(QuizStage.questionOne);
             },
-            testID: SrpQuizGetStartedModalSelectors.IDs.BUTTON,
+            testID: SrpQuizGetStartedSelectors.IDs.BUTTON,
             variant: ButtonVariants.Primary,
           },
           {

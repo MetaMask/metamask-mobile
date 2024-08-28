@@ -1,5 +1,5 @@
 import {
-  SrpQuizGetStartedModalSelectors,
+  SrpQuizGetStartedSelectors,
   SrpSecurityQuestionOneSelectors,
   SrpSecurityQuestionTwoSelectors,
 } from '../../selectors/Modals/SrpQuizModal.selectors';
@@ -9,23 +9,21 @@ import Gestures from '../../utils/Gestures';
 class SrpQuizModal {
   // Getters for common elements
   get getStartedContainer() {
-    return Matchers.getElementByID(
-      SrpQuizGetStartedModalSelectors.IDs.CONTAINER,
-    );
+    return Matchers.getElementByID(SrpQuizGetStartedSelectors.IDs.CONTAINER);
   }
 
   get getStartedDismiss() {
-    return Matchers.getElementByID(SrpQuizGetStartedModalSelectors.IDs.DISMISS);
+    return Matchers.getElementByID(SrpQuizGetStartedSelectors.IDs.DISMISS);
   }
 
   get modalIntroduction() {
     return Matchers.getElementByText(
-      SrpQuizGetStartedModalSelectors.Text.INTRODUCTION,
+      SrpQuizGetStartedSelectors.Text.INTRODUCTION,
     );
   }
 
   get getStartedButton() {
-    return Matchers.getElementByID(SrpQuizGetStartedModalSelectors.IDs.BUTTON);
+    return Matchers.getElementByID(SrpQuizGetStartedSelectors.IDs.BUTTON);
   }
 
   // Getters for question elements

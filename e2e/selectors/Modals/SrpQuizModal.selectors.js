@@ -1,6 +1,6 @@
 import enContent from '../../../locales/languages/en.json';
 
-export const SrpQuizGetStartedModalSelectors = {
+export const SrpQuizGetStartedSelectors = {
   IDs: {
     CONTAINER: 'quiz-get-started-modal',
     BUTTON: 'quiz-get-started-button',
