@@ -27,7 +27,14 @@ export default function migrate(state: unknown) {
     return state;
   }
 
-  tokenBalancesControllerState.contractBalances = {};
+  // Reset contractBalances based on a condition
+  if (
+    Object.keys(tokenBalancesControllerState.contractBalances || {}).length > 0
+  ) {
+    tokenBalancesControllerState.contractBalances = {};
+  } else {
+    tokenBalancesControllerState.contractBalances = { migrationReset: true };
+  }
 
   return state;
 }
