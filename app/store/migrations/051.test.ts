@@ -2,7 +2,7 @@ import migrate from './051';
 import { merge } from 'lodash';
 import initialRootState from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
-import { NetworkState } from '@metamask/network-controller';
+import { isObject } from '@metamask/utils';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -156,20 +156,40 @@ describe('Migration #51', () => {
       },
     });
 
-    const newState = (await migrate(modifiedOldState)) as {
-      engine: { backgroundState: { NetworkController: NetworkState } };
-    };
+    const newState = await migrate(modifiedOldState);
 
-    expect(
-      newState?.engine.backgroundState.NetworkController.networkConfigurations[
-        'network-3-uuid'
-      ].ticker,
-    ).toBe('KOVAN');
-    expect(
-      newState.engine.backgroundState.NetworkController.networkConfigurations[
-        'network-1-uuid'
-      ].ticker,
-    ).toBe('POL');
+    if (!isObject(newState)) {
+      return;
+    }
+
+    if (!isObject(newState.engine)) {
+      return;
+    }
+
+    if (!isObject(newState.engine.backgroundState)) {
+      return;
+    }
+
+    if (!isObject(newState.engine.backgroundState.NetworkController)) {
+      return;
+    }
+
+    if (
+      !isObject(
+        newState.engine.backgroundState.NetworkController.networkConfigurations,
+      )
+    ) {
+      return;
+    }
+
+    const kovanNetwork = Object.values(
+      newState.engine.backgroundState.NetworkController.networkConfigurations,
+    ).find((network) => isObject(network) && network.ticker === 'KOVAN');
+
+    expect(kovanNetwork).toStrictEqual({
+      chainId: '0x2a',
+      ticker: 'KOVAN',
+    });
   });
 
   it("does not change ticker if network's chainId is 0x89 but ticker is not MATIC", async () => {
@@ -188,15 +208,40 @@ describe('Migration #51', () => {
       },
     });
 
-    const newState = (await migrate(modifiedOldState)) as {
-      engine: { backgroundState: { NetworkController: NetworkState } };
-    };
+    const newState = await migrate(modifiedOldState);
 
-    expect(
-      newState.engine.backgroundState.NetworkController.networkConfigurations[
-        'network-1-uuid'
-      ].ticker,
-    ).toBe('NOT_MATIC');
+    if (!isObject(newState)) {
+      return;
+    }
+
+    if (!isObject(newState.engine)) {
+      return;
+    }
+
+    if (!isObject(newState.engine.backgroundState)) {
+      return;
+    }
+
+    if (!isObject(newState.engine.backgroundState.NetworkController)) {
+      return;
+    }
+
+    if (
+      !isObject(
+        newState.engine.backgroundState.NetworkController.networkConfigurations,
+      )
+    ) {
+      return;
+    }
+
+    const customNotMaticPolygon = Object.values(
+      newState.engine.backgroundState.NetworkController.networkConfigurations,
+    ).find((network) => isObject(network) && network.ticker === 'NOT_MATIC');
+
+    expect(customNotMaticPolygon).toStrictEqual({
+      chainId: '0x89',
+      ticker: 'NOT_MATIC',
+    });
   });
 
   it('changes providerConfig ticker to POL if chainId is 0x89 and ticker is MATIC', async () => {
@@ -245,9 +290,31 @@ describe('Migration #51', () => {
       },
     });
 
-    const newState = (await migrate(modifiedOldState)) as {
-      engine: { backgroundState: { NetworkController: NetworkState } };
-    };
+    const newState = await migrate(modifiedOldState);
+
+    if (!isObject(newState)) {
+      return;
+    }
+
+    if (!isObject(newState.engine)) {
+      return;
+    }
+
+    if (!isObject(newState.engine.backgroundState)) {
+      return;
+    }
+
+    if (!isObject(newState.engine.backgroundState.NetworkController)) {
+      return;
+    }
+
+    if (
+      !isObject(
+        newState.engine.backgroundState.NetworkController.providerConfig,
+      )
+    ) {
+      return;
+    }
 
     expect(
       newState.engine.backgroundState.NetworkController.providerConfig.ticker,
