@@ -18,7 +18,7 @@ export interface Network {
 }
 
 export interface ExtendedNetwork extends Network {
-  name: string;
+  name?: string;
   formattedRpcUrl?: string | null;
 }
 

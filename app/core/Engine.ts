@@ -837,7 +837,6 @@ class Engine {
         networkController.getNetworkClientById.bind(networkController),
     });
     const permissionController = new PermissionController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'PermissionController',
         allowedActions: [

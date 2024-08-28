@@ -38,7 +38,7 @@ export interface NotificationMenuItem {
   createdAt: string;
 
   /**
-   * Boolean to indicate if the notification is read
+   * A boolean that indicates if the notification is read or not
    */
   isRead?: boolean;
 }
