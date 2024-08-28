@@ -84,13 +84,12 @@ export const getSmartTransactionMetricsProperties = (
     smartTransactionsController.getSmartTransactionByMinedTxHash(
       transactionMeta.hash,
     );
-
   if (smartTransaction?.statusMetadata) {
     const { duplicated, timedOut, proxied } = smartTransaction.statusMetadata;
     return {
-      duplicated,
-      timedOut,
-      proxied,
+      smart_transaction_duplicated: duplicated,
+      smart_transaction_timed_out: timedOut,
+      smart_transaction_proxied: proxied,
     };
   }
 
