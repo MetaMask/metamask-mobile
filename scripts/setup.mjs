@@ -24,7 +24,7 @@ const rendererOptions = {
  */
 const copyAndSourceEnvVarsTask = {
   title: 'Copy and source environment variables',
-  task: async (_, task) => {
+  task: (_, task) => {
     if (IS_CI) {
       task.skip('CI detected');
     }
@@ -124,7 +124,7 @@ const setupIosTask = {
       return task.skip('Skipping iOS.');
     }
 
-    task.newListr(
+    return task.newListr(
       [
         {
           title: 'Install gems',
@@ -156,7 +156,7 @@ const setupIosTask = {
 
 const buildInpageBridgeTask = {
   title: 'Build inpage bridge',
-  task: async () => {
+  task: async (_, task) => {
     if (IS_CI) {
       task.skip('CI detected');
     }
@@ -168,7 +168,7 @@ const buildInpageBridgeTask = {
 const nodeifyTask = {
   // TODO: find a saner alternative to bring node modules into react native bundler. See ReactNativify
   title: 'Nodeify npm packages',
-  task: async () => {
+  task: async (_, task) => {
     if (IS_CI) {
       task.skip('CI detected');
     }
@@ -192,7 +192,7 @@ const updateGitSubmodulesTask = {
 
 const runLavamoatAllowScriptsTask = {
   title: 'Run lavamoat allow-scripts',
-  task: async () => {
+  task: async (_, task) => {
     if (IS_CI) {
       task.skip('CI detected');
     }
