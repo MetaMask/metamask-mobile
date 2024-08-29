@@ -174,6 +174,24 @@ jobs:
       - name: Check bundle size
         run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 40
 
+      - name: Upload iOS bundle
+        uses: actions/upload-artifact@v3
+        with:
+          name: ios-bundle
+          path: ios/main.jsbundle
+      
+  ship-js-bundle-size-check:
+    runs-on: ubuntu-20.04
+    needs: [setup, js-bundle-size-check]
+    steps:
+      - name: Download iOS bundle
+        uses: actions/download-artifact@v3
+        with:
+          name: ios-bundle
+
+      - name: Push bundle size to mobile_bundlesize_stats repo
+        run: ./scripts/push-bundle-size.sh
+
   sonar-cloud:
     runs-on: ubuntu-20.04
     needs: merge-unit-tests
