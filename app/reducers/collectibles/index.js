@@ -37,7 +37,7 @@ export const favoritesCollectiblesSelector = createSelector(
 
 export const isCollectibleInFavoritesSelector = createSelector(
   favoritesCollectiblesSelector,
-  (_, collectible) => collectible,
+  (state, collectible) => collectible,
   (favoriteCollectibles, collectible) =>
     Boolean(
       favoriteCollectibles.find(

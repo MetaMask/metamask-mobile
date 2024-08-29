@@ -34,7 +34,7 @@ const pollResult = async (driver, generatedKey) => {
       task: async () => {
         await TestHelpers.delay(500);
         const text = await driver.runScript(
-          (_, g) => window[g],
+          (el, g) => window[g],
           [generatedKey],
         );
         if (typeof text === 'string') {

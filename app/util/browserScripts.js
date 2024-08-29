@@ -84,7 +84,6 @@ export const JS_POST_MESSAGE_TO_PROVIDER = (message, origin) => `(function () {
   }
 })()`;
 
-// eslint-disable-next-line no-unused-vars
 export const JS_IFRAME_POST_MESSAGE_TO_PROVIDER = (message, origin) =>
   `(function () {})()`;
 /** Disable sending messages to iframes for now

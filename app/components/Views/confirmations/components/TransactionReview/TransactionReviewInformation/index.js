@@ -279,6 +279,7 @@ class TransactionReviewInformation extends PureComponent {
   };
 
   getTotalFiat = (
+    asset,
     totalGas,
     conversionRate,
     exchangeRate,
@@ -347,6 +348,7 @@ class TransactionReviewInformation extends PureComponent {
         const conversionRateAsset =
           contractExchangeRates[selectedAsset.address];
         const totalFiat = this.getTotalFiat(
+          selectedAsset,
           totalGas,
           conversionRate,
           conversionRateAsset,

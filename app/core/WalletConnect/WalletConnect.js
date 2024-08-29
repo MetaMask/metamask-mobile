@@ -337,7 +337,7 @@ class WalletConnect {
         rejectRequest: this.rejectRequest,
         updateSession: this.updateSession,
       },
-      getRpcMethodMiddleware: ({ getProviderState }) =>
+      getRpcMethodMiddleware: ({ hostname, getProviderState }) =>
         getRpcMethodMiddleware({
           hostname: WALLET_CONNECT_ORIGIN + this.hostname,
           getProviderState,

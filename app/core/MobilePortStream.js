@@ -57,7 +57,7 @@ export default class PortDuplexStream extends Duplex {
    * @param {string} encoding Encoding to use when writing payload
    * @param {Function} cb Called when writing is complete or an error occurs
    */
-  _write = function (msg, _, cb) {
+  _write = function (msg, enconding, cb) {
     try {
       if (Buffer.isBuffer(msg)) {
         const data = msg.toJSON();

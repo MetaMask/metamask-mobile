@@ -295,7 +295,6 @@ describe('LedgerConfirmationModal', () => {
       />,
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
     await act(async () => {});
 
     expect(ledgerLogicToRun).toHaveBeenCalledTimes(1);
