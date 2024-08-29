@@ -5,7 +5,6 @@ import {
 
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-import Assertions from '../../utils/Assertions';
 import TestHelpers from '../../helpers';
 
 class SwapView {
@@ -39,8 +38,9 @@ class SwapView {
   async swipeToSwap() {
     const percentage = device.getPlatform() === 'ios' ? 0.72 : 0.95;
     // Wait past the flashing quote to make sure swap button is enabled
-    await Assertions.checkIfVisible('New quotes in 0:05')
-    await Gestures.swipe(this.swipeToSwapButton, 'right', 'slow', percentage);
+    await TestHelpers.checkIfElementWithTextIsVisible('New quotes in 0:05');
+    await Gestures.swipe(this.swipeToSwapButton, 'right', 'fast', percentage);
+    await Gestures.swipe(this.swipeToSwapButton, 'right', 'fast', percentage);
   }
 
   swapCompleteLabel(sourceTokenSymbol, destTokenSymbol) {
