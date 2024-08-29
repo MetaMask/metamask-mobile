@@ -140,7 +140,7 @@ describe('Migration #51', () => {
     ).toEqual(expectedUuid);
   });
 
-  it('should update selectedAccount if it is invalid', () => {
+  it('updates the selectedAccount if it is invalid', () => {
     const invalidState = merge({}, oldState, {
       engine: {
         backgroundState: {
