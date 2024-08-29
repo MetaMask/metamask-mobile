@@ -185,7 +185,7 @@ describe('Migration #51', () => {
     expect(newState).toStrictEqual(emptyAccountsState);
   });
 
-  it('should update selectedAccount to the first account if current selection is invalid', () => {
+  it('updates the selectedAccount to the first account if current selection is invalid', () => {
     const invalidSelectedState = merge({}, oldState, {
       engine: {
         backgroundState: {
