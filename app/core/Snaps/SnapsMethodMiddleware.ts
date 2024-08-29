@@ -5,6 +5,7 @@ import {
   SubjectType,
 } from '@metamask/permission-controller';
 import { RestrictedMethods } from '../Permissions/constants';
+import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermissions';
 
 // Snaps middleware
 /*
@@ -34,6 +35,10 @@ const snapMethodMiddlewareBuilder = (
       ),
     getPermissions: engineContext.PermissionController.getPermissions.bind(
       engineContext.PermissionController,
+      origin,
+    ),
+    getAllowedKeyringMethods: keyringSnapPermissionsBuilder(
+      engineContext.subjectMetadataController,
       origin,
     ),
     getSnapFile: controllerMessenger.call.bind(
