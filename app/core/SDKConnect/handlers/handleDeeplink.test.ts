@@ -17,7 +17,9 @@ describe('handleDeeplink', () => {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let fakeConnections = {} as any;
-
+  const rpc = Buffer.from('{"jsonrpc":"2.0","method":"eth_accounts"}').toString(
+    'base64',
+  );
   const mockWaitForCondition = waitForCondition as jest.MockedFunction<
     typeof waitForCondition
   >;
@@ -35,6 +37,11 @@ describe('handleDeeplink', () => {
   const mockRevalidateChannel = jest.fn();
   const mockReconnect = jest.fn();
   const mockConnectToChannel = jest.fn();
+  const mockHandleConnectionMessage =
+    handleConnectionMessage as jest.MockedFunction<
+      typeof handleConnectionMessage
+    >;
+
   const mockDecrypt = jest
     .fn()
     .mockReturnValue('{"jsonrpc":"2.0","method":"eth_accounts"}');
@@ -48,6 +55,8 @@ describe('handleDeeplink', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetModules();
+
     mockUpdateSDKLoadingState.mockResolvedValue(undefined);
     fakeConnections = [
       {
@@ -72,6 +81,11 @@ describe('handleDeeplink', () => {
     mockGetConnections.mockReturnValue(fakeConnections);
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
+  });
+
   it('should waits for SDKConnect to initialize if not already initialized', async () => {
     mockHasInitialized.mockReturnValueOnce(false).mockReturnValueOnce(true);
     mockWaitForCondition.mockResolvedValue();
@@ -85,7 +99,6 @@ describe('handleDeeplink', () => {
       protocolVersion,
       context,
     });
-
     expect(waitForCondition).toHaveBeenCalledWith(expect.any(Object));
     expect(sdkConnect.hasInitialized).toHaveBeenCalledTimes(1);
   });
@@ -185,82 +198,86 @@ describe('handleDeeplink', () => {
       'Failed to connect to channel',
     );
   });
-  describe('RPC handling', () => {
-    const rpc = Buffer.from(
+
+  it('should handle rpc calls for existing connections', async () => {
+    mockHasInitialized.mockReturnValue(true);
+    mockGetConnections.mockReturnValue({ [channelId]: {} });
+
+    await handleDeeplink({
+      sdkConnect,
+      channelId,
+      origin,
+      url,
+      otherPublicKey,
+      protocolVersion,
+      context,
+      rpc,
+    });
+
+    expect(mockDecrypt).toHaveBeenCalledWith(
       '{"jsonrpc":"2.0","method":"eth_accounts"}',
-    ).toString('base64');
+    );
+    expect(handleConnectionMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.any(Object),
+        connection: expect.any(Object),
+        engine: expect.any(Object),
+      }),
+    );
+  });
 
-    it('should handle rpc calls for existing connections', async () => {
-      mockHasInitialized.mockReturnValue(true);
-      mockGetConnections.mockReturnValue({ [channelId]: {} });
-
-      await handleDeeplink({
-        sdkConnect,
-        channelId,
-        origin,
-        url,
-        otherPublicKey,
-        protocolVersion,
-        context,
-        rpc,
-      });
-
-      expect(mockDecrypt).toHaveBeenCalledWith(
-        '{"jsonrpc":"2.0","method":"eth_accounts"}',
-      );
-      expect(handleConnectionMessage).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.any(Object),
-          connection: expect.any(Object),
-          engine: expect.any(Object),
-        }),
-      );
+  it('should handle rpc calls for new connections', async () => {
+    mockHasInitialized.mockReturnValue(true);
+    mockGetConnections.mockReturnValue({});
+    mockConnectToChannel.mockReturnValue({});
+    mockGetConnected.mockReturnValue({
+      [channelId]: {
+        remote: {
+          decrypt: mockDecrypt,
+        },
+      },
     });
 
-    it('should handle rpc calls for new connections', async () => {
-      mockHasInitialized.mockReturnValue(true);
-      mockGetConnections.mockReturnValue({});
+    // Spy on JSON.parse
+    const jsonParseSpy = jest.spyOn(JSON, 'parse');
 
-      await handleDeeplink({
-        sdkConnect,
-        channelId,
-        origin,
-        url,
-        otherPublicKey,
-        protocolVersion,
-        context,
-        rpc,
-      });
-
-      expect(mockConnectToChannel).toHaveBeenCalled();
-      expect(handleConnectionMessage).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.any(Object),
-          connection: expect.any(Object),
-          engine: expect.any(Object),
-        }),
-      );
+    await handleDeeplink({
+      sdkConnect,
+      channelId,
+      origin,
+      url,
+      otherPublicKey,
+      protocolVersion,
+      context,
+      rpc,
     });
 
-    it('should not handle rpc calls when connection is not found', async () => {
-      mockHasInitialized.mockReturnValue(true);
-      mockGetConnections.mockReturnValue({});
-      mockGetConnected.mockReturnValue({});
+    expect(mockConnectToChannel).toHaveBeenCalled();
 
-      await handleDeeplink({
-        sdkConnect,
-        channelId,
-        origin,
-        url,
-        otherPublicKey,
-        protocolVersion,
-        context,
-        rpc,
-      });
+    // Verify that JSON.parse was called with the correct string
+    expect(jsonParseSpy).toHaveBeenCalled();
 
-      expect(mockConnectToChannel).toHaveBeenCalled();
-      expect(mockDecrypt).not.toHaveBeenCalled();
-      expect(handleConnectionMessage).not.toHaveBeenCalled();
+    expect(mockHandleConnectionMessage).toHaveBeenCalled();
+  });
+
+  it('should not handle rpc calls when connection is not found', async () => {
+    mockHasInitialized.mockReturnValue(true);
+    mockGetConnections.mockReturnValue({});
+    mockGetConnected.mockReturnValue({});
+
+    await handleDeeplink({
+      sdkConnect,
+      channelId,
+      origin,
+      url,
+      otherPublicKey,
+      protocolVersion,
+      context,
+      rpc,
     });
+
+    expect(mockConnectToChannel).toHaveBeenCalled();
+    expect(mockDecrypt).not.toHaveBeenCalled();
+    expect(handleConnectionMessage).not.toHaveBeenCalled();
   });
 });

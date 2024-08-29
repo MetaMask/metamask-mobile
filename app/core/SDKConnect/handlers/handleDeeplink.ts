@@ -9,6 +9,7 @@ import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
 import { waitForCondition } from '../utils/wait.util';
 import handleConnectionMessage from './handleConnectionMessage';
+import { Platform } from 'react-native';
 
 const QRCODE_PARAM_PATTERN = '&t=q';
 
@@ -119,21 +120,37 @@ const handleDeeplink = async ({
         sdkConnect.updateSDKLoadingState({ channelId, loading: true });
       }
     } else {
+      const trigger =
+        rpc !== undefined &&
+        Platform.OS === 'android' &&
+        origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
+          ? undefined // temporarily unset trigger on android to prevent goBack after connection approval
+          : 'deeplink';
+
+      DevLogger.log(
+        `handleDeeplink:: connectToChannel - trigger=${trigger} origin=${origin} platform=${Platform.OS} rpc=${rpc}`,
+      );
       await sdkConnect.connectToChannel({
         id: channelId,
         origin,
         originatorInfo,
         initialConnection: true,
         protocolVersion,
-        trigger: 'deeplink',
+        trigger,
         otherPublicKey,
       });
 
+      // When RPC is provided on new connection, it means connectWith.
       if (rpc) {
         const connection = sdkConnect.getConnected()[channelId];
         if (!connection) {
           DevLogger.log(`handleDeeplink:: connection not found`);
           return;
+        }
+
+        if (!trigger) {
+          // set trigger back to deeplink on android
+          connection.trigger = 'deeplink';
         }
 
         // Decode rpc and directly process it - simulate network reception
