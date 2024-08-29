@@ -32,7 +32,7 @@ import getAccountNameWithENS from '../../../util/accounts';
 import Device from '../../../util/device';
 import { useTheme } from '../../../util/theme';
 import Tabs from '../../UI/Tabs';
-import BrowserTab, { EXTERNAL_LINK_TYPE } from '../BrowserTab';
+import BrowserTab from '../BrowserTab';
 
 import { isEqual } from 'lodash';
 import URL from 'url-parse';
@@ -67,6 +67,7 @@ export const Browser = (props) => {
   const { trackEvent } = useMetrics();
   const { toastRef } = useContext(ToastContext);
   const browserUrl = props.route?.params?.url;
+  const linkType = props.route?.params?.linkType;
   const prevSiteHostname = useRef(browserUrl);
   const { accounts, ensByAccountAddress } = useAccounts();
   const accountAvatarType = useSelector((state) =>
@@ -222,15 +223,15 @@ export const Browser = (props) => {
     [tabs],
   );
 
-  // Handle deeplinks.
+  // Handle links with associated timestamp.
   useEffect(
     () => {
       const newTabUrl = route.params?.newTabUrl;
       const deeplinkTimestamp = route.params?.timestamp;
       const existingTabId = route.params?.existingTabId;
       if (newTabUrl && deeplinkTimestamp) {
-        // Open url from deeplink.
-        newTab(newTabUrl, EXTERNAL_LINK_TYPE);
+        // Open url from link.
+        newTab(newTabUrl, linkType);
       } else if (existingTabId) {
         const existingTab = tabs.find((tab) => tab.id === existingTabId);
         if (existingTab) {

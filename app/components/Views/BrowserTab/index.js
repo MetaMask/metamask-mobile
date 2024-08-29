@@ -109,6 +109,7 @@ import { trackDappViewedEvent } from '../../../util/metrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { isTest } from '../../../util/test/utils.js';
+import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -259,8 +260,6 @@ const createStyles = (colors, shadows) =>
 
 const sessionENSNames = {};
 const ensIgnoreList = [];
-
-export const EXTERNAL_LINK_TYPE = 'external-link';
 
 export const BrowserTab = (props) => {
   const [backEnabled, setBackEnabled] = useState(false);
