@@ -158,31 +158,9 @@ describe('Migration #51', () => {
 
     const newState = await migrate(modifiedOldState);
 
-    if (!isObject(newState)) {
-      return;
-    }
-
-    if (!isObject(newState.engine)) {
-      return;
-    }
-
-    if (!isObject(newState.engine.backgroundState)) {
-      return;
-    }
-
-    if (!isObject(newState.engine.backgroundState.NetworkController)) {
-      return;
-    }
-
-    if (
-      !isObject(
-        newState.engine.backgroundState.NetworkController.networkConfigurations,
-      )
-    ) {
-      return;
-    }
-
     const kovanNetwork = Object.values(
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       newState.engine.backgroundState.NetworkController.networkConfigurations,
     ).find((network) => isObject(network) && network.ticker === 'KOVAN');
 
@@ -210,31 +188,9 @@ describe('Migration #51', () => {
 
     const newState = await migrate(modifiedOldState);
 
-    if (!isObject(newState)) {
-      return;
-    }
-
-    if (!isObject(newState.engine)) {
-      return;
-    }
-
-    if (!isObject(newState.engine.backgroundState)) {
-      return;
-    }
-
-    if (!isObject(newState.engine.backgroundState.NetworkController)) {
-      return;
-    }
-
-    if (
-      !isObject(
-        newState.engine.backgroundState.NetworkController.networkConfigurations,
-      )
-    ) {
-      return;
-    }
-
     const customNotMaticPolygon = Object.values(
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       newState.engine.backgroundState.NetworkController.networkConfigurations,
     ).find((network) => isObject(network) && network.ticker === 'NOT_MATIC');
 
@@ -292,31 +248,9 @@ describe('Migration #51', () => {
 
     const newState = await migrate(modifiedOldState);
 
-    if (!isObject(newState)) {
-      return;
-    }
-
-    if (!isObject(newState.engine)) {
-      return;
-    }
-
-    if (!isObject(newState.engine.backgroundState)) {
-      return;
-    }
-
-    if (!isObject(newState.engine.backgroundState.NetworkController)) {
-      return;
-    }
-
-    if (
-      !isObject(
-        newState.engine.backgroundState.NetworkController.providerConfig,
-      )
-    ) {
-      return;
-    }
-
     expect(
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       newState.engine.backgroundState.NetworkController.providerConfig.ticker,
     ).toBe('NOT_MATIC');
   });
