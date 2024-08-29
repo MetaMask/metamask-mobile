@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.28.1",
+  "version": "7.29.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -15,10 +15,10 @@
     "clean-android": "yarn clean:android && yarn clean:node",
     "lint": "eslint '**/*.{js,ts,tsx}'",
     "lint:fix": "eslint '**/*.{js,ts,tsx}' --fix",
-    "lint:tsc": "tsc --project ./tsconfig.lint.json",
+    "lint:tsc": "tsc --project ./tsconfig.json",
     "format": "prettier '**/*.{js,ts,tsx,json,feature}' --write",
     "setup": "yarn clean && node scripts/setup.mjs",
-    "setup:node": "yarn clean:node && yarn allow-scripts && yarn patch-package",
+    "setup:node": "yarn allow-scripts && yarn patch-package",
     "setup:e2e": "cd wdio && yarn install",
     "setup:detox-e2e": "./scripts/detox-setup.sh",
     "start:ios": "./scripts/build.sh ios debug",
@@ -92,7 +92,10 @@
     "patch:assets": "./scripts/patch-assets-controllers.sh",
     "patch:approval": "./scripts/patch-approval-controller.sh",
     "storybook-generate": "sb-rn-get-stories",
-    "storybook-watch": "sb-rn-watcher"
+    "storybook-watch": "sb-rn-watcher",
+    "start:flipper": "npx flipper-server",
+    "gen-bundle:ios": "npx react-native bundle --platform ios --dev false --entry-file index.js --bundle-output ios/main.jsbundle",
+    "gen-bundle:android": "npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/main.jsbundle"
   },
   "husky": {
     "hooks": {
@@ -134,7 +137,8 @@
     "**/appium-base-driver/webdriverio/puppeteer-core/ws": "^7.5.10",
     "**/puppeteer-core/ws": "^8.17.1",
     "react-native/ws": "^6.2.3",
-    "socket.io-client/engine.io-client/ws": "^8.17.1"
+    "socket.io-client/engine.io-client/ws": "^8.17.1",
+    "micromatch": "4.0.8"
   },
   "dependencies": {
     "@consensys/on-ramp-sdk": "1.28.3",
@@ -149,7 +153,7 @@
     "@metamask/address-book-controller": "^4.0.1",
     "@metamask/approval-controller": "^7.0.1",
     "@metamask/assets-controllers": "^30.0.0",
-    "@metamask/base-controller": "^5.0.0",
+    "@metamask/base-controller": "^6.0.0",
     "@metamask/composable-controller": "^3.0.0",
     "@metamask/contract-metadata": "^2.1.0",
     "@metamask/controller-utils": "^10.0.0",
@@ -164,9 +168,9 @@
     "@metamask/keyring-controller": "^16.0.0",
     "@metamask/logging-controller": "^3.0.0",
     "@metamask/message-signing-snap": "^0.3.3",
-    "@metamask/network-controller": "^18.1.0",
+    "@metamask/network-controller": "^19.0.0",
     "@metamask/notification-services-controller": "^0.2.1",
-    "@metamask/permission-controller": "^9.0.0",
+    "@metamask/permission-controller": "^11.0.0",
     "@metamask/phishing-controller": "^9.0.0",
     "@metamask/post-message-stream": "^8.0.0",
     "@metamask/ppom-validator": "0.32.0",
@@ -176,11 +180,10 @@
     "@metamask/react-native-button": "^3.0.0",
     "@metamask/react-native-payments": "^2.0.0",
     "@metamask/react-native-search-api": "1.0.1",
-    "@metamask/react-native-splash-screen": "^3.2.0",
     "@metamask/react-native-webview": "^14.0.2",
     "@metamask/rpc-errors": "^6.2.1",
     "@metamask/scure-bip39": "^2.1.0",
-    "@metamask/sdk-communication-layer": "^0.20.2",
+    "@metamask/sdk-communication-layer": "^0.28.1",
     "@metamask/signature-controller": "^16.0.0",
     "@metamask/slip44": "3.1.0",
     "@metamask/smart-transactions-controller": "11.0.0",
@@ -192,14 +195,16 @@
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^9.0.2",
     "@metamask/transaction-controller": "^35.0.0",
-    "@metamask/utils": "^8.1.0",
+    "@metamask/utils": "^9.1.0",
     "@ngraveio/bc-ur": "^1.1.6",
     "@notifee/react-native": "^7.8.2",
     "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-native-clipboard/clipboard": "1.8.4",
     "@react-native-community/blur": "^4.4.0",
     "@react-native-community/checkbox": "^0.5.17",
+    "@react-native-community/datetimepicker": "^7.5.0",
     "@react-native-community/netinfo": "^9.5.0",
+    "@react-native-community/slider": "^4.4.3",
     "@react-native-cookies/cookies": "^6.2.1",
     "@react-native-firebase/app": "^20.1.0",
     "@react-native-firebase/messaging": "^20.1.0",
@@ -217,11 +222,11 @@
     "@sentry/react-native": "5.24.1",
     "@tradle/react-native-http": "2.0.1",
     "@walletconnect/client": "^1.8.0",
-    "@walletconnect/core": "2.14.0",
-    "@walletconnect/jsonrpc-types": "^1.0.2",
-    "@walletconnect/react-native-compat": "2.14.0",
-    "@walletconnect/se-sdk": "1.9.0",
-    "@walletconnect/utils": "2.14.0",
+    "@walletconnect/core": "2.15.0",
+    "@walletconnect/jsonrpc-types": "1.0.4",
+    "@walletconnect/react-native-compat": "2.15.0",
+    "@walletconnect/se-sdk": "1.10.0",
+    "@walletconnect/utils": "2.15.0",
     "@xmldom/xmldom": "^0.8.10",
     "appium-adb": "^9.11.4",
     "asyncstorage-down": "4.2.0",
@@ -320,7 +325,7 @@
     "react-native-redash": "16.2.2",
     "react-native-render-html": "^6.3.4",
     "react-native-safe-area-context": "^3.1.9",
-    "react-native-screens": "3.19.0",
+    "react-native-screens": "3.22.0",
     "react-native-scrollable-tab-view": "^1.0.0",
     "react-native-sensors": "5.3.0",
     "react-native-share": "7.3.7",
@@ -492,7 +497,9 @@
     "webpack-cli": "^5.1.4",
     "xhr2": "^0.2.1",
     "xml2js": "^0.5.0",
-    "yarn-deduplicate": "^6.0.2"
+    "yarn-deduplicate": "^6.0.2",
+    "redux-flipper": "^2.0.3",
+    "react-native-flipper": "^0.263.0"
   },
   "config": {
     "react-native-storybook-loader": {
@@ -579,7 +586,10 @@
       "@metamask/sdk-communication-layer>bufferutil": false,
       "@metamask/sdk-communication-layer>utf-8-validate": false,
       "detox>ws>bufferutil": false,
-      "@metamask/notification-services-controller>firebase>@firebase/firestore>@grpc/proto-loader>protobufjs": false
+      "@metamask/notification-services-controller>firebase>@firebase/firestore>@grpc/proto-loader>protobufjs": false,
+      "@metamask/sdk-communication-layer>eciesjs>secp256k1": false,
+      "detox>ws>utf-8-validate": false,
+      "ganache>@trufflesuite/uws-js-unofficial>utf-8-validate": false
     }
   },
   "packageManager": "yarn@1.22.22"

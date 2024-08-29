@@ -41,7 +41,6 @@ jest.mock('../../../../../../core/Analytics/MetaMetrics');
 
 const mockMetrics = {
   trackEvent: jest.fn(),
-  trackAnonymousEvent: jest.fn(),
   enable: jest.fn(() => Promise.resolve()),
   addTraitsToUser: jest.fn(() => Promise.resolve()),
   isEnabled: jest.fn(() => false),
