@@ -27,12 +27,12 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PAGINATION_OPERATIONS from '../../../constants/pagination';
 import { Device as LedgerDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
 import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
-import SelectComponent from '../../UI/SelectComponent';
 import {
   LEDGER_BIP44_PATH,
   LEDGER_LEGACY_PATH,
   LEDGER_LIVE_PATH,
 } from '../../../core/Ledger/constants';
+import SelectOptionSheet from '../../UI/SelectOptionSheet';
 
 interface OptionType {
   key: string;
@@ -170,10 +170,11 @@ const LedgerSelectAccount = () => {
 
       trackEvent(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS, {
         device_type: HardwareDeviceTypes.LEDGER,
+        hd_path: selectOption.value,
       });
       navigation.pop(2);
     },
-    [navigation, trackEvent],
+    [navigation, selectOption.value, trackEvent],
   );
 
   const onForget = useCallback(async () => {
@@ -248,10 +249,10 @@ const LedgerSelectAccount = () => {
             {strings('ledger.select_hd_path_description')}
           </Text>
           <View style={styles.pathSelector}>
-            <SelectComponent
+            <SelectOptionSheet
               options={options}
               label={strings('ledger.select_hd_path')}
-              onValueChange={async (path: string) => {
+              onValueChange={async (path?: string) => {
                 const option = options.find((d) => d.key === path);
                 if (!option) return;
                 setSelectOption(option);

@@ -103,9 +103,13 @@ export const getDeviceId = async (): Promise<string> =>
  * Set HD Path for Ledger Keyring
  * @param path - The HD Path to set
  */
-export const setHDPath = async (path: string) => {
+export const setHDPath = async (path?: string) => {
   await withLedgerKeyring(async (keyring: LedgerKeyring) => {
-    keyring.setHdPath(path);
+    if (path) {
+      keyring.setHdPath(path);
+    } else {
+      throw new Error(`Invalid HD Path: ${path}`);
+    }
   });
 };
 
