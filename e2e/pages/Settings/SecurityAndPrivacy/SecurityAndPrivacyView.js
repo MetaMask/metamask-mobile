@@ -59,9 +59,14 @@ class SecurityAndPrivacy {
       SecurityPrivacyViewSelectorsIDs.SECURITY_SETTINGS_SCROLL,
     );
   }
-
   get showPrivateKey() {
     return Matchers.getElementByText('Show private key');
+  }
+
+  get showPrivateKeyButton() {
+    return Matchers.getElementByText(
+      SecurityPrivacyViewSelectorsText.SHOW_PRIVATE_KEY,
+    );
   }
 
   get backUpNow() {
@@ -96,7 +101,7 @@ class SecurityAndPrivacy {
 
   async scrollToRevealPrivateKey() {
     await Gestures.scrollToElement(
-      this.showPrivateKey,
+      this.showPrivateKeyButton,
       this.scrollViewIdentifier,
     );
   }
@@ -136,7 +141,7 @@ class SecurityAndPrivacy {
     await Gestures.waitAndTap(this.rememberMeToggle);
   }
 
-  async tapShowPrivateKey() {
+  async tapShowPrivateKeyButton() {
     await Gestures.waitAndTap(this.showPrivateKey);
   }
 }

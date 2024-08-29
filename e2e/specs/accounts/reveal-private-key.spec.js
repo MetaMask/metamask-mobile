@@ -55,7 +55,7 @@ describe(Regression('reveal private key'), () => {
     await TabBarComponent.tapSettings();
     await SettingsView.tapSecurityAndPrivacy();
     await SecurityAndPrivacy.scrollToRevealPrivateKey();
-    await SecurityAndPrivacy.tapShowPrivateKey();
+    await SecurityAndPrivacy.tapShowPrivateKeyButton();
     await RevealPrivateKey.enterPasswordToRevealSecretCredential(PASSWORD);
 
     // Tap to reveal
@@ -105,10 +105,11 @@ describe(Regression('reveal private key'), () => {
 
     try {
       await RevealPrivateKey.tapToReveal();
-    } catch {
+    } catch (error) {
       /* eslint-disable no-console */
-      console.log(
-        'ensure you are using a test build with tap and hold to reveal animation disabled',
+      console.error(
+        'Ensure you are using a test build with tap and hold to reveal animation disabled',
+        error,
       );
     }
     await Assertions.checkIfVisible(RevealPrivateKey.container);
@@ -137,7 +138,7 @@ describe(Regression('reveal private key'), () => {
     await TabBarComponent.tapSettings();
     await SettingsView.tapSecurityAndPrivacy();
     await SecurityAndPrivacy.scrollToRevealPrivateKey();
-    await SecurityAndPrivacy.tapShowPrivateKey();
+    await SecurityAndPrivacy.tapShowPrivateKeyButton();
     await RevealPrivateKey.enterPasswordToRevealSecretCredential(
       INCORRECT_PASSWORD,
     );
