@@ -8,8 +8,10 @@ import SettingsView from '../../pages/Settings/SettingsView.js';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView.js';
 import SrpQuizModal from '../../pages/modals/SrpQuizModal.js';
 import {
-  SrpSecurityQuestionOneSelectors,
-  SrpSecurityQuestionTwoSelectors,
+  SrpSecurityQuestionOneSelectorsIDs,
+  SrpSecurityQuestionOneSelectorsText,
+  SrpSecurityQuestionTwoSelectorsIDs,
+  SrpSecurityQuestionTwoSelectorsText,
 } from '../../selectors/Modals/SrpQuizModal.selectors';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase.js';
 import { RevealSeedViewSelectorsText } from '../../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors.js';
@@ -28,70 +30,6 @@ import Assertions from '../../utils/Assertions.js';
 const fixtureServer = new FixtureServer();
 const PASSWORD = '123123123';
 const INCORRECT_PASSWORD = 'wrongpassword';
-
-class SrpQuizHelper {
-  static async handleQuestionWithIncorrectAndCorrectAnswers(
-    questionNumber,
-    questionSelectors,
-  ) {
-    try {
-      await this.checkQuestionVisible(questionNumber);
-      await this.answerIncorrectlyAndRetry(questionNumber, questionSelectors);
-      await this.answerCorrectly(questionNumber, questionSelectors);
-    } catch (error) {
-      throw new Error(
-        `Error handling question ${questionNumber}: ${error.message}`,
-      );
-    }
-  }
-
-  static async handleQuestionWithCorrectAnswersOnly(
-    questionNumber,
-    questionSelectors,
-  ) {
-    try {
-      await this.checkQuestionVisible(questionNumber);
-      await this.answerCorrectly(questionNumber, questionSelectors);
-    } catch (error) {
-      throw new Error(
-        `Error handling question ${questionNumber}: ${error.message}`,
-      );
-    }
-  }
-
-  static async checkQuestionVisible(questionNumber) {
-    await Assertions.checkIfVisible(
-      SrpQuizModal.getQuizQuestion(questionNumber),
-    );
-  }
-
-  static async answerIncorrectlyAndRetry(questionNumber, questionSelectors) {
-    await SrpQuizModal.tapQuestionWrongAnswerButton(questionNumber);
-    await Assertions.checkIfTextIsDisplayed(
-      questionSelectors.Text.WRONG_ANSWER_RESPONSE_TITLE,
-    );
-    await Assertions.checkIfTextIsDisplayed(
-      questionSelectors.Text.WRONG_ANSWER_RESPONSE_DESCRIPTION,
-    );
-    await SrpQuizModal.tapQuestionWrongAnswerTryAgainButton(questionNumber);
-    await this.checkQuestionVisible(questionNumber);
-  }
-
-  static async answerCorrectly(questionNumber, questionSelectors) {
-    await SrpQuizModal.tapQuestionRightAnswerButton(questionNumber);
-    await Assertions.checkIfTextIsDisplayed(
-      questionSelectors.Text.RIGHT_ANSWER_RESPONSE_TITLE,
-    );
-    await Assertions.checkIfTextIsDisplayed(
-      questionSelectors.Text.RIGHT_ANSWER_RESPONSE_DESCRIPTION,
-    );
-    await SrpQuizModal.tapQuestionContinueButton(questionNumber);
-    await Assertions.checkIfNotVisible(
-      SrpQuizModal.getQuestionRightContinueButton(questionNumber),
-    );
-  }
-}
-
 describe(Regression('Secret Recovery Phrase Reveal from Settings'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
@@ -108,6 +46,39 @@ describe(Regression('Secret Recovery Phrase Reveal from Settings'), () => {
     await stopFixtureServer(fixtureServer);
   });
 
+  const handleQuestion = async (
+    questionSelectorsIDs,
+    questionSelectorsText,
+    handleIncorrect = false,
+  ) => {
+    if (handleIncorrect) {
+      await SrpQuizModal.tapQuestionWrongAnswerButton(questionSelectorsIDs);
+      await Assertions.checkIfTextIsDisplayed(
+        questionSelectorsText.WRONG_ANSWER_RESPONSE_TITLE,
+      );
+      await Assertions.checkIfTextIsDisplayed(
+        questionSelectorsText.WRONG_ANSWER_RESPONSE_DESCRIPTION,
+      );
+      await SrpQuizModal.tapQuestionWrongAnswerTryAgainButton(
+        questionSelectorsIDs,
+      );
+      await Assertions.checkIfVisible(
+        SrpQuizModal.getQuizQuestion(questionSelectorsText),
+      );
+    }
+    await SrpQuizModal.tapQuestionRightAnswerButton(questionSelectorsIDs);
+    await Assertions.checkIfTextIsDisplayed(
+      questionSelectorsText.RIGHT_ANSWER_RESPONSE_TITLE,
+    );
+    await Assertions.checkIfTextIsDisplayed(
+      questionSelectorsText.RIGHT_ANSWER_RESPONSE_DESCRIPTION,
+    );
+    await SrpQuizModal.tapQuestionContinueButton(questionSelectorsIDs);
+    await Assertions.checkIfNotVisible(
+      SrpQuizModal.getQuestionRightContinueButton(questionSelectorsIDs),
+    );
+  };
+
   it('reveals Secret Recovery Phrase after completing the security quiz with incorrect and correct answers', async () => {
     // Navigate to Reveal SRP screen
     await TabBarComponent.tapSettings();
@@ -118,15 +89,17 @@ describe(Regression('Secret Recovery Phrase Reveal from Settings'), () => {
     await SrpQuizModal.tapGetStartedButton();
 
     // Handle Question 1 with incorrect and correct answers
-    await SrpQuizHelper.handleQuestionWithIncorrectAndCorrectAnswers(
-      1,
-      SrpSecurityQuestionOneSelectors,
+    await handleQuestion(
+      SrpSecurityQuestionOneSelectorsIDs,
+      SrpSecurityQuestionOneSelectorsText,
+      true,
     );
 
     // Handle Question 2 with incorrect and correct answers
-    await SrpQuizHelper.handleQuestionWithIncorrectAndCorrectAnswers(
-      2,
-      SrpSecurityQuestionTwoSelectors,
+    await handleQuestion(
+      SrpSecurityQuestionTwoSelectorsIDs,
+      SrpSecurityQuestionTwoSelectorsText,
+      true,
     );
 
     // Enter password and tap to reveal
@@ -135,7 +108,6 @@ describe(Regression('Secret Recovery Phrase Reveal from Settings'), () => {
     );
 
     // Tap to reveal
-    // If the following step fails, ensure you are using a test build with tap and hold to reveal animation disabled
     await RevealSecretRecoveryPhrase.tapToReveal();
 
     // Confirm that the SRP container, title, and text are displayed
@@ -146,9 +118,6 @@ describe(Regression('Secret Recovery Phrase Reveal from Settings'), () => {
     await Assertions.checkIfTextIsDisplayed(defaultGanacheOptions.mnemonic);
 
     // Copy to clipboard
-    // Android devices running OS version < 11 (API level 29) will not see the copy to clipboard button presented
-    // This will cause the following step to fail if e2e were being run on an older android OS prior to our minimum API level 29
-    // See details here: https://github.com/MetaMask/metamask-mobile/pull/4170
     await RevealSecretRecoveryPhrase.tapToCopyCredentialToClipboard();
 
     // Tap to reveal QR code and confirm it is displayed
@@ -176,15 +145,15 @@ describe(Regression('Secret Recovery Phrase Reveal from Settings'), () => {
     await SrpQuizModal.tapGetStartedButton();
 
     // Handle Question 1 with correct answers only
-    await SrpQuizHelper.handleQuestionWithCorrectAnswersOnly(
-      1,
-      SrpSecurityQuestionOneSelectors,
+    await handleQuestion(
+      SrpSecurityQuestionOneSelectorsIDs,
+      SrpSecurityQuestionOneSelectorsText,
     );
 
     // Handle Question 2 with correct answers only
-    await SrpQuizHelper.handleQuestionWithCorrectAnswersOnly(
-      2,
-      SrpSecurityQuestionTwoSelectors,
+    await handleQuestion(
+      SrpSecurityQuestionTwoSelectorsIDs,
+      SrpSecurityQuestionTwoSelectorsText,
     );
 
     // Enter incorrect password and attempt to reveal

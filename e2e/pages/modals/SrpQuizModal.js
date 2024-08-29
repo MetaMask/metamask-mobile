@@ -1,7 +1,6 @@
 import {
-  SrpQuizGetStartedSelectors,
-  SrpSecurityQuestionOneSelectors,
-  SrpSecurityQuestionTwoSelectors,
+  SrpQuizGetStartedSelectorsIDs,
+  SrpQuizGetStartedSelectorsText,
 } from '../../selectors/Modals/SrpQuizModal.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
@@ -9,126 +8,76 @@ import Gestures from '../../utils/Gestures';
 class SrpQuizModal {
   // Getters for common elements
   get getStartedContainer() {
-    return Matchers.getElementByID(SrpQuizGetStartedSelectors.IDs.CONTAINER);
+    return Matchers.getElementByID(SrpQuizGetStartedSelectorsIDs.CONTAINER);
   }
 
   get getStartedDismiss() {
-    return Matchers.getElementByID(SrpQuizGetStartedSelectors.IDs.DISMISS);
+    return Matchers.getElementByID(SrpQuizGetStartedSelectorsIDs.DISMISS);
   }
 
   get modalIntroduction() {
     return Matchers.getElementByText(
-      SrpQuizGetStartedSelectors.Text.INTRODUCTION,
+      SrpQuizGetStartedSelectorsText.INTRODUCTION,
     );
   }
 
   get getStartedButton() {
-    return Matchers.getElementByID(SrpQuizGetStartedSelectors.IDs.BUTTON);
+    return Matchers.getElementByID(SrpQuizGetStartedSelectorsIDs.BUTTON);
   }
 
   // Getters for question elements
-  getQuestionContainer(questionNumber) {
-    return questionNumber === 1
-      ? Matchers.getElementByID(SrpSecurityQuestionOneSelectors.IDs.CONTAINER)
-      : Matchers.getElementByID(SrpSecurityQuestionTwoSelectors.IDs.CONTAINER);
+  getQuestionContainer(questionSelectorsIDs) {
+    return Matchers.getElementByID(questionSelectorsIDs.CONTAINER);
   }
 
-  getQuestionDismiss(questionNumber) {
-    return questionNumber === 1
-      ? Matchers.getElementByID(SrpSecurityQuestionOneSelectors.IDs.DISMISS)
-      : Matchers.getElementByID(SrpSecurityQuestionTwoSelectors.IDs.DISMISS);
+  getQuestionDismiss(questionSelectorsIDs) {
+    return Matchers.getElementByID(questionSelectorsIDs.DISMISS);
   }
 
-  getQuizQuestion(questionNumber) {
-    return questionNumber === 1
-      ? Matchers.getElementByText(SrpSecurityQuestionOneSelectors.Text.QUESTION)
-      : Matchers.getElementByText(
-          SrpSecurityQuestionTwoSelectors.Text.QUESTION,
-        );
+  getQuizQuestion(questionSelectorsText) {
+    return Matchers.getElementByText(questionSelectorsText.QUESTION);
   }
 
-  getQuestionWrongAnswer(questionNumber) {
-    return questionNumber === 1
-      ? Matchers.getElementByID(
-          SrpSecurityQuestionOneSelectors.IDs.WRONG_ANSWER,
-        )
-      : Matchers.getElementByID(
-          SrpSecurityQuestionTwoSelectors.IDs.WRONG_ANSWER,
-        );
+  getQuestionWrongAnswer(questionSelectorsIDs) {
+    return Matchers.getElementByID(questionSelectorsIDs.WRONG_ANSWER);
   }
 
-  getQuestionWrongAnswerResponseTitle(questionNumber) {
-    return questionNumber === 1
-      ? Matchers.getElementByText(
-          SrpSecurityQuestionOneSelectors.Text.WRONG_ANSWER_RESPONSE_TITLE,
-        )
-      : Matchers.getElementByText(
-          SrpSecurityQuestionTwoSelectors.Text.WRONG_ANSWER_RESPONSE_TITLE,
-        );
+  getQuestionWrongAnswerResponseTitle(questionSelectorsText) {
+    return Matchers.getElementByText(
+      questionSelectorsText.WRONG_ANSWER_RESPONSE_TITLE,
+    );
   }
 
-  getQuestionWrongAnswerResponseDescription(questionNumber) {
-    return questionNumber === 1
-      ? Matchers.getElementByText(
-          SrpSecurityQuestionOneSelectors.Text
-            .WRONG_ANSWER_RESPONSE_DESCRIPTION,
-        )
-      : Matchers.getElementByText(
-          SrpSecurityQuestionTwoSelectors.Text
-            .WRONG_ANSWER_RESPONSE_DESCRIPTION,
-        );
+  getQuestionWrongAnswerResponseDescription(questionSelectorsText) {
+    return Matchers.getElementByText(
+      questionSelectorsText.WRONG_ANSWER_RESPONSE_DESCRIPTION,
+    );
   }
 
-  getQuestionWrongAnswerTryAgainButton(questionNumber) {
-    return questionNumber === 1
-      ? Matchers.getElementByID(
-          SrpSecurityQuestionOneSelectors.IDs.WRONG_ANSWER_TRY_AGAIN_BUTTON,
-        )
-      : Matchers.getElementByID(
-          SrpSecurityQuestionTwoSelectors.IDs.WRONG_ANSWER_TRY_AGAIN_BUTTON,
-        );
+  getQuestionWrongAnswerTryAgainButton(questionSelectorsIDs) {
+    return Matchers.getElementByID(
+      questionSelectorsIDs.WRONG_ANSWER_TRY_AGAIN_BUTTON,
+    );
   }
 
-  getQuestionRightAnswerButton(questionNumber) {
-    return questionNumber === 1
-      ? Matchers.getElementByID(
-          SrpSecurityQuestionOneSelectors.IDs.RIGHT_ANSWER,
-        )
-      : Matchers.getElementByID(
-          SrpSecurityQuestionTwoSelectors.IDs.RIGHT_ANSWER,
-        );
+  getQuestionRightAnswerButton(questionSelectorsIDs) {
+    return Matchers.getElementByID(questionSelectorsIDs.RIGHT_ANSWER);
   }
 
-  getQuestionRightAnswerResponseTitle(questionNumber) {
-    return questionNumber === 1
-      ? Matchers.getElementByText(
-          SrpSecurityQuestionOneSelectors.Text.RIGHT_ANSWER_RESPONSE_TITLE,
-        )
-      : Matchers.getElementByText(
-          SrpSecurityQuestionTwoSelectors.Text.RIGHT_ANSWER_RESPONSE_TITLE,
-        );
+  getQuestionRightAnswerResponseTitle(questionSelectorsText) {
+    return Matchers.getElementByText(
+      questionSelectorsText.RIGHT_ANSWER_RESPONSE_TITLE,
+    );
   }
 
-  getQuestionRightAnswerResponseDescription(questionNumber) {
-    return questionNumber === 1
-      ? Matchers.getElementByText(
-          SrpSecurityQuestionOneSelectors.Text
-            .RIGHT_ANSWER_RESPONSE_DESCRIPTION,
-        )
-      : Matchers.getElementByText(
-          SrpSecurityQuestionTwoSelectors.Text
-            .RIGHT_ANSWER_RESPONSE_DESCRIPTION,
-        );
+  getQuestionRightAnswerResponseDescription(questionSelectorsText) {
+    return Matchers.getElementByText(
+      questionSelectorsText.RIGHT_ANSWER_RESPONSE_DESCRIPTION,
+    );
   }
 
-  getQuestionRightContinueButton(questionNumber) {
-    return questionNumber === 1
-      ? Matchers.getElementByID(
-          SrpSecurityQuestionOneSelectors.IDs.RIGHT_CONTINUE,
-        )
-      : Matchers.getElementByID(
-          SrpSecurityQuestionTwoSelectors.IDs.RIGHT_CONTINUE,
-        );
+  getQuestionRightContinueButton(questionSelectorsIDs) {
+    return Matchers.getElementByID(questionSelectorsIDs.RIGHT_CONTINUE);
   }
 
   // Methods for common actions
@@ -141,29 +90,31 @@ class SrpQuizModal {
   }
 
   // Methods for question actions
-  async tapQuestionDismiss(questionNumber) {
-    await Gestures.waitAndTap(this.getQuestionDismiss(questionNumber));
+  async tapQuestionDismiss(questionSelectorsIDs) {
+    await Gestures.waitAndTap(this.getQuestionDismiss(questionSelectorsIDs));
   }
 
-  async tapQuestionWrongAnswerButton(questionNumber) {
-    await Gestures.waitAndTap(this.getQuestionWrongAnswer(questionNumber));
-  }
-
-  async tapQuestionWrongAnswerTryAgainButton(questionNumber) {
+  async tapQuestionWrongAnswerButton(questionSelectorsIDs) {
     await Gestures.waitAndTap(
-      this.getQuestionWrongAnswerTryAgainButton(questionNumber),
+      this.getQuestionWrongAnswer(questionSelectorsIDs),
     );
   }
 
-  async tapQuestionRightAnswerButton(questionNumber) {
+  async tapQuestionWrongAnswerTryAgainButton(questionSelectorsIDs) {
     await Gestures.waitAndTap(
-      this.getQuestionRightAnswerButton(questionNumber),
+      this.getQuestionWrongAnswerTryAgainButton(questionSelectorsIDs),
     );
   }
 
-  async tapQuestionContinueButton(questionNumber) {
+  async tapQuestionRightAnswerButton(questionSelectorsIDs) {
     await Gestures.waitAndTap(
-      this.getQuestionRightContinueButton(questionNumber),
+      this.getQuestionRightAnswerButton(questionSelectorsIDs),
+    );
+  }
+
+  async tapQuestionContinueButton(questionSelectorsIDs) {
+    await Gestures.waitAndTap(
+      this.getQuestionRightContinueButton(questionSelectorsIDs),
     );
   }
 }
