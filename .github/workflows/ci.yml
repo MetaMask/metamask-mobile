@@ -24,7 +24,7 @@ jobs:
         run: printf '%s\n\n%s' '@metamask:registry=https://npm.pkg.github.com' "//npm.pkg.github.com/:_authToken=${PACKAGE_READ_TOKEN}" > .npmrc
         env:
           PACKAGE_READ_TOKEN: ${{ secrets.PACKAGE_READ_TOKEN }}
-      - run: yarn setup --node
+      - run: yarn setup --diff
       - name: Require clean working directory
         shell: bash
         run: |
@@ -217,6 +217,15 @@ jobs:
   all-jobs-pass:
     name: All jobs pass
     runs-on: ubuntu-20.04
-    needs: [setup, dedupe, scripts, unit-tests, check-workflows, sonar-cloud, js-bundle-size-check]
+    needs:
+      [
+        setup,
+        dedupe,
+        scripts,
+        unit-tests,
+        check-workflows,
+        sonar-cloud,
+        js-bundle-size-check,
+      ]
     steps:
       - run: echo "Great success!"

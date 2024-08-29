@@ -9,6 +9,7 @@ const input = process.argv.slice(2)?.[0];
 // iOS builds are enabled by default on macOS only but can be enabled explicitly
 const BUILD_IOS = input === '--build-ios' || IS_OSX;
 const IS_NODE = input === '--node';
+const IS_DIFF = input === '--diff';
 const IS_CI = process.env.CI;
 
 const rendererOptions = {
@@ -263,16 +264,24 @@ const yarnSetupNodeTask = {
   },
 };
 
-const taskList = IS_NODE
-  ? [yarnSetupNodeTask, installCocoapodsStep, generateTermsOfUseTask]
-  : [
-      gemInstallTask,
-      patchModulesTask,
-      mainSetupTask,
-      ppomBuildTask,
-      sourceEnvs,
-      generateTermsOfUseTask,
-    ];
+let taskList = [
+  gemInstallTask,
+  patchModulesTask,
+  mainSetupTask,
+  ppomBuildTask,
+  sourceEnvs,
+  generateTermsOfUseTask,
+];
+
+// Optimized for CI performance
+if (IS_NODE) {
+  taskList = [yarnSetupNodeTask, generateTermsOfUseTask];
+}
+
+// Optimized for detecting diffs
+if (IS_DIFF) {
+  taskList = [yarnSetupNodeTask, installCocoapodsStep, generateTermsOfUseTask];
+}
 
 const tasks = new Listr(taskList, {
   exitOnError: true,
