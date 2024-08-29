@@ -95,7 +95,7 @@ const gemInstallTask = {
             if (!BUILD_IOS) {
               return gemInstallTask.skip('Skipping iOS.');
             }
-            await $`bundle install`;
+            await $`cd ios && bundle install`;
           },
         },
       ],
@@ -107,20 +107,22 @@ const gemInstallTask = {
     ),
 };
 
+const installCocoapodsStep = {
+  title: 'Install CocoaPods',
+  task: async (_, podInstallTask) => {
+    if (!BUILD_IOS) {
+      return podInstallTask.skip('Skipping iOS.');
+    }
+    await $`cd ios && bundle exec pod install`;
+  },
+};
+
 const mainSetupTask = {
   title: 'Dependencies setup',
   task: (_, task) =>
     task.newListr(
       [
-        {
-          title: 'Install CocoaPods',
-          task: async (_, podInstallTask) => {
-            if (!BUILD_IOS) {
-              return podInstallTask.skip('Skipping iOS.');
-            }
-            await $`bundle exec pod install --project-directory=ios`;
-          },
-        },
+        installCocoapodsStep,
         {
           title: 'Run lavamoat allow-scripts',
           task: async () => {
@@ -262,7 +264,7 @@ const yarnSetupNodeTask = {
 };
 
 const taskList = IS_NODE
-  ? [yarnSetupNodeTask, generateTermsOfUseTask]
+  ? [yarnSetupNodeTask, installCocoapodsStep, generateTermsOfUseTask]
   : [
       gemInstallTask,
       patchModulesTask,
