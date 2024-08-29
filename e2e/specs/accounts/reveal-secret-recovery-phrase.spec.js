@@ -30,6 +30,7 @@ import Assertions from '../../utils/Assertions.js';
 const fixtureServer = new FixtureServer();
 const PASSWORD = '123123123';
 const INCORRECT_PASSWORD = 'wrongpassword';
+
 describe(Regression('Secret Recovery Phrase Reveal from Settings'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
