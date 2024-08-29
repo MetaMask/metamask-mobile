@@ -220,7 +220,7 @@ jobs:
       - name: SonarCloud Quality Gate Status
         id: sonar-status
         run: |
-          sleep 60
+          sleep 45
 
           PROJECT_KEY="metamask-mobile"
           PR_NUMBER="${{ github.event.pull_request.number }}"
