@@ -47,7 +47,7 @@ describe(Regression('Secret Recovery Phrase Reveal from Settings'), () => {
     await stopFixtureServer(fixtureServer);
   });
 
-  const handleQuestion = async (
+  const handleSRPQuizQuestion = async (
     questionSelectorsIDs,
     questionSelectorsText,
     handleIncorrect = false,
@@ -90,14 +90,14 @@ describe(Regression('Secret Recovery Phrase Reveal from Settings'), () => {
     await SrpQuizModal.tapGetStartedButton();
 
     // Handle Question 1 with incorrect and correct answers
-    await handleQuestion(
+    await handleSRPQuizQuestion(
       SrpSecurityQuestionOneSelectorsIDs,
       SrpSecurityQuestionOneSelectorsText,
       true,
     );
 
     // Handle Question 2 with incorrect and correct answers
-    await handleQuestion(
+    await handleSRPQuizQuestion(
       SrpSecurityQuestionTwoSelectorsIDs,
       SrpSecurityQuestionTwoSelectorsText,
       true,
@@ -146,13 +146,13 @@ describe(Regression('Secret Recovery Phrase Reveal from Settings'), () => {
     await SrpQuizModal.tapGetStartedButton();
 
     // Handle Question 1 with correct answers only
-    await handleQuestion(
+    await handleSRPQuizQuestion(
       SrpSecurityQuestionOneSelectorsIDs,
       SrpSecurityQuestionOneSelectorsText,
     );
 
     // Handle Question 2 with correct answers only
-    await handleQuestion(
+    await handleSRPQuizQuestion(
       SrpSecurityQuestionTwoSelectorsIDs,
       SrpSecurityQuestionTwoSelectorsText,
     );
