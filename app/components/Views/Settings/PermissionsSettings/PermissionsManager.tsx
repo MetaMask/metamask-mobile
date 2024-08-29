@@ -1,4 +1,3 @@
-import { StackNavigationProp } from '@react-navigation/stack';
 import React, { useCallback, useEffect } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,11 +18,10 @@ import { isMutichainVersion1Enabled } from '../../../../util/networks';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import PermissionItem from './PermissionItem';
 import mockPermissionItems from './PermissionItem/PermissionItem.constants';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
 interface SDKSessionsManagerProps {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: StackNavigationProp<any>;
+  navigation: NavigationProp<ParamListBase>;
 }
 
 const createStyles = (
