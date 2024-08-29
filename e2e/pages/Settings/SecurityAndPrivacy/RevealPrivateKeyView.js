@@ -31,7 +31,7 @@ class RevealPrivateKey {
 
   get privateKey() {
     return Matchers.getElementByText(
-      RevealSeedViewSelectorsIDs.PRIVATE_KEY_TEXT,
+      RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_TEXT,
     );
   }
   get revealPrivateKeyButton() {
