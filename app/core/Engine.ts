@@ -132,6 +132,7 @@ import {
   LoggingController,
   LoggingControllerState,
   LoggingControllerActions,
+  LoggingControllerEvents,
 } from '@metamask/logging-controller';
 import {
   LedgerKeyring,
@@ -291,7 +292,6 @@ type GlobalEvents =
   // | SmartTransactionControllerEvents
   // | SwapsControllerEvents
   // TODO: uncomment once `Events` type is added to controller
-  // | LoggingControllerEvents
   // | AuthenticationController.Events
   // | UserStorageController.Events
   // | NotificationsServicesPushController.Events
@@ -305,6 +305,7 @@ type GlobalEvents =
   | SnapsGlobalEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
+  | LoggingControllerEvents
   | PPOMControllerEvents
   | AccountsControllerEvents
   | PreferencesControllerEvents
@@ -1524,6 +1525,7 @@ class Engine {
           'CurrencyRateController:stateChange',
           'GasFeeController:stateChange',
           'KeyringController:stateChange',
+          'LoggingController:stateChange',
           'NetworkController:stateChange',
           'PermissionController:stateChange',
           'PreferencesController:stateChange',
@@ -1542,8 +1544,6 @@ class Engine {
            */
           // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
           'AuthenticationController:stateChange',
-          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
-          'LoggingController:stateChange',
           // @ts-expect-error BaseControllerV1, has `messagingSystem` but as private field, messenger defined without `stateChange` event type
           'NftController:stateChange',
           // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
