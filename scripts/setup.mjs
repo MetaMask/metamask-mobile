@@ -129,13 +129,13 @@ const setupIosTask = {
         {
           title: 'Install gems',
           task: async () => {
-            await $`cd ios && bundle install`;
+            await $`yarn gem:bundle:install`;
           },
         },
         {
           title: 'Install CocoaPods',
           task: async () => {
-            await $`cd ios && bundle exec pod install`;
+            await $`yarn pod:install`;
           },
         },
         {
