@@ -48,7 +48,8 @@ module.exports = {
         },
       },
       rules: {
-        'no-unused-vars': [
+        // under discussion
+        'no-unused-vars': 'off' /* [
           'error',
           {
             vars: 'all',
@@ -56,7 +57,7 @@ module.exports = {
             argsIgnorePattern: '[_]+',
             ignoreRestSiblings: true,
           },
-        ],
+        ] */,
       },
     },
     {

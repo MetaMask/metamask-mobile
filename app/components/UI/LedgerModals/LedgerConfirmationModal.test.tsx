@@ -295,6 +295,7 @@ describe('LedgerConfirmationModal', () => {
       />,
     );
 
+    // eslint-disable-next-line no-empty-function
     await act(async () => {});
 
     expect(ledgerLogicToRun).toHaveBeenCalledTimes(1);
@@ -323,7 +324,7 @@ describe('LedgerConfirmationModal', () => {
       />,
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    // eslint-disable-next-line no-empty-function
     await act(async () => {});
 
     const retryButton = getByTestId(RETRY_BUTTON);
@@ -350,7 +351,7 @@ describe('LedgerConfirmationModal', () => {
       />,
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    // eslint-disable-next-line no-empty-function
     await act(async () => {});
 
     expect(onConfirmation).toHaveBeenCalled();
@@ -384,7 +385,7 @@ describe('LedgerConfirmationModal', () => {
       />,
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    // eslint-disable-next-line no-empty-function
     await act(async () => {});
 
     expect(onConfirmation).not.toHaveBeenCalled();
@@ -415,7 +416,7 @@ describe('LedgerConfirmationModal', () => {
         deviceId={'test'}
       />,
     );
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    // eslint-disable-next-line no-empty-function
     await act(async () => {});
 
     expect(onRejection).toHaveBeenCalled();
