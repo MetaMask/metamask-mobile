@@ -221,6 +221,7 @@ import { TransactionControllerOptions } from '@metamask/transaction-controller/d
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { snapKeyringBuilder } from './SnapKeyring';
 import { removeAccountsFromPermissions } from './Permissions';
+import { keyringSnapPermissionsBuilder } from './SnapKeyring/keyringSnapsPermissions';
 ///: END:ONLY_INCLUDE_IF
 
 const NON_EMPTY = 'NON_EMPTY';
@@ -431,6 +432,7 @@ class Engine {
    */
   snapExecutionService: WebViewExecutionService;
   snapController: SnapController;
+  subjectMetadataController: SubjectMetadataController;
 
   ///: END:ONLY_INCLUDE_IF
 
@@ -886,6 +888,10 @@ class Engine {
               origin,
             );
           },
+          getAllowedKeyringMethods: keyringSnapPermissionsBuilder(
+            this.subjectMetadataController,
+            origin,
+          ),
         },
       ),
     });
@@ -965,7 +971,7 @@ class Engine {
     });
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-    const subjectMetadataController = new SubjectMetadataController({
+    this.subjectMetadataController = new SubjectMetadataController({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted({
@@ -1071,8 +1077,8 @@ class Engine {
         `${approvalController.name}:addRequest`,
         `${approvalController.name}:updateRequestState`,
         `${permissionController.name}:grantPermissions`,
-        `${subjectMetadataController.name}:getSubjectMetadata`,
-        `${subjectMetadataController.name}:addSubjectMetadata`,
+        `${this.subjectMetadataController.name}:getSubjectMetadata`,
+        `${this.subjectMetadataController.name}:addSubjectMetadata`,
         `${phishingController.name}:maybeUpdateState`,
         `${phishingController.name}:testOrigin`,
         `${snapsRegistry.name}:get`,
@@ -1496,7 +1502,7 @@ class Engine {
       loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       this.snapController,
-      subjectMetadataController,
+      this.subjectMetadataController,
       authenticationController,
       userStorageController,
       notificationServicesController,
