@@ -442,8 +442,7 @@ export const getNetworkImageSource = ({ networkType, chainId }) => {
  * @returns {String} Hex string gas fee, with no 0x prefix
  */
 export const fetchEstimatedMultiLayerL1Fee = async (eth, txMeta) => {
-  const chainId =
-    Engine.context.NetworkController.state?.providerConfig?.chainId;
+  const chainId = txMeta.chainId;
 
   const layer1GasFee =
     await Engine.context.TransactionController.getLayer1GasFee({
