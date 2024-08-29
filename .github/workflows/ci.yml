@@ -150,6 +150,25 @@ jobs:
           else
             echo "No changes detected"
           fi
+
+  js-bundle-size-check:
+    runs-on: ubuntu-20.04
+    needs: setup
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Install dependencies
+        run: yarn setup
+
+      - name: Generate iOS bundle
+        run: yarn gen-bundle:ios
+
+      - name: Check bundle size
+        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 40
+
   sonar-cloud:
     runs-on: ubuntu-20.04
     needs: merge-unit-tests
@@ -242,6 +261,6 @@ jobs:
   all-jobs-pass:
     name: All jobs pass
     runs-on: ubuntu-20.04
-    needs: [setup, dedupe, scripts, unit-tests, check-workflows, sonar-cloud]
+    needs: [setup, dedupe, scripts, unit-tests, check-workflows, sonar-cloud, js-bundle-size-check]
     steps:
       - run: echo "Great success!"
