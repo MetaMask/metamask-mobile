@@ -204,13 +204,8 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
             style={
               {
                 "color": "#141618",
-<<<<<<< HEAD
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 14,
-=======
                 "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 16,
->>>>>>> f965eb8f79271b51945824086d02e9128bf9ff14
+                "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 22,
