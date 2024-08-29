@@ -2,7 +2,11 @@
 
 ## Current Main Branch
 
-## 7.29.0 - Aug 2, 2024
+## 7.29.1 - Aug 29, 2024
+### Fixed
+- [#10831](https://github.com/MetaMask/metamask-mobile/pull/10831): feat: Update Polygon from MATIC to POL (#10831)
+
+## 7.29.0 - Aug 6, 2024
 ### Added
 - [#9578](https://github.com/MetaMask/metamask-mobile/pull/9578): feat: type `renderHookWithProvider` (#9578)
 - [#10277](https://github.com/MetaMask/metamask-mobile/pull/10277): feat: New nft details page (#10277)
