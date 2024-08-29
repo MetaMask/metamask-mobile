@@ -18,7 +18,7 @@
     "lint:tsc": "tsc --project ./tsconfig.json",
     "format": "prettier '**/*.{js,ts,tsx,json,feature}' --write",
     "setup": "yarn clean && node scripts/setup.mjs",
-    "setup:node": "yarn clean:node && yarn allow-scripts && yarn patch-package",
+    "setup:node": "yarn allow-scripts && yarn patch-package",
     "setup:e2e": "cd wdio && yarn install",
     "setup:detox-e2e": "./scripts/detox-setup.sh",
     "start:ios": "./scripts/build.sh ios debug",
@@ -93,7 +93,9 @@
     "patch:approval": "./scripts/patch-approval-controller.sh",
     "storybook-generate": "sb-rn-get-stories",
     "storybook-watch": "sb-rn-watcher",
-    "start:flipper": "npx flipper-server"
+    "start:flipper": "npx flipper-server",
+    "gen-bundle:ios": "npx react-native bundle --platform ios --dev false --entry-file index.js --bundle-output ios/main.jsbundle",
+    "gen-bundle:android": "npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/main.jsbundle"
   },
   "husky": {
     "hooks": {
@@ -135,7 +137,8 @@
     "**/appium-base-driver/webdriverio/puppeteer-core/ws": "^7.5.10",
     "**/puppeteer-core/ws": "^8.17.1",
     "react-native/ws": "^6.2.3",
-    "socket.io-client/engine.io-client/ws": "^8.17.1"
+    "socket.io-client/engine.io-client/ws": "^8.17.1",
+    "micromatch": "4.0.8"
   },
   "dependencies": {
     "@consensys/on-ramp-sdk": "1.28.3",
