@@ -560,10 +560,10 @@ class Confirm extends PureComponent {
       };
 
       ppomUtil.validateRequest(reqObject, id);
-      this.appStateListener = AppState.addEventListener(
-        'change',
-        this.handleAppStateChange,
-      );
+      // this.appStateListener = AppState.addEventListener(
+      //   'change',
+      //   this.handleAppStateChange,
+      // );
     }
   };
 
