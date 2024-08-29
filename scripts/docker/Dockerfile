@@ -55,7 +55,7 @@ RUN bash -c 'eval "$(/home/node/.rbenv/bin/rbenv init -)" \
     && rbenv install \
     && gem install bundler -v 2.5.8 \
     && gem install bigdecimal cocoapods \
-    && bundle install'
+    && (cd ios && bundle install)'
 
 # fix broken ipv6 on nodejs v20
 env NODE_OPTIONS="--no-network-family-autoselection --trace-warnings"
