@@ -17,13 +17,6 @@ import type {
   StartFlow,
 } from '@metamask/approval-controller';
 
-export const SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES = {
-  confirmAccountCreation: 'snap_manageAccounts:confirmAccountCreation',
-  confirmAccountRemoval: 'snap_manageAccounts:confirmAccountRemoval',
-  showSnapAccountRedirect: 'snap_manageAccounts:showSnapAccountRedirect',
-  showNameSnapAccount: 'snap_manageAccounts:showNameSnapAccount',
-};
-
 export type SnapKeyringBuilderAllowActions =
   | StartFlow
   | EndFlow
