@@ -49,15 +49,7 @@ module.exports = {
       },
       rules: {
         // under discussion
-        'no-unused-vars': 'off' /* [
-          'error',
-          {
-            vars: 'all',
-            args: 'all',
-            argsIgnorePattern: '[_]+',
-            ignoreRestSiblings: true,
-          },
-        ] */,
+        'no-unused-vars': 'off',
       },
     },
     {
