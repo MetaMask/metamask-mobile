@@ -127,6 +127,12 @@ const setupIosTask = {
     return task.newListr(
       [
         {
+          title: 'Install bundler gem',
+          task: async () => {
+            await $`gem install bundler -v 2.5.8`;
+          },
+        },
+        {
           title: 'Install gems',
           task: async () => {
             await $`yarn gem:bundle:install`;
