@@ -369,7 +369,6 @@
     "@babel/core": "^7.24.5",
     "@babel/eslint-parser": "^7.25.1",
     "@babel/preset-env": "^7.24.5",
-    "@babel/preset-react": "^7.24.7",
     "@babel/register": "^7.24.6",
     "@babel/runtime": "^7.24.5",
     "@cucumber/message-streams": "^4.0.1",
