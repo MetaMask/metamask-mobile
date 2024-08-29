@@ -1,6 +1,10 @@
 import {
   SrpQuizGetStartedSelectorsIDs,
   SrpQuizGetStartedSelectorsText,
+  SrpSecurityQuestionOneSelectorsIDs,
+  SrpSecurityQuestionOneSelectorsText,
+  SrpSecurityQuestionTwoSelectorsIDs,
+  SrpSecurityQuestionTwoSelectorsText,
 } from '../../selectors/Modals/SrpQuizModal.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
@@ -25,59 +29,78 @@ class SrpQuizModal {
     return Matchers.getElementByID(SrpQuizGetStartedSelectorsIDs.BUTTON);
   }
 
+  // Mapping question number to selectors
+  getQuestionSelectors(questionNumber) {
+    switch (questionNumber) {
+      case 1:
+        return {
+          ids: SrpSecurityQuestionOneSelectorsIDs,
+          text: SrpSecurityQuestionOneSelectorsText,
+        };
+      case 2:
+        return {
+          ids: SrpSecurityQuestionTwoSelectorsIDs,
+          text: SrpSecurityQuestionTwoSelectorsText,
+        };
+      default:
+        throw new Error(`Invalid question number: ${questionNumber}`);
+    }
+  }
+
   // Getters for question elements
-  getQuestionContainer(questionSelectorsIDs) {
-    return Matchers.getElementByID(questionSelectorsIDs.CONTAINER);
+  getQuestionContainer(questionNumber) {
+    const { ids } = this.getQuestionSelectors(questionNumber);
+    return Matchers.getElementByID(ids.CONTAINER);
   }
 
-  getQuestionDismiss(questionSelectorsIDs) {
-    return Matchers.getElementByID(questionSelectorsIDs.DISMISS);
+  getQuestionDismiss(questionNumber) {
+    const { ids } = this.getQuestionSelectors(questionNumber);
+    return Matchers.getElementByID(ids.DISMISS);
   }
 
-  getQuizQuestion(questionSelectorsText) {
-    return Matchers.getElementByText(questionSelectorsText.QUESTION);
+  getQuizQuestion(questionNumber) {
+    const { text } = this.getQuestionSelectors(questionNumber);
+    return Matchers.getElementByText(text.QUESTION);
   }
 
-  getQuestionWrongAnswer(questionSelectorsIDs) {
-    return Matchers.getElementByID(questionSelectorsIDs.WRONG_ANSWER);
+  getQuestionWrongAnswer(questionNumber) {
+    const { ids } = this.getQuestionSelectors(questionNumber);
+    return Matchers.getElementByID(ids.WRONG_ANSWER);
   }
 
-  getQuestionWrongAnswerResponseTitle(questionSelectorsText) {
-    return Matchers.getElementByText(
-      questionSelectorsText.WRONG_ANSWER_RESPONSE_TITLE,
-    );
+  getQuestionWrongAnswerResponseTitle(questionNumber) {
+    const { text } = this.getQuestionSelectors(questionNumber);
+    return Matchers.getElementByText(text.WRONG_ANSWER_RESPONSE_TITLE);
   }
 
-  getQuestionWrongAnswerResponseDescription(questionSelectorsText) {
-    return Matchers.getElementByText(
-      questionSelectorsText.WRONG_ANSWER_RESPONSE_DESCRIPTION,
-    );
+  getQuestionWrongAnswerResponseDescription(questionNumber) {
+    const { text } = this.getQuestionSelectors(questionNumber);
+    return Matchers.getElementByText(text.WRONG_ANSWER_RESPONSE_DESCRIPTION);
   }
 
-  getQuestionWrongAnswerTryAgainButton(questionSelectorsIDs) {
-    return Matchers.getElementByID(
-      questionSelectorsIDs.WRONG_ANSWER_TRY_AGAIN_BUTTON,
-    );
+  getQuestionWrongAnswerTryAgainButton(questionNumber) {
+    const { ids } = this.getQuestionSelectors(questionNumber);
+    return Matchers.getElementByID(ids.WRONG_ANSWER_TRY_AGAIN_BUTTON);
   }
 
-  getQuestionRightAnswerButton(questionSelectorsIDs) {
-    return Matchers.getElementByID(questionSelectorsIDs.RIGHT_ANSWER);
+  getQuestionRightAnswerButton(questionNumber) {
+    const { ids } = this.getQuestionSelectors(questionNumber);
+    return Matchers.getElementByID(ids.RIGHT_ANSWER);
   }
 
-  getQuestionRightAnswerResponseTitle(questionSelectorsText) {
-    return Matchers.getElementByText(
-      questionSelectorsText.RIGHT_ANSWER_RESPONSE_TITLE,
-    );
+  getQuestionRightAnswerResponseTitle(questionNumber) {
+    const { text } = this.getQuestionSelectors(questionNumber);
+    return Matchers.getElementByText(text.RIGHT_ANSWER_RESPONSE_TITLE);
   }
 
-  getQuestionRightAnswerResponseDescription(questionSelectorsText) {
-    return Matchers.getElementByText(
-      questionSelectorsText.RIGHT_ANSWER_RESPONSE_DESCRIPTION,
-    );
+  getQuestionRightAnswerResponseDescription(questionNumber) {
+    const { text } = this.getQuestionSelectors(questionNumber);
+    return Matchers.getElementByText(text.RIGHT_ANSWER_RESPONSE_DESCRIPTION);
   }
 
-  getQuestionRightContinueButton(questionSelectorsIDs) {
-    return Matchers.getElementByID(questionSelectorsIDs.RIGHT_CONTINUE);
+  getQuestionRightContinueButton(questionNumber) {
+    const { ids } = this.getQuestionSelectors(questionNumber);
+    return Matchers.getElementByID(ids.RIGHT_CONTINUE);
   }
 
   // Methods for common actions
@@ -90,31 +113,29 @@ class SrpQuizModal {
   }
 
   // Methods for question actions
-  async tapQuestionDismiss(questionSelectorsIDs) {
-    await Gestures.waitAndTap(this.getQuestionDismiss(questionSelectorsIDs));
+  async tapQuestionDismiss(questionNumber) {
+    await Gestures.waitAndTap(this.getQuestionDismiss(questionNumber));
   }
 
-  async tapQuestionWrongAnswerButton(questionSelectorsIDs) {
+  async tapQuestionWrongAnswerButton(questionNumber) {
+    await Gestures.waitAndTap(this.getQuestionWrongAnswer(questionNumber));
+  }
+
+  async tapQuestionWrongAnswerTryAgainButton(questionNumber) {
     await Gestures.waitAndTap(
-      this.getQuestionWrongAnswer(questionSelectorsIDs),
+      this.getQuestionWrongAnswerTryAgainButton(questionNumber),
     );
   }
 
-  async tapQuestionWrongAnswerTryAgainButton(questionSelectorsIDs) {
+  async tapQuestionRightAnswerButton(questionNumber) {
     await Gestures.waitAndTap(
-      this.getQuestionWrongAnswerTryAgainButton(questionSelectorsIDs),
+      this.getQuestionRightAnswerButton(questionNumber),
     );
   }
 
-  async tapQuestionRightAnswerButton(questionSelectorsIDs) {
+  async tapQuestionContinueButton(questionNumber) {
     await Gestures.waitAndTap(
-      this.getQuestionRightAnswerButton(questionSelectorsIDs),
-    );
-  }
-
-  async tapQuestionContinueButton(questionSelectorsIDs) {
-    await Gestures.waitAndTap(
-      this.getQuestionRightContinueButton(questionSelectorsIDs),
+      this.getQuestionRightContinueButton(questionNumber),
     );
   }
 }
