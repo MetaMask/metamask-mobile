@@ -292,11 +292,7 @@ if (IS_NODE) {
 
 // Optimized for detecting diffs
 if (IS_DIFF) {
-  concurrentTasks = [
-    yarnSetupNodeTask,
-    generateTermsOfUseTask,
-    cocoapodsInstallTask,
-  ];
+  concurrentTasks = [yarnSetupNodeTask, generateTermsOfUseTask, setupIosTask];
 }
 
 const tasks = new Listr(concurrentTasks, {
