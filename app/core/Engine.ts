@@ -522,6 +522,7 @@ class Engine {
         // noop
       },
     };
+    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     const networkController = new NetworkController(networkControllerOpts);
 
     networkController.initializeProvider();
@@ -587,7 +588,6 @@ class Engine {
     );
 
     const loggingController = new LoggingController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted<
         'LoggingController',
         never,
@@ -675,6 +675,7 @@ class Engine {
       networkController.state.selectedNetworkClientId,
     );
     const gasFeeController = new GasFeeController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'GasFeeController',
         allowedActions: [
@@ -854,6 +855,7 @@ class Engine {
         networkController.getNetworkClientById.bind(networkController),
     });
     const permissionController = new PermissionController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'PermissionController',
         allowedActions: [
@@ -1205,6 +1207,7 @@ class Engine {
       isSimulationEnabled: () =>
         preferencesController.state.useTransactionSimulations,
       // but only breaking change is Node version
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'TransactionController',
         allowedActions: [
