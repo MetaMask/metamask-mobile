@@ -1752,28 +1752,49 @@ class Engine {
     Engine.instance = this;
   }
 
-  _handleTransactionFinalizedEvent = ( _transactionEventPayload: TransactionMeta, properties: object ) => {
+
+  _handleTransactionFinalizedEvent = async ( transactionEventPayload: TransactionMeta, properties: object ) => {
+    const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
+      store.getState(),
+    );
+    if (!shouldUseSmartTransaction) {
+      MetaMetrics.getInstance().trackEvent(
+        MetaMetricsEvents.TRANSACTION_FINALIZED,
+        { ...properties }
+      );
+      return;
+    }
+    const transactionMeta = { ...transactionEventPayload };
+    const { SmartTransactionsController } = this.context;
+    const waitForSmartTransaction = true;
+    const smartTransactionMetricsProperties =
+        await getSmartTransactionMetricsProperties(
+          SmartTransactionsController,
+          transactionMeta,
+          waitForSmartTransaction
+        );
     MetaMetrics.getInstance().trackEvent(
       MetaMetricsEvents.TRANSACTION_FINALIZED,
       {
+        ...smartTransactionMetricsProperties,
         ...properties
       }
     )
   }
 
-  _handleTransactionDropped = ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
+  _handleTransactionDropped = async ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
     const properties = { status: 'dropped' };
-    this._handleTransactionFinalizedEvent(transactionMeta, properties);
+    await this._handleTransactionFinalizedEvent(transactionMeta, properties);
   }
 
-  _handleTransactionConfirmed = (transactionEventPayload: TransactionMeta) => {
+  _handleTransactionConfirmed = async (transactionEventPayload: TransactionMeta) => {
     const properties = { status: 'confirmed' };
-    this._handleTransactionFinalizedEvent(transactionEventPayload, properties);
+    await this._handleTransactionFinalizedEvent(transactionEventPayload, properties);
   }
 
-  _handleTransactionFailed = (transactionEventPayload: any) => {
+  _handleTransactionFailed = async (transactionEventPayload: any) => {
     const properties = { status: 'failed' };
-    this._handleTransactionFinalizedEvent(transactionEventPayload, properties);
+    await this._handleTransactionFinalizedEvent(transactionEventPayload, properties);
   }
 
   _addTransactionControllerListeners() {

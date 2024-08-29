@@ -74,16 +74,48 @@ export const getShouldUpdateApprovalRequest = (
   isSwapTransaction: boolean,
 ): boolean => isDapp || isSend || isSwapTransaction;
 
-export const getSmartTransactionMetricsProperties = (
+export const getSmartTransactionMetricsProperties = async (
   smartTransactionsController: SmartTransactionsController,
   transactionMeta: TransactionMeta | undefined,
+  waitForSmartTransaction: boolean,
 ) => {
   if (!transactionMeta) return {};
 
-  const smartTransaction =
+  let smartTransaction =
     smartTransactionsController.getSmartTransactionByMinedTxHash(
       transactionMeta.hash,
     );
+
+  if (waitForSmartTransaction && !smartTransaction?.statusMetadata) {
+    const intervalDuration = 100; // 100ms
+    const maxDuration = 2000; // 2 seconds
+    const maxAttempts = maxDuration / intervalDuration;
+    let attempts = 0;
+
+    const interval = setInterval(() => {
+      smartTransaction =
+        smartTransactionsController.getSmartTransactionByMinedTxHash(
+          transactionMeta.hash,
+        );
+
+      if (smartTransaction?.statusMetadata || attempts >= maxAttempts) {
+        clearInterval(interval); // Stop the interval
+      }
+
+      attempts++;
+    }, intervalDuration);
+
+    // Wait for the interval to either find the smart transaction or reach max attempts
+    await new Promise((resolve) => {
+      const checkInterval = setInterval(() => {
+        if (attempts >= maxAttempts || smartTransaction?.statusMetadata) {
+          clearInterval(checkInterval);
+          resolve(true);
+        }
+      }, intervalDuration);
+    });
+  }
+
   if (smartTransaction?.statusMetadata) {
     const { duplicated, timedOut, proxied } = smartTransaction.statusMetadata;
     return {
