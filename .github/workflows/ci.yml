@@ -26,7 +26,7 @@ jobs:
         run: printf '%s\n\n%s' '@metamask:registry=https://npm.pkg.github.com' "//npm.pkg.github.com/:_authToken=${PACKAGE_READ_TOKEN}" > .npmrc
         env:
           PACKAGE_READ_TOKEN: ${{ secrets.PACKAGE_READ_TOKEN }}
-      - run: yarn setup:node
+      - run: yarn setup --node
       - name: Require clean working directory
         shell: bash
         run: |
@@ -64,7 +64,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - run: yarn setup:node
+      - run: yarn setup --node
       - name: Deduplicate dependencies
         run: yarn deduplicate
       - name: Print error if duplicates found
@@ -91,7 +91,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - run: yarn setup:node
+      - run: yarn setup --node
       - run: yarn ${{ matrix['scripts'] }}
       - name: Require clean working directory
         shell: bash
@@ -221,13 +221,23 @@ jobs:
           else
             echo "No changes detected"
           fi
+  js-bundle-size-check:
+    runs-on: ubuntu-20.04
+    needs: setup
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Install dependencies
+        run: yarn setup
 
-          # Revert git update-index --no-assume-unchanged for each entry
-          echo "Reverting assume unchanged for the following paths:"
-          for path in "${EXCLUDES[@]}"; do
-            echo "$path"
-            git update-index --no-assume-unchanged "$path"
-          done
+      - name: Generate iOS bundle
+        run: yarn gen-bundle:ios
+
+      - name: Check bundle size
+        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 40
   sonar-cloud:
     runs-on: ubuntu-20.04
     needs: merge-unit-tests
@@ -332,6 +342,6 @@ jobs:
   all-jobs-pass:
     name: All jobs pass
     runs-on: ubuntu-20.04
-    needs: [setup, dedupe, scripts, unit-tests, check-workflows, sonar-cloud]
+    needs: [setup, dedupe, scripts, unit-tests, check-workflows, sonar-cloud, js-bundle-size-check]
     steps:
       - run: echo "Great success!"

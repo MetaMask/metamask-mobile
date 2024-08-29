@@ -372,7 +372,7 @@ const RevealPrivateCredential = ({
                 copyPrivateCredentialToClipboard(privCredentialName)
               }
               testID={
-                RevealSeedViewSelectorsIDs.REVEAL_SECRET_RECOVERY_PHRASE_TOUCHABLE_BOX_ID
+                RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON
               }
               style={styles.clipboardButton}
             />
@@ -383,7 +383,10 @@ const RevealPrivateCredential = ({
         tabLabel={strings(`reveal_credential.qr_code`)}
         style={styles.tabContent}
       >
-        <View style={styles.qrCodeWrapper}>
+        <View
+          style={styles.qrCodeWrapper}
+          testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_QR_CODE_IMAGE_ID}
+        >
           <QRCode
             value={clipboardPrivateCredential}
             size={Dimensions.get('window').width - 176}
@@ -475,6 +478,7 @@ const RevealPrivateCredential = ({
               size={ButtonSize.Lg}
               onPress={revealCredential}
               style={styles.revealButton}
+              testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID}
             />
           ) : (
             <ButtonReveal
@@ -561,6 +565,9 @@ const RevealPrivateCredential = ({
         }
         confirmTestID={
           RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID
+        }
+        scrollViewTestID={
+          RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_SCROLL_ID
         }
       >
         <>
