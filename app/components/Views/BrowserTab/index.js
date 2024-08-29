@@ -1,4 +1,10 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from 'react';
 import {
   Text,
   StyleSheet,
@@ -253,6 +259,8 @@ const createStyles = (colors, shadows) =>
 
 const sessionENSNames = {};
 const ensIgnoreList = [];
+
+export const EXTERNAL_LINK_TYPE = 'external-link';
 
 export const BrowserTab = (props) => {
   const [backEnabled, setBackEnabled] = useState(false);
@@ -1490,6 +1498,11 @@ export const BrowserTab = (props) => {
     </View>
   );
 
+  const isExternalLink = useMemo(
+    () => props.linkType === EXTERNAL_LINK_TYPE,
+    [props.linkType],
+  );
+
   /**
    * Main render
    */
@@ -1517,7 +1530,10 @@ export const BrowserTab = (props) => {
                 renderError={() => (
                   <WebviewError error={error} returnHome={returnHome} />
                 )}
-                source={{ uri: initialUrl }}
+                source={{
+                  uri: initialUrl,
+                  ...(isExternalLink ? { headers: { Cookie: '' } } : null),
+                }}
                 injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
                 style={styles.webview}
                 onLoadStart={onLoadStart}
@@ -1562,6 +1578,10 @@ BrowserTab.propTypes = {
    * InitialUrl
    */
   initialUrl: PropTypes.string,
+  /**
+   * linkType - type of link to open
+   */
+  linkType: PropTypes.string,
   /**
    * Protocol string to append to URLs that have none
    */

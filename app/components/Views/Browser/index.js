@@ -32,7 +32,7 @@ import getAccountNameWithENS from '../../../util/accounts';
 import Device from '../../../util/device';
 import { useTheme } from '../../../util/theme';
 import Tabs from '../../UI/Tabs';
-import BrowserTab from '../BrowserTab';
+import BrowserTab, { EXTERNAL_LINK_TYPE } from '../BrowserTab';
 
 import { isEqual } from 'lodash';
 import URL from 'url-parse';
@@ -114,8 +114,8 @@ export const Browser = (props) => {
     [navigation, route, colors],
   );
 
-  const newTab = (url) => {
-    createNewTab(url || AppConstants.HOMEPAGE_URL);
+  const newTab = (url, linkType) => {
+    createNewTab(url || AppConstants.HOMEPAGE_URL, linkType);
   };
 
   const updateTabInfo = (url, tabID) =>
@@ -230,7 +230,7 @@ export const Browser = (props) => {
       const existingTabId = route.params?.existingTabId;
       if (newTabUrl && deeplinkTimestamp) {
         // Open url from deeplink.
-        newTab(newTabUrl);
+        newTab(newTabUrl, EXTERNAL_LINK_TYPE);
       } else if (existingTabId) {
         const existingTab = tabs.find((tab) => tab.id === existingTabId);
         if (existingTab) {
@@ -359,6 +359,7 @@ export const Browser = (props) => {
         id={tab.id}
         key={`tab_${tab.id}`}
         initialUrl={tab.url || AppConstants.HOMEPAGE_URL}
+        linkType={tab.linkType}
         updateTabInfo={updateTabInfo}
         showTabs={showTabs}
         newTab={newTab}
@@ -384,7 +385,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  createNewTab: (url) => dispatch(createNewTab(url)),
+  createNewTab: (url, linkType) => dispatch(createNewTab(url, linkType)),
   closeAllTabs: () => dispatch(closeAllTabs()),
   closeTab: (id) => dispatch(closeTab(id)),
   setActiveTab: (id) => dispatch(setActiveTab(id)),
