@@ -8,8 +8,8 @@ const IS_OSX = process.platform === 'darwin';
 const input = process.argv.slice(2)?.[0];
 // iOS builds are enabled by default on macOS only but can be enabled explicitly
 const BUILD_IOS = input === '--build-ios' || IS_OSX;
-// const IS_NODE = input === '--node';
-// const IS_DIFF = input === '--diff';
+const IS_NODE = input === '--node';
+const IS_DIFF = input === '--diff';
 const IS_CI = process.env.CI;
 
 const rendererOptions = {
@@ -156,11 +156,7 @@ const setupIosTask = {
 
 const buildInpageBridgeTask = {
   title: 'Build inpage bridge',
-  task: async (_, task) => {
-    if (IS_CI) {
-      task.skip('CI detected');
-    }
-
+  task: async () => {
     await $`./scripts/build-inpage-bridge.sh`;
   },
 };
@@ -168,10 +164,7 @@ const buildInpageBridgeTask = {
 const nodeifyTask = {
   // TODO: find a saner alternative to bring node modules into react native bundler. See ReactNativify
   title: 'Nodeify npm packages',
-  task: async (_, task) => {
-    if (IS_CI) {
-      task.skip('CI detected');
-    }
+  task: async () => {
     await $`node_modules/.bin/rn-nodeify --install crypto,buffer,react-native-randombytes,vm,stream,http,https,os,url,net,fs --hack`;
   },
 };
@@ -192,10 +185,7 @@ const updateGitSubmodulesTask = {
 
 const runLavamoatAllowScriptsTask = {
   title: 'Run lavamoat allow-scripts',
-  task: async (_, task) => {
-    if (IS_CI) {
-      task.skip('CI detected');
-    }
+  task: async () => {
     await $`yarn allow-scripts`;
   },
 };
@@ -273,13 +263,15 @@ const prepareDependenciesTask = {
     ),
 };
 
-// Optimize for CI performance
-// const yarnSetupNodeTask = {
-//   title: 'Run yarn setup:node',
-//   task: async () => {
-//     await $`yarn setup:node`;
-//   },
-// };
+const yarnSetupNodeTask = {
+  title: 'Yarn setup node',
+  task: (_, task) => {
+    task.newListr([runLavamoatAllowScriptsTask, patchPackageTask], {
+      concurrent: false,
+      exitOnError: true,
+    });
+  },
+};
 
 /**
  * Tasks that can be run concurrently
@@ -294,14 +286,18 @@ let concurrentTasks = [
 ];
 
 // Optimized for CI performance
-// if (IS_NODE) {
-//   taskList = [yarnSetupNodeTask, generateTermsOfUseTask];
-// }
+if (IS_NODE) {
+  concurrentTasks = [yarnSetupNodeTask, generateTermsOfUseTask];
+}
 
-// // Optimized for detecting diffs
-// if (IS_DIFF) {
-//   taskList = [yarnSetupNodeTask, cocoapodsInstallTask, generateTermsOfUseTask];
-// }
+// Optimized for detecting diffs
+if (IS_DIFF) {
+  concurrentTasks = [
+    yarnSetupNodeTask,
+    generateTermsOfUseTask,
+    cocoapodsInstallTask,
+  ];
+}
 
 const tasks = new Listr(concurrentTasks, {
   concurrent: true,
