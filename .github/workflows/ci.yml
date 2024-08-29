@@ -24,16 +24,10 @@ jobs:
         run: printf '%s\n\n%s' '@metamask:registry=https://npm.pkg.github.com' "//npm.pkg.github.com/:_authToken=${PACKAGE_READ_TOKEN}" > .npmrc
         env:
           PACKAGE_READ_TOKEN: ${{ secrets.PACKAGE_READ_TOKEN }}
-      - name: Install rbenv
-        run: |
-          sudo apt-get update
-          sudo apt-get install rbenv
-          rbenv init
-      - name: Install Ruby with rbenv
-        run: |
-          rbenv install 3.1.5
-          rbenv global 3.1.5
-          ruby -v
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1.5' # Not needed with a `.ruby-version` or `.tool-versions`
+    - run: bundle exec rake
       - run: yarn setup --diff
       - name: Require clean working directory
         shell: bash
