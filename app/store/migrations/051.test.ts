@@ -156,11 +156,11 @@ describe('Migration #51', () => {
       },
     });
 
-    const newState = await migrate(modifiedOldState);
+    const newState = (await migrate(
+      modifiedOldState,
+    )) as typeof modifiedOldState;
 
     const kovanNetwork = Object.values(
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       newState.engine.backgroundState.NetworkController.networkConfigurations,
     ).find((network) => isObject(network) && network.ticker === 'KOVAN');
 
@@ -186,11 +186,11 @@ describe('Migration #51', () => {
       },
     });
 
-    const newState = await migrate(modifiedOldState);
+    const newState = (await migrate(
+      modifiedOldState,
+    )) as typeof modifiedOldState;
 
     const customNotMaticPolygon = Object.values(
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       newState.engine.backgroundState.NetworkController.networkConfigurations,
     ).find((network) => isObject(network) && network.ticker === 'NOT_MATIC');
 
