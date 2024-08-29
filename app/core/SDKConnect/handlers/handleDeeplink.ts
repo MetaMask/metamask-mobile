@@ -121,9 +121,7 @@ const handleDeeplink = async ({
       }
     } else {
       const trigger =
-        rpc !== undefined &&
-        Platform.OS === 'android' &&
-        origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
+        rpc !== undefined && origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
           ? undefined // temporarily unset trigger on android to prevent goBack after connection approval
           : 'deeplink';
 
