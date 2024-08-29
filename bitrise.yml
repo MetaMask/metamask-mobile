@@ -1515,7 +1515,7 @@ app:
       NO_FLIPPER: 1
 meta:
   bitrise.io:
-    stack: osx-xcode-16.0.x-edge
+    stack: osx-xcode-16.1.x-edge
     machine_type_id: g2-m1-max.5core
 trigger_map:
   - push_branch: release/*
