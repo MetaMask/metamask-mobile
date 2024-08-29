@@ -111,7 +111,7 @@ const gemInstallTask = {
 const installCocoapodsStep = {
   title: 'Install CocoaPods',
   task: async (_, podInstallTask) => {
-    if (!BUILD_IOS) {
+    if (!BUILD_IOS && !IS_DIFF) {
       return podInstallTask.skip('Skipping iOS.');
     }
     await $`cd ios && bundle exec pod install`;
