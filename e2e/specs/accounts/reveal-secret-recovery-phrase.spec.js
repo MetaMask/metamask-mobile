@@ -108,7 +108,7 @@ describe(Regression('Secret Recovery Phrase Reveal from Settings'), () => {
     await RevealSecretRecoveryPhrase.tapToReveal();
     await Assertions.checkIfVisible(RevealSecretRecoveryPhrase.container);
     await Assertions.checkIfTextIsDisplayed(
-      RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_SRP_TITLE_TEXT,
+      RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_TITLE_TEXT,
     );
     await Assertions.checkIfTextIsDisplayed(defaultGanacheOptions.mnemonic);
     // Android devices running OS version < 11 (API level 29) will not see the copy to clipboard button presented

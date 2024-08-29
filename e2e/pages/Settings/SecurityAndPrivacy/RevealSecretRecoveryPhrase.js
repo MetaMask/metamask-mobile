@@ -47,6 +47,11 @@ class RevealSecretRecoveryPhrase {
       RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
     );
   }
+  get revealSecretRecoveryPhraseButton() {
+    return Matchers.getElementByID(
+      RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
+    );
+  }
 
   get revealCredentialCopyToClipboardButton() {
     return Matchers.getElementByID(
