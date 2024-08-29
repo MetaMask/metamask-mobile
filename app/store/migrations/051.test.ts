@@ -164,7 +164,7 @@ describe('Migration #51', () => {
     ).toEqual(expectedUuid);
   });
 
-  it('should not change state if there are no accounts', () => {
+  it('does not change the state if there are no accounts', () => {
     const emptyAccountsState = merge({}, oldState, {
       engine: {
         backgroundState: {
