@@ -892,6 +892,13 @@ class Engine {
             this.subjectMetadataController,
             origin,
           ),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          hasPermission: (origin: string, target: any) =>
+            this.controllerMessenger.call<'PermissionController:hasPermission'>(
+              'PermissionController:hasPermission',
+              origin,
+              target,
+            ),
         },
       ),
     });
