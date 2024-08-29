@@ -106,10 +106,7 @@ import { selectContractBalances } from '../../../selectors/tokenBalancesControll
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { resetTransaction, setRecipient } from '../../../actions/transaction';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
-import {
-  SWAP_QUOTE_SUMMARY,
-  SWAP_GAS_FEE,
-} from '../../../../wdio/screen-objects/testIDs/Screens/SwapView.js';
+import { SwapsViewSelectors } from '../../../../e2e/selectors/swaps/SwapsView.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { addTransaction } from '../../../util/transaction-controller';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
@@ -409,7 +406,7 @@ function SwapsQuotesView({
   const navigation = useNavigation();
   /* Get params from navigation */
   const route = useRoute();
-  const { trackAnonymousEvent, trackEvent } = useMetrics();
+  const { trackEvent } = useMetrics();
 
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -744,7 +741,9 @@ function SwapsQuotesView({
         chain_id: getDecimalChainId(chainId),
       };
 
-      trackAnonymousEvent(MetaMetricsEvents.GAS_FEES_CHANGED, parameters);
+      trackEvent(MetaMetricsEvents.GAS_FEES_CHANGED, {
+        sensitiveProperties: { ...parameters },
+      });
     },
     [
       chainId,
@@ -752,7 +751,7 @@ function SwapsQuotesView({
       currentCurrency,
       gasEstimateType,
       gasLimit,
-      trackAnonymousEvent,
+      trackEvent,
     ],
   );
 
@@ -904,7 +903,9 @@ function SwapsQuotesView({
         chain_id: getDecimalChainId(chainId),
         is_smart_transaction: shouldUseSmartTransaction,
       };
-      trackAnonymousEvent(MetaMetricsEvents.SWAP_STARTED, parameters);
+      trackEvent(MetaMetricsEvents.SWAP_STARTED, {
+        sensitiveProperties: { ...parameters },
+      });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
@@ -1150,7 +1151,9 @@ function SwapsQuotesView({
       custom_spend_limit_amount: currentAmount,
       chain_id: getDecimalChainId(chainId),
     };
-    trackAnonymousEvent(MetaMetricsEvents.EDIT_SPEND_LIMIT_OPENED, parameters);
+    trackEvent(MetaMetricsEvents.EDIT_SPEND_LIMIT_OPENED, {
+      sensitiveProperties: { ...parameters },
+    });
   }, [
     chainId,
     allQuotes,
@@ -1166,7 +1169,7 @@ function SwapsQuotesView({
     slippage,
     sourceAmount,
     sourceToken,
-    trackAnonymousEvent,
+    trackEvent,
   ]);
 
   const handleQuotesReceivedMetric = useCallback(() => {
@@ -1196,7 +1199,9 @@ function SwapsQuotesView({
       available_quotes: allQuotes.length,
       chain_id: getDecimalChainId(chainId),
     };
-    trackAnonymousEvent(MetaMetricsEvents.QUOTES_RECEIVED, parameters);
+    trackEvent(MetaMetricsEvents.QUOTES_RECEIVED, {
+      sensitiveProperties: { ...parameters },
+    });
   }, [
     chainId,
     sourceToken,
@@ -1209,7 +1214,7 @@ function SwapsQuotesView({
     selectedQuoteValue,
     allQuotes,
     conversionRate,
-    trackAnonymousEvent,
+    trackEvent,
   ]);
 
   const handleOpenQuotesModal = useCallback(() => {
@@ -1241,10 +1246,9 @@ function SwapsQuotesView({
       chain_id: getDecimalChainId(chainId),
     };
 
-    trackAnonymousEvent(
-      MetaMetricsEvents.ALL_AVAILABLE_QUOTES_OPENED,
-      parameters,
-    );
+    trackEvent(MetaMetricsEvents.ALL_AVAILABLE_QUOTES_OPENED, {
+      sensitiveProperties: { ...parameters },
+    });
   }, [
     chainId,
     selectedQuote,
@@ -1258,7 +1262,7 @@ function SwapsQuotesView({
     allQuotesFetchTime,
     conversionRate,
     allQuotes.length,
-    trackAnonymousEvent,
+    trackEvent,
   ]);
 
   const handleQuotesErrorMetric = useCallback(
@@ -1281,12 +1285,16 @@ function SwapsQuotesView({
           gas_fees: '',
         };
 
-        trackAnonymousEvent(MetaMetricsEvents.QUOTES_TIMED_OUT, parameters);
+        trackEvent(MetaMetricsEvents.QUOTES_TIMED_OUT, {
+          sensitiveProperties: { ...parameters },
+        });
       } else if (
         error?.key === swapsUtils.SwapsError.QUOTES_NOT_AVAILABLE_ERROR
       ) {
         const parameters = { ...data };
-        trackAnonymousEvent(MetaMetricsEvents.NO_QUOTES_AVAILABLE, parameters);
+        trackEvent(MetaMetricsEvents.NO_QUOTES_AVAILABLE, {
+          sensitiveProperties: { ...parameters },
+        });
       } else {
         trackErrorAsAnalytics(`Swaps: ${error?.key}`, error?.description);
       }
@@ -1298,7 +1306,7 @@ function SwapsQuotesView({
       destinationToken,
       hasEnoughTokenBalance,
       slippage,
-      trackAnonymousEvent,
+      trackEvent,
     ],
   );
 
@@ -1563,7 +1571,9 @@ function SwapsQuotesView({
     navigation.setParams({ selectedQuote: undefined });
     navigation.setParams({ quoteBegin: Date.now() });
 
-    trackAnonymousEvent(MetaMetricsEvents.QUOTES_REQUESTED, data);
+    trackEvent(MetaMetricsEvents.QUOTES_REQUESTED, {
+      sensitiveProperties: { ...data },
+    });
   }, [
     chainId,
     destinationToken,
@@ -1574,7 +1584,7 @@ function SwapsQuotesView({
     sourceAmount,
     sourceToken,
     trackedRequestedQuotes,
-    trackAnonymousEvent,
+    trackEvent,
   ]);
 
   /* Metrics: Quotes received */
@@ -1932,14 +1942,17 @@ function SwapsQuotesView({
               )}
             </QuotesSummary.Header>
             <QuotesSummary.Body>
-              <View style={styles.quotesRow} testID={SWAP_QUOTE_SUMMARY}>
+              <View
+                style={styles.quotesRow}
+                testID={SwapsViewSelectors.QUOTE_SUMMARY}
+              >
                 <View style={styles.quotesDescription}>
                   <View style={styles.quotesLegend}>
                     <Text primary bold>
                       {strings('swaps.estimated_gas_fee')}
                     </Text>
                     <TouchableOpacity
-                      testID={SWAP_GAS_FEE}
+                      testID={SwapsViewSelectors.GAS_FEE}
                       style={styles.gasInfoContainer}
                       onPress={showGasTooltip}
                       hitSlop={styles.hitSlop}
