@@ -40,7 +40,6 @@ class SwapView {
     // Wait past the flashing quote to make sure swap button is enabled
     await TestHelpers.checkIfElementWithTextIsVisible('New quotes in 0:05');
     await Gestures.swipe(this.swipeToSwapButton, 'right', 'fast', percentage);
-    await Gestures.swipe(this.swipeToSwapButton, 'right', 'fast', percentage);
   }
 
   swapCompleteLabel(sourceTokenSymbol, destTokenSymbol) {
