@@ -12,6 +12,10 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1.5'
+          bundler-cache: true
       - name: Determine whether the current PR is a draft
         id: set-is-draft
         if: github.event_name == 'pull_request' && github.event.pull_request.number
@@ -24,10 +28,6 @@ jobs:
         run: printf '%s\n\n%s' '@metamask:registry=https://npm.pkg.github.com' "//npm.pkg.github.com/:_authToken=${PACKAGE_READ_TOKEN}" > .npmrc
         env:
           PACKAGE_READ_TOKEN: ${{ secrets.PACKAGE_READ_TOKEN }}
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.1.5' # Not needed with a `.ruby-version` or `.tool-versions`
-    - run: bundle exec rake
       - run: yarn setup --diff
       - name: Require clean working directory
         shell: bash
