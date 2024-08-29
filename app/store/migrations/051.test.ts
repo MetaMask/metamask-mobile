@@ -200,6 +200,36 @@ describe('Migration #51', () => {
     });
   });
 
+  it("does not change ticker if network's chainId is 0x1 but ticker is MATIC", async () => {
+    const modifiedOldState = merge({}, oldState, {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurations: {
+              'network-1-uuid': {
+                chainId: '0x1',
+                ticker: 'MATIC',
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const newState = (await migrate(
+      modifiedOldState,
+    )) as typeof modifiedOldState;
+
+    const customNotMaticPolygon = Object.values(
+      newState.engine.backgroundState.NetworkController.networkConfigurations,
+    ).find((network) => isObject(network) && network.ticker === 'MATIC');
+
+    expect(customNotMaticPolygon).toStrictEqual({
+      chainId: '0x1',
+      ticker: 'MATIC',
+    });
+  });
+
   it('changes providerConfig ticker to POL if chainId is 0x89 and ticker is MATIC', async () => {
     const modifiedOldState = merge({}, oldState, {
       engine: {
@@ -246,12 +276,35 @@ describe('Migration #51', () => {
       },
     });
 
-    const newState = await migrate(modifiedOldState);
+    const newState = (await migrate(
+      modifiedOldState,
+    )) as typeof modifiedOldState;
 
     expect(
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       newState.engine.backgroundState.NetworkController.providerConfig.ticker,
     ).toBe('NOT_MATIC');
+  });
+
+  it('does not change providerConfig ticker if chainId is 0x1 but ticker is MATIC', async () => {
+    const modifiedOldState = merge({}, oldState, {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            providerConfig: {
+              chainId: '0x1',
+              ticker: 'MATIC',
+            },
+          },
+        },
+      },
+    });
+
+    const newState = (await migrate(
+      modifiedOldState,
+    )) as typeof modifiedOldState;
+
+    expect(
+      newState.engine.backgroundState.NetworkController.providerConfig.ticker,
+    ).toBe('MATIC');
   });
 });
