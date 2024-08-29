@@ -17,6 +17,12 @@ class RevealPrivateKey {
     );
   }
 
+  get passwordWarning() {
+    return Matchers.getElementByID(
+      RevealSeedViewSelectorsIDs.PASSWORD_WARNING_ID,
+    );
+  }
+
   get scrollViewIdentifier() {
     return Matchers.getIdentifier(
       RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_SCROLL_ID,

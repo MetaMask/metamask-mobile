@@ -20,7 +20,7 @@ export default class AccountListView {
   }
 
   static async tapAccountIndex(index) {
-    await TestHelpers.tapItemAtIndex(CellModalSelectorsIDs.MULTISELECT, index);
+    await TestHelpers.tapItemAtIndex(CellModalSelectorsIDs.SELECT, index);
   }
 
   static async tapAddAccountButton() {
