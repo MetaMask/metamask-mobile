@@ -375,7 +375,7 @@ export function getNativeTokenDetailsByChainId(chainId: number) {
     return {
       name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
       symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
-      image: images.MATIC,
+      image: images.POL,
     };
   }
   if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ARBITRUM) {
