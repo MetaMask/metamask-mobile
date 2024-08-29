@@ -208,7 +208,7 @@ describe('Migration #51', () => {
     ).toEqual(expectedUuid);
   });
 
-  it('should not modify the state if selectedAccount is valid', () => {
+  it('does not modify the state if the selectedAccount is valid', () => {
     const validState = merge({}, oldState);
     const newState: Pick<RootState, 'engine'> = migration(validState) as Pick<
       RootState,
