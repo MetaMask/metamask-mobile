@@ -128,7 +128,7 @@ describe('Migration #51', () => {
     });
   }
 
-  it('should not change selectedAccount if it is valid', () => {
+  it('does not change the selectedAccount if it is valid', () => {
     const newState: Pick<RootState, 'engine'> = migration(oldState) as Pick<
       RootState,
       'engine'
