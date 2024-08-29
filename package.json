@@ -118,7 +118,6 @@
     "**/xml2js": ">=0.5.0",
     "react-native-level-fs/**/bl": "^1.2.3",
     "react-native-level-fs/levelup/semver": "^5.7.2",
-    "@metamask/accounts-controller": "^18.1.0",
     "@metamask/contract-metadata": "^2.1.0",
     "@metamask/react-native-payments/validator": "^13.7.0",
     "**/minimist": "1.2.6",
@@ -139,7 +138,8 @@
     "**/puppeteer-core/ws": "^8.17.1",
     "react-native/ws": "^6.2.3",
     "socket.io-client/engine.io-client/ws": "^8.17.1",
-    "micromatch": "4.0.8"
+    "micromatch": "4.0.8",
+    "@metamask/accounts-controller": "^18.1.0"
   },
   "dependencies": {
     "@consensys/on-ramp-sdk": "1.28.3",
