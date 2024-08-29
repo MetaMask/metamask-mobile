@@ -15,7 +15,7 @@ class SrpQuizModal {
     return Matchers.getElementByID(SrpQuizGetStartedSelectorsIDs.CONTAINER);
   }
 
-  get getStartedDismiss() {
+  get getStartedScreenDismiss() {
     return Matchers.getElementByID(SrpQuizGetStartedSelectorsIDs.DISMISS);
   }
 
@@ -104,8 +104,8 @@ class SrpQuizModal {
   }
 
   // Methods for common actions
-  async tapGetStartedDismiss() {
-    await Gestures.waitAndTap(this.getStartedDismiss);
+  async tapQuizGetStartedScreenDismiss() {
+    await Gestures.waitAndTap(this.getStartedScreenDismiss);
   }
 
   async tapGetStartedButton() {
