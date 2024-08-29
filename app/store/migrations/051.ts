@@ -4,10 +4,17 @@ import { ensureValidState } from './util';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 
 /**
- * Migration to update the selectedAccount in AccountsController if it's invalid
- * This migration is needed due to the update of Accounts Controller
- * @param state Persisted Redux state
- * @returns Valid persisted Redux state
+ * Migration to update the selectedAccount in AccountsController if it's undefined.
+ *
+ * This migration is necessary due to an update in the AccountsController that now checks
+ * if the selectedAccount is undefined and recovers from this state. The migration ensures
+ * that any existing undefined selectedAccount values are updated to a valid account.
+ *
+ * If there are accounts present and the current selectedAccount is undefined, it will be
+ * set to the ID of the first available account.
+ *
+ * @param state - The persisted Redux state
+ * @returns The updated Redux state with a valid selectedAccount
  */
 export default function migrate(state: unknown) {
   if (!ensureValidState(state, 51)) {
