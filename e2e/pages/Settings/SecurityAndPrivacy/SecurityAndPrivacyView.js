@@ -19,6 +19,12 @@ class SecurityAndPrivacy {
     );
   }
 
+  get securityAndPrivacyHeading() {
+    return Matchers.getElementByText(
+      SecurityPrivacyViewSelectorsText.SECURITY_AND_PRIVACY_HEADING,
+    );
+  }
+
   get deleteWalletButton() {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(SECURITY_PRIVACY_DELETE_WALLET_BUTTON)
