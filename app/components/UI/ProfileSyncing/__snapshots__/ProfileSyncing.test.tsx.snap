@@ -1,5 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+<<<<<<< HEAD
 exports[`ProfileSyncing should render correctly 1`] = `
 <View
   style={
@@ -90,3 +91,6 @@ exports[`ProfileSyncing should render correctly 1`] = `
   </Text>
 </View>
 `;
+=======
+exports[`ProfileSyncing should render correctly 1`] = `null`;
+>>>>>>> d98a1c9f98 (fix(notifications): hide profile sync toggle (#10900))

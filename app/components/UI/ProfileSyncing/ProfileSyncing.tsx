@@ -15,8 +15,9 @@ import { ProfileSyncingComponentProps } from './ProfileSyncing.types';
 import AppConstants from '../../../core/AppConstants';
 import { selectIsProfileSyncingEnabled } from '../../../selectors/notifications';
 import { useProfileSyncing } from '../../../util/notifications/hooks/useProfileSyncing';
+import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 
-export default function ProfileSyncingComponent({
+function ProfileSyncingComponent({
   handleSwitchToggle,
 }: Readonly<ProfileSyncingComponentProps>) {
   const theme = useTheme();
@@ -66,4 +67,14 @@ export default function ProfileSyncingComponent({
       </Text>
     </View>
   );
+}
+
+export default function ProfileSyncingContainer(
+  props: Readonly<ProfileSyncingComponentProps>,
+) {
+  if (!isNotificationsFeatureEnabled()) {
+    return null;
+  }
+
+  return <ProfileSyncingComponent {...props} />;
 }
