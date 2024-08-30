@@ -433,7 +433,7 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
     envs:
-      - PRODUCTION_APP_URL: 'bs://60c2c573b0c82fcbab639839099cb8477e2695b9' # Last production's QA build
+      - PRODUCTION_APP_URL: 'bs://6421b30d4359b6dbfc82460a926d7bf8059073eb' # Last production's QA build
       - PRODUCTION_BUILD_NAME: 7.29.0
       - PRODUCTION_BUILD_NUMBER: 1397
       - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
