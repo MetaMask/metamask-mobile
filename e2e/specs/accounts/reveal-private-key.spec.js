@@ -96,16 +96,7 @@ describe(Regression('reveal private key'), () => {
     await WalletView.tapMainWalletAccountActions();
     await AccountActionsModal.tapShowPrivateKey();
     await RevealPrivateKey.enterPasswordToRevealSecretCredential(PASSWORD);
-
-    try {
-      await RevealPrivateKey.tapToReveal();
-    } catch (error) {
-      /* eslint-disable no-console */
-      console.error(
-        'Ensure you are using a test build with tap and hold to reveal animation disabled',
-        error,
-      );
-    }
+    await RevealPrivateKey.tapToReveal();
     await Assertions.checkIfVisible(RevealPrivateKey.container);
     await Assertions.checkIfTextIsDisplayed(
       RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_PRIVATE_KEY_TITLE_TEXT,
