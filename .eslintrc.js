@@ -8,6 +8,7 @@ module.exports = {
   extends: [
     '@react-native',
     'eslint:recommended',
+    // '@metamask/eslint-config', // TODO: Enable when ready
     'plugin:import/warnings',
     'plugin:react/recommended',
   ],
