@@ -86,6 +86,7 @@ export const getSmartTransactionMetricsProperties = async (
       transactionMeta.hash,
     );
 
+  // Since the smart transaction may not be available immediately, we need to wait for it a little bit.
   if (waitForSmartTransaction && !smartTransaction?.statusMetadata) {
     const intervalDuration = 100; // 100ms
     const maxDuration = 2000; // 2 seconds
