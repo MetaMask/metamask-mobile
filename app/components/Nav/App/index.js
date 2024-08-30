@@ -120,6 +120,7 @@ import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
+import OptionsSheet from "../../UI/SelectOptionSheet/OptionsSheet";
 ///: END:ONLY_INCLUDE_IF
 
 const clearStackNavigatorOptions = {
@@ -888,6 +889,10 @@ const App = ({ userLoggedIn }) => {
               }}
               name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
               component={LedgerMessageSignModal}
+            />
+            <Stack.Screen
+              name={Routes.OPTIONS_SHEET}
+              component={OptionsSheet}
             />
             <Stack.Screen
               name="EditAccountName"
