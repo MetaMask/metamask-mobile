@@ -206,6 +206,50 @@ jobs:
           else
             echo "No changes detected"
           fi
+
+          # Revert git update-index --no-assume-unchanged for each entry
+          echo "Reverting assume unchanged for the following paths:"
+          for path in "${EXCLUDES[@]}"; do
+            echo "$path"
+            git update-index --no-assume-unchanged "$path"
+          done
+  sonar-cloud-quality-gate-status:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    needs: sonar-cloud
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: SonarCloud Quality Gate Status
+        id: sonar-status
+        run: |
+          sleep 30
+
+          PROJECT_KEY="metamask-mobile"
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          SONAR_TOKEN="${{ secrets.SONAR_TOKEN }}"
+
+          if [ -z "$PR_NUMBER" ]; then
+            echo "No pull request number found. Failing the check."
+            exit 1
+          fi
+
+          RESPONSE=$(curl -s -u "$SONAR_TOKEN:" \
+            "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT_KEY&pullRequest=$PR_NUMBER")
+          echo "SonarCloud API Response: $RESPONSE"
+
+          STATUS=$(echo "$RESPONSE" | jq -r '.projectStatus.status')
+
+          if [[ "$STATUS" == "ERROR" ]]; then
+            echo "Quality Gate failed."
+            exit 1
+          elif [[ "$STATUS" == "OK" ]]; then
+            echo "Quality Gate passed."
+          else
+            echo "Could not determine Quality Gate status."
+            exit 1
+          fi
   check-workflows:
     name: Check workflows
     runs-on: ubuntu-latest
@@ -230,6 +274,7 @@ jobs:
         check-workflows,
         sonar-cloud,
         js-bundle-size-check,
+        sonar-cloud-quality-gate-status,
       ]
     steps:
       - run: echo "Great success!"
