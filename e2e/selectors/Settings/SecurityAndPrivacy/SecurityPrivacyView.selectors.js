@@ -11,6 +11,7 @@ export const SecurityPrivacyViewSelectorsIDs = {
   BIOMETRICS_TOGGLE: 'biometrics-option',
   DEVICE_PASSCODE_TOGGLE: 'DevicePasscodeOption',
   REMEMBER_ME_TOGGLE: 'turn-on-remember-me',
+  SHOW_PRIVATE_KEY: 'show-private-key',
 };
 
 export const SecurityPrivacyViewSelectorsText = {
