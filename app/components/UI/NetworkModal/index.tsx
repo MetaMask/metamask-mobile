@@ -76,7 +76,7 @@ const NetworkModals = (props: NetworkProps) => {
     onNetworkSwitch,
     safeChains,
   } = props;
-  const { trackEvent, trackAnonymousEvent } = useMetrics();
+  const { trackEvent } = useMetrics();
   const [showDetails, setShowDetails] = React.useState(false);
   const [networkAdded, setNetworkAdded] = React.useState(false);
   const [showCheckNetwork, setShowCheckNetwork] = React.useState(false);
@@ -110,7 +110,7 @@ const NetworkModals = (props: NetworkProps) => {
         safeChains,
       );
       // emit custom network
-      trackAnonymousEvent(MetaMetricsEvents.NETWORK_ADDED, {
+      trackEvent(MetaMetricsEvents.NETWORK_ADDED, {
         chain_id: toHex(safeChain.chainId),
         source: 'Custom Network Added',
         symbol: safeChain.nativeCurrency.symbol,
