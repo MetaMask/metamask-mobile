@@ -618,6 +618,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               "paddingHorizontal": 16,
             }
           }
+          testID="show-private-key"
         >
           <Text
             accessibilityRole="text"
