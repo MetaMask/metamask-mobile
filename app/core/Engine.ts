@@ -888,10 +888,11 @@ class Engine {
               origin,
             );
           },
-          getAllowedKeyringMethods: keyringSnapPermissionsBuilder(
-            this.subjectMetadataController,
-            origin,
-          ),
+          getAllowedKeyringMethods: (origin: string) =>
+            keyringSnapPermissionsBuilder(
+              this.subjectMetadataController,
+              origin,
+            ),
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           hasPermission: (origin: string, target: any) =>
             this.controllerMessenger.call<'PermissionController:hasPermission'>(
