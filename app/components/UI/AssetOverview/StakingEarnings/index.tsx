@@ -58,6 +58,7 @@ const StakingEarnings: React.FC<unknown> = () => {
           iconColor={IconColor.Muted}
           iconName={IconName.Info}
           accessibilityRole="button"
+          accessibilityLabel="Staked earnings rate tooltip"
           onPress={onNavigateToTooltipModal}
         />
       </View>
@@ -81,16 +82,18 @@ const StakingEarnings: React.FC<unknown> = () => {
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             label="Stake"
-            accessibilityRole="button"
             onPress={onStake}
+            accessibilityRole="button"
+            accessibilityLabel="Stake ETH Button"
           />
           <Button
             style={styles.button}
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             label="Unstake"
-            accessibilityRole="button"
             onPress={onUnstake}
+            accessibilityRole="button"
+            accessibilityLabel="Unstake ETH Button"
           />
         </View>
         <View style={styles.bannerGroupContainer}>
@@ -127,6 +130,7 @@ const StakingEarnings: React.FC<unknown> = () => {
                     }
                     onPress={onClaimEth}
                     accessibilityRole="button"
+                    accessibilityLabel="Claim ETH Button"
                   />
                 </>
               }
