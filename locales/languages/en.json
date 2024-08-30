@@ -434,6 +434,8 @@
       "confirm_cta": "Confirm"
     },
     "add_to_get_started": "Add crypto to get started",
+    "token_is_needed_to_continue": "{{tokenSymbol}} is needed to continue",
+    "next": "Next",
     "buy_asset": "Buy {{asset}}",
     "no_tokens": "You don't have any tokens!",
     "no_nfts_yet": "No NFTs yet",
