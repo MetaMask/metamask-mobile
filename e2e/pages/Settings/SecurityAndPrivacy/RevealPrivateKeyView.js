@@ -63,6 +63,10 @@ class RevealPrivateKey {
     );
   }
 
+  async tapDoneButton() {
+    await Gestures.waitAndTap(this.doneButton);
+  }
+
   async tapToReveal() {
     await Gestures.waitAndTap(this.revealPrivateKeyButton);
   }

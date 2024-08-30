@@ -74,18 +74,12 @@ describe(Regression('reveal private key'), () => {
     // This will cause the following step to fail if e2e were being run on an older android OS prior to our minimum API level 29
     // See details here: https://github.com/MetaMask/metamask-mobile/pull/4170
     await RevealPrivateKey.tapToCopyCredentialToClipboard();
-
-    // Tap to reveal QR code and confirm it is displayed
     await RevealPrivateKey.tapToRevealPrivateCredentialQRCode();
     await Assertions.checkIfVisible(
       RevealPrivateKey.revealCredentialQRCodeImage,
     );
     await RevealPrivateKey.scrollToDone();
-    await TestHelpers.waitAndTapText(
-      RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_DONE,
-    );
-
-    // Confirm that the security and privacy screen is displayed
+    await RevealPrivateKey.tapDoneButton();
     await Assertions.checkIfVisible(
       SecurityAndPrivacy.securityAndPrivacyHeading,
     );
@@ -128,9 +122,7 @@ describe(Regression('reveal private key'), () => {
       RevealPrivateKey.revealCredentialQRCodeImage,
     );
     await RevealPrivateKey.scrollToDone();
-    await TestHelpers.waitAndTapText(
-      RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_DONE,
-    );
+    await RevealPrivateKey.tapDoneButton();
     await Assertions.checkIfVisible(WalletView.container);
   });
 
