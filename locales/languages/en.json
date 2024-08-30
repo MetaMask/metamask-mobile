@@ -3325,5 +3325,31 @@
     "please_wait": "Please wait",
     "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
     "disconnect": "Disconnect"
+  },
+  "staking": {
+    "eth_earnings": "ETH earnings",
+    "earning_percentage": "Earning {{percentage}}%",
+    "staked_amount": "Staked amount",
+    "staked": "staked",
+    "stake": "Stake",
+    "unstake": "Unstake",
+    "unstake_in_progress_banner_text": "Unstaking {{eth_amount}} ETH in progress. Come back in {{time}} to claim it.",
+    "claimable_eth_available_banner_text": "You can now claim your {{eth_amount}} ETH. Once claimed, you'll receive your ETH back in your wallet.",
+    "claim_eth_link": "Claim ETH",
+    "lifetime_rewards": "Lifetime rewards",
+    "estimated_annual_rewards": "Est. annual rewards",
+    "rewards_history": "${{fiat_amount}} • Since {{date}}",
+    "accessibility_labels": {
+      "staked_earnings_rate_tooltip": "Staked earnings rate tooltip",
+      "stake_eth_button": "Stake ETH Button",
+      "unstake_eth_button": "Unstake ETH Button",
+      "claim_eth_button": "Claim ETH Button"
+    }
+  },
+  "tooltip_modal": {
+    "reward_rate": {
+      "title": "Reward rate",
+      "tooltip": "Expected yearly increase in the value of your stake, based on the reward rate over the past week."
+    }
   }
 }

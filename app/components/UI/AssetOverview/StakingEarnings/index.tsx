@@ -22,6 +22,7 @@ import BannerAlert from '../../../../component-library/components/Banners/Banner
 import { BannerAlertSeverity } from '../../../../component-library/components/Banners/Banner';
 import useTooltipModal from '../../../../components/hooks/useTooltipModal';
 import RewardsCard from './RewardsCard';
+import { strings } from '../../../../../locales/i18n';
 
 // TODO: Replace hardcoded strings with i18n support
 // TODO: Do accessibility pass on components.
@@ -43,36 +44,46 @@ const StakingEarnings: React.FC<unknown> = () => {
 
   const onNavigateToTooltipModal = () =>
     openTooltipModal(
-      'Reward rate',
-      'Expected yearly increase in the value of your stake, based on the reward rate over the past week.',
+      strings('tooltip_modal.reward_rate.title'),
+      strings('tooltip_modal.reward_rate.tooltip'),
     );
 
   return (
     <View>
       {/* Title & Subtitle */}
-      <Title style={styles.sectionTitle}>ETH earnings</Title>
+      <Title style={styles.sectionTitle}>
+        {strings('staking.eth_earnings')}
+      </Title>
       <View style={styles.sectionSubtitleContainer}>
-        <Text style={styles.rewardRate}>Earning 2.6%</Text>
+        <Text style={styles.rewardRate}>
+          {strings('staking.earning_percentage', { percentage: '2.6' })}
+        </Text>
         <ButtonIcon
           size={ButtonIconSizes.Sm}
           iconColor={IconColor.Muted}
           iconName={IconName.Info}
           accessibilityRole="button"
-          accessibilityLabel="Staked earnings rate tooltip"
+          accessibilityLabel={strings(
+            'staking.accessibility_labels.staked_earnings_rate_tooltip',
+          )}
           onPress={onNavigateToTooltipModal}
         />
       </View>
       <View style={styles.contentContainer}>
         {/* Header */}
         <View style={styles.stakingOverviewContainer}>
-          <Text style={styles.fiatAndPercentageTitle}>Staked amount</Text>
+          <Text style={styles.fiatAndPercentageTitle}>
+            {strings('staking.staked_amount')}
+          </Text>
           <Text variant={TextVariant.BodyMDBold} style={styles.stakedAmountEth}>
             4.999964 ETH
           </Text>
           <View style={styles.fiatAndPercentageContainer}>
             <Text style={styles.fiatAndPercentageText}>$13,292.20</Text>
             <Text style={styles.fiatAndPercentageText}>•</Text>
-            <Text style={styles.fiatAndPercentageText}>99% staked</Text>
+            <Text style={styles.fiatAndPercentageText}>
+              99% {strings('staking.staked')}
+            </Text>
           </View>
         </View>
         {/* Button Wrapper */}
@@ -81,19 +92,23 @@ const StakingEarnings: React.FC<unknown> = () => {
             style={styles.button}
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
-            label="Stake"
+            label={strings('staking.stake')}
             onPress={onStake}
             accessibilityRole="button"
-            accessibilityLabel="Stake ETH Button"
+            accessibilityLabel={strings(
+              'staking.accessibility_labels.stake_eth_button',
+            )}
           />
           <Button
             style={styles.button}
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
-            label="Unstake"
+            label={strings('staking.unstake')}
             onPress={onUnstake}
             accessibilityRole="button"
-            accessibilityLabel="Unstake ETH Button"
+            accessibilityLabel={strings(
+              'staking.accessibility_labels.unstake_eth_button',
+            )}
           />
         </View>
         <View style={styles.bannerGroupContainer}>
@@ -102,8 +117,10 @@ const StakingEarnings: React.FC<unknown> = () => {
               severity={BannerAlertSeverity.Info}
               description={
                 <Text variant={TextVariant.BodySM}>
-                  Unstaking 2.381034 ETH in progress. Come back in 4 days and 2
-                  hours to claim it.
+                  {strings('staking.unstake_in_progress_banner_text', {
+                    eth_amount: '2.3',
+                    time: '4 days and 2 hours',
+                  })}
                 </Text>
               }
             />
@@ -114,8 +131,9 @@ const StakingEarnings: React.FC<unknown> = () => {
               description={
                 <>
                   <Text variant={TextVariant.BodySM}>
-                    You can now claim 2.381034 ETH. Once claimed, you&apos;ll
-                    receive your ETH back in your wallet.
+                    {strings('staking.claimable_eth_available_banner_text', {
+                      eth_amount: '2.381034',
+                    })}
                   </Text>
                   <Button
                     width={75}
@@ -130,7 +148,9 @@ const StakingEarnings: React.FC<unknown> = () => {
                     }
                     onPress={onClaimEth}
                     accessibilityRole="button"
-                    accessibilityLabel="Claim ETH Button"
+                    accessibilityLabel={strings(
+                      'staking.accessibility_labels.claim_eth_button',
+                    )}
                   />
                 </>
               }
@@ -141,13 +161,16 @@ const StakingEarnings: React.FC<unknown> = () => {
       {/* Rewards Section */}
       <View style={styles.rewardCardsContainer}>
         <RewardsCard
-          title="Lifetime rewards"
+          title={strings('staking.lifetime_rewards')}
           amount="0.0002"
           symbol="ETH"
-          footer="$2.00 • Since 8/24"
+          footer={strings('staking.rewards_history', {
+            fiat_amount: '2.00',
+            date: '8/24',
+          })}
         />
         <RewardsCard
-          title="Est. annual rewards"
+          title={strings('staking.estimated_annual_rewards')}
           amount="0.13"
           symbol="ETH"
           footer="$334.93"
