@@ -143,12 +143,9 @@ function Quotes() {
 
   const [filteredQuotes, highlightedQuotes] = useMemo(() => {
     if (quotes) {
-      //@ts-expect-error - fixed on typescript v5
       const allQuotes = quotes.filter(
-        //@ts-expect-error - fixed on typescript v5
         (quote): quote is QuoteResponse | SellQuoteResponse => !quote.error,
       );
-      //@ts-expect-error - fixed on typescript v5
       const highlightedPreviouslyUsed = allQuotes.findIndex(({ provider }) =>
         ordersProviders.includes(provider.id),
       );
@@ -246,9 +243,7 @@ function Quotes() {
       refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
       results_count: filteredQuotes.length,
       provider_onramp_first: filteredQuotes[0]?.provider?.name,
-      //@ts-expect-error - fixed on typescript v5
       provider_onramp_list: filteredQuotes.map(({ provider }) => provider.name),
-      //@ts-expect-error - fixed on typescript v5
       previously_used_count: filteredQuotes.filter(({ provider }) =>
         ordersProviders.includes(provider.id),
       ).length,
@@ -772,7 +767,6 @@ function Quotes() {
             {isFetchingQuotes && isInPolling ? (
               <LoadingQuotes count={2} />
             ) : (
-              //@ts-expect-error - fixed on typescript v5
               highlightedQuotes.map((quote, index) => (
                 <Row key={quote.provider.id}>
                   <Quote
@@ -898,7 +892,6 @@ function Quotes() {
               {isFetchingQuotes && isInPolling ? (
                 <LoadingQuotes />
               ) : (
-                //@ts-expect-error - fixed on typescript v5
                 filteredQuotes.map((quote, index) => (
                   <Fragment key={quote.provider.id}>
                     {index === HIGHLIGHTED_QUOTES_COUNT &&

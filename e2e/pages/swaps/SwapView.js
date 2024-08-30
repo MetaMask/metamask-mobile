@@ -5,6 +5,7 @@ import {
 
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
+import TestHelpers from '../../helpers';
 
 class SwapView {
   get quoteSummary() {
@@ -35,7 +36,11 @@ class SwapView {
   }
 
   async swipeToSwap() {
-    const percentage = device.getPlatform() === 'ios' ? 0.72 : 0.85;
+    const percentage = device.getPlatform() === 'ios' ? 0.72 : 0.95;
+    // Wait for counter to go down to 0:05
+    // as the flashing gas fees happening when counter is 0:15
+    // will disables the swipe button
+    await TestHelpers.checkIfElementWithTextIsVisible('New quotes in 0:05');
     await Gestures.swipe(this.swipeToSwapButton, 'right', 'fast', percentage);
   }
 
