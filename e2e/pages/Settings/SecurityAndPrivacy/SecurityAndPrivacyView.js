@@ -87,6 +87,12 @@ class SecurityAndPrivacy {
     );
   }
 
+  get revealPrivateKeyButton() {
+    return Matchers.getElementByID(
+      SecurityPrivacyViewSelectorsIDs.SHOW_PRIVATE_KEY,
+    );
+  }
+
   async tapRevealSecretRecoveryPhraseButton() {
     await Gestures.waitAndTap(this.revealSecretRecoveryPhraseButton);
   }
@@ -101,7 +107,7 @@ class SecurityAndPrivacy {
 
   async scrollToRevealPrivateKey() {
     await Gestures.scrollToElement(
-      this.showPrivateKeyButton,
+      this.revealPrivateKeyButton,
       this.scrollViewIdentifier,
     );
   }
