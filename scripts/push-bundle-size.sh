@@ -39,24 +39,7 @@ commit_id=$(git rev-parse HEAD)
 bundle_size=$(stat -f%z "ios/main.jsbundle" 2>/dev/null || stat -c%s "ios/main.jsbundle")
 timestamp=$(date +%s%3N)
 
-# Update or create bundle_size.js file
-output_file="$temp_dir/stats/bundle_size.js"
-if [ -f "$output_file" ]; then
-    # Remove trailing comma and closing brace
-    sed -i.bak '$d' "$output_file"
-    sed -i.bak '$ s/,$//' "$output_file"
-else
-    echo "const data = {" > "$output_file"
-fi
-
-# Append new data
-cat << EOF >> "$output_file"
-  "$commit_id": {
-    "ios": $bundle_size,
-    "timestamp": $timestamp
-  }
-};
-EOF
+./scripts/update_bundle_size.py "./stats/bundle_size_data.js" "$commit_id" "$bundle_size" "$timestamp"
 
 # Commit and push changes
 cd "$temp_dir"

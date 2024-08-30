@@ -183,6 +183,7 @@ jobs:
   ship-js-bundle-size-check:
     runs-on: ubuntu-20.04
     needs: [setup, js-bundle-size-check]
+    #if: github.ref == 'refs/heads/main'
     steps:
       - name: Download iOS bundle
         uses: actions/download-artifact@v3
