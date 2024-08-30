@@ -370,7 +370,6 @@ class Confirm extends PureComponent {
 
     const { transactionMeta } = this.state;
     const { TokensController } = Engine.context;
-
     await stopGasPolling(this.state.pollToken);
     clearInterval(intervalIdForEstimatedL1Fee);
 
@@ -430,6 +429,7 @@ class Confirm extends PureComponent {
       isPaymentRequest,
       setTransactionId,
     } = this.props;
+
     const {
       from,
       transactionTo: to,
