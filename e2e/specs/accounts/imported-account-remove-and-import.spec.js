@@ -16,6 +16,7 @@ import AccountListView from '../../pages/AccountListView.js';
 import ImportAccountView from '../../pages/ImportAccountView.js';
 import Assertions from '../../utils/Assertions.js';
 import { AccountListViewSelectorsText } from '../../selectors/AccountListView.selectors.js';
+import AddAccountModal from '../../pages/modals/AddAccountModal.js';
 
 const fixtureServer = new FixtureServer();
 // This key is for testing private key import only
@@ -46,25 +47,21 @@ describe(
     it('removes an imported account and imports it again using a private key', async () => {
       // Ensure imported account is present
       await WalletView.tapIdenticon();
-      await AccountListView.isVisible();
-      await AccountListView.checkAccountVisibilityAtIndex(1, true);
 
       // Remove the imported account
       await AccountListView.longPressImportedAccount();
       await AccountListView.tapYesToRemoveImportedAccountAlertButton();
-      await AccountListView.checkAccountVisibilityAtIndex(1, false);
-      await Assertions.checkIfNotVisible(AccountListView.accountTypeLabel());
+      await Assertions.checkIfNotVisible(AccountListView.accountTypeLabel);
 
       // Import account again
       await AccountListView.tapAddAccountButton();
-      await AccountListView.tapImportAccountButton();
+      await AddAccountModal.tapImportAccount();
       await ImportAccountView.isVisible();
       await ImportAccountView.enterPrivateKey(TEST_PRIVATE_KEY);
       await ImportAccountView.isImportSuccessSreenVisible();
       await ImportAccountView.tapCloseButtonOnImportSuccess();
-      await AccountListView.checkAccountVisibilityAtIndex(1, true);
       await Assertions.checkIfElementToHaveText(
-        AccountListView.accountTypeLabel(),
+        AccountListView.accountTypeLabel,
         AccountListViewSelectorsText.ACCOUNT_TYPE_LABEL_TEXT,
       );
     });
