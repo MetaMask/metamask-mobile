@@ -11,10 +11,12 @@ export const SecurityPrivacyViewSelectorsIDs = {
   BIOMETRICS_TOGGLE: 'biometrics-option',
   DEVICE_PASSCODE_TOGGLE: 'DevicePasscodeOption',
   REMEMBER_ME_TOGGLE: 'turn-on-remember-me',
+  SHOW_PRIVATE_KEY: 'show-private-key',
 };
 
 export const SecurityPrivacyViewSelectorsText = {
   CLEAR_BROWSER_COOKIES: enContent.app_settings.clear_browser_cookies_desc,
   PRIVACY_HEADING: enContent.app_settings.privacy_heading,
   BACK_UP_NOW: enContent.app_settings.back_up_now,
+  SECURITY_AND_PRIVACY_HEADING: enContent.app_settings.security_title,
 };
