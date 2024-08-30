@@ -1,0 +1,19 @@
+{
+  "name": "@metamask/mobile-bitrise-scripts",
+  "private": true,
+  "scripts": {
+    "run-bitrise-e2e-check": "ts-node ./run-bitrise-e2e-check.ts",
+  },
+  "devDependencies": {
+    "@lavamoat/allow-scripts": "^3.2.0",
+    "@lavamoat/preinstall-always-fail": "^2.1.0",
+    "ts-node": "^10.5.0"
+  },
+  "packageManager": "yarn@1.22.22",
+  "lavamoat": {
+    "allowScripts": {
+      "@lavamoat/preinstall-always-fail": false,
+      "ts-node>@swc/core": false
+    }
+  }
+}
