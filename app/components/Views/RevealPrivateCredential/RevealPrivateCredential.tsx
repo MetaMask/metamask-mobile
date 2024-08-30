@@ -359,7 +359,7 @@ const RevealPrivateCredential = ({
             selectTextOnFocus
             style={styles.seedPhrase}
             editable={false}
-            testID={RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_TEXT}
+            testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_TEXT}
             placeholderTextColor={colors.text.muted}
             keyboardAppearance={themeAppearance}
           />
@@ -547,7 +547,7 @@ const RevealPrivateCredential = ({
   return (
     <View
       style={[styles.wrapper]}
-      testID={RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CONTAINER_ID}
+      testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID}
     >
       <ActionView
         cancelText={

@@ -5,29 +5,21 @@ import {
 import Matchers from '../../../utils/Matchers';
 import Gestures from '../../../utils/Gestures';
 
-class RevealSecretRecoveryPhrase {
+class RevealPrivateKey {
   get container() {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID,
     );
   }
-
-  // This is the password requested at login
-  // and should probably be moved eventually into LoginView.js
-  get passwordInput() {
-    return Matchers.getElementByID(RevealSeedViewSelectorsIDs.PASSWORD_INPUT);
+  get passwordInputToRevealCredential() {
+    return Matchers.getElementByID(
+      RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
+    );
   }
 
   get passwordWarning() {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.PASSWORD_WARNING_ID,
-    );
-  }
-
-  // This is the password requested to expose secret credentials
-  get passwordInputToRevealCredential() {
-    return Matchers.getElementByID(
-      RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
     );
   }
 
@@ -37,17 +29,16 @@ class RevealSecretRecoveryPhrase {
     );
   }
 
-  get recoveryPhrase() {
+  get privateKey() {
     return Matchers.getElementByText(
       RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_TEXT,
     );
   }
-  get revealSecretRecoveryPhraseButton() {
+  get revealPrivateKeyButton() {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
     );
   }
-
   get revealCredentialCopyToClipboardButton() {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON,
@@ -72,21 +63,12 @@ class RevealSecretRecoveryPhrase {
     );
   }
 
-  // This is the password requested at login view
-  // and should probably be moved eventually into LoginView.js
-  async enterPassword(password) {
-    await Gestures.typeTextAndHideKeyboard(this.passwordInput, password);
-  }
-  // This is the password requested to expose secret credentials
-  async enterPasswordToRevealSecretCredential(password) {
-    await Gestures.typeTextAndHideKeyboard(
-      this.passwordInputToRevealCredential,
-      password,
-    );
+  async tapDoneButton() {
+    await Gestures.waitAndTap(this.doneButton);
   }
 
   async tapToReveal() {
-    await Gestures.waitAndTap(this.revealSecretRecoveryPhraseButton);
+    await Gestures.waitAndTap(this.revealPrivateKeyButton);
   }
 
   async tapToCopyCredentialToClipboard() {
@@ -100,6 +82,12 @@ class RevealSecretRecoveryPhrase {
   async scrollToDone() {
     await Gestures.scrollToElement(this.doneButton, this.scrollViewIdentifier);
   }
+  async enterPasswordToRevealSecretCredential(password) {
+    await Gestures.typeTextAndHideKeyboard(
+      this.passwordInputToRevealCredential,
+      password,
+    );
+  }
 }
 
-export default new RevealSecretRecoveryPhrase();
+export default new RevealPrivateKey();
