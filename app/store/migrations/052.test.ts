@@ -1,4 +1,4 @@
-import migration from './051';
+import migration from './052';
 import { merge } from 'lodash';
 import initialRootState from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
@@ -31,7 +31,7 @@ jest.mock('@sentry/react-native', () => ({
 }));
 const mockedCaptureException = jest.mocked(captureException);
 
-describe('Migration #51', () => {
+describe('Migration #52', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     jest.resetAllMocks();
@@ -43,7 +43,7 @@ describe('Migration #51', () => {
         engine: null,
       }),
       errorMessage:
-        "FATAL ERROR: Migration 51: Invalid engine state error: 'object'",
+        "FATAL ERROR: Migration 52: Invalid engine state error: 'object'",
       scenario: 'engine state is invalid',
     },
     {
@@ -53,7 +53,7 @@ describe('Migration #51', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 51: Invalid engine backgroundState error: 'object'",
+        "FATAL ERROR: Migration 52: Invalid engine backgroundState error: 'object'",
       scenario: 'backgroundState is invalid',
     },
     {
@@ -65,7 +65,7 @@ describe('Migration #51', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 51: Invalid AccountsController state error: 'object'",
+        "FATAL ERROR: Migration 52: Invalid AccountsController state error: 'object'",
       scenario: 'AccountsController state is invalid',
     },
     {
@@ -77,7 +77,7 @@ describe('Migration #51', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 51: Invalid AccountsController internalAccounts state error: 'object'",
+        "FATAL ERROR: Migration 52: Invalid AccountsController internalAccounts state error: 'object'",
       scenario: 'AccountsController internalAccounts state is invalid',
     },
     {
@@ -93,7 +93,7 @@ describe('Migration #51', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 51: Invalid AccountsController internalAccounts accounts state error: 'object'",
+        "FATAL ERROR: Migration 52: Invalid AccountsController internalAccounts accounts state error: 'object'",
       scenario: 'AccountsController internalAccounts accounts state is invalid',
     },
     {
@@ -110,7 +110,7 @@ describe('Migration #51', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 51: Invalid AccountsController internalAccounts selectedAccount state error: 'object'",
+        "FATAL ERROR: Migration 52: Invalid AccountsController internalAccounts selectedAccount state error: 'object'",
       scenario:
         'AccountsController internalAccounts selectedAccount is not a string',
     },

@@ -17,7 +17,7 @@ import { AccountsControllerState } from '@metamask/accounts-controller';
  * @returns The updated Redux state with a valid selectedAccount
  */
 export default function migrate(state: unknown) {
-  if (!ensureValidState(state, 51)) {
+  if (!ensureValidState(state, 52)) {
     return state;
   }
 
@@ -27,7 +27,7 @@ export default function migrate(state: unknown) {
   if (!isObject(accountsControllerState)) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 51: Invalid AccountsController state error: '${typeof accountsControllerState}'`,
+        `FATAL ERROR: Migration 52: Invalid AccountsController state error: '${typeof accountsControllerState}'`,
       ),
     );
     return state;
@@ -39,7 +39,7 @@ export default function migrate(state: unknown) {
   ) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 51: Invalid AccountsController internalAccounts state error: '${typeof accountsControllerState.internalAccounts}'`,
+        `FATAL ERROR: Migration 52: Invalid AccountsController internalAccounts state error: '${typeof accountsControllerState.internalAccounts}'`,
       ),
     );
     return state;
@@ -51,7 +51,7 @@ export default function migrate(state: unknown) {
   ) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 51: Invalid AccountsController internalAccounts accounts state error: '${typeof accountsControllerState
+        `FATAL ERROR: Migration 52: Invalid AccountsController internalAccounts accounts state error: '${typeof accountsControllerState
           .internalAccounts.accounts}'`,
       ),
     );
@@ -64,7 +64,7 @@ export default function migrate(state: unknown) {
   ) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 51: Invalid AccountsController internalAccounts selectedAccount state error: '${typeof accountsControllerState
+        `FATAL ERROR: Migration 52: Invalid AccountsController internalAccounts selectedAccount state error: '${typeof accountsControllerState
           .internalAccounts.selectedAccount}'`,
       ),
     );
