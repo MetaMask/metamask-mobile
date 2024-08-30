@@ -7,7 +7,6 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  AppState,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { getSendFlowTitle } from '../../../../UI/Navbar';
@@ -128,8 +127,6 @@ import { selectTransactionMetrics } from '../../../../../core/redux/slices/trans
 import SimulationDetails from '../../../../UI/SimulationDetails/SimulationDetails';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 import { buildTransactionParams } from '../../../../../util/confirmation/transactions';
-import { selectPendingApprovals } from '../../../../../selectors/approvalController';
-import { providerErrors } from '@metamask/rpc-errors';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -142,8 +139,6 @@ let intervalIdForEstimatedL1Fee;
  * View that wraps the wraps the "Send" screen
  */
 class Confirm extends PureComponent {
-  appStateListener;
-
   static propTypes = {
     /**
      * Object that represents the navigator
@@ -275,7 +270,6 @@ class Confirm extends PureComponent {
      * Object containing blockaid validation response for confirmation
      */
     securityAlertResponse: PropTypes.object,
-    unapprovedTransaction: PropTypes.object,
   };
 
   state = {
@@ -368,54 +362,18 @@ class Confirm extends PureComponent {
     );
   };
 
-  handleAppStateChange = (appState) => {
-    const { navigation, unapprovedTransaction, transaction } = this.props;
-    const {
-      transactionMeta: { id },
-    } = this.state;
-    if (appState !== 'active' && unapprovedTransaction[id]) {
-      console.log('handleAppStateChange >>>>>', appState, id, transaction.id);
-      console.log('unapproved transaction >>>>>', unapprovedTransaction[id]);
-      Engine.rejectPendingApproval(
-        unapprovedTransaction[id].id,
-        providerErrors.userRejectedRequest(),
-        {
-          ignoreMissing: true,
-          logErrors: false,
-        },
-      );
-      resetTransaction();
-      navigation?.dangerouslyGetParent()?.pop();
-    }
-  };
-
   componentWillUnmount = async () => {
     const {
       contractBalances,
       transactionState: { selectedAsset },
-      navigation,
-      unapprovedTransaction,
     } = this.props;
 
     const { transactionMeta } = this.state;
     const { TokensController } = Engine.context;
-    const currentRoute = navigation?.getCurrentRoute()?.name;
+
     await stopGasPolling(this.state.pollToken);
     clearInterval(intervalIdForEstimatedL1Fee);
-    // this.appStateListener?.remove();
-    console.log('componentWillUnmount >>>>', currentRoute);
-    console.log('componentWillUnmount >>>>', currentRoute);
-    console.log(
-      'componentWillUnmount transactionMeta >>>>',
-      transactionMeta.id,
-    );
-    console.log(
-      'componentWillUnmount unapprovedTransaction >>>>',
-      unapprovedTransaction[transactionMeta.id],
-    );
 
-    // resetTransaction();
-    // navigation.dangerouslyGetParent()?.pop();
     Engine.rejectPendingApproval(transactionMeta.id, undefined, {
       ignoreMissing: true,
       logErrors: false,
@@ -471,34 +429,14 @@ class Confirm extends PureComponent {
       providerType,
       isPaymentRequest,
       setTransactionId,
-      unapprovedTransaction,
     } = this.props;
-    const { transactionMeta: test } = this.state;
-    console.log('confirm >>>>>', test?.id);
     const {
       from,
       transactionTo: to,
       transactionValue: value,
       data,
-      id,
     } = this.props.transaction;
-    console.log('confirm transaction >>>>>', unapprovedTransaction[id]);
 
-    // If there is an existing unapproved transaction with the same ID as the current transaction,
-    // reject the pending approval before creating a new transaction.
-    if (unapprovedTransaction[id]) {
-      // console.log('rejectPendingApproval >>>>>', unapprovedTransaction[id].id);
-      // resetTransaction();
-      // navigation.dangerouslyGetParent()?.pop();
-      // Engine.rejectPendingApproval(unapprovedTransaction[id].id, undefined, {
-      //   ignoreMissing: true,
-      //   logErrors: false,
-      // });
-      // resetTransaction();
-      // navigation?.pop();
-    }
-
-    console.log('confirm unaproved transaction >>>>>', unapprovedTransaction);
     this.updateNavBar();
     this.getGasLimit();
 
@@ -526,15 +464,12 @@ class Confirm extends PureComponent {
     const { TransactionController } = Engine.context;
     const transactionParams = this.prepareTransactionToSend();
 
-    // const transactions = TransactionController.getTransactions();
-    // console.log('transactions >>>>>', transactions);
-
     const { result, transactionMeta } =
       await TransactionController.addTransaction(transactionParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         origin: TransactionTypes.MMM,
       });
-    console.log('confirm result >>>>>', transactionMeta?.id);
+
     setTransactionId(transactionMeta.id);
 
     this.setState({ result, transactionMeta });
@@ -560,10 +495,6 @@ class Confirm extends PureComponent {
       };
 
       ppomUtil.validateRequest(reqObject, id);
-      // this.appStateListener = AppState.addEventListener(
-      //   'change',
-      //   this.handleAppStateChange,
-      // );
     }
   };
 
@@ -1550,7 +1481,6 @@ const mapStateToProps = (state) => ({
     selectCurrentTransactionMetadata(state)?.simulationData,
   useTransactionSimulations: selectUseTransactionSimulations(state),
   securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
-  unapprovedTransaction: selectPendingApprovals(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
