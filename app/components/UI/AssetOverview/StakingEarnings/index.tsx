@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View } from 'react-native';
 import Text, {
   TextColor,
@@ -24,15 +24,42 @@ import useTooltipModal from '../../../../components/hooks/useTooltipModal';
 import RewardsCard from './RewardsCard';
 import { strings } from '../../../../../locales/i18n';
 
-// TODO: Replace hardcoded strings with i18n support
-// TODO: Do accessibility pass on components.
+// TODO: Remove mock data when connecting component to backend.
+const MOCK_DATA = {
+  UNSTAKING_REQUESTS: [
+    { id: 1, ethAmount: '2.3', time: '4 days and 2 hours' },
+    // { id: 2, ethAmount: '1.6', time: '3 days and 8 hours' },
+  ],
+  STAKED_ETH: 4.999964,
+  STAKED_FIAT_VALUE: '13,292.20',
+  PERCENT_OF_ETH_STAKED: 99,
+  UNCLAIMED_ETH: 2.381034,
+  EARNING_RATE: 2.6,
+  LIFETIME_REWARDS: {
+    ETH: 0.0002,
+    FIAT: '2.00',
+    DATE: '8/24',
+  },
+  EST_ANNUAL_REWARDS: {
+    ETH: 0.13,
+    FIAT: 334.93,
+  },
+};
+
 const StakingEarnings: React.FC<unknown> = () => {
-  // For now, we want to show a banner for each unstaking request.
-  const [shouldShowUnstakeBanner, setShowUnstakeBanner] = useState(true);
-  const [shouldShowClaimBanner, setShowClaimBanner] = useState(true);
+  // TODO: Remove mock data when connecting component to backend.
+  const {
+    UNSTAKING_REQUESTS,
+    STAKED_ETH,
+    STAKED_FIAT_VALUE,
+    PERCENT_OF_ETH_STAKED,
+    UNCLAIMED_ETH,
+    EARNING_RATE,
+    LIFETIME_REWARDS,
+    EST_ANNUAL_REWARDS,
+  } = MOCK_DATA;
 
   const { styles } = useStyles(styleSheet, {});
-
   const { openTooltipModal } = useTooltipModal();
 
   const onStake = () => openTooltipModal('TODO', 'Implement onStake handler');
@@ -56,7 +83,7 @@ const StakingEarnings: React.FC<unknown> = () => {
       </Title>
       <View style={styles.sectionSubtitleContainer}>
         <Text style={styles.rewardRate}>
-          {strings('staking.earning_percentage', { percentage: '2.6' })}
+          {strings('staking.earning_percentage', { percentage: EARNING_RATE })}
         </Text>
         <ButtonIcon
           size={ButtonIconSizes.Sm}
@@ -76,13 +103,15 @@ const StakingEarnings: React.FC<unknown> = () => {
             {strings('staking.staked_amount')}
           </Text>
           <Text variant={TextVariant.BodyMDBold} style={styles.stakedAmountEth}>
-            4.999964 ETH
+            {STAKED_ETH} ETH
           </Text>
           <View style={styles.fiatAndPercentageContainer}>
-            <Text style={styles.fiatAndPercentageText}>$13,292.20</Text>
+            <Text style={styles.fiatAndPercentageText}>
+              ${STAKED_FIAT_VALUE}
+            </Text>
             <Text style={styles.fiatAndPercentageText}>•</Text>
             <Text style={styles.fiatAndPercentageText}>
-              99% {strings('staking.staked')}
+              {PERCENT_OF_ETH_STAKED}% {strings('staking.staked')}
             </Text>
           </View>
         </View>
@@ -112,27 +141,30 @@ const StakingEarnings: React.FC<unknown> = () => {
           />
         </View>
         <View style={styles.bannerGroupContainer}>
-          {shouldShowUnstakeBanner && (
-            <BannerAlert
-              severity={BannerAlertSeverity.Info}
-              description={
-                <Text variant={TextVariant.BodySM}>
-                  {strings('staking.unstake_in_progress_banner_text', {
-                    eth_amount: '2.3',
-                    time: '4 days and 2 hours',
-                  })}
-                </Text>
-              }
-            />
-          )}
-          {shouldShowClaimBanner && (
+          {/* TEMP: Show a banner for each in-progress unstaking request. */}
+          {!!UNSTAKING_REQUESTS.length &&
+            UNSTAKING_REQUESTS.map(({ ethAmount, time, id }) => (
+              <BannerAlert
+                key={id}
+                severity={BannerAlertSeverity.Info}
+                description={
+                  <Text variant={TextVariant.BodySM}>
+                    {strings('staking.unstake_in_progress_banner_text', {
+                      eth_amount: ethAmount,
+                      time,
+                    })}
+                  </Text>
+                }
+              />
+            ))}
+          {!!UNCLAIMED_ETH && (
             <BannerAlert
               severity={BannerAlertSeverity.Success}
               description={
                 <>
                   <Text variant={TextVariant.BodySM}>
                     {strings('staking.claimable_eth_available_banner_text', {
-                      eth_amount: '2.381034',
+                      eth_amount: UNCLAIMED_ETH,
                     })}
                   </Text>
                   <Button
@@ -162,18 +194,18 @@ const StakingEarnings: React.FC<unknown> = () => {
       <View style={styles.rewardCardsContainer}>
         <RewardsCard
           title={strings('staking.lifetime_rewards')}
-          amount="0.0002"
+          amount={LIFETIME_REWARDS.ETH.toString()}
           symbol="ETH"
           footer={strings('staking.rewards_history', {
-            fiat_amount: '2.00',
-            date: '8/24',
+            fiat_amount: LIFETIME_REWARDS.FIAT,
+            date: LIFETIME_REWARDS.DATE,
           })}
         />
         <RewardsCard
           title={strings('staking.estimated_annual_rewards')}
-          amount="0.13"
+          amount={EST_ANNUAL_REWARDS.ETH.toString()}
           symbol="ETH"
-          footer="$334.93"
+          footer={`$${EST_ANNUAL_REWARDS.FIAT.toString()}`}
         />
       </View>
     </View>
