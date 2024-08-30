@@ -15,10 +15,18 @@ import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFun
 import ManageNetworksComponent from '../../../UI/ManageNetworks/ManageNetworks';
 import AppConstants from '../../../../core/AppConstants';
 import styles from './index.styles';
+import ProfileSyncingComponent from '../../../../components/UI/ProfileSyncing/ProfileSyncing';
+import { useSelector } from 'react-redux';
+import { selectIsProfileSyncingEnabled } from '../../../../selectors/notifications';
+import { enableProfileSyncing } from '../../../../actions/notification/helpers';
+import { RootState } from '../../../../reducers';
 
 const DefaultSettings = () => {
   const navigation = useNavigation();
-
+  const isBasicFunctionalityEnabled = useSelector(
+    (state: RootState) => state?.settings?.basicFunctionalityEnabled,
+  );
+  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
   const renderBackButton = useCallback(
     () => (
       <TouchableOpacity
@@ -56,6 +64,16 @@ const DefaultSettings = () => {
     Linking.openURL(AppConstants.URLS.PRIVACY_BEST_PRACTICES);
   };
 
+  const toggleProfileSyncing = async () => {
+    if (isProfileSyncingEnabled) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.PROFILE_SYNCING,
+      });
+    } else {
+      await enableProfileSyncing();
+    }
+  };
+
   return (
     <ScrollView style={styles.root}>
       <Text variant={TextVariant.BodyMD}>
@@ -66,6 +84,11 @@ const DefaultSettings = () => {
         </Text>
       </Text>
       <BasicFunctionalityComponent handleSwitchToggle={handleSwitchToggle} />
+      <ProfileSyncingComponent
+        handleSwitchToggle={toggleProfileSyncing}
+        isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
+        isProfileSyncingEnabled={isProfileSyncingEnabled}
+      />
       <ManageNetworksComponent />
     </ScrollView>
   );

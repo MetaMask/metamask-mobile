@@ -11,6 +11,7 @@ import { Notification } from '../types';
 import { calcTokenAmount } from '../../transactions';
 import images from '../../../images/image-icons';
 import CHAIN_SCANS_URLS from '../constants/urls';
+import { strings } from '../../../../locales/i18n';
 
 const { UI } = NotificationServicesController;
 /**
@@ -54,7 +55,10 @@ const isSameYear = (currentDate: Date, dateToCheck: Date) =>
  * @param date - The date to be formatted.
  * @returns The formatted date.
  */
-export function formatMenuItemDate(date: Date) {
+export function formatMenuItemDate(date?: Date) {
+  if (!date) {
+    return strings('notifications.no_date');
+  }
   const currentDate = new Date();
 
   // E.g. 12:21
@@ -197,7 +201,6 @@ export function getProviderByChainId(chainId: HexChainId) {
       networkClientId,
     )?.provider;
 
-  // @ts-expect-error TODO: remove this annotation once the `Eip1193Provider` class is released
   return provider && new Web3Provider(provider);
 }
 
@@ -377,7 +380,7 @@ export function getNativeTokenDetailsByChainId(chainId: number) {
     return {
       name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
       symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
-      image: images.MATIC,
+      image: images.POL,
     };
   }
   if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ARBITRUM) {

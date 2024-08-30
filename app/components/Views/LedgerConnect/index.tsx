@@ -19,7 +19,6 @@ import {
 } from '../../../util/theme';
 import Device from '../../../util/device';
 import Scan from './Scan';
-import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
 import { showSimpleNotification } from '../../../actions/notification';
 import LedgerConnectionError, {
   LedgerConnectionErrorProps,
@@ -35,16 +34,32 @@ import { getSystemVersion } from 'react-native-device-info';
 import { LedgerCommunicationErrors } from '../../../core/Ledger/ledgerErrors';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import createStyles from './index.styles';
+import { BluetoothInterface } from '../../hooks/Ledger/useBluetoothDevices';
 
 interface LedgerConnectProps {
   onConnectLedger: () => void;
+  isSendingLedgerCommands: boolean;
+  isAppLaunchConfirmationNeeded: boolean;
+  ledgerLogicToRun: (
+    func: (transport: BluetoothInterface) => Promise<void>,
+  ) => Promise<void>;
+  ledgerError: LedgerCommunicationErrors | undefined;
+  selectedDevice: LedgerDevice;
+  setSelectedDevice: (device: LedgerDevice) => void;
 }
 
-const LedgerConnect = ({ onConnectLedger }: LedgerConnectProps) => {
+const LedgerConnect = ({
+  onConnectLedger,
+  isSendingLedgerCommands,
+  isAppLaunchConfirmationNeeded,
+  ledgerLogicToRun,
+  ledgerError,
+  selectedDevice,
+  setSelectedDevice,
+}: LedgerConnectProps) => {
   const theme = useAppThemeFromContext() ?? mockTheme;
   const navigation = useNavigation();
   const styles = useMemo(() => createStyles(theme.colors), [theme]);
-  const [selectedDevice, setSelectedDevice] = useState<LedgerDevice>(null);
   const [errorDetail, setErrorDetails] = useState<LedgerConnectionErrorProps>();
   const [loading, setLoading] = useState(false);
   const [retryTimes, setRetryTimes] = useState(0);
@@ -57,13 +72,6 @@ const LedgerConnect = ({ onConnectLedger }: LedgerConnectProps) => {
       getNavigationOptionsTitle('', navigation, true, theme.colors),
     );
   }, [navigation, theme.colors]);
-
-  const {
-    isSendingLedgerCommands,
-    isAppLaunchConfirmationNeeded,
-    ledgerLogicToRun,
-    error: ledgerError,
-  } = useLedgerBluetooth(selectedDevice?.id);
 
   const connectLedger = () => {
     setLoading(true);

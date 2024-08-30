@@ -37,7 +37,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 24,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -66,7 +66,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -97,7 +97,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -118,6 +118,11 @@ exports[`SecuritySettings should render correctly 1`] = `
             {
               "backgroundColor": "transparent",
               "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
             }
           }
           suppressHighlighting={true}
@@ -127,7 +132,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#0376c9",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -186,7 +191,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#141618",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -218,14 +223,13 @@ exports[`SecuritySettings should render correctly 1`] = `
               "paddingHorizontal": 16,
             }
           }
-          variant="Primary"
         >
           <Text
             accessibilityRole="text"
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -250,7 +254,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -265,7 +269,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -299,14 +303,13 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
           testID="change-password-button"
-          variant="Secondary"
         >
           <Text
             accessibilityRole="text"
             style={
               {
                 "color": "#0376c9",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -331,7 +334,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -346,7 +349,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -491,7 +494,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 {
                   "color": "#141618",
                   "flex": 1,
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -543,7 +546,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#6a737d",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -569,7 +572,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -584,7 +587,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -615,14 +618,14 @@ exports[`SecuritySettings should render correctly 1`] = `
               "paddingHorizontal": 16,
             }
           }
-          variant="Primary"
+          testID="show-private-key"
         >
           <Text
             accessibilityRole="text"
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -650,7 +653,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -694,7 +697,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           {
             "color": "#6a737d",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -711,7 +714,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -737,7 +740,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 24,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -755,7 +758,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -788,7 +791,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#141618",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Bold",
                   "fontSize": 16,
                   "fontWeight": "700",
                   "letterSpacing": 0,
@@ -826,7 +829,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#6a737d",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -841,7 +844,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -855,100 +858,12 @@ exports[`SecuritySettings should render correctly 1`] = `
           </Text>
         </View>
       </View>
-      <View
-        style={
-          {
-            "marginVertical": 16,
-          }
-        }
-      >
-        <View
-          style={
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "justifyContent": "space-between",
-              "paddingBottom": 8,
-            }
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#141618",
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 16,
-                "fontWeight": "700",
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Profile Sync
-          </Text>
-          <RCTSwitch
-            accessibilityRole="switch"
-            disabled={true}
-            onChange={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            onTintColor="#0376c9"
-            style={
-              [
-                {
-                  "height": 31,
-                  "width": 51,
-                },
-                {
-                  "backgroundColor": "#bbc0c566",
-                  "borderRadius": 16,
-                },
-              ]
-            }
-            thumbTintColor="#ffffff"
-            tintColor="#bbc0c566"
-            value={true}
-          />
-        </View>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
-          }
-        >
-          Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. 
-          <Text
-            accessibilityRole="text"
-            onPress={[Function]}
-            style={
-              {
-                "color": "#0376c9",
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              }
-            }
-          >
-            Learn how we protect your privacy
-          </Text>
-        </Text>
-      </View>
       <Text
         accessibilityRole="text"
         style={
           {
             "color": "#6a737d",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -972,7 +887,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -987,7 +902,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -1026,14 +941,13 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "paddingHorizontal": 16,
               }
             }
-            variant="Secondary"
           >
             <Text
               accessibilityRole="text"
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -1061,7 +975,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -1076,7 +990,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -1115,14 +1029,13 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "paddingHorizontal": 16,
               }
             }
-            variant="Secondary"
           >
             <Text
               accessibilityRole="text"
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -1177,7 +1090,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -1192,7 +1105,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -1233,14 +1146,13 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "paddingHorizontal": 16,
               }
             }
-            variant="Secondary"
           >
             <Text
               accessibilityRole="text"
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -1266,7 +1178,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -1281,7 +1193,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -1322,14 +1234,13 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "paddingHorizontal": 16,
               }
             }
-            variant="Secondary"
           >
             <Text
               accessibilityRole="text"
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -1376,7 +1287,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           {
             "color": "#6a737d",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -1409,7 +1320,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#141618",
                 "flex": 1,
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1461,7 +1372,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -1476,7 +1387,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#141618",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 14,
                 "fontWeight": "700",
                 "letterSpacing": 0,
@@ -1496,7 +1407,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           {
             "color": "#6a737d",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -1529,7 +1440,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#141618",
                 "flex": 1,
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1581,7 +1492,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -1606,7 +1517,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -1621,7 +1532,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -1717,7 +1628,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "Euclid Circular B",
+                      "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 16,
                       "fontWeight": "400",
                       "letterSpacing": 0,
@@ -1734,7 +1645,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   style={
                     {
                       "color": "#6a737d",
-                      "fontFamily": "Euclid Circular B",
+                      "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 14,
                       "fontWeight": "400",
                       "letterSpacing": 0,
@@ -1858,7 +1769,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "Euclid Circular B",
+                      "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 16,
                       "fontWeight": "400",
                       "letterSpacing": 0,
@@ -1875,7 +1786,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   style={
                     {
                       "color": "#6a737d",
-                      "fontFamily": "Euclid Circular B",
+                      "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 14,
                       "fontWeight": "400",
                       "letterSpacing": 0,
@@ -1975,7 +1886,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#141618",
                 "flex": 1,
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -2026,7 +1937,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -2046,6 +1957,11 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "backgroundColor": "transparent",
                 "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
               }
             }
             suppressHighlighting={true}
@@ -2055,7 +1971,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -2073,7 +1989,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           {
             "color": "#6a737d",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -2106,7 +2022,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#141618",
                 "flex": 1,
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -2158,7 +2074,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -2192,7 +2108,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#141618",
                 "flex": 1,
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -2243,7 +2159,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -2277,7 +2193,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#141618",
                 "flex": 1,
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -2328,7 +2244,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -2351,7 +2267,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#6a737d",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -2385,7 +2301,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           {
             "color": "#6a737d",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -2418,7 +2334,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 {
                   "color": "#141618",
                   "flex": 1,
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -2469,7 +2385,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#6a737d",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -2487,7 +2403,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           {
             "color": "#6a737d",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -2520,7 +2436,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#141618",
                 "flex": 1,
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -2572,7 +2488,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -2593,6 +2509,11 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "backgroundColor": "transparent",
                 "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
               }
             }
             suppressHighlighting={true}
@@ -2602,7 +2523,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -2637,7 +2558,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#141618",
                 "flex": 1,
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -2689,7 +2610,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -2713,7 +2634,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -2728,7 +2649,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -2742,7 +2663,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#6a737d",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -2763,6 +2684,11 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "backgroundColor": "transparent",
                 "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
               }
             }
             suppressHighlighting={true}
@@ -2772,7 +2698,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -2789,7 +2715,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#6a737d",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -2805,7 +2731,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#6a737d",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -2826,6 +2752,11 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "backgroundColor": "transparent",
                 "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
               }
             }
             suppressHighlighting={true}
@@ -2835,7 +2766,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -2877,14 +2808,13 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
             }
             testID="delete-metrics-button"
-            variant="Secondary"
           >
             <Text
               accessibilityRole="text"
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -2938,7 +2868,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -2953,7 +2883,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -2995,14 +2925,13 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
             }
             testID="security-settings-delete-wallet-buttons"
-            variant="Secondary"
           >
             <Text
               accessibilityRole="text"
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -3239,7 +3168,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "alignSelf": "center",
                 "color": "#141618",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
