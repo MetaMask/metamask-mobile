@@ -42,7 +42,7 @@ const snapMethodMiddlewareBuilder = (
       origin,
     ),
     getAllowedKeyringMethods: keyringSnapPermissionsBuilder(
-      engineContext.subjectMetadataController,
+      engineContext.SubjectMetadataController,
       origin,
     ),
     getSnapFile: controllerMessenger.call.bind(
@@ -59,6 +59,10 @@ const snapMethodMiddlewareBuilder = (
       engineContext.PermissionController,
       origin,
       RestrictedMethods.wallet_snap,
+    ),
+    getSnap: controllerMessenger.call.bind(
+      controllerMessenger,
+      'SnapController:get',
     ),
   });
 
