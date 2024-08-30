@@ -37,7 +37,10 @@ const snapMethodMiddlewareBuilder = (
       engineContext.PermissionController,
       origin,
     ),
-    hasPermission: engineContext.PermissionController.hasPermission(origin),
+    hasPermission: engineContext.PermissionController.hasPermission.bind(
+      engineContext.PermissionController,
+      origin,
+    ),
     getAllowedKeyringMethods: keyringSnapPermissionsBuilder(
       engineContext.subjectMetadataController,
       origin,
