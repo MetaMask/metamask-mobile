@@ -100,6 +100,10 @@ class RevealSecretRecoveryPhrase {
   async scrollToDone() {
     await Gestures.scrollToElement(this.doneButton, this.scrollViewIdentifier);
   }
+
+  async tapDoneButton() {
+    return Gestures.waitAndTap(this.doneButton);
+  }
 }
 
 export default new RevealSecretRecoveryPhrase();

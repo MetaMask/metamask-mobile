@@ -120,9 +120,7 @@ describe(Regression('Secret Recovery Phrase Reveal from Settings'), () => {
       RevealSecretRecoveryPhrase.revealCredentialQRCodeImage,
     );
     await RevealSecretRecoveryPhrase.scrollToDone();
-    await TestHelpers.waitAndTapText(
-      RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_DONE,
-    );
+    await RevealSecretRecoveryPhrase.tapDoneButton();
     await Assertions.checkIfVisible(
       SecurityAndPrivacy.securityAndPrivacyHeading,
     );
