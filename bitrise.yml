@@ -433,9 +433,9 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
     envs:
-      - PRODUCTION_APP_URL: 'bs://f0eefdd04dd0b913eb8b6494e4990e3e9f1c2bd3' # Last production's QA build
-      - PRODUCTION_BUILD_NAME: 7.26.1
-      - PRODUCTION_BUILD_NUMBER: 1360
+      - PRODUCTION_APP_URL: 'bs://6421b30d4359b6dbfc82460a926d7bf8059073eb' # Last production's QA build
+      - PRODUCTION_BUILD_NAME: 7.29.0
+      - PRODUCTION_BUILD_NUMBER: 1397
       - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
       - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_NAME ($PRODUCTION_BUILD_NUMBER)'
       - NEW_BUILD_STRING: 'MetaMask-QA v$VERSION_NAME ($VERSION_NUMBER)'
