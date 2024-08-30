@@ -3,9 +3,6 @@ module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
   extends: [
-    // @react-native-community
-    // - Depends on babel-eslint parser
-    // - Migrated to @react-native/eslint-config after v3.2.0
     '@react-native',
     'eslint:recommended',
     'plugin:import/warnings',
