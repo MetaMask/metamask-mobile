@@ -1,12 +1,13 @@
 diff --git a/node_modules/@metamask/eslint-config-typescript/src/index.js b/node_modules/@metamask/eslint-config-typescript/src/index.js
-index 18b469e..d5c05dc 100644
+index 18b469e..64524b8 100644
 --- a/node_modules/@metamask/eslint-config-typescript/src/index.js
 +++ b/node_modules/@metamask/eslint-config-typescript/src/index.js
-@@ -42,7 +42,6 @@ module.exports = {
+@@ -42,7 +42,7 @@ module.exports = {
        { allowDefinitionFiles: true },
      ],
      '@typescript-eslint/no-non-null-assertion': 'error',
 -    '@typescript-eslint/no-parameter-properties': 'error',
++    '@typescript-eslint/parameter-properties': 'error',
      '@typescript-eslint/no-require-imports': 'error',
      '@typescript-eslint/prefer-for-of': 'error',
      '@typescript-eslint/prefer-function-type': 'error',
