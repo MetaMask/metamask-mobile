@@ -12,7 +12,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - uses: ruby/setup-ruby@v1
+      - uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854 #v1
         with:
           ruby-version: '3.1.5'
           bundler-cache: true
