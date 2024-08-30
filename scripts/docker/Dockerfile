@@ -31,7 +31,7 @@ RUN  bash -c "[ ${GID} != \"1000\" ] && groupadd -g ${GID} -U node userz || true
   && echo '%sudo ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
 
 # install ruby deps
-COPY --chown=${UID}:${GID} Gemfile* .ruby-version /tmp/app/
+COPY --chown=${UID}:${GID} ios/Gemfile* .ruby-version /tmp/app/
 WORKDIR /tmp/app
 
 ####
@@ -55,7 +55,7 @@ RUN bash -c 'eval "$(/home/node/.rbenv/bin/rbenv init -)" \
     && rbenv install \
     && gem install bundler -v 2.5.8 \
     && gem install bigdecimal cocoapods \
-    && (cd ios && bundle install)'
+    && bundle install'
 
 # fix broken ipv6 on nodejs v20
 env NODE_OPTIONS="--no-network-family-autoselection --trace-warnings"
