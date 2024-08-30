@@ -46,7 +46,7 @@ jobs:
 
       - name: Install dependencies
         run: yarn --immutable
-        working-directory: '.github/scripts/bitrise'
+        working-directory: '.github/scripts'
 
       - name: Check Bitrise E2E Status
         env:
@@ -56,4 +56,4 @@ jobs:
         # The status check created under this workflow may be bucketed under another check suite in Github actions. This is a result of workflows with the same triggers.
         # For example, the status check may show as `CLA Signature Bot / Bitrise E2E Status`. This is a bug on Github's UI. https://github.com/orgs/community/discussions/24616
         run: yarn run run-bitrise-e2e-check
-        working-directory: '.github/scripts/bitrise'
+        working-directory: '.github/scripts'
