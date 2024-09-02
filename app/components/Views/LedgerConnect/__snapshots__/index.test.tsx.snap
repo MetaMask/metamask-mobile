@@ -247,7 +247,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           ]
         }
       >
-        Please make sure your Ledger Nano X is:
+        Please make sure your Ledger device is:
       </Text>
       <Text
         style={
@@ -288,7 +288,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           ]
         }
       >
-        1. Unlock your Ledger Nano X
+        1. Unlock your Ledger device
       </Text>
       <Text
         style={
@@ -571,7 +571,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
                       }
                     }
                   >
-                    Ledger Nano X
+                    Ledger device
                   </Text>
                   <Text
                     allowFontScaling={false}

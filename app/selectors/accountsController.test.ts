@@ -2,7 +2,7 @@ import { AccountsControllerState } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import { Hex, isValidChecksumAddress } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-api';
-import StorageWrapper from '../store/async-storage-wrapper';
+import StorageWrapper from '../store/storage-wrapper';
 import {
   selectSelectedInternalAccount,
   selectInternalAccounts,

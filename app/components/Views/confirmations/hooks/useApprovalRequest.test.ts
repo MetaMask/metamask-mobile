@@ -14,9 +14,8 @@ jest.mock('react', () => {
 
   return {
     ...originalReact,
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    useCallback: (fn: any) => fn,
+    useCallback: (fn: unknown) => fn,
+    useMemo: (fn: () => unknown) => fn(),
   };
 });
 

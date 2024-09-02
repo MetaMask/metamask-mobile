@@ -1,8 +1,8 @@
-import StorageWrapper from '../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import loadDappConnections from './loadDappConnections';
 
 jest.mock('../../../core/AppConstants');
-jest.mock('../../../store/async-storage-wrapper', () => ({
+jest.mock('../../../store/storage-wrapper', () => ({
   getItem: jest.fn().mockResolvedValue(''),
   setItem: jest.fn().mockResolvedValue(''),
 }));

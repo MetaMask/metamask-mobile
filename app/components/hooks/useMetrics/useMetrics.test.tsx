@@ -30,7 +30,6 @@ const expectedDataDeleteRegulationId = 'TWV0YU1hc2t1c2Vzbm9wb2ludCE';
 
 const mockMetrics = {
   trackEvent: jest.fn(),
-  trackAnonymousEvent: jest.fn(),
   enable: jest.fn(() => Promise.resolve()),
   addTraitsToUser: jest.fn(() => Promise.resolve()),
   createDataDeletionTask: jest.fn(() =>
@@ -65,7 +64,6 @@ describe('useMetrics', () => {
         "getMetaMetricsId": undefined,
         "isDataRecorded": [MockFunction],
         "isEnabled": [MockFunction],
-        "trackAnonymousEvent": [Function],
         "trackEvent": [Function],
       }
     `);
@@ -80,7 +78,6 @@ describe('useMetrics', () => {
 
     const {
       trackEvent,
-      trackAnonymousEvent,
       enable,
       addTraitsToUser,
       createDataDeletionTask,
@@ -100,7 +97,6 @@ describe('useMetrics', () => {
 
     await act(async () => {
       trackEvent(event);
-      trackAnonymousEvent(event);
       await enable(true);
       await addTraitsToUser({});
       deletionTaskIdValue = await createDataDeletionTask();
@@ -112,11 +108,6 @@ describe('useMetrics', () => {
     });
 
     expect(mockMetrics.trackEvent).toHaveBeenCalledWith(event, {}, true);
-    expect(mockMetrics.trackAnonymousEvent).toHaveBeenCalledWith(
-      event,
-      {},
-      true,
-    );
     expect(mockMetrics.enable).toHaveBeenCalledWith(true);
     expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({});
 

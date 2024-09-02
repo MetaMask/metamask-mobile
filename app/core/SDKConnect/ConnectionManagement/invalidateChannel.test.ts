@@ -4,7 +4,7 @@ import invalidateChannel from './invalidateChannel';
 
 jest.mock('../../../core/AppConstants');
 jest.mock('../SDKConnect');
-jest.mock('../../../store/async-storage-wrapper', () => ({
+jest.mock('../../../store/storage-wrapper', () => ({
   setItem: jest.fn().mockResolvedValue([]),
   getItem: jest.fn().mockResolvedValue(JSON.stringify({})),
 }));

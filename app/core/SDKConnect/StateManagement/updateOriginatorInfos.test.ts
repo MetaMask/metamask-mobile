@@ -1,14 +1,14 @@
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
-import StorageWrapper from '../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import SDKConnect from '../SDKConnect';
 import updateOriginatorInfos from './updateOriginatorInfos';
 
 jest.mock('@metamask/sdk-communication-layer');
 jest.mock('../SDKConnect');
-jest.mock('../../../store/async-storage-wrapper');
+jest.mock('../../../store/storage-wrapper');
 jest.mock('../../AppConstants');
 
-jest.mock('../../../store/async-storage-wrapper', () => ({
+jest.mock('../../../store/storage-wrapper', () => ({
   setItem: jest.fn(),
 }));
 

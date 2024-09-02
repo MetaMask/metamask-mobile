@@ -8,9 +8,13 @@ class Matchers {
    * Get element by ID.
    *
    * @param {string} elementId - Match elements with the specified testID
-   * @return {Promise<Detox.IndexableNativeElement>} - Resolves to the located element
+   * @param {number} [index] - Index of the element (default: 0)
+   * @return {Promise<Detox.IndexableNativeElement> | Promise<Detox.NativeElement>} - Resolves to the located element
    */
-  static async getElementByID(elementId) {
+  static async getElementByID(elementId, index) {
+    if (index) {
+      return element(by.id(elementId)).atIndex(index);
+    }
     return element(by.id(elementId));
   }
 
@@ -47,8 +51,8 @@ class Matchers {
    * @param {string} label - Match elements with the specified accessibility label (iOS) or content description (Android)
    * @return {Promise<Detox.IndexableNativeElement>} - Resolves to the located element
    */
-  static async getElementByLabel(label) {
-    return element(by.label(label));
+  static async getElementByLabel(label, index = 0) {
+    return element(by.label(label)).atIndex(index);
   }
 
   /**

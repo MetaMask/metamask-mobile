@@ -4,7 +4,6 @@ import { View } from 'react-native';
 import RemoteImage from '../../Base/RemoteImage';
 import MediaPlayer from '../../Views/MediaPlayer';
 import Text from '../../Base/Text';
-import { useTheme } from '../../../util/theme';
 import { isIPFSUri } from '../../../util/general';
 import { useSelector } from 'react-redux';
 import {
@@ -22,6 +21,7 @@ import Button from '../../../component-library/components/Buttons/Button/Button'
 import { strings } from '../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
+import { useStyles } from '../../../component-library/hooks';
 
 const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   collectible,
@@ -33,14 +33,17 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   cover,
   onClose,
   onPressColectible,
+  isTokenImage,
+  isFullRatio,
 }) => {
   const [sourceUri, setSourceUri] = useState<string | null>(null);
-  const { colors } = useTheme();
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
   const { navigate } = useNavigation();
 
-  const styles = createStyles(colors);
+  const { styles } = useStyles(createStyles, {
+    backgroundColor: collectible.backgroundColor,
+  });
 
   const fallback = useCallback(() => setSourceUri(null), []);
 
@@ -99,7 +102,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
           <View style={styles.imageFallBackTextContainer}>
             <Text style={styles.imageFallBackText}>
               {collectible.tokenId
-                ? ` #${formatTokenId(collectible.tokenId)}`
+                ? ` #${formatTokenId(parseInt(collectible.tokenId, 10))}`
                 : ''}
             </Text>
           </View>
@@ -139,7 +142,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
             style={tiny ? styles.textWrapperIcon : styles.textWrapper}
           >
             {collectible.tokenId
-              ? ` #${formatTokenId(collectible.tokenId)}`
+              ? ` #${formatTokenId(parseInt(collectible.tokenId, 10))}`
               : ''}
           </Text>
         </View>
@@ -194,6 +197,8 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
             ]}
             onError={fallback}
             testID="nft-image"
+            isTokenImage={isTokenImage}
+            isFullRatio={isFullRatio}
           />
         );
       }
@@ -208,27 +213,31 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
 
     return renderFallback(false);
   }, [
-    collectible,
+    displayNftMedia,
+    isIpfsGatewayEnabled,
     sourceUri,
-    onClose,
+    collectible.error,
+    collectible.animation,
+    renderFallback,
     renderAnimation,
+    onClose,
+    styles.mediaPlayer,
+    styles.cover,
+    styles.image,
+    styles.tinyImage,
+    styles.smallImage,
+    styles.bigImage,
+    cover,
     style,
     tiny,
     small,
     big,
-    cover,
-    styles,
-    isIpfsGatewayEnabled,
-    renderFallback,
     fallback,
-    displayNftMedia,
+    isTokenImage,
+    isFullRatio,
   ]);
 
-  return (
-    <View style={styles.container(collectible.backgroundColor)}>
-      {renderMedia()}
-    </View>
-  );
+  return <View style={styles.container}>{renderMedia()}</View>;
 };
 
 export default CollectibleMedia;

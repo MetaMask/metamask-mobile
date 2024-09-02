@@ -124,7 +124,7 @@ const QRScanner = () => {
 
   const onBarCodeRead = useCallback(
     async (response) => {
-      const content = response.data;
+      let content = response.data;
       /**
        * Barcode read triggers multiple times
        * shouldReadBarCodeRef controls how often the logic below runs
@@ -148,9 +148,13 @@ const QRScanner = () => {
       const contentProtocol = getURLProtocol(content);
       if (
         (contentProtocol === PROTOCOLS.HTTP ||
-          contentProtocol === PROTOCOLS.HTTPS) &&
+          contentProtocol === PROTOCOLS.HTTPS ||
+          contentProtocol === PROTOCOLS.DAPP) &&
         !content.startsWith(MM_SDK_DEEPLINK)
       ) {
+        if (contentProtocol === PROTOCOLS.DAPP) {
+          content = content.replace(PROTOCOLS.DAPP, PROTOCOLS.HTTPS);
+        }
         const redirect = await showAlertForURLRedirection(content);
 
         if (!redirect) {
@@ -321,7 +325,7 @@ const QRScanner = () => {
       >
         <SafeAreaView style={styles.innerView}>
           <TouchableOpacity style={styles.closeIcon} onPress={goBack}>
-            <Icon name={'ios-close'} size={50} color={styles.closeIcon.color} />
+            <Icon name="ios-close" size={50} color={styles.closeIcon.color} />
           </TouchableOpacity>
           <Image source={frameImage} style={styles.frame} />
           <Text style={styles.text}>{strings('qr_scanner.scanning')}</Text>

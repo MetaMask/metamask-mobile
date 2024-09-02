@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { Platform, SafeAreaView } from 'react-native';
+import { SafeAreaView } from 'react-native';
 
 // External dependencies
 import Text from '../../../component-library/components/Texts/Text/Text';
@@ -11,6 +11,7 @@ import { TextVariant } from '../../../component-library/components/Texts/Text';
 import { strings } from '../../../../locales/i18n';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
 import { formatAddress, getAddressAccountType } from '../../../util/address';
+import EditAccountNameSelectorIDs from '../../../../e2e/selectors/EditAccountName.selectors';
 
 import Button from '../../../component-library/components/Buttons/Button/Button';
 import {
@@ -21,7 +22,6 @@ import {
 import { useStyles } from '../../../component-library/hooks';
 import { getEditAccountNameNavBarOptions } from '../../../components/UI/Navbar';
 import Engine from '../../../core/Engine';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectChainId } from '../../../selectors/networkController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
@@ -123,7 +123,7 @@ const EditAccountName = () => {
           <TextField
             value={accountName}
             onChangeText={onChangeName}
-            {...generateTestId(Platform, 'account-name-input')}
+            testID={EditAccountNameSelectorIDs.ACCOUNT_NAME_INPUT}
           />
         </View>
         <View style={styles.inputContainer}>
@@ -162,7 +162,7 @@ const EditAccountName = () => {
               : styles.saveButton
           }
           disabled={!accountName?.length || accountName?.trim() === ''}
-          {...generateTestId(Platform, 'save-button')}
+          testID={EditAccountNameSelectorIDs.EDIT_ACCOUNT_NAME_SAVE}
         />
       </View>
     </SafeAreaView>

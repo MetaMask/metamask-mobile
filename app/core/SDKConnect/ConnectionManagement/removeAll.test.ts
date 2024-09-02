@@ -1,7 +1,7 @@
 import SDKConnect from '../SDKConnect';
 import removeAll from './removeAll';
 
-jest.mock('../../../store/async-storage-wrapper', () => ({
+jest.mock('../../../store/storage-wrapper', () => ({
   setItem: jest.fn().mockResolvedValue([]),
   getItem: jest.fn().mockResolvedValue(JSON.stringify({})),
   clearAll: jest.fn().mockResolvedValue([]),

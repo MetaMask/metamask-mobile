@@ -11,11 +11,11 @@ import {
   Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
+import StorageWrapper from '../../../store/storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { OutlinedTextField } from 'react-native-material-textfield';
-import StorageWrapper from '../../../store/async-storage-wrapper';
 import Clipboard from '@react-native-clipboard/clipboard';
 import AppConstants from '../../../core/AppConstants';
 import Device from '../../../util/device';
@@ -63,6 +63,7 @@ import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { useProfileSyncing } from '../../../util/notifications/hooks/useProfileSyncing';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -99,6 +100,8 @@ const ImportFromSecretRecoveryPhrase = ({
   const [seedphraseInputFocused, setSeedphraseInputFocused] = useState(false);
   const [inputWidth, setInputWidth] = useState({ width: '99%' });
   const [hideSeedPhraseInput, setHideSeedPhraseInput] = useState(true);
+
+  const { enableProfileSyncing } = useProfileSyncing();
 
   const passwordInput = React.createRef();
   const confirmPasswordInput = React.createRef();
@@ -247,6 +250,7 @@ const ImportFromSecretRecoveryPhrase = ({
           routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
         });
         await importAdditionalAccounts();
+        await enableProfileSyncing();
       } catch (error) {
         // Should we force people to enable passcode / biometrics?
         if (error.toString() === PASSCODE_NOT_SET_ERROR) {

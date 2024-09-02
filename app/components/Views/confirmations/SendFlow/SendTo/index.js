@@ -62,6 +62,7 @@ import { includes } from 'lodash';
 import { SendViewSelectorsIDs } from '../../../../../../e2e/selectors/SendView.selectors';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { toLowerCaseEquals } from '../../../../../util/general';
+import { selectAddressBook } from '../../../../../selectors/addressBookController';
 
 const dummy = () => true;
 
@@ -668,7 +669,7 @@ class SendFlow extends PureComponent {
 SendFlow.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  addressBook: state.engine.backgroundState.AddressBookController.addressBook,
+  addressBook: selectAddressBook(state),
   chainId: selectChainId(state),
   selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   selectedAsset: state.transaction.selectedAsset,

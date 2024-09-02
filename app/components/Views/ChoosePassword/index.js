@@ -15,7 +15,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import AsyncStorage from '../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import { connect } from 'react-redux';
 import {
   passwordSet,
@@ -63,7 +63,7 @@ import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-
+import { enableProfileSyncing } from '../../../actions/notification/helpers';
 const createStyles = (colors) =>
   StyleSheet.create({
     mainWrapper: {
@@ -273,10 +273,10 @@ class ChoosePassword extends PureComponent {
 
   async componentDidMount() {
     const authData = await Authentication.getType();
-    const previouslyDisabled = await AsyncStorage.getItem(
+    const previouslyDisabled = await StorageWrapper.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
-    const passcodePreviouslyDisabled = await AsyncStorage.getItem(
+    const passcodePreviouslyDisabled = await StorageWrapper.getItem(
       PASSCODE_DISABLED,
     );
     if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
@@ -371,6 +371,7 @@ class ChoosePassword extends PureComponent {
         wallet_setup_type: 'new',
         new_wallet: true,
       });
+      await enableProfileSyncing();
     } catch (error) {
       try {
         await this.recreateVault('');
@@ -378,8 +379,8 @@ class ChoosePassword extends PureComponent {
         Logger.error(e);
       }
       // Set state in app as it was with no password
-      await AsyncStorage.setItem(EXISTING_USER, TRUE);
-      await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
+      await StorageWrapper.setItem(EXISTING_USER, TRUE);
+      await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       this.props.passwordUnset();
       this.props.setLockTime(-1);
       // Should we force people to enable passcode / biometrics?

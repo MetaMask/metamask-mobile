@@ -3,11 +3,11 @@ import Engine from '../../../Engine';
 import { Minimizer } from '../../../NativeModules';
 import Logger from '../../../../util/Logger';
 import { wait } from '../../utils/wait.util';
-import { PreferencesController } from '@metamask/preferences-controller';
 import AndroidService from '../AndroidService';
 import { METHODS_TO_DELAY, RPC_METHODS } from '../../SDKConnectConstants';
 import handleBatchRpcResponse from '../../handlers/handleBatchRpcResponse';
 import DevLogger from '../../utils/DevLogger';
+import { AccountsController } from '@metamask/accounts-controller';
 
 async function sendMessage(
   instance: AndroidService,
@@ -20,14 +20,15 @@ async function sendMessage(
   const isConnectionResponse = rpcMethod === RPC_METHODS.ETH_REQUESTACCOUNTS;
 
   if (isConnectionResponse) {
-    const preferencesController = (
+    const accountsController = (
       Engine.context as {
-        PreferencesController: PreferencesController;
+        AccountsController: AccountsController;
       }
-    ).PreferencesController;
+    ).AccountsController;
 
-    const selectedAddress =
-      preferencesController.state.selectedAddress.toLowerCase();
+    const selectedAddress = accountsController
+      .getSelectedAccount()
+      .address.toLowerCase();
 
     const lowercaseAccounts = (message.data.result as string[]).map(
       (a: string) => a.toLowerCase(),

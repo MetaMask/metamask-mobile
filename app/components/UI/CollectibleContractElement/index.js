@@ -189,6 +189,7 @@ function CollectibleContractElement({
                 style={styles.collectibleIcon}
                 collectible={{ ...collectible, name }}
                 onPressColectible={onPress}
+                isTokenImage
               />
             </View>
           </TouchableOpacity>
