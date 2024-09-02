@@ -30,6 +30,7 @@ import { getPermittedAccounts } from '../Permissions';
 import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
 
 import WalletConnect2Session from './WalletConnect2Session';
+import { WALLET_CONNECT_ORIGIN } from '../../util/walletconnect';
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
   typeof PROJECT_ID === 'string' && PROJECT_ID?.length > 0;
@@ -422,8 +423,10 @@ export class WC2Manager {
 
     try {
       await permissionsController.requestPermissions(
-        { origin: url },
-        { eth_accounts: {} },
+        { origin: WALLET_CONNECT_ORIGIN + url },
+        {
+          eth_accounts: {},
+        },
         // { id: undefined }, // Don't set id here, it will be set after session is created, identify via origin.
       );
       // Permissions approved.
