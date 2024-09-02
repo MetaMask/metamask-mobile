@@ -2,13 +2,9 @@
 
 ## Current Main Branch
 
-## release/7.29.2 - <Date>
-
-### Changed
-- [#10957](https://github.com/MetaMask/metamask-mobile/pull/10957): chore: updated bitrise build version (#10957)
-
+## 7.29.2 - Sep 2, 2024
 ### Fixed
-- [#10961](https://github.com/MetaMask/metamask-mobile/pull/10961): fix: Patch SwapsController to show POL rather than MATIC (#10961)
+- [#10965](https://github.com/MetaMask/metamask-mobile/pull/10965): fix: gas never loading during send + high gas fee after deep link (#10965)
 
 
 ## 7.29.1 - Aug 29, 2024

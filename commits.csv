@@ -1,4 +1,0 @@
-Commit Message,Author,PR Link,Team,Change Type
-fix: Patch SwapsController to show POL rather than MATIC (#10961),Nick Gambino,https://github.com/MetaMask/metamask-mobile/pull/10961,team-assets,Fixed
-chore: updated bitrise build version (#10957),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/10957,team-mobile-platform,Changed
-chore(runway): cherry-pick feat: Update Polygon from `MATIC` to `POL` (#10909),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/10909,"team-assets,team-runway-bot",Added
