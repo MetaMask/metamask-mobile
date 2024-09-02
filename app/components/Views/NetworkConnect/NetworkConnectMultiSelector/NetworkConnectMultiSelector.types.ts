@@ -1,0 +1,21 @@
+// Third party dependencies.
+import { ImageSourcePropType } from 'react-native';
+
+// External dependencies.
+import { ConnectionProps } from '../../../../core/SDKConnect/Connection';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { USER_INTENT } from '../../../../constants/permissions';
+
+/**
+ * NetworkConnectMultiSelector props.
+ */
+export interface NetworkConnectMultiSelectorProps {
+  selectedNetworkIdentifiers?: string[];
+  onSelectNetworkIds?: (ids: string[]) => void;
+  isLoading?: boolean;
+  onUserAction: React.Dispatch<React.SetStateAction<USER_INTENT>>;
+  urlWithProtocol: string;
+  hostname: string;
+  onBack: () => void;
+  connection?: ConnectionProps;
+}

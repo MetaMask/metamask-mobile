@@ -21,6 +21,7 @@ import {
   getPermittedAccountsByHostname,
 } from '../../../core/Permissions';
 import AccountConnectMultiSelector from '../AccountConnect/AccountConnectMultiSelector';
+import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
 import Logger from '../../../util/Logger';
 import {
   ToastContext,
@@ -55,6 +56,7 @@ import { RootState } from '../../../reducers';
 import { isMutichainVersion1Enabled } from '../../../util/networks';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
+  // console.log('>>> inside AccountPermissions');
   const navigation = useNavigation();
   const { trackEvent } = useMetrics();
   const {
@@ -398,6 +400,33 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     ],
   );
 
+  const renderConnectNetworksrksScreen = useCallback(
+    () => (
+      <NetworkConnectMultiSelector
+        onSelectNetworkIds={setSelectedAddresses}
+        isLoading={isLoading}
+        onUserAction={setUserIntent}
+        favicon={faviconSource}
+        urlWithProtocol={urlWithProtocol}
+        hostname={hostname}
+        secureIcon={secureIcon}
+        isAutoScrollEnabled={false}
+        onBack={() => setPermissionsScreen(AccountPermissionsScreens.Connected)}
+      />
+    ),
+    [
+      ensByAccountAddress,
+      selectedAddresses,
+      isLoading,
+      accountsFilteredByPermissions,
+      setUserIntent,
+      faviconSource,
+      urlWithProtocol,
+      secureIcon,
+      hostname,
+    ],
+  );
+
   const renderRevokeScreen = useCallback(
     () => (
       <AccountPermissionsRevoke
@@ -433,6 +462,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         return renderConnectedScreen();
       case AccountPermissionsScreens.Connect:
         return renderConnectScreen();
+      case AccountPermissionsScreens.ConnectMoreNetworks:
+        return renderConnectNetworksrksScreen();
       case AccountPermissionsScreens.Revoke:
         return renderRevokeScreen();
     }
@@ -440,6 +471,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     permissionsScreen,
     renderConnectedScreen,
     renderConnectScreen,
+    renderConnectNetworksrksScreen,
     renderRevokeScreen,
   ]);
 

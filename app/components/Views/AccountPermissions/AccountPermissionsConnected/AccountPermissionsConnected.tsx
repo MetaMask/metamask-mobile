@@ -33,6 +33,7 @@ import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Moda
 import { AccountPermissionsConnectedProps } from './AccountPermissionsConnected.types';
 import styles from './AccountPermissionsConnected.styles';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { isMutichainVersion1Enabled } from '../../../../util/networks';
 
 const AccountPermissionsConnected = ({
   ensByAccountAddress,
@@ -48,6 +49,7 @@ const AccountPermissionsConnected = ({
   accountAvatarType,
   urlWithProtocol,
 }: AccountPermissionsConnectedProps) => {
+  // console.log('>>> inside AccountPermissionsConnected');
   const { navigate } = useNavigation();
   const { trackEvent } = useMetrics();
 
@@ -61,6 +63,10 @@ const AccountPermissionsConnected = ({
   const onConnectMoreAccounts = useCallback(() => {
     onSetSelectedAddresses([]);
     onSetPermissionsScreen(AccountPermissionsScreens.Connect);
+  }, [onSetSelectedAddresses, onSetPermissionsScreen]);
+
+  const onConnectMoreNetworks = useCallback(() => {
+    onSetPermissionsScreen(AccountPermissionsScreens.ConnectMoreNetworks);
   }, [onSetSelectedAddresses, onSetPermissionsScreen]);
 
   const openRevokePermissions = () =>
@@ -112,25 +118,31 @@ const AccountPermissionsConnected = ({
     });
   }, [providerConfig.chainId, navigate, trackEvent]);
 
-  const renderSheetAction = useCallback(
-    () => (
+  const renderSheetAction = useCallback(() => {
+    const actions = [
+      {
+        label: strings('accounts.connect_more_accounts'),
+        onPress: onConnectMoreAccounts,
+        disabled: isLoading,
+      },
+    ];
+
+    if (isMutichainVersion1Enabled) {
+      actions.push({
+        label: strings('networks.connect_more_networks'),
+        onPress: onConnectMoreNetworks,
+        disabled: isLoading,
+      });
+    }
+    return (
       <View
         style={styles.sheetActionContainer}
         testID={ConnectedAccountsSelectorsIDs.CONNECT_ACCOUNTS_BUTTON}
       >
-        <SheetActions
-          actions={[
-            {
-              label: strings('accounts.connect_more_accounts'),
-              onPress: onConnectMoreAccounts,
-              disabled: isLoading,
-            },
-          ]}
-        />
+        <SheetActions actions={actions} />
       </View>
-    ),
-    [onConnectMoreAccounts, isLoading],
-  );
+    );
+  }, [onConnectMoreAccounts, isLoading]);
 
   return (
     <>
