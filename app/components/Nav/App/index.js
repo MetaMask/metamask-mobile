@@ -362,21 +362,26 @@ const App = ({ userLoggedIn }) => {
     });
   }, [navigator, queueOfHandleDeeplinkFunctions]);
 
-  const handleDeeplink = useCallback(({ error, params, uri }) => {
-    if (error) {
-      trackErrorAsAnalytics(error, 'Branch:');
-    }
-    const deeplink = params?.['+non_branch_link'] || uri || null;
-    try {
-      if (deeplink) {
-        SharedDeeplinkManager.parse(deeplink, {
-          origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
-        });
+  const handleDeeplink = useCallback(
+    ({ error, params, uri }) => {
+      if (error) {
+        trackErrorAsAnalytics(error, 'Branch:');
       }
-    } catch (e) {
-      Logger.error(e, `Deeplink: Error parsing deeplink`);
-    }
-  }, []);
+      const deeplink = params?.['+non_branch_link'] || uri || null;
+      try {
+        if (deeplink) {
+          if (navigator) {
+            SharedDeeplinkManager.parse(deeplink, {
+              origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+            });
+          }
+        }
+      } catch (e) {
+        Logger.error(e, `Deeplink: Error parsing deeplink`);
+      }
+    },
+    [navigator],
+  );
 
   // on Android devices, this creates a listener
   // to deeplinks used to open the app
