@@ -1,11 +1,17 @@
 import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import SelectOptionSheet, { iSelectOption } from './';
+import SelectOptionSheet from './';
+import { iSelectOption } from './types';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
     colors: {},
   },
+}));
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: jest.fn(),
 }));
 
 describe('SelectOptionSheet', () => {
