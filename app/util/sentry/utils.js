@@ -503,6 +503,11 @@ export function setupSentry() {
             ]
           : integrations,
       tracesSampleRate: 0.04,
+      _experiments: {
+        // profilesSampleRate is relative to tracesSampleRate.
+        // Here, we'll capture profiles for 100% of transactions.
+        profilesSampleRate: 1.0,
+      },
       beforeSend: (report) => rewriteReport(report),
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
       beforeSendTransaction: (event) => excludeEvents(event),
