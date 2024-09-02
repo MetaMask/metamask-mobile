@@ -6,6 +6,7 @@ import {
   getLedgerAccountsByOperation,
   ledgerSignTypedMessage,
   openEthereumAppOnLedger,
+  setHDPath,
   unlockLedgerWalletAccount,
 } from './Ledger';
 import Engine from '../../core/Engine';
@@ -160,6 +161,22 @@ describe('Ledger core', () => {
     it('returns deviceId', async () => {
       const value = await getDeviceId();
       expect(value).toBe('deviceId');
+    });
+  });
+
+  describe('setHDPath', () => {
+    it('calls keyring.setHdPath with valid HD path', async () => {
+      await setHDPath('m/44/60/0/0');
+      expect(ledgerKeyring.setHdPath).toHaveBeenCalledWith('m/44/60/0/0');
+    });
+
+    it('calls keyring.setHdPath with empty HD path throws error', async () => {
+      try {
+        await setHDPath('');
+      } catch (err) {
+        expect(err).toBeInstanceOf(Error);
+        expect((err as Error).message).toBe('HD Path is undefined');
+      }
     });
   });
 

@@ -108,7 +108,7 @@ export const setHDPath = async (path?: string) => {
     if (path) {
       keyring.setHdPath(path);
     } else {
-      throw new Error(`Invalid HD Path: ${path}`);
+      throw new Error(`HD Path is undefined`);
     }
   });
 };

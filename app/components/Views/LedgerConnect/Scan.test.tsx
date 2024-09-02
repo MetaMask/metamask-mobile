@@ -5,7 +5,6 @@ import useBluetoothDevices from '../../hooks/Ledger/useBluetoothDevices';
 import useBluetoothPermissions from '../../hooks/useBluetoothPermissions';
 import useBluetooth from '../../hooks/Ledger/useBluetooth';
 import { BluetoothPermissionErrors } from '../../../core/Ledger/ledgerErrors';
-import { fireEvent } from '@testing-library/react-native';
 
 jest.mock('../../hooks/Ledger/useBluetooth');
 jest.mock('../../hooks/Ledger/useBluetoothDevices');
