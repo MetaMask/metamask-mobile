@@ -18,6 +18,5 @@ export enum SnapInstallState {
   SnapInstallError = 'SnapInstallError',
 }
 
-// eslint-disable-next-line import/prefer-default-export
 export type { InstallSnapFlowProps };
 ///: END:ONLY_INCLUDE_IF
