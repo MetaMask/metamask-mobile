@@ -117,6 +117,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   // origin is set to the last active tab url in the browser which can conflict with sdk
   const inappBrowserOrigin: string = useSelector(getActiveTabUrl, isEqual);
   const accountsLength = useSelector(selectAccountsLength);
+  const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
   // TODO: pending transaction controller update, we need to have a parameter that can be extracted from the metadata to know the correct source (inappbrowser, walletconnect, sdk)
   // on inappBrowser: hostname from inappBrowserOrigin
@@ -230,13 +231,18 @@ const AccountConnect = (props: AccountConnectProps) => {
       return { uri: dappIconUrl };
     }
 
+    if (isOriginWalletConnect) {
+      // fetch icon from store
+      return { uri: wc2Metadata?.icon ?? '' };
+    }
+
     const favicon = faviconSource as ImageURISource;
     if ('uri' in favicon) {
       return faviconSource;
     }
 
     return { uri: '' };
-  }, [dappIconUrl, faviconSource]);
+  }, [dappIconUrl, wc2Metadata, faviconSource, isOriginWalletConnect]);
 
   const secureIcon = useMemo(
     () =>
