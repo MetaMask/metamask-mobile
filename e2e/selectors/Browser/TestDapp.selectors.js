@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/prefer-default-export
 export const TestDappSelectorsWebIDs = {
   APPROVE_TOKENS_BUTTON_ID: 'approveTokens',
   CONNECT_BUTTON: 'connectButton',
