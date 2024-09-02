@@ -1,1 +1,3 @@
-export const SELECT_DROP_DOWN = 'select-drop-down';
+const SELECT_DROP_DOWN = 'select-drop-down';
+
+export default SELECT_DROP_DOWN;
