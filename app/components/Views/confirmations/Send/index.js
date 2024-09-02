@@ -331,7 +331,6 @@ class Send extends PureComponent {
         newTxMeta = {
           symbol: 'ETH',
           assetType: 'ETH',
-          type: 'ETHER_TRANSACTION',
           paymentRequest: true,
           selectedAsset: { symbol: 'ETH', isETH: true },
           ...txRecipient,
