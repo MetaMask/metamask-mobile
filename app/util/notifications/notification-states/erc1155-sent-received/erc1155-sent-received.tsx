@@ -87,16 +87,16 @@ const state: NotificationState<ERC1155Notification> = {
         {
           type: ModalFieldType.ADDRESS,
           label: isSent(notification)
-            ? strings('notifications.modal.label_address_to_you')
-            : strings('notifications.modal.label_address_to'),
-          address: notification.data.to,
+            ? strings('notifications.modal.label_address_from_you')
+            : strings('notifications.modal.label_address_from'),
+          address: notification.data.from,
         },
         {
           type: ModalFieldType.ADDRESS,
           label: isSent(notification)
-            ? strings('notifications.modal.label_address_from')
-            : strings('notifications.modal.label_address_from_you'),
-          address: notification.data.from,
+            ? strings('notifications.modal.label_address_to')
+            : strings('notifications.modal.label_address_to_you'),
+          address: notification.data.to,
         },
         {
           type: ModalFieldType.TRANSACTION,
