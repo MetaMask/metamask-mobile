@@ -77,11 +77,11 @@ export const PopularList = [
     chainId: toHex('137'),
     nickname: 'Polygon Mainnet',
     rpcUrl: `https://polygon-mainnet.infura.io/v3/${infuraProjectId}`,
-    ticker: 'MATIC',
+    ticker: 'POL',
     rpcPrefs: {
       blockExplorerUrl: 'https://polygonscan.com',
-      imageUrl: 'MATIC',
-      imageSource: require('../../images/matic.png'),
+      imageUrl: 'POL',
+      imageSource: require('../../images/pol.png'),
     },
   },
   {
