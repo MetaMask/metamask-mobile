@@ -7,6 +7,7 @@ import createStyles from './styles';
 import { iSelectOptionSheet } from './types';
 import { createOptionsSheetNavDetails } from './OptionsSheet';
 import { useNavigation } from '@react-navigation/native';
+import { SELECT_DROP_DOWN } from './constants';
 
 const SelectOptionSheet = ({
   defaultValue,
@@ -21,7 +22,7 @@ const SelectOptionSheet = ({
 
   const getSelectedValue = () => {
     const el = options?.filter((o) => o.value === selectedValue);
-    if (el.length && el[0].label) {
+    if (el.length > 0) {
       return el[0].label;
     }
     if (defaultValue) {
@@ -43,7 +44,7 @@ const SelectOptionSheet = ({
 
   return (
     <View style={baseStyles.flexGrow}>
-      <TouchableOpacity onPress={showPicker}>
+      <TouchableOpacity onPress={showPicker} testID={SELECT_DROP_DOWN}>
         <View style={styles.dropdown}>
           <Text style={styles.selectedOption} numberOfLines={1}>
             {getSelectedValue()}

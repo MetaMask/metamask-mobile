@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SelectOptionSheet should render correctly 1`] = `
+exports[`SelectOptionSheet renders correctly 1`] = `
 <View
   style={
     {
@@ -10,6 +10,7 @@ exports[`SelectOptionSheet should render correctly 1`] = `
 >
   <TouchableOpacity
     onPress={[Function]}
+    testID="select-drop-down"
   >
     <View
       style={

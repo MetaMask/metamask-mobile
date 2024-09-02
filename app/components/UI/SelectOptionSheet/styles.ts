@@ -26,13 +26,6 @@ const createStyles = (colors: ThemeColors) =>
       paddingBottom: 10,
       ...fontStyles.normal,
     },
-    accesoryBar: {
-      width: '100%',
-      paddingTop: 5,
-      height: 50,
-      borderBottomColor: colors.border.muted,
-      borderBottomWidth: 1,
-    },
     label: {
       textAlign: 'center',
       flex: 1,
@@ -40,17 +33,6 @@ const createStyles = (colors: ThemeColors) =>
       fontSize: 17,
       ...fontStyles.bold,
       color: colors.text.default,
-    },
-    modal: {
-      margin: 0,
-      width: '100%',
-      padding: 60,
-    },
-    modalView: {
-      backgroundColor: colors.background.default,
-      justifyContent: 'center',
-      alignItems: 'center',
-      borderRadius: 10,
     },
     list: {
       width: '100%',
