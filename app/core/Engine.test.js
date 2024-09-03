@@ -127,6 +127,30 @@ describe('Engine', () => {
     );
   });
 
+  it('normalizes `null` `conversionRate` to 0', () => {
+    const chainId = '0x1';
+    const ticker = 'ETH';
+    const ethConversionRate = null;
+    const state = {
+      NetworkController: {
+        state: { providerConfig: { chainId, ticker } },
+      },
+      CurrencyRateController: {
+        currencyRates: {
+          [ticker]: { conversionRate: ethConversionRate },
+        },
+      },
+    };
+    const engine = Engine.init(state);
+    expect(
+      engine.datamodel.state.CurrencyRateController.currencyRates[ticker],
+    ).toStrictEqual({
+      conversionDate: 0,
+      conversionRate: 0,
+      usdConversionRate: null,
+    });
+  });
+
   describe('getTotalFiatAccountBalance', () => {
     let engine;
     afterEach(() => engine?.destroyEngineInstance());
