@@ -203,8 +203,6 @@ const LedgerSelectAccount = () => {
             setBlockingModalVisible(true);
           }}
           title={strings('ledger.select_accounts')}
-          subMsg={strings('ledger.select_accounts_sub_msg')}
-          warningMsg={strings('ledger.select_accounts_warning')}
         />
       </View>
       <BlockingActionModal
