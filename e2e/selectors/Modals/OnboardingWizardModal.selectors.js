@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/prefer-default-export
 export const OnboardingWizardModalSelectorsIDs = {
   STEP_ONE_CONTAINER: 'onboarding-wizard-step1-container-id',
   STEP_TWO_CONTAINER: 'onboarding-wizard-step2-content',

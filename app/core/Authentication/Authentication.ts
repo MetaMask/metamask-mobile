@@ -477,5 +477,5 @@ class AuthenticationService {
   getType = async (): Promise<AuthData> =>
     await this.checkAuthenticationMethod();
 }
-// eslint-disable-next-line import/prefer-default-export
+
 export const Authentication = new AuthenticationService();
