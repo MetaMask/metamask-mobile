@@ -2,7 +2,11 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import SelectOptionSheet from './';
 import { iSelectOption } from './types';
-import { useNavigation } from '@react-navigation/native';
+import {
+  NavigationProp,
+  ParamListBase,
+  useNavigation,
+} from '@react-navigation/native';
 import { fireEvent } from '@testing-library/react-native';
 import SELECT_DROP_DOWN from './constants';
 
@@ -106,8 +110,8 @@ describe('SelectOptionSheet', () => {
 
     const navigateMock = {
       navigate: jest.fn(),
-    };
-    useNavigation.mockReturnValue(navigateMock);
+    } as unknown as NavigationProp<ParamListBase>;
+    jest.mocked(useNavigation).mockReturnValue(navigateMock);
 
     const mockOnValueChange = jest.fn();
 

@@ -540,6 +540,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           >
             <TouchableOpacity
               onPress={[Function]}
+              testID="select-drop-down"
             >
               <View
                 style={
