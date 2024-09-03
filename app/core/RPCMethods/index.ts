@@ -3,7 +3,10 @@ import wallet_addEthereumChain from './wallet_addEthereumChain';
 import wallet_switchEthereumChain from './wallet_switchEthereumChain';
 import wallet_watchAsset from './wallet_watchAsset';
 import { JsonRpcRequest, PendingJsonRpcResponse } from 'json-rpc-engine';
-import { TransactionParams, TransactionController } from '@metamask/transaction-controller';
+import {
+  TransactionParams,
+  TransactionController,
+} from '@metamask/transaction-controller';
 
 interface EthSendTransactionParams {
   hostname: string;
