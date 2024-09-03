@@ -43,7 +43,8 @@ import { getActiveTabUrl } from '../../../util/transactions';
 import { Account, useAccounts } from '../../hooks/useAccounts';
 
 // Internal dependencies.
-import { StyleSheet, ImageURISource } from 'react-native';
+import { PermissionsRequest } from '@metamask/permission-controller';
+import { ImageURISource, StyleSheet } from 'react-native';
 import URLParse from 'url-parse';
 import PhishingModal from '../../../components/UI/PhishingModal';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -56,9 +57,9 @@ import {
 import AppConstants from '../../../core/AppConstants';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
+import { RootState } from '../../../reducers';
 import { trackDappViewedEvent } from '../../../util/metrics';
 import { useTheme } from '../../../util/theme';
-import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
 import { SourceType } from '../../hooks/useMetrics/useMetrics.types';
 import {
@@ -68,8 +69,6 @@ import {
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
-import { RootState } from '../../../reducers';
-import { PermissionsRequest } from '@metamask/permission-controller';
 
 const createStyles = () =>
   StyleSheet.create({
