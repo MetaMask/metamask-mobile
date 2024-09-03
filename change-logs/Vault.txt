@@ -1,0 +1,52 @@
+# Changelog for Vault.ts TypeScript Migration
+
+## File Renaming
+- Renamed `Vault.js` to `Vault.ts`
+
+## Type Annotations and Imports
+- Added imports for TypeScript types from '@metamask/keyring-controller'
+- Imported `LedgerBridgeKeyringOptions` from '@metamask/eth-ledger-bridge-keyring'
+- Created `ExtendedLedgerBridgeKeyringOptions` type
+
+## Function Modifications
+- Added type annotations to function parameters and return types
+- Modified error handling to use TypeScript's type assertions
+
+## Specific Changes
+1. `restoreQRKeyring`:
+   - Added return type `Promise<void>`
+   - Type annotation for `serializedQrKeyring` parameter
+
+2. `restoreLedgerKeyring`:
+   - Added return type `Promise<void>`
+   - Type annotation for `serializedLedgerKeyring` parameter
+   - Added null check before deserializing
+
+3. `getSeedPhrase`:
+   - Added return type `Promise<Uint8Array>`
+
+4. `recreateVaultWithNewPassword`:
+   - Added type annotations for parameters
+   - Changed `let importedAccounts = []` to `let importedAccounts: string[] = []`
+   - Replaced for-loop with for-of loop for `simpleKeyrings`
+
+5. `recreateVaultWithSamePassword`:
+   - Reordered parameters and added type annotation for `selectedAddress`
+
+6. `hasKeyringType`:
+   - Added type annotations for parameters and return type
+
+7. `getSerializedKeyring`:
+   - Added type annotation for parameter and return type
+
+## General Improvements
+- Improved error handling with TypeScript type guards
+- Enhanced code readability with more specific types
+
+## Resolved Issues
+- Fixed potential type mismatches in function calls and assignments
+- Addressed possible undefined values in error logging
+
+## Remaining Todos
+- Consider adding more specific return types for some functions
+- Review and possibly refactor any `any` types used in the codebase
