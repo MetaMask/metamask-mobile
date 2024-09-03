@@ -7,7 +7,6 @@ import Device from '../../../util/device';
 import Text from '../../Base/Text';
 import { useTheme } from '../../../util/theme';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
-import { isMutichainVersion1Enabled } from '../../../util/networks';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -23,12 +22,12 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-import { getHost, getUrlObj } from '../../../util/browser';
+import { getHost } from '../../../util/browser';
 import WebsiteIcon from '../WebsiteIcon';
 
 const createStyles = (colors) =>
   StyleSheet.create({
-    root: {
+    mainContainer: {
       backgroundColor: colors.background.default,
       paddingTop: 24,
       borderTopLeftRadius: 20,
@@ -36,49 +35,26 @@ const createStyles = (colors) =>
       minHeight: 200,
       paddingBottom: Device.isIphoneX() ? 20 : 0,
     },
-    intro: {
-      fontSize: Device.isSmallDevice() || isMutichainVersion1Enabled ? 18 : 24,
+    title: {
+      fontSize: Device.isSmallDevice() ? 18 : 24,
       marginBottom: 16,
       marginTop: 16,
       marginRight: 24,
       marginLeft: 24,
     },
-    warning: {
-      paddingHorizontal: 24,
-      fontSize: 13,
-      width: '100%',
-      textAlign: 'center',
-      paddingBottom: 16,
-    },
-    actionContainer: (noMargin) => ({
+    actionButtonsContainer: {
       flex: 0,
       flexDirection: 'row',
       padding: 24,
-      marginTop: noMargin ? 0 : 20,
-    }),
-    button: {
+    },
+    buttonPositioning: {
       flex: 1,
     },
-    cancel: {
+    cancelButton: {
       marginRight: 8,
     },
-    confirm: {
+    confirmButton: {
       marginLeft: 8,
-    },
-    networkIcon: {
-      width: 13,
-      height: 13,
-      borderRadius: 100,
-      marginRight: 10,
-      marginTop: 1,
-    },
-    otherNetworkIcon: {
-      backgroundColor: colors.border.muted,
-      borderColor: colors.border.muted,
-      borderWidth: 2,
-    },
-    networkContainer: {
-      alignItems: 'center',
     },
     networkPermissionRequestInfoCard: {
       marginHorizontal: 24,
@@ -87,16 +63,16 @@ const createStyles = (colors) =>
       alignItems: 'center',
       flexDirection: 'row',
     },
-    transactionHeader: {
+    permissionsSummaryHeader: {
       justifyContent: 'center',
       alignItems: 'center',
     },
-    domainLogo: {
+    domainLogoContainer: {
       width: 32,
       height: 32,
       borderRadius: 16,
     },
-    assetLogo: {
+    assetLogoContainer: {
       alignItems: 'center',
       justifyContent: 'center',
       borderRadius: 10,
@@ -109,18 +85,7 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       alignItems: 'center',
     },
-    networkText: {
-      fontSize: 12,
-      color: colors.text.default,
-    },
     avatarGroup: { marginLeft: 2 },
-    networkBadge: {
-      flexDirection: 'row',
-      borderColor: colors.border.default,
-      borderRadius: 100,
-      borderWidth: 1,
-      padding: 10,
-    },
     accountPermissionRequestInfoCard: {
       marginHorizontal: 24,
       marginTop: 8,
@@ -138,9 +103,6 @@ const createStyles = (colors) =>
     },
   });
 
-/**
- * Account access approval component
- */
 const PermissionsSummary = ({
   customNetworkInformation,
   currentPageInformation,
@@ -150,56 +112,14 @@ const PermissionsSummary = ({
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  /**
-   * Calls onConfirm callback and analytics to track connect confirmed event
-   */
+
   const confirm = () => {
     onConfirm && onConfirm();
   };
 
-  /**
-   * Calls onConfirm callback and analytics to track connect canceled event
-   */
   const cancel = () => {
     onCancel && onCancel();
   };
-
-  const renderSwitchWarningText = () => (
-    <Text primary noMargin style={styles.warning}>
-      {type === 'switch' ? (
-        strings('switch_custom_network.switch_warning')
-      ) : (
-        <Text>
-          <Text
-            bold
-            primary
-            noMargin
-          >{`"${customNetworkInformation.chainName}"`}</Text>
-          <Text noMargin> {strings('switch_custom_network.available')}</Text>
-        </Text>
-      )}
-    </Text>
-  );
-
-  function renderNetworkBadge() {
-    return (
-      <View style={styles.networkContainer}>
-        <View style={styles.networkBadge}>
-          <View
-            style={[
-              styles.networkIcon,
-              customNetworkInformation.chainColor
-                ? { backgroundColor: customNetworkInformation.chainColor }
-                : styles.otherNetworkIcon,
-            ]}
-          />
-          <Text primary noMargin style={styles.networkText}>
-            {customNetworkInformation.chainName}
-          </Text>
-        </View>
-      </View>
-    );
-  }
 
   const renderTopIcon = () => {
     const { currentEnsName, icon, origin } = currentPageInformation;
@@ -208,8 +128,8 @@ const PermissionsSummary = ({
 
     return false ? null : (
       <WebsiteIcon
-        style={styles.domainLogo}
-        viewStyle={styles.assetLogo}
+        style={styles.domainLogoContainer}
+        viewStyle={styles.assetLogoContainer}
         title={iconTitle}
         url={currentEnsName || url}
         icon={typeof icon === 'string' ? icon : icon?.uri}
@@ -303,46 +223,30 @@ const PermissionsSummary = ({
     );
   }
 
-  const title = isMutichainVersion1Enabled
-    ? strings('permissions.title_this_site_wants_to')
-    : strings('switch_custom_network.title_existing_network');
-
   return (
-    <View style={styles.root}>
-      {type === 'switch' ? (
-        <View style={styles.transactionHeader}>{renderTopIcon()}</View>
-      ) : null}
-      <Text bold centered primary noMargin style={styles.intro}>
-        {type === 'switch'
-          ? title
-          : strings('switch_custom_network.title_new_network')}
+    <View style={styles.mainContainer}>
+      <View style={styles.permissionsSummaryHeader}>{renderTopIcon()}</View>
+      <Text bold centered primary noMargin style={styles.title}>
+        {strings('permissions.title_this_site_wants_to')}
       </Text>
-      {!isMutichainVersion1Enabled && renderSwitchWarningText()}
-      {!isMutichainVersion1Enabled && type === 'switch' && renderNetworkBadge()}
-      {isMutichainVersion1Enabled && renderAccountPermissionsRequestInfoCard()}
-      {isMutichainVersion1Enabled && renderNetworkPermissionsRequestInfoCard()}
-      <View
-        style={styles.actionContainer(
-          type === 'new' || isMutichainVersion1Enabled,
-        )}
-      >
+      {renderAccountPermissionsRequestInfoCard()}
+      {renderNetworkPermissionsRequestInfoCard()}
+      <View style={styles.actionButtonsContainer}>
         <StyledButton
           type={'cancel'}
           onPress={cancel}
-          containerStyle={[styles.button, styles.cancel]}
+          containerStyle={[styles.buttonPositioning, styles.cancelButton]}
           testID={CommonSelectorsIDs.CANCEL_BUTTON}
         >
-          {strings('switch_custom_network.cancel')}
+          {strings('permissions.cancel')}
         </StyledButton>
         <StyledButton
           type={'confirm'}
           onPress={confirm}
-          containerStyle={[styles.button, styles.confirm]}
+          containerStyle={[styles.buttonPositioning, styles.confirmButton]}
           testID={CommonSelectorsIDs.CONNECT_BUTTON}
         >
-          {isMutichainVersion1Enabled
-            ? strings('confirmation_modal.confirm_cta')
-            : strings('switch_custom_network.switch')}
+          {strings('confirmation_modal.confirm_cta')}
         </StyledButton>
       </View>
     </View>

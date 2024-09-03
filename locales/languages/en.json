@@ -1803,7 +1803,8 @@
     "use_enabled_networks": "Use your enabled networks",
     "wants_to_see_your_accounts": "See your accounts and suggest transactions",
     "requesting_for": "Requesting for ",
-    "edit": "Edit"
+    "edit": "Edit",
+    "cancel": "Cancel"
   },
   "select": {
     "cancel": "Cancel",
