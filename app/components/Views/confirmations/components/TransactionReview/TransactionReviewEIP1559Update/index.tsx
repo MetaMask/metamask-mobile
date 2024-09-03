@@ -50,6 +50,7 @@ const TransactionReviewEIP1559Update = ({
   const [
     isVisibleTimeEstimateInfoModal,
     ,
+    // extra comma above is to ignore second value in array returned from hook useModalHandler
     showTimeEstimateInfoModal,
     hideTimeEstimateInfoModal,
   ] = useModalHandler(false);
