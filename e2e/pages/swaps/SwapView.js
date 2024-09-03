@@ -37,11 +37,11 @@ class SwapView {
 
   async swipeToSwap() {
     const percentage = device.getPlatform() === 'ios' ? 0.72 : 0.95;
-    // Wait for counter to go down to 0:05
-    // as the flashing gas fees happening when counter is 0:15
-    // will disables the swipe button
-    await Assertions.checkIfTextIsDisplayed('New quotes in 0:05');
+    // Two swipes are needed because the flashing gas fee
+    // could interupt the first swipe
     await Gestures.swipe(this.swipeToSwapButton, 'right', 'fast', percentage);
+    await Gestures.swipe(this.swipeToSwapButton, 'right', 'fast', percentage);
+    await Assertions.checkIfTextIsDisplayed('Swap!');
   }
 
   swapCompleteLabel(sourceTokenSymbol, destTokenSymbol) {
