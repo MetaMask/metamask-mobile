@@ -27,19 +27,12 @@ const SAMPLE_SHEET_ACTIONS_PROPS = [
 ];
 
 const SheetActionsMeta = {
-  title: 'Component Library / SheetActions',
+  title: 'Components Temp / SheetActions',
   component: SheetActions,
-  argTypes: {
-    actions: {
-      control: {
-        type: 'object',
-      },
-      defaultValue: SAMPLE_SHEET_ACTIONS_PROPS,
-    },
-  },
 };
 export default SheetActionsMeta;
 
-export const DefaultSheetActions = (args: {
-  actions: typeof SAMPLE_SHEET_ACTIONS_PROPS;
-}) => <SheetActions {...args} />;
+export const DefaultSheetActions = {
+  render: () => <SheetActions actions={SAMPLE_SHEET_ACTIONS_PROPS} />,
+  controls: { disabled: true },
+};
