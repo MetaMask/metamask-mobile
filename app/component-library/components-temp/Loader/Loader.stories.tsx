@@ -27,5 +27,4 @@ export const DefaultLoader = {
     size: 'large',
   },
   render: (args: LoaderProps) => <Loader {...args} />,
-  controls: { disabled: true },
 };
