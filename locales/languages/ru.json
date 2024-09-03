@@ -724,10 +724,7 @@
     "enabling_profile_sync": "Включение синхронизации профиля...",
     "disabling_profile_sync": "Отключение синхронизации профиля...",
     "notifications_dismiss_modal": "Отклонить",
-<<<<<<< HEAD
-=======
     "select_rpc_url": "Select RPC URL",
->>>>>>> main
     "title": "Настройки",
     "current_conversion": "Базовая валюта",
     "current_language": "Текущий язык",
@@ -2026,11 +2023,7 @@
     "swap": "Выполнен обмен",
     "sent": "Отправленные на {{address}}",
     "menu_item_title": {
-<<<<<<< HEAD
-      "metamask_swap_completed": "{{symbol1}} обменяно на {{symbol2}}",
-=======
       "metamask_swap_completed": "Swapped {{symbolIn}} for {{symbolOut}}",
->>>>>>> main
       "erc20_sent": "Отправлено на {{address}}",
       "erc20_received": "Получено от {{address}}",
       "eth_sent": "Отправлено на {{address}}",
@@ -2057,11 +2050,7 @@
       "title_untake_ready": "Готово к выводу",
       "title_stake": "{{symbol}} в стейкинге",
       "title_unstake_completed": "Отмена стейкинга завершена",
-<<<<<<< HEAD
-      "title_swapped": "{{symbol1}} обменян в {{symbol2}}",
-=======
       "title_swapped": "Swapped {{symbolIn}} to {{symbolOut}}",
->>>>>>> main
       "label_address_to": "В",
       "label_address_from": "Из",
       "label_address_to_you": "В (вы)",
@@ -2796,13 +2785,10 @@
     "title_enabled_network": "This site wants to:",
     "title_new_network": "Добавлена новая сеть",
     "switch_warning": "В результате этого сеть, выбранная в MetaMask, будет изменена на ранее добавленную:",
-<<<<<<< HEAD
-=======
     "use_enabled_networks": "Use your enabled networks",
     "wants_to_see_your_accounts": "See your accounts and suggest transactions",
     "requesting_for": "Requesting for ",
     "edit": "Edit",
->>>>>>> main
     "add_network_and_give_dapp_permission_warning": "You're adding this network to MetaMask and giving {{dapp_origin}} permission to use it.",
     "available": "теперь доступно в селекторе сети.",
     "cancel": "Отмена",
