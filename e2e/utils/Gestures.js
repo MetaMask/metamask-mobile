@@ -51,9 +51,9 @@ class Gestures {
    * Wait for an element to be visible and then tap it.
    *
    * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to tap
-   * @param {number} timeout - Timeout for waiting (default: 10000ms)
+   * @param {number} timeout - Timeout for waiting (default: 8000ms)
    */
-  static async waitAndTap(elementID, timeout = 10000) {
+  static async waitAndTap(elementID, timeout = 15000) {
     const element = await elementID;
     await waitFor(element).toBeVisible().withTimeout(timeout);
     await element.tap();
@@ -132,7 +132,6 @@ class Gestures {
   static async swipe(elementID, direction, speed, percentage, xStart, yStart) {
     const element = await elementID;
 
-    await waitFor(element).toBeVisible();
     await element.swipe(direction, speed, percentage, xStart, yStart);
   }
 

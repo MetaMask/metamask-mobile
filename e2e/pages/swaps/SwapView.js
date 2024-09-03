@@ -54,7 +54,7 @@ class SwapView {
 
   async tapIUnderstandPriceWarning() {
     try {
-      await Gestures.waitAndTap(this.iUnderstandLabel);
+      await Gestures.waitAndTap(this.iUnderstandLabel, 5000);
     } catch (e) {
       // eslint-disable-next-line no-console
       console.log(`Price warning not displayed: ${e}`);
