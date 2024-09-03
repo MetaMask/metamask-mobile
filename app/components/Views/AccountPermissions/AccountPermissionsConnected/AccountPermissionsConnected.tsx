@@ -11,7 +11,10 @@ import SheetHeader from '../../../../component-library/components/Sheet/SheetHea
 import { strings } from '../../../../../locales/i18n';
 import TagUrl from '../../../../component-library/components/Tags/TagUrl';
 import PickerNetwork from '../../../../component-library/components/Pickers/PickerNetwork';
-import { getDecimalChainId } from '../../../../util/networks';
+import {
+  getDecimalChainId,
+  isMutichainVersion1Enabled,
+} from '../../../../util/networks';
 import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import { switchActiveAccounts } from '../../../../core/Permissions';
@@ -63,6 +66,10 @@ const AccountPermissionsConnected = ({
     onSetPermissionsScreen(AccountPermissionsScreens.Connect);
   }, [onSetSelectedAddresses, onSetPermissionsScreen]);
 
+  const onConnectMoreNetworks = useCallback(() => {
+    onSetPermissionsScreen(AccountPermissionsScreens.ConnectMoreNetworks);
+  }, [onSetPermissionsScreen]);
+
   const openRevokePermissions = () =>
     onSetPermissionsScreen(AccountPermissionsScreens.Revoke);
 
@@ -112,25 +119,31 @@ const AccountPermissionsConnected = ({
     });
   }, [providerConfig.chainId, navigate, trackEvent]);
 
-  const renderSheetAction = useCallback(
-    () => (
+  const renderSheetAction = useCallback(() => {
+    const actions = [
+      {
+        label: strings('accounts.connect_more_accounts'),
+        onPress: onConnectMoreAccounts,
+        disabled: isLoading,
+      },
+    ];
+
+    if (isMutichainVersion1Enabled) {
+      actions.push({
+        label: strings('networks.connect_more_networks'),
+        onPress: onConnectMoreNetworks,
+        disabled: isLoading,
+      });
+    }
+    return (
       <View
         style={styles.sheetActionContainer}
         testID={ConnectedAccountsSelectorsIDs.CONNECT_ACCOUNTS_BUTTON}
       >
-        <SheetActions
-          actions={[
-            {
-              label: strings('accounts.connect_more_accounts'),
-              onPress: onConnectMoreAccounts,
-              disabled: isLoading,
-            },
-          ]}
-        />
+        <SheetActions actions={actions} />
       </View>
-    ),
-    [onConnectMoreAccounts, isLoading],
-  );
+    );
+  }, [onConnectMoreAccounts, isLoading]);
 
   return (
     <>

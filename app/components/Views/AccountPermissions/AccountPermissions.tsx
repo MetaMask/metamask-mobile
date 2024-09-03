@@ -21,6 +21,7 @@ import {
   getPermittedAccountsByHostname,
 } from '../../../core/Permissions';
 import AccountConnectMultiSelector from '../AccountConnect/AccountConnectMultiSelector';
+import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
 import Logger from '../../../util/Logger';
 import {
   ToastContext,
@@ -398,6 +399,20 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     ],
   );
 
+  const renderConnectNetworksrksScreen = useCallback(
+    () => (
+      <NetworkConnectMultiSelector
+        onSelectNetworkIds={setSelectedAddresses}
+        isLoading={isLoading}
+        onUserAction={setUserIntent}
+        urlWithProtocol={urlWithProtocol}
+        hostname={hostname}
+        onBack={() => setPermissionsScreen(AccountPermissionsScreens.Connected)}
+      />
+    ),
+    [isLoading, setUserIntent, urlWithProtocol, hostname],
+  );
+
   const renderRevokeScreen = useCallback(
     () => (
       <AccountPermissionsRevoke
@@ -433,6 +448,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         return renderConnectedScreen();
       case AccountPermissionsScreens.Connect:
         return renderConnectScreen();
+      case AccountPermissionsScreens.ConnectMoreNetworks:
+        return renderConnectNetworksrksScreen();
       case AccountPermissionsScreens.Revoke:
         return renderRevokeScreen();
     }
@@ -440,6 +457,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     permissionsScreen,
     renderConnectedScreen,
     renderConnectScreen,
+    renderConnectNetworksrksScreen,
     renderRevokeScreen,
   ]);
 
