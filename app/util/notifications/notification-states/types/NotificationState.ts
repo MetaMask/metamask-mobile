@@ -3,6 +3,7 @@ import { NotificationMenuItem } from './NotificationMenuItem';
 import { NotificationModalDetails } from './NotificationModalDetails';
 import { TRIGGER_TYPES } from '../../constants';
 import { ExtractedNotification } from '../node-guard';
+import { Notification } from '../../../../util/notifications';
 
 export interface NotificationState<T extends Notification = Notification> {
   guardFn: (n: Notification) => n is T;
@@ -24,7 +25,7 @@ type NativeSentReceiveNotification = ExtractedNotification<
   TRIGGER_TYPES.ETH_RECEIVED | TRIGGER_TYPES.ETH_SENT
 >;
 
-type Notification =
+type INotification =
   | ERC20Notification
   | ERC721Notification
   | ERC1155Notification
@@ -40,12 +41,12 @@ const isSent = (
   n.type === TRIGGER_TYPES.ERC20_SENT ||
   n.type === TRIGGER_TYPES.ERC721_SENT;
 
-export const label_address_from = (n: Notification): string =>
+export const label_address_from = (n: INotification): string =>
   isSent(n)
     ? strings('notifications.modal.label_address_from_you')
     : strings('notifications.modal.label_address_from');
 
-export const label_address_to = (n: Notification): string =>
+export const label_address_to = (n: INotification): string =>
   isSent(n)
     ? strings('notifications.modal.label_address_to')
     : strings('notifications.modal.label_address_to_you');
