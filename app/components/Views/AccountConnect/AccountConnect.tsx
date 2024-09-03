@@ -86,7 +86,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   const navigation = useNavigation();
   const { trackEvent } = useMetrics();
 
-  const [isOriginWalletConnect, setIsOriginWalletConnect] = useState(false);
   const [blockedUrl, setBlockedUrl] = useState('');
 
   const selectedWalletAddress = useSelector(
@@ -119,10 +118,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const accountsLength = useSelector(selectAccountsLength);
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
-  // TODO: pending transaction controller update, we need to have a parameter that can be extracted from the metadata to know the correct source (inappbrowser, walletconnect, sdk)
-  // on inappBrowser: hostname from inappBrowserOrigin
-  // on walletConnect: hostname from hostInfo
-  // on sdk: channelId
+  const isOriginWalletConnect = wc2Metadata?.id && wc2Metadata?.id.length > 0;
   const { origin: channelIdOrHostname } = hostInfo.metadata as {
     id: string;
     origin: string;
@@ -135,18 +131,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   };
 
   const isChannelId = isUUID(channelIdOrHostname);
-
-  useEffect(() => {
-    if (!channelIdOrHostname) {
-      setIsOriginWalletConnect(false);
-
-      return;
-    }
-
-    setIsOriginWalletConnect(
-      channelIdOrHostname.startsWith(WALLET_CONNECT_ORIGIN),
-    );
-  }, [channelIdOrHostname]);
 
   const sdkConnection = SDKConnect.getInstance().getConnection({
     channelId: channelIdOrHostname,
@@ -161,9 +145,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     let dappHostname = dappUrl || channelIdOrHostname;
 
     if (isOriginWalletConnect) {
-      title = getUrlObj(
-        (channelIdOrHostname as string).split(WALLET_CONNECT_ORIGIN)[1],
-      ).origin;
+      title = getUrlObj(channelIdOrHostname as string).origin;
       dappHostname = title;
     } else if (
       isOriginMMSDKRemoteConn &&

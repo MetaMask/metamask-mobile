@@ -1,36 +1,35 @@
-import Client, {
-  SingleEthereum,
-  SingleEthereumTypes,
-} from '@walletconnect/se-sdk';
+import { AccountsController } from '@metamask/accounts-controller';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { KeyringController } from '@metamask/keyring-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import { NavigationContainerRef } from '@react-navigation/native';
 import { Core } from '@walletconnect/core';
+import Client, {
+  SingleEthereum,
+  SingleEthereumTypes,
+} from '@walletconnect/se-sdk';
 import { SessionTypes } from '@walletconnect/types';
 import { getSdkError } from '@walletconnect/utils';
-import { AccountsController } from '@metamask/accounts-controller';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
 
+import { updateWC2Metadata } from '../../../app/actions/sdk';
+import { selectChainId } from '../../selectors/networkController';
+import { store } from '../../store';
 import StorageWrapper from '../../store/storage-wrapper';
 import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
 import Engine from '../Engine';
+import { getPermittedAccounts } from '../Permissions';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import getAllUrlParams from '../SDKConnect/utils/getAllUrlParams.util';
+import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
 import extractApprovedAccounts from './extractApprovedAccounts';
 import WalletConnect from './WalletConnect';
 import parseWalletConnectUri, {
   hideWCLoadingState,
   showWCLoadingState,
 } from './wc-utils';
-import { updateWC2Metadata } from '../../../app/actions/sdk';
-import { selectChainId } from '../../selectors/networkController';
-import { store } from '../../store';
-import { getPermittedAccounts } from '../Permissions';
-import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
 
 import WalletConnect2Session from './WalletConnect2Session';
-import { WALLET_CONNECT_ORIGIN } from '../../util/walletconnect';
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
   typeof PROJECT_ID === 'string' && PROJECT_ID?.length > 0;
@@ -424,7 +423,7 @@ export class WC2Manager {
 
     try {
       await permissionsController.requestPermissions(
-        { origin: WALLET_CONNECT_ORIGIN + url },
+        { origin: url },
         {
           eth_accounts: {},
         },
@@ -472,6 +471,16 @@ export class WC2Manager {
       }
     } catch (err) {
       console.error(`invalid wallet status`, err);
+    } finally {
+      // Cleanup state
+      store.dispatch(
+        updateWC2Metadata({
+          url: '',
+          name: '',
+          icon: '',
+          id: '',
+        }),
+      );
     }
   }
 
