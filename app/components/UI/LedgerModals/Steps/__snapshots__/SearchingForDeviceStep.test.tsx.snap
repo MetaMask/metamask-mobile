@@ -346,7 +346,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
     onPress={[Function]}
   >
     <Text
-      numerOfLines={2}
+      numberOfLines={2}
       style={
         [
           {
@@ -746,7 +746,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
     onPress={[Function]}
   >
     <Text
-      numerOfLines={2}
+      numberOfLines={2}
       style={
         [
           {

@@ -7,7 +7,7 @@
  * @param array - Array of string.
  * @returns Array of string.
  */
-// eslint-disable-next-line import/prefer-default-export
+
 export const shuffle = (array: string[]): string[] => {
   const shuffledArray = [...array];
   for (let i = array.length - 1; i > 0; i--) {

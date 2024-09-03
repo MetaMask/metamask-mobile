@@ -11,7 +11,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { newAssetTransaction } from '../../../actions/transaction';
 import CollectibleMedia from '../CollectibleMedia';
 import { baseStyles } from '../../../styles/common';
-import ReusableModal from '../ReusableModal';
+import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import Routes from '../../../constants/navigation/Routes';
 import CollectibleOverview from '../../UI/CollectibleOverview';
 import { collectiblesSelector } from '../../../reducers/collectibles';
@@ -19,7 +19,6 @@ import {
   selectDisplayNftMedia,
   selectIsIpfsGatewayEnabled,
 } from '../../../selectors/preferencesController';
-import { Collectible } from '../CollectibleMedia/CollectibleMedia.types';
 import styles from './CollectibleModal.styles';
 import { CollectibleModalParams } from './CollectibleModal.types';
 import { useNavigation } from '@react-navigation/native';
@@ -28,6 +27,7 @@ import { useMetrics } from '../../hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectChainId } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
+import { Nft } from '@metamask/assets-controllers';
 
 const CollectibleModal = () => {
   const navigation = useNavigation();
@@ -37,21 +37,21 @@ const CollectibleModal = () => {
 
   const { contractName, collectible } = useParams<CollectibleModalParams>();
 
-  const modalRef = useRef(null);
+  const modalRef = useRef<ReusableModalRef>(null);
 
   const [mediaZIndex, setMediaZIndex] = useState(20);
   const [overviewZIndex, setOverviewZIndex] = useState(10);
 
   const [updatedCollectible, setUpdatedCollectible] = useState(collectible);
 
-  const collectibles: Collectible[] = useSelector(collectiblesSelector);
+  const collectibles: Nft[] = useSelector(collectiblesSelector);
   const isIpfsGatewatEnabled = useSelector(selectIsIpfsGatewayEnabled);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
 
   const handleUpdateCollectible = useCallback(() => {
     if (isIpfsGatewatEnabled || displayNftMedia) {
       const newUpdatedCollectible = collectibles.find(
-        (nft: Collectible) =>
+        (nft: Nft) =>
           nft.address === collectible.address &&
           nft.tokenId === collectible.tokenId,
       );
@@ -77,6 +77,7 @@ const CollectibleModal = () => {
 
   const onSend = useCallback(async () => {
     dispatch(newAssetTransaction({ contractName, ...collectible }));
+    //@ts-expect-error replace do not exist on ParamListBase
     navigation.replace('SendFlowView');
   }, [contractName, collectible, navigation, dispatch]);
 

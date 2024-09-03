@@ -7,6 +7,13 @@ import { createDeepEqualSelector } from './util';
 
 const selectCurrentTransactionId = (state: RootState) => state.transaction?.id;
 
+export const selectCurrentTransactionSecurityAlertResponse = (
+  state: RootState,
+) => {
+  const { id, securityAlertResponses } = state.transaction;
+  return securityAlertResponses?.[id];
+};
+
 export const selectCurrentTransactionMetadata = createSelector(
   selectTransactions,
   selectCurrentTransactionId,
