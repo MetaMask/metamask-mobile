@@ -44,6 +44,8 @@ const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   rampType: RampType.BUY,
   isBuy: true,
   isSell: false,
+  intent: undefined,
+  setIntent: jest.fn(),
 };
 
 let mockUseRampSDKValues: Partial<RampSDK> = {

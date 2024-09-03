@@ -16,6 +16,7 @@ import PickerBase from '../PickerBase';
 import { PickerAccountProps } from './PickerAccount.types';
 import styleSheet from './PickerAccount.styles';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { AccountListViewSelectorsIDs } from '../../../../../e2e/selectors/AccountListView.selectors';
 
 const PickerAccount: React.ForwardRefRenderFunction<
   TouchableOpacity,
@@ -59,6 +60,7 @@ const PickerAccount: React.ForwardRefRenderFunction<
           <Text
             variant={TextVariant.BodySM}
             style={styles.accountNameLabelText}
+            testID={AccountListViewSelectorsIDs.ACCOUNT_TYPE_LABEL}
           >
             {strings(accountTypeLabel)}
           </Text>

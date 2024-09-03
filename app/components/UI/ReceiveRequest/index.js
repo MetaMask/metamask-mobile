@@ -34,12 +34,12 @@ import GlobalAlert from '../GlobalAlert';
 import StyledButton from '../StyledButton';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import Routes from '../../../constants/navigation/Routes';
 import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
 import { isNetworkRampSupported } from '../Ramp/utils';
+import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Modals/RequestPaymentModal.selectors';
@@ -197,7 +197,7 @@ class ReceiveRequest extends PureComponent {
       );
     } else {
       toggleReceiveModal();
-      navigation.navigate(Routes.RAMP.BUY);
+      navigation.navigate(...createBuyNavigationDetails());
 
       this.props.metrics.trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy Native Token',

@@ -217,7 +217,6 @@ exports[`OptinMetrics render matches snapshot 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -310,7 +309,6 @@ exports[`OptinMetrics render matches snapshot 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -434,6 +432,20 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                               testID="optin-metrics-privacy-policy-description"
                             >
                               We’d like to gather basic usage data to improve MetaMask. Know that we never sell the data you provide here.
+                            </Text>
+                            <Text
+                              onPress={[Function]}
+                              style={
+                                {
+                                  "color": "#0376c9",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "paddingVertical": 10,
+                                }
+                              }
+                            >
+                              Learn how we protect your privacy while collecting usage data for your profile.
                             </Text>
                             <Text
                               style={
@@ -710,6 +722,11 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                     {
                                       "backgroundColor": "transparent",
                                       "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
                                     }
                                   }
                                   suppressHighlighting={true}
@@ -719,7 +736,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#0376c9",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "letterSpacing": 0,
@@ -775,14 +792,13 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                             }
                           }
                           testID="optin-metrics-no-thanks-button-id"
-                          variant="Secondary"
                         >
                           <Text
                             accessibilityRole="text"
                             style={
                               {
                                 "color": "#0376c9",
-                                "fontFamily": "Euclid Circular B",
+                                "fontFamily": "EuclidCircularB-Regular",
                                 "fontSize": 14,
                                 "fontWeight": "400",
                                 "letterSpacing": 0,
@@ -822,14 +838,13 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                             }
                           }
                           testID="optin-metrics-i-agree-button-id"
-                          variant="Primary"
                         >
                           <Text
                             accessibilityRole="text"
                             style={
                               {
                                 "color": "#ffffff",
-                                "fontFamily": "Euclid Circular B",
+                                "fontFamily": "EuclidCircularB-Regular",
                                 "fontSize": 14,
                                 "fontWeight": "400",
                                 "letterSpacing": 0,

@@ -14,7 +14,7 @@ import AppConstants from '../../../app/core/AppConstants';
  */
 const fetchHtmlSource = async (url: URL) => {
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, { credentials: 'omit' });
     if (response?.ok) {
       return await response.text();
     }

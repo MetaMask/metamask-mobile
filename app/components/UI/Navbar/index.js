@@ -36,11 +36,7 @@ import Routes from '../../../constants/navigation/Routes';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
-import {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../component-library/components/Icons/Icon';
+
 import {
   default as MorphText,
   TextVariant,
@@ -51,6 +47,11 @@ import { NetworksViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Net
 import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/SendLinkView.selectors';
 import { SendViewSelectorsIDs } from '../../../../e2e/selectors/SendView.selectors';
 import { getBlockaidTransactionMetricsParams } from '../../../util/blockaid';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../component-library/components/Icons/Icon';
 import { AddContactViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
 
 const trackEvent = (event, params = {}) => {
@@ -117,6 +118,21 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     marginLeft: 16,
+  },
+  notificationsWrapper: {
+    position: 'relative',
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  notificationsBadge: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+
+    position: 'absolute',
+    top: 2,
+    right: 10,
   },
 });
 
@@ -900,6 +916,7 @@ export function getWalletNavbarOptions(
   navigation,
   themeColors,
   isNotificationEnabled,
+  unreadNotificationCount,
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -998,14 +1015,26 @@ export function getWalletNavbarOptions(
     headerRight: () => (
       <View style={styles.leftButtonContainer}>
         {isNotificationsFeatureEnabled() && (
-          <ButtonIcon
-            iconColor={IconColor.Primary}
-            onPress={handleNotificationOnPress}
-            iconName={IconName.Notification}
-            size={IconSize.Xl}
-            testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
-            style={styles.notificationButton}
-          />
+          <View style={styles.notificationsWrapper}>
+            <ButtonIcon
+              iconColor={IconColor.Primary}
+              onPress={handleNotificationOnPress}
+              iconName={IconName.Notification}
+              size={IconSize.Xl}
+              testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
+              style={styles.notificationButton}
+            />
+            <View
+              style={[
+                styles.notificationsBadge,
+                {
+                  backgroundColor: unreadNotificationCount
+                    ? themeColors.error.default
+                    : themeColors.background.transparent,
+                },
+              ]}
+            />
+          </View>
         )}
 
         <ButtonIcon
@@ -1098,6 +1127,110 @@ export function getImportTokenNavbarOptions(
       </TouchableOpacity>
     ),
     headerLeft: null,
+    headerStyle: [
+      innerStyles.headerStyle,
+      contentOffset && innerStyles.headerShadow,
+    ],
+  };
+}
+
+export function getNftDetailsNavbarOptions(
+  navigation,
+  themeColors,
+  onRightPress,
+  contentOffset = 0,
+) {
+  const innerStyles = StyleSheet.create({
+    headerStyle: {
+      backgroundColor: themeColors.background.default,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
+    },
+    headerShadow: {
+      elevation: 2,
+      shadowColor: themeColors.background.primary,
+      shadowOpacity: contentOffset < 20 ? contentOffset / 100 : 0.2,
+      shadowOffset: { height: 4, width: 0 },
+      shadowRadius: 8,
+    },
+    headerIcon: {
+      color: themeColors.primary.default,
+    },
+    headerBackIcon: {
+      color: themeColors.icon.default,
+    },
+  });
+  return {
+    headerLeft: () => (
+      <TouchableOpacity
+        onPress={() => navigation.pop()}
+        style={styles.backButton}
+        {...generateTestId(Platform, ASSET_BACK_BUTTON)}
+      >
+        <Icon
+          name={IconName.ArrowLeft}
+          size={IconSize.Lg}
+          style={innerStyles.headerBackIcon}
+        />
+      </TouchableOpacity>
+    ),
+    headerRight: onRightPress
+      ? () => (
+          <TouchableOpacity style={styles.backButton} onPress={onRightPress}>
+            <Icon
+              name={IconName.MoreVertical}
+              size={IconSize.Lg}
+              style={innerStyles.headerBackIcon}
+            />
+          </TouchableOpacity>
+        )
+      : () => <View />,
+    headerStyle: [
+      innerStyles.headerStyle,
+      contentOffset && innerStyles.headerShadow,
+    ],
+  };
+}
+
+export function getNftFullImageNavbarOptions(
+  navigation,
+  themeColors,
+  contentOffset = 0,
+) {
+  const innerStyles = StyleSheet.create({
+    headerStyle: {
+      backgroundColor: themeColors.background.default,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
+    },
+    headerShadow: {
+      elevation: 2,
+      shadowColor: themeColors.background.primary,
+      shadowOpacity: contentOffset < 20 ? contentOffset / 100 : 0.2,
+      shadowOffset: { height: 4, width: 0 },
+      shadowRadius: 8,
+    },
+    headerIcon: {
+      color: themeColors.primary.default,
+    },
+    headerBackIcon: {
+      color: themeColors.icon.default,
+    },
+  });
+  return {
+    headerRight: () => (
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.pop()}
+      >
+        <Icon
+          name={IconName.Close}
+          size={IconSize.Lg}
+          style={innerStyles.headerBackIcon}
+        />
+      </TouchableOpacity>
+    ),
+    headerLeft: () => <View />,
     headerStyle: [
       innerStyles.headerStyle,
       contentOffset && innerStyles.headerShadow,
@@ -1203,7 +1336,7 @@ export function getWebviewNavbar(navigation, route, themeColors) {
       elevation: 0,
     },
     headerIcon: {
-      color: themeColors.primary.default,
+      color: themeColors.default,
     },
   });
 

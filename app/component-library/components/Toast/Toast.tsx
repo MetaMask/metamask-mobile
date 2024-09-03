@@ -141,7 +141,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       <Button
         variant={ButtonVariants.Link}
         onPress={linkButtonOptions.onPress}
-        textVariant={TextVariant.BodyMD}
+        labelTextVariant={TextVariant.BodyMD}
         label={linkButtonOptions.label}
       />
     );

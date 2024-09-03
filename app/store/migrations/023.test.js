@@ -4,6 +4,7 @@ import initialRootState, {
   backgroundState,
 } from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
+import { userInitialState } from '../../reducers/user';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -211,7 +212,7 @@ describe('Migration #23', () => {
 
     const newState = migrate(state);
 
-    expect(newState.user).toStrictEqual({});
+    expect(newState.user).toStrictEqual(userInitialState);
     expect(newState.engine.backgroundState).toStrictEqual(
       merge({}, backgroundState, {
         AddressBookController: {
@@ -297,12 +298,14 @@ describe('Migration #23', () => {
 
     const newState = migrate(state);
 
-    expect(newState.user).toStrictEqual({
-      ambiguousAddressEntries: {
-        10: ['0x0000000000000000000000000000000000000002'],
-        2415: ['0x0000000000000000000000000000000000000002'],
-      },
-    });
+    expect(newState.user).toStrictEqual(
+      merge({}, userInitialState, {
+        ambiguousAddressEntries: {
+          10: ['0x0000000000000000000000000000000000000002'],
+          2415: ['0x0000000000000000000000000000000000000002'],
+        },
+      }),
+    );
     expect(newState.engine.backgroundState).toStrictEqual(
       merge({}, backgroundState, {
         AddressBookController: {
@@ -382,7 +385,7 @@ describe('Migration #23', () => {
 
     const newState = migrate(state);
 
-    expect(newState.user).toStrictEqual({});
+    expect(newState.user).toStrictEqual(userInitialState);
     expect(newState.engine.backgroundState).toStrictEqual(
       merge({}, backgroundState, {
         AddressBookController: {

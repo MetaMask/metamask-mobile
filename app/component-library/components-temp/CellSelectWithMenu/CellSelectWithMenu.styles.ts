@@ -21,6 +21,7 @@ const styleSheet = (params: {
 }) => {
   const { vars } = params;
   const { style } = vars;
+  const { colors } = params.theme;
 
   return StyleSheet.create({
     base: Object.assign(
@@ -29,6 +30,41 @@ const styleSheet = (params: {
       } as ViewStyle,
       style,
     ) as ViewStyle,
+    cellBase: Object.assign(
+      {
+        flexDirection: 'row',
+      } as ViewStyle,
+      style,
+    ) as ViewStyle,
+    avatar: {
+      marginRight: 16,
+    },
+    cellBaseInfo: {
+      flex: 1,
+      alignItems: 'flex-start',
+    },
+    optionalAccessory: {
+      marginLeft: 16,
+    },
+    secondaryText: {
+      color: colors.text.alternative,
+    },
+    tertiaryText: {
+      color: colors.text.alternative,
+    },
+    tagLabel: {
+      marginTop: 4,
+    },
+    containerRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      marginBottom: 0,
+      zIndex: 1,
+    },
+    arrowStyle: {
+      paddingLeft: 8,
+      paddingTop: 24,
+    },
   });
 };
 

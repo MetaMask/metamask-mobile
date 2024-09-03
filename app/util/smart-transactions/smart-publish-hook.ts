@@ -434,9 +434,9 @@ class SmartTransactionHook {
       this.#transactionController.state.swapsTransactions || {};
 
     newSwapsTransactions[id] = newSwapsTransactions[this.#transactionMeta.id];
-    this.#transactionController.update({
-      // @ts-expect-error This is not defined on the type, but is a field added in app/components/UI/Swaps/QuotesView.js
-      swapsTransactions: newSwapsTransactions,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (this.#transactionController as any).update((state: any) => {
+      state.swapsTransactions = newSwapsTransactions;
     });
   };
 }

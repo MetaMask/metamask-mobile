@@ -142,7 +142,6 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -235,7 +234,6 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -860,7 +858,6 @@ exports[`Amount should convert ETH to USD 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -953,7 +950,6 @@ exports[`Amount should convert ETH to USD 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1578,7 +1574,6 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -1671,7 +1666,6 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -2313,7 +2307,6 @@ exports[`Amount should convert USD to ETH 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -2406,7 +2399,6 @@ exports[`Amount should convert USD to ETH 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -3048,7 +3040,6 @@ exports[`Amount should display correct balance 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -3141,7 +3132,6 @@ exports[`Amount should display correct balance 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -3765,7 +3755,6 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -3858,7 +3847,6 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -4482,7 +4470,6 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -4575,7 +4562,6 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -4784,7 +4770,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                 <View
                                   style={
                                     {
-                                      "backgroundColor": "#undefined",
+                                      "backgroundColor": undefined,
                                       "borderRadius": 12,
                                       "flex": 0,
                                     }
@@ -5166,7 +5152,6 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -5259,7 +5244,6 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -5879,7 +5863,6 @@ exports[`Amount should render correctly 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -5972,7 +5955,6 @@ exports[`Amount should render correctly 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -6591,7 +6573,6 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -6684,7 +6665,6 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -7303,7 +7283,6 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -7396,7 +7375,6 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
