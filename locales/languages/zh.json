@@ -724,10 +724,7 @@
     "enabling_profile_sync": "正在启用配置文件同步...",
     "disabling_profile_sync": "正在禁用配置文件同步...",
     "notifications_dismiss_modal": "关闭",
-<<<<<<< HEAD
-=======
     "select_rpc_url": "Select RPC URL",
->>>>>>> main
     "title": "设置",
     "current_conversion": "基础货币",
     "current_language": "当前语言",
@@ -2026,11 +2023,7 @@
     "swap": "已兑换",
     "sent": "已发送至 {{address}}",
     "menu_item_title": {
-<<<<<<< HEAD
-      "metamask_swap_completed": "已用 {{symbol1}} 兑换 {{symbol2}}",
-=======
       "metamask_swap_completed": "Swapped {{symbolIn}} for {{symbolOut}}",
->>>>>>> main
       "erc20_sent": "已发送至 {{address}}",
       "erc20_received": "已从 {{address}} 收到",
       "eth_sent": "已发送至 {{address}}",
@@ -2057,11 +2050,7 @@
       "title_untake_ready": "提取已就绪",
       "title_stake": "已质押 {{symbol}}",
       "title_unstake_completed": "解除质押完成",
-<<<<<<< HEAD
-      "title_swapped": "已将 {{symbol1}} 兑换为 {{symbol2}}",
-=======
       "title_swapped": "Swapped {{symbolIn}} to {{symbolOut}}",
->>>>>>> main
       "label_address_to": "至",
       "label_address_from": "从",
       "label_address_to_you": "至（您）",
@@ -2796,13 +2785,10 @@
     "title_enabled_network": "This site wants to:",
     "title_new_network": "已增加新网络",
     "switch_warning": "这将把 MetaMask 中选择的网络切换到先前添加的网络：",
-<<<<<<< HEAD
-=======
     "use_enabled_networks": "Use your enabled networks",
     "wants_to_see_your_accounts": "See your accounts and suggest transactions",
     "requesting_for": "Requesting for ",
     "edit": "Edit",
->>>>>>> main
     "add_network_and_give_dapp_permission_warning": "You're adding this network to MetaMask and giving {{dapp_origin}} permission to use it.",
     "available": "现在可以在网络选择工具中使用。",
     "cancel": "取消",
