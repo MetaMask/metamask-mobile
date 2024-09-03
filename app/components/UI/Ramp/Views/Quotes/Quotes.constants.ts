@@ -52,7 +52,7 @@ export const mockQuotesData = [
       idv2: '/currencies/crypto/1/0x0000000000000000000000000000000000000000',
       network: {
         active: true,
-        chainId: 1,
+        chainId: '1',
         chainName: 'Ethereum Mainnet',
         shortName: 'Ethereum',
       },
@@ -89,7 +89,7 @@ export const mockQuotesData = [
       idv2: '/currencies/crypto/1/0x0000000000000000000000000000000000000000',
       network: {
         active: true,
-        chainId: 1,
+        chainId: '1',
         chainName: 'Ethereum Mainnet',
         shortName: 'Ethereum',
       },
@@ -172,7 +172,7 @@ export const mockQuotesData = [
       idv2: '/currencies/crypto/1/0x0000000000000000000000000000000000000000',
       network: {
         active: true,
-        chainId: 1,
+        chainId: '1',
         chainName: 'Ethereum Mainnet',
         shortName: 'Ethereum',
       },

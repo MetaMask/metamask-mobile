@@ -7,7 +7,6 @@ export interface ValidState {
   };
 }
 
-// eslint-disable-next-line import/prefer-default-export
 export function ensureValidState<T>(
   state: T,
   migrationNumber: number,

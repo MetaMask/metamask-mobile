@@ -36,6 +36,11 @@ export const createStyles = (theme: Theme) =>
       width: '90%',
       marginVertical: 5,
     },
+    revealButton: {
+      alignSelf: 'center',
+      width: '100%',
+      marginVertical: 5,
+    },
     rowWrapper: {
       padding: 20,
     },

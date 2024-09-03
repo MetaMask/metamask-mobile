@@ -324,7 +324,7 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
         onPress={[Function]}
       >
         <Text
-          numerOfLines={2}
+          numberOfLines={2}
           style={
             [
               {
