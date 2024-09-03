@@ -5,7 +5,11 @@ import {
   TRIGGER_TYPES,
 } from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
-import { NotificationState } from '../types/NotificationState';
+import {
+  label_address_from,
+  label_address_to,
+  NotificationState,
+} from '../types/NotificationState';
 import {
   getAmount,
   getNativeTokenDetailsByChainId,
@@ -74,16 +78,12 @@ const state: NotificationState<ERC20Notification> = {
       fields: [
         {
           type: ModalFieldType.ADDRESS,
-          label: isSent(notification)
-            ? strings('notifications.modal.label_address_from_you')
-            : strings('notifications.modal.label_address_from'),
+          label: label_address_from(notification),
           address: notification.data.from,
         },
         {
           type: ModalFieldType.ADDRESS,
-          label: isSent(notification)
-            ? strings('notifications.modal.label_address_to')
-            : strings('notifications.modal.label_address_to_you'),
+          label: label_address_to(notification),
           address: notification.data.to,
         },
         {
