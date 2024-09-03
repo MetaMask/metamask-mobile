@@ -39,7 +39,8 @@ const isSent = (
 ) =>
   n.type === TRIGGER_TYPES.ETH_SENT ||
   n.type === TRIGGER_TYPES.ERC20_SENT ||
-  n.type === TRIGGER_TYPES.ERC721_SENT;
+  n.type === TRIGGER_TYPES.ERC721_SENT ||
+  n.type === TRIGGER_TYPES.ERC1155_SENT;
 
 export const label_address_from = (n: INotification): string =>
   isSent(n)
