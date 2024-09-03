@@ -31,11 +31,16 @@ const NetworkSelectorList = ({
   isAutoScrollEnabled = true,
   ...props
 }: NetworkConnectMultiSelectorProps) => {
+  const networksLengthRef = useRef<number>(0);
+  const { styles } = useStyles(styleSheet, {});
+
+  /**
+   * Ref for the FlatList component.
+   * The type of the ref is not explicitly defined.
+   */
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const networkListRef = useRef<any>(null);
-  const networksLengthRef = useRef<number>(0);
-  const { styles } = useStyles(styleSheet, {});
 
   const getKeyExtractor = ({ id }: Network) => id;
 
