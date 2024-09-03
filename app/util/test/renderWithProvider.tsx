@@ -12,6 +12,14 @@ import {
   RenderHookOptions,
 } from '@testing-library/react-native';
 
+jest.mock('react-native', () => ({
+  ...jest.requireActual('react-native'),
+  Linking: {
+    ...jest.requireActual('react-native').Linking,
+    removeEventListener: jest.fn(),
+  },
+}));
+
 import { mockTheme, ThemeContext } from '../theme';
 import { Theme } from '../theme/models';
 import configureStore from './configureStore';
