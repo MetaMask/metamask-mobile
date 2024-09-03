@@ -1,17 +1,12 @@
 // Third party dependencies.
 import React from 'react';
-import { ActivityIndicator, View } from 'react-native';
-
-// External dependencies.
-import { useStyles } from '../../hooks/useStyles';
 
 // Internal dependencies.
 import Loader from './Loader';
 import { LoaderProps } from './Loader.types';
-import styleSheet from './Loader.styles';
 
 const LoaderMeta = {
-  title: 'Component Library / Loader',
+  title: 'Components Temp / Loader',
   component: Loader,
   argTypes: {
     size: {
@@ -27,19 +22,10 @@ const LoaderMeta = {
 };
 export default LoaderMeta;
 
-export const DefaultLoader = (args: LoaderProps) => {
-  const { styles, theme } = useStyles(styleSheet, {});
-  const { colors } = theme;
-
-  const indicatorColor = args.color ?? colors.primary.default;
-
-  return (
-    <View style={styles.base}>
-      <ActivityIndicator size={args.size} color={indicatorColor} />
-    </View>
-  );
-};
-DefaultLoader.args = {
-  size: 'large',
-  color: undefined,
+export const DefaultLoader = {
+  args: {
+    size: 'large',
+  },
+  render: (args: LoaderProps) => <Loader {...args} />,
+  controls: { disabled: true },
 };
