@@ -1,3 +1,9 @@
+import { TextVariant } from './Text.types';
+
+type FontFamilyByTextVariant = {
+  [key in TextVariant]: string;
+};
+
 export type FontWeight =
   | '100'
   | '200'
@@ -32,3 +38,24 @@ export const getFontStyleVariant = (
 
   return `EuclidCircularB-${fontSuffix}${styleSuffix}`;
 };
+
+export const FONTFAMILY_BY_TEXTVARIANT: FontFamilyByTextVariant = {
+  [TextVariant.DisplayMD]: 'MMSans-Regular',
+  [TextVariant.HeadingLG]: 'MMSans-Regular',
+  [TextVariant.HeadingMD]: 'MMSans-Regular',
+  [TextVariant.HeadingSMRegular]: 'MMSans-Regular',
+  [TextVariant.HeadingSM]: 'MMSans-Regular',
+  [TextVariant.BodyLGMedium]: 'CentraNo1-Medium',
+  [TextVariant.BodyMD]: 'CentraNo1-Book',
+  [TextVariant.BodyMDMedium]: 'CentraNo1-Medium',
+  [TextVariant.BodyMDBold]: 'CentraNo1-Bold',
+  [TextVariant.BodySM]: 'CentraNo1-Book',
+  [TextVariant.BodySMMedium]: 'CentraNo1-Medium',
+  [TextVariant.BodySMBold]: 'CentraNo1-Bold',
+  [TextVariant.BodyXS]: 'CentraNo1-Book',
+  [TextVariant.BodyXSMedium]: 'CentraNo1-Medium',
+};
+
+export const getFontStyleVariantForBrandEvolution = (
+  variant: TextVariant,
+): string => FONTFAMILY_BY_TEXTVARIANT[variant];

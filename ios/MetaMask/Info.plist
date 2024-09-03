@@ -72,7 +72,7 @@
 	<key>NSFaceIDUsageDescription</key>
 	<string>$(PRODUCT_NAME) needs to authenticate</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string/>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>MetaMask needs microphone access to record audio</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
@@ -119,6 +119,29 @@
 		<string>EuclidCircularB-RegularItalic.otf</string>
 		<string>EuclidCircularB-Semibold.otf</string>
 		<string>EuclidCircularB-SemiboldItalic.otf</string>
+		<string>CentraNo1-Black.otf</string>
+		<string>CentraNo1-BlackItalic.otf</string>
+		<string>CentraNo1-Bold.otf</string>
+		<string>CentraNo1-BoldItalic.otf</string>
+		<string>CentraNo1-Book.otf</string>
+		<string>CentraNo1-BookItalic.otf</string>
+		<string>CentraNo1-Extrabold.otf</string>
+		<string>CentraNo1-ExtraboldItalic.otf</string>
+		<string>CentraNo1-Hairline.otf</string>
+		<string>CentraNo1-HairlineItalic.otf</string>
+		<string>CentraNo1-Light.otf</string>
+		<string>CentraNo1-LightItalic.otf</string>
+		<string>CentraNo1-Medium.otf</string>
+		<string>CentraNo1-MediumItalic.otf</string>
+		<string>CentraNo1-Thin.otf</string>
+		<string>CentraNo1-ThinItalic.otf</string>
+		<string>MMSans-Black.otf</string>
+		<string>MMSans-Bold.otf</string>
+		<string>MMSans-Extrabold.otf</string>
+		<string>MMSans-Medium.otf</string>
+		<string>MMSans-Regular.otf</string>
+		<string>MMSans-Semibold.otf</string>
+		<string>MMSansMono-Regular.otf</string>
 	</array>
 	<key>UIBackgroundModes</key>
 	<array>
@@ -148,10 +171,5 @@
 	<string>$(MM_MIXPANEL_TOKEN)</string>
 	<key>fox_code</key>
 	<string>$(MM_FOX_CODE)</string>
-	<key>LSApplicationQueriesSchemes</key>
-	<array>
-		<string>twitter</string>
-		<string>itms-apps</string>
-	</array>
 </dict>
 </plist>
