@@ -132,6 +132,7 @@ class Gestures {
   static async swipe(elementID, direction, speed, percentage, xStart, yStart) {
     const element = await elementID;
 
+    await waitFor(element).toBeVisible();
     await element.swipe(direction, speed, percentage, xStart, yStart);
   }
 
