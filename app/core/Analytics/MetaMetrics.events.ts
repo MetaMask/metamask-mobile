@@ -163,7 +163,7 @@ enum EVENT_NAME {
   // Settings
   SETTINGS_VIEWED = 'Settings Viewed',
   SETTINGS_UPDATED = 'Settings Updated',
-  CURRENCY_CHANGED = 'Current Currency Changed',
+  CURRENCY_CHANGED = 'Selected Currency Changed',
 
   // Reveal SRP
   REVEAL_SRP_CTA = 'Clicks Reveal Secret Recovery Phrase',
