@@ -31,7 +31,9 @@ const NetworkSelectorList = ({
   isAutoScrollEnabled = true,
   ...props
 }: NetworkConnectMultiSelectorProps) => {
-  const networkListRef = useRef<FlatList<Network>>(null);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const networkListRef = useRef<any>(null);
   const networksLengthRef = useRef<number>(0);
   const { styles } = useStyles(styleSheet, {});
 
@@ -83,7 +85,7 @@ const NetworkSelectorList = ({
     if (networksLengthRef.current !== networks.length) {
       const selectedNetwork = networks.find(({ isSelected }) => isSelected);
       networkListRef?.current?.scrollToOffset({
-        offset: selectedNetwork?.yOffset,
+        offset: selectedNetwork?.yOffset ?? 0,
         animated: false,
       });
       networksLengthRef.current = networks.length;
