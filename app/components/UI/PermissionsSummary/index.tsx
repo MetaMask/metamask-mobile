@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import StyledButton from '../StyledButton';
 import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
@@ -129,11 +128,11 @@ const PermissionsSummary = ({
   const selectedAccount = useSelectedAccount();
 
   const confirm = () => {
-    onConfirm && onConfirm();
+    onConfirm?.();
   };
 
   const cancel = () => {
-    onCancel && onCancel();
+    onCancel?.();
   };
 
   const renderTopIcon = () => {
