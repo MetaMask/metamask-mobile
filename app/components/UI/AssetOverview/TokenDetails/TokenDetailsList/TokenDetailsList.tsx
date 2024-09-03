@@ -37,14 +37,16 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
   }) => dispatch(showAlert(config));
 
   const copyAccountToClipboard = async () => {
-    await ClipboardManager.setString(tokenDetails.contractAddress);
+    if (tokenDetails.contractAddress) {
+      await ClipboardManager.setString(tokenDetails.contractAddress);
 
-    handleShowAlert({
-      isVisible: true,
-      autodismiss: 1500,
-      content: 'clipboard-alert',
-      data: { msg: strings('account_details.account_copied_to_clipboard') },
-    });
+      handleShowAlert({
+        isVisible: true,
+        autodismiss: 1500,
+        content: 'clipboard-alert',
+        data: { msg: strings('account_details.account_copied_to_clipboard') },
+      });
+    }
   };
 
   return (
