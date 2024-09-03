@@ -152,11 +152,7 @@ exports[`DefaultSettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-<<<<<<< HEAD
               "fontFamily": "Euclid Circular B",
-=======
-              "fontFamily": "EuclidCircularB-Bold",
->>>>>>> d98a1c9f98 (fix(notifications): hide profile sync toggle (#10900))
               "fontSize": 16,
               "fontWeight": "700",
               "letterSpacing": 0,
