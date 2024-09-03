@@ -485,6 +485,13 @@ export class NetworkSettings extends PureComponent {
         (network) => network.chainId === parseInt(chainId),
       );
 
+      // This is a temporary hack to not include POL as a potential scam token while chainlist updates
+      // TODO: This can be safely removed once safeChainsList updates from MATIC to POL
+      if (parseInt(chainId) === 137) {
+        chainToMatch.nativeCurrency.symbol = 'POL';
+        chainToMatch.nativeCurrency.name = 'POL';
+      }
+
       this.updateNetworkList(chainToMatch);
       this.validateName(chainToMatch);
       this.validateSymbol(chainToMatch);
