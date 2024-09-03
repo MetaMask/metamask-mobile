@@ -59,9 +59,14 @@ class SecurityAndPrivacy {
       SecurityPrivacyViewSelectorsIDs.SECURITY_SETTINGS_SCROLL,
     );
   }
-
   get showPrivateKey() {
     return Matchers.getElementByText('Show private key');
+  }
+
+  get showPrivateKeyButton() {
+    return Matchers.getElementByText(
+      SecurityPrivacyViewSelectorsText.SHOW_PRIVATE_KEY,
+    );
   }
 
   get backUpNow() {
@@ -82,6 +87,12 @@ class SecurityAndPrivacy {
     );
   }
 
+  get revealPrivateKeyButton() {
+    return Matchers.getElementByID(
+      SecurityPrivacyViewSelectorsIDs.SHOW_PRIVATE_KEY,
+    );
+  }
+
   async tapRevealSecretRecoveryPhraseButton() {
     await Gestures.waitAndTap(this.revealSecretRecoveryPhraseButton);
   }
@@ -94,6 +105,12 @@ class SecurityAndPrivacy {
     await Gestures.waitAndTap(this.deleteWalletButton);
   }
 
+  async scrollToRevealPrivateKey() {
+    await Gestures.scrollToElement(
+      this.revealPrivateKeyButton,
+      this.scrollViewIdentifier,
+    );
+  }
   async scrollToChangePasswordView() {
     await Gestures.scrollToElement(
       this.changePasswordButton,
@@ -128,6 +145,10 @@ class SecurityAndPrivacy {
 
   async tapTurnOnRememberMeToggle() {
     await Gestures.waitAndTap(this.rememberMeToggle);
+  }
+
+  async tapShowPrivateKeyButton() {
+    await Gestures.waitAndTap(this.showPrivateKey);
   }
 }
 

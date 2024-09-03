@@ -57,6 +57,10 @@ class AccountListView {
     await Gestures.tap(this.getMultiselectElement(index));
   }
 
+  async tapToSelectActiveAccountAtIndex(index) {
+    await Gestures.tap(this.getSelectElement(index));
+  }
+
   async tapAddAccountButton() {
     await Gestures.waitAndTap(this.addAccountButton);
   }
