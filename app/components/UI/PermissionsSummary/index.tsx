@@ -24,8 +24,9 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { getHost } from '../../../util/browser';
 import WebsiteIcon from '../WebsiteIcon';
+import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
 
-const createStyles = (colors) =>
+const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     mainContainer: {
       backgroundColor: colors.background.default,
@@ -103,16 +104,27 @@ const createStyles = (colors) =>
     },
   });
 
+interface PermissionsSummaryProps {
+  currentPageInformation: {
+    currentEnsName: string;
+    icon: string | { uri: string };
+    url: string;
+  };
+  onConfirm: () => void;
+  onCancel: () => void;
+  customNetworkInformation: {
+    chainName: string;
+  };
+}
+
 const PermissionsSummary = ({
   customNetworkInformation,
   currentPageInformation,
   onCancel,
   onConfirm,
-  type,
-}) => {
+}: PermissionsSummaryProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-
   const confirm = () => {
     onConfirm && onConfirm();
   };
@@ -135,6 +147,11 @@ const PermissionsSummary = ({
         icon={typeof icon === 'string' ? icon : icon?.uri}
       />
     );
+  };
+
+  const handleEditButtonPress = () => {
+    /* eslint-disable-next-line no-console */
+    console.log('press clicked, add navigation here soon');
   };
 
   function renderAccountPermissionsRequestInfoCard() {
@@ -171,6 +188,7 @@ const PermissionsSummary = ({
         </View>
         <View>
           <Button
+            onPress={handleEditButtonPress}
             variant={ButtonVariants.Link}
             width={ButtonWidthTypes.Full}
             label={strings('permissions.edit')}
@@ -213,6 +231,7 @@ const PermissionsSummary = ({
         </View>
         <View>
           <Button
+            onPress={handleEditButtonPress}
             variant={ButtonVariants.Link}
             width={ButtonWidthTypes.Full}
             label={strings('permissions.edit')}
@@ -251,29 +270,6 @@ const PermissionsSummary = ({
       </View>
     </View>
   );
-};
-
-PermissionsSummary.propTypes = {
-  /**
-   * Object containing current page title, url, and icon href
-   */
-  currentPageInformation: PropTypes.object,
-  /**
-   * Callback triggered on account access approval
-   */
-  onConfirm: PropTypes.func,
-  /**
-   * Callback triggered on account access rejection
-   */
-  onCancel: PropTypes.func,
-  /**
-   * Object containing info of the network to add
-   */
-  customNetworkInformation: PropTypes.object,
-  /**
-   * String representing if it's an existing or a newly added network
-   */
-  type: PropTypes.string,
 };
 
 export default PermissionsSummary;
