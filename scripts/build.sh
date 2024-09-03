@@ -289,11 +289,11 @@ generateArchivePackages() {
 }
 
 buildIosRelease(){
-
-  remapEnvVariableRelease
+  	remapEnvVariableRelease
 
 	# Enable Sentry to auto upload source maps and debug symbols
 	export SENTRY_DISABLE_AUTO_UPLOAD="false"
+
 	prebuild_ios
 
 	# Replace release.xcconfig with ENV vars
@@ -355,7 +355,8 @@ buildIosReleaseE2E(){
 }
 
 buildIosQA(){
-  remapEnvVariableQA
+  	remapEnvVariableQA
+
 	prebuild_ios
 
   	echo "Start QA build..."
@@ -379,7 +380,7 @@ buildIosQA(){
 
 
 buildAndroidQA(){
-  remapEnvVariableQA
+  	remapEnvVariableQA
 
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask.qa

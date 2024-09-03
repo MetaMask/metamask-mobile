@@ -3,6 +3,10 @@ import { SmokeAccounts } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import AccountListView from '../../pages/AccountListView';
+import Assertions from '../../utils/Assertions';
+import AddAccountModal from '../../pages/modals/AddAccountModal';
+
+const AccountTwoText = 'Account 2';
 
 describe(SmokeAccounts('Create wallet account'), () => {
   beforeAll(async () => {
@@ -16,10 +20,10 @@ describe(SmokeAccounts('Create wallet account'), () => {
 
   it('should be able to add new accounts', async () => {
     await WalletView.tapIdenticon();
-    await AccountListView.isVisible();
+    await Assertions.checkIfVisible(AccountListView.accountList);
     await AccountListView.tapAddAccountButton();
     // Tap on Create New Account
-    await AccountListView.tapCreateAccountButton();
-    await AccountListView.isAccount2VisibleAtIndex(1);
+    await AddAccountModal.tapCreateAccount();
+    await Assertions.checkIfTextIsDisplayed(AccountTwoText);
   });
 });
