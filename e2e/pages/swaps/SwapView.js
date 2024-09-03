@@ -5,7 +5,7 @@ import {
 
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-import Assertions from '../../utils/Assertions';
+import TestHelpers from '../../helpers';
 
 class SwapView {
   get quoteSummary() {
@@ -37,11 +37,16 @@ class SwapView {
 
   async swipeToSwap() {
     const percentage = device.getPlatform() === 'ios' ? 0.72 : 0.95;
-    // Two swipes are needed because the flashing gas fee
-    // could interupt the first swipe
-    await Gestures.swipe(this.swipeToSwapButton, 'right', 'fast', percentage);
-    await Gestures.swipe(this.swipeToSwapButton, 'right', 'fast', percentage);
-    await Assertions.checkIfTextIsDisplayed('Swap!');
+
+    // Swipe could happen at the same time when gas fees are falshing
+    // and that's when the swipe button becomes disabled
+    // that's the need to retry
+    let swapCompleteted
+    do {
+      await Gestures.swipe(this.swipeToSwapButton, 'right', 'fast', percentage);
+      await TestHelpers.delay(1000);
+      swapCompleteted = await Matchers.getElementByText('Swap!')
+    } while (!swapCompleteted)
   }
 
   swapCompleteLabel(sourceTokenSymbol, destTokenSymbol) {
