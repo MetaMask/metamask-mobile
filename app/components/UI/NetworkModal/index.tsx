@@ -114,7 +114,9 @@ const NetworkModals = (props: NetworkProps) => {
         chain_id: toHex(safeChain.chainId),
         source: 'Custom Network Added',
         symbol: safeChain.nativeCurrency.symbol,
-        rpcUrl: safeRPCUrl,
+        sensitiveProperties: {
+          rpcUrl: safeRPCUrl,
+        },
       });
     } else {
       // emit popular network
