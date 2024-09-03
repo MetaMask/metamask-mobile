@@ -8,7 +8,7 @@ import {
   useNavigation,
 } from '@react-navigation/native';
 import { fireEvent } from '@testing-library/react-native';
-import SELECT_DROP_DOWN from './constants';
+import { SELECT_DROP_DOWN } from './constants';
 
 jest.mock('../../../core/Engine', () => ({
   context: {

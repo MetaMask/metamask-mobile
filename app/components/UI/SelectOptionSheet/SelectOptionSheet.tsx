@@ -7,7 +7,7 @@ import createStyles from './styles';
 import { iSelectOptionSheet } from './types';
 import { createOptionsSheetNavDetails } from './OptionsSheet';
 import { useNavigation } from '@react-navigation/native';
-import SELECT_DROP_DOWN from './constants';
+import { SELECT_DROP_DOWN } from './constants';
 
 const SelectOptionSheet = ({
   defaultValue,

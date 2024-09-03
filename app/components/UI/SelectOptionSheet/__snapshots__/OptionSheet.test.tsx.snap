@@ -487,6 +487,7 @@ exports[`OptionSheet renders correctly 1`] = `
                                       "paddingVertical": 5,
                                     }
                                   }
+                                  testID="select-option-key1"
                                 >
                                   <Text
                                     numberOfLines={1}
@@ -515,6 +516,7 @@ exports[`OptionSheet renders correctly 1`] = `
                                       "paddingVertical": 5,
                                     }
                                   }
+                                  testID="select-option-key2"
                                 >
                                   <Text
                                     numberOfLines={1}
@@ -529,6 +531,29 @@ exports[`OptionSheet renders correctly 1`] = `
                                     }
                                   >
                                     option 2
+                                  </Text>
+                                  <Text
+                                    allowFontScaling={false}
+                                    style={
+                                      [
+                                        {
+                                          "color": "#0376c9",
+                                          "fontSize": 24,
+                                        },
+                                        {
+                                          "paddingHorizontal": 10,
+                                        },
+                                        {
+                                          "fontFamily": "Material Design Icons",
+                                          "fontStyle": "normal",
+                                          "fontWeight": "normal",
+                                        },
+                                        {},
+                                      ]
+                                    }
+                                    testID="selected-option-key2"
+                                  >
+                                    
                                   </Text>
                                 </TouchableOpacity>
                               </View>

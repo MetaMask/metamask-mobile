@@ -13,6 +13,7 @@ import { OptionsSheetParams } from './types';
 import { useTheme } from '../../../util/theme';
 import createStyles from './styles';
 import Routes from '../../../constants/navigation/Routes';
+import { SELECT_OPTION_PREFIX, SELECT_VALUE_TICK_PREFIX } from './constants';
 
 export const createOptionsSheetNavDetails = (params: OptionsSheetParams) =>
   createNavigationDetails<OptionsSheetParams>(Routes.OPTIONS_SHEET)({
@@ -49,6 +50,7 @@ const OptionsSheet = () => {
               }
               style={styles.optionButton}
               key={option.key}
+              testID={SELECT_OPTION_PREFIX + option.key}
             >
               <Text style={styles.optionLabel} numberOfLines={1}>
                 {option.label}
@@ -59,6 +61,7 @@ const OptionsSheet = () => {
                   name="check"
                   size={24}
                   color={colors.primary.default}
+                  testID={SELECT_VALUE_TICK_PREFIX + option.key}
                 />
               ) : null}
             </TouchableOpacity>
