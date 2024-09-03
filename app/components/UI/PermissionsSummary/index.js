@@ -122,11 +122,11 @@ const PermissionsSummary = ({
   };
 
   const renderTopIcon = () => {
-    const { currentEnsName, icon, origin } = currentPageInformation;
-    let url = currentPageInformation.url;
-    let iconTitle = getHost(currentEnsName || url);
+    const { currentEnsName, icon } = currentPageInformation;
+    const url = currentPageInformation.url;
+    const iconTitle = getHost(currentEnsName || url);
 
-    return false ? null : (
+    return (
       <WebsiteIcon
         style={styles.domainLogoContainer}
         viewStyle={styles.assetLogoContainer}
