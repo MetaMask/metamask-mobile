@@ -13,62 +13,33 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = params.theme;
 
   return StyleSheet.create({
-    container: {
+    bottomSheetContainer: {
       height: '100%',
     },
-    body: {
+    bodyContainer: {
       paddingHorizontal: 16,
     },
-    description: {
-      textAlign: 'center',
-      marginVertical: isMutichainVersion1Enabled ? 8 : 16,
-      color: colors.text.alternative,
-    },
-    ctaButtonsContainer: {
+    buttonsContainer: {
       marginTop: isMutichainVersion1Enabled ? 0 : 24,
       marginBottom: 16,
     },
-    connectOrUpdateButtonContainer: { flexDirection: 'row' },
-    button: { flex: 1 },
-    buttonSeparator: {
-      width: 16,
-    },
-    selectAllButton: {
-      marginBottom: 16,
-    },
-    sdkInfoContainer: {
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 10,
-      paddingHorizontal: 16,
-      marginBottom: -16,
-    },
-    sdkInfoDivier: {
-      borderTopWidth: 1,
-      borderTopColor: colors.border.muted,
-      height: 1,
-      width: '100%',
-    },
-    disabled: {
+    updateButtonContainer: { flexDirection: 'row' },
+    buttonPositioning: { flex: 1 },
+    disabledOpacity: {
       opacity: 0.5,
     },
-    addAccountButtonContainer: {
-      marginHorizontal: 16,
-      marginTop: 16,
-    },
-    selectAll: {
+    selectAllContainer: {
       marginLeft: 0,
       marginVertical: 12,
     },
-    disconnectAllContainer: {
+    disconnectAll: {
       flexDirection: 'column',
       alignItems: 'center',
     },
-    helpTextContainer: {
+    helpText: {
       margin: 16,
     },
-    disconnectAllButtonContainer: {
+    disconnectAllButton: {
       flexDirection: 'row',
     },
   });

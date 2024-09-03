@@ -106,7 +106,7 @@ const NetworkConnectMultiSelector = ({
     return (
       <View>
         <Checkbox
-          style={styles.selectAll}
+          style={styles.selectAllContainer}
           label={strings('networks.select_all')}
           isIndeterminate={areSomeNetworksSelectedButNotAll}
           isChecked={areAllNetworksSelected}
@@ -120,15 +120,15 @@ const NetworkConnectMultiSelector = ({
     mockNetworks,
     isLoading,
     setSelectedNetworkIds,
-    styles.selectAll,
+    styles.selectAllContainer,
   ]);
 
   const renderCtaButtons = useCallback(() => {
     const isConnectDisabled = Boolean(!selectedNetworkIds.length) || isLoading;
 
     return (
-      <View style={styles.ctaButtonsContainer}>
-        <View style={styles.connectOrUpdateButtonContainer}>
+      <View style={styles.buttonsContainer}>
+        <View style={styles.updateButtonContainer}>
           {areAnyNetworksSelected && (
             <Button
               variant={ButtonVariants.Primary}
@@ -136,8 +136,8 @@ const NetworkConnectMultiSelector = ({
               onPress={() => onUserAction(USER_INTENT.Confirm)}
               size={ButtonSize.Lg}
               style={{
-                ...styles.button,
-                ...(isConnectDisabled && styles.disabled),
+                ...styles.buttonPositioning,
+                ...(isConnectDisabled && styles.disabledOpacity),
               }}
               disabled={isConnectDisabled}
               {...generateTestId(
@@ -148,15 +148,15 @@ const NetworkConnectMultiSelector = ({
           )}
         </View>
         {areNoNetworksSelected && (
-          <View style={styles.disconnectAllContainer}>
-            <View style={styles.helpTextContainer}>
+          <View style={styles.disconnectAll}>
+            <View style={styles.helpText}>
               <HelpText severity={HelpTextSeverity.Error}>
                 {strings('common.disconnect_you_from', {
                   dappUrl: hostname,
                 })}
               </HelpText>
             </View>
-            <View style={styles.disconnectAllButtonContainer}>
+            <View style={styles.disconnectAllButton}>
               <Button
                 variant={ButtonVariants.Primary}
                 label={strings('common.disconnect')}
@@ -164,7 +164,7 @@ const NetworkConnectMultiSelector = ({
                 isDanger
                 size={ButtonSize.Lg}
                 style={{
-                  ...styles.button,
+                  ...styles.buttonPositioning,
                 }}
               />
             </View>
@@ -185,18 +185,18 @@ const NetworkConnectMultiSelector = ({
 
   const renderNetworkConnectMultiSelector = useCallback(
     () => (
-      <View style={styles.container}>
+      <View style={styles.bottomSheetContainer}>
         <SheetHeader
           title={strings('networks.edit_networks_title')}
           onBack={onBack}
         />
-        <View style={styles.body}>{renderSelectAllCheckbox()}</View>
+        <View style={styles.bodyContainer}>{renderSelectAllCheckbox()}</View>
         <NetworkSelectorList
           networks={mockNetworks}
           selectedNetworkIds={selectedNetworkIds}
           onSelectNetwork={onSelectNetwork}
         ></NetworkSelectorList>
-        <View style={styles.body}>{renderCtaButtons()}</View>
+        <View style={styles.bodyContainer}>{renderCtaButtons()}</View>
       </View>
     ),
     [
@@ -204,8 +204,8 @@ const NetworkConnectMultiSelector = ({
       onSelectNetwork,
       renderCtaButtons,
       selectedNetworkIds,
-      styles.body,
-      styles.container,
+      styles.bodyContainer,
+      styles.bottomSheetContainer,
       onBack,
       renderSelectAllCheckbox,
     ],
