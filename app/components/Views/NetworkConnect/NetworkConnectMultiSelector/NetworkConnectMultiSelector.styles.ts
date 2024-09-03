@@ -1,16 +1,8 @@
-// Third party dependencies.
 import { StyleSheet } from 'react-native';
-
-// External dependencies.
-import { Theme } from '../../../../util/theme/models';
 import { isMutichainVersion1Enabled } from '../../../../util/networks';
 
-/**
- * Style sheet function for AccountConnectMultiSelector screen.
- * @returns StyleSheet object.
- */
-const styleSheet = (params: { theme: Theme }) => {
-  return StyleSheet.create({
+const styleSheet = () =>
+  StyleSheet.create({
     bottomSheetContainer: {
       height: '100%',
     },
@@ -41,6 +33,5 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
     },
   });
-};
 
 export default styleSheet;
