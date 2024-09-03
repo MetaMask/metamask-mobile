@@ -25,6 +25,7 @@ import Button, {
 import { getHost } from '../../../util/browser';
 import WebsiteIcon from '../WebsiteIcon';
 import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
+import useSelectedAccount from '../Tabs/TabThumbnail/useSelectedAccount';
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
@@ -125,6 +126,8 @@ const PermissionsSummary = ({
 }: PermissionsSummaryProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const selectedAccount = useSelectedAccount();
+
   const confirm = () => {
     onConfirm && onConfirm();
   };
@@ -181,7 +184,7 @@ const PermissionsSummary = ({
               <Avatar
                 size={AvatarSize.Xs}
                 variant={AvatarVariant.Account}
-                accountAddress={'0x4514b1904FDe6031D50d507e46816Ba8b42A8034'}
+                accountAddress={selectedAccount?.address}
               />
             </View>
           </View>
