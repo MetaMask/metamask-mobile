@@ -18,7 +18,7 @@ import TextComponent, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
-import { AVAILABLE_TOKEN_LIST } from '../../../component-library/components/Avatars/AvatarGroup/AvatarGroup.constants';
+import { SAMPLE_AVATARGROUP_PROPS } from '../../../component-library/components/Avatars/AvatarGroup/AvatarGroup.constants';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -255,7 +255,9 @@ const SwitchCustomNetwork = ({
               </TextComponent>
             </TextComponent>
             <View style={styles.avatarGroup}>
-              <AvatarGroup tokenList={AVAILABLE_TOKEN_LIST.slice(0, 6)} />
+              <AvatarGroup
+                avatarPropsList={SAMPLE_AVATARGROUP_PROPS.avatarPropsList}
+              />
             </View>
           </View>
         </View>
