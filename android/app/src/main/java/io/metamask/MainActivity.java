@@ -11,6 +11,8 @@ import android.util.Log;
 import io.branch.rnbranch.*;
 import android.content.Intent;
 import android.os.Bundle;
+import com.zoontek.rnbootsplash.RNBootSplash;
+
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,6 +37,7 @@ public class MainActivity extends ReactActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		RNBootSplash.init(this, R.style.BootTheme);
 		super.onCreate(null);
 	}
 

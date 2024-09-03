@@ -60,6 +60,7 @@ export default class Root extends PureComponent {
       await this.waitForStore();
       this.setState({ isLoading: false });
     }
+    await BootSplash.hide({ fade: true });
   }
 
   render() {

@@ -126,7 +126,7 @@
 		<string>remote-notification</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
+	<string>BootSplash</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>
@@ -148,10 +148,5 @@
 	<string>$(MM_MIXPANEL_TOKEN)</string>
 	<key>fox_code</key>
 	<string>$(MM_FOX_CODE)</string>
-	<key>LSApplicationQueriesSchemes</key>
-	<array>
-		<string>twitter</string>
-		<string>itms-apps</string>
-	</array>
 </dict>
 </plist>

@@ -1,23 +1,26 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	xmlns:tools="http://schemas.android.com/tools"
->
-
+<manifest
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools">
 	<uses-permission android:name="android.permission.INTERNET" />
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-	<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+	<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 	<uses-permission android:name="android.permission.CAMERA" />
 	<uses-permission android:name="android.permission.RECORD_AUDIO" />
 	<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
-  <!-- Android < 12 -->
-  <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
-  <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
-  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-  <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
+	<uses-permission
+		android:name="android.permission.BLUETOOTH"
+		android:maxSdkVersion="30" />
+	<uses-permission
+		android:name="android.permission.BLUETOOTH_ADMIN"
+		android:maxSdkVersion="30" />
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+	<uses-feature
+		android:name="android.hardware.bluetooth_le"
+		android:required="false" />
 
-  <!-- Bluetooth permissions: Android API >= 31 (Android 12)-->
-  <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-  <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+	<uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+	<uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
 
 	<uses-sdk tools:overrideLibrary="com.tectiv3.aes" />
 
@@ -34,8 +37,7 @@
 		tools:ignore="GoogleAppIndexingWarning"
 		android:networkSecurityConfig="@xml/react_native_config"
 		android:largeHeap="true"
-     	android:exported="false"
-     	>
+		android:exported="false">
 		<activity
 			android:launchMode="singleTask"
 			android:name=".MainActivity"
@@ -44,18 +46,17 @@
 			android:windowSoftInputMode="adjustResize"
 			android:screenOrientation="portrait"
 			android:exported="true"
-		>
+			android:theme="@style/BootTheme">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />
 			</intent-filter>
-			<!-- Branch App Links -->
+
 			<intent-filter android:autoVerify="true">
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
-				<!-- The following document explains reasons behind this strange subdomain declarations -->
-				<!-- https://developer.android.com/training/app-links/verify-site-associations#multi-subdomain -->
+
 				<data android:scheme="https" />
 				<data android:scheme="https" />
 				<data android:scheme="https" />
@@ -66,7 +67,7 @@
 				<data android:host="metamask.test-app.link" />
 				<data android:host="metamask-alternate.test-app.link" />
 			</intent-filter>
-			<!-- Branch URI Scheme -->
+
 			<intent-filter>
 				<data android:scheme="metamask" />
 				<action android:name="android.intent.action.VIEW" />
@@ -104,35 +105,40 @@
 				<category android:name="android.intent.category.BROWSABLE" />
 			</intent-filter>
 		</activity>
-		<!-- Explicitly opt-in to safe browsing -->
-		<meta-data android:name="android.webkit.WebView.EnableSafeBrowsing" android:value="true" />
-		<!-- Branch keys -->
-		<meta-data android:name="io.branch.sdk.BranchKey" android:value="${MM_BRANCH_KEY_LIVE}" />
-		<meta-data android:name="io.branch.sdk.BranchKey.test" android:value="${MM_BRANCH_KEY_TEST}" />
-		<!-- PUSH NOTIFICATIONS -->
-		<meta-data	android:name="com.dieam.reactnativepushnotification.notification_channel_name"
-		android:value="io.metamask"/>
-		<meta-data	android:name="com.dieam.reactnativepushnotification.notification_channel_description"
-		android:value="io.metamask"/>
-		<meta-data	android:name="com.dieam.reactnativepushnotification.notification_color"
-		android:resource="@color/lightgray"/>
+
+		<meta-data
+			android:name="android.webkit.WebView.EnableSafeBrowsing"
+			android:value="true" />
+
+		<meta-data
+			android:name="io.branch.sdk.BranchKey"
+			android:value="${MM_BRANCH_KEY_LIVE}" />
+		<meta-data
+			android:name="io.branch.sdk.BranchKey.test"
+			android:value="${MM_BRANCH_KEY_TEST}" />
+
+		<meta-data
+			android:name="com.dieam.reactnativepushnotification.notification_channel_name"
+			android:value="io.metamask" />
+		<meta-data
+			android:name="com.dieam.reactnativepushnotification.notification_channel_description"
+			android:value="io.metamask" />
+		<meta-data
+			android:name="com.dieam.reactnativepushnotification.notification_color"
+			android:resource="@color/lightgray" />
 
 		<provider
 			android:name="androidx.core.content.FileProvider"
 			android:authorities="${applicationId}.provider"
 			android:grantUriPermissions="true"
-			android:exported="false"
-		>
+			android:exported="false">
 			<meta-data
 				android:name="android.support.FILE_PROVIDER_PATHS"
-				android:resource="@xml/filepaths"
-			/>
+				android:resource="@xml/filepaths" />
 		</provider>
-    <service
-      android:name="io.metamask.nativesdk.MessageService"
-      android:enabled="true"
-      android:exported="true">
-
-    </service>
+		<service
+			android:name="io.metamask.nativesdk.MessageService"
+			android:enabled="true"
+			android:exported="true" />
 	</application>
 </manifest>
