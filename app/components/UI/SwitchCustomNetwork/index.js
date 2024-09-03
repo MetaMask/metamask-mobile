@@ -199,12 +199,12 @@ const SwitchCustomNetwork = ({
         />
         <View style={styles.accountPermissionRequestDetails}>
           <TextComponent variant={TextVariant.BodyMD}>
-            {strings('switch_custom_network.wants_to_see_your_accounts')}
+            {strings('permissions.wants_to_see_your_accounts')}
           </TextComponent>
           <View style={styles.permissionRequestAccountInfo}>
             <TextComponent>
               <TextComponent variant={TextVariant.BodySM}>
-                {strings('switch_custom_network.requesting_for')}
+                {strings('permissions.requesting_for')}
               </TextComponent>
               <TextComponent variant={TextVariant.BodySMMedium}>
                 {customNetworkInformation.chainName}
@@ -223,7 +223,7 @@ const SwitchCustomNetwork = ({
           <Button
             variant={ButtonVariants.Link}
             width={ButtonWidthTypes.Full}
-            label={strings('switch_custom_network.edit')}
+            label={strings('permissions.edit')}
             size={ButtonSize.Lg}
           />
         </View>
@@ -243,12 +243,12 @@ const SwitchCustomNetwork = ({
         />
         <View style={styles.networkPermissionRequestDetails}>
           <TextComponent variant={TextVariant.BodyMD}>
-            {strings('switch_custom_network.use_enabled_networks')}
+            {strings('permissions.use_enabled_networks')}
           </TextComponent>
           <View style={styles.permissionRequestNetworkInfo}>
             <TextComponent>
               <TextComponent variant={TextVariant.BodySM}>
-                {strings('switch_custom_network.requesting_for')}
+                {strings('permissions.requesting_for')}
               </TextComponent>
               <TextComponent variant={TextVariant.BodySMMedium}>
                 {customNetworkInformation.chainName}
@@ -265,7 +265,7 @@ const SwitchCustomNetwork = ({
           <Button
             variant={ButtonVariants.Link}
             width={ButtonWidthTypes.Full}
-            label={strings('switch_custom_network.edit')}
+            label={strings('permissions.edit')}
             size={ButtonSize.Lg}
           />
         </View>
@@ -274,7 +274,7 @@ const SwitchCustomNetwork = ({
   }
 
   const title = isMutichainVersion1Enabled
-    ? strings('switch_custom_network.title_enabled_network')
+    ? strings('permissions.title_this_site_wants_to')
     : strings('switch_custom_network.title_existing_network');
 
   return (
