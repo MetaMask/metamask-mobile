@@ -17,16 +17,9 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>$(MARKETING_VERSION)</string>
+	<string>7.29.0</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
-	<key>branch_universal_link_domains</key>
-	<array>
-		<string>metamask.app.link</string>
-		<string>metamask-alternate.app.link</string>
-		<string>metamask.test.app.link</string>
-		<string>metamask-alternate.test.app.link</string>
-	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -40,7 +33,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<string>1397</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSApplicationQueriesSchemes</key>
@@ -144,14 +137,16 @@
 		<key>test</key>
 		<string>$(MM_BRANCH_KEY_TEST)</string>
 	</dict>
-	<key>mixpanel_token</key>
-	<string>$(MM_MIXPANEL_TOKEN)</string>
+	<key>branch_universal_link_domains</key>
+	<array>
+		<string>metamask.app.link</string>
+		<string>metamask-alternate.app.link</string>
+		<string>metamask.test.app.link</string>
+		<string>metamask-alternate.test.app.link</string>
+	</array>
 	<key>fox_code</key>
 	<string>$(MM_FOX_CODE)</string>
-	<key>LSApplicationQueriesSchemes</key>
-	<array>
-		<string>twitter</string>
-		<string>itms-apps</string>
-	</array>
+	<key>mixpanel_token</key>
+	<string>$(MM_MIXPANEL_TOKEN)</string>
 </dict>
 </plist>
