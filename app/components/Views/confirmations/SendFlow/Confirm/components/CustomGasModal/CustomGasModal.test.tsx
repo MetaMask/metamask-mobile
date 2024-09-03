@@ -3,7 +3,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
 import Engine from '../../../../../../../core/Engine';
-import initialBackgroundState from '../../../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import CustomGasModal from '.';
 
@@ -34,7 +34,7 @@ const mockInitialState = {
   },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
     },
   },
 };

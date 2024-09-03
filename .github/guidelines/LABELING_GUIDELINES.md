@@ -16,11 +16,13 @@ It's essential to ensure that PRs have the appropriate labels before they are co
 ### Mandatory QA labels:
 Every PR shall include one the QA labels below:
 - **needs-qa**: If the PR includes a new features, complex testing steps, or large refactors, this label must be added to indicated PR requires a full manual QA prior being merged and added to a release.
-- **No QA/E2E only**: If the PR does not require any manual QA effort, this label must be added. However, prior to merging, you must ensure end-to-end test runs in Bitrise are successful.
+
 - **Spot check on release build**: If PR does not require feature QA but needs non-automated verification, this label must be added. Furthermore, when that label is added, you must provide test scenarios in the description section, as well as add screenshots, and or recordings of what was tested.
 
-Once PR has been tested by QA (only if the PR was labeled with `needs-qa`):
+To merge your PR one of the following QA labels are required:
 - **QA Passed**: If the PR was labeled with `needs-qa`, this label must be added once QA has signed off
+- **No QA Needed**: If the PR does not require any QA effort. This label should only be used in case you are updating a README or other files that does not impact the building or runtime of the application.
+- **Run E2E Smoke**: This label will kick-off E2E testing and trigger a check to make sure the E2E tests pass. 
 
 ### Optional labels:
 - **regression-develop**: This label can manually be added to a bug report issue at the time of its creation if the bug is present on the development branch, i.e., `main`, but is not yet released in production.

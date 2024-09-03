@@ -1,7 +1,8 @@
 import migration from './029';
 import { merge } from 'lodash';
-import initialRootState from '../../util/test/initial-root-state';
-import initialBackgroundState from '../../util/test/initial-background-state.json';
+import initialRootState, {
+  backgroundState,
+} from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
 
 const oldState = {
@@ -280,7 +281,7 @@ describe('Migration #29', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              ...initialBackgroundState.NetworkController,
+              ...backgroundState.NetworkController,
               networkDetails: {
                 isEIP1559Compatible: true,
               },
@@ -297,9 +298,9 @@ describe('Migration #29', () => {
       state: merge({}, initialRootState, {
         engine: {
           backgroundState: {
-            ...initialBackgroundState,
+            ...backgroundState,
             NetworkController: {
-              ...initialBackgroundState.NetworkController,
+              ...backgroundState.NetworkController,
               networkDetails: {
                 isEIP1559Compatible: true,
               },
@@ -316,9 +317,9 @@ describe('Migration #29', () => {
       state: merge({}, initialRootState, {
         engine: {
           backgroundState: {
-            ...initialBackgroundState,
+            ...backgroundState,
             NetworkController: {
-              ...initialBackgroundState.NetworkController,
+              ...backgroundState.NetworkController,
               networkDetails: {
                 isEIP1559Compatible: true,
               },
@@ -335,9 +336,9 @@ describe('Migration #29', () => {
       state: merge({}, initialRootState, {
         engine: {
           backgroundState: {
-            ...initialBackgroundState,
+            ...backgroundState,
             NetworkController: {
-              ...initialBackgroundState.NetworkController,
+              ...backgroundState.NetworkController,
               networkDetails: {
                 isEIP1559Compatible: true,
               },
@@ -354,9 +355,9 @@ describe('Migration #29', () => {
       state: merge({}, initialRootState, {
         engine: {
           backgroundState: {
-            ...initialBackgroundState,
+            ...backgroundState,
             NetworkController: {
-              ...initialBackgroundState.NetworkController,
+              ...backgroundState.NetworkController,
               networkDetails: {
                 isEIP1559Compatible: true,
               },
@@ -373,9 +374,9 @@ describe('Migration #29', () => {
       state: merge({}, initialRootState, {
         engine: {
           backgroundState: {
-            ...initialBackgroundState,
+            ...backgroundState,
             NetworkController: {
-              ...initialBackgroundState.NetworkController,
+              ...backgroundState.NetworkController,
               networkDetails: {
                 isEIP1559Compatible: true,
               },
@@ -392,9 +393,9 @@ describe('Migration #29', () => {
       state: merge({}, initialRootState, {
         engine: {
           backgroundState: {
-            ...initialBackgroundState,
+            ...backgroundState,
             NetworkController: {
-              ...initialBackgroundState.NetworkController,
+              ...backgroundState.NetworkController,
               networkDetails: {
                 isEIP1559Compatible: true,
               },
@@ -411,9 +412,9 @@ describe('Migration #29', () => {
       state: merge({}, initialRootState, {
         engine: {
           backgroundState: {
-            ...initialBackgroundState,
+            ...backgroundState,
             NetworkController: {
-              ...initialBackgroundState.NetworkController,
+              ...backgroundState.NetworkController,
               networkDetails: {
                 isEIP1559Compatible: true,
               },

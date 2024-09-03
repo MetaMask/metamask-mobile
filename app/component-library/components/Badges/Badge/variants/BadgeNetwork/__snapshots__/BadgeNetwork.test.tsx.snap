@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`BadgeNetwork - snapshots should render badge network correctly 1`] = `
-<BadgeBase
+exports[`BadgeNetwork should render BadgeNetwork 1`] = `
+<View
   onLayout={[Function]}
   style={
     {
@@ -14,22 +14,19 @@ exports[`BadgeNetwork - snapshots should render badge network correctly 1`] = `
       "opacity": 0,
     }
   }
-  testID="badge-network"
+  testID="badgenetwork"
 >
-  <Avatar
-    imageSource={
-      {
-        "default": {
-          "uri": "MockImage",
-        },
-      }
-    }
-    name="Ethereum"
-    size="32"
+  <View
     style={
       {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
         "borderColor": "#ffffff",
+        "borderRadius": 16,
         "borderWidth": 2,
+        "height": 32,
+        "justifyContent": "center",
+        "overflow": "hidden",
         "shadowColor": "#0000001a",
         "shadowOffset": {
           "height": 2,
@@ -42,9 +39,28 @@ exports[`BadgeNetwork - snapshots should render badge network correctly 1`] = `
             "scale": 1,
           },
         ],
+        "width": 32,
       }
     }
-    variant="Network"
-  />
-</BadgeBase>
+  >
+    <Image
+      onError={[Function]}
+      resizeMode="contain"
+      source={
+        {
+          "default": {
+            "uri": "MockImage",
+          },
+        }
+      }
+      style={
+        {
+          "height": 32,
+          "width": 32,
+        }
+      }
+      testID="network-avatar-image"
+    />
+  </View>
+</View>
 `;

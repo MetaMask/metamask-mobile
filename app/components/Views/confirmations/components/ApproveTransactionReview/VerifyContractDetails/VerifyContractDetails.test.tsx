@@ -1,11 +1,11 @@
 import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import VerifyContractDetails from './VerifyContractDetails';
-import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 const initialState = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
   settings: {
     primaryCurrency: 'ETH',

@@ -8,7 +8,7 @@ import EngineService from '../core/EngineService';
 import { Authentication } from '../core';
 import LockManagerService from '../core/LockManagerService';
 import ReadOnlyNetworkStore from '../util/test/network-store';
-import { isTest } from '../util/test/utils';
+import { isE2E } from '../util/test/utils';
 import thunk from 'redux-thunk';
 
 import persistConfig from './persistConfig';
@@ -25,7 +25,7 @@ const pReducer = persistReducer<RootState, any>(persistConfig, rootReducer);
 let store: Store<RootState, any>, persistor;
 const createStoreAndPersistor = async () => {
   // Obtain the initial state from ReadOnlyNetworkStore for E2E tests.
-  const initialState = isTest
+  const initialState = isE2E
     ? await ReadOnlyNetworkStore.getState()
     : undefined;
 
@@ -34,9 +34,20 @@ const createStoreAndPersistor = async () => {
   // Create the store and apply middlewares. In E2E tests, an optional initialState
   // from fixtures can be provided to preload the store; otherwise, it remains undefined.
 
+  const middlewares = [sagaMiddleware, thunk];
+
+  if (__DEV__) {
+    // Add redux flipper middleware for debugging Redux with Flipper
+    // Flipper's client side plugin is https://github.com/jk-gan/flipper-plugin-redux-debugger, which needs to be added as a plugin
+    // flipper-plugin-redux-debugger is named redux-debugger in Flipper's plugin list
+    /* eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
+    const createReduxFlipperDebugger = require('redux-flipper').default;
+    middlewares.push(createReduxFlipperDebugger());
+  }
+
   store = configureStore({
     reducer: pReducer,
-    middleware: [sagaMiddleware, thunk],
+    middleware: middlewares,
     preloadedState: initialState,
   });
 

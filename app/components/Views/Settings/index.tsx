@@ -11,13 +11,14 @@ import Routes from '../../../constants/navigation/Routes';
 import { Authentication } from '../../../core/';
 import { Colors } from '../../../util/theme/models';
 import { SettingsViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SettingsView.selectors';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/SnapsSettingsList';
 ///: END:ONLY_INCLUDE_IF
 import { TextColor } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isTest } from '../../../util/test/utils';
+import { isMutichainVersion1Enabled } from '../../../util/networks';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -102,6 +103,10 @@ const Settings = () => {
     navigation.navigate('ContactsSettings');
   };
 
+  const goToManagePermissions = () => {
+    navigation.navigate('PermissionsManager');
+  };
+
   const goToBrowserUrl = (url: string, title: string) => {
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
@@ -112,7 +117,7 @@ const Settings = () => {
     });
   };
 
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   const onPressSnaps = () => {
     navigation.navigate(...createSnapsSettingsListNavDetails());
   };
@@ -209,6 +214,14 @@ const Settings = () => {
           testID={SettingsViewSelectorsIDs.NOTIFICATIONS}
         />
       )}
+      {isMutichainVersion1Enabled && (
+        <SettingsDrawer
+          description={strings('app_settings.permissions_desc')}
+          onPress={goToManagePermissions}
+          title={strings('app_settings.permissions_title')}
+          testID={SettingsViewSelectorsIDs.PERMISSIONS}
+        />
+      )}
       <SettingsDrawer
         description={strings('app_settings.contacts_desc')}
         onPress={onPressContacts}
@@ -222,7 +235,7 @@ const Settings = () => {
         testID={SettingsViewSelectorsIDs.NETWORKS}
       />
       {
-        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+        ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
       }
       <SettingsDrawer
         title={strings('app_settings.snaps.title')}

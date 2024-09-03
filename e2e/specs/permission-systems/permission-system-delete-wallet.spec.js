@@ -4,7 +4,7 @@ import { Regression } from '../../tags';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView';
 import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
-import WalletView from '../../pages/WalletView';
+import WalletView from '../../pages/wallet/WalletView';
 import Browser from '../../pages/Browser/BrowserView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import TabBarComponent from '../../pages/TabBarComponent';
@@ -89,7 +89,7 @@ describe(
           await SkipAccountSecurityModal.tapIUnderstandCheckBox();
           await SkipAccountSecurityModal.tapSkipButton();
           await OnboardingSuccessView.tapDone();
-          await WalletView.isVisible();
+          await Assertions.checkIfVisible(WalletView.container);
           await ProtectYourWalletModal.tapRemindMeLaterButton();
           await SkipAccountSecurityModal.tapIUnderstandCheckBox();
           await SkipAccountSecurityModal.tapSkipButton();

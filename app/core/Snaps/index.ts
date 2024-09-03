@@ -1,8 +1,9 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import SnapBridge from './SnapBridge';
 import {
   ExcludedSnapPermissions,
   ExcludedSnapEndowments,
+  EndowmentPermissions,
 } from './permissions/permissions';
 import {
   detectSnapLocation,
@@ -14,6 +15,7 @@ export {
   SnapBridge,
   ExcludedSnapPermissions,
   ExcludedSnapEndowments,
+  EndowmentPermissions,
   fetchFunction,
   detectSnapLocation,
 };

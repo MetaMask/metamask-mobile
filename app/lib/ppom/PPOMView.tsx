@@ -1,6 +1,6 @@
 import React, { Component, RefObject } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { WebView } from 'react-native-webview';
+import { WebView } from '@metamask/react-native-webview';
 import createInvoke from 'react-native-webview-invoke/native';
 import { fromByteArray } from 'react-native-quick-base64';
 

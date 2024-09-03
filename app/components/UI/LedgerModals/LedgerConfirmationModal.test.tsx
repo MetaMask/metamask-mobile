@@ -15,15 +15,11 @@ import {
   BluetoothPermissionErrors,
   LedgerCommunicationErrors,
 } from '../../../core/Ledger/ledgerErrors';
-import { unlockLedgerDefaultAccount } from '../../../core/Ledger/Ledger';
 import { strings } from '../../../../locales/i18n';
 import { useMetrics } from '../../hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fireEvent } from '@testing-library/react-native';
-
-jest.mock('../../../core/Ledger/Ledger', () => ({
-  unlockLedgerDefaultAccount: jest.fn(),
-}));
+import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 
 jest.mock('../../hooks/Ledger/useBluetooth', () => ({
   __esModule: true,
@@ -55,26 +51,26 @@ describe('LedgerConfirmationModal', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
-    //mock hook return value
-    useBluetoothPermissions.mockReturnValue({
+    // Mock hook return value
+    (useBluetoothPermissions as jest.Mock).mockReturnValue({
       hasBluetoothPermissions: true,
       bluetoothPermissionError: null,
       checkPermissions: jest.fn(),
     });
 
-    useBluetooth.mockReturnValue({
+    (useBluetooth as jest.Mock).mockReturnValue({
       bluetoothOn: true,
       bluetoothConnectionError: false,
     });
 
-    useLedgerBluetooth.mockReturnValue({
+    (useLedgerBluetooth as jest.Mock).mockReturnValue({
       isSendingLedgerCommands: false,
       isAppLaunchConfirmationNeeded: false,
       ledgerLogicToRun: jest.fn(),
       error: null,
     });
 
-    useMetrics.mockReturnValue({
+    (useMetrics as jest.Mock).mockReturnValue({
       trackEvent: jest.fn(),
     });
   });
@@ -84,7 +80,7 @@ describe('LedgerConfirmationModal', () => {
     expectedTitle: string,
     expectedErrorBody: string,
   ) {
-    useLedgerBluetooth.mockReturnValue({
+    (useLedgerBluetooth as jest.Mock).mockReturnValue({
       isSendingLedgerCommands: true,
       isAppLaunchConfirmationNeeded: false,
       ledgerLogicToRun: jest.fn(),
@@ -109,7 +105,7 @@ describe('LedgerConfirmationModal', () => {
     expectedTitle: string,
     expectedErrorBody: string,
   ) {
-    useBluetoothPermissions.mockReturnValue({
+    (useBluetoothPermissions as jest.Mock).mockReturnValue({
       hasBluetoothPermissions: false,
       bluetoothPermissionError,
       checkPermissions: jest.fn(),
@@ -150,7 +146,7 @@ describe('LedgerConfirmationModal', () => {
   });
 
   it('renders OpenETHAppStep when app launch confirmation is needed', () => {
-    useLedgerBluetooth.mockReturnValue({
+    (useLedgerBluetooth as jest.Mock).mockReturnValue({
       isSendingLedgerCommands: true,
       isAppLaunchConfirmationNeeded: true,
       ledgerLogicToRun: jest.fn(),
@@ -264,7 +260,7 @@ describe('LedgerConfirmationModal', () => {
   });
 
   it('renders ErrorStep when there is a bluetooth connection error', () => {
-    useBluetooth.mockReturnValue({
+    (useBluetooth as jest.Mock).mockReturnValue({
       bluetoothOn: false,
       bluetoothConnectionError: true,
     });
@@ -284,7 +280,7 @@ describe('LedgerConfirmationModal', () => {
   it('retries connectLedger when retry button is used', async () => {
     const ledgerLogicToRun = jest.fn();
 
-    useLedgerBluetooth.mockReturnValue({
+    (useLedgerBluetooth as jest.Mock).mockReturnValue({
       isSendingLedgerCommands: true,
       isAppLaunchConfirmationNeeded: false,
       ledgerLogicToRun,
@@ -313,7 +309,7 @@ describe('LedgerConfirmationModal', () => {
 
   it('retries checkPermissions when retry button is used', async () => {
     const checkPermissions = jest.fn();
-    useBluetoothPermissions.mockReturnValue({
+    (useBluetoothPermissions as jest.Mock).mockReturnValue({
       hasBluetoothPermissions: false,
       bluetoothPermissionError:
         BluetoothPermissionErrors.NearbyDevicesAccessBlocked,
@@ -340,8 +336,7 @@ describe('LedgerConfirmationModal', () => {
 
   it('calls onConfirmation when ledger commands are being sent and confirmed have been received.', async () => {
     const onConfirmation = jest.fn();
-    unlockLedgerDefaultAccount.mockReturnValue(Promise.resolve(true));
-    useLedgerBluetooth.mockReturnValue({
+    (useLedgerBluetooth as jest.Mock).mockReturnValue({
       isSendingLedgerCommands: true,
       isAppLaunchConfirmationNeeded: false,
       ledgerLogicToRun: jest.fn().mockImplementation((callback) => callback()),
@@ -359,15 +354,14 @@ describe('LedgerConfirmationModal', () => {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     await act(async () => {});
 
-    expect(unlockLedgerDefaultAccount).toHaveBeenCalled();
     expect(onConfirmation).toHaveBeenCalled();
   });
 
-  it('logs LEDGER_HARDWARE_WALLET_ERROR thrown by unlockLedgerDefaultAccount', async () => {
+  it('logs LEDGER_HARDWARE_WALLET_ERROR event when the ledger error occurs', async () => {
     const onConfirmation = jest.fn();
 
     const ledgerLogicToRun = jest.fn();
-    useLedgerBluetooth.mockReturnValue({
+    (useLedgerBluetooth as jest.Mock).mockReturnValue({
       isSendingLedgerCommands: true,
       isAppLaunchConfirmationNeeded: false,
       ledgerLogicToRun,
@@ -379,7 +373,7 @@ describe('LedgerConfirmationModal', () => {
     });
 
     const trackEvent = jest.fn();
-    useMetrics.mockReturnValue({
+    (useMetrics as jest.Mock).mockReturnValue({
       trackEvent,
     });
 
@@ -400,7 +394,7 @@ describe('LedgerConfirmationModal', () => {
       1,
       MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR,
       {
-        device_type: 'Ledger',
+        device_type: HardwareDeviceTypes.LEDGER,
         error: 'LEDGER_ETH_APP_NOT_INSTALLED',
       },
     );
@@ -408,7 +402,7 @@ describe('LedgerConfirmationModal', () => {
 
   it('calls onRejection when user refuses confirmation', async () => {
     const onRejection = jest.fn();
-    useLedgerBluetooth.mockReturnValue({
+    (useLedgerBluetooth as jest.Mock).mockReturnValue({
       isSendingLedgerCommands: true,
       isAppLaunchConfirmationNeeded: false,
       ledgerLogicToRun: jest.fn(),

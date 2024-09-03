@@ -409,7 +409,7 @@ exports[`Tabs should render correctly 1`] = `
                         "opacity": 0,
                       }
                     }
-                    testID="badge-network"
+                    testID="badgenetwork"
                   >
                     <View
                       style={
@@ -469,7 +469,7 @@ exports[`Tabs should render correctly 1`] = `
                 {
                   "color": "#141618",
                   "flex": 1,
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 12,
                   "fontWeight": "400",
                   "letterSpacing": 0,

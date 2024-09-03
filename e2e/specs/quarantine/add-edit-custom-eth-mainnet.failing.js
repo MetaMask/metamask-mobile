@@ -9,7 +9,7 @@ import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
 import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
 import EnableAutomaticSecurityChecksView from '../../pages/EnableAutomaticSecurityChecksView';
 import SkipAccountSecurityModal from '../../pages/modals/SkipAccountSecurityModal';
-import WalletView from '../../pages/WalletView';
+import WalletView from '../../pages/wallet/WalletView';
 import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView';
 import NetworksView from '../../pages/Settings/NetworksView';
 import Accounts from '../../../wdio/helpers/Accounts';
@@ -19,8 +19,6 @@ import SettingsView from '../../pages/Settings/SettingsView';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import OnboardingWizardModal from '../../pages/modals/OnboardingWizardModal';
 import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
-import WhatsNewModal from '../../pages/modals/WhatsNewModal';
-import TestHelpers from '../../helpers';
 import ExperienceEnhancerModal from '../../pages/modals/ExperienceEnhancerModal';
 
 const validAccount = Accounts.getValidAccount();
@@ -71,20 +69,10 @@ describe(Regression('Add custom default ETH Mainnet'), () => {
   });
 
   it('should show custom default ETH Mainnet as active', async () => {
-    await WalletView.isNetworkNameVisible(
+    await Assertions.checkIfElementToHaveText(
+      WalletView.navbarNetworkText,
       CustomNetworks.EthereumMainCustom.providerConfig.nickname,
     );
-  });
-
-  it('should tap to close the whats new modal if displayed', async () => {
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(2500);
-    try {
-      await Assertions.checkIfVisible(WhatsNewModal.container);
-      await WhatsNewModal.tapCloseButton();
-    } catch {
-      //
-    }
   });
 
   it('should navigate to Settings > Networks', async () => {
@@ -107,8 +95,9 @@ describe(Regression('Add custom default ETH Mainnet'), () => {
       CustomNetworks.EthereumMainCustom.providerConfig.rpcUrlAlt,
     );
     await NetworksView.tapSave();
-    await WalletView.isConnectedNetwork(
-      CustomNetworks.EthereumMainCustom.providerConfig.nickname,
+    await Assertions.checkIfElementToHaveText(
+      WalletView.navbarNetworkText,
+      CustomNetworks.Sepolia.providerConfig.nickname,
     );
   });
 
@@ -118,8 +107,9 @@ describe(Regression('Add custom default ETH Mainnet'), () => {
       CustomNetworks.EthereumMainCustom.providerConfig.nickname,
       true, //setting this made this step work for iOS
     );
-    await WalletView.isConnectedNetwork(
-      CustomNetworks.EthereumMainCustom.providerConfig.nickname,
+    await Assertions.checkIfElementToHaveText(
+      WalletView.navbarNetworkText,
+      CustomNetworks.Sepolia.providerConfig.nickname,
     );
   });
 });

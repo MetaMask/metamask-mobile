@@ -2,41 +2,46 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { Hex } from '@metamask/utils';
 
 // External dependencies
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../util/test/renderWithProvider';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { Account } from '../../hooks/useAccounts';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   internalAccount2,
   expectedUuid2,
 } from '../../../util/test/accountsControllerTestUtils';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { RootState } from '../../../reducers';
 
 // Internal dependencies
 import WalletAccount from './WalletAccount';
 
-const MOCK_CHAIN_ID = '0x1';
+const MOCK_CHAIN_ID: Hex = '0x1';
 
 const MOCK_ENS_CACHED_NAME = 'fox.eth';
 
 const mockAccount: Account = {
   name: internalAccount2.metadata.name,
-  address: internalAccount2.address,
+  address: internalAccount2.address as Hex,
   type: internalAccount2.metadata.keyring.type as KeyringTypes,
   yOffset: 0,
   isSelected: true,
 };
 
-const mockInitialState = {
+const mockInitialState: DeepPartial<RootState> = {
   settings: {
     useBlockieIcon: false,
   },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       NetworkController: {
         providerConfig: {
@@ -111,7 +116,7 @@ describe('WalletAccount', () => {
     const { getByTestId } = renderWithProvider(<WalletAccount />, {
       state: mockInitialState,
     });
-    expect(getByTestId('wallet-account-address')).toBeDefined();
+    expect(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ADDRESS)).toBeDefined();
   });
 
   it('copies the account address to the clipboard when the copy button is pressed', async () => {
@@ -119,7 +124,7 @@ describe('WalletAccount', () => {
       state: mockInitialState,
     });
 
-    fireEvent.press(getByTestId('wallet-account-copy-button'));
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_COPY_BUTTON));
     expect(ClipboardManager.setString).toHaveBeenCalledTimes(1);
   });
 
@@ -128,7 +133,7 @@ describe('WalletAccount', () => {
       state: mockInitialState,
     });
 
-    fireEvent.press(getByTestId('account-picker'));
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON));
     expect(mockNavigate).toHaveBeenCalledWith(
       ...createAccountSelectorNavDetails({}),
     );
@@ -150,6 +155,7 @@ describe('WalletAccount', () => {
   });
   it('displays custom account name when ENS is defined but account name is not the default', async () => {
     const customAccountName = 'Custom Account Name';
+    //@ts-expect-error - for testing purposes we will assume that this is not possibly undefined
     mockInitialState.engine.backgroundState.AccountsController.internalAccounts.accounts[
       expectedUuid2
     ].metadata.name = customAccountName;

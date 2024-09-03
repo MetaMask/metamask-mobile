@@ -6,13 +6,13 @@ import { act, render, waitFor } from '@testing-library/react-native';
 import useTokenBalancesController from './useTokenBalancesController';
 import { BN } from 'ethereumjs-util';
 import { cloneDeep } from 'lodash';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
 // initial state for the test store
 const mockInitialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       TokenBalancesController: {
         contractBalances: {
           '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': new BN(0x2a),

@@ -24,6 +24,12 @@ jest.mock('../../core/Engine', () => ({
         providerConfig: { chainId: '0x1' },
       },
     },
+    AccountsController: {
+      state: {
+        internalAccounts: { accounts: [] },
+      },
+      listAccounts: () => [],
+    },
   },
 }));
 

@@ -5,7 +5,7 @@ import configureMockStore from 'redux-mock-store';
 import { render } from '@testing-library/react-native';
 
 import SendFlowAddressFrom from '.';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 jest.mock('../../../../../util/ENSUtils', () => ({
   ...jest.requireActual('../../../../../util/ENSUtils'),
@@ -44,7 +44,7 @@ const mockInitialState = {
   },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountTrackerController: {
         accounts: {
           '0xd018538C87232FF95acbCe4870629b75640a78E7': {

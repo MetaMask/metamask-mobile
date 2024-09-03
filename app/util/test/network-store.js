@@ -27,9 +27,45 @@ const FIXTURE_SERVER_URL = `http://${FIXTURE_SERVER_HOST}:${getFixturesServerPor
 class ReadOnlyNetworkStore {
   constructor() {
     this._initialized = false;
-    this._initializing = this._init();
     this._state = undefined;
     this._asyncState = undefined;
+  }
+
+  // Redux Store
+  async getState() {
+    await this._initIfRequired();
+    return this._state;
+  }
+
+  async setState(state) {
+    if (!state) {
+      throw new Error('MetaMask - updated state is missing');
+    }
+    await this._initIfRequired();
+    this._state = state;
+  }
+
+  // Async Storage
+  async getString(key) {
+    await this._initIfRequired();
+    const value = this._asyncState[key];
+    return value !== undefined ? value : null;
+  }
+
+  async set(key, value) {
+    await this._initIfRequired();
+    this._asyncState[key] = value;
+  }
+
+  async delete(key) {
+    await this._initIfRequired();
+    delete this._asyncState[key];
+  }
+
+  async _initIfRequired() {
+    if (!this._initialized) {
+      await this._init();
+    }
   }
 
   async _init() {
@@ -45,45 +81,6 @@ class ReadOnlyNetworkStore {
     } finally {
       this._initialized = true;
     }
-  }
-  // Redux Store
-  async getState() {
-    if (!this._initialized) {
-      await this._initializing;
-    }
-    return this._state;
-  }
-
-  async setState(state) {
-    if (!state) {
-      throw new Error('MetaMask - updated state is missing');
-    }
-    if (!this._initialized) {
-      await this._initializing;
-    }
-    this._state = state;
-  }
-  // Async Storage
-  async getItem(key) {
-    if (!this._initialized) {
-      await this._initializing;
-    }
-    const value = this._asyncState[key];
-    return value !== undefined ? value : null;
-  }
-
-  async setItem(key, value) {
-    if (!this._initialized) {
-      await this._initializing;
-    }
-    this._asyncState[key] = value;
-  }
-
-  async removeItem(key) {
-    if (!this._initialized) {
-      await this._initializing;
-    }
-    delete this._asyncState[key];
   }
 }
 

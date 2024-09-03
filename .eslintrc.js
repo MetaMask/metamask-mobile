@@ -19,6 +19,10 @@ module.exports = {
       rules: {
         // TODO: re-enable
         'jsdoc/no-types': 'off',
+        'react/display-name': 'off',
+        'react/no-unused-prop-types': 'off',
+        'react/prop-types': 'off',
+        'react/self-closing-comp': 'off',
         // This change is included in `@metamask/eslint-config-typescript@10.0.0
         '@typescript-eslint/no-unused-vars': [
           'error',
@@ -109,7 +113,7 @@ module.exports = {
     'import/no-mutable-exports': 2,
     'import/no-namespace': 2,
     'import/no-nodejs-modules': 2,
-    'import/prefer-default-export': 2,
+    'import/prefer-default-export': 0,
     'no-alert': 2,
     'no-constant-condition': [
       2,
@@ -186,5 +190,5 @@ module.exports = {
     radix: 0,
   },
 
-  ignorePatterns: ['wdio.conf.js'],
+  ignorePatterns: ['wdio.conf.js', 'app/util/termsOfUse/termsOfUseContent.ts'],
 };

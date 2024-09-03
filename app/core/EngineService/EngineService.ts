@@ -1,7 +1,6 @@
 import UntypedEngine from '../Engine';
 import AppConstants from '../AppConstants';
 import { getVaultFromBackup } from '../BackupVault';
-import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 import { store as importedStore } from '../../store';
 import Logger from '../../util/Logger';
 import {
@@ -40,6 +39,15 @@ class EngineService {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private updateControllers = (store: any, engine: any) => {
+    if (!engine.context) {
+      Logger.error(
+        new Error(
+          'Engine context does not exists. Redux will not be updated from controller state updates!',
+        ),
+      );
+      return;
+    }
+
     const controllers = [
       { name: 'AddressBookController' },
       { name: 'AssetsContractController' },
@@ -74,7 +82,10 @@ class EngineService {
         key: `${engine.context.TokenBalancesController.name}:stateChange`,
       },
       { name: 'TokenRatesController' },
-      { name: 'TransactionController' },
+      {
+        name: 'TransactionController',
+        key: `${engine.context.TransactionController.name}:stateChange`,
+      },
       { name: 'SmartTransactionsController' },
       { name: 'SwapsController' },
       {
@@ -93,14 +104,26 @@ class EngineService {
         name: 'ApprovalController',
         key: `${engine.context.ApprovalController.name}:stateChange`,
       },
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       {
         name: 'SnapController',
         key: `${engine.context.SnapController.name}:stateChange`,
       },
       {
-        name: 'subjectMetadataController',
+        name: 'SubjectMetadataController',
         key: `${engine.context.SubjectMetadataController.name}:stateChange`,
+      },
+      {
+        name: 'AuthenticationController',
+        key: 'AuthenticationController:stateChange',
+      },
+      {
+        name: 'UserStorageController',
+        key: 'UserStorageController:stateChange',
+      },
+      {
+        name: 'NotificationServicesController',
+        key: 'NotificationServicesController:stateChange',
       },
       ///: END:ONLY_INCLUDE_IF
       {
@@ -115,18 +138,27 @@ class EngineService {
         name: 'AccountsController',
         key: `${engine.context.AccountsController.name}:stateChange`,
       },
-    ];
-
-    if (isBlockaidFeatureEnabled()) {
-      controllers.push({
+      {
         name: 'PPOMController',
         key: `${engine.context.PPOMController.name}:stateChange`,
-      });
-    }
+      },
+      {
+        name: 'AuthenticationController',
+        key: `AuthenticationController:stateChange`,
+      },
+      {
+        name: 'UserStorageController',
+        key: `UserStorageController:stateChange`,
+      },
+      {
+        name: 'NotificationServicesController',
+        key: `NotificationServicesController:stateChange`,
+      },
+    ];
 
     engine?.datamodel?.subscribe?.(() => {
       if (!engine.context.KeyringController.metadata.vault) {
-        Logger.message('keyringController vault missing for INIT_BG_STATE_KEY');
+        Logger.log('keyringController vault missing for INIT_BG_STATE_KEY');
       }
       if (!this.engineInitialized) {
         store.dispatch({ type: INIT_BG_STATE_KEY });
@@ -138,9 +170,7 @@ class EngineService {
       const { name, key = undefined } = controller;
       const update_bg_state_cb = () => {
         if (!engine.context.KeyringController.metadata.vault) {
-          Logger.message(
-            'keyringController vault missing for UPDATE_BG_STATE_KEY',
-          );
+          Logger.log('keyringController vault missing for UPDATE_BG_STATE_KEY');
         }
         store.dispatch({ type: UPDATE_BG_STATE_KEY, payload: { key: name } });
       };

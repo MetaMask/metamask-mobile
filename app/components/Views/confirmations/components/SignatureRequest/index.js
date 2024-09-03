@@ -5,25 +5,34 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
 import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals/SigningModal.selectors';
 import { strings } from '../../../../../../locales/i18n';
+import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../../../selectors/accountsController';
 import { selectProviderType } from '../../../../../selectors/networkController';
 import { fontStyles } from '../../../../../styles/common';
 import { isHardwareAccount } from '../../../../../util/address';
-import { getHost } from '../../../../../util/browser';
 import { getAnalyticsParams } from '../../../../../util/confirmation/signatureUtils';
 import Device from '../../../../../util/device';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
-import WarningMessage from '../../SendFlow/WarningMessage';
 import AccountInfoCard from '../../../../UI/AccountInfoCard';
 import ActionView, { ConfirmButtonState } from '../../../../UI/ActionView';
-import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
 import QRSigningDetails from '../../../../UI/QRHardware/QRSigningDetails';
 import withQRHardwareAwareness from '../../../../UI/QRHardware/withQRHardwareAwareness';
 import WebsiteIcon from '../../../../UI/WebsiteIcon';
+import WarningMessage from '../../SendFlow/WarningMessage';
+import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
 import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
-import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../../selectors/accountsController';
+
+const getCleanUrl = (url) => {
+  try {
+    const urlObject = new URL(url);
+
+    return urlObject.origin;
+  } catch (error) {
+    return '';
+  }
+};
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -254,8 +263,10 @@ class SignatureRequest extends PureComponent {
     const styles = this.getStyles();
     const url = currentPageInformation.url;
     const icon = currentPageInformation.icon;
-    const title = getHost(url);
+
+    const title = getCleanUrl(url);
     const arrowIcon = truncateMessage ? this.renderArrowIcon() : null;
+
     return (
       <View style={styles.actionViewChild}>
         <View style={styles.accountInfoCardWrapper}>

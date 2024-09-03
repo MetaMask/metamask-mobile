@@ -1,6 +1,6 @@
 import ActivationKeyForm from './ActivationKeyForm';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Routes from '../../../../../constants/navigation/Routes';
 import { fireEvent, screen } from '@testing-library/react-native';
 
@@ -13,7 +13,7 @@ function render(Component: React.ComponentType) {
     {
       state: {
         engine: {
-          backgroundState: initialBackgroundState,
+          backgroundState,
         },
       },
     },

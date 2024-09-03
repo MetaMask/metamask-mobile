@@ -8,42 +8,42 @@ import useFetchRampNetworks from '../../hooks/useFetchRampNetworks';
 import useRampNetworksDetail from '../../hooks/useRampNetworksDetail';
 import { RampSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Engine from '../../../../../core/Engine';
 import { RampType } from '../../../../../reducers/fiatOrders/types';
 
 const mockedRampNetworksValues: AggregatorNetwork[] = [
   {
     active: true,
-    chainId: 1,
+    chainId: '1',
     chainName: 'Ethereum Mainnet',
     nativeTokenSupported: true,
     shortName: 'Ethereum',
   },
   {
     active: true,
-    chainId: 59144,
+    chainId: '59144',
     chainName: 'Linea Mainnet',
     nativeTokenSupported: true,
     shortName: 'Linea',
   },
   {
     active: true,
-    chainId: 25,
+    chainId: '25',
     chainName: 'Cronos Mainnet',
     nativeTokenSupported: true,
     shortName: 'Cronos',
   },
   {
     active: true,
-    chainId: 137,
+    chainId: '137',
     chainName: 'Polygon Mainnet',
     nativeTokenSupported: true,
     shortName: 'Polygon',
   },
   {
     active: false,
-    chainId: 56,
+    chainId: '56',
     chainName: 'BNB Smart Chain',
     nativeTokenSupported: false,
     shortName: 'BNB Smart Chain',
@@ -66,7 +66,7 @@ const mockedNetworksDetails = [
   },
 ];
 
-function render(Component: React.ComponentType, chainId?: string) {
+function render(Component: React.ComponentType, chainId?: `0x${string}`) {
   return renderScreen(
     Component,
     {
@@ -76,9 +76,9 @@ function render(Component: React.ComponentType, chainId?: string) {
       state: {
         engine: {
           backgroundState: {
-            ...initialBackgroundState,
+            ...backgroundState,
             NetworkController: {
-              ...initialBackgroundState.NetworkController,
+              ...backgroundState.NetworkController,
               providerConfig: {
                 chainId: chainId ?? '0x38',
                 ticker: 'BNB',
@@ -89,8 +89,7 @@ function render(Component: React.ComponentType, chainId?: string) {
                   chainId: '0x89',
                   nickname: 'Polygon Mainnet',
                   rpcPrefs: { blockExplorerUrl: 'https://polygonscan.com' },
-                  rpcUrl:
-                    'https://polygon-mainnet.infura.io/v3/cda392a134014865ad3c273dc7ddfff3',
+                  rpcUrl: 'https://polygon-mainnet.infura.io/v3/12345',
                   ticker: 'MATIC',
                 },
               },
@@ -272,8 +271,10 @@ describe('NetworkSwitcher View', () => {
     render(NetworkSwitcher);
     const lineaNetworkText = screen.getByText('Linea Main Network');
     fireEvent.press(lineaNetworkText);
-    expect(Engine.context.NetworkController.setProviderType.mock.calls)
-      .toMatchInlineSnapshot(`
+    expect(
+      (Engine.context.NetworkController.setProviderType as jest.Mock).mock
+        .calls,
+    ).toMatchInlineSnapshot(`
       [
         [
           "linea-mainnet",
@@ -284,19 +285,23 @@ describe('NetworkSwitcher View', () => {
     render(NetworkSwitcher);
     const polygonNetworkTest = screen.getByText('Polygon Mainnet');
     fireEvent.press(polygonNetworkTest);
-    expect(Engine.context.NetworkController.setActiveNetwork.mock.calls)
-      .toMatchInlineSnapshot(`
+    expect(
+      (Engine.context.NetworkController.setActiveNetwork as jest.Mock).mock
+        .calls,
+    ).toMatchInlineSnapshot(`
       [
         [
           "networkId1",
         ],
       ]
     `);
-    expect(Engine.context.CurrencyRateController.updateExchangeRate.mock.calls)
-      .toMatchInlineSnapshot(`
+    expect(
+      (Engine.context.CurrencyRateController.updateExchangeRate as jest.Mock)
+        .mock.calls,
+    ).toMatchInlineSnapshot(`
       [
         [
-          "MATIC",
+          "POL",
         ],
       ]
     `);
@@ -364,11 +369,14 @@ describe('NetworkSwitcher View', () => {
   });
 
   it('navigates on supported network', async () => {
-    render(NetworkSwitcher, '1');
+    render(NetworkSwitcher, '0x1');
     expect(mockNavigate.mock.calls).toMatchInlineSnapshot(`
       [
         [
           "GetStarted",
+          {
+            "chainId": undefined,
+          },
         ],
       ]
     `);

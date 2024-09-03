@@ -42,7 +42,11 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
       <Image
         onError={[Function]}
         resizeMode="contain"
-        source={{}}
+        source={
+          {
+            "uri": "",
+          }
+        }
         style={
           {
             "flex": 1,
@@ -59,7 +63,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
         {
           "color": "#6a737d",
           "flexShrink": 1,
-          "fontFamily": "Euclid Circular B",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -291,7 +295,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                   "opacity": 0,
                 }
               }
-              testID="badge-network"
+              testID="badgenetwork"
             >
               <View
                 style={
@@ -346,7 +350,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
             style={
               {
                 "color": "#141618",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 12,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -370,7 +374,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
               style={
                 {
                   "color": "#141618",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Bold",
                   "fontSize": 14,
                   "fontWeight": "700",
                   "letterSpacing": 0,
@@ -389,7 +393,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 12,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -405,7 +409,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 14,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -651,7 +655,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                   "opacity": 0,
                 }
               }
-              testID="badge-network"
+              testID="badgenetwork"
             >
               <View
                 style={
@@ -706,7 +710,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
             style={
               {
                 "color": "#141618",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 12,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -730,7 +734,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
               style={
                 {
                   "color": "#141618",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Bold",
                   "fontSize": 14,
                   "fontWeight": "700",
                   "letterSpacing": 0,
@@ -749,7 +753,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 12,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -765,7 +769,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 14,
               "fontWeight": "700",
               "letterSpacing": 0,

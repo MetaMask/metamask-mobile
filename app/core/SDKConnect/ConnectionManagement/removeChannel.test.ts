@@ -5,9 +5,9 @@ import removeChannel from './removeChannel';
 jest.mock('../../../core/AppConstants');
 jest.mock('../SDKConnect');
 jest.mock('../utils/DevLogger');
-jest.mock('react-native-default-preference', () => ({
-  set: jest.fn().mockResolvedValue([]),
-  get: jest.fn().mockResolvedValue(JSON.stringify({})),
+jest.mock('../../../store/storage-wrapper', () => ({
+  setItem: jest.fn().mockResolvedValue([]),
+  getItem: jest.fn().mockResolvedValue(JSON.stringify({})),
 }));
 
 describe('removeChannel', () => {

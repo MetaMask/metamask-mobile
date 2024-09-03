@@ -1,7 +1,7 @@
 'use strict';
 import { SmokeCore } from '../../tags';
 import TestHelpers from '../../helpers';
-import WalletView from '../../pages/WalletView';
+import WalletView from '../../pages/wallet/WalletView';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
 import AddCustomTokenView from '../../pages/AddCustomTokenView';
 import AmountView from '../../pages/Send/AmountView';
@@ -56,7 +56,7 @@ describe(SmokeCore('Send ERC Token'), () => {
     await TestHelpers.delay(500);
     await ConfirmAddAssetView.isVisible();
     await ConfirmAddAssetView.tapOnConfirmButton();
-    await WalletView.isVisible();
+    await Assertions.checkIfVisible(WalletView.container);
   });
 
   it('should send token to address via asset overview screen', async () => {

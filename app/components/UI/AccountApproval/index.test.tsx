@@ -1,6 +1,6 @@
 import React from 'react';
 import AccountApproval from '.';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
@@ -18,7 +18,7 @@ jest.mock('../../../core/Engine', () => ({
       state: {
         keyrings: [
           {
-            accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
+            accounts: ['0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756'],
           },
         ],
       },
@@ -29,8 +29,17 @@ jest.mock('../../../core/Engine', () => ({
 const mockInitialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
-      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      ...backgroundState,
+      AccountsController: {
+        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+        accounts: {
+          '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756': {
+            balance: '0x0',
+            name: 'Account 1',
+            address: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
+          },
+        },
+      },
     },
   },
 };

@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 
 import { QuoteError, QuoteResponse } from '@consensys/on-ramp-sdk';
-import { DeepPartial } from './Quotes.types';
+import { DeepPartial } from '../../../../../util/test/renderWithProvider';
 
 export const mockQuotesData = [
   {
@@ -52,7 +52,7 @@ export const mockQuotesData = [
       idv2: '/currencies/crypto/1/0x0000000000000000000000000000000000000000',
       network: {
         active: true,
-        chainId: 1,
+        chainId: '1',
         chainName: 'Ethereum Mainnet',
         shortName: 'Ethereum',
       },
@@ -89,7 +89,7 @@ export const mockQuotesData = [
       idv2: '/currencies/crypto/1/0x0000000000000000000000000000000000000000',
       network: {
         active: true,
-        chainId: 1,
+        chainId: '1',
         chainName: 'Ethereum Mainnet',
         shortName: 'Ethereum',
       },
@@ -172,7 +172,7 @@ export const mockQuotesData = [
       idv2: '/currencies/crypto/1/0x0000000000000000000000000000000000000000',
       network: {
         active: true,
-        chainId: 1,
+        chainId: '1',
         chainName: 'Ethereum Mainnet',
         shortName: 'Ethereum',
       },

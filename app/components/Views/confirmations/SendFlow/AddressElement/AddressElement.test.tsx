@@ -4,7 +4,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import AddressElement from '.';
 import Engine from '../../../../../core/Engine';
 import { renderShortAddress } from '../../../../../util/address';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 const mockEngine = Engine;
 
@@ -30,7 +30,7 @@ jest.mock('../../../../../core/Engine', () => ({
 
 const initialState = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 
@@ -42,6 +42,7 @@ const renderComponent = (state: any) =>
       address={'0xd018538C87232FF95acbCe4870629b75640a78E7'}
       onAccountPress={() => null}
       onAccountLongPress={() => null}
+      onIconPress={() => null}
       testID="address-element"
     />,
     { state },

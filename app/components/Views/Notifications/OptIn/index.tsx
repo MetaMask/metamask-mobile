@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { Fragment, useCallback } from 'react';
 import { Image, View, Linking } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 
 import Button, {
   ButtonVariants,
@@ -14,112 +14,131 @@ import { useTheme } from '../../../../util/theme';
 import EnableNotificationsCardPlaceholder from '../../../../images/enableNotificationsCard.png';
 import { createStyles } from './styles';
 import Routes from '../../../../constants/navigation/Routes';
-import { CONSENSYS_PRIVACY_POLICY } from '../../../../constants/urls';
 import { useSelector } from 'react-redux';
-import { mmStorage } from '../../../../util/notifications';
-import { STORAGE_IDS } from '../../../../util/notifications/settings/storage/constants';
+import {
+  asyncAlert,
+  requestPushNotificationsPermission,
+} from '../../../../util/notifications';
+import AppConstants from '../../../../core/AppConstants';
+import { RootState } from '../../../../reducers';
+import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
+import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
 
 const OptIn = () => {
   const theme = useTheme();
   const styles = createStyles(theme);
   const navigation = useNavigation();
-  const isNotificationEnabled = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.notification?.notificationsSettings?.isEnabled,
+
+  const basicFunctionalityEnabled = useSelector(
+    (state: RootState) => state.settings.basicFunctionalityEnabled,
   );
-  const [promptCount, setPromptCount] = useState(0);
-
-  const navigateToNotificationsSettings = () => {
-    navigation.navigate(Routes.SETTINGS.NOTIFICATIONS);
-  };
-
+  const { enableNotifications } = useEnableNotifications();
+  const [optimisticLoading, setOptimisticLoading] = React.useState(false);
   const navigateToMainWallet = () => {
-    !isNotificationEnabled &&
-      mmStorage.saveLocal(
-        STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,
-        promptCount,
-      );
     navigation.navigate(Routes.WALLET_VIEW);
   };
 
+  const toggleNotificationsEnabled = useCallback(async () => {
+    if (!basicFunctionalityEnabled) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.BASIC_FUNCTIONALITY,
+        params: {
+          caller: Routes.NOTIFICATIONS.OPT_IN,
+        },
+      });
+    } else {
+      const nativeNotificationStatus = await requestPushNotificationsPermission(
+        asyncAlert,
+      );
+
+      if (nativeNotificationStatus) {
+        /**
+         * Although this is an async function, we are dispatching an action (firing & forget)
+         * to emulate optimistic UI.
+         * Setting a standard timeout to emulate loading state
+         * for 5 seconds. This only happens during the first time the user
+         * optIn to notifications.
+         */
+        enableNotifications();
+        setOptimisticLoading(true);
+        setTimeout(() => {
+          setOptimisticLoading(false);
+          navigation.navigate(Routes.NOTIFICATIONS.VIEW);
+        }, 5000);
+      }
+    }
+  }, [basicFunctionalityEnabled, enableNotifications, navigation]);
+
   const goToLearnMore = () => {
-    Linking.openURL(CONSENSYS_PRIVACY_POLICY);
+    Linking.openURL(AppConstants.URLS.PROFILE_SYNC);
   };
 
-  useFocusEffect(() => {
-    if (isNotificationEnabled) {
-      navigateToMainWallet();
-    } else {
-      const count = mmStorage.getLocal(
-        STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,
-      );
-      const times = count + 1 || 1;
-
-      setPromptCount(times);
-    }
-  });
-
   return (
-    <View style={styles.wrapper}>
-      <Text
-        variant={TextVariant.HeadingMD}
-        color={TextColor.Default}
-        style={styles.textTitle}
-      >
-        {strings('notifications.activation_card.title')}
-      </Text>
-      <View style={styles.card}>
-        <Image
-          source={EnableNotificationsCardPlaceholder}
-          style={styles.image}
-        />
-      </View>
-      <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
-        style={styles.textSpace}
-      >
-        {strings('notifications.activation_card.description_1')}
-      </Text>
-
-      <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
-        style={styles.textSpace}
-      >
-        {strings('notifications.activation_card.description_2')}{' '}
+    <Fragment>
+      <View style={styles.wrapper}>
+        <Text
+          variant={TextVariant.HeadingMD}
+          color={TextColor.Default}
+          style={styles.textTitle}
+        >
+          {strings('notifications.activation_card.title')}
+        </Text>
+        <View style={styles.card}>
+          <Image
+            source={EnableNotificationsCardPlaceholder}
+            style={styles.image}
+          />
+        </View>
         <Text
           variant={TextVariant.BodyMD}
-          color={TextColor.Info}
-          onPress={goToLearnMore}
+          color={TextColor.Alternative}
+          style={styles.textSpace}
         >
-          {strings('notifications.activation_card.learn_more')}
+          {strings('notifications.activation_card.description_1')}
         </Text>
-      </Text>
 
-      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-        {strings('notifications.activation_card.manage_preferences_1')}
-        <Text variant={TextVariant.BodyMDBold} color={TextColor.Alternative}>
-          {strings('notifications.activation_card.manage_preferences_2')}
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.textSpace}
+        >
+          {strings('notifications.activation_card.description_2')}{' '}
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Info}
+            onPress={goToLearnMore}
+          >
+            {strings('notifications.activation_card.learn_more')}
+          </Text>
         </Text>
-      </Text>
 
-      <View style={styles.btnContainer}>
-        <Button
-          variant={ButtonVariants.Secondary}
-          label={strings('notifications.activation_card.cancel')}
-          onPress={navigateToMainWallet}
-          style={styles.ctaBtn}
-        />
-        <Button
-          variant={ButtonVariants.Primary}
-          label={strings('notifications.activation_card.cta')}
-          onPress={navigateToNotificationsSettings}
-          style={styles.ctaBtn}
-        />
+        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          {strings('notifications.activation_card.manage_preferences_1')}
+          <Text variant={TextVariant.BodyMDBold} color={TextColor.Alternative}>
+            {strings('notifications.activation_card.manage_preferences_2')}
+          </Text>
+        </Text>
+
+        <View style={styles.btnContainer}>
+          <Button
+            variant={ButtonVariants.Secondary}
+            label={strings('notifications.activation_card.cancel')}
+            onPress={navigateToMainWallet}
+            style={styles.ctaBtn}
+          />
+          <Button
+            variant={ButtonVariants.Primary}
+            label={strings('notifications.activation_card.cta')}
+            onPress={toggleNotificationsEnabled}
+            style={styles.ctaBtn}
+          />
+        </View>
       </View>
-    </View>
+      <SwitchLoadingModal
+        loading={optimisticLoading}
+        loadingText={strings('app_settings.enabling_notifications')}
+      />
+    </Fragment>
   );
 };
 

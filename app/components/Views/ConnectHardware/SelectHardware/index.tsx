@@ -16,7 +16,6 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { withLedgerKeyring } from '../../../../core/Ledger/Ledger';
 import { fontStyles } from '../../../../styles/common';
 import {
   mockTheme,
@@ -25,7 +24,7 @@ import {
 } from '../../../../util/theme';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
-import type LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
+import { HardwareDeviceTypes } from '../../../../constants/keyringTypes';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -108,24 +107,11 @@ const SelectHardwareWallet = () => {
   };
 
   const navigateToConnectLedger = async () => {
-    const accounts = await withLedgerKeyring(async (keyring: LedgerKeyring) =>
-      keyring.getAccounts(),
-    );
-
     trackEvent(MetaMetricsEvents.CONNECT_LEDGER, {
-      device_type: 'Ledger',
+      device_type: HardwareDeviceTypes.LEDGER,
     });
 
-    if (accounts.length === 0) {
-      navigation.navigate(Routes.HW.CONNECT_LEDGER);
-    } else {
-      navigation.navigate(Routes.HW.LEDGER_ACCOUNT, {
-        screen: Routes.HW.LEDGER_ACCOUNT,
-        params: {
-          accounts,
-        },
-      });
-    }
+    navigation.navigate(Routes.HW.CONNECT_LEDGER);
   };
 
   // TODO: Replace "any" with type

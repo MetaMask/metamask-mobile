@@ -326,7 +326,7 @@ exports[`AccountApproval should render correctly 1`] = `
                 },
                 "1": undefined,
                 "color": "#141618",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -334,7 +334,7 @@ exports[`AccountApproval should render correctly 1`] = `
               }
             }
           >
-            0xC496...a756
+            Account 2
           </Text>
           <Text
             accessibilityRole="text"
@@ -350,7 +350,7 @@ exports[`AccountApproval should render correctly 1`] = `
                 },
                 "1": undefined,
                 "color": "#141618",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -377,7 +377,7 @@ exports[`AccountApproval should render correctly 1`] = `
               },
               "1": undefined,
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,

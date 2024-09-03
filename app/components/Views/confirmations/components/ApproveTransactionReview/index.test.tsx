@@ -1,5 +1,7 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Confirmations team or Transactions team
 import ApproveTransactionModal from '.';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import { SET_APPROVAL_FOR_ALL_SIGNATURE } from '../../../../../util/transactions';
@@ -42,7 +44,7 @@ const transaction = {
 
 const initialState = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
   transaction,
   settings: {

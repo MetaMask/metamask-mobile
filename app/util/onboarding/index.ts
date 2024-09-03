@@ -6,7 +6,7 @@ import {
   LAST_APP_VERSION,
 } from '../../constants/storage';
 import { whatsNewList } from '../../components/UI/WhatsNewModal';
-import AsyncStorage from '../../store/async-storage-wrapper';
+import StorageWrapper from '../../store/storage-wrapper';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
 import { store } from '../../store';
 
@@ -26,14 +26,13 @@ const STX_OPT_IN_MIN_APP_VERSION = '7.24.0';
 export const shouldShowSmartTransactionsOptInModal = async (
   chainId: string,
   providerConfigRpcUrl: string | undefined,
+  accountHasZeroBalance: boolean,
 ) => {
-  // Check chain and RPC, undefined is the default RPC
   if (
-    !(
-      chainId === NETWORKS_CHAIN_ID.MAINNET &&
-      providerConfigRpcUrl === undefined
-    ) ||
-    process.env.IS_TEST === 'true'
+    process.env.IS_TEST === 'true' ||
+    chainId !== NETWORKS_CHAIN_ID.MAINNET ||
+    providerConfigRpcUrl !== undefined || // undefined is the default RPC URL (Infura).
+    accountHasZeroBalance
   ) {
     return false;
   }
@@ -41,7 +40,7 @@ export const shouldShowSmartTransactionsOptInModal = async (
   const versionSeen =
     store.getState().smartTransactions.optInModalAppVersionSeen;
 
-  const currentAppVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
+  const currentAppVersion = await StorageWrapper.getItem(CURRENT_APP_VERSION);
 
   // Check if user has seen
   const seen = isVersionSeenAndGreaterThanMinAppVersion(
@@ -67,12 +66,12 @@ export const shouldShowSmartTransactionsOptInModal = async (
  * @returns Boolean indicating whether or not to show whats new modal
  */
 export const shouldShowWhatsNewModal = async () => {
-  const whatsNewAppVersionSeen = await AsyncStorage.getItem(
+  const whatsNewAppVersionSeen = await StorageWrapper.getItem(
     WHATS_NEW_APP_VERSION_SEEN,
   );
 
-  const currentAppVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
-  const lastAppVersion = await AsyncStorage.getItem(LAST_APP_VERSION);
+  const currentAppVersion = await StorageWrapper.getItem(CURRENT_APP_VERSION);
+  const lastAppVersion = await StorageWrapper.getItem(LAST_APP_VERSION);
   const isUpdate = !!lastAppVersion && currentAppVersion !== lastAppVersion;
 
   const seen = isVersionSeenAndGreaterThanMinAppVersion(

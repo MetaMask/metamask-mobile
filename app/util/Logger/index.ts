@@ -1,10 +1,9 @@
 import {
   addBreadcrumb,
   captureException,
-  captureMessage,
   withScope,
 } from '@sentry/react-native';
-import DefaultPreference from 'react-native-default-preference';
+import StorageWrapper from '../../store/storage-wrapper';
 import { METRICS_OPT_IN, AGREED, DEBUG } from '../../constants/storage';
 
 interface ExtraInfo {
@@ -17,6 +16,11 @@ interface ExtraInfo {
  * console.log and console.error and in the future
  * we will have flags to do different actions based on
  * the environment, for ex. log to a remote server if prod
+ *
+ * The previously available message function has been removed
+ * favoring the use of the error or log function:
+ * - error: for logging errors that you want to see in Sentry,
+ * - log: for logging general information and sending breadcrumbs only with the next Sentry event.
  */
 export class AsyncLogger {
   /**
@@ -35,7 +39,7 @@ export class AsyncLogger {
     }
 
     // Check if user passed accepted opt-in to metrics
-    const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
+    const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
     if (metricsOptIn === AGREED) {
       addBreadcrumb({
         message: JSON.stringify(args),
@@ -66,7 +70,7 @@ export class AsyncLogger {
     }
 
     // Check if user passed accepted opt-in to metrics
-    const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
+    const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
     if (metricsOptIn === AGREED) {
       let exception = error;
 
@@ -93,26 +97,6 @@ export class AsyncLogger {
       } else {
         captureException(exception);
       }
-    }
-  }
-
-  /**
-   * captureMessage wrapper
-   *
-   * @param {object} args - data to be logged
-   * @returns - void
-   */
-  static async message(...args: unknown[]): Promise<void> {
-    if (__DEV__) {
-      args.unshift('[MetaMask DEBUG]:');
-      // console.log.apply(null, args); // eslint-disable-line no-console
-      return;
-    }
-
-    // Check if user passed accepted opt-in to metrics
-    const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-    if (metricsOptIn === 'agreed') {
-      captureMessage(JSON.stringify(args));
     }
   }
 }
@@ -143,18 +127,6 @@ export default class Logger {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static error(error: Error, extra?: ExtraInfo | string | any) {
     AsyncLogger.error(error, extra).catch(() => {
-      // ignore error but avoid dangling promises
-    });
-  }
-
-  /**
-   * captureMessage wrapper
-   *
-   * @param {object} args - data to be logged
-   * @returns - void
-   */
-  static message(...args: unknown[]) {
-    AsyncLogger.message(...args).catch(() => {
       // ignore error but avoid dangling promises
     });
   }

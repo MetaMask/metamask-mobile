@@ -1,4 +1,6 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Snaps team directory
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import slip44 from '@metamask/slip44';
@@ -18,7 +20,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { SnapPermissionCell } from '../SnapPermissionCell';
 import { RequestedPermissions } from '@metamask/permission-controller';
 import { RestrictedMethods } from '../../../../../core/Permissions/constants';
-import { EndowmentPermissions } from '../../../../../constants/permissions';
+import { EndowmentPermissions } from '../../../../../core/Snaps';
 import SNAP_PERMISSIONS from './SnapPermissions.contants';
 
 interface SnapPermissionsProps {
