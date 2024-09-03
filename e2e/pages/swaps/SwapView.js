@@ -41,12 +41,9 @@ class SwapView {
     // Swipe could happen at the same time when gas fees are falshing
     // and that's when the swipe button becomes disabled
     // that's the need to retry
-    let swapCompleteted
-    do {
-      await Gestures.swipe(this.swipeToSwapButton, 'right', 'fast', percentage);
-      await TestHelpers.delay(1000);
-      swapCompleteted = await Matchers.getElementByText('Swap!')
-    } while (!swapCompleteted)
+    await Gestures.swipe(this.swipeToSwapButton, 'right', 'fast', percentage);
+    await TestHelpers.delay(4000);
+    await Gestures.swipe(this.swipeToSwapButton, 'right', 'fast', percentage);
   }
 
   swapCompleteLabel(sourceTokenSymbol, destTokenSymbol) {
