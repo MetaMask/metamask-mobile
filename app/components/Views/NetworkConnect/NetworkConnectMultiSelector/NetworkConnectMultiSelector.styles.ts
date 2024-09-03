@@ -10,8 +10,6 @@ import { isMutichainVersion1Enabled } from '../../../../util/networks';
  * @returns StyleSheet object.
  */
 const styleSheet = (params: { theme: Theme }) => {
-  const { colors } = params.theme;
-
   return StyleSheet.create({
     bottomSheetContainer: {
       height: '100%',
