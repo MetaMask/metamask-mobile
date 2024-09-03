@@ -1,10 +1,33 @@
-import RNWalletConnect from '@walletconnect/client';
 import Engine from '../Engine';
 import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
 import { flushPromises } from '../../util/test/utils';
 import { WALLETCONNECT_SESSIONS } from '../../constants/storage';
 import StorageWrapper from '../../store/storage-wrapper';
 import WalletConnectInstance from './WalletConnect';
+
+interface WalletConnectSession {
+  connected: boolean;
+  accounts: string[];
+  chainId: number;
+  bridge: string;
+  key: string;
+  clientId: string;
+  clientMeta: {
+    description: string;
+    url: string;
+    icons: string[];
+    name: string;
+  };
+  peerId: string;
+  peerMeta: {
+    description: string;
+    url: string;
+    icons: string[];
+    name: string;
+  };
+  handshakeId: number;
+  handshakeTopic: string;
+}
 
 const mockDappHost = 'metamask.io';
 const mockDappUrl = `https://${mockDappHost}`;
@@ -100,15 +123,15 @@ describe('WalletConnect', () => {
   });
 
   // Mock RNWalletConnect
-  jest.mock('@walletconnect/client', () => {
-    return jest.fn().mockImplementation(() => ({
+  jest.mock('@walletconnect/client', () =>
+    jest.fn().mockImplementation(() => ({
       on: jest.fn(),
       approveSession: jest.fn(),
       rejectSession: jest.fn(),
       killSession: jest.fn(),
       updateSession: jest.fn(),
-    }));
-  });
+    })),
+  );
 
   it('should add new approval when new wallet connect session requested', async () => {
     const expectedApprovalRequest = {
@@ -125,18 +148,34 @@ describe('WalletConnect', () => {
       type: ApprovalTypes.WALLET_CONNECT,
     };
 
-    mockWalletConnectInstance.newSession.mockImplementation(async (uri, redirectUrl, autosign, origin) => {
-      await Engine.context.ApprovalController.add(expectedApprovalRequest);
-    });
+    mockWalletConnectInstance.newSession.mockImplementation(
+      async (uri, redirectUrl, autosign, origin) => {
+        await Engine.context.ApprovalController.add(expectedApprovalRequest);
+      },
+    );
 
-    await WalletConnect.newSession('URI', mockRedirectUrl, mockAutoSign, mockDappOrigin);
+    await WalletConnect.newSession(
+      'URI',
+      mockRedirectUrl,
+      mockAutoSign,
+      mockDappOrigin,
+    );
 
-    expect(mockWalletConnectInstance.newSession).toHaveBeenCalledWith('URI', mockRedirectUrl, mockAutoSign, mockDappOrigin);
-    expect(Engine.context.ApprovalController.add).toHaveBeenCalledWith(expectedApprovalRequest);
+    expect(mockWalletConnectInstance.newSession).toHaveBeenCalledWith(
+      'URI',
+      mockRedirectUrl,
+      mockAutoSign,
+      mockDappOrigin,
+    );
+    expect(Engine.context.ApprovalController.add).toHaveBeenCalledWith(
+      expectedApprovalRequest,
+    );
   });
 
   it('should call rejectSession when user rejects wallet connect session', async () => {
-    MockEngine.context.ApprovalController.add.mockRejectedValueOnce(new Error('Test error'));
+    MockEngine.context.ApprovalController.add.mockRejectedValueOnce(
+      new Error('Test error'),
+    );
 
     const mockRejectSession = jest.fn();
     mockWalletConnectInstance.walletConnector = {
@@ -156,12 +195,16 @@ describe('WalletConnect', () => {
       throw new Error('Session request rejected');
     });
 
-    await expect(WalletConnect.newSession('URI', mockRedirectUrl, mockAutoSign, 'origin')).rejects.toThrow('Session request rejected');
+    await expect(
+      WalletConnect.newSession('URI', mockRedirectUrl, mockAutoSign, 'origin'),
+    ).rejects.toThrow('Session request rejected');
 
     await flushPromises();
 
     expect(mockRejectSession).toHaveBeenCalled();
-    expect(mockWalletConnectInstance.walletConnector?.rejectSession).toHaveBeenCalled();
+    expect(
+      mockWalletConnectInstance.walletConnector?.rejectSession,
+    ).toHaveBeenCalled();
   });
 
   it('should persist sessions after approving a new session', async () => {
@@ -172,70 +215,111 @@ describe('WalletConnect', () => {
       key: 'mock-key',
     };
 
-    mockWalletConnectInstance.newSession.mockImplementation(async (uri, redirectUrl, autosign, origin) => {
-      const walletConnector = {
-        session: mockSession,
-        connected: true,
-        updateSession: jest.fn(),
-        approveSession: jest.fn(),
-      };
+    mockWalletConnectInstance.newSession.mockImplementation(
+      async (uri, redirectUrl, autosign, origin) => {
+        const walletConnector = {
+          session: mockSession,
+          connected: true,
+          updateSession: jest.fn(),
+          approveSession: jest.fn(),
+        };
 
-      (mockWalletConnectInstance as any).walletConnector = walletConnector;
+        (mockWalletConnectInstance as any).walletConnector = walletConnector;
 
-      // Simulate the behavior of startSession
-      const chainId = 1; // Mock chain ID
-      const selectedAddress = '0x1234'; // Mock selected address
+        // Simulate the behavior of startSession
+        const chainId = 1; // Mock chain ID
+        const selectedAddress = '0x1234'; // Mock selected address
 
-      await walletConnector.approveSession({ chainId, accounts: [selectedAddress] });
+        await walletConnector.approveSession({
+          chainId,
+          accounts: [selectedAddress],
+        });
 
-      // Simulate persisting sessions
-      const sessionData = {
-        ...mockSession,
-        autosign,
-        redirectUrl,
-        requestOriginatedFrom: origin,
-        lastTimeConnected: expect.any(String),
-      };
-      await StorageWrapper.setItem(WALLETCONNECT_SESSIONS, JSON.stringify([sessionData]));
-    });
+        // Simulate persisting sessions
+        const sessionData = {
+          ...mockSession,
+          autosign,
+          redirectUrl,
+          requestOriginatedFrom: origin,
+          lastTimeConnected: expect.any(String),
+        };
+        await StorageWrapper.setItem(
+          WALLETCONNECT_SESSIONS,
+          JSON.stringify([sessionData]),
+        );
+      },
+    );
 
-    await WalletConnect.newSession('URI', mockRedirectUrl, mockAutoSign, 'origin');
+    await WalletConnect.newSession(
+      'URI',
+      mockRedirectUrl,
+      mockAutoSign,
+      'origin',
+    );
 
     await flushPromises();
 
     expect(StorageWrapper.setItem).toHaveBeenCalledWith(
       WALLETCONNECT_SESSIONS,
-      expect.stringMatching(new RegExp(JSON.stringify({
-        peerId: 'mock-peer-id',
-        peerMeta: { url: mockDappUrl },
-        handshakeTopic: 'mock-handshake-topic',
-        key: 'mock-key',
-        autosign: mockAutoSign,
-        redirectUrl: mockRedirectUrl,
-        requestOriginatedFrom: 'origin',
-        lastTimeConnected: expect.any(String),
-      }).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))
+      expect.stringMatching(
+        new RegExp(
+          JSON.stringify({
+            peerId: 'mock-peer-id',
+            peerMeta: { url: mockDappUrl },
+            handshakeTopic: 'mock-handshake-topic',
+            key: 'mock-key',
+            autosign: mockAutoSign,
+            redirectUrl: mockRedirectUrl,
+            requestOriginatedFrom: 'origin',
+            lastTimeConnected: expect.any(String),
+          }).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+        ),
+      ),
     );
 
-    expect(mockWalletConnectInstance.newSession).toHaveBeenCalledWith('URI', mockRedirectUrl, mockAutoSign, 'origin');
+    expect(mockWalletConnectInstance.newSession).toHaveBeenCalledWith(
+      'URI',
+      mockRedirectUrl,
+      mockAutoSign,
+      'origin',
+    );
   });
 
   it('should kill session and remove from connectors list', async () => {
     const mockPeerId = 'mock-peer-id';
-    const mockSession = {
+    const mockSession: WalletConnectSession = {
       peerId: mockPeerId,
-      peerMeta: { url: mockDappUrl },
+      peerMeta: {
+        url: mockDappUrl,
+        name: 'Mock Dapp',
+        description: 'A mock dapp for testing',
+        icons: ['https://mockdapp.com/icon.png'],
+      },
+      connected: true,
+      accounts: ['0x1234567890123456789012345678901234567890'],
+      chainId: 1,
+      bridge: 'https://bridge.walletconnect.org',
+      key: 'mock-key',
+      clientId: 'mock-client-id',
+      clientMeta: {
+        name: 'Mock Client',
+        description: 'Mock Description',
+        url: 'https://mock.url',
+        icons: ['https://mock.icon.url'],
+      },
+      handshakeId: 1234567890,
+      handshakeTopic: 'mock-handshake-topic',
     };
 
     mockWalletConnectInstance.getSessions.mockResolvedValue([mockSession]);
     mockWalletConnectInstance.killSession.mockImplementation(async (peerId) => {
       const sessions = await StorageWrapper.getItem(WALLETCONNECT_SESSIONS);
       const updatedSessions = JSON.parse(sessions).filter(
-        (session: { peerId: string }) => session.peerId !== peerId
+        (session: { peerId: string }) => session.peerId !== peerId,
       );
       await StorageWrapper.setItem(
         WALLETCONNECT_SESSIONS,
-        JSON.stringify(updatedSessions)
+        JSON.stringify(updatedSessions),
       );
       // Call getSessions after killing the session
       await mockWalletConnectInstance.getSessions();
@@ -247,12 +331,14 @@ describe('WalletConnect', () => {
 
     await WalletConnect.killSession(mockPeerId);
 
-    expect(mockWalletConnectInstance.killSession).toHaveBeenCalledWith(mockPeerId);
+    expect(mockWalletConnectInstance.killSession).toHaveBeenCalledWith(
+      mockPeerId,
+    );
 
     // Verify that the session is removed from the persisted sessions
     expect(StorageWrapper.setItem).toHaveBeenCalledWith(
       WALLETCONNECT_SESSIONS,
-      '[]'
+      '[]',
     );
 
     // Verify that the session is removed from the connectors list

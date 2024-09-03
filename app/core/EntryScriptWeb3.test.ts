@@ -1,11 +1,9 @@
 import EntryScriptWeb3 from './EntryScriptWeb3';
 import Device from '../util/device';
-import * as RNFS from 'react-native-fs';
+import { readFileAssets, readFile } from 'react-native-fs';
 
 jest.mock('../util/device', () => ({
-  default: {
-    isIos: jest.fn().mockReturnValue(false),
-  },
+  isIos: jest.fn().mockReturnValue(false),
 }));
 
 jest.mock('react-native-fs', () => ({
@@ -21,18 +19,16 @@ describe('EntryScriptWeb3', () => {
   });
 
   describe('init', () => {
-
     it('should read file from assets on non-iOS platforms', async () => {
-      Device.default.isIos.mockReturnValue(false);
-      (RNFS.readFileAssets as jest.Mock).mockResolvedValue('Android script content');
+      (Device.isIos as jest.Mock).mockReturnValue(false);
+      (readFileAssets as jest.Mock).mockResolvedValue('Android script content');
 
       const result = await EntryScriptWeb3.init();
 
-      expect(RNFS.readFileAssets).toHaveBeenCalledWith('InpageBridgeWeb3.js');
+      expect(readFileAssets).toHaveBeenCalledWith('InpageBridgeWeb3.js');
       expect(result).toBe('Android script content');
       expect(EntryScriptWeb3.entryScriptWeb3).toBe('Android script content');
     });
-
   });
 
   describe('get', () => {
@@ -42,12 +38,14 @@ describe('EntryScriptWeb3', () => {
       const result = await EntryScriptWeb3.get();
 
       expect(result).toBe('Cached script');
-      expect(RNFS.readFile).not.toHaveBeenCalled();
-      expect(RNFS.readFileAssets).not.toHaveBeenCalled();
+      expect(readFile).not.toHaveBeenCalled();
+      expect(readFileAssets).not.toHaveBeenCalled();
     });
 
     it('should call init if cache is empty', async () => {
-      const initSpy = jest.spyOn(EntryScriptWeb3, 'init').mockResolvedValue('New script content');
+      const initSpy = jest
+        .spyOn(EntryScriptWeb3, 'init')
+        .mockResolvedValue('New script content');
 
       const result = await EntryScriptWeb3.get();
 
@@ -56,7 +54,9 @@ describe('EntryScriptWeb3', () => {
     });
 
     it('should propagate errors from init', async () => {
-      jest.spyOn(EntryScriptWeb3, 'init').mockRejectedValue(new Error('Init error'));
+      jest
+        .spyOn(EntryScriptWeb3, 'init')
+        .mockRejectedValue(new Error('Init error'));
 
       await expect(EntryScriptWeb3.get()).rejects.toThrow('Init error');
     });
