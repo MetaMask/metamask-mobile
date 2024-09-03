@@ -5,7 +5,6 @@ import {
 
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-import TestHelpers from '../../helpers';
 
 class SwapView {
   get quoteSummary() {
@@ -42,7 +41,6 @@ class SwapView {
     // and that's when the swipe button becomes disabled
     // that's the need to retry
     await Gestures.swipe(this.swipeToSwapButton, 'right', 'fast', percentage);
-    await TestHelpers.delay(4000);
     await Gestures.swipe(this.swipeToSwapButton, 'right', 'fast', percentage);
   }
 
