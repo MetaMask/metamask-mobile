@@ -41,6 +41,12 @@ import { selectContractExchangeRates } from '../../../../selectors/tokenRatesCon
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
 import { regex } from '../../../../../app/util/regex';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
+import { selectPrimaryCurrency } from '../../../../selectors/settings';
+import {
+  selectSwapsTransactions,
+  selectTransactions,
+} from '../../../../selectors/transactionController';
+import { swapsControllerTokens } from '../../../../reducers/swaps';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -420,16 +426,15 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   networkConfigurations: selectNetworkConfigurations(state),
   selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
-  transactions: state.engine.backgroundState.TransactionController.transactions,
+  transactions: selectTransactions(state),
   ticker: selectTicker(state),
   tokens: selectTokensByAddress(state),
   contractExchangeRates: selectContractExchangeRates(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  primaryCurrency: state.settings.primaryCurrency,
-  swapsTransactions:
-    state.engine.backgroundState.TransactionController.swapsTransactions || {},
-  swapsTokens: state.engine.backgroundState.SwapsController.tokens,
+  primaryCurrency: selectPrimaryCurrency(state),
+  swapsTransactions: selectSwapsTransactions(state),
+  swapsTokens: swapsControllerTokens(state),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
 });
 

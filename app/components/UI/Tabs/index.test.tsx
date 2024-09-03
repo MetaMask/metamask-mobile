@@ -28,7 +28,7 @@ jest.mock('react-native-safe-area-context', () => {
 describe('Tabs', () => {
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(
-      <Tabs tabs={[{ id: 1, url: 'about:blank', image: '', id: 123 }]} />,
+      <Tabs tabs={[{ id: 1, url: 'about:blank', image: '' }]} />,
       { state: mockInitialState },
     );
     expect(toJSON()).toMatchSnapshot();

@@ -74,7 +74,6 @@ import SelectComponent from '../../../UI/SelectComponent';
 import { timeoutFetch } from '../../../../util/general';
 import createStyles from './SecuritySettings.styles';
 import {
-  EtherscanNetworksType,
   Gateway,
   HeadingProps,
   NetworksI,
@@ -118,11 +117,20 @@ import Button, {
 } from '../../../../component-library/components/Buttons/Button';
 import trackErrorAsAnalytics from '../../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
+import ProfileSyncingComponent from '../../../UI/ProfileSyncing/ProfileSyncing';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetrics } from '../../../../core/Analytics';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-
+import {
+  selectIsMetamaskNotificationsEnabled,
+  selectIsProfileSyncingEnabled,
+} from '../../../../selectors/notifications';
+import { useProfileSyncing } from '../../../../util/notifications/hooks/useProfileSyncing';
+import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
+import { RootState } from '../../../../reducers';
+import { EtherscanSupportedHexChainId } from '@metamask/preferences-controller';
+import { useDisableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -151,10 +159,24 @@ const Settings: React.FC = () => {
   const [hintText, setHintText] = useState('');
   const [onlineIpfsGateways, setOnlineIpfsGateways] = useState<Gateway[]>([]);
   const [gotAvailableGateways, setGotAvailableGateways] = useState(false);
+  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+  const isBasicFunctionalityEnabled = useSelector(
+    (state: RootState) => state?.settings?.basicFunctionalityEnabled,
+  );
+  const {
+    enableProfileSyncing,
+    disableProfileSyncing,
+    loading: profileSyncLoading,
+    error: profileSyncError,
+  } = useProfileSyncing();
 
   const scrollViewRef = useRef<ScrollView>(null);
   const detectNftComponentRef = useRef<View>(null);
-
+  const {
+    disableNotifications,
+    loading: disableNotificationsLoading,
+    error: disableNotificationsError,
+  } = useDisableNotifications();
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserHistory = useSelector((state: any) => state.browser.history);
@@ -177,6 +199,10 @@ const Settings: React.FC = () => {
 
   const useNftDetection = useSelector(selectUseNftDetection);
 
+  const isNotificationEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
+
   const seedphraseBackedUp = useSelector(
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -188,7 +214,7 @@ const Settings: React.FC = () => {
   );
   const ipfsGateway = useSelector(selectIpfsGateway);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
-  const myNetworks = ETHERSCAN_SUPPORTED_NETWORKS as EtherscanNetworksType;
+  const myNetworks = ETHERSCAN_SUPPORTED_NETWORKS;
   const isMainnet = type === MAINNET;
 
   const updateNavBar = useCallback(() => {
@@ -253,6 +279,22 @@ const Settings: React.FC = () => {
     setAnalyticsEnabled,
     isEnabled,
     trackEvent,
+  ]);
+
+  useEffect(() => {
+    const triggerCascadeBasicFunctionalityDisable = async () => {
+      if (!isBasicFunctionalityEnabled) {
+        isNotificationEnabled && (await disableNotifications());
+        isProfileSyncingEnabled && (await disableProfileSyncing());
+      }
+    };
+    triggerCascadeBasicFunctionalityDisable();
+  }, [
+    disableNotifications,
+    disableProfileSyncing,
+    isBasicFunctionalityEnabled,
+    isNotificationEnabled,
+    isProfileSyncingEnabled,
   ]);
 
   const scrollToDetectNFTs = useCallback(() => {
@@ -346,7 +388,7 @@ const Settings: React.FC = () => {
         }
         await Authentication.storePassword(password, authType);
       } catch (error) {
-        Logger.error(error as string, {});
+        Logger.error(error as unknown as Error, {});
       }
 
       dispatch(passwordSet());
@@ -368,7 +410,7 @@ const Settings: React.FC = () => {
           '',
         );
       } else {
-        Logger.error(e as string, 'SecuritySettings:biometrics');
+        Logger.error(e as unknown as Error, 'SecuritySettings:biometrics');
       }
       setLoading(false);
     }
@@ -380,7 +422,7 @@ const Settings: React.FC = () => {
     try {
       credentials = await Authentication.getPassword();
     } catch (error) {
-      Logger.error(error as string, {});
+      Logger.error(error as unknown as Error, {});
     }
 
     if (credentials && credentials.password !== '') {
@@ -502,7 +544,7 @@ const Settings: React.FC = () => {
     </View>
   );
   const toggleEnableIncomingTransactions = (
-    hexChainId: string,
+    hexChainId: EtherscanSupportedHexChainId,
     value: boolean,
   ) => {
     const { PreferencesController } = Engine.context;
@@ -823,7 +865,10 @@ const Settings: React.FC = () => {
           <Switch
             value={showIncomingTransactionsNetworks[chainId]}
             onValueChange={(value) =>
-              toggleEnableIncomingTransactions(chainId, value)
+              toggleEnableIncomingTransactions(
+                chainId as EtherscanSupportedHexChainId,
+                value,
+              )
             }
             trackColor={{
               true: colors.primary.default,
@@ -855,7 +900,10 @@ const Settings: React.FC = () => {
           <Switch
             value={showIncomingTransactionsNetworks[chainId]}
             onValueChange={(value) =>
-              toggleEnableIncomingTransactions(chainId, value)
+              toggleEnableIncomingTransactions(
+                chainId as EtherscanSupportedHexChainId,
+                value,
+              )
             }
             trackColor={{
               true: colors.primary.default,
@@ -885,7 +933,9 @@ const Settings: React.FC = () => {
               key={chainId}
               variant={CellVariant.Display}
               title={name}
-              secondaryText={myNetworks[chainId].domain}
+              secondaryText={
+                myNetworks[chainId as keyof typeof myNetworks].domain
+              }
               avatarProps={{
                 variant: AvatarVariant.Network,
                 name,
@@ -896,7 +946,10 @@ const Settings: React.FC = () => {
               <Switch
                 value={showIncomingTransactionsNetworks[chainId]}
                 onValueChange={(value) =>
-                  toggleEnableIncomingTransactions(chainId, value)
+                  toggleEnableIncomingTransactions(
+                    chainId as EtherscanSupportedHexChainId,
+                    value,
+                  )
                 }
                 trackColor={{
                   true: colors.primary.default,
@@ -922,7 +975,9 @@ const Settings: React.FC = () => {
             key={chainId}
             variant={CellVariant.Display}
             title={name}
-            secondaryText={myNetworks[chainId]?.domain}
+            secondaryText={
+              myNetworks[chainId as keyof typeof myNetworks].domain
+            }
             avatarProps={{
               variant: AvatarVariant.Network,
               name,
@@ -933,7 +988,11 @@ const Settings: React.FC = () => {
             <Switch
               value={showIncomingTransactionsNetworks[chainId]}
               onValueChange={(value) => {
-                chainId && toggleEnableIncomingTransactions(chainId, value);
+                chainId &&
+                  toggleEnableIncomingTransactions(
+                    chainId as keyof typeof myNetworks,
+                    value,
+                  );
               }}
               trackColor={{
                 true: colors.primary.default,
@@ -973,6 +1032,16 @@ const Settings: React.FC = () => {
     );
   };
 
+  const toggleProfileSyncing = async () => {
+    if (isProfileSyncingEnabled) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.PROFILE_SYNCING,
+      });
+    } else {
+      await enableProfileSyncing();
+    }
+  };
+
   const toggleBasicFunctionality = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY,
@@ -986,6 +1055,13 @@ const Settings: React.FC = () => {
       </View>
     );
   }
+
+  const profileSyncModalMessage = !isProfileSyncingEnabled
+    ? strings('app_settings.enabling_profile_sync')
+    : strings('app_settings.disabling_profile_sync');
+
+  const modalLoading = profileSyncLoading || disableNotificationsLoading;
+  const modalError = profileSyncError || disableNotificationsError;
 
   return (
     <ScrollView
@@ -1024,6 +1100,11 @@ const Settings: React.FC = () => {
             handleSwitchToggle={toggleBasicFunctionality}
           />
         </View>
+        <ProfileSyncingComponent
+          handleSwitchToggle={toggleProfileSyncing}
+          isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
+          isProfileSyncingEnabled={isProfileSyncingEnabled}
+        />
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}
@@ -1087,6 +1168,11 @@ const Settings: React.FC = () => {
         <DeleteWalletData />
         {renderHint()}
       </View>
+      <SwitchLoadingModal
+        loading={modalLoading}
+        loadingText={profileSyncModalMessage}
+        error={modalError}
+      />
     </ScrollView>
   );
 };

@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Confirmations team or Transactions team
 import BigNumber from 'bignumber.js';
 /* eslint-disable react/display-name */
 import React, { useCallback, useMemo, useState } from 'react';

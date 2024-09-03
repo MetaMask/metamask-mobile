@@ -16,7 +16,10 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 
-type NetworkFieldProps = ModalFieldNetwork;
+type NetworkFieldProps = ModalFieldNetwork & {
+  isCollapsed: boolean;
+  setIsCollapsed: (newVal: boolean) => void;
+};
 
 function NetworkField(props: NetworkFieldProps) {
   const { iconUrl, name, setIsCollapsed, isCollapsed } = props;

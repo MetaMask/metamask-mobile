@@ -207,7 +207,7 @@ import {
   networkIdWillUpdate,
 } from '../core/redux/slices/inpageProvider';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
-import { NETWORKS_CHAIN_ID } from '../../app/constants/network';
+import { getAllowedSmartTransactionsChainIds } from '../../app/constants/smartTransactions';
 import { selectShouldUseSmartTransaction } from '../selectors/smartTransactionsController';
 import { selectSwapsChainFeatureFlags } from '../reducers/swaps';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
@@ -456,7 +456,6 @@ class Engine {
     };
 
     const approvalController = new ApprovalController({
-      // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted({
         name: 'ApprovalController',
         allowedEvents: [],
@@ -474,6 +473,7 @@ class Engine {
     });
 
     const preferencesController = new PreferencesController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'PreferencesController',
         allowedActions: [],
@@ -516,6 +516,7 @@ class Engine {
           listener,
         ),
       chainId: networkController.state.providerConfig.chainId,
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
@@ -527,8 +528,10 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'NftController',
           allowedActions: [
@@ -566,6 +569,7 @@ class Engine {
     );
 
     const loggingController = new LoggingController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted<
         'LoggingController',
         never,
@@ -577,7 +581,7 @@ class Engine {
       }),
       state: initialState.LoggingController,
     });
-
+    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     const accountsControllerMessenger: AccountsControllerMessenger =
       this.controllerMessenger.getRestricted({
         name: 'AccountsController',
@@ -607,11 +611,13 @@ class Engine {
     const tokensController = new TokensController({
       chainId: networkController.state.providerConfig.chainId,
       config: {
+        // @ts-expect-error TODO: Resolve mismatch between network-controller versions.
         provider: networkController.getProviderAndBlockTracker().provider,
         chainId: networkController.state.providerConfig.chainId,
         selectedAddress: preferencesController.state.selectedAddress,
       },
       state: initialState.TokensController,
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'TokensController',
         allowedActions: [
@@ -632,6 +638,7 @@ class Engine {
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
           listener,
         ),
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'TokenListController',
         allowedActions: [],
@@ -639,6 +646,7 @@ class Engine {
       }),
     });
     const currencyRateController = new CurrencyRateController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'CurrencyRateController',
         allowedActions: [`${networkController.name}:getNetworkClientById`],
@@ -650,7 +658,6 @@ class Engine {
       networkController.state.selectedNetworkClientId,
     );
     const gasFeeController = new GasFeeController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'GasFeeController',
         allowedActions: [
@@ -681,6 +688,7 @@ class Engine {
     });
 
     const phishingController = new PhishingController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'PhishingController',
         allowedActions: [],
@@ -706,6 +714,7 @@ class Engine {
         preferencesController,
       ),
       encryptor,
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'KeyringController',
         allowedActions: [],
@@ -823,6 +832,7 @@ class Engine {
         preferencesController.state.isMultiAccountBalancesEnabled,
       getCurrentChainId: () =>
         toHexadecimal(networkController.state.providerConfig.chainId),
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
@@ -1050,15 +1060,18 @@ class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'AuthenticationController',
         allowedActions: [
+          'KeyringController:getState',
+          'KeyringController:getAccounts',
+
           'SnapController:handleRequest',
-          'UserStorageController:disableProfileSyncing',
+          'UserStorageController:enableProfileSyncing',
         ],
-        allowedEvents: [],
+        allowedEvents: ['KeyringController:unlock', 'KeyringController:lock'],
       }),
-      // TODO: Fix this by (await MetaMetrics.getInstance().getMetaMetricsId()) before go live
       metametrics: {
         agent: 'mobile',
-        getMetaMetricsId: async () => Promise.resolve(''),
+        getMetaMetricsId: async () =>
+          (await MetaMetrics.getInstance().getMetaMetricsId()) || '',
       },
     });
 
@@ -1071,6 +1084,7 @@ class Engine {
         name: 'UserStorageController',
         allowedActions: [
           'SnapController:handleRequest',
+          'KeyringController:getState',
           'AuthenticationController:getBearerToken',
           'AuthenticationController:getSessionProfile',
           'AuthenticationController:isSignedIn',
@@ -1079,7 +1093,7 @@ class Engine {
           'NotificationServicesController:disableNotificationServices',
           'NotificationServicesController:selectIsNotificationServicesEnabled',
         ],
-        allowedEvents: [],
+        allowedEvents: ['KeyringController:unlock', 'KeyringController:lock'],
       }),
     });
 
@@ -1090,6 +1104,7 @@ class Engine {
         messenger: this.controllerMessenger.getRestricted({
           name: 'NotificationServicesController',
           allowedActions: [
+            'KeyringController:getState',
             'KeyringController:getAccounts',
             'AuthenticationController:getBearerToken',
             'AuthenticationController:isSignedIn',
@@ -1098,7 +1113,11 @@ class Engine {
             'UserStorageController:performGetStorage',
             'UserStorageController:performSetStorage',
           ],
-          allowedEvents: ['KeyringController:stateChange'],
+          allowedEvents: [
+            'KeyringController:unlock',
+            'KeyringController:lock',
+            'KeyringController:stateChange',
+          ],
         }),
         state: initialState.NotificationServicesController,
         env: {
@@ -1131,7 +1150,6 @@ class Engine {
         }),
       getGasFeeEstimates:
         gasFeeController.fetchGasFeeEstimates.bind(gasFeeController),
-      // @ts-expect-error NetworkController in TransactionController is later version
       // but only breaking change is Node version and bumped dependencies
       getNetworkClientRegistry:
         networkController.getNetworkClientRegistry.bind(networkController),
@@ -1169,7 +1187,6 @@ class Engine {
       },
       isSimulationEnabled: () =>
         preferencesController.state.useTransactionSimulations,
-      // @ts-expect-error TransactionController is using later BaseController version
       // but only breaking change is Node version
       messenger: this.controllerMessenger.getRestricted({
         name: 'TransactionController',
@@ -1177,6 +1194,7 @@ class Engine {
           `${accountsController.name}:getSelectedAccount`,
           `${approvalController.name}:addRequest`,
           `${networkController.name}:getNetworkClientById`,
+          `${networkController.name}:findNetworkClientIdByChainId`,
         ],
         allowedEvents: [`NetworkController:stateChange`],
       }),
@@ -1228,7 +1246,6 @@ class Engine {
         getNonceLock: this.transactionController.getNonceLock.bind(
           this.transactionController,
         ),
-        // @ts-expect-error Older TransactionController version in SmartTransactionsController means TransactionMeta types don't match.
         getTransactions: this.transactionController.getTransactions.bind(
           this.transactionController,
         ),
@@ -1244,13 +1261,11 @@ class Engine {
           networkController.getProviderAndBlockTracker().provider as any,
 
         trackMetaMetricsEvent: smartTransactionsControllerTrackMetaMetricsEvent,
+        getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
       },
       {
-        supportedChainIds: [
-          NETWORKS_CHAIN_ID.MAINNET,
-          NETWORKS_CHAIN_ID.GOERLI,
-          NETWORKS_CHAIN_ID.SEPOLIA,
-        ],
+        // @ts-expect-error TODO: resolve types
+        supportedChainIds: getAllowedSmartTransactionsChainIds(),
       },
       initialState.SmartTransactionsController,
     );
@@ -1264,6 +1279,7 @@ class Engine {
       tokensController,
       tokenListController,
       new TokenDetectionController({
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenDetectionController',
           allowedActions: [
@@ -1318,6 +1334,7 @@ class Engine {
         addNft: nftController.addNft.bind(nftController),
         getNftApi: nftController.getNftApi.bind(nftController),
         getNftState: () => nftController.state,
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
         disabled: false,
@@ -1328,6 +1345,7 @@ class Engine {
       phishingController,
       preferencesController,
       new TokenBalancesController({
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenBalancesController',
           allowedActions: ['PreferencesController:getState'],
@@ -1353,6 +1371,7 @@ class Engine {
         selectedAddress: preferencesController.state.selectedAddress,
         tokenPricesService: codefiTokenApiV2,
         interval: 30 * 60 * 1000,
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
       }),
@@ -1389,6 +1408,7 @@ class Engine {
       approvalController,
       permissionController,
       new SignatureController({
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'SignatureController',
           allowedActions: [
@@ -1539,6 +1559,7 @@ class Engine {
     this.configureControllersOnNetworkChange();
     this.startPolling();
     this.handleVaultBackup();
+    this.transactionController.clearUnapprovedTransactions();
 
     Engine.instance = this;
   }
@@ -1592,6 +1613,7 @@ class Engine {
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
     AccountTrackerController.configure({ provider });
+    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     AssetsContractController.configure({ provider });
 
     SwapsController.configure({
@@ -1770,11 +1792,17 @@ class Engine {
       TokenBalancesController,
       TokenRatesController,
       PermissionController,
+      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+      SnapController,
+      ///: END:ONLY_INCLUDE_IF
       LoggingController,
     } = this.context;
 
     // Remove all permissions.
     PermissionController?.clearState?.();
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    SnapController.clearState();
+    ///: END:ONLY_INCLUDE_IF
 
     //Clear assets info
     TokensController.update({
@@ -1850,7 +1878,6 @@ class Engine {
     requestData?: Record<string, Json>,
     opts: AcceptOptions & { handleErrors?: boolean } = {
       waitForResult: false,
-      deleteAfterResult: false,
       handleErrors: true,
     },
   ) {
@@ -1859,7 +1886,6 @@ class Engine {
     try {
       return await ApprovalController.accept(id, requestData, {
         waitForResult: opts.waitForResult,
-        deleteAfterResult: opts.deleteAfterResult,
       });
     } catch (err) {
       if (opts.handleErrors === false) {

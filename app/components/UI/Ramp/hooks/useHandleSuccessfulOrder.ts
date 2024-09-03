@@ -18,6 +18,7 @@ import { hexToBN, toHexadecimal } from '../../../../util/number';
 import { selectAccountsByChainId } from '../../../../selectors/accountTrackerController';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectChainId } from '../../../../selectors/networkController';
+import { Token } from '@metamask/assets-controllers';
 
 function useHandleSuccessfulOrder() {
   const { selectedChainId, selectedAddress } = useRampSDK();
@@ -33,8 +34,7 @@ function useHandleSuccessfulOrder() {
       if (!token) return;
 
       const { address, symbol, decimals, network, name } = token;
-      // TODO(ramp, chainId-string): remove once chainId is a string
-      const chainId = `${network?.chainId}`;
+      const chainId = network?.chainId;
 
       if (chainId !== selectedChainId || address === NATIVE_ADDRESS) {
         return;
@@ -43,10 +43,8 @@ function useHandleSuccessfulOrder() {
       const { TokensController } = Engine.context;
 
       if (
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        !TokensController.state.tokens.includes((t: any) =>
-          toLowerCaseEquals(t.address, address),
+        !TokensController.state.tokens.find((stateToken: Token) =>
+          toLowerCaseEquals(stateToken.address, address),
         )
       ) {
         await TokensController.addToken({ address, symbol, decimals, name });

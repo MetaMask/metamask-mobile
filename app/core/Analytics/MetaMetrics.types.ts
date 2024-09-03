@@ -51,25 +51,14 @@ export interface IMetaMetrics {
    */
   group(groupId: string, groupTraits?: GroupTraits): void;
   /**
-   * track an anonymous event, providing only anonymousId
-   * @param event - Analytics event
-   * @param properties - Object containing any event relevant traits or properties (optional)
-   * @param saveDataRecording - param to skip saving the data recording flag (optional)
-   */
-  trackAnonymousEvent(
-    event: IMetaMetricsEvent,
-    properties?: JsonMap,
-    saveDataRecording?: boolean,
-  ): void;
-  /**
    * track an event
    * @param event - Analytics event
-   * @param properties - Object containing any event relevant traits or properties (optional)
+   * @param properties - Object containing any event relevant traits or properties (optional).
    * @param saveDataRecording - param to skip saving the data recording flag (optional)
    */
   trackEvent(
     event: IMetaMetricsEvent,
-    properties?: JsonMap,
+    properties?: CombinedProperties,
     saveDataRecording?: boolean,
   ): void;
   /**
@@ -152,3 +141,14 @@ export interface IDeleteRegulationStatus {
   hasCollectedDataSinceDeletionRequest: boolean;
   dataDeletionRequestStatus: DataDeleteStatus;
 }
+
+// event properties structure with two distinct properties lists
+// for sensitive (anonymous) and regular (non-anonymous) properties
+// this structure and naming is mirroring how the extension metrics works.
+export interface EventProperties {
+  properties?: JsonMap;
+  sensitiveProperties?: JsonMap;
+}
+
+// EventProperties is the new type, direct JsonMap is for backward compatibility
+export type CombinedProperties = JsonMap | EventProperties;
