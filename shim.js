@@ -54,67 +54,29 @@ if (typeof localStorage !== 'undefined') {
   localStorage.debug = isDev ? '*' : '';
 }
 
-// If using the crypto shim, uncomment the following line to ensure
-// crypto is loaded first, so it can populate global.crypto
-// require('crypto')
+// Ensure XMLHttpRequest is available
+global.XMLHttpRequest = global.XMLHttpRequest || _XMLHttpRequest;
 
-// Ensure global XMLHttpRequest is available
-// if (typeof global.XMLHttpRequest === 'undefined') {
-//   global.XMLHttpRequest = _XMLHttpRequest;
-// }
+// Store original methods
+const { open: originalOpen, send: originalSend } = XMLHttpRequest.prototype;
 
-// // Store original methods for later use
-// const originalOpen = XMLHttpRequest.prototype.open;
-// const originalSend = XMLHttpRequest.prototype.send;
+// Mockttp server URL
+const MOCKTTP_URL = 'http://localhost:8000'; // Replace with your Mockttp server address
 
-// // Override the 'open' method to log the request URL
-// XMLHttpRequest.prototype.open = function (method, url) {
-//   this._requestMethod = method;
-//   this._requestUrl = url;
-//   return originalOpen.apply(this, arguments);
-// };
-
-// // Override the 'send' method to log the request details
-// XMLHttpRequest.prototype.send = function (body) {
-//   console.log(`Request Made: ${this._requestMethod} ${this._requestUrl}`);
-//   if (body) {
-//     console.log(`Request Body: ${body}`);
-//   }
-//   return originalSend.apply(this, arguments);
-// };
-
-// Ensure global XMLHttpRequest is available
-if (typeof global.XMLHttpRequest === 'undefined') {
-  global.XMLHttpRequest = _XMLHttpRequest;
-}
-
-// Store original methods for later use
-const originalOpen = XMLHttpRequest.prototype.open;
-const originalSend = XMLHttpRequest.prototype.send;
-
-// Proxy server address (Mockttp server)
-const MOCKTTP_URL = 'http://localhost:8000'; // Replace with the correct Mockttp port
-
-// Override the 'open' method to log the request URL and route through Mockttp
+// Override 'open' method to route through Mockttp
 XMLHttpRequest.prototype.open = function (method, url) {
   this._requestMethod = method;
   this._requestUrl = url;
-
-  // Modify the URL to route through the Mockttp server
   const proxiedUrl =
     url.startsWith('http://') || url.startsWith('https://')
       ? `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(url)}`
       : url;
-
-  // Call the original 'open' method with the proxied URL
-  return originalOpen.apply(this, [method, proxiedUrl]);
+  return originalOpen.call(this, method, proxiedUrl);
 };
 
-// Override the 'send' method to log the request details
+// Override 'send' method to log request details
 XMLHttpRequest.prototype.send = function (body) {
   console.log(`Request Made: ${this._requestMethod} ${this._requestUrl}`);
-  if (body) {
-    console.log(`Request Body: ${body}`);
-  }
-  return originalSend.apply(this, arguments);
+  if (body) console.log(`Request Body: ${body}`);
+  return originalSend.call(this, body);
 };
