@@ -2,12 +2,16 @@
 import React, { useCallback, useRef } from 'react';
 import { ListRenderItem, ImageSourcePropType } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
-import Cell, {
-  CellVariant,
-} from '../../../component-library/components/Cells/Cell';
 
 // External dependencies.
 import { useStyles } from '../../../component-library/hooks';
+import {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../component-library/components/Avatars/Avatar';
+import Cell, {
+  CellVariant,
+} from '../../../component-library/components/Cells/Cell';
 
 // Internal dependencies.
 import {
@@ -15,10 +19,6 @@ import {
   Network,
 } from './NetworkSelectorList.types';
 import styleSheet from './NetworkSelectorList.styles';
-import {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../component-library/components/Avatars/Avatar';
 
 const NetworkSelectorList = ({
   onSelectNetwork,
@@ -31,9 +31,7 @@ const NetworkSelectorList = ({
   isAutoScrollEnabled = true,
   ...props
 }: NetworkConnectMultiSelectorProps) => {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const networkListRef = useRef<any>(null);
+  const networkListRef = useRef<FlatList<Network>>(null);
   const networksLengthRef = useRef<number>(0);
   const { styles } = useStyles(styleSheet, {});
 
@@ -41,7 +39,6 @@ const NetworkSelectorList = ({
 
   const renderNetworkItem: ListRenderItem<Network> = useCallback(
     ({ item: { id, name, isSelected, imageSource } }) => {
-      // console.log('networkItem: ', item);
       const isDisabled = isLoading || isSelectionDisabled;
       const cellVariant = isMultiSelect
         ? CellVariant.MultiSelect

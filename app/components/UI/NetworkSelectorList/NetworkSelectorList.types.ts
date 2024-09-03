@@ -1,12 +1,11 @@
+import { ImageSourcePropType } from 'react-native';
 export interface Network {
   id: string;
   name: string;
   rpcUrl: string;
   isSelected: boolean;
   yOffset?: number;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  imageSource: any;
+  imageSource: ImageSourcePropType;
 }
 
 export interface NetworkConnectMultiSelectorProps {
