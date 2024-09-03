@@ -30,6 +30,7 @@ import { toDataUrl } from '../../../../util/blockies.js';
 import Jazzicon from 'react-native-jazzicon';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
 import Text, {
   TextVariant,
@@ -180,6 +181,10 @@ class Settings extends PureComponent {
      * App theme
      */
     // appTheme: PropTypes.string,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -190,6 +195,12 @@ class Settings extends PureComponent {
   selectCurrency = async (currency) => {
     const { CurrencyRateController } = Engine.context;
     CurrencyRateController.setCurrentCurrency(currency);
+    // trackEvent
+    this.props.metrics.trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
+      sensitiveProperties: {
+        currentCurrency: currency,
+      },
+    });
   };
 
   selectLanguage = (language) => {
@@ -506,4 +517,7 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(setHideZeroBalanceTokens(hideZeroBalanceTokens)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Settings);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(Settings));

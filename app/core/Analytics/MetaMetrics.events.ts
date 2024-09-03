@@ -163,6 +163,7 @@ enum EVENT_NAME {
   // Settings
   SETTINGS_VIEWED = 'Settings Viewed',
   SETTINGS_UPDATED = 'Settings Updated',
+  CURRENCY_CHANGED = 'Current Currency Changed',
 
   // Reveal SRP
   REVEAL_SRP_CTA = 'Clicks Reveal Secret Recovery Phrase',
@@ -469,6 +470,7 @@ const events = {
     EVENT_NAME.COLLECTIBLE_DETAILS_OPENED,
   ),
   COLLECTIBLE_REMOVED: generateOpt(EVENT_NAME.COLLECTIBLE_REMOVED),
+  CURRENCY_CHANGED: generateOpt(EVENT_NAME.CURRENCY_CHANGED),
   NETWORK_SWITCHED: generateOpt(EVENT_NAME.NETWORK_SWITCHED),
   NETWORK_ADDED: generateOpt(EVENT_NAME.NETWORK_ADDED),
   NETWORK_REQUESTED: generateOpt(EVENT_NAME.NETWORK_REQUESTED),
