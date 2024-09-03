@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/prefer-default-export
 export const TermsOfUseModalSelectorsIDs = {
   ACCEPT_BUTTON: 'terms-of-use-accept-button-id',
   CHECKBOX: 'terms-of-use-checkbox',

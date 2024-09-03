@@ -102,7 +102,7 @@ exports[`AddressElement should render correctly 1`] = `
           {
             "color": "#141618",
             "flex": 1,
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
