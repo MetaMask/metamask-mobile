@@ -10,23 +10,23 @@ import Button, {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
 import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
+import { useNavigation } from '@react-navigation/native';
 
 import { useStyles } from '../../../../component-library/hooks';
 import { USER_INTENT } from '../../../../constants/permissions';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../../component-library/components/Form/HelpText';
+import { Network } from '../../../../components/UI/NetworkSelectorList/NetworkSelectorList.types';
 
 // Internal dependencies.
 import ConnectNetworkModalSelectorsIDs from '../../../../../e2e/selectors/Modals/ConnectNetworkModal.selectors';
 import styleSheet from './NetworkConnectMultiSelector.styles';
 import { NetworkConnectMultiSelectorProps } from './NetworkConnectMultiSelector.types';
-import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import Checkbox from '../../../../component-library/components/Checkbox';
 import NetworkSelectorList from '../../../UI/NetworkSelectorList/NetworkSelectorList';
 import { PopularList } from '../../../../util/networks/customNetworks';
-import { Network } from '../../../../components/UI/NetworkSelectorList/NetworkSelectorList.types';
 
 const NetworkConnectMultiSelector = ({
   isLoading,
