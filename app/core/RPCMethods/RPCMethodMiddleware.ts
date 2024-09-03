@@ -8,7 +8,7 @@ import {
   SetFlowLoadingTextOptions,
 } from '@metamask/approval-controller';
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
-import RPCMethods from './index.js';
+import RPCMethods from './index';
 import { RPC } from '../../constants/network';
 import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
 import {
@@ -904,7 +904,7 @@ export const getRpcMethodMiddleware = ({
             request_source: getSource(),
             request_platform: analytics?.platform,
           },
-          startApprovalFlow,
+          startApprovalFlow: () => ({ id: random() }),
           endApprovalFlow,
         });
       },
