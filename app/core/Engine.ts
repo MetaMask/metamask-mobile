@@ -1589,13 +1589,6 @@ class Engine {
           // 'SwapsController:stateChange', // BaseControllerV1, no `messagingSystem`
           // TODO: uncomment once `TokenRatesController` is migrated to V2 and the `stateChange` event is added to its `messagingSystem`.
           // 'TokenRatesController:stateChange', // StaticIntervalPollingControllerV1, no `messagingSystem`
-
-          /**
-           * Non-controllers that should always be excluded from the datamodel's events allowlist.
-           */
-          // 'AssetsContractController:stateChange', // BaseControllerV1, no `messagingSystem`
-          // 'NftDetectionController:stateChange', // StaticIntervalPollingControllerV1, no `messagingSystem`
-          // 'TokenDetectionController:stateChange', // StaticIntervalPollingController, empty state
         ],
       }),
     });
