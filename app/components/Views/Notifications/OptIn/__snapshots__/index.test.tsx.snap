@@ -209,7 +209,6 @@ exports[`OptIn should render correctly 1`] = `
             "width": "48%",
           }
         }
-        testID="buttonprimary"
       >
         <Text
           accessibilityRole="text"

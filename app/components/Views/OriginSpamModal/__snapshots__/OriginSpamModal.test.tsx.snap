@@ -108,7 +108,6 @@ exports[`OriginSpamModal renders SiteBlockedContent if user opt in to block dapp
           "paddingHorizontal": 16,
         }
       }
-      testID="buttonprimary"
     >
       <Text
         accessibilityRole="text"

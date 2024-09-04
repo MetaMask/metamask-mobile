@@ -21,7 +21,6 @@ exports[`ButtonPrimary render matches latest snapshot 1`] = `
       "paddingHorizontal": 16,
     }
   }
-  testID="buttonprimary"
 >
   <SvgMock
     color="#ffffff"
