@@ -15,7 +15,6 @@ import styleSheet from './ButtonPrimary.styles';
 import {
   DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT,
   DEFAULT_BUTTONPRIMARY_LABEL_COLOR,
-  BUTTONPRIMARY_TESTID,
 } from './ButtonPrimary.constants';
 
 const ButtonPrimary = ({
@@ -68,7 +67,6 @@ const ButtonPrimary = ({
       labelColor={DEFAULT_BUTTONPRIMARY_LABEL_COLOR}
       onPressIn={triggerOnPressedIn}
       onPressOut={triggerOnPressedOut}
-      testID={BUTTONPRIMARY_TESTID}
       {...props}
     />
   );

@@ -51,6 +51,7 @@ describe('ButtonPrimary', () => {
         {...SAMPLE_BUTTONPRIMARY_PROPS}
         label="Danger Button"
         isDanger
+        testID={BUTTONPRIMARY_TESTID}
       />,
     );
 
