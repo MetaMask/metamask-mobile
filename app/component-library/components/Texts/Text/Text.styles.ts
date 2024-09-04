@@ -9,7 +9,6 @@ import { TextColor, TextVariant } from './Text.types';
 import {
   getFontStyleVariant,
   getFontStyleVariantForBrandEvolution,
-  FontWeight,
 } from './Text.utils';
 
 /**
@@ -66,15 +65,16 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
   }
   const { fontWeight, ...variantObject } =
     theme.typography[variant as TextVariant];
+  const finalFontWeight = style?.fontWeight || fontWeight;
   const fontObject = {
     ...variantObject,
     color: textColor,
     fontFamily: isBrandEvolution
       ? getFontStyleVariantForBrandEvolution(variant)
-      : getFontStyleVariant(
-          style?.fontWeight || (fontWeight as FontWeight),
-          style?.fontStyle,
-        ),
+      : getFontStyleVariant(finalFontWeight, style?.fontStyle),
+    ...(!isBrandEvolution && {
+      fontWeight: finalFontWeight,
+    }),
   };
 
   return StyleSheet.create({

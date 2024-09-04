@@ -13,7 +13,9 @@ export type FontWeight =
   | '600'
   | '700'
   | '800'
-  | '900';
+  | '900'
+  | 'normal'
+  | 'bold';
 type FontStyle = 'normal' | 'italic';
 
 export const getFontStyleVariant = (
@@ -30,6 +32,8 @@ export const getFontStyleVariant = (
     '700': 'Bold',
     '800': 'Bold',
     '900': 'Bold',
+    normal: 'Regular',
+    bold: 'Bold',
   };
 
   const styleSuffix = fontStyle === 'italic' ? 'Italic' : '';
