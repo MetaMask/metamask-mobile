@@ -10,6 +10,7 @@ import createMockStore from 'redux-mock-store';
 import * as Selectors from '../../../selectors/notifications';
 import * as Actions from '../../../actions/notification/helpers';
 import useCreateSession from './useCreateSession';
+import mockedEngine from '../../../core/__mocks__/MockedEngine';
 
 function arrangeStore() {
   const store = createMockStore()(initialRootState);
@@ -60,6 +61,8 @@ function arrangeActions() {
     mockDisableProfileSyncing,
   };
 }
+
+jest.mock('../../../core/Engine', () => ({ init: () => mockedEngine.init() }));
 
 describe('useCreateSession', () => {
   beforeEach(() => {

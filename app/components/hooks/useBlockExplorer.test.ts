@@ -1,10 +1,10 @@
 import { NetworkController } from '@metamask/network-controller';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../constants/navigation/Routes';
-import { LINEA_GOERLI, RPC } from '../../../app/constants/network';
 import { backgroundState } from '../../util/test/initial-root-state';
 import { renderHookWithProvider } from '../../util/test/renderWithProvider';
 import useBlockExplorer from './useBlockExplorer';
+import mockedEngine from '../../core/__mocks__/MockedEngine';
 
 const mockInitialState = {
   settings: {},
@@ -12,17 +12,17 @@ const mockInitialState = {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
-        selectedNetworkClientId: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
+        selectedNetworkClientId: 'linea-goerli',
         networksMetadata: {},
         networkConfigurations: {
-          '673a4523-3c49-47cd-8d48-68dfc8a47a9c': {
-            id: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
+          'linea-goerli': {
+            id: 'linea-goerli',
             rpcUrl: 'https://mainnet.infura.io/v3/1234567890abcdef',
             chainId: '0xe708',
             ticker: 'ETH',
             nickname: 'Ethereum chain',
             rpcPrefs: {
-              blockExplorerUrl: 'https://etherscan.com',
+              blockExplorerUrl: 'https://test.com',
             },
           },
         },
@@ -37,6 +37,8 @@ jest.mock('react-redux', () => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   useSelector: (fn: any) => fn(mockInitialState),
 }));
+
+jest.mock('../../core/Engine', () => ({ init: () => mockedEngine.init() }));
 
 const mockedNavigate = jest.fn();
 
@@ -74,10 +76,10 @@ describe('useBlockExplorer', () => {
           backgroundState: {
             ...backgroundState,
             NetworkController: {
-              selectedNetworkClientId: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
+              selectedNetworkClientId: 'mainnet',
               networksMetadata: {},
               networkConfigurations: {
-                '673a4523-3c49-47cd-8d48-68dfc8a47a9c': {
+                mainnet: {
                   id: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
                   rpcUrl: 'http://localhost/v3/',
                   chainId: '0xe708',
@@ -87,7 +89,8 @@ describe('useBlockExplorer', () => {
                     blockExplorerUrl: 'https://etherscan.com',
                   },
                 },
-            } as NetworkController['state'],
+              },
+            },
           },
         },
       },

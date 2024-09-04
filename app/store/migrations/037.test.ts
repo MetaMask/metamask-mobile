@@ -2,6 +2,11 @@ import migrate from './037';
 import { merge } from 'lodash';
 import { captureException } from '@sentry/react-native';
 import initialRootState from '../../util/test/initial-root-state';
+import mockedEngine from '../../core/__mocks__/MockedEngine';
+
+jest.mock('../../core/Engine', () => ({
+  init: () => mockedEngine.init(),
+}));
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),

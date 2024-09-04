@@ -5,6 +5,7 @@ import Logger from '../../../../util/Logger';
 import { processAggregatorOrder } from './aggregator';
 import { FiatOrder } from '../../../../reducers/fiatOrders/types';
 import { FIAT_ORDER_PROVIDERS } from '../../../../constants/on-ramp';
+import mockedEngine from '../../../../core/__mocks__/MockedEngine';
 
 const mockOrder1 = {
   id: 'test-id-1',
@@ -49,6 +50,10 @@ const mockOrder1 = {
     excludeFromPurchases: false,
   } as Order,
 };
+
+jest.mock('../../../../core/Engine', () => ({
+  init: () => mockedEngine.init(),
+}));
 
 jest.mock('./aggregator', () => ({
   ...jest.requireActual('./aggregator'),

@@ -1,4 +1,6 @@
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { mockNetworkStateOld } from '../../util/test/network';
 
 const engineModule = jest.requireActual('../../core/Engine');
 
@@ -29,6 +31,21 @@ export const mockedEngine = {
             type: KeyringTypes.hd,
           },
         ],
+      },
+    },
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+        },
+      }),
+      state: {
+        ...mockNetworkStateOld({
+          chainId: CHAIN_IDS.MAINNET,
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+        }),
       },
     },
   },

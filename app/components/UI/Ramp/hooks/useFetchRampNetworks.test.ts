@@ -5,11 +5,16 @@ import { SDK } from '../sdk';
 import { updateOnRampNetworks } from '../../../../reducers/fiatOrders';
 import initialRootState from '../../../../util/test/initial-root-state';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
+import mockedEngine from '../../../../core/__mocks__/MockedEngine';
 
 jest.mock('../sdk', () => ({
   SDK: {
     getNetworks: jest.fn(),
   },
+}));
+
+jest.mock('../../../../core/Engine', () => ({
+  init: () => mockedEngine.init(),
 }));
 
 const mockDispatch = jest.fn();

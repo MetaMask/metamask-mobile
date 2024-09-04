@@ -269,7 +269,9 @@ exports[`TransactionReview should match snapshot 1`] = `
                       resizeMode="contain"
                       source={
                         {
-                          "uri": "MockImage",
+                          "default": {
+                            "uri": "MockImage",
+                          },
                         }
                       }
                       style={
@@ -298,7 +300,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                   }
                 }
               >
-                Sepolia
+                Ethereum Main Network
               </Text>
               <View
                 style={

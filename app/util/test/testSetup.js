@@ -326,6 +326,12 @@ jest.mock(
   () => require('../../core/__mocks__/MockedEngine').default,
 );
 
+// jest.mock('../../core/Engine', () => ({ init: () => mockedEngine.init() }));
+
+beforeEach(() => {
+  console.log('BEFORE EACH ***************');
+});
+
 afterEach(() => {
   console.log('AFTER EACH ***************');
   jest.restoreAllMocks();
