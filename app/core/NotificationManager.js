@@ -12,6 +12,7 @@ import {
   NotificationTransactionTypes,
   isNotificationsFeatureEnabled,
   requestPushNotificationsPermission,
+  asyncAlert,
 } from '../util/notifications';
 import { safeToChecksumAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
@@ -253,7 +254,7 @@ class NotificationManager {
 
         Device.isIos() &&
           setTimeout(() => {
-            requestPushNotificationsPermission();
+            requestPushNotificationsPermission(asyncAlert);
           }, 5000);
 
         // Prompt review
@@ -487,7 +488,7 @@ export default {
     return instance?.gotIncomingTransaction(lastBlock);
   },
   requestPushNotificationsPermission() {
-    return instance?.requestPushNotificationsPermission();
+    return instance?.requestPushNotificationsPermission(asyncAlert);
   },
   showSimpleNotification(data) {
     return instance?.showSimpleNotification(data);

@@ -25,7 +25,7 @@ import {
 import { ToastOptions } from '../../../component-library/components/Toast/Toast.types';
 import { USER_INTENT } from '../../../constants/permissions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import UntypedEngine from '../../../core/Engine';
+import Engine from '../../../core/Engine';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import {
   selectInternalAccounts,
@@ -43,7 +43,7 @@ import { getActiveTabUrl } from '../../../util/transactions';
 import { Account, useAccounts } from '../../hooks/useAccounts';
 
 // Internal dependencies.
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ImageURISource } from 'react-native';
 import URLParse from 'url-parse';
 import PhishingModal from '../../../components/UI/PhishingModal';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -68,6 +68,8 @@ import {
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
+import { RootState } from '../../../reducers';
+import { PermissionsRequest } from '@metamask/permission-controller';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -77,10 +79,6 @@ const createStyles = () =>
   });
 
 const AccountConnect = (props: AccountConnectProps) => {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const Engine = UntypedEngine as any;
-
   const { colors } = useTheme();
   const styles = createStyles();
   const { hostInfo, permissionRequestId } = props.route.params;
@@ -112,9 +110,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
 
   const { toastRef } = useContext(ToastContext);
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const accountAvatarType = useSelector((state: any) =>
+  const accountAvatarType = useSelector((state: RootState) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
@@ -202,21 +198,18 @@ const AccountConnect = (props: AccountConnectProps) => {
     ? prefixUrlWithProtocol(hostname)
     : domainTitle;
 
-  const isAllowedUrl = useCallback(
-    (url: string) => {
-      const { PhishingController } = Engine.context;
+  const isAllowedUrl = useCallback((url: string) => {
+    const { PhishingController } = Engine.context;
 
-      // Update phishing configuration if it is out-of-date
-      // This is async but we are not `await`-ing it here intentionally, so that we don't slow
-      // down network requests. The configuration is updated for the next request.
-      PhishingController.maybeUpdateState();
+    // Update phishing configuration if it is out-of-date
+    // This is async but we are not `await`-ing it here intentionally, so that we don't slow
+    // down network requests. The configuration is updated for the next request.
+    PhishingController.maybeUpdateState();
 
-      const phishingControllerTestResult = PhishingController.test(url);
+    const phishingControllerTestResult = PhishingController.test(url);
 
-      return !phishingControllerTestResult.result;
-    },
-    [Engine.context],
-  );
+    return !phishingControllerTestResult.result;
+  }, []);
 
   useEffect(() => {
     const url = dappUrl || channelIdOrHostname || '';
@@ -235,15 +228,19 @@ const AccountConnect = (props: AccountConnectProps) => {
     inappBrowserOrigin || (!isChannelId ? channelIdOrHostname : ''),
   );
 
-  const actualIcon = useMemo(
-    () =>
-      faviconSource?.uri
-        ? faviconSource
-        : dappIconUrl
-        ? { uri: dappIconUrl }
-        : { uri: '' },
-    [dappIconUrl, faviconSource],
-  );
+  const actualIcon = useMemo(() => {
+    // Priority to dappIconUrl
+    if (dappIconUrl) {
+      return { uri: dappIconUrl };
+    }
+
+    const favicon = faviconSource as ImageURISource;
+    if ('uri' in favicon) {
+      return faviconSource;
+    }
+
+    return { uri: '' };
+  }, [dappIconUrl, faviconSource]);
 
   const secureIcon = useMemo(
     () =>
@@ -303,12 +300,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         source: SourceType.PERMISSION_SYSTEM,
       });
     },
-    [
-      Engine.context.PermissionController,
-      accountsLength,
-      channelIdOrHostname,
-      trackEvent,
-    ],
+    [accountsLength, channelIdOrHostname, trackEvent],
   );
 
   const navigateToUrlInEthPhishingModal = useCallback(
@@ -359,7 +351,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   const handleConnect = useCallback(async () => {
-    const request = {
+    const request: PermissionsRequest = {
       ...hostInfo,
       metadata: {
         ...hostInfo.metadata,
@@ -378,6 +370,9 @@ const AccountConnect = (props: AccountConnectProps) => {
 
     try {
       setIsLoading(true);
+      /*
+       * TODO: update request object to match PermissionsRequest type
+       */
       await Engine.context.PermissionController.acceptPermissionsRequest(
         request,
       );
@@ -411,11 +406,12 @@ const AccountConnect = (props: AccountConnectProps) => {
         labelOptions,
         accountAddress: activeAddress,
         accountAvatarType,
+        hasNoTimeout: false,
       });
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (e: any) {
-      Logger.error(e, 'Error while trying to connect to a dApp.');
+    } catch (e) {
+      if (e instanceof Error) {
+        Logger.error(e, 'Error while trying to connect to a dApp.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -426,7 +422,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     accounts,
     ensByAccountAddress,
     accountAvatarType,
-    Engine.context.PermissionController,
     toastRef,
     accountsLength,
     channelIdOrHostname,
@@ -445,15 +440,15 @@ const AccountConnect = (props: AccountConnectProps) => {
         ) as string;
         !isMultiSelect && setSelectedAddresses([checksummedAddress]);
         trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT);
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (e: any) {
-        Logger.error(e, 'error while trying to add a new account');
+      } catch (e) {
+        if (e instanceof Error) {
+          Logger.error(e, 'error while trying to add a new account');
+        }
       } finally {
         setIsLoading(false);
       }
     },
-    [Engine.context, trackEvent],
+    [trackEvent],
   );
 
   const hideSheet = (callback?: () => void) =>
@@ -607,19 +602,19 @@ const AccountConnect = (props: AccountConnectProps) => {
         onUserAction={setUserIntent}
         onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
         connection={sdkConnection}
+        hostname={hostname}
       />
     ),
     [
       accounts,
       ensByAccountAddress,
       selectedAddresses,
-      setSelectedAddresses,
       isLoading,
-      setUserIntent,
       faviconSource,
-      urlWithProtocol,
       secureIcon,
+      urlWithProtocol,
       sdkConnection,
+      hostname,
     ],
   );
 

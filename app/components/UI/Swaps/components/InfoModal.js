@@ -60,6 +60,7 @@ function InfoModal({
   propagateSwipe,
   urlText,
   url,
+  testID,
 }) {
   const { colors, shadows } = useTheme();
   const styles = createStyles(colors, shadows);
@@ -104,6 +105,7 @@ function InfoModal({
       propagateSwipe={propagateSwipe}
       backdropColor={colors.overlay.default}
       backdropOpacity={1}
+      testID={testID}
     >
       <SafeAreaView style={styles.modalView}>
         <View style={styles.title}>
@@ -124,6 +126,7 @@ InfoModal.propTypes = {
   message: PropTypes.string,
   urlText: PropTypes.string,
   url: PropTypes.func,
+  testID: PropTypes.string,
 };
 
 export default InfoModal;

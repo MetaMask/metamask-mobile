@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Notifications team directory
 import React from 'react';
 import { Dimensions, TouchableOpacity } from 'react-native';
 import {
@@ -25,6 +27,7 @@ interface NotificationRootProps
   styles: NotificationListStyles;
   handleOnPress: () => void;
   onDismiss?: () => void;
+  isRead?: boolean;
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -37,6 +40,7 @@ function NotificationRoot({
   styles,
   onDismiss,
   simultaneousHandlers,
+  isRead,
 }: NotificationRootProps) {
   const transX = useSharedValue(0);
   const itemHeight = useSharedValue();
@@ -73,7 +77,8 @@ function NotificationRoot({
 
   const rChildrenStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: transX.value }],
-    ...styles.container,
+    ...styles.itemContainer,
+    ...(!isRead ? styles.unreadItemContainer : styles.readItemContainer),
   }));
 
   const rIconStyle = useAnimatedStyle(() => {
@@ -84,14 +89,8 @@ function NotificationRoot({
     return { opacity: opct };
   });
 
-  const rContainerStyle = useAnimatedStyle(() => ({
-    height: itemHeight.value,
-    paddingVertical: paddingVertical.value,
-    opacity: opacity.value,
-  }));
-
   return (
-    <Animated.View style={[styles.wrapper, rContainerStyle]}>
+    <Animated.View>
       <PanGestureHandler
         simultaneousHandlers={simultaneousHandlers}
         onGestureEvent={panGesture}

@@ -7,6 +7,13 @@ import { createDeepEqualSelector } from './util';
 
 const selectCurrentTransactionId = (state: RootState) => state.transaction?.id;
 
+export const selectCurrentTransactionSecurityAlertResponse = (
+  state: RootState,
+) => {
+  const { id, securityAlertResponses } = state.transaction;
+  return securityAlertResponses?.[id];
+};
+
 export const selectCurrentTransactionMetadata = createSelector(
   selectTransactions,
   selectCurrentTransactionId,
@@ -17,11 +24,6 @@ export const selectCurrentTransactionMetadata = createSelector(
 const selectCurrentTransactionGasFeeEstimatesStrict = createSelector(
   selectCurrentTransactionMetadata,
   (transactionMetadata) => transactionMetadata?.gasFeeEstimates,
-);
-
-const selectCurrentTransactionGasFeeEstimatesLoaded = createSelector(
-  selectCurrentTransactionMetadata,
-  (transactionMetadata) => transactionMetadata?.gasFeeEstimatesLoaded,
 );
 
 export const selectCurrentTransactionGasFeeEstimates = createDeepEqualSelector(
@@ -44,11 +46,4 @@ export const selectGasFeeEstimates = createSelector(
 
     return gasFeeControllerEstimates;
   },
-);
-
-export const selectTransactionGasFeeEstimates = createSelector(
-  selectCurrentTransactionGasFeeEstimatesLoaded,
-  selectGasFeeEstimates,
-  (transactionGasFeeEstimatesLoaded, gasFeeEstimates) =>
-    transactionGasFeeEstimatesLoaded ? gasFeeEstimates : undefined,
 );

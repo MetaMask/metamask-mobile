@@ -17,7 +17,7 @@ import {
 } from '../../../../../../selectors/networkController';
 import AvatarNetwork from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
-import { isNetworkUiRedesignEnabled } from '../../../../../../util/networks';
+import { isNetworkUiRedesignEnabled } from '../../../../../../util/networks/isNetworkUiRedesignEnabled';
 
 const CustomNetwork = ({
   isNetworkModalVisible,
@@ -98,7 +98,7 @@ const CustomNetwork = ({
                 }
               />
             </View>
-            <CustomText bold={!isNetworkUiRedesignEnabled}>
+            <CustomText bold={!isNetworkUiRedesignEnabled()}>
               {networkConfiguration.nickname}
             </CustomText>
           </View>

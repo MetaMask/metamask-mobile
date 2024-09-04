@@ -15,6 +15,7 @@ import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NetworksSettings from '../../Views/Settings/NetworksSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
 import NotificationsView from '../../Views/Notifications';
+import NotificationsDetails from '../../Views/Notifications/Details';
 import OptIn from '../../Views/Notifications/OptIn';
 import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
@@ -73,6 +74,7 @@ import { selectProviderConfig } from '../../../selectors/networkController';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import isUrl from 'is-url';
 import SDKSessionsManager from '../../Views/SDK/SDKSessionsManager/SDKSessionsManager';
+import PermissionsManager from '../../Views/Settings/PermissionsSettings/PermissionsManager';
 import URL from 'url-parse';
 import Logger from '../../../util/Logger';
 import { getDecimalChainId } from '../../../util/networks';
@@ -269,6 +271,7 @@ const SettingsFlow = () => (
       options={AdvancedSettings.navigationOptions}
     />
     <Stack.Screen name="SDKSessionsManager" component={SDKSessionsManager} />
+    <Stack.Screen name="PermissionsManager" component={PermissionsManager} />
     <Stack.Screen
       name="SecuritySettings"
       component={SecuritySettings}
@@ -643,6 +646,11 @@ const NotificationsModeView = (props) => (
       name={Routes.NOTIFICATIONS.OPT_IN}
       component={OptIn}
       options={OptIn.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.NOTIFICATIONS.DETAILS}
+      component={NotificationsDetails}
+      options={NotificationsDetails.navigationOptions}
     />
     <Stack.Screen
       name="ContactForm"

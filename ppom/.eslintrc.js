@@ -77,7 +77,7 @@ module.exports = {
     'import/no-mutable-exports': 2,
     'import/no-namespace': 2,
     'import/no-nodejs-modules': 2,
-    'import/prefer-default-export': 2,
+    'import/prefer-default-export': 0,
     'no-alert': 2,
     'no-constant-condition': [
       2,

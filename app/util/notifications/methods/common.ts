@@ -11,6 +11,7 @@ import { Notification } from '../types';
 import { calcTokenAmount } from '../../transactions';
 import images from '../../../images/image-icons';
 import CHAIN_SCANS_URLS from '../constants/urls';
+import { strings } from '../../../../locales/i18n';
 
 const { UI } = NotificationServicesController;
 /**
@@ -54,7 +55,10 @@ const isSameYear = (currentDate: Date, dateToCheck: Date) =>
  * @param date - The date to be formatted.
  * @returns The formatted date.
  */
-export function formatMenuItemDate(date: Date) {
+export function formatMenuItemDate(date?: Date) {
+  if (!date) {
+    return strings('notifications.no_date');
+  }
   const currentDate = new Date();
 
   // E.g. 12:21
@@ -197,7 +201,6 @@ export function getProviderByChainId(chainId: HexChainId) {
       networkClientId,
     )?.provider;
 
-  // @ts-expect-error TODO: remove this annotation once the `Eip1193Provider` class is released
   return provider && new Web3Provider(provider);
 }
 
@@ -216,9 +219,11 @@ export const getNetworkFees = async (
   }
 
   try {
-    const receipt = await provider.getTransactionReceipt(notification.tx_hash);
-    const transaction = await provider.getTransaction(notification.tx_hash);
-    const block = await provider.getBlock(notification.block_number);
+    const [receipt, transaction, block] = await Promise.all([
+      provider.getTransactionReceipt(notification.tx_hash),
+      provider.getTransaction(notification.tx_hash),
+      provider.getBlock(notification.block_number),
+    ]);
 
     const calculateUsdAmount = (value: string, decimalPlaces?: number) =>
       formatAmount(
@@ -375,7 +380,7 @@ export function getNativeTokenDetailsByChainId(chainId: number) {
     return {
       name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
       symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
-      image: images.MATIC,
+      image: images.POL,
     };
   }
   if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ARBITRUM) {

@@ -9,10 +9,8 @@ import NetworkView from './pages/Settings/NetworksView';
 import OnboardingView from './pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from './pages/Onboarding/OnboardingCarouselView';
 import OnboardingWizardModal from './pages/modals/OnboardingWizardModal';
-import ExperienceEnhancerModal from './pages/modals/ExperienceEnhancerModal';
 import SettingsView from './pages/Settings/SettingsView';
 import WalletView from './pages/wallet/WalletView';
-import WhatsNewModal from './pages/modals/WhatsNewModal';
 import Accounts from '../wdio/helpers/Accounts';
 import SkipAccountSecurityModal from './pages/modals/SkipAccountSecurityModal';
 import ProtectYourWalletModal from './pages/modals/ProtectYourWalletModal';
@@ -35,11 +33,9 @@ const validAccount = Accounts.getValidAccount();
 
 export const acceptTermOfUse = async () => {
   // tap on accept term of use screen
-  await TestHelpers.delay(3500);
   await Assertions.checkIfVisible(TermsOfUseModal.container);
   await TermsOfUseModal.tapScrollEndButton();
   await TermsOfUseModal.tapAgreeCheckBox();
-  await TestHelpers.delay(3500);
   await TermsOfUseModal.tapAcceptButton();
   await Assertions.checkIfNotVisible(TermsOfUseModal.container);
 };
@@ -50,16 +46,6 @@ have to have all these workarounds in the tests
   */
   await TestHelpers.delay(1000);
 
-  try {
-    await Assertions.checkIfVisible(WhatsNewModal.container);
-    await WhatsNewModal.tapCloseButton();
-    await Assertions.checkIfNotVisible(WhatsNewModal.container);
-  } catch {
-    /* eslint-disable no-console */
-
-    console.log('The whats new modal is not visible');
-  }
-
   // Handle Onboarding wizard
   try {
     await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
@@ -69,27 +55,6 @@ have to have all these workarounds in the tests
     /* eslint-disable no-console */
 
     console.log('The onboarding modal is not visible');
-  }
-
-  // TODO: Define the correct order of onboarding modals to be displayed
-  try {
-    await Assertions.checkIfVisible(WhatsNewModal.container);
-    await WhatsNewModal.tapCloseButton();
-    await Assertions.checkIfNotVisible(WhatsNewModal.container);
-  } catch {
-    /* eslint-disable no-console */
-
-    console.log('The whats new modal is not visible');
-  }
-
-  try {
-    // Handle Marketing consent modal
-
-    await Assertions.checkIfVisible(ExperienceEnhancerModal.container);
-    await ExperienceEnhancerModal.tapNoThanks();
-    await Assertions.checkIfNotVisible(ExperienceEnhancerModal.container);
-  } catch {
-    console.log('The marketing consent modal is not visible');
   }
 
   try {
