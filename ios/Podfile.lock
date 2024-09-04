@@ -567,6 +567,8 @@ PODS:
   - react-native-slider (4.5.2):
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
+  - react-native-splash-screen (3.2.0):
+    - React
   - react-native-video (5.2.1):
     - React-Core
     - react-native-video/Video (= 5.2.1)
@@ -867,6 +869,7 @@ DEPENDENCIES:
   - react-native-render-html (from `../node_modules/react-native-render-html`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - "react-native-slider (from `../node_modules/@react-native-community/slider`)"
+  - "react-native-splash-screen (from `../node_modules/@metamask/react-native-splash-screen`)"
   - react-native-video (from `../node_modules/react-native-video`)
   - react-native-view-shot (from `../node_modules/react-native-view-shot`)
   - "react-native-webview-mm (from `../node_modules/@metamask/react-native-webview`)"
@@ -1056,6 +1059,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-slider:
     :path: "../node_modules/@react-native-community/slider"
+  react-native-splash-screen:
+    :path: "../node_modules/@metamask/react-native-splash-screen"
   react-native-video:
     :path: "../node_modules/react-native-video"
   react-native-view-shot:
@@ -1241,6 +1246,7 @@ SPEC CHECKSUMS:
   react-native-render-html: 984dfe2294163d04bf5fe25d7c9f122e60e05ebe
   react-native-safe-area-context: 9e40fb181dac02619414ba1294d6c2a807056ab9
   react-native-slider: f266dd860064138a659a42714e6da47a52a51107
+  react-native-splash-screen: 49a7160705f32169d27ab8dff9dda53331592412
   react-native-video: c26780b224543c62d5e1b2a7244a5cd1b50e8253
   react-native-view-shot: 4475fde003fe8a210053d1f98fb9e06c1d834e1c
   react-native-webview-mm: c7df943491b1c6d2c48238778c09a4d05cd2b322
