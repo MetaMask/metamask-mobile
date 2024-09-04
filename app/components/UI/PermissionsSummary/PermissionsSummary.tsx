@@ -1,8 +1,7 @@
 import React from 'react';
 import StyledButton from '../StyledButton';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
-import Device from '../../../util/device';
 import Text from '../../Base/Text';
 import { useTheme } from '../../../util/theme';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
@@ -23,86 +22,9 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { getHost } from '../../../util/browser';
 import WebsiteIcon from '../WebsiteIcon';
-import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
 import useSelectedAccount from '../Tabs/TabThumbnail/useSelectedAccount';
-
-const createStyles = (colors: ThemeColors) =>
-  StyleSheet.create({
-    mainContainer: {
-      backgroundColor: colors.background.default,
-      paddingTop: 24,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      minHeight: 200,
-      paddingBottom: Device.isIphoneX() ? 20 : 0,
-    },
-    title: {
-      fontSize: Device.isSmallDevice() ? 18 : 24,
-      marginBottom: 16,
-      marginTop: 16,
-      marginRight: 24,
-      marginLeft: 24,
-    },
-    actionButtonsContainer: {
-      flex: 0,
-      flexDirection: 'row',
-      padding: 24,
-    },
-    buttonPositioning: {
-      flex: 1,
-    },
-    cancelButton: {
-      marginRight: 8,
-    },
-    confirmButton: {
-      marginLeft: 8,
-    },
-    networkPermissionRequestInfoCard: {
-      marginHorizontal: 24,
-      marginTop: 8,
-      marginBottom: 12,
-      alignItems: 'center',
-      flexDirection: 'row',
-    },
-    permissionsSummaryHeader: {
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    domainLogoContainer: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-    },
-    assetLogoContainer: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: 10,
-    },
-    networkPermissionRequestDetails: {
-      flex: 1,
-      marginLeft: 12,
-    },
-    permissionRequestNetworkInfo: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    avatarGroup: { marginLeft: 2 },
-    accountPermissionRequestInfoCard: {
-      marginHorizontal: 24,
-      marginTop: 8,
-      marginBottom: 12,
-      alignItems: 'center',
-      flexDirection: 'row',
-    },
-    accountPermissionRequestDetails: {
-      flex: 1,
-      marginLeft: 12,
-    },
-    permissionRequestAccountInfo: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-  });
+import styleSheet from './PermissionsSummary.styles';
+import { useStyles } from '../../../component-library/hooks';
 
 interface PermissionsSummaryProps {
   currentPageInformation: {
@@ -124,7 +46,7 @@ const PermissionsSummary = ({
   onConfirm,
 }: PermissionsSummaryProps) => {
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { styles } = useStyles(styleSheet, {});
   const selectedAccount = useSelectedAccount();
 
   const confirm = () => {

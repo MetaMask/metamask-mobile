@@ -1,5 +1,5 @@
 import React from 'react';
-import PermissionsSummary from './';
+import PermissionsSummary from './PermissionsSummary';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';

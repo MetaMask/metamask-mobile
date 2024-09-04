@@ -172,7 +172,7 @@ const SwitchCustomNetwork = ({
       currentPageInformation={currentPageInformation}
       onCancel={onCancel}
       onConfirm={onConfirm}
-    ></PermissionSummary>
+    />
   );
 
   return isMutichainVersion1Enabled
