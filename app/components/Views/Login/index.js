@@ -497,6 +497,7 @@ class Login extends PureComponent {
 
   handleDownloadStateLogs = () => {
     const { fullState } = this.props;
+    this.props.metrics.trackEvent(MetaMetricsEvents.LOGIN_DOWNLOAD_LOGS);
     downloadStateLogs(fullState, false);
   };
 
