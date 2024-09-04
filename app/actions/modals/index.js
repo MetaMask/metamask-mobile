@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/prefer-default-export
 export function toggleNetworkModal(shouldNetworkSwitchPopToWallet = true) {
   return {
     type: 'TOGGLE_NETWORK_MODAL',

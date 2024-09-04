@@ -2,7 +2,6 @@ import { StyleSheet } from 'react-native';
 import { fontStyles } from '../../../../styles/common';
 import { Theme } from '../../../../util/theme/models';
 
-// eslint-disable-next-line import/prefer-default-export
 export const createStyles = (theme: Theme) =>
   StyleSheet.create({
     wrapper: {

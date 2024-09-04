@@ -112,9 +112,9 @@ import CustomGasModal from './components/CustomGasModal';
 import { ResultType } from '../../components/BlockaidBanner/BlockaidBanner.types';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import {
-  selectTransactionGasFeeEstimates,
   selectCurrentTransactionMetadata,
   selectCurrentTransactionSecurityAlertResponse,
+  selectGasFeeEstimates,
 } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
@@ -126,6 +126,11 @@ import { TransactionConfirmViewSelectorsIDs } from '../../../../../../e2e/select
 import { selectTransactionMetrics } from '../../../../../core/redux/slices/transactionMetrics';
 import SimulationDetails from '../../../../UI/SimulationDetails/SimulationDetails';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
+import {
+  generateInsufficientBalanceMessage,
+  validateBalance,
+  validateTokenTransaction,
+} from './validation';
 import { buildTransactionParams } from '../../../../../util/confirmation/transactions';
 
 const EDIT = 'edit';
@@ -526,6 +531,21 @@ class Confirm extends PureComponent {
     const contractBalanceChanged =
       previousContractBalance !== newContractBalance;
     const recipientIsDefined = transactionTo !== undefined;
+    const haveEIP1559TotalMaxHexChanged =
+      EIP1559GasTransaction.totalMaxHex !==
+      prevState.EIP1559GasTransaction.totalMaxHex;
+
+    const haveGasPropertiesChanged =
+      (this.props.gasFeeEstimates &&
+        gas &&
+        (!prevProps.gasFeeEstimates ||
+          !shallowEqual(
+            prevProps.gasFeeEstimates,
+            this.props.gasFeeEstimates,
+          ) ||
+          gas !== prevProps?.transactionState?.transaction?.gas)) ||
+      haveEIP1559TotalMaxHexChanged;
+
     if (
       recipientIsDefined &&
       (valueChanged || fromAddressChanged || contractBalanceChanged)
@@ -536,13 +556,7 @@ class Confirm extends PureComponent {
       this.scrollView.scrollToEnd({ animated: true });
     }
 
-    if (
-      this.props.gasFeeEstimates &&
-      gas &&
-      (!prevProps.gasFeeEstimates ||
-        !shallowEqual(prevProps.gasFeeEstimates, this.props.gasFeeEstimates) ||
-        gas !== prevProps?.transactionState?.transaction?.gas)
-    ) {
+    if (haveGasPropertiesChanged) {
       const gasEstimateTypeChanged =
         prevProps.gasEstimateType !== this.props.gasEstimateType;
       const gasSelected = gasEstimateTypeChanged
@@ -759,39 +773,33 @@ class Confirm extends PureComponent {
         transaction: { value },
       },
     } = this.props;
+
     const selectedAddress = transaction?.from;
-    let weiBalance, weiInput, error;
+    const weiBalance = hexToBN(accounts[selectedAddress].balance);
+    const totalTransactionValue = hexToBN(total);
 
-    if (isDecimal(value)) {
-      if (selectedAsset.isETH || selectedAsset.tokenId) {
-        weiBalance = hexToBN(accounts[selectedAddress].balance);
-        const totalTransactionValue = hexToBN(total);
-        if (!weiBalance.gte(totalTransactionValue)) {
-          const amount = renderFromWei(totalTransactionValue.sub(weiBalance));
-          const tokenSymbol = getTicker(ticker);
-          error = strings('transaction.insufficient_amount', {
-            amount,
-            tokenSymbol,
-          });
-        }
-      } else {
-        const [, , amount] = decodeTransferData('transfer', transaction.data);
-
-        weiBalance = hexToBN(contractBalances[selectedAsset.address]);
-
-        weiInput = hexToBN(amount);
-        error =
-          weiBalance && weiBalance.gte(weiInput)
-            ? undefined
-            : strings('transaction.insufficient_tokens', {
-                token: selectedAsset.symbol,
-              });
-      }
-    } else {
-      error = strings('transaction.invalid_amount');
+    if (!isDecimal(value)) {
+      return strings('transaction.invalid_amount');
     }
 
-    return error;
+    if (selectedAsset.isETH || selectedAsset.tokenId) {
+      if (!validateBalance(weiBalance, totalTransactionValue)) {
+        return undefined;
+      }
+      return generateInsufficientBalanceMessage(
+        weiBalance,
+        totalTransactionValue,
+        ticker,
+      );
+    }
+    return validateTokenTransaction(
+      transaction,
+      weiBalance,
+      totalTransactionValue,
+      contractBalances,
+      selectedAsset,
+      ticker,
+    );
   };
 
   setError = (errorMessage) => {
@@ -1468,7 +1476,7 @@ const mapStateToProps = (state) => ({
   selectedAsset: state.transaction.selectedAsset,
   transactionState: state.transaction,
   primaryCurrency: state.settings.primaryCurrency,
-  gasFeeEstimates: selectTransactionGasFeeEstimates(state),
+  gasFeeEstimates: selectGasFeeEstimates(state),
   gasEstimateType: selectGasFeeControllerEstimateType(state),
   isPaymentRequest: state.transaction.paymentRequest,
   isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
