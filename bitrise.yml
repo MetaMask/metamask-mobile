@@ -459,9 +459,9 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - PRODUCTION_APP_URL: 'bs://f0eefdd04dd0b913eb8b6494e4990e3e9f1c2bd3' # Last production's QA build
-      - PRODUCTION_BUILD_NAME: 7.26.1
-      - PRODUCTION_BUILD_NUMBER: 1360
+      - PRODUCTION_APP_URL: 'bs://2c870d0c5d739f19eae55fd254048374447e79fb' # Last production's QA build
+      - PRODUCTION_BUILD_NAME: 7.29.0
+      - PRODUCTION_BUILD_NUMBER: 1397
       - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
       - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_NAME ($PRODUCTION_BUILD_NUMBER)'
       - NEW_BUILD_STRING: 'MetaMask-QA v$VERSION_NAME ($VERSION_NUMBER)'
@@ -1230,6 +1230,8 @@ workflows:
           inputs:
             - ipa_path: $BITRISE_APP_STORE_IPA_PATH
   build_ios_release:
+    envs:
+      - NO_FLIPPER: '1'
     before_run:
       - code_setup
     after_run:
@@ -1269,6 +1271,8 @@ workflows:
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
   build_ios_qa:
+    envs:
+      - NO_FLIPPER: '1'
     before_run:
       - code_setup
     after_run:
@@ -1456,6 +1460,9 @@ app:
       MM_MULTICHAIN_V1_ENABLED: false
     - opts:
         is_expand: false
+      MM_POOLED_STAKING_UI_ENABLED: false
+    - opts:
+        is_expand: false
       PROJECT_LOCATION: android
     - opts:
         is_expand: false
@@ -1486,16 +1493,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.28.1
+      VERSION_NAME: 7.29.2
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1386
+      VERSION_NUMBER: 1409
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.28.1
+      FLASK_VERSION_NAME: 7.29.2
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1386
+      FLASK_VERSION_NUMBER: 1409
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

@@ -104,6 +104,8 @@ export default {
     },
     TERMS_AND_CONDITIONS: 'https://legal.consensys.io/metamask/terms-of-use/',
     PRIVACY_POLICY: 'https://consensys.io/privacy-policy',
+    PROFILE_SYNC:
+      'https://support.metamask.io/privacy-and-security/profile-privacy',
     DATA_RETENTION_UPDATE:
       'https://consensys.net/blog/news/consensys-data-retention-update/',
     CONNECTIVITY_ISSUES:
