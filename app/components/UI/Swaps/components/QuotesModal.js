@@ -289,7 +289,9 @@ function QuotesModal({
                     <Text small>{strings('swaps.guaranteed_amount')}</Text>
                     <Text primary>
                       {fromTokenMinimalUnitString(
-                        selectedDetailsQuote.destinationAmount,
+                        (
+                          selectedDetailsQuote.destinationAmount || '0'
+                        ).toString(10),
                         destinationToken.decimals,
                       )}{' '}
                       <Text reset bold>
