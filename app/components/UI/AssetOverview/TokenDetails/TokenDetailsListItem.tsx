@@ -23,7 +23,7 @@ const TokenDetailsListItem: React.FC<TokenDetailsListItemProps> = ({
       {label}
     </Text>
     {children || (
-      <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+      <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
         {value}
       </Text>
     )}
