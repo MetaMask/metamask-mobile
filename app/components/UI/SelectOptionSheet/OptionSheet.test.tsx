@@ -32,7 +32,7 @@ describe('OptionSheet', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly', () => {
+  it('render matches snapshot', () => {
     const { toJSON } = render(OptionsSheet);
     expect(toJSON()).toMatchSnapshot();
   });

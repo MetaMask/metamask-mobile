@@ -42,7 +42,7 @@ describe('SelectOptionSheet', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('shows the correct selected value', () => {
+  it('shows selected value', () => {
     const options: iSelectOption[] = [
       { key: 'key 1', value: 'val 1', label: 'option 1' },
       { key: 'key 2', value: 'val 2', label: 'option 2' },
@@ -83,7 +83,7 @@ describe('SelectOptionSheet', () => {
     expect(getByText('default value')).toBeTruthy();
   });
 
-  it('shows empty string when selectedValue is not provided and defaultValue is not provided', () => {
+  it('shows empty string when selectedValue and defaultValue are not provided', () => {
     const options: iSelectOption[] = [
       { key: 'key 1', value: 'val 1', label: 'option 1' },
       { key: 'key 2', value: 'val 2', label: 'option 2' },
