@@ -5,41 +5,38 @@ const environmentMapping: { [key: string]: string } = {
 
 const buildTypeOptions: string[] = ['main', 'flask', 'qa'];
 
-export default function launchDarklyURL(): string {
+export default function launchDarklyURL(
+  metamaskBuildType = 'main',
+  metamaskEnvironment = 'production',
+): string {
   const client = 'mobile';
-  const metamaskEnvironment: string | undefined =
-    process.env.METAMASK_ENVIRONMENT;
-  const metamaskBuildType: string | undefined = process.env.METAMASK_BUILD_TYPE;
 
-  if (!metamaskEnvironment) {
-    throw new Error('METAMASK_ENVIRONMENT is not defined in the .env file.');
-  }
+  let environment: string | undefined = environmentMapping[metamaskEnvironment];
 
-  if (!metamaskBuildType) {
-    throw new Error('METAMASK_BUILD_TYPE is not defined in the .env file.');
-  }
-
-  const distribution: string | undefined =
-    environmentMapping[metamaskEnvironment];
-
-  if (!distribution) {
-    throw new Error(
+  if (!environment) {
+    console.warn(
       `Invalid METAMASK_ENVIRONMENT value: ${metamaskEnvironment}. Must be one of ${Object.keys(
         environmentMapping,
-      ).join(', ')}`,
+      ).join(', ')}. Using default value: production.`,
     );
+    metamaskEnvironment = 'production';
+    environment = environmentMapping[metamaskEnvironment];
   }
 
   if (!buildTypeOptions.includes(metamaskBuildType)) {
-    throw new Error(
+    console.warn(
       `Invalid METAMASK_BUILD_TYPE value: ${metamaskBuildType}. Must be one of ${buildTypeOptions.join(
         ', ',
-      )}`,
+      )}. Using default value: main.`,
     );
+    metamaskBuildType = 'main';
   }
 
-  const baseURL = 'http://localhost:3000/v1/flags';
-  const url = `${baseURL}?client=${client}&environment=${metamaskBuildType}&distribution=${distribution}`;
+  const baseURL =
+    process.env.LAUNCH_DARKLY_URL ||
+    'https://client-config.dev-api.cx.metamask.io' ||
+    'http://localhost:3000';
+  const url = `${baseURL}/flags?client=${client}&distribution=${metamaskBuildType}&environment=${environment}`;
 
   return url;
 }
