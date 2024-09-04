@@ -101,6 +101,15 @@
 - [#10640](https://github.com/MetaMask/metamask-mobile/pull/10640): fix: notification small fixes (#10640)
 - [#10693](https://github.com/MetaMask/metamask-mobile/pull/10693): fix: notification second round fixes (#10693)
 
+## 7.29.2 - Sep 2, 2024
+### Fixed
+- [#10965](https://github.com/MetaMask/metamask-mobile/pull/10965): fix: gas never loading during send + high gas fee after deep link (#10965)
+- [#11005](https://github.com/MetaMask/metamask-mobile/pull/11005): fix: Add missing allowedAction NetworkController:findNetworkClientIdByChainId to transactionController (#11005)
+
+## 7.29.1 - Aug 29, 2024
+### Fixed
+- [#10831](https://github.com/MetaMask/metamask-mobile/pull/10831): feat: Update Polygon from MATIC to POL (#10831)
+
 ## 7.29.0 - Aug 2, 2024
 ### Added
 - [#9578](https://github.com/MetaMask/metamask-mobile/pull/9578): feat: type `renderHookWithProvider` (#9578)

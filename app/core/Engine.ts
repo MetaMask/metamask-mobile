@@ -1186,6 +1186,7 @@ class Engine {
           `${accountsController.name}:getSelectedAccount`,
           `${approvalController.name}:addRequest`,
           `${networkController.name}:getNetworkClientById`,
+          `${networkController.name}:findNetworkClientIdByChainId`,
         ],
         allowedEvents: [`NetworkController:stateChange`],
       }),
@@ -1545,6 +1546,7 @@ class Engine {
     this.configureControllersOnNetworkChange();
     this.startPolling();
     this.handleVaultBackup();
+    this.transactionController.clearUnapprovedTransactions();
 
     Engine.instance = this;
   }
