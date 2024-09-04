@@ -79,11 +79,12 @@ const Price = ({
   return (
     <>
       <View style={styles.wrapper}>
-        <Text variant={TextVariant.BodySM}>{asset.symbol}</Text>
-        {asset.name && (
+        {asset.name ? (
           <Text variant={TextVariant.HeadingMD} style={styles.name}>
-            {asset.name}
+            {asset.name} ({asset.symbol})
           </Text>
+        ) : (
+          <Text variant={TextVariant.BodySM}>{asset.symbol}</Text>
         )}
         {!isNaN(price) && (
           <Title style={styles.price} testID={TOKEN_PRICE}>
