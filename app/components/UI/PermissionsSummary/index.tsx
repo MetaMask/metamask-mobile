@@ -110,8 +110,8 @@ interface PermissionsSummaryProps {
     icon: string | { uri: string };
     url: string;
   };
-  onConfirm: () => void;
-  onCancel: () => void;
+  onConfirm?: () => void;
+  onCancel?: () => void;
   customNetworkInformation: {
     chainName: string;
   };
@@ -179,13 +179,15 @@ const PermissionsSummary = ({
                 {customNetworkInformation.chainName}
               </TextComponent>
             </TextComponent>
-            <View style={styles.avatarGroup}>
-              <Avatar
-                size={AvatarSize.Xs}
-                variant={AvatarVariant.Account}
-                accountAddress={selectedAccount?.address}
-              />
-            </View>
+            {selectedAccount?.address && (
+              <View style={styles.avatarGroup}>
+                <Avatar
+                  size={AvatarSize.Xs}
+                  variant={AvatarVariant.Account}
+                  accountAddress={selectedAccount?.address}
+                />
+              </View>
+            )}
           </View>
         </View>
         <View>
