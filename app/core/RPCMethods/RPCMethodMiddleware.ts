@@ -312,6 +312,8 @@ export const getRpcMethodMiddleware = ({
 }: RPCMethodsMiddleParameters) => {
   // Make sure to always have the correct origin
   hostname = hostname.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
+  const origin = isWalletConnect ? hostname : channelId ?? hostname;
+
   DevLogger.log(
     `getRpcMethodMiddleware hostname=${hostname} channelId=${channelId}`,
   );
@@ -321,7 +323,6 @@ export const getRpcMethodMiddleware = ({
   return createAsyncMiddleware(async (req: any, res: any, next: any) => {
     // Used by eth_accounts and eth_coinbase RPCs.
     const getEthAccounts = async () => {
-      const origin = isWalletConnect ? hostname : channelId ?? hostname;
       const accounts = await getPermittedAccounts(origin);
       res.result = accounts;
     };
@@ -442,23 +443,42 @@ export const getRpcMethodMiddleware = ({
             .catch(reject);
         }),
       eth_getTransactionByHash: async () => {
-        res.result = await polyfillGasPrice('getTransactionByHash', req.params);
+        res.result = await polyfillGasPrice(
+          'getTransactionByHash',
+          origin,
+          req.params,
+        );
       },
       eth_getTransactionByBlockHashAndIndex: async () => {
+        /* eslint-disable no-console */
+        console.log(
+          'ALEX LOGGING: origin in eth_getTransactionByBlockHashAndIndex',
+          origin,
+        );
         res.result = await polyfillGasPrice(
           'getTransactionByBlockHashAndIndex',
+          origin,
           req.params,
         );
       },
       eth_getTransactionByBlockNumberAndIndex: async () => {
+        console.log(
+          'ALEX LOGGING: origin in eth_getTransactionByBlockNumberAndIndex',
+          origin,
+        );
         res.result = await polyfillGasPrice(
           'getTransactionByBlockNumberAndIndex',
+          origin,
           req.params,
         );
       },
       eth_chainId: async () => {
-        const origin = isWalletConnect ? hostname : channelId ?? hostname;
         const networkProviderState = await getProviderState(origin);
+        console.log(
+          'ALEX LOGGING: in eth_chainId',
+          origin,
+          networkProviderState.chainId,
+        );
         res.result = networkProviderState.chainId;
       },
       eth_hashrate: () => {
@@ -471,6 +491,7 @@ export const getRpcMethodMiddleware = ({
         res.result = true;
       },
       net_version: async () => {
+        // TODO ALEX
         const networkType = selectProviderType(store.getState());
 
         const isInitialNetwork =
@@ -486,7 +507,6 @@ export const getRpcMethodMiddleware = ({
       eth_requestAccounts: async () => {
         const { params } = req;
 
-        const origin = isWalletConnect ? hostname : channelId ?? hostname;
         const permittedAccounts = await getPermittedAccounts(origin);
 
         if (!params?.force && permittedAccounts.length) {
@@ -529,6 +549,7 @@ export const getRpcMethodMiddleware = ({
             from?: string;
             chainId?: number;
           }) => {
+            // TODO this needs to be modified for per dapp selected network
             await checkActiveAccountAndChainId({
               hostname,
               address: from,
@@ -863,7 +884,6 @@ export const getRpcMethodMiddleware = ({
        * initialization.
        */
       metamask_getProviderState: async () => {
-        const origin = isWalletConnect ? hostname : channelId ?? hostname;
         const accounts = await getPermittedAccounts(origin);
         res.result = {
           ...(await getProviderState()),

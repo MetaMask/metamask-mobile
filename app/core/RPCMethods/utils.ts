@@ -5,6 +5,7 @@ import { OptionalDataWithOptionalCause, rpcErrors } from '@metamask/rpc-errors';
 import { JsonRpcMiddleware } from 'json-rpc-engine';
 import { PermittedHandlerExport } from '@metamask/permission-controller';
 import { Json, JsonRpcParams, hasProperty } from '@metamask/utils';
+import EthQuery from '@metamask/eth-query';
 
 export const UNSUPPORTED_RPC_METHODS = new Set([
   // This is implemented later in our middleware stack – specifically, in
@@ -117,13 +118,30 @@ export function makeMethodMiddlewareMaker<U>(
   return makeMethodMiddleware;
 }
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const polyfillGasPrice = async (method: string, params: any[] = []) => {
-  const ethQuery = Engine.controllerMessenger.call(
-    'NetworkController:getEthQuery',
+export const polyfillGasPrice = async (
+  method: string,
+  origin: string,
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  params: any[] = [],
+) => {
+  // TODO replace with getting a networkClient from the selectedNetworkController
+  const networkClientId = Engine.controllerMessenger.call(
+    'SelectedNetworkController:getNetworkClientIdForDomain',
+    origin,
   );
-  // @ts-expect-error TODO: Handle case where this is called prior to initialization
+
+  const networkClient = Engine.controllerMessenger.call(
+    'NetworkController:getNetworkClientById',
+    networkClientId,
+  );
+
+  const ethQuery = new EthQuery(networkClient.provider);
+
+  // const ethQuery = Engine.controllerMessenger.call(
+  //   'NetworkController:getEthQuery',
+  // );
+
   const data = await query(ethQuery, method, params);
 
   if (data?.maxFeePerGas && !data.gasPrice) {

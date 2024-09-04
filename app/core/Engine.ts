@@ -85,6 +85,8 @@ import {
 import {
   SelectedNetworkController,
   SelectedNetworkControllerState,
+  SelectedNetworkControllerEvents,
+  SelectedNetworkControllerActions,
 } from '@metamask/selected-network-controller';
 import {
   PermissionController,
@@ -283,7 +285,8 @@ type GlobalActions =
   | AccountsControllerActions
   | PreferencesControllerActions
   | TokensControllerActions
-  | TokenListControllerActions;
+  | TokenListControllerActions
+  | SelectedNetworkControllerActions;
 
 type GlobalEvents =
   | ApprovalControllerEvents
@@ -303,7 +306,8 @@ type GlobalEvents =
   | PreferencesControllerEvents
   | TokensControllerEvents
   | TokenListControllerEvents
-  | TransactionControllerEvents;
+  | TransactionControllerEvents
+  | SelectedNetworkControllerEvents;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
@@ -921,11 +925,13 @@ class Engine {
         ],
       }),
       state: initialState.SelectedNetworkController || { domains: {} },
-      useRequestQueuePreference: !!process.env.MULTICHAIN_V1,
+      // useRequestQueuePreference: !!process.env.MULTICHAIN_V1,
+      useRequestQueuePreference: true,
       // TODO we need to modify core PreferencesController for better cross client support
       onPreferencesStateChange: (
         listener: ({ useRequestQueue }: { useRequestQueue: boolean }) => void,
-      ) => listener({ useRequestQueue: !!process.env.MULTICHAIN_V1 }),
+      ) => listener({ useRequestQueue: true }),
+      // ) => listener({ useRequestQueue: !!process.env.MULTICHAIN_V1 }),
       domainProxyMap: new DomainProxyMap(),
     });
 
