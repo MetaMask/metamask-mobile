@@ -15,10 +15,7 @@ import {
   PermissionController,
   permissionRpcMethods,
 } from '@metamask/permission-controller';
-import Networks, {
-  blockTagParamIndex,
-  getAllNetworks,
-} from '../../util/networks';
+import { blockTagParamIndex, getAllNetworks } from '../../util/networks';
 import { polyfillGasPrice } from './utils';
 import {
   processOriginThrottlingRejection,
@@ -34,10 +31,7 @@ import { v1 as random } from 'uuid';
 import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants';
 import PPOMUtil from '../../lib/ppom/ppom-util';
-import {
-  selectProviderConfig,
-  selectProviderType,
-} from '../../selectors/networkController';
+import { selectProviderConfig } from '../../selectors/networkController';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
 import { regex } from '../../../app/util/regex';
@@ -491,18 +485,8 @@ export const getRpcMethodMiddleware = ({
         res.result = true;
       },
       net_version: async () => {
-        // TODO ALEX
-        const networkType = selectProviderType(store.getState());
-
-        const isInitialNetwork =
-          networkType && getAllNetworks().includes(networkType);
-        if (isInitialNetwork) {
-          // TODO: Replace "any" with type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          res.result = (Networks as any)[networkType].networkId;
-        } else {
-          return next();
-        }
+        const networkProviderState = await getProviderState(origin);
+        res.result = networkProviderState.networkVersion;
       },
       eth_requestAccounts: async () => {
         const { params } = req;
@@ -886,7 +870,7 @@ export const getRpcMethodMiddleware = ({
       metamask_getProviderState: async () => {
         const accounts = await getPermittedAccounts(origin);
         res.result = {
-          ...(await getProviderState()),
+          ...(await getProviderState(origin)),
           accounts,
         };
       },

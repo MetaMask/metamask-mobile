@@ -909,6 +909,12 @@ class Engine {
       unrestrictedMethods,
     });
 
+    /* eslint-disable no-console */
+    console.log(
+      'ALEX LOGGING, process.env.MULTICHAIN_V1',
+      process.env.MULTICHAIN_V1,
+    );
+
     const selectedNetworkController = new SelectedNetworkController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'SelectedNetworkController',

@@ -11,7 +11,10 @@ import SheetHeader from '../../../../component-library/components/Sheet/SheetHea
 import { strings } from '../../../../../locales/i18n';
 import TagUrl from '../../../../component-library/components/Tags/TagUrl';
 import PickerNetwork from '../../../../component-library/components/Pickers/PickerNetwork';
-import { getDecimalChainId } from '../../../../util/networks';
+import NetworkList, {
+  getDecimalChainId,
+  getNetworkImageSource,
+} from '../../../../util/networks';
 import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import { switchActiveAccounts } from '../../../../core/Permissions';
@@ -22,7 +25,12 @@ import {
 import getAccountNameWithENS from '../../../../util/accounts';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectProviderConfig } from '../../../../selectors/networkController';
+import {
+  selectNetworkClientId,
+  selectNetworkConfigurations,
+  selectProviderConfig,
+} from '../../../../selectors/networkController';
+import { selectNetworkClientIdsByDomains } from '../../../../selectors/selectedNetworkController';
 import {
   selectNetworkName,
   selectNetworkImageSource,
@@ -52,7 +60,30 @@ const AccountPermissionsConnected = ({
   const { trackEvent } = useMetrics();
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
-  const networkName = useSelector(selectNetworkName);
+
+  // TODO Refactor all this nonsense into selectors:
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const byDomainNetworkClientId = useSelector(
+    selectNetworkClientIdsByDomains,
+  )?.[hostname];
+
+  const globallySelectedNetworkClientId = useSelector(selectNetworkClientId);
+  // const globalNetworkName = useSelector(selectNetworkName);
+
+  const domainNetworkName =
+    networkConfigurations[byDomainNetworkClientId]?.nickname ??
+    NetworkList[byDomainNetworkClientId]?.name;
+
+  // tslint:disable-next-line: no-unsafe-any
+  const globallySelectedNetwork =
+    networkConfigurations[globallySelectedNetworkClientId]?.nickname ??
+    // ts-ignore: TS2339
+    NetworkList[globallySelectedNetworkClientId]?.name;
+
+  const byDomainNetworkImageSource = getNetworkImageSource({
+    networkType: providerConfig.type,
+    chainId: providerConfig.chainId,
+  });
   const networkImageSource = useSelector(selectNetworkImageSource);
 
   const activeAddress = selectedAddresses[0];
@@ -146,7 +177,7 @@ const AccountPermissionsConnected = ({
           iconName={secureIcon}
         />
         <PickerNetwork
-          label={networkName}
+          label={domainNetworkName ?? globalNetworkName}
           imageSource={networkImageSource}
           onPress={switchNetwork}
           style={styles.networkPicker}

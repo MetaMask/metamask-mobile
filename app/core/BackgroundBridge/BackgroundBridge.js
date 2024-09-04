@@ -225,6 +225,12 @@ export class BackgroundBridge extends EventEmitter {
       'SelectedNetworkController:getNetworkClientIdForDomain',
       origin,
     );
+    /* eslint-disable no-console */
+    console.log(
+      'ALEX LOGGING origin + networkClientId',
+      origin,
+      networkClientId,
+    );
 
     const networkClient = Engine.controllerMessenger.call(
       'NetworkController:getNetworkClientById',
@@ -257,6 +263,7 @@ export class BackgroundBridge extends EventEmitter {
 
   async notifyChainChanged(params) {
     DevLogger.log(`notifyChainChanged: `, params);
+    console.log('ALEX LOGGING notifyChainChanged: ', params);
     this.sendNotification({
       method: NOTIFICATION_NAMES.chainChanged,
       params: params ?? (await this.getProviderNetworkState(this.hostname)),
@@ -335,10 +342,10 @@ export class BackgroundBridge extends EventEmitter {
     return Engine.context.KeyringController.isUnlocked();
   }
 
-  async getProviderState() {
+  async getProviderState(origin) {
     return {
       isUnlocked: this.isUnlocked(),
-      ...(await this.getProviderNetworkState()),
+      ...(await this.getProviderNetworkState(origin)),
     };
   }
 
