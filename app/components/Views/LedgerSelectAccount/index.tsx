@@ -53,7 +53,7 @@ const LedgerSelectAccount = () => {
     ledgerDeviceDarkImage,
   );
 
-  const options: OptionType[] = useMemo(
+  const ledgerPathOptions: OptionType[] = useMemo(
     () => [
       {
         key: LEDGER_LIVE_PATH,
@@ -102,7 +102,9 @@ const LedgerSelectAccount = () => {
 
   const [existingAccounts, setExistingAccounts] = useState<string[]>([]);
 
-  const [selectOption, setSelectOption] = useState<OptionType>(options[0]);
+  const [selectOption, setSelectOption] = useState<OptionType>(
+    ledgerPathOptions[0],
+  );
 
   useEffect(() => {
     keyringController.getAccounts().then((value: string[]) => {
@@ -216,14 +218,14 @@ const LedgerSelectAccount = () => {
     unlockAccounts.trigger,
   ]);
 
-  const onOptionChanged = useCallback(
+  const onSelectedPathChanged = useCallback(
     async (path: string) => {
-      const option = options.find((d) => d.key === path);
+      const option = ledgerPathOptions.find((d) => d.key === path);
       if (!option) return;
       setSelectOption(option);
       await setHDPath(path);
     },
-    [options],
+    [ledgerPathOptions],
   );
 
   return ledgerError || accounts.length <= 0 ? (
@@ -266,9 +268,9 @@ const LedgerSelectAccount = () => {
           </Text>
           <View style={styles.pathSelector}>
             <SelectOptionSheet
-              options={options}
+              options={ledgerPathOptions}
               label={strings('ledger.select_hd_path')}
-              onValueChange={async (val) => await onOptionChanged(val)}
+              onValueChange={async (val) => await onSelectedPathChanged(val)}
               selectedValue={selectOption.value}
             />
           </View>
