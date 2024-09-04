@@ -132,7 +132,7 @@ const Price = ({
               {addCurrencySymbol(diff, currentCurrency, true)} (
               {diff > 0 ? '+' : ''}
               {diff === 0 ? '0' : ((diff / comparePrice) * 100).toFixed(2)}
-              %) <Text>{date}</Text>
+              %) <Text style={styles.priceDiffDateText}>{date}</Text>
             </Text>
           ) : null}
         </Text>
