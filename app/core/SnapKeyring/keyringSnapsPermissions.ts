@@ -98,6 +98,11 @@ export function keyringSnapPermissionsBuilder(
   origin: string,
 ): () => string[] {
   return () => {
+    // eslint-disable-next-line no-console
+    console.log(
+      'Accounts/ keyringSnapPermissionsBuilder called with origin: ',
+      origin,
+    );
     if (origin === 'metamask') {
       return METAMASK_ALLOWED_METHODS;
     }
