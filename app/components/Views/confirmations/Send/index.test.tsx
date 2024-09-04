@@ -15,7 +15,7 @@ const initialState: DeepPartial<RootState> = {
     transaction: {
       value: '',
       data: '0x0',
-      from: '0x1',
+      from: MOCK_ADDRESS_1,
       gas: '',
       gasPrice: '',
       to: '0x2',
