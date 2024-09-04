@@ -25,19 +25,7 @@ import WebsiteIcon from '../WebsiteIcon';
 import useSelectedAccount from '../Tabs/TabThumbnail/useSelectedAccount';
 import styleSheet from './PermissionsSummary.styles';
 import { useStyles } from '../../../component-library/hooks';
-
-interface PermissionsSummaryProps {
-  currentPageInformation: {
-    currentEnsName: string;
-    icon: string | { uri: string };
-    url: string;
-  };
-  onConfirm?: () => void;
-  onCancel?: () => void;
-  customNetworkInformation: {
-    chainName: string;
-  };
-}
+import { PermissionsSummaryProps } from './TabThumbnail.types';
 
 const PermissionsSummary = ({
   customNetworkInformation,
