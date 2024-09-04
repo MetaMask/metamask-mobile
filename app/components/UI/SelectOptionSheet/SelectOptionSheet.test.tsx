@@ -22,7 +22,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 describe('SelectOptionSheet', () => {
-  it('renders correctly', () => {
+  it('render matches the snapshot', () => {
     const options: iSelectOption[] = [
       { key: 'key 1', value: 'val 1', label: 'option 1' },
       { key: 'key 2', value: 'val 2', label: 'option 2' },
