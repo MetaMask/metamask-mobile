@@ -6,6 +6,8 @@ on:
 jobs:
   setup:
     runs-on: ubuntu-20.04
+    env:
+      BUNDLE_GEMFILE: ios/Gemfile
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
