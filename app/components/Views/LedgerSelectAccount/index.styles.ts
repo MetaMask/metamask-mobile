@@ -65,7 +65,7 @@ const createStyles = (colors: Colors) =>
     error: {
       ...fontStyles.normal,
       fontSize: 14,
-      color: colors.error,
+      color: colors.error.default,
     },
     text: {
       color: colors.text.default,
