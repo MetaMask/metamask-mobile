@@ -32,12 +32,13 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 20,
     },
     balanceWrapper: {
-      paddingHorizontal: 16,
+      paddingHorizontal: 1,
     },
     balanceButtons: {
       flexDirection: 'row',
       justifyContent: 'center',
       paddingTop: 20,
+      paddingHorizontal: 16,
     },
     footerButton: {
       flexGrow: 1,

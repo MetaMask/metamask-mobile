@@ -247,8 +247,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           <View style={styles.chartNavigationWrapper}>
             {renderChartNavigationButton()}
           </View>
-          <View style={styles.balanceWrapper}>
-            <Balance balance={mainBalance} fiatBalance={secondaryBalance} />
+          <View>
+            <Balance
+              asset={asset}
+              mainBalance={mainBalance}
+              secondaryBalance={secondaryBalance}
+            />
             <View style={styles.balanceButtons}>
               <Button
                 style={{ ...styles.footerButton, ...styles.receiveButton }}
