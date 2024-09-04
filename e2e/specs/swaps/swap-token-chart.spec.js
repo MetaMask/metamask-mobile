@@ -18,8 +18,8 @@ import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { Regression } from '../../tags';
 import Assertions from '../../utils/Assertions';
-import ActivitiesView from "../../pages/ActivitiesView";
-import DetailsModal from "../../pages/modals/DetailsModal";
+import ActivitiesView from '../../pages/ActivitiesView';
+import DetailsModal from '../../pages/modals/DetailsModal';
 
 const fixtureServer = new FixtureServer();
 
