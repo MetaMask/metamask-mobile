@@ -1,64 +1,85 @@
-import TestHelpers from '../helpers';
-
-import {
-  ACCOUNT_LIST_ID,
-  ACCOUNT_LIST_ADD_BUTTON_ID,
-} from '../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
 import { CellModalSelectorsIDs } from '../selectors/Modals/CellModal.selectors';
-import { AccountListViewSelectorsText } from '../selectors/AccountListView.selectors';
+import {
+  AccountListViewSelectorsIDs,
+  AccountListViewSelectorsText,
+} from '../selectors/AccountListView.selectors';
 import { ConnectAccountModalSelectorsIDs } from '../selectors/Modals/ConnectAccountModal.selectors';
+import Matchers from '../utils/Matchers';
+import Gestures from '../utils/Gestures';
 
-export default class AccountListView {
-  static async tapAccountIndex(index) {
-    await TestHelpers.tapItemAtIndex(CellModalSelectorsIDs.MULTISELECT, index);
+class AccountListView {
+  get accountList() {
+    return Matchers.getElementByID(AccountListViewSelectorsIDs.ACCOUNT_LIST_ID);
   }
 
-  static async tapAddAccountButton() {
-    await TestHelpers.waitAndTap(ACCOUNT_LIST_ADD_BUTTON_ID);
+  get accountTypeLabel() {
+    return Matchers.getElementByID(
+      AccountListViewSelectorsIDs.ACCOUNT_TYPE_LABEL,
+    );
   }
 
-  static async tapImportAccountButton() {
-    await TestHelpers.tapByText(AccountListViewSelectorsText.IMPORT_ACCOUNT);
+  get title() {
+    return Matchers.getElementByText(
+      AccountListViewSelectorsText.ACCOUNTS_LIST_TITLE,
+    );
   }
 
-  static async tapCreateAccountButton() {
-    await TestHelpers.tapByText(AccountListViewSelectorsText.CREATE_ACCOUNT);
+  get addAccountButton() {
+    return Matchers.getElementByID(
+      AccountListViewSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+    );
   }
 
-  static async longPressImportedAccount() {
-    await TestHelpers.tapAndLongPressAtIndex(CellModalSelectorsIDs.SELECT, 1);
-  }
-  static async swipeToDimssAccountsModal() {
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.swipe(ACCOUNT_LIST_ID, 'down', 'fast', 0.6);
-    } else {
-      await TestHelpers.swipeByText('Accounts', 'down', 'fast', 0.6);
-    }
-  }
-
-  static async tapYesToRemoveImportedAccountAlertButton() {
-    await TestHelpers.tapAlertWithButton(
+  get removeAccountAlertText() {
+    return Matchers.getElementByText(
       AccountListViewSelectorsText.REMOVE_IMPORTED_ACCOUNT,
     );
   }
 
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(ACCOUNT_LIST_ID);
-  }
-
-  static async isAccount2VisibleAtIndex(index) {
-    await expect(
-      element(by.id(CellModalSelectorsIDs.BASE_TITLE)).atIndex(index),
-    ).not.toHaveText('Account 1');
-  }
-
-  static async accountNameNotVisible() {
-    await TestHelpers.checkIfElementWithTextIsNotVisible('Account 2');
-  }
-
-  static async connectAccountsButton() {
-    await TestHelpers.waitAndTap(
+  get connectAccountsButton() {
+    return Matchers.getElementByID(
       ConnectAccountModalSelectorsIDs.SELECT_MULTI_BUTTON,
     );
   }
+
+  getAccountElementAtIndex(index) {
+    return Matchers.getElementByID(CellModalSelectorsIDs.BASE_TITLE, index);
+  }
+
+  getSelectElement(index) {
+    return Matchers.getElementByID(CellModalSelectorsIDs.SELECT, index);
+  }
+  getMultiselectElement(index) {
+    return Matchers.getElementByID(CellModalSelectorsIDs.MULTISELECT, index);
+  }
+
+  async tapAccountIndex(index) {
+    await Gestures.tap(this.getMultiselectElement(index));
+  }
+
+  async tapToSelectActiveAccountAtIndex(index) {
+    await Gestures.tap(this.getSelectElement(index));
+  }
+
+  async tapAddAccountButton() {
+    await Gestures.waitAndTap(this.addAccountButton);
+  }
+
+  async longPressImportedAccount() {
+    await Gestures.tapAndLongPress(this.getSelectElement(1));
+  }
+
+  async swipeToDismissAccountsModal() {
+    await Gestures.swipe(this.title, 'down', 'fast', 0.6);
+  }
+
+  async tapYesToRemoveImportedAccountAlertButton() {
+    await Gestures.waitAndTap(this.removeAccountAlertText);
+  }
+
+  async tapConnectAccountsButton() {
+    await Gestures.waitAndTap(this.connectAccountsButton);
+  }
 }
+
+export default new AccountListView();

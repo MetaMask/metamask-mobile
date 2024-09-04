@@ -8,7 +8,10 @@ import { BANNERALERT_TEST_ID } from '../../../../../component-library/components
 import BlockaidBanner from './BlockaidBanner';
 import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from './BlockaidBanner.constants';
 import { ResultType, Reason } from './BlockaidBanner.types';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
+import { RootState } from '../../../../../reducers';
 
 jest.mock('../../../../../util/blockaid', () => ({
   isBlockaidFeatureEnabled: jest.fn().mockReturnValue(true),
@@ -20,7 +23,7 @@ jest.mock('react-native-gzip', () => ({
   deflate: (val: any) => val,
 }));
 
-const mockState = {
+const mockState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
       NetworkController: { providerConfig: { chainId: '0x1' } },
@@ -164,7 +167,7 @@ describe('BlockaidBanner', () => {
   });
 
   it('should not render if blockaid does not support network', async () => {
-    const mockStateNetwork = {
+    const mockStateNetwork: DeepPartial<RootState> = {
       engine: {
         backgroundState: {
           NetworkController: { providerConfig: { chainId: '0xfa' } },
@@ -183,7 +186,7 @@ describe('BlockaidBanner', () => {
   });
 
   it('should not render if user has not enabled blockaid', async () => {
-    const mockStateNetwork = {
+    const mockStateNetwork: DeepPartial<RootState> = {
       engine: {
         backgroundState: {
           NetworkController: { providerConfig: { chainId: '0x1' } },

@@ -30,15 +30,16 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import type { MetaMaskKeyring as QRKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
+import { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
+import PAGINATION_OPERATIONS from '../../../constants/pagination';
 
 interface IConnectQRHardwareProps {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
 }
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createStyles = (colors: any) =>
+
+const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -71,7 +72,7 @@ const createStyles = (colors: any) =>
     error: {
       ...fontStyles.normal,
       fontSize: 14,
-      color: colors.red,
+      color: colors.error.default,
     },
     text: {
       color: colors.text.default,
@@ -219,7 +220,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     });
     resetError();
     const [qrInteractions, connectQRHardwarePromise] =
-      await initiateQRHardwareConnection(0);
+      await initiateQRHardwareConnection(PAGINATION_OPERATIONS.GET_FIRST_PAGE);
 
     qrInteractionsRef.current = qrInteractions;
     const firstPageAccounts = await connectQRHardwarePromise;
@@ -263,7 +264,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   const nextPage = useCallback(async () => {
     resetError();
     const [qrInteractions, connectQRHardwarePromise] =
-      await initiateQRHardwareConnection(1);
+      await initiateQRHardwareConnection(PAGINATION_OPERATIONS.GET_NEXT_PAGE);
 
     qrInteractionsRef.current = qrInteractions;
     const nextPageAccounts = await connectQRHardwarePromise;
@@ -275,7 +276,9 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   const prevPage = useCallback(async () => {
     resetError();
     const [qrInteractions, connectQRHardwarePromise] =
-      await initiateQRHardwareConnection(-1);
+      await initiateQRHardwareConnection(
+        PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE,
+      );
 
     qrInteractionsRef.current = qrInteractions;
     const previousPageAccounts = await connectQRHardwarePromise;
@@ -319,10 +322,12 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   }, [KeyringController, navigation, resetError]);
 
   const renderAlert = () =>
-    errorMsg !== '' && (
+    errorMsg !== '' ? (
       <Alert type={AlertType.Error} onPress={resetError}>
         <Text style={styles.error}>{errorMsg}</Text>
       </Alert>
+    ) : (
+      <></>
     );
 
   return (

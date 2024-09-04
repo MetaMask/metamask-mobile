@@ -11,6 +11,7 @@ import { Notification } from '../types';
 import { calcTokenAmount } from '../../transactions';
 import images from '../../../images/image-icons';
 import CHAIN_SCANS_URLS from '../constants/urls';
+import { strings } from '../../../../locales/i18n';
 
 const { UI } = NotificationServicesController;
 /**
@@ -54,7 +55,10 @@ const isSameYear = (currentDate: Date, dateToCheck: Date) =>
  * @param date - The date to be formatted.
  * @returns The formatted date.
  */
-export function formatMenuItemDate(date: Date) {
+export function formatMenuItemDate(date?: Date) {
+  if (!date) {
+    return strings('notifications.no_date');
+  }
   const currentDate = new Date();
 
   // E.g. 12:21
@@ -197,7 +201,6 @@ export function getProviderByChainId(chainId: HexChainId) {
       networkClientId,
     )?.provider;
 
-  // @ts-expect-error TODO: remove this annotation once the `Eip1193Provider` class is released
   return provider && new Web3Provider(provider);
 }
 
@@ -216,9 +219,11 @@ export const getNetworkFees = async (
   }
 
   try {
-    const receipt = await provider.getTransactionReceipt(notification.tx_hash);
-    const transaction = await provider.getTransaction(notification.tx_hash);
-    const block = await provider.getBlock(notification.block_number);
+    const [receipt, transaction, block] = await Promise.all([
+      provider.getTransactionReceipt(notification.tx_hash),
+      provider.getTransaction(notification.tx_hash),
+      provider.getBlock(notification.block_number),
+    ]);
 
     const calculateUsdAmount = (value: string, decimalPlaces?: number) =>
       formatAmount(
@@ -375,7 +380,7 @@ export function getNativeTokenDetailsByChainId(chainId: number) {
     return {
       name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
       symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
-      image: images.MATIC,
+      image: images.POL,
     };
   }
   if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ARBITRUM) {
@@ -460,4 +465,30 @@ export const getAmount = (
   ).toNumber();
 
   return formatAmount(numericAmount, options);
+};
+
+/**
+ * Converts a token amount and its USD conversion rate to a formatted USD string.
+ *
+ * This function first converts the token amount from its smallest unit based on the provided decimals
+ * to a human-readable format. It then multiplies this amount by the USD conversion rate to get the
+ * equivalent amount in USD, and formats this USD amount into a readable string.
+ *
+ * @param amount - The token amount in its smallest unit as a string.
+ * @param decimals - The number of decimals the token uses.
+ * @param usd - The current USD conversion rate for the token.
+ * @returns The formatted USD amount as a string. If any input is invalid, returns an empty string.
+ */
+export const getUsdAmount = (amount: string, decimals: string, usd: string) => {
+  if (!amount || !decimals || !usd) {
+    return '';
+  }
+
+  const amountInEther = calcTokenAmount(
+    amount,
+    parseFloat(decimals),
+  ).toNumber();
+  const numericAmount = parseFloat(`${amountInEther}`) * parseFloat(usd);
+
+  return formatAmount(numericAmount);
 };

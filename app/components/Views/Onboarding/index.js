@@ -14,7 +14,7 @@ import {
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import AsyncStorage from '../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import StyledButton from '../../UI/StyledButton';
 import {
   fontStyles,
@@ -249,7 +249,7 @@ class Onboarding extends PureComponent {
   };
 
   async checkIfExistingUser() {
-    const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+    const existingUser = await StorageWrapper.getItem(EXISTING_USER);
     if (existingUser !== null) {
       this.setState({ existingUser: true });
     }

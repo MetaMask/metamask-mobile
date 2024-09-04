@@ -101,6 +101,10 @@ import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/Brows
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { trackDappViewedEvent } from '../../../util/metrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
+import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
+import { useIsFocused } from '@react-navigation/native';
+import handleWebViewFocus from '../../../util/browser/webViewFocus';
+import { isTest } from '../../../util/test/utils.js';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -265,9 +269,11 @@ export const BrowserTab = (props) => {
   const [blockedUrl, setBlockedUrl] = useState(undefined);
   const [ipfsBannerVisible, setIpfsBannerVisible] = useState(false);
   const [isResolvedIpfsUrl, setIsResolvedIpfsUrl] = useState(false);
+  const previousChainIdRef = useRef('0x1');
   const webviewRef = useRef(null);
   const blockListType = useRef('');
   const allowList = useRef([]);
+  const isFocused = useIsFocused();
 
   const url = useRef('');
   const title = useRef('');
@@ -276,8 +282,7 @@ export const BrowserTab = (props) => {
   const fromHomepage = useRef(false);
   const wizardScrollAdjusted = useRef(false);
   const permittedAccountsList = useSelector((state) => {
-    const permissionsControllerState =
-      state.engine.backgroundState.PermissionController;
+    const permissionsControllerState = selectPermissionControllerState(state);
     const hostname = new URL(url.current).hostname;
     const permittedAcc = getPermittedAccountsByHostname(
       permissionsControllerState,
@@ -479,7 +484,6 @@ export const BrowserTab = (props) => {
           const statusCode = response.status;
           if (statusCode >= 400) {
             Logger.log('Status code ', statusCode, gatewayUrl);
-            //urlNotFound(gatewayUrl);
             return null;
           }
         } else if (type === 'swarm-ns') {
@@ -705,6 +709,16 @@ export const BrowserTab = (props) => {
       );
     };
   }, [goBack, isTabActive, props.navigation]);
+
+  useEffect(() => {
+    handleWebViewFocus({
+      webviewRef,
+      isFocused,
+      chainId: props.chainId,
+      previousChainId: previousChainIdRef.current,
+    });
+    previousChainIdRef.current = props.chainId;
+  }, [webviewRef, isFocused, props.chainId]);
 
   /**
    * Inject home page scripts to get the favourites and set analytics key
@@ -1118,7 +1132,6 @@ export const BrowserTab = (props) => {
               params: {
                 hostInfo: {
                   metadata: {
-                    // origin: url.current,
                     origin: url.current && new URL(url.current).hostname,
                   },
                 },
@@ -1512,6 +1525,8 @@ export const BrowserTab = (props) => {
                   'wc://',
                   'ethereum://',
                   'file://',
+                  // Needed for Recaptcha
+                  'about:srcdoc',
                 ]}
                 decelerationRate={'normal'}
                 ref={webviewRef}
@@ -1528,13 +1543,11 @@ export const BrowserTab = (props) => {
                 onMessage={onMessage}
                 onError={onError}
                 onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
-                sendCookies
-                javascriptEnabled
                 allowsInlineMediaPlayback
-                useWebkit
                 testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
                 applicationNameForUserAgent={'WebView MetaMaskMobile'}
                 onFileDownload={handleOnFileDownload}
+                webviewDebuggingEnabled={isTest}
               />
               {ipfsBannerVisible && renderIpfsBanner()}
             </>

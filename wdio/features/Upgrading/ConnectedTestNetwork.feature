@@ -10,8 +10,7 @@ Feature: Upgrade previous app build with current release
     Given the app displayed the splash animation
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
-    And I tap No thanks on the onboarding welcome tutorial
-    And I close the Whats New modal
+    And I close all the onboarding modals
     And I am on the wallet view
     When I tap on the navbar network title button
     And the Network List Modal is Displayed
@@ -26,7 +25,6 @@ Feature: Upgrade previous app build with current release
     Then version "PRODUCTION_BUILD_STRING" is displayed for app upgrade step
     When I install upgrade the app
     And I relaunch the app
-    And the splash animation completes
     And I fill my password in the Login screen
     And I log into my wallet
     Then I should see the added network name "Sepolia" in the top navigation bar
@@ -38,5 +36,5 @@ Feature: Upgrade previous app build with current release
     And removed test app
 
     Examples:
-      | Network              | TOKEN      |
-      | Sepolia Test Network | SepoliaETH |
+      | Network | TOKEN      |
+      | Sepolia | SepoliaETH |

@@ -10,13 +10,15 @@ import ButtonSecondary from './variants/ButtonSecondary';
 import { ButtonProps, ButtonVariants } from './Button.types';
 
 const Button = (buttonProps: ButtonProps) => {
-  switch (buttonProps.variant) {
+  const { variant, ...restProps } = buttonProps;
+
+  switch (variant) {
     case ButtonVariants.Link:
-      return <ButtonLink {...buttonProps} />;
+      return <ButtonLink {...restProps} />;
     case ButtonVariants.Primary:
-      return <ButtonPrimary {...buttonProps} />;
+      return <ButtonPrimary {...restProps} />;
     case ButtonVariants.Secondary:
-      return <ButtonSecondary {...buttonProps} />;
+      return <ButtonSecondary {...restProps} />;
     default:
       throw new Error('Invalid Button Variant');
   }

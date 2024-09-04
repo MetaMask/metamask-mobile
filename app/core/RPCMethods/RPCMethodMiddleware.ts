@@ -20,6 +20,10 @@ import Networks, {
   getAllNetworks,
 } from '../../util/networks';
 import { polyfillGasPrice } from './utils';
+import {
+  processOriginThrottlingRejection,
+  validateOriginThrottling,
+} from './spam';
 import ImportedEngine from '../Engine';
 import { strings } from '../../../locales/i18n';
 import { resemblesAddress, safeToChecksumAddress } from '../../util/address';
@@ -147,6 +151,7 @@ export const checkActiveAccountAndChainId = async ({
     const normalizedAccounts = accounts.map(safeToChecksumAddress);
 
     if (!normalizedAccounts.includes(formattedAddress)) {
+      DevLogger.log(`invalid accounts ${formattedAddress}`, normalizedAccounts);
       isInvalidAccount = true;
       if (accounts.length > 0) {
         // Permissions issue --- requesting incorrect address
@@ -240,6 +245,7 @@ const generateRawSignature = async ({
       url: url.current,
       title: title.current,
       icon: icon.current,
+      channelId,
       analytics: {
         request_source: getSource(),
         request_platform: analytics?.platform,
@@ -261,6 +267,7 @@ const generateRawSignature = async ({
       data: req.params[1],
       from: req.params[0],
       ...pageMeta,
+      channelId,
       origin: hostname,
       securityAlertResponse: req.securityAlertResponse,
     },
@@ -366,6 +373,7 @@ export const getRpcMethodMiddleware = ({
             url: url.current,
             title: title.current,
             icon: icon.current,
+            channelId,
             analytics: {
               request_source: getSource(),
               request_platform: analytics?.platform,
@@ -560,6 +568,7 @@ export const getRpcMethodMiddleware = ({
             url: url.current,
             title: title.current,
             icon: icon.current,
+            channelId,
             analytics: {
               request_source: getSource(),
               request_platform: analytics?.platform,
@@ -608,6 +617,7 @@ export const getRpcMethodMiddleware = ({
         const pageMeta = {
           meta: {
             url: url.current,
+            channelId,
             title: title.current,
             icon: icon.current,
             analytics: {
@@ -659,6 +669,7 @@ export const getRpcMethodMiddleware = ({
             url: url.current,
             title: title.current,
             icon: icon.current,
+            channelId,
             analytics: {
               request_source: getSource(),
               request_platform: analytics?.platform,
@@ -779,45 +790,50 @@ export const getRpcMethodMiddleware = ({
 
       metamask_removeFavorite: async () => {
         checkTabActive();
+
         if (!isHomepage()) {
           throw providerErrors.unauthorized('Forbidden.');
         }
 
         const { bookmarks } = store.getState();
 
-        Alert.alert(
-          strings('browser.remove_bookmark_title'),
-          strings('browser.remove_bookmark_msg'),
-          [
-            {
-              text: strings('browser.cancel'),
-              onPress: () => {
-                res.result = {
-                  favorites: bookmarks,
-                };
+        return new Promise<void>((resolve) => {
+          Alert.alert(
+            strings('browser.remove_bookmark_title'),
+            strings('browser.remove_bookmark_msg'),
+            [
+              {
+                text: strings('browser.cancel'),
+                onPress: () => {
+                  res.result = {
+                    favorites: bookmarks,
+                  };
+                  resolve();
+                },
+                style: 'cancel',
               },
-              style: 'cancel',
-            },
-            {
-              text: strings('browser.yes'),
-              onPress: () => {
-                const bookmark = { url: req.params[0] };
+              {
+                text: strings('browser.yes'),
+                onPress: () => {
+                  const bookmark = { url: req.params[0] };
 
-                store.dispatch(removeBookmark(bookmark));
+                  store.dispatch(removeBookmark(bookmark));
 
-                const { bookmarks: updatedBookmarks } = store.getState();
+                  const { bookmarks: updatedBookmarks } = store.getState();
 
-                if (isHomepage()) {
-                  injectHomePageScripts(updatedBookmarks);
-                }
+                  if (isHomepage()) {
+                    injectHomePageScripts(updatedBookmarks);
+                  }
 
-                res.result = {
-                  favorites: bookmarks,
-                };
+                  res.result = {
+                    favorites: bookmarks,
+                  };
+                  resolve();
+                },
               },
-            },
-          ],
-        );
+            ],
+          );
+        });
       },
 
       metamask_showTutorial: async () => {
@@ -857,7 +873,7 @@ export const getRpcMethodMiddleware = ({
       },
 
       /**
-       * This method is used by the inpage provider to get its state on
+       * This method is used by the inpage provider or sdk to get its state on
        * initialization.
        */
       metamask_getProviderState: async () => {
@@ -920,6 +936,8 @@ export const getRpcMethodMiddleware = ({
       return next();
     }
 
+    validateOriginThrottling({ req, store });
+
     const isWhiteListedMethod = isWhitelistedRPC(req.method);
 
     try {
@@ -929,9 +947,19 @@ export const getRpcMethodMiddleware = ({
 
       isWhiteListedMethod &&
         store.dispatch(setEventStage(req.method, RPCStageTypes.COMPLETE));
-    } catch (e) {
-      isWhiteListedMethod && store.dispatch(setEventStageError(req.method, e));
-      throw e;
+    } catch (error: unknown) {
+      processOriginThrottlingRejection({
+        req,
+        error: error as {
+          message: string;
+          code?: number;
+        },
+        store,
+        navigation,
+      });
+      isWhiteListedMethod &&
+        store.dispatch(setEventStageError(req.method, error));
+      throw error;
     }
   });
 };
