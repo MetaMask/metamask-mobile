@@ -87,12 +87,4 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
   );
 };
 
-{
-  /* <Text style={styles.text}>{strings('asset_overview.your_balance')}</Text>
-      <Title style={styles.fiatBalance}>{fiatBalance || balance}</Title> */
-}
-{
-  /* <Text style={styles.text}>{fiatBalance ? balance : ''}</Text> */
-}
-
 export default Balance;
