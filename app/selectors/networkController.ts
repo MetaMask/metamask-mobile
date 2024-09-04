@@ -42,6 +42,9 @@ export const selectProviderConfig = createDeepEqualSelector(
       networkControllerState?.selectedNetworkClientId,
     ).configuration;
 
+    console.log('networkConfiguration *****', NetworkList);
+    console.log('networkControllerState *****', networkControllerState);
+
     return builtInNetwork
       ? {
           ...builtInNetwork,

@@ -261,6 +261,7 @@ export function getNetworkTypeById(id) {
 }
 
 export function getDefaultNetworkByChainId(chainId) {
+  console.log('CHAIN_ID ----', chainId);
   if (!chainId) {
     throw new Error(NetworkSwitchErrorType.missingChainId);
   }
@@ -417,6 +418,7 @@ export const getNetworkNameFromProviderConfig = (providerConfig) => {
  * @returns {Object} - Image source of the network.
  */
 export const getNetworkImageSource = ({ networkType, chainId }) => {
+  console.log('getNetworkImageSource ---');
   const defaultNetwork = getDefaultNetworkByChainId(chainId);
   const isDefaultEthMainnet = isDefaultMainnet(networkType);
   const isLineaMainnetNetwork = isLineaMainnet(networkType);

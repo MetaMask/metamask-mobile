@@ -1,5 +1,8 @@
 import { renderHook } from '@testing-library/react-hooks';
 import useEnsNameByAddress from '.';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { mockNetworkStateOld } from '../../../util/test/network';
+import mockedEngine from '../../../core/__mocks__/MockedEngine';
 
 const MOCK_CHAIN_ID = '0x1';
 
@@ -11,24 +14,20 @@ const MOCK_STORE_STATE = {
   engine: {
     backgroundState: {
       NetworkController: {
-        networkConfigurations: {
-          '673a4523-3c49-47cd-8d48-68dfc8a47a9c': {
-            id: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
-            rpcUrl: 'https://mainnet.infura.io/v3',
-            chainId: '0x1',
-            ticker: 'ETH',
-            nickname: 'Ethereum mainnet',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://etherscan.com',
-            },
-          },
-        },
-        selectedNetworkClientId: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
-        networkMetadata: {},
+        ...mockNetworkStateOld({
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+          chainId: CHAIN_IDS.MAINNET,
+        }),
       },
     },
   },
 };
+
+jest.mock('../../../core/Engine', () => ({
+  init: () => mockedEngine.init(),
+}));
 
 jest.mock('../../../util/ENSUtils', () => ({
   ...jest.requireActual('../../../util/ENSUtils'),
@@ -46,40 +45,6 @@ jest.mock('../../../util/ENSUtils', () => ({
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: (fn: (state: unknown) => unknown) => fn(MOCK_STORE_STATE),
-}));
-
-jest.mock('../../../core/Engine', () => ({
-  context: {
-    NetworkController: {
-      getNetworkClientById: () => ({
-        configuration: {
-          rpcUrl: 'https://mainnet.infura.io/v3',
-          chainId: '0x1',
-          ticker: 'ETH',
-          nickname: 'Ethereum mainnet',
-          rpcPrefs: {
-            blockExplorerUrl: 'https://etherscan.com',
-          },
-        },
-      }),
-      state: {
-        networkConfigurations: {
-          '673a4523-3c49-47cd-8d48-68dfc8a47a9c': {
-            id: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
-            rpcUrl: 'https://mainnet.infura.io/v3',
-            chainId: '0x1',
-            ticker: 'ETH',
-            nickname: 'Ethereum mainnet',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://etherscan.com',
-            },
-          },
-        },
-        selectedNetworkClientId: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
-        networkMetadata: {},
-      },
-    },
-  },
 }));
 
 describe('useEnsNameByAddress', () => {

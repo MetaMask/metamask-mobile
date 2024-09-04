@@ -13,9 +13,11 @@ export const selectNetworkName = createSelector(
 
 export const selectNetworkImageSource = createSelector(
   selectProviderConfig,
-  (providerConfig: ProviderConfig) =>
-    getNetworkImageSource({
+  (providerConfig: ProviderConfig) => {
+    console.log('providerConfig ++++++++', providerConfig);
+    return getNetworkImageSource({
       networkType: providerConfig?.type,
       chainId: providerConfig.chainId,
-    }),
+    });
+  },
 );

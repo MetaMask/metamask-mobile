@@ -4,66 +4,32 @@ import {
 } from '../util/test/accountsControllerTestUtils';
 import { RootState } from '../reducers';
 import { selectAccountBalanceByChainId } from './accountTrackerController';
+import { mockNetworkStateOld } from '../util/test/network';
+import mockedEngine from '../core/__mocks__/MockedEngine';
 
 const MOCK_CHAIN_ID = '0x1';
 
-// jest.mock('../core/Engine.ts', () => ({
-//   context: {
-//     NetworkController: {
-//       getNetworkClientById: () => ({
-//         configuration: {
-//           rpcUrl: 'https://mainnet.infura.io/v3',
-//           chainId: '0x1',
-//           ticker: 'ETH',
-//           nickname: 'Ethereum mainnet',
-//           rpcPrefs: {
-//             blockExplorerUrl: 'https://etherscan.com',
-//           },
-//         },
-//       }),
-//       state: {
-//         networkConfigurations: {
-//           '673a4523-3c49-47cd-8d48-68dfc8a47a9c': {
-//             id: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
-//             rpcUrl: 'https://mainnet.infura.io/v3',
-//             chainId: '0x1',
-//             ticker: 'ETH',
-//             nickname: 'Ethereum mainnet',
-//             rpcPrefs: {
-//               blockExplorerUrl: 'https://etherscan.com',
-//             },
-//           },
-//         },
-//         selectedNetworkClientId: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
-//         networkMetadata: {},
-//       },
-//     },
-//   },
-// }));
+jest.mock('../core/Engine', () => ({
+  init: () => mockedEngine.init(),
+}));
 
 describe('selectAccountBalanceByChainId', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('returns account balance for chain id', () => {
     const result = selectAccountBalanceByChainId({
       engine: {
         backgroundState: {
           NetworkController: {
-            selectedNetworkClientId: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
-            networksMetadata: {},
-            networkConfigurations: {
-              '673a4523-3c49-47cd-8d48-68dfc8a47a9c': {
-                id: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
-                rpcUrl: 'https://bsc-dataseed1.binance.org/',
-                chainId: MOCK_CHAIN_ID,
-                ticker: 'ETH',
-                nickname: 'Ethereum chain',
-                rpcPrefs: {
-                  blockExplorerUrl: 'https://etherscan.com',
-                },
-              },
-            },
-            // TODO: Replace "any" with type
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          } as any,
+            ...mockNetworkStateOld({
+              chainId: MOCK_CHAIN_ID,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
+              ticker: 'ETH',
+            }),
+          },
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           AccountTrackerController: {
             accountsByChainId: {
@@ -71,12 +37,13 @@ describe('selectAccountBalanceByChainId', () => {
                 [MOCK_ADDRESS_2]: { balance: '0x1' },
               },
             },
-            // TODO: Replace "any" with type
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          } as any,
+          },
+          selectedNetworkClientId: 'mainnet',
+          networkConfigurations: {},
+          networksMetadata: {},
         },
       },
-    } as RootState);
+    } as unknown as RootState);
     expect(result?.balance).toBe('0x1');
   });
   it('returns undefined when chain ID is undefined', () => {
@@ -84,7 +51,7 @@ describe('selectAccountBalanceByChainId', () => {
       engine: {
         backgroundState: {
           NetworkController: {
-            selectedNetworkClientId: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
+            selectedNetworkClientId: 'sepolia',
             networksMetadata: {},
             networkConfigurations: {},
             // TODO: Replace "any" with type

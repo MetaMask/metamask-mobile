@@ -1,39 +1,10 @@
 import migrate from './021';
 import { IPFS_DEFAULT_GATEWAY_URL } from '../../../app/constants/network';
 import { backgroundState } from '../../util/test/initial-root-state';
+import mockedEngine from '../../core/__mocks__/MockedEngine';
 
 jest.mock('../../core/Engine', () => ({
-  context: {
-    NetworkController: {
-      getNetworkClientById: () => ({
-        configuration: {
-          rpcUrl: 'https://mainnet.infura.io/v3',
-          chainId: '0x1',
-          ticker: 'ETH',
-          nickname: 'Ethereum mainnet',
-          rpcPrefs: {
-            blockExplorerUrl: 'https://etherscan.com',
-          },
-        },
-      }),
-      state: {
-        networkConfigurations: {
-          '673a4523-3c49-47cd-8d48-68dfc8a47a9c': {
-            id: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
-            rpcUrl: 'https://mainnet.infura.io/v3',
-            chainId: '0x1',
-            ticker: 'ETH',
-            nickname: 'Ethereum mainnet',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://etherscan.com',
-            },
-          },
-        },
-        selectedNetworkClientId: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
-        networkMetadata: {},
-      },
-    },
-  },
+  init: () => mockedEngine.init(),
 }));
 
 describe('Migration #21', () => {

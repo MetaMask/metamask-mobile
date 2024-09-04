@@ -327,6 +327,7 @@ jest.mock(
 );
 
 afterEach(() => {
+  console.log('AFTER EACH ***************');
   jest.restoreAllMocks();
   global.gc && global.gc(true);
 });

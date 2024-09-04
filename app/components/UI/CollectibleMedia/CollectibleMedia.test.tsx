@@ -1,13 +1,26 @@
 import React from 'react';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 import CollectibleMedia from './CollectibleMedia';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
+import { mockNetworkStateOld } from '../../../util/test/network';
+import mockedEngine from '../../../core/__mocks__/MockedEngine';
 
 const mockInitialState = {
   engine: {
-    backgroundState,
+    backgroundState: {
+      ...backgroundState,
+      NetworkController: {
+        ...mockNetworkStateOld({
+          chainId: CHAIN_IDS.MAINNET,
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+        }),
+      },
+    },
   },
 };
 
@@ -28,37 +41,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('../../../core/Engine', () => ({
-  context: {
-    NetworkController: {
-      getNetworkClientById: () => ({
-        configuration: {
-          rpcUrl: 'https://mainnet.infura.io/v3',
-          chainId: '0x1',
-          ticker: 'ETH',
-          nickname: 'Ethereum mainnet',
-          rpcPrefs: {
-            blockExplorerUrl: 'https://etherscan.com',
-          },
-        },
-      }),
-      state: {
-        networkConfigurations: {
-          '673a4523-3c49-47cd-8d48-68dfc8a47a9c': {
-            id: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
-            rpcUrl: 'https://mainnet.infura.io/v3',
-            chainId: '0x1',
-            ticker: 'ETH',
-            nickname: 'Ethereum mainnet',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://etherscan.com',
-            },
-          },
-        },
-        selectedNetworkClientId: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
-        networkMetadata: {},
-      },
-    },
-  },
+  init: () => mockedEngine.init(),
 }));
 
 describe('CollectibleMedia', () => {
