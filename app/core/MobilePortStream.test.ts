@@ -14,7 +14,7 @@ describe('PortDuplexStream', () => {
       addListener: jest.fn(),
       postMessage: jest.fn(),
     };
-    portDuplexStream = new PortDuplexStream(mockPort as any, 'test-url');
+    portDuplexStream = new PortDuplexStream(mockPort, 'test-url');
   });
 
   it('should create a PortDuplexStream instance', () => {
@@ -23,14 +23,23 @@ describe('PortDuplexStream', () => {
 
   it('should add message and disconnect listeners to the port', () => {
     expect(mockPort.addListener).toHaveBeenCalledTimes(2);
-    expect(mockPort.addListener).toHaveBeenCalledWith('message', expect.any(Function));
-    expect(mockPort.addListener).toHaveBeenCalledWith('disconnect', expect.any(Function));
+    expect(mockPort.addListener).toHaveBeenCalledWith(
+      'message',
+      expect.any(Function),
+    );
+    expect(mockPort.addListener).toHaveBeenCalledWith(
+      'disconnect',
+      expect.any(Function),
+    );
   });
 
   it('should write messages to the port', (done) => {
     const testMessage = { test: 'message' };
     portDuplexStream._write(testMessage, 'utf8', () => {
-      expect(mockPort.postMessage).toHaveBeenCalledWith(testMessage, 'test-url');
+      expect(mockPort.postMessage).toHaveBeenCalledWith(
+        testMessage,
+        'test-url',
+      );
       done();
     });
   });

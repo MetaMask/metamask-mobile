@@ -17,8 +17,12 @@ describe('ClipboardManager', () => {
     // Set up Clipboard mock implementation
     (Clipboard.getString as jest.Mock) = jest.fn().mockResolvedValue('');
     (Clipboard.setString as jest.Mock) = jest.fn().mockResolvedValue(undefined);
-    (Clipboard.setStringExpire as jest.Mock) = jest.fn().mockResolvedValue(undefined);
-    (Clipboard.clearString as jest.Mock) = jest.fn().mockResolvedValue(undefined);
+    (Clipboard.setStringExpire as jest.Mock) = jest
+      .fn()
+      .mockResolvedValue(undefined);
+    (Clipboard.clearString as jest.Mock) = jest
+      .fn()
+      .mockResolvedValue(undefined);
   });
 
   afterEach(() => {

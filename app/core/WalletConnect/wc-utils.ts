@@ -1,6 +1,6 @@
 import { RelayerTypes } from '@walletconnect/types';
 import { parseRelayParams } from '@walletconnect/utils';
-import * as qs from 'qs';
+import { parse } from 'qs';
 import { store } from '../../../app/store';
 import { wait } from '../SDKConnect/utils/wait.util';
 import { NavigationContainerRef } from '@react-navigation/native';
@@ -31,7 +31,7 @@ const parseWalletConnectUri = (uri: string): WCMultiVersionParams => {
 
   const queryString: string =
     typeof pathEnd !== 'undefined' ? str.substring(pathEnd) : '';
-  const queryParams = qs.parse(queryString);
+  const queryParams = parse(queryString);
   const result = {
     protocol,
     topic: requiredValues[0],
