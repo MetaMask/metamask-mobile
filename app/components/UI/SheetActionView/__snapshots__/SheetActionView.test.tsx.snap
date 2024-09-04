@@ -70,6 +70,7 @@ exports[`SheetActionView should render correctly 1`] = `
         "paddingHorizontal": 16,
       }
     }
+    testID="buttonprimary"
   >
     <Text
       accessibilityRole="text"

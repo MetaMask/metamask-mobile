@@ -780,6 +780,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     "paddingHorizontal": 16,
                                   }
                                 }
+                                testID="buttonprimary"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -1510,6 +1511,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                     "paddingHorizontal": 16,
                                   }
                                 }
+                                testID="buttonprimary"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -2324,6 +2326,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     "paddingHorizontal": 16,
                                   }
                                 }
+                                testID="buttonprimary"
                               >
                                 <Text
                                   accessibilityRole="text"
