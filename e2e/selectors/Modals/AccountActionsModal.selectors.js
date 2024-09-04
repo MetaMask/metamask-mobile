@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/prefer-default-export
 export const AccountActionsModalSelectorsIDs = {
   EDIT_ACCOUNT: 'edit-account-action',
   VIEW_ETHERSCAN: 'view-etherscan-action',

@@ -2,7 +2,16 @@
 
 ## Current Main Branch
 
-## 7.29.0 - Aug 2, 2024
+## 7.29.2 - Sep 2, 2024
+### Fixed
+- [#10965](https://github.com/MetaMask/metamask-mobile/pull/10965): fix: gas never loading during send + high gas fee after deep link (#10965)
+- [#11005](https://github.com/MetaMask/metamask-mobile/pull/11005): fix: Add missing allowedAction NetworkController:findNetworkClientIdByChainId to transactionController (#11005)
+
+## 7.29.1 - Aug 29, 2024
+### Fixed
+- [#10831](https://github.com/MetaMask/metamask-mobile/pull/10831): feat: Update Polygon from MATIC to POL (#10831)
+
+## 7.29.0 - Aug 6, 2024
 ### Added
 - [#9578](https://github.com/MetaMask/metamask-mobile/pull/9578): feat: type `renderHookWithProvider` (#9578)
 - [#10277](https://github.com/MetaMask/metamask-mobile/pull/10277): feat: New nft details page (#10277)
@@ -66,7 +75,6 @@
 - [#10383](https://github.com/MetaMask/metamask-mobile/pull/10383): fix: race condition issues when doing batch-rpc calls in the DeeplinkProtocolService (#10383)
 - [#10365](https://github.com/MetaMask/metamask-mobile/pull/10365): fix: attribution link (#10365)
 - [#10303](https://github.com/MetaMask/metamask-mobile/pull/10303): fix: page navigation during QR accounts selection (#10303)
-
 ## 7.28.1 - Aug 15, 2024
 ### Fixed
 - [#10637](https://github.com/MetaMask/metamask-mobile/pull/10637): fix: swap button blocked by SwapsController polling issue (#10637)

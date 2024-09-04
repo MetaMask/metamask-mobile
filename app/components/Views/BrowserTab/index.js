@@ -1525,6 +1525,8 @@ export const BrowserTab = (props) => {
                   'wc://',
                   'ethereum://',
                   'file://',
+                  // Needed for Recaptcha
+                  'about:srcdoc',
                 ]}
                 decelerationRate={'normal'}
                 ref={webviewRef}

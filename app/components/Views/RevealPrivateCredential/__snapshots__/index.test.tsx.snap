@@ -60,6 +60,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
           undefined,
         ]
       }
+      testID="reveal-credential-scroll"
       update={[Function]}
       viewIsInsideTabBar={false}
     >
@@ -506,6 +507,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
           undefined,
         ]
       }
+      testID="reveal-credential-scroll"
       update={[Function]}
       viewIsInsideTabBar={false}
     >
@@ -952,6 +954,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
           undefined,
         ]
       }
+      testID="reveal-credential-scroll"
       update={[Function]}
       viewIsInsideTabBar={false}
     >

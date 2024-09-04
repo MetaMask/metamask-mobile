@@ -1337,7 +1337,7 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMaskDebug.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1397;
+				CURRENT_PROJECT_VERSION = 1409;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 48XVW22RCG;
@@ -1374,7 +1374,7 @@
 					"${inherited}",
 				);
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 7.29.0;
+				MARKETING_VERSION = 7.29.2;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "$(inherited)";
 				OTHER_LDFLAGS = (
@@ -1402,7 +1402,7 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMask.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1397;
+				CURRENT_PROJECT_VERSION = 1409;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 48XVW22RCG;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 48XVW22RCG;
@@ -1437,7 +1437,7 @@
 					"${inherited}",
 				);
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 7.29.0;
+				MARKETING_VERSION = 7.29.2;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = "$(inherited)";
 				OTHER_LDFLAGS = (
@@ -1465,7 +1465,7 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMaskDebug.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1397;
+				CURRENT_PROJECT_VERSION = 1409;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 48XVW22RCG;
@@ -1498,7 +1498,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/usr/lib/swift$(inherited)";
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 7.29.0;
+				MARKETING_VERSION = 7.29.2;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "$(inherited)";
 				OTHER_LDFLAGS = (
@@ -1526,7 +1526,7 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMask.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1397;
+				CURRENT_PROJECT_VERSION = 1409;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 48XVW22RCG;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 48XVW22RCG;
@@ -1557,7 +1557,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/usr/lib/swift$(inherited)";
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 7.29.0;
+				MARKETING_VERSION = 7.29.2;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = "$(inherited)";
 				OTHER_LDFLAGS = (
@@ -1680,7 +1680,7 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMaskDebug.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1397;
+				CURRENT_PROJECT_VERSION = 1409;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 48XVW22RCG;
@@ -1717,7 +1717,7 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 				);
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 7.29.0;
+				MARKETING_VERSION = 7.29.2;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
 					"$(inherited)",
@@ -1748,7 +1748,7 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMask.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1397;
+				CURRENT_PROJECT_VERSION = 1409;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 48XVW22RCG;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 48XVW22RCG;
@@ -1783,7 +1783,7 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 				);
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 7.29.0;
+				MARKETING_VERSION = 7.29.2;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
 					"$(inherited)",
