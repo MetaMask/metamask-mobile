@@ -28,7 +28,7 @@ import Text, {
 interface BalanceProps {
   asset: TokenI;
   mainBalance: string;
-  secondaryBalance: string;
+  secondaryBalance?: string;
 }
 
 const NetworkBadgeSource = (chainId: string, ticker: string) => {
