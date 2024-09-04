@@ -5,7 +5,6 @@ import {
 
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-import Assertions from '../../utils/Assertions';
 
 class SwapView {
   get quoteSummary() {
@@ -37,10 +36,11 @@ class SwapView {
 
   async swipeToSwap() {
     const percentage = device.getPlatform() === 'ios' ? 0.72 : 0.95;
-    // Wait for counter to go down to 0:05
-    // as the flashing gas fees happening when counter is 0:15
-    // will disables the swipe button
-    await Assertions.checkIfTextIsDisplayed('New quotes in 0:05');
+
+    // Swipe could happen at the same time when gas fees are falshing
+    // and that's when the swipe button becomes disabled
+    // that's the need to retry
+    await Gestures.swipe(this.swipeToSwapButton, 'right', 'fast', percentage);
     await Gestures.swipe(this.swipeToSwapButton, 'right', 'fast', percentage);
   }
 
@@ -52,7 +52,7 @@ class SwapView {
 
   async tapIUnderstandPriceWarning() {
     try {
-      await Gestures.waitAndTap(this.iUnderstandLabel);
+      await Gestures.waitAndTap(this.iUnderstandLabel, 5000);
     } catch (e) {
       // eslint-disable-next-line no-console
       console.log(`Price warning not displayed: ${e}`);
