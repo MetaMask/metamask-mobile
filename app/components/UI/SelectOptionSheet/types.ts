@@ -9,7 +9,7 @@ export interface iSelectOptionSheet {
   label: string;
   selectedValue?: string;
   options: iSelectOption[];
-  onValueChange: (val: string | undefined) => void;
+  onValueChange: (val: string) => void;
 }
 
 export interface OptionsSheetParams {

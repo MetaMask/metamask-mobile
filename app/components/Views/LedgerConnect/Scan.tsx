@@ -200,7 +200,7 @@ const Scan = ({
             options={options}
             label={strings('ledger.available_devices')}
             defaultValue={options[0]?.label}
-            onValueChange={(deviceId?: string) => {
+            onValueChange={(deviceId: string) => {
               const currentDevice = devices.find((d) => d.id === deviceId);
               setSelectedDevice(currentDevice);
               onDeviceSelected(currentDevice);

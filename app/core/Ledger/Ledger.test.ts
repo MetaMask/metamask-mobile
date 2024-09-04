@@ -4,6 +4,7 @@ import {
   forgetLedger,
   getDeviceId,
   getLedgerAccountsByOperation,
+  isValidPath,
   ledgerSignTypedMessage,
   openEthereumAppOnLedger,
   setHDPath,
@@ -13,6 +14,11 @@ import Engine from '../../core/Engine';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 import PAGINATION_OPERATIONS from '../../constants/pagination';
+import {
+  LEDGER_BIP44_PATH,
+  LEDGER_LEGACY_PATH,
+  LEDGER_LIVE_PATH,
+} from './constants';
 
 jest.mock('../../core/Engine', () => ({
   context: {
@@ -164,18 +170,32 @@ describe('Ledger core', () => {
     });
   });
 
-  describe('setHDPath', () => {
-    it('calls keyring.setHdPath with valid HD path', async () => {
-      await setHDPath('m/44/60/0/0');
-      expect(ledgerKeyring.setHdPath).toHaveBeenCalledWith('m/44/60/0/0');
+  describe('isValidHDPath', () => {
+    it('returns true for valid HD path', () => {
+      expect(isValidPath(LEDGER_LIVE_PATH)).toBeTruthy();
+      expect(isValidPath(LEDGER_BIP44_PATH)).toBeTruthy();
+      expect(isValidPath(LEDGER_LEGACY_PATH)).toBeTruthy();
     });
 
-    it('calls keyring.setHdPath with empty HD path throws error', async () => {
+    it('returns false for invalid HD path', () => {
+      expect(isValidPath('')).toBeFalsy();
+      expect(isValidPath('Invalid')).toBeFalsy();
+      expect(isValidPath('m/44/60/0')).toBeFalsy();
+    });
+  });
+
+  describe('setHDPath', () => {
+    it('calls keyring.setHdPath with valid HD path', async () => {
+      await setHDPath(LEDGER_LIVE_PATH);
+      expect(ledgerKeyring.setHdPath).toHaveBeenCalledWith(LEDGER_LIVE_PATH);
+    });
+
+    it('calls keyring.setHdPath with invalid HD path', async () => {
       try {
         await setHDPath('');
       } catch (err) {
         expect(err).toBeInstanceOf(Error);
-        expect((err as Error).message).toBe('HD Path is undefined');
+        expect((err as Error).message).toBe('HD Path is invalid: ');
       }
     });
   });

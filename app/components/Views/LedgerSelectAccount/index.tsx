@@ -128,10 +128,11 @@ const LedgerSelectAccount = () => {
       getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE)
         .then((_accounts) => {
           setAccounts(_accounts);
-          setBlockingModalVisible(false);
         })
         .catch((e) => {
-          console.error(e);
+          // TODO handle error
+        })
+        .finally(() => {
           setBlockingModalVisible(false);
         });
     }
@@ -252,7 +253,7 @@ const LedgerSelectAccount = () => {
             <SelectOptionSheet
               options={options}
               label={strings('ledger.select_hd_path')}
-              onValueChange={async (path?: string) => {
+              onValueChange={async (path: string) => {
                 const option = options.find((d) => d.key === path);
                 if (!option) return;
                 setSelectOption(option);

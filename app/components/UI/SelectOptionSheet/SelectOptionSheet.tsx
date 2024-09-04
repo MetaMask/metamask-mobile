@@ -20,10 +20,10 @@ const SelectOptionSheet = ({
   const styles = createStyles(colors);
   const navigation = useNavigation();
 
-  const getSelectedValue = () => {
-    const el = options?.filter((o) => o.value === selectedValue);
-    if (el.length > 0) {
-      return el[0].label;
+  const renderDisplayValue = () => {
+    const selectedOptions = options?.filter((o) => o.value === selectedValue);
+    if (selectedOptions.length > 0) {
+      return selectedOptions[0].label;
     }
     if (defaultValue) {
       return defaultValue;
@@ -47,7 +47,7 @@ const SelectOptionSheet = ({
       <TouchableOpacity onPress={showPicker} testID={SELECT_DROP_DOWN}>
         <View style={styles.dropdown}>
           <Text style={styles.selectedOption} numberOfLines={1}>
-            {getSelectedValue()}
+            {renderDisplayValue()}
           </Text>
           <Icon
             name={'arrow-drop-down'}

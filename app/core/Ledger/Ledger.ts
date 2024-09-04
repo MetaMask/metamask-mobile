@@ -6,7 +6,11 @@ import {
   LedgerKeyring,
   LedgerMobileBridge,
 } from '@metamask/eth-ledger-bridge-keyring';
-import { LEDGER_LIVE_PATH } from './constants';
+import {
+  LEDGER_BIP44_PATH,
+  LEDGER_LEGACY_PATH,
+  LEDGER_LIVE_PATH,
+} from './constants';
 import PAGINATION_OPERATIONS from '../../constants/pagination';
 
 /**
@@ -81,7 +85,7 @@ export const closeRunningAppOnLedger = async (): Promise<void> => {
 };
 
 /**
- * Forgets the ledger keyring's previous device specific state.
+ * Forgets the ledger device.
  */
 export const forgetLedger = async (): Promise<void> => {
   await withLedgerKeyring(async (keyring: LedgerKeyring) => {
@@ -100,15 +104,33 @@ export const getDeviceId = async (): Promise<string> =>
   );
 
 /**
+ * Check if the path is valid
+ * @param path - The HD Path to check
+ * @returns Whether the path is valid
+ */
+export const isValidPath = (path: string): boolean => {
+  if (!path) return false;
+  if (!path.startsWith("m/44'/60'")) return false;
+  switch (path) {
+    case LEDGER_LIVE_PATH:
+    case LEDGER_LEGACY_PATH:
+    case LEDGER_BIP44_PATH:
+      return true;
+    default:
+      return false;
+  }
+};
+
+/**
  * Set HD Path for Ledger Keyring
  * @param path - The HD Path to set
  */
-export const setHDPath = async (path?: string) => {
+export const setHDPath = async (path: string) => {
   await withLedgerKeyring(async (keyring: LedgerKeyring) => {
-    if (path) {
+    if (isValidPath(path)) {
       keyring.setHdPath(path);
     } else {
-      throw new Error(`HD Path is undefined`);
+      throw new Error(`HD Path is invalid: ${path}`);
     }
   });
 };
