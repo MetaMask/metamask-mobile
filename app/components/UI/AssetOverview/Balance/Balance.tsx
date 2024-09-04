@@ -51,6 +51,9 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
 
   return (
     <View style={styles.wrapper}>
+      <Title style={styles.title}>
+        {strings('asset_overview.your_balance')}
+      </Title>
       <AssetElement
         asset={asset}
         mainBalance={mainBalance}

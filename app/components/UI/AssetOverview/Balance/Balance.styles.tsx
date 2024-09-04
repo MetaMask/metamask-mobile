@@ -27,6 +27,7 @@ const styleSheet = (params: { theme: Theme }) => {
       ...typography.sHeadingSM,
       marginVertical: 0,
       paddingVertical: 8,
+      paddingHorizontal: 15,
     } as TextStyle,
     text: {
       ...typography.sBodySM,
