@@ -28,7 +28,6 @@ const styleSheet = (params: {
     base: Object.assign(
       {
         backgroundColor: pressed ? colorObj.alternative : colorObj.default,
-        color: colors.text.default,
       } as ViewStyle,
       style,
     ) as ViewStyle,
