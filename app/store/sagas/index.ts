@@ -19,14 +19,21 @@ import {
   restoreXMLHttpRequest,
 } from './xmlHttpRequestOverride';
 
+import {
+  getFeatureFlagsSuccess,
+  getFeatureFlagsError,
+} from '../../../app/core/redux/slices/featureFlags';
+
+import launchDarklyURL from '../../../app/util/featureFlags';
+
 interface GenericObject {
   [key: string]: unknown;
 }
 
 type DataArray<T extends GenericObject> = T[];
 
-  status: string;
 interface FeatureFlagResponse {
+  status: string;
   data: DataArray<GenericObject>[];
   message?: string;
 }
@@ -141,7 +148,7 @@ function* fetchFeatureFlags(): Generator {
       status: '',
       data: [],
     };
-    yield fetch(launchDarklyURL())
+    yield fetch(launchDarklyURL('main', 'production'))
       .then((res) => res.json())
       .then((res) => (response = res));
 
