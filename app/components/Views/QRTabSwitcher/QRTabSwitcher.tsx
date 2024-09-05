@@ -9,7 +9,9 @@ import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import createStyles from './styles';
 import NavbarTitle from '../../../components/UI/NavbarTitle';
-import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 
 export enum Screens {
@@ -127,7 +129,7 @@ const QRTabSwitcher = () => {
         <ButtonIcon
           style={styles.closeIcon}
           iconName={IconName.Close}
-          iconColor={selectedIndex === Screens.Receive ? 'black' : 'white'}
+          size={ButtonIconSizes.Md}
           onPress={goBack}
         />
       </View>

@@ -1,5 +1,5 @@
 import { Dimensions, StyleSheet, TextStyle } from 'react-native';
-import { Theme } from '../../../util/theme/models';
+import { AppThemeKey, Theme } from '../../../util/theme/models';
 
 const createStyles = (theme: Theme) => {
   const { height } = Dimensions.get('window');
@@ -42,7 +42,10 @@ const createStyles = (theme: Theme) => {
       top: segmentedControllerTop,
       width: 300,
       height: 40,
-      backgroundColor: theme.brandColors.grey050,
+      backgroundColor:
+        theme.themeAppearance === AppThemeKey.dark
+          ? theme.brandColors.grey900
+          : theme.brandColors.grey050,
     },
     segmentedControlItem: {
       flex: 1,
@@ -52,7 +55,10 @@ const createStyles = (theme: Theme) => {
     segmentedControlItemSelected: {
       position: 'absolute',
       width: 146,
-      backgroundColor: theme.brandColors.white,
+      backgroundColor:
+        theme.themeAppearance === AppThemeKey.dark
+          ? theme.brandColors.grey1000
+          : theme.brandColors.white,
       borderRadius: 30,
       height: 36,
       marginLeft: 2,
