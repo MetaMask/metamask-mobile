@@ -118,6 +118,11 @@ const LedgerSelectAccount = () => {
     }
   }, [ledgerError]);
 
+  const showLoadingModal = () => {
+    setErrorMsg(null);
+    setBlockingModalVisible(true);
+  };
+
   const onConnectHardware = useCallback(async () => {
     setErrorMsg(null);
     trackEvent(MetaMetricsEvents.CONTINUE_LEDGER_HARDWARE_WALLET, {
@@ -130,9 +135,8 @@ const LedgerSelectAccount = () => {
   }, [trackEvent]);
 
   useEffect(() => {
-    if (selectedOption) {
-      setErrorMsg(null);
-      setBlockingModalVisible(true);
+    if (accounts.length > 0 && selectedOption) {
+      showLoadingModal();
       getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE)
         .then((_accounts) => {
           setAccounts(_accounts);
@@ -144,11 +148,10 @@ const LedgerSelectAccount = () => {
           setBlockingModalVisible(false);
         });
     }
-  }, [selectedOption]);
+  }, [accounts.length, selectedOption]);
 
   const nextPage = useCallback(async () => {
-    setErrorMsg(null);
-    setBlockingModalVisible(true);
+    showLoadingModal();
     const _accounts = await getLedgerAccountsByOperation(
       PAGINATION_OPERATIONS.GET_NEXT_PAGE,
     );
@@ -157,8 +160,7 @@ const LedgerSelectAccount = () => {
   }, []);
 
   const prevPage = useCallback(async () => {
-    setErrorMsg(null);
-    setBlockingModalVisible(true);
+    showLoadingModal();
     const _accounts = await getLedgerAccountsByOperation(
       PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE,
     );
@@ -168,9 +170,7 @@ const LedgerSelectAccount = () => {
 
   const onUnlock = useCallback(
     async (accountIndexes: number[]) => {
-      setErrorMsg(null);
-      setBlockingModalVisible(true);
-
+      showLoadingModal();
       try {
         for (const index of accountIndexes) {
           await unlockLedgerWalletAccount(index);
@@ -191,8 +191,7 @@ const LedgerSelectAccount = () => {
   );
 
   const onForget = useCallback(async () => {
-    setErrorMsg(null);
-    setBlockingModalVisible(true);
+    showLoadingModal();
     await forgetLedger();
     dispatch(setReloadAccounts(true));
     trackEvent(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN, {
@@ -227,7 +226,6 @@ const LedgerSelectAccount = () => {
 
   const onSelectedPathChanged = useCallback(
     async (path: string) => {
-      setErrorMsg(null);
       const option = ledgerPathOptions.find((d) => d.key === path);
       if (!option) return;
       setSelectedOption(option);
