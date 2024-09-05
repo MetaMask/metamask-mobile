@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import Crypto from 'react-native-quick-crypto';
+import { scrypt } from 'react-native-fast-crypto';
 import {
   AccountTrackerController,
   AccountTrackerState,
@@ -1095,6 +1096,9 @@ class Engine {
         ],
         allowedEvents: ['KeyringController:unlock', 'KeyringController:lock'],
       }),
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      nativeScryptCrypto: scrypt as any,
     });
 
     const notificationServicesController =
