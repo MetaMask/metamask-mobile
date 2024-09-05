@@ -303,8 +303,6 @@ const VaultRecoveryFlow = () => (
 
 // eslint-disable-next-line react/prop-types
 const App = ({ userLoggedIn }) => {
-  const animationRef = useRef(null);
-  const animationNameRef = useRef(null);
   const [navigator, setNavigator] = useState(undefined);
   const prevNavigator = useRef(navigator);
   const [route, setRoute] = useState();
@@ -349,8 +347,6 @@ const App = ({ userLoggedIn }) => {
           `Unlock attempts: 1`,
         );
       } finally {
-        animationRef?.current?.play();
-        animationNameRef?.current?.play();
       }
     };
     appTriggeredAuth().catch((error) => {
