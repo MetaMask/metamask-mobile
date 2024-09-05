@@ -54,29 +54,25 @@ if (typeof localStorage !== 'undefined') {
   localStorage.debug = isDev ? '*' : '';
 }
 
-// Ensure XMLHttpRequest is available
-global.XMLHttpRequest = global.XMLHttpRequest || _XMLHttpRequest;
+if (process.env.IS_TEST) {
+  (async () => {
+    const { fetch: originalFetch } = global;
+    const MOCKTTP_URL = `http://${
+      Platform.OS === 'ios' ? 'localhost' : '10.0.2.2'
+    }:8000`;
 
-// Store original methods
-const { open: originalOpen, send: originalSend } = XMLHttpRequest.prototype;
+    const isMockServerAvailable = await originalFetch(
+      `${MOCKTTP_URL}/health-check`,
+    )
+      .then((res) => res.ok)
+      .catch(() => false);
 
-// Mockttp server URL
-const MOCKTTP_URL = 'http://localhost:8000'; // Replace with your Mockttp server address
-
-// Override 'open' method to route through Mockttp
-XMLHttpRequest.prototype.open = function (method, url) {
-  this._requestMethod = method;
-  this._requestUrl = url;
-  const proxiedUrl =
-    url.startsWith('http://') || url.startsWith('https://')
-      ? `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(url)}`
-      : url;
-  return originalOpen.call(this, method, proxiedUrl);
-};
-
-// Override 'send' method to log request details
-XMLHttpRequest.prototype.send = function (body) {
-  console.log(`Request Made: ${this._requestMethod} ${this._requestUrl}`);
-  if (body) console.log(`Request Body: ${body}`);
-  return originalSend.call(this, body);
-};
+    global.fetch = async (url, options) =>
+      isMockServerAvailable
+        ? originalFetch(
+            `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(url)}`,
+            options,
+          ).catch(() => originalFetch(url, options))
+        : originalFetch(url, options);
+  })();
+}

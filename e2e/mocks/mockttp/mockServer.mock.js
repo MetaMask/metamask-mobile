@@ -11,6 +11,9 @@ const startServer = async () => {
   console.log(
     `Mockttp proxy server running at http://localhost:${mockServer.port}`,
   );
+  await mockServer
+    .forGet('/health-check')
+    .thenReply(200, 'Mock server is healthy');
 
   // This is a rule where the path is /proxy and a query param is https://www.google.com
   // Docs - https://httptoolkit.github.io/mockttp/interfaces/Mockttp.html
@@ -20,12 +23,6 @@ const startServer = async () => {
       url: 'https://gas.api.cx.metamask.io/networks/1/suggestedGasFees',
     })
     .thenReply(500);
-
-  // Add other rules here...
-  // await mockServer
-  //   .forGet('/proxy')
-  //   .withQuery({ url: 'https://www.website.com/networks/1/suggestedGasFees' })
-  //   .thenReply(500);
 
   // Unmatched rules falls back to this and is passed through normally
   await mockServer.forUnmatchedRequest().thenPassThrough({
