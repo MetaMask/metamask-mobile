@@ -221,10 +221,11 @@ describe('PersonalSign', () => {
       expect(lastMockCall[1]).toEqual({
         account_type: 'Metamask',
         dapp_host_name: 'localhost:8545',
-        chain_id: undefined,
+        chain_id: 'N/A',
         signature_type: 'personal_sign',
         security_alert_response: 'Benign',
         security_alert_reason: '',
+        security_alert_source: undefined,
         ppom_eth_chainId_count: 1,
       });
     });
@@ -247,10 +248,11 @@ describe('PersonalSign', () => {
       expect(lastMockCall[1]).toEqual({
         account_type: 'Metamask',
         dapp_host_name: 'localhost:8545',
-        chain_id: undefined,
+        chain_id: 'N/A',
         signature_type: 'personal_sign',
         security_alert_response: 'Benign',
         security_alert_reason: '',
+        security_alert_source: undefined,
         ppom_eth_chainId_count: 1,
       });
     });
