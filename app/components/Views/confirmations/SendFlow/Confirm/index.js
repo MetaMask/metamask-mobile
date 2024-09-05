@@ -355,7 +355,7 @@ class Confirm extends PureComponent {
       };
     } catch (error) {
       // Log the error and return the baseParams
-      console.error('Error in getAnalyticsParams:', error);
+      Logger.error(error, 'Error in getAnalyticsParams:');
       return baseParams;
     }
   };

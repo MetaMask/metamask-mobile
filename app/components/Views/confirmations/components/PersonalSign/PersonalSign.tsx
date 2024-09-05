@@ -94,7 +94,7 @@ const PersonalSign = ({
         const url = new URL(pageInfo.url);
         urlHost = url.host || fallbackUrl;
       } catch (error) {
-        console.error('Error processing analytics parameters:', error);
+        Logger.error(error as Error, 'Error parsing URL in signature request');
       }
     }
 

@@ -11,6 +11,7 @@ import { store } from '../../store';
 import { getBlockaidMetricsParams } from '../blockaid';
 import Device from '../device';
 import { getDecimalChainId } from '../networks';
+import Logger from '../Logger';
 
 export const typedSign = {
   V1: 'eth_signTypedData',
@@ -53,7 +54,7 @@ export const getAnalyticsParams = (
       Object.assign(analyticsParams, blockaidParams);
     }
   } catch (error) {
-    console.error('Error processing analytics parameters:', error);
+    Logger.error(error, 'Error processing analytics parameters:');
   }
 
   return analyticsParams;

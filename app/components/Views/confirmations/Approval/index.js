@@ -359,6 +359,10 @@ class Approval extends PureComponent {
         ...smartTransactionMetricsProperties,
       };
     } catch (error) {
+      Logger.error(
+        error,
+        'Error while getting analytics params for approval screen',
+      );
       return baseParams;
     }
   };

@@ -598,7 +598,7 @@ class ApproveTransactionReview extends PureComponent {
 
       return params;
     } catch (error) {
-      console.error('Error in getAnalyticsParams:', error);
+      Logger.error(error, 'Error in getAnalyticsParams:');
       return baseParams;
     }
   };
