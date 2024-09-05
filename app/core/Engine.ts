@@ -2120,7 +2120,6 @@ export default {
   },
 
   init(state: Record<string, never> | undefined, keyringState = null) {
-    console.log('IM HERE +++++++++++');
     instance = Engine.instance || new Engine(state, keyringState);
     Object.freeze(instance);
     return instance;

@@ -39,26 +39,31 @@ const MOCK_BALANCE_3 = '0x33';
 
 // Mock Engine for render tests
 jest.mock('../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      getNetworkClientById: jest.fn().mockReturnValue({
+        configuration: {
+          chainId: MOCK_CHAIN_ID,
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+    },
+  },
   state: {
     NetworkController: {
+      selectedNetworkClientId: 'mainnet',
+      networksMetadata: {},
       networkConfigurations: {
         mainnet: {
           id: 'mainnet',
-          rpcUrl: 'https://ethereum-rpc',
-          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          chainId: MOCK_CHAIN_ID,
           ticker: 'ETH',
-          nickname: 'Ethereum chain',
+          nickname: 'Sepolia network',
           rpcPrefs: {
             blockExplorerUrl: 'https://etherscan.com',
-          },
-        },
-      } as Partial<NetworkController['state']['networkConfigurations']>,
-      selectedNetworkClientId: 'mainnet',
-      networksMetadata: {
-        mainnet: {
-          status: 'available',
-          EIPS: {
-            '1559': true,
           },
         },
       },
@@ -74,6 +79,7 @@ jest.mock('../core/Engine', () => ({
               keyring: {
                 type: 'HD Key Tree',
               },
+              importTime: Date.now(),
             },
             options: {},
             methods: [
@@ -94,6 +100,7 @@ jest.mock('../core/Engine', () => ({
               keyring: {
                 type: 'HD Key Tree',
               },
+              importTime: Date.now(),
             },
             options: {},
             methods: [
@@ -109,7 +116,7 @@ jest.mock('../core/Engine', () => ({
         },
         selectedAccount: '30786334-3936-4663-b064-363539643939',
       },
-    } as Partial<AccountsControllerState>,
+    } as unknown as Partial<AccountsControllerState>,
     AccountTrackerController: {
       accountsByChainId: {
         '0x1': {
@@ -167,18 +174,53 @@ describe('selectAccountBalanceByChainId', () => {
   });
 
   it('returns account balance for chain id', () => {
+    (
+      Engine.context.NetworkController.getNetworkClientById as jest.Mock
+    ).mockReturnValue({
+      configuration: {
+        chainId: MOCK_CHAIN_ID,
+        rpcUrl: 'https://mainnet.infura.io/v3',
+        ticker: 'ETH',
+        type: 'custom',
+      },
+    });
+
     const result = selectAccountBalanceByChainId(initialState);
     expect(result?.balance).toBe(MOCK_BALANCE);
   });
 
+  // TODO HERE ::::
   it('returns undefined when chain ID is undefined', () => {
-    initialState.engine.backgroundState.NetworkController.providerConfig.chainId =
-      undefined as unknown as `0x${string}`;
+    initialState.engine.backgroundState.NetworkController.selectedNetworkClientId =
+      MOCK_CHAIN_ID_2;
+
+    (
+      Engine.context.NetworkController.getNetworkClientById as jest.Mock
+    ).mockReturnValue({
+      configuration: {
+        chainId: undefined,
+        rpcUrl: 'https://linea-goerli.infura.io/v3',
+        ticker: 'LINEA',
+        type: 'custom',
+      },
+    });
+
     const result = selectAccountBalanceByChainId(initialState);
     expect(result).toBeUndefined();
   });
 
   it("returns undefined when balance doesn't exist for chain ID", () => {
+    (
+      Engine.context.NetworkController.getNetworkClientById as jest.Mock
+    ).mockReturnValue({
+      configuration: {
+        chainId: MOCK_CHAIN_ID,
+        rpcUrl: 'https://mainnet.infura.io/v3',
+        ticker: 'ETH',
+        type: 'custom',
+      },
+    });
+
     initialState.engine.backgroundState.AccountTrackerController.accountsByChainId =
       {
         '0x99': {
@@ -222,9 +264,18 @@ describe('selectAccountBalanceByChainId', () => {
       expect(getByText(`Balance ${MOCK_BALANCE}`)).toBeDefined();
       mockRenderCall.mockReset();
 
-      const originalChainId =
-        Engine.state.NetworkController.providerConfig.chainId;
-      Engine.state.NetworkController.providerConfig.chainId = MOCK_CHAIN_ID_2;
+      Engine.state.NetworkController.selectedNetworkClientId = MOCK_CHAIN_ID_2;
+
+      (
+        Engine.context.NetworkController.getNetworkClientById as jest.Mock
+      ).mockReturnValue({
+        configuration: {
+          chainId: MOCK_CHAIN_ID_2,
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      });
 
       act(() => {
         store.dispatch({
@@ -237,9 +288,6 @@ describe('selectAccountBalanceByChainId', () => {
 
       expect(mockRenderCall).toHaveBeenCalledTimes(1);
       expect(getByText(`Balance ${MOCK_BALANCE_2}`)).toBeDefined();
-
-      // Reset chain ID
-      Engine.state.NetworkController.providerConfig.chainId = originalChainId;
     });
 
     it('re-renders balance when balance is updated', () => {
@@ -305,9 +353,18 @@ describe('selectAccountBalanceByChainId', () => {
       expect(getByText(`Balance ${MOCK_BALANCE}`)).toBeDefined();
       mockRenderCall.mockReset();
 
-      const originalChainId =
-        Engine.state.NetworkController.providerConfig.chainId;
-      Engine.state.NetworkController.providerConfig.chainId = originalChainId;
+      Engine.state.NetworkController.selectedNetworkClientId = MOCK_CHAIN_ID;
+
+      (
+        Engine.context.NetworkController.getNetworkClientById as jest.Mock
+      ).mockReturnValue({
+        configuration: {
+          chainId: MOCK_CHAIN_ID,
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      });
 
       act(() => {
         store.dispatch({

@@ -15,22 +15,12 @@ export interface ProviderConfig {
   network?: string;
 }
 
-const selectNetworkControllerState = (state: RootState) => {
-  console.log(
-    'state?.engine?.backgroundState ---',
-    state?.engine?.backgroundState,
-  );
-  return state?.engine?.backgroundState?.NetworkController;
-};
+const selectNetworkControllerState = (state: RootState) =>
+  state?.engine?.backgroundState?.NetworkController;
 
 export const selectProviderConfig = createDeepEqualSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) => {
-    console.log(
-      'networkControllerState ---',
-      JSON.stringify(networkControllerState),
-    );
-
     const { NetworkController } = Engine?.context || {};
 
     const builtInNetwork =
@@ -38,12 +28,14 @@ export const selectProviderConfig = createDeepEqualSelector(
       // @ts-ignore
       NetworkList[networkControllerState?.selectedNetworkClientId];
 
+    console.log(
+      'networkControllerState?.selectedNetworkClientId *********',
+      networkControllerState?.selectedNetworkClientId,
+    );
+
     const networkConfiguration = NetworkController?.getNetworkClientById(
       networkControllerState?.selectedNetworkClientId,
     ).configuration;
-
-    console.log('networkConfiguration *****', NetworkList);
-    console.log('networkControllerState *****', networkControllerState);
 
     return builtInNetwork
       ? {
@@ -71,7 +63,10 @@ export const selectTicker = createSelector(
 
 export const selectChainId = createSelector(
   selectProviderConfig,
-  (providerConfig: ProviderConfig) => providerConfig?.chainId,
+  (providerConfig: ProviderConfig) => {
+    console.log('providerConfig *****', providerConfig?.chainId);
+    return providerConfig?.chainId;
+  },
 );
 export const selectProviderType = createSelector(
   selectProviderConfig,
