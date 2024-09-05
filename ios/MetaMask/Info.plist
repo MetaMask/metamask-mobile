@@ -154,8 +154,8 @@
 	<string>$(MM_MIXPANEL_TOKEN)</string>
 	<key>fox_code</key>
 	<string>$(MM_FOX_CODE)</string>
-  <key>LSApplicationQueriesSchemes</key>
-  <array>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
 		<string>twitter</string>
 		<string>itms-apps</string>
 	</array>
