@@ -120,9 +120,9 @@ const buildPpomTask = {
 const setupIosTask = {
   title: 'Set up iOS',
   task: async (_, task) => {
-    if (!BUILD_IOS && !IS_DIFF) {
-      return task.skip('Skipping iOS.');
-    }
+    // if (!BUILD_IOS && !IS_DIFF) {
+    //   return task.skip('Skipping iOS.');
+    // }
 
     return task.newListr(
       [
