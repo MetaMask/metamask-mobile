@@ -458,6 +458,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     renderConnectedScreen,
     renderConnectScreen,
     renderRevokeScreen,
+    renderPermissionsSummaryScreen,
   ]);
 
   return <BottomSheet ref={sheetRef}>{renderPermissionsScreens()}</BottomSheet>;
