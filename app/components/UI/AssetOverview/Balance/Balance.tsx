@@ -5,7 +5,6 @@ import Title from '../../../Base/Title';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './Balance.styles';
 import AssetElement from '../../AssetElement';
-import { TokenI } from '../../Tokens/types';
 import { useSelector } from 'react-redux';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
 import { selectChainId } from '../../../../selectors/networkController';
@@ -15,7 +14,7 @@ import {
   isMainnetByChainId,
   isTestNet,
 } from '../../../../util/networks';
-import images from 'images/image-icons';
+import images from '../../../../images/image-icons';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
 import { BadgeVariant } from '../../../../component-library/components/Badges/Badge/Badge.types';
 import Badge from '../../../../component-library/components/Badges/Badge/Badge';
@@ -25,6 +24,7 @@ import { AvatarSize } from '../../../../component-library/components/Avatars/Ava
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import { TokenI } from '../../Tokens/types';
 interface BalanceProps {
   asset: TokenI;
   mainBalance: string;
@@ -41,7 +41,7 @@ const NetworkBadgeSource = (chainId: string, ticker: string) => {
 
   if (isLineaMainnet) return images['LINEA-MAINNET'];
 
-  return ticker ? images[ticker] : undefined;
+  return ticker ? images[ticker as keyof typeof images] : undefined;
 };
 
 const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {

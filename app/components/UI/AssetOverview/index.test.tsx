@@ -3,7 +3,6 @@ import AssetOverview from './AssetOverview';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
-import { zeroAddress } from 'ethereumjs-util';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -12,15 +11,17 @@ const initialState = {
   },
 };
 const asset = {
-  balance: 4,
-  balanceFiat: 1500,
+  balance: '400',
+  balanceFiat: '1500',
   logo: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg',
   symbol: 'ETH',
   name: 'Ethereum',
-  isETH: true,
-  balanceError: false,
+  isETH: undefined,
+  balanceError: null,
   decimals: 18,
-  address: zeroAddress(),
+  address: '0x123',
+  aggregators: [],
+  image: '',
 };
 const store = mockStore(initialState);
 

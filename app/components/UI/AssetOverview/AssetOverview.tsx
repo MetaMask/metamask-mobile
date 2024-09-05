@@ -45,7 +45,6 @@ import { createWebviewNavDetails } from '../../Views/SimpleWebview';
 import useTokenHistoricalPrices, {
   TimePeriod,
 } from '../../hooks/useTokenHistoricalPrices';
-import { Asset } from './AssetOverview.types';
 import Balance from './Balance';
 import ChartNavigationButton from './ChartNavigationButton';
 import Price from './Price';
@@ -53,6 +52,7 @@ import styleSheet from './AssetOverview.styles';
 import { useStyles } from '../../../component-library/hooks';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
+import { TokenI } from '../Tokens/types';
 
 interface AssetOverviewProps {
   navigation: {
@@ -60,7 +60,7 @@ interface AssetOverviewProps {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     navigate: (route: string, props?: any) => void;
   };
-  asset: Asset;
+  asset: TokenI;
 }
 
 const AssetOverview: React.FC<AssetOverviewProps> = ({
@@ -138,7 +138,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         onPress={() => goToBrowserUrl(AppConstants.URLS.TOKEN_BALANCE)}
       >
         <Text style={styles.warning}>
-          {strings('asset_overview.were_unable')} {(asset as Asset).symbol}{' '}
+          {strings('asset_overview.were_unable')} {(asset as TokenI).symbol}{' '}
           {strings('asset_overview.balance')}{' '}
           <Text style={styles.warningLinks}>
             {strings('asset_overview.troubleshooting_missing')}

@@ -14,14 +14,14 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import Title from '../../../Base/Title';
-import { Asset } from '../AssetOverview.types';
 import PriceChart from '../PriceChart/PriceChart';
 import { distributeDataPoints } from '../PriceChart/utils';
 import styleSheet from './Price.styles';
 import { TOKEN_PRICE } from '../../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+import { TokenI } from '../../Tokens/types';
 
 interface PriceProps {
-  asset: Asset;
+  asset: TokenI;
   prices: TokenPrice[];
   priceDiff: number;
   currentPrice: number;
