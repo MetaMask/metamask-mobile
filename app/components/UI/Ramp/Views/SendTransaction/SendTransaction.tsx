@@ -212,7 +212,6 @@ function SendTransaction() {
     tokenIcon = { uri: orderData.cryptoCurrency.logo };
   }
 
-  const cryptoAmount = (order.cryptoAmount || '0').toString(10);
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
@@ -226,7 +225,7 @@ function SendTransaction() {
                 <Text variant={TextVariant.HeadingMD}>
                   {fromTokenMinimalUnitString(
                     toTokenMinimalUnit(
-                      cryptoAmount,
+                      order.cryptoAmount || '0',
                       orderData.cryptoCurrency.decimals,
                     ).toString(),
                     orderData.cryptoCurrency.decimals,
