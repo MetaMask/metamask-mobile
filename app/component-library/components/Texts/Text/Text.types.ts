@@ -55,5 +55,5 @@ export interface TextProps extends RNTextProps {
   /**
    * Optional prop to add color to text.
    */
-  color?: TextColor;
+  color?: TextColor | string;
 }
