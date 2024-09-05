@@ -28,12 +28,11 @@ import { useStyles } from '../../../component-library/hooks';
 import { PermissionsSummaryProps } from './PermissionsSummary.types';
 import { useSelector } from 'react-redux';
 import { selectNetworkName } from '../../../selectors/networkInfos';
-import { AccountConnectScreens } from '../../../components/Views/AccountConnect/AccountConnect.types';
 import { USER_INTENT } from '../../../constants/permissions';
 
 const PermissionsSummary = ({
   currentPageInformation,
-  onSetScreen,
+  onEdit,
   onUserAction,
 }: PermissionsSummaryProps) => {
   const { colors } = useTheme();
@@ -66,7 +65,7 @@ const PermissionsSummary = ({
   };
 
   const handleEditButtonPress = () => {
-    onSetScreen?.(AccountConnectScreens.MultiConnectSelector);
+    onEdit();
   };
 
   function renderAccountPermissionsRequestInfoCard() {

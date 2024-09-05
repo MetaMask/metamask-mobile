@@ -575,7 +575,9 @@ const AccountConnect = (props: AccountConnectProps) => {
         icon: faviconSource as string,
         url: urlWithProtocol,
       },
-      onSetScreen: setScreen,
+      onEdit: () => {
+        setScreen(AccountConnectScreens.MultiConnectSelector);
+      },
       onUserAction: setUserIntent,
     };
     return <PermissionsSummary {...permissionsSummaryProps} />;

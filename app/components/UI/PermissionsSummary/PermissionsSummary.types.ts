@@ -1,3 +1,4 @@
+import { AccountPermissionsScreens } from 'app/components/Views/AccountPermissions/AccountPermissions.types';
 import { AccountConnectScreens } from '../../../components/Views/AccountConnect/AccountConnect.types';
 import { USER_INTENT } from '../../../constants/permissions';
 
@@ -7,6 +8,6 @@ export interface PermissionsSummaryProps {
     icon: string | { uri: string };
     url: string;
   };
-  onSetScreen?: (screen: AccountConnectScreens) => void;
+  onEdit: () => void;
   onUserAction?: React.Dispatch<React.SetStateAction<USER_INTENT>>;
 }

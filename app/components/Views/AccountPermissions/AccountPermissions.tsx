@@ -53,6 +53,8 @@ import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { RootState } from '../../../reducers';
 import { isMutichainVersion1Enabled } from '../../../util/networks';
+import PermissionsSummary from '../../../components/UI/PermissionsSummary';
+import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const navigation = useNavigation();
@@ -368,6 +370,19 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     ],
   );
 
+  const renderPermissionsSummaryScreen = useCallback(() => {
+    const permissionsSummaryProps: PermissionsSummaryProps = {
+      currentPageInformation: {
+        currentEnsName: '',
+        icon: faviconSource as string,
+        url: urlWithProtocol,
+      },
+      onEdit: () => setPermissionsScreen(AccountPermissionsScreens.Connect),
+      onUserAction: setUserIntent,
+    };
+    return <PermissionsSummary {...permissionsSummaryProps} />;
+  }, [faviconSource, urlWithProtocol]);
+
   const renderConnectScreen = useCallback(
     () => (
       <AccountConnectMultiSelector
@@ -430,7 +445,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const renderPermissionsScreens = useCallback(() => {
     switch (permissionsScreen) {
       case AccountPermissionsScreens.Connected:
-        return renderConnectedScreen();
+        return isMutichainVersion1Enabled
+          ? renderPermissionsSummaryScreen()
+          : renderConnectedScreen();
       case AccountPermissionsScreens.Connect:
         return renderConnectScreen();
       case AccountPermissionsScreens.Revoke:
