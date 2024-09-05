@@ -55,6 +55,9 @@ import { selectCurrentTransactionSecurityAlertResponse } from '../../../../selec
 import { selectTransactions } from '../../../../selectors/transactionController';
 import { selectShowCustomNonce } from '../../../../selectors/settings';
 import { buildTransactionParams } from '../../../../util/confirmation/transactions';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import SDKConnect from '../../../../core/SDKConnect/SDKConnect';
+import WC2Manager from '../../../../core/WalletConnect/WalletConnectV2';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -144,13 +147,10 @@ class Approval extends PureComponent {
     transactionConfirmed: false,
   };
 
-  originIsWalletConnect = this.props.transaction.origin?.startsWith(
-    WALLET_CONNECT_ORIGIN,
-  );
-
-  originIsMMSDKRemoteConn = this.props.transaction.origin?.startsWith(
-    AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-  );
+  channelIdOrHostname = this.props.transaction.origin;
+  originDetected = false;
+  originIsWalletConnect = false;
+  originIsMMSDKRemoteConn = false;
 
   updateNavBar = () => {
     const colors = this.context.colors || mockTheme.colors;
@@ -250,10 +250,39 @@ class Approval extends PureComponent {
     navigation &&
       navigation.setParams({ mode: REVIEW, dispatch: this.onModeChange });
 
+    // Detect origin: WalletConnect / SDK / InAppBrowser
+    this.detectOrigin();
+
     this.props.metrics.trackEvent(
       MetaMetricsEvents.DAPP_TRANSACTION_STARTED,
       this.getAnalyticsParams(),
     );
+  };
+
+  detectOrigin = async () => {
+    const { transaction } = this.props;
+    const { origin } = transaction;
+
+    const connection = SDKConnect.getInstance().getConnection({
+      channelId: origin,
+    });
+    if (connection) {
+      this.originIsMMSDKRemoteConn = true;
+    } else {
+      // Check if origin is WalletConnect
+      const wc2Manager = await WC2Manager.getInstance();
+      const sessions = wc2Manager.getSessions();
+      this.originIsWalletConnect = sessions.some((session) => {
+        DevLogger.log(
+          `Approval::detectOrigin Comparing session URL ${session.peer.metadata.url} with origin ${origin}`,
+        );
+        return session.peer.metadata.url === origin;
+      });
+    }
+    DevLogger.log(
+      `Approval::detectOrigin originIsWalletConnect=${this.originIsWalletConnect} originIsMMSDKRemoteConn=${this.originIsMMSDKRemoteConn}`,
+    );
+    this.originDetected = true;
   };
 
   /**
