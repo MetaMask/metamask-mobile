@@ -3327,23 +3327,12 @@
     "disconnect": "Disconnect"
   },
   "staking": {
-    "eth_earnings": "ETH earnings",
-    "earning_percentage": "Earning {{percentage}}%",
-    "staked_amount": "Staked amount",
-    "staked": "staked",
-    "stake": "Stake",
-    "unstake": "Unstake",
-    "unstake_in_progress_banner_text": "Unstaking {{eth_amount}} ETH in progress. Come back in {{time}} to claim it.",
-    "claimable_eth_available_banner_text": "You can now claim your {{eth_amount}} ETH. Once claimed, you'll receive your ETH back in your wallet.",
-    "claim_eth_link": "Claim ETH",
+    "your_earnings": "Your earnings",
+    "annual_rate": "Annual rate",
     "lifetime_rewards": "Lifetime rewards",
-    "estimated_annual_rewards": "Est. annual rewards",
-    "rewards_history": "${{fiat_amount}} • Since {{date}}",
+    "estimated_annual_earnings": "Est. annual earnings",
     "accessibility_labels": {
-      "staked_earnings_rate_tooltip": "Staked earnings rate tooltip",
-      "stake_eth_button": "Stake ETH Button",
-      "unstake_eth_button": "Unstake ETH Button",
-      "claim_eth_button": "Claim ETH Button"
+      "stake_annual_rate_tooltip": "Annual rate tooltip"
     }
   },
   "tooltip_modal": {

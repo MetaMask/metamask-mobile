@@ -52,7 +52,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const tokenContractAddress = safeToChecksumAddress(asset.address);
 
   // TEMP: Remove once component has been implemented.
-  const [shouldShowStakedEarnings] = useState(true);
+  const [hasStakingPositions, setHasStakingPositions] = useState(true);
 
   let tokenMetadata;
   let marketData;
@@ -125,12 +125,12 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   };
 
   return (
-    <View style={styles.wrapper}>
+    <View style={styles.tokenDetailsContainer}>
+      {hasStakingPositions && <StakingEarnings />}
       {(asset.isETH || tokenMetadata) && (
         <TokenDetailsList tokenDetails={tokenDetails} />
       )}
       {marketData && <MarketDetailsList marketDetails={marketDetails} />}
-      {shouldShowStakedEarnings && <StakingEarnings />}
     </View>
   );
 };
