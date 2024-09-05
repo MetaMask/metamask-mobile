@@ -286,6 +286,7 @@ enum EVENT_NAME {
 
   // Stake
   STAKE_BUTTON_CLICKED = 'Stake Button Clicked',
+  STAKE_TRANSACTION_VIEWED = 'Stake Transaction Viewed',
 
   // Force Upgrade | Automatic Security Checks
   FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED = 'Force Upgrade Update Needed Prompt Viewed',
@@ -425,7 +426,10 @@ enum ACTIONS {
   ADVANCED_SETTINGS_ETH_SIGN_FRICTION_SECOND_STEP = 'eth_sign_input_seen',
   ADVANCED_SETTINGS_ETH_SIGN_ENABLED = 'eth_sign_enabled',
   ADVANCED_SETTINGS_ETH_SIGN_DISABLED = 'eth_sign_disabled',
+  // Stake
   STAKE = 'Stake',
+  STAKE_TRANSACTION_VIEWED = 'Stake Transaction View',
+
   // Notifications
   SELECTS_ALL_NOTIFICATIONS = 'Selects All Notifications',
   SELECTS_WALLET_NOTIFICATIONS = 'Selects Wallet Notifications',
@@ -993,8 +997,10 @@ enum DESCRIPTION {
   PAYMENTS_SELECTS_APPLE_PAY = 'Selects Apple Pay as payment method',
   SWAPS = 'Swaps',
   BRIDGE = 'Bridge',
-  STAKE = 'Stake',
   NOTIFICATIONS = 'Notifications',
+  // Stake
+  STAKE = 'Stake',
+  STAKE_TRANSACTION_VIEWED = 'View stake transaction details'
 }
 
 const legacyMetaMetricsEvents = {
@@ -1467,6 +1473,11 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.STAKE_BUTTON_CLICKED,
     ACTIONS.STAKE,
     DESCRIPTION.STAKE,
+  ),
+  STAKE_TRANSACTION_VIEWED: generateOpt(
+    EVENT_NAME.STAKE_TRANSACTION_VIEWED,
+    ACTIONS.STAKE_TRANSACTION_VIEWED,
+    DESCRIPTION.STAKE_TRANSACTION_VIEWED,
   ),
 };
 
