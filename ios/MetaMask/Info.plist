@@ -72,7 +72,6 @@
 	<key>NSFaceIDUsageDescription</key>
 	<string>$(PRODUCT_NAME) needs to authenticate</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string/>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>MetaMask needs microphone access to record audio</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
@@ -155,5 +154,10 @@
 	<string>$(MM_MIXPANEL_TOKEN)</string>
 	<key>fox_code</key>
 	<string>$(MM_FOX_CODE)</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>twitter</string>
+		<string>itms-apps</string>
+	</array>
 </dict>
 </plist>
