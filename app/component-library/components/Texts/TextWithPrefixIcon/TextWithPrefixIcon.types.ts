@@ -19,5 +19,5 @@ export type TextWithPrefixIconStyleSheetVars = Pick<
   TextWithPrefixIconProps,
   'style'
 > & {
-  color: TextColor;
+  color: TextColor | string;
 };
