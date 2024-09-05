@@ -117,10 +117,7 @@ describe('Migration #52', () => {
   }
 
   it('does not change the selectedAccount if it is valid', () => {
-    const newState: Pick<RootState, 'engine'> = migration(oldState) as Pick<
-      RootState,
-      'engine'
-    >;
+    const newState = migration(oldState) as typeof oldState;
 
     expect(
       newState.engine.backgroundState.AccountsController.internalAccounts
