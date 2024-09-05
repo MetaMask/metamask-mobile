@@ -175,11 +175,11 @@ exports[`TokenDetails should render correctly 1`] = `
         style={
           {
             "color": "#141618",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
-            "fontWeight": "500",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 12,
+            "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 20,
           }
         }
       >
@@ -220,11 +220,11 @@ exports[`TokenDetails should render correctly 1`] = `
         style={
           {
             "color": "#141618",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
-            "fontWeight": "500",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 12,
+            "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 20,
           }
         }
       >
