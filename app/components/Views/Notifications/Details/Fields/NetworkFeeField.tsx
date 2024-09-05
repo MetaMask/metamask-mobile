@@ -20,6 +20,7 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import { NotificationDetailStyles } from '../styles';
+import { CURRENCY_SYMBOL_BY_CHAIN_ID } from '../../../../../constants/network';
 
 type NetworkFeeFieldProps = ModalFieldNetworkFee & {
   isCollapsed: boolean;
@@ -72,6 +73,7 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
   }
 
   const collapsedIcon = isCollapsed ? IconName.ArrowDown : IconName.ArrowUp;
+  const ticker = CURRENCY_SYMBOL_BY_CHAIN_ID[networkFee.chainId];
 
   return (
     <>
@@ -92,7 +94,7 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
             </Text>
 
             <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-              {networkFee.transactionFeeInEth} ETH ($
+              {networkFee.transactionFeeInEth} {ticker} ($
               {networkFee.transactionFeeInUsd})
             </Text>
           </View>

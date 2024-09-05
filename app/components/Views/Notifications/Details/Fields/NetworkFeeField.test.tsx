@@ -52,6 +52,7 @@ describe('NetworkFeeField', () => {
             effectiveGasPrice: 0,
             transactionFeeInEth: '0',
             transactionFeeInUsd: '0',
+            chainId: '0x1',
           })
         }
       />,
