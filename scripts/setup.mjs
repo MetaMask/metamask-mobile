@@ -10,7 +10,7 @@ const input = process.argv.slice(2)?.[0];
 const BUILD_IOS = input === '--build-ios' || IS_OSX;
 const IS_NODE = input === '--node';
 const IS_DIFF = input === '--diff';
-const IS_CI = process.env.CI;
+const IS_CI = false;
 
 const rendererOptions = {
   collapseErrors: false,
