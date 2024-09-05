@@ -1,3 +1,8 @@
+import AppConstants from '../../core/AppConstants';
+
+const baseURL = AppConstants.FEATURE_FLAGS_API.BASE_URL;
+const version = AppConstants.FEATURE_FLAGS_API.VERSION;
+
 const environmentMapping: { [key: string]: string } = {
   production: 'prod',
   local: 'dev',
@@ -32,11 +37,7 @@ export default function launchDarklyURL(
     metamaskBuildType = 'main';
   }
 
-  const baseURL =
-    process.env.LAUNCH_DARKLY_URL ||
-    'https://client-config.dev-api.cx.metamask.io' ||
-    'http://localhost:3000';
-  const url = `${baseURL}/flags?client=${client}&distribution=${metamaskBuildType}&environment=${environment}`;
+  const url = `${baseURL}/${version}/flags?client=${client}&distribution=${metamaskBuildType}&environment=${environment}`;
 
   return url;
 }
