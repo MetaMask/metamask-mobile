@@ -300,3 +300,41 @@ index 6507f8b..924edd3 100644
          return false
      end
  
+diff --git a/node_modules/react-native/scripts/ios-configure-glog.sh b/node_modules/react-native/scripts/ios-configure-glog.sh
+index f13c61b..7466c74 100755
+--- a/node_modules/react-native/scripts/ios-configure-glog.sh
++++ b/node_modules/react-native/scripts/ios-configure-glog.sh
+@@ -42,8 +42,16 @@ EOF
+     patch -p1 config.sub fix_glog_0.3.5_apple_silicon.patch
+ fi
+ 
+-export CC="$(xcrun -find -sdk $PLATFORM_NAME cc) -arch $CURRENT_ARCH -isysroot $(xcrun -sdk $PLATFORM_NAME --show-sdk-path)"
+-export CXX="$CC"
++XCRUN="$(which xcrun)"
++if [ -n "$XCRUN" ]; then
++  export CC="$(xcrun -find -sdk $PLATFORM_NAME cc) -arch $CURRENT_ARCH -isysroot $(xcrun -sdk $PLATFORM_NAME --show-sdk-path)"
++  export CXX="$CC"
++else
++  export CC="$CC:-$(which gcc)"
++  export CXX="$CXX:-$(which g++ || true)"
++fi
++export CXX="$CXX:-$CC"
++
+ 
+ # Remove automake symlink if it exists
+ if [ -h "test-driver" ]; then
+diff --git a/node_modules/react-native/scripts/react_native_pods.rb b/node_modules/react-native/scripts/react_native_pods.rb
+index ba4caf2..072f4e0 100644
+--- a/node_modules/react-native/scripts/react_native_pods.rb
++++ b/node_modules/react-native/scripts/react_native_pods.rb
+@@ -251,7 +251,9 @@ def react_native_post_install(
+   ReactNativePodsUtils.update_search_paths(installer)
+   ReactNativePodsUtils.set_node_modules_user_settings(installer, react_native_path)
+   ReactNativePodsUtils.apply_flags_for_fabric(installer, fabric_enabled: fabric_enabled)
+-  ReactNativePodsUtils.apply_xcode_15_patch(installer)
++  if Environment.new().ruby_platform().include?('darwin')
++    ReactNativePodsUtils.apply_xcode_15_patch(installer)
++  end
+   ReactNativePodsUtils.updateIphoneOSDeploymentTarget(installer)
+   ReactNativePodsUtils.fix_flipper_for_xcode_15_3(installer)
+ 
