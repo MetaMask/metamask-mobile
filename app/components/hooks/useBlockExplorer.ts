@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../constants/network';
+import { network, NO_RPC_BLOCK_EXPLORER } from '../../constants/network';
 import { findBlockExplorerForRpc } from '../../util/networks';
 import { getEtherscanAddressUrl } from '../../util/etherscan';
 import { useSelector } from 'react-redux';
@@ -19,7 +19,7 @@ const useBlockExplorer = () => {
     (address: string) => {
       const { type, rpcUrl } = providerConfig;
       let accountLink: string;
-      if (type === RPC) {
+      if (type === network) {
         const blockExplorer =
           findBlockExplorerForRpc(rpcUrl, networkConfigurations) ||
           NO_RPC_BLOCK_EXPLORER;

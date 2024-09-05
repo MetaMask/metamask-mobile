@@ -12,20 +12,25 @@ const mockInitialState = {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
-        selectedNetworkClientId: 'linea-goerli',
-        networksMetadata: {},
         networkConfigurations: {
-          'linea-goerli': {
-            id: 'linea-goerli',
-            rpcUrl: 'https://mainnet.infura.io/v3/1234567890abcdef',
-            chainId: '0xe708',
-            ticker: 'ETH',
-            nickname: 'Ethereum chain',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://test.com',
-            },
+          '35216af7-278b-4d68-b0b4-54e60fc52489': {
+            chainId: '0xe704',
+            id: '35216af7-278b-4d68-b0b4-54e60fc52489',
+            nickname: 'Linea Goerli',
+            rpcPrefs: { blockExplorerUrl: 'https://goerli.lineascan.build' },
+            rpcUrl: 'https://linea-goerli.infura.io/v3',
+            ticker: 'LINEA',
           },
         },
+        networksMetadata: {
+          '35216af7-278b-4d68-b0b4-54e60fc52489': {
+            EIPS: { '1559': true },
+            status: 'available',
+          },
+          mainnet: { EIPS: { '1559': true }, status: 'available' },
+        },
+        providerConfig: { chainId: '0x1', ticker: 'ETH', type: 'mainnet' },
+        selectedNetworkClientId: '35216af7-278b-4d68-b0b4-54e60fc52489',
       } as unknown as NetworkController['state'],
     },
   },
@@ -38,7 +43,24 @@ jest.mock('react-redux', () => ({
   useSelector: (fn: any) => fn(mockInitialState),
 }));
 
-jest.mock('../../core/Engine', () => ({ init: () => mockedEngine.init() }));
+const mockedGetNetworkClientById = jest.fn();
+
+// Mock the Engine context and NetworkController
+jest.mock('../../core/Engine', () => ({
+  init: () => mockedEngine.init(),
+  context: {
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0xe704',
+          rpcUrl: 'https://linea-goerli.infura.io/v3',
+          ticker: 'LINEA',
+          type: 'custom',
+        },
+      }),
+    },
+  },
+}));
 
 const mockedNavigate = jest.fn();
 
@@ -53,7 +75,15 @@ jest.mock('@react-navigation/native', () => {
 });
 
 describe('useBlockExplorer', () => {
+  beforeEach(() => {
+    // Clear any previous mocks
+    jest.clearAllMocks();
+  });
+
   it('should navigate to the correct block explorer for no-RPC provider', () => {
+    mockedGetNetworkClientById.mockReturnValue({
+      configuration: { type: 'infura', chainId: '0x5' },
+    });
     const { result } = renderHookWithProvider(() => useBlockExplorer(), {
       state: mockInitialState,
     });
