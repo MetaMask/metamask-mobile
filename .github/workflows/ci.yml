@@ -4,45 +4,45 @@ on:
     branches: main
   pull_request:
 jobs:
-  setup:
-    runs-on: macos-14
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version-file: '.nvmrc'
-          cache: yarn
-      - uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854 #v1
-        with:
-          ruby-version: '3.1.5'
-          bundler-cache: true
-        env:
-          BUNDLE_GEMFILE: ios/Gemfile
-      - name: Determine whether the current PR is a draft
-        id: set-is-draft
-        if: github.event_name == 'pull_request' && github.event.pull_request.number
-        run: echo "IS_DRAFT=$(gh pr view --json isDraft --jq '.isDraft' "${PR_NUMBER}")" >> "$GITHUB_OUTPUT"
-        env:
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Setup registry config for using package previews on draft PRs
-        if: github.event_name == 'pull_request' && steps.set-is-draft.outputs.IS_DRAFT == 'true'
-        run: printf '%s\n\n%s' '@metamask:registry=https://npm.pkg.github.com' "//npm.pkg.github.com/:_authToken=${PACKAGE_READ_TOKEN}" > .npmrc
-        env:
-          PACKAGE_READ_TOKEN: ${{ secrets.PACKAGE_READ_TOKEN }}
-      - run: yarn setup
-      - name: Require clean working directory
-        shell: bash
-        run: |
-          if ! git diff --exit-code; then
-            echo "Working tree dirty at end of job"
-            exit 1
-          else
-            echo "No changes detected"
-          fi
+  # setup:
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: actions/setup-node@v3
+  #       with:
+  #         node-version-file: '.nvmrc'
+  #         cache: yarn
+  #     - uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854 #v1
+  #       with:
+  #         ruby-version: '3.1.5'
+  #         bundler-cache: true
+  #       env:
+  #         BUNDLE_GEMFILE: ios/Gemfile
+  #     - name: Determine whether the current PR is a draft
+  #       id: set-is-draft
+  #       if: github.event_name == 'pull_request' && github.event.pull_request.number
+  #       run: echo "IS_DRAFT=$(gh pr view --json isDraft --jq '.isDraft' "${PR_NUMBER}")" >> "$GITHUB_OUTPUT"
+  #       env:
+  #         PR_NUMBER: ${{ github.event.pull_request.number }}
+  #         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: Setup registry config for using package previews on draft PRs
+  #       if: github.event_name == 'pull_request' && steps.set-is-draft.outputs.IS_DRAFT == 'true'
+  #       run: printf '%s\n\n%s' '@metamask:registry=https://npm.pkg.github.com' "//npm.pkg.github.com/:_authToken=${PACKAGE_READ_TOKEN}" > .npmrc
+  #       env:
+  #         PACKAGE_READ_TOKEN: ${{ secrets.PACKAGE_READ_TOKEN }}
+  #     - run: yarn setup --diff
+  #     - name: Require clean working directory
+  #       shell: bash
+  #       run: |
+  #         if ! git diff --exit-code; then
+  #           echo "Working tree dirty at end of job"
+  #           exit 1
+  #         else
+  #           echo "No changes detected"
+  #         fi
   dedupe:
     runs-on: ubuntu-20.04
-    needs: setup
+    # needs: setup
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -61,7 +61,7 @@ jobs:
           fi
   scripts:
     runs-on: ubuntu-20.04
-    needs: setup
+    # needs: setup
     strategy:
       matrix:
         scripts:
@@ -89,7 +89,7 @@ jobs:
           fi
   unit-tests:
     runs-on: ubuntu-20.04
-    needs: setup
+    # needs: setup
     strategy:
       matrix:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
@@ -159,7 +159,7 @@ jobs:
 
   js-bundle-size-check:
     runs-on: ubuntu-20.04
-    needs: setup
+    # needs: setup
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
