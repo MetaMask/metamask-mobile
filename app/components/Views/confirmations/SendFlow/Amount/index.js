@@ -887,7 +887,7 @@ class Amount extends PureComponent {
       contractExchangeRates,
     } = this.props;
     const { internalPrimaryCurrencyIsCrypto, estimatedTotalGas } = this.state;
-    const tokenBalance = contractBalances[selectedAsset.address] || '0';
+    const tokenBalance = contractBalances[selectedAsset.address] || '0x0';
     let input;
     if (selectedAsset.isETH) {
       const balanceBN = hexToBN(accounts[selectedAddress].balance);
