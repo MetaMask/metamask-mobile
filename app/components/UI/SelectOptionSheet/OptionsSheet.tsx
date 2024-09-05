@@ -33,9 +33,7 @@ const OptionsSheet = () => {
       return;
     }
     params.onValueChange(val);
-    setTimeout(() => {
-      bottomSheetRef.current?.onCloseBottomSheet();
-    }, 1000);
+    bottomSheetRef.current?.onCloseBottomSheet();
   };
 
   return (

@@ -130,6 +130,7 @@ const LedgerSelectAccount = () => {
 
   useEffect(() => {
     if (selectOption) {
+      setErrorMsg(null);
       setBlockingModalVisible(true);
       getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE)
         .then((_accounts) => {
@@ -145,6 +146,7 @@ const LedgerSelectAccount = () => {
   }, [selectOption]);
 
   const nextPage = useCallback(async () => {
+    setErrorMsg(null);
     setBlockingModalVisible(true);
     const _accounts = await getLedgerAccountsByOperation(
       PAGINATION_OPERATIONS.GET_NEXT_PAGE,
@@ -154,6 +156,7 @@ const LedgerSelectAccount = () => {
   }, []);
 
   const prevPage = useCallback(async () => {
+    setErrorMsg(null);
     setBlockingModalVisible(true);
     const _accounts = await getLedgerAccountsByOperation(
       PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE,
@@ -164,6 +167,7 @@ const LedgerSelectAccount = () => {
 
   const onUnlock = useCallback(
     async (accountIndexes: number[]) => {
+      setErrorMsg(null);
       setBlockingModalVisible(true);
 
       try {
@@ -172,8 +176,9 @@ const LedgerSelectAccount = () => {
         }
       } catch (err) {
         setErrorMsg((err as Error).message);
+      } finally {
+        setBlockingModalVisible(false);
       }
-      setBlockingModalVisible(false);
 
       trackEvent(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS, {
         device_type: HardwareDeviceTypes.LEDGER,
@@ -185,6 +190,7 @@ const LedgerSelectAccount = () => {
   );
 
   const onForget = useCallback(async () => {
+    setErrorMsg(null);
     setBlockingModalVisible(true);
     await forgetLedger();
     dispatch(setReloadAccounts(true));
@@ -220,6 +226,7 @@ const LedgerSelectAccount = () => {
 
   const onSelectedPathChanged = useCallback(
     async (path: string) => {
+      setErrorMsg(null);
       const option = ledgerPathOptions.find((d) => d.key === path);
       if (!option) return;
       setSelectOption(option);
