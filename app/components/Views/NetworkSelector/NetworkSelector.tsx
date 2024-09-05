@@ -123,6 +123,10 @@ const NetworkSelector = () => {
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  console.log(
+    'ALEX LOGGING: NETWORK SELECTOR am I HAPPENING???,',
+    providerConfig,
+  );
 
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
   const modalTitle = isNetworkUiRedesignEnabled()

@@ -10,6 +10,7 @@ import {
   selectChainId,
   selectNetworkConfigurations,
 } from '../../selectors/networkController';
+import { getDomainNetworkClientId } from '../../selectors/selectedNetworkController';
 import { store } from '../../store';
 import { NetworksTicker, isSafeChainId } from '@metamask/controller-utils';
 import { RestrictedMethods } from '../Permissions/constants';
@@ -65,13 +66,20 @@ const wallet_switchEthereumChain = async ({
   }
 
   const networkConfigurations = selectNetworkConfigurations(store.getState());
+
   const existingNetworkDefault = getDefaultNetworkByChainId(_chainId);
   const existingEntry = Object.entries(networkConfigurations).find(
     ([, networkConfiguration]) => networkConfiguration.chainId === _chainId,
   );
+
   if (existingEntry || existingNetworkDefault) {
-    const currentChainId = selectChainId(store.getState());
-    if (currentChainId === _chainId) {
+    // const currentChainId = selectChainId(store.getState());
+    const currentDomainSelectedChainId =
+      Engine.context.SelectedNetworkController.getNetworkClientIdForDomain(
+        origin,
+      );
+
+    if (currentDomainSelectedChainId === _chainId) {
       res.result = null;
       return;
     }
@@ -110,11 +118,14 @@ const wallet_switchEthereumChain = async ({
       };
     }
 
+    console.log('ALEX LOGGGING: here 3');
+
     await requestUserApproval({
       type: 'SWITCH_ETHEREUM_CHAIN',
       requestData: { ...requestData, type: 'switch' },
     });
 
+    // ALEX TODO remove this
     if (networkConfiguration) {
       CurrencyRateController.updateExchangeRate(networkConfiguration.ticker);
       NetworkController.setActiveNetwork(networkConfigurationId);

@@ -30,7 +30,10 @@ import {
   selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../../selectors/networkController';
-import { selectNetworkClientIdsByDomains } from '../../../../selectors/selectedNetworkController';
+import {
+  selectNetworkClientIdsByDomains,
+  useNetworkInfo,
+} from '../../../../selectors/selectedNetworkController';
 import {
   selectNetworkName,
   selectNetworkImageSource,
@@ -61,30 +64,9 @@ const AccountPermissionsConnected = ({
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
 
-  // TODO Refactor all this nonsense into selectors:
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const byDomainNetworkClientId = useSelector(
-    selectNetworkClientIdsByDomains,
-  )?.[hostname];
-
-  const globallySelectedNetworkClientId = useSelector(selectNetworkClientId);
-  // const globalNetworkName = useSelector(selectNetworkName);
-
-  const domainNetworkName =
-    networkConfigurations[byDomainNetworkClientId]?.nickname ??
-    NetworkList[byDomainNetworkClientId]?.name;
-
-  // tslint:disable-next-line: no-unsafe-any
-  const globallySelectedNetwork =
-    networkConfigurations[globallySelectedNetworkClientId]?.nickname ??
-    // ts-ignore: TS2339
-    NetworkList[globallySelectedNetworkClientId]?.name;
-
-  const byDomainNetworkImageSource = getNetworkImageSource({
-    networkType: providerConfig.type,
-    chainId: providerConfig.chainId,
-  });
-  const networkImageSource = useSelector(selectNetworkImageSource);
+  const { networkName, networkImageSource } = useNetworkInfo(hostname);
+  console.log('ALEX LOGGING: networkName:', networkName);
+  console.log('ALEX LOGGING: networkImageSource:', networkImageSource);
 
   const activeAddress = selectedAddresses[0];
   const { toastRef } = useContext(ToastContext);
@@ -177,7 +159,7 @@ const AccountPermissionsConnected = ({
           iconName={secureIcon}
         />
         <PickerNetwork
-          label={domainNetworkName ?? globalNetworkName}
+          label={networkName}
           imageSource={networkImageSource}
           onPress={switchNetwork}
           style={styles.networkPicker}
