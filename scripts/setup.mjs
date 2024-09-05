@@ -7,7 +7,7 @@ import path from 'path';
 const IS_OSX = process.platform === 'darwin';
 const input = process.argv.slice(2)?.[0];
 // iOS builds are enabled by default on macOS only but can be enabled explicitly
-const BUILD_IOS = input === '--build-ios' || IS_OSX;
+const BUILD_IOS = input === true;//'--build-ios' || IS_OSX;
 const IS_NODE = input === '--node';
 const IS_DIFF = input === '--diff';
 const IS_CI = false;
