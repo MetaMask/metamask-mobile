@@ -102,7 +102,7 @@ const LedgerSelectAccount = () => {
 
   const [existingAccounts, setExistingAccounts] = useState<string[]>([]);
 
-  const [selectOption, setSelectOption] = useState<OptionType>(
+  const [selectedOption, setSelectedOption] = useState<OptionType>(
     ledgerPathOptions[0],
   );
 
@@ -119,6 +119,7 @@ const LedgerSelectAccount = () => {
   }, [ledgerError]);
 
   const onConnectHardware = useCallback(async () => {
+    setErrorMsg(null);
     trackEvent(MetaMetricsEvents.CONTINUE_LEDGER_HARDWARE_WALLET, {
       device_type: HardwareDeviceTypes.LEDGER,
     });
@@ -129,7 +130,7 @@ const LedgerSelectAccount = () => {
   }, [trackEvent]);
 
   useEffect(() => {
-    if (selectOption) {
+    if (selectedOption) {
       setErrorMsg(null);
       setBlockingModalVisible(true);
       getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE)
@@ -137,13 +138,14 @@ const LedgerSelectAccount = () => {
           setAccounts(_accounts);
         })
         .catch((e) => {
+          console.warn(`useEffect ` + e);
           setErrorMsg(e.message);
         })
         .finally(() => {
           setBlockingModalVisible(false);
         });
     }
-  }, [selectOption]);
+  }, [selectedOption]);
 
   const nextPage = useCallback(async () => {
     setErrorMsg(null);
@@ -175,6 +177,7 @@ const LedgerSelectAccount = () => {
           await unlockLedgerWalletAccount(index);
         }
       } catch (err) {
+        console.warn(`onUnlock ` + err);
         setErrorMsg((err as Error).message);
       } finally {
         setBlockingModalVisible(false);
@@ -182,11 +185,11 @@ const LedgerSelectAccount = () => {
 
       trackEvent(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS, {
         device_type: HardwareDeviceTypes.LEDGER,
-        hd_path: selectOption.value,
+        hd_path: selectedOption.value,
       });
       navigation.pop(2);
     },
-    [navigation, selectOption.value, trackEvent],
+    [navigation, selectedOption.value, trackEvent],
   );
 
   const onForget = useCallback(async () => {
@@ -229,7 +232,7 @@ const LedgerSelectAccount = () => {
       setErrorMsg(null);
       const option = ledgerPathOptions.find((d) => d.key === path);
       if (!option) return;
-      setSelectOption(option);
+      setSelectedOption(option);
       await setHDPath(path);
     },
     [ledgerPathOptions],
@@ -278,7 +281,7 @@ const LedgerSelectAccount = () => {
               options={ledgerPathOptions}
               label={strings('ledger.select_hd_path')}
               onValueChange={async (val) => await onSelectedPathChanged(val)}
-              selectedValue={selectOption.value}
+              selectedValue={selectedOption.value}
             />
           </View>
         </View>
