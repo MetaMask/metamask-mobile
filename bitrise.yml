@@ -1536,8 +1536,6 @@ trigger_map:
   - push_branch: release/*
     pipeline: release_e2e_pipeline
   - push_branch: main
-    pipeline: pr_smoke_e2e_pipeline
-  - push_branch: main
     pipeline: app_launch_times_pipeline
   - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
