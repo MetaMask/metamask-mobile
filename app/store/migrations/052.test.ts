@@ -141,10 +141,7 @@ describe('Migration #52', () => {
       },
     });
 
-    const newState: Pick<RootState, 'engine'> = migration(invalidState) as Pick<
-      RootState,
-      'engine'
-    >;
+    const newState = migration(invalidState) as typeof invalidState;
 
     expect(
       newState.engine.backgroundState.AccountsController.internalAccounts
@@ -198,10 +195,7 @@ describe('Migration #52', () => {
 
   it('does not modify the state if the selectedAccount is valid', () => {
     const validState = merge({}, oldState);
-    const newState: Pick<RootState, 'engine'> = migration(validState) as Pick<
-      RootState,
-      'engine'
-    >;
+    const newState = migration(validState) as typeof validState;
 
     expect(newState).toStrictEqual(validState);
   });
