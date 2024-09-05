@@ -19,7 +19,6 @@ describe('PermissionsSummary', () => {
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(
       <PermissionsSummary
-        customNetworkInformation={{ chainName: '' }}
         currentPageInformation={{ currentEnsName: '', icon: '', url: '' }}
       />,
       { state: mockInitialState },

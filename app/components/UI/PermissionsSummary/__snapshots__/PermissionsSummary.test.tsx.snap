@@ -207,55 +207,70 @@ exports[`PermissionsSummary should render correctly 1`] = `
           {
             "alignItems": "center",
             "flexDirection": "row",
+            "gap": 2,
           }
         }
       >
-        <Text
-          accessibilityRole="text"
+        <View
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
+              "maxWidth": "75%",
             }
           }
         >
           <Text
             accessibilityRole="text"
+            ellipsizeMode="tail"
+            numberOfLines={1}
             style={
               {
                 "color": "#141618",
                 "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 12,
+                "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 20,
+                "lineHeight": 22,
               }
             }
           >
-            Requesting for 
-          </Text>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 12,
-                "fontWeight": "500",
-                "letterSpacing": 0,
-                "lineHeight": 20,
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
               }
-            }
-          />
-        </Text>
+            >
+              Requesting for 
+            </Text>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontSize": 12,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              Account 2
+            </Text>
+          </Text>
+        </View>
         <View
           style={
             {
+              "flexGrow": 1,
               "marginLeft": 2,
+              "minWidth": "25%",
             }
           }
         >
@@ -509,52 +524,66 @@ exports[`PermissionsSummary should render correctly 1`] = `
           }
         }
       >
-        <Text
-          accessibilityRole="text"
+        <View
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
+              "maxWidth": "75%",
             }
           }
         >
           <Text
             accessibilityRole="text"
+            ellipsizeMode="tail"
+            numberOfLines={1}
             style={
               {
                 "color": "#141618",
                 "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 12,
+                "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 20,
+                "lineHeight": 22,
               }
             }
           >
-            Requesting for 
-          </Text>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 12,
-                "fontWeight": "500",
-                "letterSpacing": 0,
-                "lineHeight": 20,
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
               }
-            }
-          />
-        </Text>
+            >
+              Requesting for 
+            </Text>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontSize": 12,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              Ethereum Main Network
+            </Text>
+          </Text>
+        </View>
         <View
           style={
             {
+              "flexGrow": 1,
               "marginLeft": 2,
+              "minWidth": "25%",
             }
           }
         >

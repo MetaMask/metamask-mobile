@@ -63,7 +63,17 @@ const createStyles = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
     },
-    avatarGroup: { marginLeft: 2 },
+    permissionRequestAccountName: {
+      maxWidth: '75%',
+    },
+    permissionRequestNetworkName: {
+      maxWidth: '75%',
+    },
+    avatarGroup: {
+      marginLeft: 2,
+      minWidth: '25%',
+      flexGrow: 1,
+    },
     accountPermissionRequestInfoCard: {
       marginHorizontal: 24,
       marginTop: 8,
@@ -78,6 +88,7 @@ const createStyles = (params: { theme: Theme }) => {
     permissionRequestAccountInfo: {
       flexDirection: 'row',
       alignItems: 'center',
+      gap: 2,
     },
   });
 };

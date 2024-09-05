@@ -25,24 +25,28 @@ import WebsiteIcon from '../WebsiteIcon';
 import useSelectedAccount from '../Tabs/TabThumbnail/useSelectedAccount';
 import styleSheet from './PermissionsSummary.styles';
 import { useStyles } from '../../../component-library/hooks';
-import { PermissionsSummaryProps } from './TabThumbnail.types';
+import { PermissionsSummaryProps } from './PermissionsSummary.types';
+import { useSelector } from 'react-redux';
+import { selectNetworkName } from '../../../selectors/networkInfos';
+import { AccountConnectScreens } from '../../../components/Views/AccountConnect/AccountConnect.types';
+import { USER_INTENT } from '../../../constants/permissions';
 
 const PermissionsSummary = ({
-  customNetworkInformation,
   currentPageInformation,
-  onCancel,
-  onConfirm,
+  onSetScreen,
+  onUserAction,
 }: PermissionsSummaryProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
   const selectedAccount = useSelectedAccount();
+  const networkName = useSelector(selectNetworkName);
 
   const confirm = () => {
-    onConfirm?.();
+    onUserAction?.(USER_INTENT.Confirm);
   };
 
   const cancel = () => {
-    onCancel?.();
+    onUserAction?.(USER_INTENT.Cancel);
   };
 
   const renderTopIcon = () => {
@@ -62,8 +66,7 @@ const PermissionsSummary = ({
   };
 
   const handleEditButtonPress = () => {
-    /* eslint-disable-next-line no-console */
-    console.log('press clicked, add navigation here soon');
+    onSetScreen?.(AccountConnectScreens.MultiConnectSelector);
   };
 
   function renderAccountPermissionsRequestInfoCard() {
@@ -81,14 +84,19 @@ const PermissionsSummary = ({
             {strings('permissions.wants_to_see_your_accounts')}
           </TextComponent>
           <View style={styles.permissionRequestAccountInfo}>
-            <TextComponent>
-              <TextComponent variant={TextVariant.BodySM}>
-                {strings('permissions.requesting_for')}
+            <View style={styles.permissionRequestAccountName}>
+              <TextComponent numberOfLines={1} ellipsizeMode="tail">
+                <TextComponent variant={TextVariant.BodySM}>
+                  {strings('permissions.requesting_for')}
+                </TextComponent>
+                <TextComponent variant={TextVariant.BodySMMedium}>
+                  {`${
+                    selectedAccount?.name ??
+                    strings('browser.undefined_account')
+                  }`}
+                </TextComponent>
               </TextComponent>
-              <TextComponent variant={TextVariant.BodySMMedium}>
-                {customNetworkInformation.chainName}
-              </TextComponent>
-            </TextComponent>
+            </View>
             {selectedAccount?.address && (
               <View style={styles.avatarGroup}>
                 <Avatar
@@ -128,14 +136,16 @@ const PermissionsSummary = ({
             {strings('permissions.use_enabled_networks')}
           </TextComponent>
           <View style={styles.permissionRequestNetworkInfo}>
-            <TextComponent>
-              <TextComponent variant={TextVariant.BodySM}>
-                {strings('permissions.requesting_for')}
+            <View style={styles.permissionRequestNetworkName}>
+              <TextComponent numberOfLines={1} ellipsizeMode="tail">
+                <TextComponent variant={TextVariant.BodySM}>
+                  {strings('permissions.requesting_for')}
+                </TextComponent>
+                <TextComponent variant={TextVariant.BodySMMedium}>
+                  {networkName}
+                </TextComponent>
               </TextComponent>
-              <TextComponent variant={TextVariant.BodySMMedium}>
-                {customNetworkInformation.chainName}
-              </TextComponent>
-            </TextComponent>
+            </View>
             <View style={styles.avatarGroup}>
               <AvatarGroup
                 avatarPropsList={SAMPLE_AVATARGROUP_PROPS.avatarPropsList}

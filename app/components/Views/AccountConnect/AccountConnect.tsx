@@ -70,6 +70,9 @@ import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
 import { RootState } from '../../../reducers';
 import { PermissionsRequest } from '@metamask/permission-controller';
+import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
+import PermissionsSummary from '../../../components/UI/PermissionsSummary';
+import { isMutichainVersion1Enabled } from '../../../util/networks';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -565,6 +568,19 @@ const AccountConnect = (props: AccountConnectProps) => {
     setUserIntent,
   ]);
 
+  const renderPermissionsSummaryScreen = useCallback(() => {
+    const permissionsSummaryProps: PermissionsSummaryProps = {
+      currentPageInformation: {
+        currentEnsName: '',
+        icon: faviconSource as string,
+        url: urlWithProtocol,
+      },
+      onSetScreen: setScreen,
+      onUserAction: setUserIntent,
+    };
+    return <PermissionsSummary {...permissionsSummaryProps} />;
+  }, [faviconSource, urlWithProtocol]);
+
   const renderSingleConnectSelectorScreen = useCallback(
     () => (
       <AccountConnectSingleSelector
@@ -657,7 +673,9 @@ const AccountConnect = (props: AccountConnectProps) => {
   const renderConnectScreens = useCallback(() => {
     switch (screen) {
       case AccountConnectScreens.SingleConnect:
-        return renderSingleConnectScreen();
+        return isMutichainVersion1Enabled
+          ? renderPermissionsSummaryScreen()
+          : renderSingleConnectScreen();
       case AccountConnectScreens.SingleConnectSelector:
         return renderSingleConnectSelectorScreen();
       case AccountConnectScreens.MultiConnectSelector:
@@ -666,6 +684,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   }, [
     screen,
     renderSingleConnectScreen,
+    renderPermissionsSummaryScreen,
     renderSingleConnectSelectorScreen,
     renderMultiConnectSelectorScreen,
   ]);
