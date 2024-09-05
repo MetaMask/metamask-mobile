@@ -18,6 +18,7 @@ import { TextColor } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isTest } from '../../../util/test/utils';
+import { isMutichainVersion1Enabled } from '../../../util/networks';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -100,6 +101,10 @@ const Settings = () => {
 
   const onPressContacts = () => {
     navigation.navigate('ContactsSettings');
+  };
+
+  const goToManagePermissions = () => {
+    navigation.navigate('PermissionsManager');
   };
 
   const goToBrowserUrl = (url: string, title: string) => {
@@ -207,6 +212,14 @@ const Settings = () => {
           onPress={onPressNotifications}
           title={strings('app_settings.notifications_title')}
           testID={SettingsViewSelectorsIDs.NOTIFICATIONS}
+        />
+      )}
+      {isMutichainVersion1Enabled && (
+        <SettingsDrawer
+          description={strings('app_settings.permissions_desc')}
+          onPress={goToManagePermissions}
+          title={strings('app_settings.permissions_title')}
+          testID={SettingsViewSelectorsIDs.PERMISSIONS}
         />
       )}
       <SettingsDrawer
