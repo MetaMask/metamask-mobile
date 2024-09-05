@@ -15,6 +15,8 @@ import ButtonIcon, {
 } from '../../../../component-library/components/Buttons/ButtonIcon';
 import useTooltipModal from '../../../../components/hooks/useTooltipModal';
 import { strings } from '../../../../../locales/i18n';
+import { isPooledStakingFeatureEnabled } from '../../Stake/constants';
+import Title from '../../../Base/Title';
 
 // // TODO: Remove mock data when connecting component to backend.
 const MOCK_DATA = {
@@ -29,7 +31,7 @@ const MOCK_DATA = {
   },
 };
 
-const StakingEarnings: React.FC<unknown> = () => {
+const StakingEarnings = () => {
   // TODO: Remove mock data when connecting component to backend.
   const { ANNUAL_EARNING_RATE, LIFETIME_REWARDS, EST_ANNUAL_EARNINGS } =
     MOCK_DATA;
@@ -44,11 +46,11 @@ const StakingEarnings: React.FC<unknown> = () => {
       strings('tooltip_modal.reward_rate.tooltip'),
     );
 
+  if (isPooledStakingFeatureEnabled()) return <></>;
+
   return (
     <View style={styles.stakingEarningsContainer}>
-      <Text variant={TextVariant.HeadingMD} style={styles.title}>
-        {strings('staking.your_earnings')}
-      </Text>
+      <Title style={styles.title}>{strings('staking.your_earnings')}</Title>
       <View>
         {/* Annual Rate */}
         <View style={styles.keyValueRow}>

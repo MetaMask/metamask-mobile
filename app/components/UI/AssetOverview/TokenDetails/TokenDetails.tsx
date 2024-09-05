@@ -22,6 +22,7 @@ import TokenDetailsList from './TokenDetailsList';
 import MarketDetailsList from './MarketDetailsList';
 import { Asset } from '../AssetOverview.types';
 import StakingEarnings from '../StakingEarnings';
+import { isPooledStakingFeatureEnabled } from '../../Stake/constants';
 
 export interface TokenDetails {
   contractAddress: string | null;
@@ -52,7 +53,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const tokenContractAddress = safeToChecksumAddress(asset.address);
 
   // TEMP: Remove once component has been implemented.
-  const [hasStakingPositions, setHasStakingPositions] = useState(true);
+  const [hasStakingPositions] = useState(true);
 
   let tokenMetadata;
   let marketData;
@@ -126,7 +127,9 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
 
   return (
     <View style={styles.tokenDetailsContainer}>
-      {hasStakingPositions && <StakingEarnings />}
+      {asset.isETH &&
+        hasStakingPositions &&
+        isPooledStakingFeatureEnabled() && <StakingEarnings />}
       {(asset.isETH || tokenMetadata) && (
         <TokenDetailsList tokenDetails={tokenDetails} />
       )}
