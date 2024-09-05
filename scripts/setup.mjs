@@ -7,10 +7,10 @@ import path from 'path';
 const IS_OSX = process.platform === 'darwin';
 const input = process.argv.slice(2)?.[0];
 // iOS builds are enabled by default on macOS only but can be enabled explicitly
-const BUILD_IOS = true;//input === '--build-ios' || IS_OSX;
+const BUILD_IOS = input === '--build-ios' || IS_OSX;
 const IS_NODE = input === '--node';
 const IS_DIFF = input === '--diff';
-const IS_CI = false;
+const IS_CI = process.env.CI;
 
 const rendererOptions = {
   collapseErrors: false,
@@ -120,8 +120,8 @@ const buildPpomTask = {
 const setupIosTask = {
   title: 'Set up iOS',
   task: async (_, task) => {
+    return task.skip('Skipping iOS.');
     // if (!BUILD_IOS && !IS_DIFF) {
-    //   return task.skip('Skipping iOS.');
     // }
 
     return task.newListr(
