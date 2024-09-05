@@ -138,7 +138,6 @@ const LedgerSelectAccount = () => {
           setAccounts(_accounts);
         })
         .catch((e) => {
-          console.warn(`useEffect ` + e);
           setErrorMsg(e.message);
         })
         .finally(() => {
@@ -177,7 +176,6 @@ const LedgerSelectAccount = () => {
           await unlockLedgerWalletAccount(index);
         }
       } catch (err) {
-        console.warn(`onUnlock ` + err);
         setErrorMsg((err as Error).message);
       } finally {
         setBlockingModalVisible(false);
