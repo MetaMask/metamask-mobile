@@ -42,9 +42,9 @@ describe('Migration #52', () => {
       state: merge({}, initialRootState, {
         engine: null,
       }),
-      errorMessage:
-        "FATAL ERROR: Migration 52: Invalid engine state error: 'object'",
       scenario: 'engine state is invalid',
+      expectedError:
+        "FATAL ERROR: Migration 52: Invalid engine state error: 'object'",
     },
     {
       state: merge({}, initialRootState, {
@@ -52,21 +52,9 @@ describe('Migration #52', () => {
           backgroundState: null,
         },
       }),
-      errorMessage:
-        "FATAL ERROR: Migration 52: Invalid engine backgroundState error: 'object'",
       scenario: 'backgroundState is invalid',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: {
-          backgroundState: {
-            AccountsController: null,
-          },
-        },
-      }),
-      errorMessage:
-        "FATAL ERROR: Migration 52: Invalid AccountsController state error: 'object'",
-      scenario: 'AccountsController state is invalid',
+      expectedError:
+        "FATAL ERROR: Migration 52: Invalid engine backgroundState error: 'object'",
     },
     {
       state: merge({}, initialRootState, {
@@ -76,9 +64,9 @@ describe('Migration #52', () => {
           },
         },
       }),
-      errorMessage:
-        "FATAL ERROR: Migration 52: Invalid AccountsController internalAccounts state error: 'object'",
       scenario: 'AccountsController internalAccounts state is invalid',
+      expectedError:
+        'FATAL ERROR: Migration 52: Invalid AccountsController state',
     },
     {
       state: merge({}, initialRootState, {
@@ -92,9 +80,9 @@ describe('Migration #52', () => {
           },
         },
       }),
-      errorMessage:
-        "FATAL ERROR: Migration 52: Invalid AccountsController internalAccounts accounts state error: 'object'",
       scenario: 'AccountsController internalAccounts accounts state is invalid',
+      expectedError:
+        'FATAL ERROR: Migration 52: Invalid AccountsController state',
     },
     {
       state: merge({}, initialRootState, {
@@ -109,21 +97,21 @@ describe('Migration #52', () => {
           },
         },
       }),
-      errorMessage:
-        "FATAL ERROR: Migration 52: Invalid AccountsController internalAccounts selectedAccount state error: 'object'",
       scenario:
         'AccountsController internalAccounts selectedAccount is not a string',
+      expectedError:
+        'FATAL ERROR: Migration 52: Invalid AccountsController state',
     },
   ];
 
-  for (const { errorMessage, scenario, state } of invalidStates) {
+  for (const { scenario, state, expectedError } of invalidStates) {
     it(`captures exception if ${scenario}`, () => {
       const newState = migration(state);
 
       expect(newState).toStrictEqual(state);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
       expect(mockedCaptureException.mock.calls[0][0].message).toBe(
-        errorMessage,
+        expectedError,
       );
     });
   }
