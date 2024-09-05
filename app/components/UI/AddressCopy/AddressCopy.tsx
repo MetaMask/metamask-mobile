@@ -69,7 +69,7 @@ const AddressCopy = ({ formatAddressType = 'full' }: AddressCopyProps) => {
   };
   return (
     <View style={styles.address}>
-      <Text variant={TextVariant.BodySMBold}>
+      <Text variant={TextVariant.BodyMDMedium}>
         {strings('asset_overview.address')}:
       </Text>
       <TouchableOpacity
@@ -79,7 +79,7 @@ const AddressCopy = ({ formatAddressType = 'full' }: AddressCopyProps) => {
       >
         <Text
           color={TextColor.Primary}
-          variant={TextVariant.BodySM}
+          variant={TextVariant.BodySMMedium}
           testID={WalletViewSelectorsIDs.ACCOUNT_ADDRESS}
         >
           {selectedInternalAccount
