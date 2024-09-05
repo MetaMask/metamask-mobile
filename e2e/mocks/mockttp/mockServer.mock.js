@@ -16,7 +16,9 @@ const startServer = async () => {
   // Docs - https://httptoolkit.github.io/mockttp/interfaces/Mockttp.html
   await mockServer
     .forGet('/proxy')
-    .withQuery({ url: 'https://www.google.com' })
+    .withQuery({
+      url: 'https://gas.api.cx.metamask.io/networks/1/suggestedGasFees',
+    })
     .thenReply(500);
 
   // Add other rules here...
