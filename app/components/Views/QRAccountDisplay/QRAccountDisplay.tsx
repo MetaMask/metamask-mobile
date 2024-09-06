@@ -1,5 +1,3 @@
-/* eslint @typescript-eslint/no-var-requires: "off" */
-/* eslint @typescript-eslint/no-require-imports: "off" */
 
 'use strict';
 import React, { useContext } from 'react';
