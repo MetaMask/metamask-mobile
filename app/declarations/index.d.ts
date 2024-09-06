@@ -11,12 +11,12 @@ declare module 'react-native-minimizer';
 declare module 'react-native-fast-crypto' {
   const scrypt: (
     password: string,
-    salt: string,
+    salt: Uint8Array,
     N: number,
     r: number,
     p: number,
     size: number,
-  ) => Promise<string | Uint8Array>;
+  ) => Promise<Uint8Array>;
 }
 
 declare module 'xhr2';

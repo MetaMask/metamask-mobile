@@ -1096,9 +1096,7 @@ class Engine {
         ],
         allowedEvents: ['KeyringController:unlock', 'KeyringController:lock'],
       }),
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      nativeScryptCrypto: scrypt as any,
+      nativeScryptCrypto: scrypt,
     });
 
     const notificationServicesController =
