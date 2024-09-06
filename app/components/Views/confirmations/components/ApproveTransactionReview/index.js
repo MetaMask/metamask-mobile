@@ -319,7 +319,7 @@ class ApproveTransactionReview extends PureComponent {
   sdkConnection = SDKConnect.getInstance().getConnection({
     channelId: this.channelIdOrHostname,
   });
-  originIsMMSDKRemoteConn = this.sdkConnection !== undefined;
+  originIsMMSDKRemoteConn = Boolean(this.sdkConnection);
 
   fetchEstimatedL1Fee = async () => {
     const { transaction, chainId } = this.props;
