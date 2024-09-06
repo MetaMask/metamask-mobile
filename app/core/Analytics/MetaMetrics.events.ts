@@ -377,6 +377,7 @@ enum EVENT_NAME {
   // NFT auto detection events
   NFT_AUTO_DETECTION_ENABLED = 'nft_autodetection_enabled',
   PRIMARY_CURRENCY_TOGGLE = 'primary_currency_toggle',
+  LOGIN_DOWNLOAD_LOGS = 'Download State Logs Button Clicked',
 }
 
 enum ACTIONS {
@@ -893,6 +894,7 @@ const events = {
     EVENT_NAME.NFT_AUTO_DETECTION_ENABLED,
   ),
   PRIMARY_CURRENCY_TOGGLE: generateOpt(EVENT_NAME.PRIMARY_CURRENCY_TOGGLE),
+  LOGIN_DOWNLOAD_LOGS: generateOpt(EVENT_NAME.LOGIN_DOWNLOAD_LOGS),
 };
 
 /**
