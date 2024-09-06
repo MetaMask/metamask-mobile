@@ -22,4 +22,4 @@ Feature: App Cold Start Launch Times
     And the timer starts running
     And I fill my password in the Login screen
     And I log into my wallet
-    Then the app should launch within "19" seconds
+    Then the app should launch within "14" seconds

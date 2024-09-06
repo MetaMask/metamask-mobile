@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import { parse } from 'eth-url-parser';
 import { isValidAddress } from 'ethereumjs-util';
 import React, { useCallback, useRef } from 'react';
-import { Alert, Image, InteractionManager, View } from 'react-native';
+import { Alert, Image, InteractionManager, View, Linking } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -253,7 +253,12 @@ const QRScanner = ({
       strings('qr_scanner.not_allowed_error_desc'),
       [
         {
-          text: strings('qr_scanner.ok'),
+          text: strings('qr_scanner.open_settings'),
+          onPress: () => Linking.openSettings(),
+        },
+        {
+          text: strings('qr_scanner.cancel'),
+          style: 'cancel',
         },
       ],
     );
