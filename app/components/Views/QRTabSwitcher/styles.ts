@@ -42,10 +42,7 @@ const createStyles = (theme: Theme) => {
       top: segmentedControllerTop,
       width: 300,
       height: 40,
-      backgroundColor:
-        theme.themeAppearance === AppThemeKey.dark
-          ? theme.brandColors.grey900
-          : theme.brandColors.grey050,
+      backgroundColor: theme.colors.background.alternative,
     },
     segmentedControlItem: {
       flex: 1,
@@ -55,10 +52,7 @@ const createStyles = (theme: Theme) => {
     segmentedControlItemSelected: {
       position: 'absolute',
       width: 146,
-      backgroundColor:
-        theme.themeAppearance === AppThemeKey.dark
-          ? theme.brandColors.grey1000
-          : theme.brandColors.white,
+      backgroundColor: theme.colors.background.default,
       borderRadius: 30,
       height: 36,
       marginLeft: 2,
