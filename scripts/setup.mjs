@@ -282,26 +282,26 @@ const yarnSetupNodeTask = {
 /**
  * Tasks that can be run concurrently
  */
-let concurrentTasks = [
-  prepareDependenciesTask,
-  copyAndSourceEnvVarsTask,
-  updateGitSubmodulesTask,
-  buildPpomTask,
-  generateTermsOfUseTask,
-  setupIosTask,
-];
+// let concurrentTasks = [
+//   prepareDependenciesTask,
+//   copyAndSourceEnvVarsTask,
+//   updateGitSubmodulesTask,
+//   buildPpomTask,
+//   generateTermsOfUseTask,
+//   setupIosTask,
+// ];
 
 // Optimized for CI performance
-if (IS_NODE) {
-  concurrentTasks = [yarnSetupNodeTask, generateTermsOfUseTask];
-}
+// if (IS_NODE) {
+//   concurrentTasks = [yarnSetupNodeTask, generateTermsOfUseTask];
+// }
 
-// Optimized for detecting diffs
-if (IS_DIFF) {
-  concurrentTasks = [yarnSetupNodeTask, generateTermsOfUseTask, setupIosTask];
-}
+// // Optimized for detecting diffs
+// if (IS_DIFF) {
+//   concurrentTasks = [yarnSetupNodeTask, generateTermsOfUseTask, setupIosTask];
+// }
 
-const tasks = new Listr(concurrentTasks, {
+const tasks = new Listr([yarnSetupNodeTask, generateTermsOfUseTask], {
   concurrent: true,
   exitOnError: true,
 });
