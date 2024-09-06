@@ -24,6 +24,9 @@ describe(SmokeAccounts('Create wallet account'), () => {
     await AccountListView.tapAddAccountButton();
     // Tap on Create New Account
     await AddAccountModal.tapCreateAccount();
-    await Assertions.checkIfTextIsDisplayed(AccountTwoText);
+
+    await Assertions.checkIfVisible(
+      AccountListView.accountNameInList(AccountTwoText),
+    );
   });
 });
