@@ -301,7 +301,7 @@ index 6507f8b..924edd3 100644
      end
  
 diff --git a/node_modules/react-native/scripts/ios-configure-glog.sh b/node_modules/react-native/scripts/ios-configure-glog.sh
-index f13c61b..a0a01a2 100755
+index f13c61b..621ead2 100755
 --- a/node_modules/react-native/scripts/ios-configure-glog.sh
 +++ b/node_modules/react-native/scripts/ios-configure-glog.sh
 @@ -4,7 +4,7 @@
@@ -319,7 +319,7 @@ index f13c61b..a0a01a2 100755
  
 -export CC="$(xcrun -find -sdk $PLATFORM_NAME cc) -arch $CURRENT_ARCH -isysroot $(xcrun -sdk $PLATFORM_NAME --show-sdk-path)"
 -export CXX="$CC"
-+XCRUN="$(which xcrun)"
++XCRUN="$(which xcrun || true)"
 +if [ -n "$XCRUN" ]; then
 +  export CC="$(xcrun -find -sdk $PLATFORM_NAME cc) -arch $CURRENT_ARCH -isysroot $(xcrun -sdk $PLATFORM_NAME --show-sdk-path)"
 +  export CXX="$CC"
