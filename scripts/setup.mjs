@@ -72,6 +72,7 @@ const copyAndSourceEnvVarsTask = {
       {
         concurrent: false,
         exitOnError: true,
+        rendererOptions,
       },
     );
   },
@@ -112,6 +113,7 @@ const buildPpomTask = {
       {
         concurrent: false,
         exitOnError: true,
+        rendererOptions,
       },
     );
   },
@@ -120,9 +122,9 @@ const buildPpomTask = {
 const setupIosTask = {
   title: 'Set up iOS',
   task: async (_, task) => {
-    return task.skip('Skipping iOS.');
-    // if (!BUILD_IOS && !IS_DIFF) {
-    // }
+    if (!BUILD_IOS) {
+      return task.skip('Skipping iOS.');
+    }
 
     return task.newListr(
       [
@@ -243,6 +245,7 @@ const generateTermsOfUseTask = {
       {
         concurrent: false,
         exitOnError: true,
+        rendererOptions,
       },
     ),
 };
@@ -271,37 +274,37 @@ const prepareDependenciesTask = {
 
 const yarnSetupNodeTask = {
   title: 'Yarn setup node',
-  task: (_, task) => {
+  task: (_, task) =>
     task.newListr([runLavamoatAllowScriptsTask, patchPackageTask], {
       concurrent: false,
       exitOnError: true,
-    });
-  },
+      rendererOptions,
+    }),
 };
 
 /**
  * Tasks that can be run concurrently
  */
-// let concurrentTasks = [
-//   prepareDependenciesTask,
-//   copyAndSourceEnvVarsTask,
-//   updateGitSubmodulesTask,
-//   buildPpomTask,
-//   generateTermsOfUseTask,
-//   setupIosTask,
-// ];
+let concurrentTasks = [
+  prepareDependenciesTask,
+  copyAndSourceEnvVarsTask,
+  updateGitSubmodulesTask,
+  buildPpomTask,
+  generateTermsOfUseTask,
+  setupIosTask,
+];
 
 // Optimized for CI performance
-// if (IS_NODE) {
-//   concurrentTasks = [yarnSetupNodeTask, generateTermsOfUseTask];
-// }
+if (IS_NODE) {
+  concurrentTasks = [yarnSetupNodeTask, generateTermsOfUseTask];
+}
 
-// // Optimized for detecting diffs
-// if (IS_DIFF) {
-//   concurrentTasks = [yarnSetupNodeTask, generateTermsOfUseTask, setupIosTask];
-// }
+// Optimized for detecting diffs
+if (IS_DIFF) {
+  concurrentTasks = [yarnSetupNodeTask, generateTermsOfUseTask, setupIosTask];
+}
 
-const tasks = new Listr([yarnSetupNodeTask, generateTermsOfUseTask], {
+const tasks = new Listr(concurrentTasks, {
   concurrent: true,
   exitOnError: true,
 });
