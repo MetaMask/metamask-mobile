@@ -53,8 +53,15 @@ class AccountListView {
     return Matchers.getElementByID(CellModalSelectorsIDs.MULTISELECT, index);
   }
 
+  async accountNameInList(accountName) {
+    return Matchers.getElementByText(accountName, 1);
+  }
   async tapAccountIndex(index) {
     await Gestures.tap(this.getMultiselectElement(index));
+  }
+
+  async tapToSelectActiveAccountAtIndex(index) {
+    await Gestures.tap(this.getSelectElement(index));
   }
 
   async tapAddAccountButton() {

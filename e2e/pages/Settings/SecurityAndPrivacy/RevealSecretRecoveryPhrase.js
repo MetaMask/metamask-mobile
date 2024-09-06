@@ -8,7 +8,7 @@ import Gestures from '../../../utils/Gestures';
 class RevealSecretRecoveryPhrase {
   get container() {
     return Matchers.getElementByID(
-      RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CONTAINER_ID,
+      RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID,
     );
   }
 
@@ -39,7 +39,7 @@ class RevealSecretRecoveryPhrase {
 
   get recoveryPhrase() {
     return Matchers.getElementByText(
-      RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_TEXT,
+      RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_TEXT,
     );
   }
   get revealSecretRecoveryPhraseButton() {
@@ -99,6 +99,10 @@ class RevealSecretRecoveryPhrase {
 
   async scrollToDone() {
     await Gestures.scrollToElement(this.doneButton, this.scrollViewIdentifier);
+  }
+
+  async tapDoneButton() {
+    return Gestures.waitAndTap(this.doneButton);
   }
 }
 

@@ -18,6 +18,8 @@ import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { Regression } from '../../tags';
 import Assertions from '../../utils/Assertions';
+import ActivitiesView from '../../pages/ActivitiesView';
+import DetailsModal from '../../pages/modals/DetailsModal';
 
 const fixtureServer = new FixtureServer();
 
@@ -81,5 +83,26 @@ describe(Regression('Swap from Token view'), () => {
       console.log(`Toast message is slow to appear or did not appear: ${e}`);
     }
     await device.enableSynchronization();
+    await TestHelpers.delay(5000);
+    await TabBarComponent.tapActivity();
+    await Assertions.checkIfVisible(ActivitiesView.title);
+    await Assertions.checkIfVisible(ActivitiesView.swapActivity('LINK', 'DAI'));
+    await ActivitiesView.tapOnSwapActivity('LINK', 'DAI');
+
+    try {
+      await Assertions.checkIfVisible(DetailsModal.title);
+    } catch (e) {
+      await ActivitiesView.tapOnSwapActivity('LINK', 'DAI');
+      await Assertions.checkIfVisible(DetailsModal.title);
+    }
+
+    await Assertions.checkIfVisible(DetailsModal.title);
+    await Assertions.checkIfElementToHaveText(
+      DetailsModal.title,
+      DetailsModal.generateExpectedTitle('LINK', 'DAI'),
+    );
+    await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
+    await DetailsModal.tapOnCloseIcon();
+    await Assertions.checkIfNotVisible(DetailsModal.title);
   });
 });
