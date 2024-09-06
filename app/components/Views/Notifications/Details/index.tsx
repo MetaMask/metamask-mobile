@@ -85,6 +85,7 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
   if (!state) {
     return null;
   }
+
   return (
     <ScrollView contentContainerStyle={styles.contentContainerWrapper}>
       <View style={styles.renderContainer}>
