@@ -1559,6 +1559,7 @@ class Engine {
     this.configureControllersOnNetworkChange();
     this.startPolling();
     this.handleVaultBackup();
+    this.transactionController.clearUnapprovedTransactions();
 
     Engine.instance = this;
   }
