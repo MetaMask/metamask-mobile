@@ -121,7 +121,7 @@ stages:
       - android_e2e_build: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      - run_ios_api_specs: {}
+      # - run_ios_api_specs: {} flakiness in pipeline. Disabling for now
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_assets_ios: {}
@@ -155,6 +155,7 @@ stages:
       - run_tag_smoke_core_ios: {}
       - run_tag_smoke_core_android: {}
       - run_tag_upgrade_android: {}
+      - run_android_app_launch_times_appium_test: {}
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
@@ -1521,7 +1522,7 @@ trigger_map:
   - push_branch: release/*
     pipeline: release_e2e_pipeline
   - push_branch: main
-    pipeline: pr_smoke_e2e_pipeline
+    pipeline: app_launch_times_pipeline
   - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
