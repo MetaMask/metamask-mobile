@@ -125,7 +125,6 @@ export const polyfillGasPrice = async (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   params: any[] = [],
 ) => {
-  // TODO replace with getting a networkClient from the selectedNetworkController
   const networkClientId = Engine.controllerMessenger.call(
     'SelectedNetworkController:getNetworkClientIdForDomain',
     origin,
@@ -137,10 +136,6 @@ export const polyfillGasPrice = async (
   );
 
   const ethQuery = new EthQuery(networkClient.provider);
-
-  // const ethQuery = Engine.controllerMessenger.call(
-  //   'NetworkController:getEthQuery',
-  // );
 
   const data = await query(ethQuery, method, params);
 
