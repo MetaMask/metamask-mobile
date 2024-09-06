@@ -4,13 +4,25 @@ import { $ } from 'execa';
 import { Listr } from 'listr2';
 import path from 'path';
 
+const IS_CI = process.env.CI;
 const IS_OSX = process.platform === 'darwin';
 const input = process.argv.slice(2)?.[0];
 // iOS builds are enabled by default on macOS only but can be enabled explicitly
-const BUILD_IOS = input === '--build-ios' || IS_OSX;
-const IS_NODE = input === '--node';
-const IS_DIFF = input === '--diff';
-const IS_CI = process.env.CI;
+let BUILD_IOS = IS_OSX;
+let IS_NODE = false;
+const args = process.argv.slice(2) || [];
+for (const arg of args) {
+  switch (arg) {
+    case '--build-ios':
+      BUILD_IOS = true;
+      continue;
+    case '--node':
+      IS_NODE = true;
+      continue;
+    default:
+      throw new Error(`Unrecognized CLI arg ${arg}`);
+  }
+}
 
 const rendererOptions = {
   collapseErrors: false,
@@ -24,12 +36,8 @@ const rendererOptions = {
  */
 const copyAndSourceEnvVarsTask = {
   title: 'Copy and source environment variables',
-  task: (_, task) => {
-    if (IS_CI) {
-      task.skip('CI detected');
-    }
-
-    return task.newListr(
+  task: (_, task) =>
+    task.newListr(
       [
         {
           title: 'Copy env vars',
@@ -74,8 +82,7 @@ const copyAndSourceEnvVarsTask = {
         exitOnError: true,
         rendererOptions,
       },
-    );
-  },
+    ),
 };
 
 const buildPpomTask = {
@@ -121,12 +128,8 @@ const buildPpomTask = {
 
 const setupIosTask = {
   title: 'Set up iOS',
-  task: async (_, task) => {
-    if (!BUILD_IOS) {
-      return task.skip('Skipping iOS.');
-    }
-
-    return task.newListr(
+  task: async (_, task) =>
+    task.newListr(
       [
         {
           title: 'Install bundler gem',
@@ -158,8 +161,7 @@ const setupIosTask = {
         concurrent: false,
         exitOnError: true,
       },
-    );
-  },
+    ),
 };
 
 const buildInpageBridgeTask = {
@@ -250,6 +252,16 @@ const generateTermsOfUseTask = {
     ),
 };
 
+const yarnSetupNodeTask = {
+  title: 'Yarn setup node',
+  task: (_, task) =>
+    task.newListr([runLavamoatAllowScriptsTask, patchPackageTask], {
+      concurrent: false,
+      exitOnError: true,
+      rendererOptions,
+    }),
+};
+
 /**
  * Tasks that changes node modules and should run asynchronously
  */
@@ -272,41 +284,72 @@ const prepareDependenciesTask = {
     ),
 };
 
-const yarnSetupNodeTask = {
-  title: 'Yarn setup node',
-  task: (_, task) =>
-    task.newListr([runLavamoatAllowScriptsTask, patchPackageTask], {
-      concurrent: false,
-      exitOnError: true,
-      rendererOptions,
-    }),
-};
+/**
+ * Tasks that are run sequentially
+ */
+let sequentialTasks = [
+  ...(IS_NODE
+    ? [yarnSetupNodeTask]
+    : [
+        prepareDependenciesTask,
+        ...(IS_CI ? [] : [copyAndSourceEnvVarsTask]),
+        updateGitSubmodulesTask,
+      ]),
+];
+
+/**
+ * Tasks that are run concurrently
+ */
+const concurrentTasks = [
+  ...(BUILD_IOS ? [setupIosTask] : []),
+  // Optimized for CI performance
+  ...(IS_NODE ? [] : [buildPpomTask]),
+  generateTermsOfUseTask,
+];
 
 /**
  * Tasks that can be run concurrently
  */
-let concurrentTasks = [
-  prepareDependenciesTask,
-  copyAndSourceEnvVarsTask,
-  updateGitSubmodulesTask,
-  buildPpomTask,
-  generateTermsOfUseTask,
-  setupIosTask,
-];
+// let concurrentTasks = [
+//   prepareDependenciesTask,
+//   copyAndSourceEnvVarsTask,
+//   updateGitSubmodulesTask,
+//   buildPpomTask,
+//   generateTermsOfUseTask,
+//   setupIosTask,
+// ];
 
-// Optimized for CI performance
-if (IS_NODE) {
-  concurrentTasks = [yarnSetupNodeTask, generateTermsOfUseTask];
-}
+const tasks = new Listr(
+  [
+    {
+      title: 'Sequential tasks',
+      task: (_, task) =>
+        task.newListr(sequentialTasks, {
+          concurrent: false,
+          exitOnError: true,
+          rendererOptions,
+        }),
+    },
+    {
+      title: 'Concurrent tasks',
+      task: (_, task) =>
+        task.newListr(concurrentTasks, {
+          concurrent: true,
+          exitOnError: true,
+          rendererOptions,
+        }),
+    },
+  ],
+  {
+    concurrent: false,
+    exitOnError: true,
+    rendererOptions,
+  },
+);
 
-// Optimized for detecting diffs
-if (IS_DIFF) {
-  concurrentTasks = [yarnSetupNodeTask, generateTermsOfUseTask, setupIosTask];
-}
-
-const tasks = new Listr(concurrentTasks, {
-  concurrent: true,
-  exitOnError: true,
-});
+// const tasks = new Listr(concurrentTasks, {
+//   concurrent: true,
+//   exitOnError: true,
+// });
 
 await tasks.run();
