@@ -6,7 +6,6 @@ import path from 'path';
 
 const IS_CI = process.env.CI;
 const IS_OSX = process.platform === 'darwin';
-const input = process.argv.slice(2)?.[0];
 // iOS builds are enabled by default on macOS only but can be enabled explicitly
 let BUILD_IOS = IS_OSX;
 let IS_NODE = false;
@@ -307,18 +306,6 @@ const concurrentTasks = [
   generateTermsOfUseTask,
 ];
 
-/**
- * Tasks that can be run concurrently
- */
-// let concurrentTasks = [
-//   prepareDependenciesTask,
-//   copyAndSourceEnvVarsTask,
-//   updateGitSubmodulesTask,
-//   buildPpomTask,
-//   generateTermsOfUseTask,
-//   setupIosTask,
-// ];
-
 const tasks = new Listr(
   [
     {
@@ -346,10 +333,5 @@ const tasks = new Listr(
     rendererOptions,
   },
 );
-
-// const tasks = new Listr(concurrentTasks, {
-//   concurrent: true,
-//   exitOnError: true,
-// });
 
 await tasks.run();
