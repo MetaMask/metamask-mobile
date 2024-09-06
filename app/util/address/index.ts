@@ -21,7 +21,7 @@ import {
   isMainnetByChainId,
   findBlockExplorerForRpc,
 } from '../../util/networks';
-import { RPC } from '../../constants/network';
+import { network } from '../../constants/network';
 import { collectConfusables } from '../../util/confusables';
 import {
   CONTACT_ALREADY_SAVED,
@@ -36,7 +36,7 @@ import Logger from '../../../app/util/Logger';
 import { InternalAccount } from '@metamask/keyring-api';
 import { AddressBookState } from '@metamask/address-book-controller';
 import { NetworkType, toChecksumHexAddress } from '@metamask/controller-utils';
-import { NetworkClientId, NetworkState } from '@metamask/network-controller';
+import { NetworkClientType, NetworkState } from '@metamask/network-controller';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { Hex, isHexString } from '@metamask/utils';
 
@@ -624,11 +624,11 @@ export const getTokenDecimal = async (
 };
 
 export const shouldShowBlockExplorer = (
-  providerType: NetworkClientType,
+  providerType: NetworkType,
   providerRpcTarget: string,
   networkConfigurations: NetworkState['networkConfigurations'],
 ) => {
-  if (providerType === RPC) {
+  if (providerType === network) {
     return findBlockExplorerForRpc(providerRpcTarget, networkConfigurations);
   }
   return true;

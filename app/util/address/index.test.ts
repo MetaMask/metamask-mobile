@@ -46,6 +46,11 @@ jest.mock('../../core/Engine', () => ({
             index: 1,
             type: 'Simple Key Pair',
           },
+
+          {
+            accounts: ['0x71C7656EC7ab88b098defB751B7401B5f6d8976F'],
+            index: 2,
+          },
         ],
       },
     },
@@ -206,8 +211,8 @@ describe('getAddress', () => {
 
 describe('shouldShowBlockExplorer', () => {
   const networkConfigurations: NetworkState['networkConfigurations'] = {
-    mainnet: {
-      id: 'mainnet',
+    networkId1: {
+      id: 'networkId1',
       chainId: '0x1',
       nickname: 'Main Ethereum Network',
       ticker: 'USD',
@@ -217,7 +222,7 @@ describe('shouldShowBlockExplorer', () => {
 
   it('returns true if provider type is not rpc', () => {
     const providerType = 'mainnet';
-    const providerRpcTarget = networkConfigurations.mainnet.rpcUrl;
+    const providerRpcTarget = networkConfigurations.networkId1.rpcUrl;
 
     const result = shouldShowBlockExplorer(
       providerType,
@@ -230,7 +235,7 @@ describe('shouldShowBlockExplorer', () => {
 
   it('returns block explorer URL if defined', () => {
     const providerType = 'rpc';
-    const providerRpcTarget = networkConfigurations.mainnet.rpcUrl;
+    const providerRpcTarget = networkConfigurations.networkId1.rpcUrl;
     const blockExplorerUrl = 'https://rpc.testnet.fantom.network';
     networkConfigurations.networkId1.rpcPrefs = { blockExplorerUrl };
 

@@ -1,4 +1,4 @@
-import migrate from './051';
+import migrate from './052';
 import { merge } from 'lodash';
 import initialRootState from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
@@ -9,32 +9,21 @@ jest.mock('@sentry/react-native', () => ({
 }));
 const mockedCaptureException = jest.mocked(captureException);
 
-describe('Migration #51', () => {
+jest.mock('../../core/Engine', () => ({
+  init: () => mockedEngine.init(),
+}));
+
+describe('Migration #52 - Delete providerConfig', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     jest.resetAllMocks();
   });
 
-  const oldState = {
-    engine: {
-      backgroundState: {
-        NetworkController: {
-          networkConfigurations: {
-            'network-1-uuid': {
-              chainId: '0x89',
-              ticker: 'MATIC',
-            },
-            'network-2-uuid': {
-              chainId: '0x1',
-              ticker: 'ETH',
-            },
-          },
-          providerConfig: {
-            chainId: '0x1',
-            ticker: 'ETH',
-          },
-        },
-      },
+  const invalidStates = [
+    {
+      state: null,
+      errorMessage: "FATAL ERROR: Migration 52: Invalid state error: 'object'",
+      scenario: 'state is invalid',
     },
   };
 
@@ -67,7 +56,7 @@ describe('Migration #51', () => {
         engine: null,
       }),
       errorMessage:
-        "FATAL ERROR: Migration 51: Invalid engine state error: 'object'",
+        "FATAL ERROR: Migration 52: Invalid engine state error: 'object'",
       scenario: 'engine state is invalid',
     },
     {
@@ -77,7 +66,7 @@ describe('Migration #51', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 51: Invalid engine backgroundState error: 'object'",
+        "FATAL ERROR: Migration 52: Invalid engine backgroundState error: 'object'",
       scenario: 'backgroundState is invalid',
     },
     {
@@ -89,36 +78,8 @@ describe('Migration #51', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 51: Invalid NetworkController state error: 'object'",
-      scenario: 'NetworkController state is invalid',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: {
-          backgroundState: {
-            NetworkController: {
-              networkConfigurations: null,
-            },
-          },
-        },
-      }),
-      errorMessage:
-        "FATAL ERROR: Migration 51: NetworkController networkConfigurations not found: 'null'",
-      scenario: 'networkConfigurations is null',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: {
-          backgroundState: {
-            NetworkController: {
-              providerConfig: null,
-            },
-          },
-        },
-      }),
-      errorMessage:
-        "FATAL ERROR: Migration 51: providerConfig not found: 'null'",
-      scenario: 'providerConfig is null',
+        "FATAL ERROR: Migration 52: Invalid NetworkController state error: 'object'",
+      scenario: 'NetworkController is invalid',
     },
   ];
 
