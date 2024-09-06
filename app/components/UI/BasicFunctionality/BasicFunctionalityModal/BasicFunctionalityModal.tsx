@@ -74,7 +74,7 @@ const BasicFunctionalityModal = ({ route }: Props) => {
     bottomSheetRef.current?.onCloseBottomSheet(() => {
       dispatch(toggleBasicFunctionality(!isEnabled));
       trackEvent(
-        isEnabled
+        !isEnabled
           ? MetaMetricsEvents.BASIC_FUNCTIONALITY_ENABLED
           : MetaMetricsEvents.BASIC_FUNCTIONALITY_DISABLED,
       );
