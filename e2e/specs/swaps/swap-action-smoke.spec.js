@@ -109,12 +109,20 @@ describe(SmokeSwaps('Swap from Actions'), () => {
       await Assertions.checkIfVisible(
         ActivitiesView.swapActivity(sourceTokenSymbol, destTokenSymbol),
       );
-      await TestHelpers.delay(5000);
       await ActivitiesView.tapOnSwapActivity(
         sourceTokenSymbol,
         destTokenSymbol,
       );
-      await Assertions.checkIfVisible(DetailsModal.title);
+
+      try {
+        await Assertions.checkIfVisible(DetailsModal.title);
+      } catch (e) {
+        await ActivitiesView.tapOnSwapActivity(
+          sourceTokenSymbol,
+          destTokenSymbol,
+        );
+        await Assertions.checkIfVisible(DetailsModal.title);
+      }
       await Assertions.checkIfElementToHaveText(
         DetailsModal.title,
         DetailsModal.generateExpectedTitle(sourceTokenSymbol, destTokenSymbol),
