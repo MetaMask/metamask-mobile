@@ -147,8 +147,6 @@ class Approval extends PureComponent {
     transactionConfirmed: false,
   };
 
-  channelIdOrHostname = this.props.transaction.origin;
-  originDetected = false;
   originIsWalletConnect = false;
   originIsMMSDKRemoteConn = false;
 
@@ -282,7 +280,6 @@ class Approval extends PureComponent {
     DevLogger.log(
       `Approval::detectOrigin originIsWalletConnect=${this.originIsWalletConnect} originIsMMSDKRemoteConn=${this.originIsMMSDKRemoteConn}`,
     );
-    this.originDetected = true;
   };
 
   /**

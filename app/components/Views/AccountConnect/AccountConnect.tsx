@@ -148,12 +148,10 @@ const AccountConnect = (props: AccountConnectProps) => {
       channelIdOrHostname.startsWith(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)
     ) {
       title = getUrlObj(
-        (channelIdOrHostname as string).split(
-          AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-        )[1],
+        channelIdOrHostname.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1],
       ).origin;
     } else if (isOriginWalletConnect) {
-      title = getUrlObj(channelIdOrHostname as string).origin;
+      title = getUrlObj(channelIdOrHostname).origin;
       dappHostname = title;
     } else if (!isChannelId && (dappUrl || channelIdOrHostname)) {
       title = prefixUrlWithProtocol(dappUrl || channelIdOrHostname);
