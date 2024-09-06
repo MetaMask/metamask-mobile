@@ -13,11 +13,14 @@ pipelines:
   build_all_targets_pipeline:
     stages:
       - create_build_all_targets: {}
-  #Releases MetaMask apps and stores apk/ipa into Play(Internal Testing)/App(TestFlight) Store
-  release_builds_to_store_pipeline:
+  #Builds MetaMask apps and stores apk/ipa into Play(Internal Testing)/App(TestFlight) Store. Not for production release.
+  release_builds_to_test_flight:
     stages:
-      - create_build_release: {}
-      - deploy_build_release: {}
+      - create_build_for_test_flight: {
+        envs:
+            - SKIP_SENTRY_UPLOAD: "true"
+      }
+      - deploy_build_for_test_flight: {}
       - create_build_qa: {} #Generate QA builds for E2E app upgrade tests
   #Releases MetaMask apps and stores ipa into App(TestFlight) Store
   release_ios_to_store_pipeline:
@@ -66,7 +69,7 @@ pipelines:
       - create_build_qa_android: {}
       - app_launch_times_test_stage: {}
 
-#App Upgrade pipeline. Runs on browserstack
+  #App Upgrade pipeline. Runs on browserstack
   app_upgrade_pipeline:
     stages:
       - create_build_qa_android: {}
@@ -89,11 +92,11 @@ stages:
       - build_ios_release: {}
       - build_android_qa: {}
       - build_ios_qa: {}
-  create_build_release:
+  create_build_for_test_flight:
     workflows:
       - build_android_release: {}
       - build_ios_release: {}
-  deploy_build_release:
+  deploy_build_for_test_flight:
     workflows:
       - deploy_android_to_store: {}
       - deploy_ios_to_store: {}
@@ -279,12 +282,12 @@ workflows:
           title: Install node, yarn and corepack
   install_detox:
     steps:
-    - script@1:
-        inputs:
-          - content: |-
-              #!/usr/bin/env bash
-              scripts/detox-setup.sh
-        title: Install Detox Dependencies
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                scripts/detox-setup.sh
+          title: Install Detox Dependencies
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
@@ -1054,10 +1057,11 @@ workflows:
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
+          run_if: '{{enveq "SKIP_SENTRY_UPLOAD" ""}}'
           inputs:
             - pipeline_intermediate_files: sourcemaps/android/index.js.map:BITRISE_PLAY_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/android/index.js.map
-          title: Bitrise Deploy Sourcemaps
+          title: Deploy Source Map
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
@@ -1267,6 +1271,7 @@ workflows:
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
+          run_if: '{{enveq "SKIP_SENTRY_UPLOAD" ""}}'
           inputs:
             - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
