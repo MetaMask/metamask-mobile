@@ -26,6 +26,10 @@ jobs:
         env:
           PACKAGE_READ_TOKEN: ${{ secrets.PACKAGE_READ_TOKEN }}
       - run: yarn setup --node --build-ios
+        env:
+          BUNDLE_USER_HOME: /home/runner/.bundle
+          # BUNDLE_PATH: /home/runner/.bundle/gems
+          BUNDLE_PATH__SYSTEM: 'false'
       - name: Require clean working directory
         shell: bash
         run: |
