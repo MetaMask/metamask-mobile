@@ -40,13 +40,7 @@ export default function ModalField({
     return <NFTCollectionField {...modalField} />;
 
   if (modalField.type === 'ModalField-Network')
-    return (
-      <NetworkField
-        {...modalField}
-        isCollapsed={isCollapsed}
-        setIsCollapsed={setIsCollapsed}
-      />
-    );
+    return <NetworkField {...modalField} />;
 
   if (modalField.type === 'ModalField-NetworkFee')
     return (
