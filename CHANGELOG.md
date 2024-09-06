@@ -2,24 +2,21 @@
 
 ## Current Main Branch
 
-## release/7.31.0 - <Date>
-
+## 7.31.0 - Sep 6, 2024
 ### Added
 - [#10747](https://github.com/MetaMask/metamask-mobile/pull/10747): feat: 2805 grant permission to network with missmatching rpc url (#10747)
 - [#10715](https://github.com/MetaMask/metamask-mobile/pull/10715): feat: 2795 disconnect all account permission multichain edit account screen (#10715)
-- [#10750](https://github.com/MetaMask/metamask-mobile/pull/10750): feat: 7.30.0 (#10750)
-- [#10984](https://github.com/MetaMask/metamask-mobile/pull/10984): feat: 7.29.2 (#10984)
-- [#10841](https://github.com/MetaMask/metamask-mobile/pull/10841): feat: 7.29.1 (#10841)
 - [#10347](https://github.com/MetaMask/metamask-mobile/pull/10347): feat: refactor WalletConnect v2 and add unit tests (#10347)
 - [#10695](https://github.com/MetaMask/metamask-mobile/pull/10695): feat: sdk async key exchange (#10695)
-- [#10959](https://github.com/MetaMask/metamask-mobile/pull/10959): chore(runway): cherry-pick feat: Update Polygon from `MATIC` to `POL` (#10959)
-- [#10831](https://github.com/MetaMask/metamask-mobile/pull/10831): feat: Update Polygon from `MATIC` to `POL` (#10831)
 - [#10562](https://github.com/MetaMask/metamask-mobile/pull/10562): feat: New token detail view (#10562)
-- [#10533](https://github.com/MetaMask/metamask-mobile/pull/10533): feat: 7.29.0 (#10533)
 - [#10876](https://github.com/MetaMask/metamask-mobile/pull/10876): feat: js bundle size ci gate (#10876)
 - [#10847](https://github.com/MetaMask/metamask-mobile/pull/10847): feat: add pooled staking feature flag (#10847)
-
+- [#2796](https://github.com/MetaMask/metamask-mobile/pull/2796):   feat(2796):  permission settings for multichain
+- [#10727](https://github.com/MetaMask/metamask-mobile/pull/10727): feat: add ledger live deviation path support (#10727)
+  
 ### Changed
+- [#10749](https://github.com/MetaMask/metamask-mobile/pull/10749): chore(deps): bump rexml from 3.3.3 to 3.3.6 in the bundler group across 1 directory (#10749)
+- [#10794](https://github.com/MetaMask/metamask-mobile/pull/10794): Release-update-BS-URL (#10794)
 - [#11088](https://github.com/MetaMask/metamask-mobile/pull/11088): chore: add new track events for enabling/disabling basic functionality (#11088)
 - [#10781](https://github.com/MetaMask/metamask-mobile/pull/10781): chore: update gitignore (#10781)
 - [#11080](https://github.com/MetaMask/metamask-mobile/pull/11080): chore: fix flipper pod compilation with pika 15.3 toolchain (#11080)
@@ -38,7 +35,6 @@
 - [#10908](https://github.com/MetaMask/metamask-mobile/pull/10908): chore: Cherry pick reCaptcha fix (#10908)
 - [#10016](https://github.com/MetaMask/metamask-mobile/pull/10016): chore: Update Keystone and NGRAVE dependencies (#10016)
 - [#10866](https://github.com/MetaMask/metamask-mobile/pull/10866): chore: update typescript version to v~5.4.5 (#10866)
-- [#10826](https://github.com/MetaMask/metamask-mobile/pull/10826): fix: Upgrading Appium test failing (#10826)
 - [#10745](https://github.com/MetaMask/metamask-mobile/pull/10745): chore: Enable typescript coverage for all the files (#10745)
 - [#10830](https://github.com/MetaMask/metamask-mobile/pull/10830): chore: Bump old pod checksums (#10830)
 - [#10835](https://github.com/MetaMask/metamask-mobile/pull/10835): test: Remove Redundant Steps in WDIO to Fix Upgrade Test Failures (#10835)
@@ -50,9 +46,6 @@
 - [#10785](https://github.com/MetaMask/metamask-mobile/pull/10785): test: Refactor swaps page object files (#10785)
 - [#10723](https://github.com/MetaMask/metamask-mobile/pull/10723): docs: Clean up testing readme (#10723)
 - [#10751](https://github.com/MetaMask/metamask-mobile/pull/10751): chore: chore/7.30.0-Changelog (#10751)
-- [#10518](https://github.com/MetaMask/metamask-mobile/pull/10518): fix: refactor blockaid utils sync functions to async (#10518)
-- [#11020](https://github.com/MetaMask/metamask-mobile/pull/11020): fix: Fix broken unit test in `Sendflow` tests (#11020)
-- [#10385](https://github.com/MetaMask/metamask-mobile/pull/10385): fix: no insufficient funds warning (#10385)
 - [#11017](https://github.com/MetaMask/metamask-mobile/pull/11017): refactor: updated button primary to use light theme colors (#11017)
 - [#11018](https://github.com/MetaMask/metamask-mobile/pull/11018): refactor: updated wallet action icons to be light themed (#11018)
 - [#10325](https://github.com/MetaMask/metamask-mobile/pull/10325): chore: updated avatargroup to take in all avatars (#10325)
@@ -66,9 +59,14 @@
 - [#10754](https://github.com/MetaMask/metamask-mobile/pull/10754): test: complete quiz to reveal SRP (#10754)
 - [#10871](https://github.com/MetaMask/metamask-mobile/pull/10871): chore: enable merge queues gh action test run (#10871)
 - [#10714](https://github.com/MetaMask/metamask-mobile/pull/10714): test: Refactor AccountListView Page object (#10714)
-- [#9910](https://github.com/MetaMask/metamask-mobile/pull/9910): fix: refactor saga xhr injection and add unit tests (#9910)
 
 ### Fixed
+- [#10518](https://github.com/MetaMask/metamask-mobile/pull/10518): fix: refactor blockaid utils sync functions to async (#10518)
+- [#11020](https://github.com/MetaMask/metamask-mobile/pull/11020): fix: Fix broken unit test in `Sendflow` tests (#11020)
+- [#10385](https://github.com/MetaMask/metamask-mobile/pull/10385): fix: no insufficient funds warning (#10385)
+- [#10826](https://github.com/MetaMask/metamask-mobile/pull/10826): fix: Upgrading Appium test failing (#10826)
+- [#9910](https://github.com/MetaMask/metamask-mobile/pull/9910): fix: refactor saga xhr injection and add unit tests (#9910)
+- [#10850](https://github.com/MetaMask/metamask-mobile/pull/10850): fix: remove exclusion of micromatch advisory and bump it (#10850)
 - [#10673](https://github.com/MetaMask/metamask-mobile/pull/10673): fix: camera permission alert with settings access (#10673)
 - [#10851](https://github.com/MetaMask/metamask-mobile/pull/10851): fix(2795): remove duplicate description in account connect multiselect screen (#10851)
 - [#10894](https://github.com/MetaMask/metamask-mobile/pull/10894): fix: browser tab url type (#10894)
@@ -99,31 +97,9 @@
 - [#10687](https://github.com/MetaMask/metamask-mobile/pull/10687): fix: Optimism quotes failing (#10687)
 - [#10900](https://github.com/MetaMask/metamask-mobile/pull/10900): fix(notifications): hide profile sync toggle (#10900)
 - [#10791](https://github.com/MetaMask/metamask-mobile/pull/10791): fix: Fix the QR code account unable to sign any message and transaction issue in 7.30.0 (#10791)
-
-### Other
-- [#EtherWizard33](EtherWizard33): "feat(2796):  permission settings for multichain
-- [#10760](https://github.com/MetaMask/metamask-mobile/pull/10760): New Crowdin translations by Github Action (#10760)
-- [#11016](https://github.com/MetaMask/metamask-mobile/pull/11016): chore: cherry pick sync hot fixes 7.29.1 & 7.29.2 (#11016)
-- [#11010](https://github.com/MetaMask/metamask-mobile/pull/11010): chore: cherry pick swaps PR (#11010)
-- [#10749](https://github.com/MetaMask/metamask-mobile/pull/10749): chore(deps): bump rexml from 3.3.3 to 3.3.6 in the bundler group across 1 directory (#10749)
-- [#10951](https://github.com/MetaMask/metamask-mobile/pull/10951): chore: cherry pick d98a1c9 fix(notifications): hide profile sync toggle  (#10951)
-- [#10850](https://github.com/MetaMask/metamask-mobile/pull/10850): fix: remove exclusion of micromatch advisory and bump it (#10850)
-- [#10839](https://github.com/MetaMask/metamask-mobile/pull/10839): chore(runway): cherry-pick fix: Fix/disable flipper for release (#10839)
-- [#10824](https://github.com/MetaMask/metamask-mobile/pull/10824): chore(runway): cherry-pick fix: Set NO_FLIPPER to true on ios release (#10824)
-- [#10823](https://github.com/MetaMask/metamask-mobile/pull/10823): chore: cherry pick 10533 (#10823)
-- [#10822](https://github.com/MetaMask/metamask-mobile/pull/10822): chore: bump version 1399 RC 2 (#10822)
-- [#10794](https://github.com/MetaMask/metamask-mobile/pull/10794): Release-update-BS-URL (#10794)
 - [#10982](https://github.com/MetaMask/metamask-mobile/pull/10982): fix: UI notifications details bugs (#10982)
 - [#10795](https://github.com/MetaMask/metamask-mobile/pull/10795): fix: small UI polishings (#10795)
 - [#10792](https://github.com/MetaMask/metamask-mobile/pull/10792): fix: refactor notifications utils (#10792)
-- [#10896](https://github.com/MetaMask/metamask-mobile/pull/10896): chore: cherry-pick #10863 connectWith SDK fix (#10896)
-- [#10759](https://github.com/MetaMask/metamask-mobile/pull/10759): chore: cherry-pick #10695 (#10759)
-- [#10762](https://github.com/MetaMask/metamask-mobile/pull/10762): chore: cherry-pick #10347 (#10762)
-- [#11015](https://github.com/MetaMask/metamask-mobile/pull/11015): chore: cherry-pick #10961 to new controller version (#11015)
-- [#10838](https://github.com/MetaMask/metamask-mobile/pull/10838): Chore: Bump version 1401 RC3 (#10838)
-- [#10796](https://github.com/MetaMask/metamask-mobile/pull/10796): chore: cherry-pick #10727 (#10796)
-- [#10727](https://github.com/MetaMask/metamask-mobile/pull/10727): feat: add ledger live deviation path support (#10727)
-
 
 ## 7.30.0 - Sep 6, 2024
 ### Added
