@@ -116,6 +116,21 @@ target 'MetaMask-Flask' do
 end
 
 post_install do |installer|
+  # fix flipper with pika 15.3 toolchain
+  installer.pods_project.targets.each do |target|
+    if target.name == 'Flipper'
+      file_path = 'ios/Pods/Flipper/xplat/Flipper/FlipperTransportTypes.h'
+      system("chmod +w " + file_path)
+      contents = File.read(file_path)
+      unless contents.include?('#include <functional>')
+        File.open(file_path, 'w') do |file|
+          file.puts('#include <functional>')
+          file.puts(contents)
+        end
+      end
+    end
+  end
+
   react_native_post_install(
     installer,
     # Set `mac_catalyst_enabled` to `true` in order to apply patches

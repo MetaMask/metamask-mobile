@@ -2,13 +2,11 @@
 
 ## Current Main Branch
 
-## 7.30.0 - Aug 22, 2024
+## 7.30.0 - Sep 6, 2024
 ### Added
 - [#10748](https://github.com/MetaMask/metamask-mobile/pull/10748): feat: Add yarn flipper script (#10748)
 - [#10739](https://github.com/MetaMask/metamask-mobile/pull/10739): feat: Feat/add redux debugger (#10739)
-- [#10602](https://github.com/MetaMask/metamask-mobile/pull/10602): feat: 7.28.1 (#10602)
 - [#10589](https://github.com/MetaMask/metamask-mobile/pull/10589): feat: Feat/10521 react-native-performance mvp for measuring app start + JS bundle load times (#10589)
-- [#10353](https://github.com/MetaMask/metamask-mobile/pull/10353): feat: 7.28.0 (#10353)
 - [#10696](https://github.com/MetaMask/metamask-mobile/pull/10696): feat: Update @blockaid/ppom_release to release 1.5.2 (#10696)
 - [#10718](https://github.com/MetaMask/metamask-mobile/pull/10718): feat: update add team label workflow (#10718)
 - [#10682](https://github.com/MetaMask/metamask-mobile/pull/10682): feat: 2794 account edit permission multichain bottomsheet UI changes only (#10682)
@@ -110,7 +108,7 @@
 ### Fixed
 - [#10831](https://github.com/MetaMask/metamask-mobile/pull/10831): feat: Update Polygon from MATIC to POL (#10831)
 
-## 7.29.0 - Aug 2, 2024
+## 7.29.0 - Aug 6, 2024
 ### Added
 - [#9578](https://github.com/MetaMask/metamask-mobile/pull/9578): feat: type `renderHookWithProvider` (#9578)
 - [#10277](https://github.com/MetaMask/metamask-mobile/pull/10277): feat: New nft details page (#10277)
@@ -174,7 +172,10 @@
 - [#10383](https://github.com/MetaMask/metamask-mobile/pull/10383): fix: race condition issues when doing batch-rpc calls in the DeeplinkProtocolService (#10383)
 - [#10365](https://github.com/MetaMask/metamask-mobile/pull/10365): fix: attribution link (#10365)
 - [#10303](https://github.com/MetaMask/metamask-mobile/pull/10303): fix: page navigation during QR accounts selection (#10303)
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
 ## 7.28.1 - Aug 15, 2024
 ### Fixed
 - [#10637](https://github.com/MetaMask/metamask-mobile/pull/10637): fix: swap button blocked by SwapsController polling issue (#10637)

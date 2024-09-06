@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/prefer-default-export
 export const NetworkApprovalModalSelectorsIDs = {
   DISPLAY_NAME: 'approve-network-display-name-id',
   CONTAINER: 'approve-network-modal',
