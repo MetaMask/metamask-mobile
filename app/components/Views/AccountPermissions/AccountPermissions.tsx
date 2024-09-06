@@ -399,7 +399,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         hostname={hostname}
         secureIcon={secureIcon}
         isAutoScrollEnabled={false}
-        onBack={() => setPermissionsScreen(AccountPermissionsScreens.Connected)}
+        onBack={() =>
+          setPermissionsScreen(AccountPermissionsScreens.PermissionsSummary)
+        }
       />
     ),
     [
