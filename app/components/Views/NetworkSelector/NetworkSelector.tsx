@@ -221,30 +221,30 @@ const NetworkSelector = () => {
       sheetRef.current?.onCloseBottomSheet();
       // TODO ALEX are there other actions we want changing network just for the dapp...?
       // Update is not percolating to dapp...?
-      return;
-    }
+    } else {
+      let ticker = type;
+      if (type === LINEA_SEPOLIA) {
+        ticker = TESTNET_TICKER_SYMBOLS.LINEA_SEPOLIA as InfuraNetworkType;
+      }
+      if (type === SEPOLIA) {
+        ticker = TESTNET_TICKER_SYMBOLS.SEPOLIA as InfuraNetworkType;
+      }
 
-    let ticker = type;
-    if (type === LINEA_SEPOLIA) {
-      ticker = TESTNET_TICKER_SYMBOLS.LINEA_SEPOLIA as InfuraNetworkType;
-    }
-    if (type === SEPOLIA) {
-      ticker = TESTNET_TICKER_SYMBOLS.SEPOLIA as InfuraNetworkType;
-    }
+      CurrencyRateController.updateExchangeRate(ticker);
+      NetworkController.setProviderType(type);
+      AccountTrackerController.refresh();
 
-    CurrencyRateController.updateExchangeRate(ticker);
-    NetworkController.setProviderType(type);
-    AccountTrackerController.refresh();
-
-    setTimeout(async () => {
-      await updateIncomingTransactions();
-    }, 1000);
+      setTimeout(async () => {
+        await updateIncomingTransactions();
+      }, 1000);
+    }
 
     sheetRef.current?.onCloseBottomSheet();
 
     trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
-      chain_id: getDecimalChainId(providerConfig.chainId),
+      chain_id: getDecimalChainId(selectedChainId),
       from_network:
+        // TODO ALEX
         providerConfig.type === 'rpc'
           ? providerConfig.nickname
           : providerConfig.type,
@@ -259,13 +259,6 @@ const NetworkSelector = () => {
       SelectedNetworkController,
     } = Engine.context;
 
-    // TODO GET networkClientId from rpcTarget
-
-    if (domainIsConnectedDapp && origin) {
-      SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
-      // TODO ALEX are there other actions we want changing network just for the dapp...?
-      return;
-    }
     const entry = Object.entries(networkConfigurations).find(([, { rpcUrl }]) =>
       compareRpcUrls(rpcUrl, rpcTarget),
     );
@@ -273,10 +266,18 @@ const NetworkSelector = () => {
     if (entry) {
       const [networkConfigurationId, networkConfiguration] = entry;
       const { ticker, nickname } = networkConfiguration;
+      // TODO GET networkClientId from rpcTarget
+      if (domainIsConnectedDapp && origin) {
+        SelectedNetworkController.setNetworkClientIdForDomain(
+          origin,
+          networkConfigurationId,
+        );
+        // TODO ALEX are there other actions we want changing network just for the dapp...?
+      } else {
+        CurrencyRateController.updateExchangeRate(ticker);
 
-      CurrencyRateController.updateExchangeRate(ticker);
-
-      NetworkController.setActiveNetwork(networkConfigurationId);
+        NetworkController.setActiveNetwork(networkConfigurationId);
+      }
 
       sheetRef.current?.onCloseBottomSheet();
       trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {

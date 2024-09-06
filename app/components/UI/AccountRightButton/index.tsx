@@ -8,7 +8,7 @@ import {
   Platform,
   EmitterSubscription,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import Device from '../../../util/device';
 import AvatarAccount, {
   AvatarAccountType,
@@ -32,6 +32,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/AccountOverview.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useNetworkInfo } from 'app/selectors/selectedNetworkController';
 
 const styles = StyleSheet.create({
   leftButton: {
@@ -136,8 +137,27 @@ const AccountRightButton = ({
     trackEvent,
   ]);
 
+  const route = useRoute<RouteProp<Record<string, { url: string }>, string>>();
+  // url is defined if opened while in a dapp
+  const currentUrl = route.params?.url;
+  let hostname;
+  if (currentUrl) {
+    hostname = new URL(currentUrl).hostname;
+  }
+
+  const {
+    networkName: domainNetworkName,
+    networkImageSource: domainNetworkImageSource,
+  } = useNetworkInfo(hostname);
+
+  console.log('ALEX LOGGING: origin in accountRightButton:', hostname);
+
   const networkName = useSelector(selectNetworkName);
   const networkImageSource = useSelector(selectNetworkImageSource);
+
+  const selectedNetworkName = domainNetworkName || networkName;
+  const selectedNetworkImageSource =
+    domainNetworkImageSource || networkImageSource;
 
   const renderAvatarAccount = () => (
     <AvatarAccount type={accountAvatarType} accountAddress={selectedAddress} />
