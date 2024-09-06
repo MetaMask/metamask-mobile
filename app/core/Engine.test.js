@@ -141,9 +141,10 @@ describe('Engine', () => {
         },
       },
     };
-    const engine = Engine.init(state);
+    Engine.init(state);
+    expect(Engine.state).toHaveProperty('CurrencyRateController.currencyRates');
     expect(
-      engine.datamodel.state.CurrencyRateController.currencyRates[ticker],
+      Engine.state.CurrencyRateController.currencyRates[ticker],
     ).toStrictEqual({
       conversionDate: 0,
       conversionRate: 0,
