@@ -36,7 +36,7 @@ import Logger from '../../../app/util/Logger';
 import { InternalAccount } from '@metamask/keyring-api';
 import { AddressBookState } from '@metamask/address-book-controller';
 import { NetworkType, toChecksumHexAddress } from '@metamask/controller-utils';
-import { NetworkClientType, NetworkState } from '@metamask/network-controller';
+import { NetworkState } from '@metamask/network-controller';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { Hex, isHexString } from '@metamask/utils';
 

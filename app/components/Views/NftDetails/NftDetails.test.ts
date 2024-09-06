@@ -1,8 +1,6 @@
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import QrScanner from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { Collectible } from '../../../components/UI/CollectibleMedia/CollectibleMedia.types';
-import mockedEngine from '../../../core/__mocks__/MockedEngine';
 
 const initialState = {
   engine: {
