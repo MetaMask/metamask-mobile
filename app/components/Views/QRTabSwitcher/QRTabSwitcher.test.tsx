@@ -28,9 +28,7 @@ jest.mock('@react-navigation/compat', () => {
   const actualNav = jest.requireActual('@react-navigation/compat');
   return {
     ...actualNav,
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    withNavigation: (obj: any) => obj,
+    withNavigation: (obj: React.ReactNode) => obj,
   };
 });
 
