@@ -50,11 +50,6 @@ describe('Engine', () => {
     const engine = Engine.init({});
     const initialBackgroundState = engine.datamodel.state;
 
-    console.log(
-      'initialBackgroundState ----',
-      initialBackgroundState.NetworkController,
-    );
-
     expect(initialBackgroundState).toStrictEqual({
       ...backgroundState,
 

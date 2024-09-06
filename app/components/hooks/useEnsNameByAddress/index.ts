@@ -13,8 +13,6 @@ const useEnsNameByAddress = (address?: string) => {
   const [ensName, setEnsName] = useState('');
   const { chainId } = useSelector(selectProviderConfig);
 
-  console.log('chainID ----', chainId);
-
   useEffect(() => {
     setEnsName('');
     if (!address) {

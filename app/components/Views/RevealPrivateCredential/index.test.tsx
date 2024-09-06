@@ -6,11 +6,28 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { RevealPrivateCredential } from './';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
+import mockedEngine from '../../../core/__mocks__/MockedEngine';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
   useDispatch: jest.fn(),
+}));
+
+jest.mock('../../../core/Engine', () => ({
+  init: () => mockedEngine.init(),
+  context: {
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+    },
+  },
 }));
 
 const mockStore = configureMockStore();

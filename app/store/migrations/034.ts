@@ -63,11 +63,6 @@ export default async function migrate(stateAsync: unknown) {
   }
 
   if (!networkControllerState.providerConfig.ticker) {
-    console.log('networkControllerState -----', networkControllerState);
-    console.log(
-      'newNetworkControllerState.selectedNetworkClientId ----',
-      newNetworkControllerState.selectedNetworkClientId,
-    );
     newNetworkControllerState.networkConfigurations[
       newNetworkControllerState.selectedNetworkClientId
     ].ticker = 'ETH';
