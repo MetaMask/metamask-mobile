@@ -1,7 +1,20 @@
 import React from 'react';
 import TooltipModal from './';
 import { TooltipModalProps } from './ToolTipModal.types';
-import { shallow } from 'enzyme';
+import renderWithProvider from '../../../util/test/renderWithProvider';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualReactNavigation,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+    }),
+  };
+});
 
 const MOCK_ROUTE_DATA: TooltipModalProps = {
   route: {
@@ -14,7 +27,11 @@ const MOCK_ROUTE_DATA: TooltipModalProps = {
 
 describe('Tooltip Modal', () => {
   it('should render correctly', () => {
-    const modal = shallow(<TooltipModal {...MOCK_ROUTE_DATA} />);
-    expect(modal).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(
+      <SafeAreaProvider>
+        <TooltipModal {...MOCK_ROUTE_DATA} />
+      </SafeAreaProvider>,
+    );
+    expect(toJSON()).toMatchSnapshot();
   });
 });

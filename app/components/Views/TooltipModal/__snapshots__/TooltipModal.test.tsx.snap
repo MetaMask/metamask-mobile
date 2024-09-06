@@ -1,39 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Tooltip Modal should render correctly 1`] = `
-<ForwardRef>
-  <View
-    style={
+<RNCSafeAreaProvider
+  onInsetsChange={[Function]}
+  style={
+    [
       {
-        "paddingBottom": 16,
-      }
-    }
-  >
-    <BottomSheetHeader
-      onClose={[Function]}
-    >
-      <Text
-        variant="sHeadingMD"
-      >
-        Test Tooltip
-      </Text>
-    </BottomSheetHeader>
-    <View
-      style={
-        {
-          "flexDirection": "row",
-          "justifyContent": "center",
-          "paddingBottom": 16,
-          "paddingHorizontal": 16,
-        }
-      }
-    >
-      <Text
-        variant="sBodyMD"
-      >
-        This is a test tooltip
-      </Text>
-    </View>
-  </View>
-</ForwardRef>
+        "flex": 1,
+      },
+      undefined,
+    ]
+  }
+/>
 `;
