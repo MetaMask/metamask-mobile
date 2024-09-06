@@ -463,7 +463,6 @@ class Engine {
   /**
    * Creates a CoreController instance
    */
-  // eslint-disable-next-line @typescript-eslint/default-param-last
   constructor(
     initialState: Partial<EngineState> = {},
     initialKeyringState?: KeyringControllerState | null,
