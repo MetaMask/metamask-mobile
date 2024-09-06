@@ -18,7 +18,7 @@ import { strings } from '../../../../../locales/i18n';
 import { isPooledStakingFeatureEnabled } from '../../Stake/constants';
 import Title from '../../../Base/Title';
 
-// // TODO: Remove mock data when connecting component to backend.
+// TODO: Remove mock data when connecting component to backend.
 const MOCK_DATA = {
   ANNUAL_EARNING_RATE: '2.6%',
   LIFETIME_REWARDS: {
