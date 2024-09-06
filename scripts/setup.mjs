@@ -4,13 +4,24 @@ import { $ } from 'execa';
 import { Listr } from 'listr2';
 import path from 'path';
 
-const IS_OSX = process.platform === 'darwin';
-const input = process.argv.slice(2)?.[0];
-// iOS builds are enabled by default on macOS only but can be enabled explicitly
-const BUILD_IOS = input === '--build-ios' || IS_OSX;
-const IS_NODE = input === '--node';
-const IS_DIFF = input === '--diff';
 const IS_CI = process.env.CI;
+const IS_OSX = process.platform === 'darwin';
+// iOS builds are enabled by default on macOS only but can be enabled explicitly
+let BUILD_IOS = IS_OSX;
+let IS_NODE = false;
+const args = process.argv.slice(2) || [];
+for (const arg of args) {
+  switch(arg) {
+    case '--build-ios':
+      BUILD_IOS = true;
+      continue;
+    case '--node':
+      IS_NODE = true;
+      continue;
+    default:
+      throw new Error(`Unrecognized CLI arg ${arg}`)
+  }
+}
 
 const rendererOptions = {
   collapseErrors: false,
@@ -24,12 +35,7 @@ const rendererOptions = {
  */
 const copyAndSourceEnvVarsTask = {
   title: 'Copy and source environment variables',
-  task: (_, task) => {
-    if (IS_CI) {
-      task.skip('CI detected');
-    }
-
-    return task.newListr(
+  task: (_, task) => task.newListr(
       [
         {
           title: 'Copy env vars',
@@ -73,8 +79,7 @@ const copyAndSourceEnvVarsTask = {
         concurrent: false,
         exitOnError: true,
       },
-    );
-  },
+    )
 };
 
 const buildPpomTask = {
@@ -119,12 +124,7 @@ const buildPpomTask = {
 
 const setupIosTask = {
   title: 'Set up iOS',
-  task: async (_, task) => {
-    return task.skip('Skipping iOS.');
-    // if (!BUILD_IOS && !IS_DIFF) {
-    // }
-
-    return task.newListr(
+  task: async (_, task) => task.newListr(
       [
         {
           title: 'Install bundler gem',
@@ -156,8 +156,7 @@ const setupIosTask = {
         concurrent: false,
         exitOnError: true,
       },
-    );
-  },
+    )
 };
 
 const buildInpageBridgeTask = {
@@ -258,8 +257,7 @@ const prepareDependenciesTask = {
         // Inpage bridge must generate before node modules are altered
         buildInpageBridgeTask,
         nodeifyTask,
-        runLavamoatAllowScriptsTask,
-        patchPackageTask,
+        yarnSetupNodeTask
       ],
       {
         exitOnError: false,
@@ -271,38 +269,45 @@ const prepareDependenciesTask = {
 
 const yarnSetupNodeTask = {
   title: 'Yarn setup node',
-  task: (_, task) => {
+  task: (_, task) =>
     task.newListr([runLavamoatAllowScriptsTask, patchPackageTask], {
       concurrent: false,
       exitOnError: true,
-    });
-  },
+    }),
 };
+
 
 /**
  * Tasks that can be run concurrently
  */
-// let concurrentTasks = [
-//   prepareDependenciesTask,
-//   copyAndSourceEnvVarsTask,
-//   updateGitSubmodulesTask,
-//   buildPpomTask,
-//   generateTermsOfUseTask,
-//   setupIosTask,
-// ];
 
-// Optimized for CI performance
-// if (IS_NODE) {
-//   concurrentTasks = [yarnSetupNodeTask, generateTermsOfUseTask];
-// }
+const concurrentTasks = [
+    generateTermsOfUseTask,
+    ...(BUILD_IOS ? [setupIosTask] : []),
+    // Optimized for CI performance
+    ...(IS_NODE ? [] : [buildPpomTask]),
+  ];
 
-// // Optimized for detecting diffs
-// if (IS_DIFF) {
-//   concurrentTasks = [yarnSetupNodeTask, generateTermsOfUseTask, setupIosTask];
-// }
-
-const tasks = new Listr([yarnSetupNodeTask, generateTermsOfUseTask], {
-  concurrent: true,
+const tasks = new Listr(
+  [
+    /**
+     * Tasks needed to be run in order before concurrent tasks
+     */
+    ...(IS_NODE
+      ? [yarnSetupNodeTask]
+      : [
+        prepareDependenciesTask,
+        ...(IS_CI ? [] : [copyAndSourceEnvVarsTask]),
+        updateGitSubmodulesTask,
+      ]
+    ),
+    {
+      title: 'Concurrent tasks',
+      task: (_, task) =>
+        task.newListr(concurrentTasks, { concurrent: true, exitOnError: true }),
+    },
+  ], {
+  concurrent: false,
   exitOnError: true,
 });
 
