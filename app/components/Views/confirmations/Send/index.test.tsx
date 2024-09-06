@@ -92,7 +92,6 @@ const initialState: DeepPartial<RootState> = {
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       KeyringController: MOCK_KEYRING_CONTROLLER,
       NetworkController: {
-        network: '1',
         selectedNetworkClientId: 'mainnet',
         networksMetadata: {},
         networkConfigurations: {
@@ -187,7 +186,6 @@ jest.mock('../../../../core/Engine', () => ({
         },
       }),
       state: {
-        network: '1',
         selectedNetworkClientId: 'mainnet',
         networksMetadata: {},
         networkConfigurations: {

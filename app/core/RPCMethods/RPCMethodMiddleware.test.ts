@@ -458,10 +458,11 @@ describe('getRpcMethodMiddleware', () => {
       describe('browser', () => {
         it('returns permitted accounts for connected site', async () => {
           const mockAddress1 = '0x0000000000000000000000000000000000000001';
-          const mockAddress2 = '0x0000000000000000000000000000000000000001';
+          const mockAddress2 = '0x0000000000000000000000000000000000000002';
           setupGlobalState({
             permittedAccounts: { 'example.metamask.io': [mockAddress1] },
             selectedAddress: mockAddress2,
+            selectedNetworkClientId: 'testNetworkClientId',
           });
           const middleware = getRpcMethodMiddleware({
             ...getMinimalBrowserOptions(),
@@ -486,6 +487,7 @@ describe('getRpcMethodMiddleware', () => {
           setupGlobalState({
             permittedAccounts: {},
             selectedAddress: mockAddress,
+            selectedNetworkClientId: 'testNetworkClientId',
           });
           const middleware = getRpcMethodMiddleware({
             ...getMinimalBrowserOptions(),
@@ -511,6 +513,7 @@ describe('getRpcMethodMiddleware', () => {
           setupGlobalState({
             permittedAccounts: { 'example.metamask.io': [mockAddress1] },
             selectedAddress: mockAddress2,
+            selectedNetworkClientId: 'testNetworkClientId',
           });
           const middleware = getRpcMethodMiddleware({
             ...getMinimalWalletConnectOptions(),
@@ -534,10 +537,11 @@ describe('getRpcMethodMiddleware', () => {
       describe('SDK', () => {
         it('returns permitted account for connected host', async () => {
           const mockAddress1 = '0x0000000000000000000000000000000000000001';
-          const mockAddress2 = '0x0000000000000000000000000000000000000001';
+          const mockAddress2 = '0x0000000000000000000000000000000000000002';
           setupGlobalState({
             permittedAccounts: { 'example.metamask.io': [mockAddress1] },
             selectedAddress: mockAddress2,
+            selectedNetworkClientId: 'testNetworkClientId',
           });
           const middleware = getRpcMethodMiddleware({
             ...getMinimalSDKOptions(),
@@ -562,6 +566,7 @@ describe('getRpcMethodMiddleware', () => {
           setupGlobalState({
             permittedAccounts: {},
             selectedAddress: mockAddress2,
+            selectedNetworkClientId: 'testNetworkClientId',
           });
           const middleware = getRpcMethodMiddleware({
             ...getMinimalSDKOptions(),
@@ -1046,6 +1051,7 @@ describe('getRpcMethodMiddleware', () => {
       setupGlobalState({
         addTransactionResult: Promise.resolve('fake-hash'),
         permittedAccounts: { 'example.metamask.io': [mockAddress] },
+        selectedNetworkClientId: 'mainnet', // Added to fix the linting error
       });
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
@@ -1100,6 +1106,7 @@ describe('getRpcMethodMiddleware', () => {
         addTransactionResult: Promise.reject(
           new Error('Failed to process transaction'),
         ),
+        selectedNetworkClientId: 'mainnet', // Added to fix the linting error
       });
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
@@ -1435,6 +1442,7 @@ describe('getRpcMethodMiddleware', () => {
             },
           },
         },
+        selectedNetworkClientId: 'testNetworkId', // Added to meet the required property
       });
 
       const middleware = getRpcMethodMiddleware(getMinimalBrowserOptions());
@@ -1474,6 +1482,7 @@ describe('getRpcMethodMiddleware', () => {
             },
           },
         },
+        selectedNetworkClientId: 'testNetworkId', // Added to meet the required property
       });
 
       const middleware = getRpcMethodMiddleware(getMinimalBrowserOptions());

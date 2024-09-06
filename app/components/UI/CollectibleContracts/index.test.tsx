@@ -84,7 +84,6 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            network: '1',
             selectedNetworkClientId: 'mainnet',
             networksMetadata: {},
             networkConfigurations: {
@@ -210,7 +209,6 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            network: '1',
             selectedNetworkClientId: 'mainnet',
             networksMetadata: {},
             networkConfigurations: {
@@ -330,7 +328,6 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            network: '1',
             selectedNetworkClientId: 'mainnet',
             networksMetadata: {},
             networkConfigurations: {
@@ -451,7 +448,6 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            network: '1',
             selectedNetworkClientId: 'mainnet',
             networksMetadata: {},
             networkConfigurations: {
@@ -534,7 +530,6 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            network: '1',
             selectedNetworkClientId: 'mainnet',
             networksMetadata: {},
             networkConfigurations: {
@@ -597,7 +592,6 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            network: '1',
             selectedNetworkClientId: 'mainnet',
             networksMetadata: {},
             networkConfigurations: {

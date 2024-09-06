@@ -2,7 +2,6 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
 import { NetworkState } from '@metamask/network-controller';
-import { NetworkType } from '@metamask/controller-utils';
 import { LINEA_SEPOLIA_BLOCK_EXPLORER } from '../../../app/constants/urls';
 import { ensureValidState } from './util';
 import { CHAINLIST_CURRENCY_SYMBOLS_MAP } from '../../constants/network';
@@ -72,8 +71,7 @@ export default function migrate(state: unknown) {
 
   // If user is on linea-goerli, switch to linea-sepolia
   if (chainId === CHAIN_IDS.LINEA_GOERLI) {
-    networkControllerState.selectedNetworkClientId =
-      NetworkType['linea-sepolia'];
+    networkControllerState.selectedNetworkClientId = 'linea-sepolia';
 
     // Remove linea-goerli from network configurations
     delete networkControllerState.networkConfigurations['linea-goerli'];
@@ -85,7 +83,6 @@ export default function migrate(state: unknown) {
       id: 'linea-sepolia',
       chainId: CHAIN_IDS.LINEA_SEPOLIA,
       ticker: CHAINLIST_CURRENCY_SYMBOLS_MAP.LINEA_SEPOLIA, // Correct the ticker mapping here
-      type: NetworkType['linea-sepolia'],
       rpcPrefs: {
         blockExplorerUrl: LINEA_SEPOLIA_BLOCK_EXPLORER,
       },

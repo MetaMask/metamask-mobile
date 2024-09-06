@@ -9,7 +9,7 @@ import {
 } from '@metamask/approval-controller';
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import RPCMethods from './index.js';
-import { network } from '../../constants/network';
+import { RPC } from '../../constants/network';
 import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
 import {
   PermissionController,
@@ -180,7 +180,7 @@ export const checkActiveAccountAndChainId = async ({
 
     if (isInitialNetwork) {
       activeChainId = ChainId[networkType as keyof typeof ChainId];
-    } else if (networkType === network) {
+    } else if (networkType === RPC) {
       activeChainId = providerConfig.chainId;
     }
 
@@ -465,7 +465,7 @@ export const getRpcMethodMiddleware = ({
 
         if (isInitialNetwork) {
           chainId = ChainId[networkType as keyof typeof ChainId];
-        } else if (networkType === network) {
+        } else if (networkType === RPC) {
           chainId = providerConfig.chainId;
         }
 

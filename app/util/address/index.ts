@@ -21,7 +21,7 @@ import {
   isMainnetByChainId,
   findBlockExplorerForRpc,
 } from '../../util/networks';
-import { network } from '../../constants/network';
+import { RPC } from '../../constants/network';
 import { collectConfusables } from '../../util/confusables';
 import {
   CONTACT_ALREADY_SAVED,
@@ -609,7 +609,7 @@ export const getTokenDetails = async (
 
 export const getTokenDecimal = async (
   address: string,
-  networkClientId?: NetworkClientId,
+  networkClientId?: string,
 ) => {
   const { AssetsContractController } = Engine.context;
   try {
@@ -628,7 +628,7 @@ export const shouldShowBlockExplorer = (
   providerRpcTarget: string,
   networkConfigurations: NetworkState['networkConfigurations'],
 ) => {
-  if (providerType === network) {
+  if (providerType === RPC) {
     return findBlockExplorerForRpc(providerRpcTarget, networkConfigurations);
   }
   return true;

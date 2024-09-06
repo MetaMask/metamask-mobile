@@ -24,7 +24,6 @@ const mockInitialState: DeepPartial<RootState> = {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
-        network: '1',
         selectedNetworkClientId: 'mainnet',
         networksMetadata: {},
         networkConfigurations: {

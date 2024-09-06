@@ -10,7 +10,7 @@ export interface ProviderConfig {
   chainId: Hex;
   ticker: string;
   rpcUrl: string;
-  type: NetworkClientType;
+  type: string;
   nickname: string | undefined;
   network?: string;
 }

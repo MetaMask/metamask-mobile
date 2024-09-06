@@ -146,7 +146,7 @@ describe('WalletActions', () => {
               sepolia: {
                 id: 'sepolia',
                 rpcUrl: 'http://localhost/v3/',
-                chainId: '0',
+                chainId: '0x0',
                 ticker: 'ETH',
                 nickname: 'Sepolia network',
                 rpcPrefs: {
