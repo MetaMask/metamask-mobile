@@ -24,15 +24,10 @@ index 0dc70ec..461a210 100644
      };
      return acc;
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-ELSMS5S7.js b/node_modules/@metamask/assets-controllers/dist/chunk-ELSMS5S7.js
-index 45254ad..5898714 100644
+index 45254ad..8a82cd7 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-ELSMS5S7.js
 +++ b/node_modules/@metamask/assets-controllers/dist/chunk-ELSMS5S7.js
-@@ -97,15 +97,11 @@ var CurrencyRateController = class extends _pollingcontroller.StaticIntervalPoll
-           nativeCurrencyForExchangeRate,
-           this.includeUsdRate
-         );
-+        console.log(fetchExchangeRateResponse, fetchExchangeRateResponse)
-         conversionRate = fetchExchangeRateResponse.conversionRate;
+@@ -101,11 +101,6 @@ var CurrencyRateController = class extends _pollingcontroller.StaticIntervalPoll
          usdConversionRate = fetchExchangeRateResponse.usdConversionRate;
          conversionDate = Date.now() / 1e3;
        }
@@ -44,7 +39,7 @@ index 45254ad..5898714 100644
        try {
          this.update(() => {
            return {
-@@ -120,9 +116,16 @@ var CurrencyRateController = class extends _pollingcontroller.StaticIntervalPoll
+@@ -120,9 +115,15 @@ var CurrencyRateController = class extends _pollingcontroller.StaticIntervalPoll
              currentCurrency
            };
          });
@@ -54,12 +49,11 @@ index 45254ad..5898714 100644
 +        throw new Error("Error: updateExchangeRate failed to update state")
        }
 +    } catch (error) {
-+      console.log('fetchExchangeRateResponse error', fetchExchangeRateResponse)
 +      if (!(error instanceof Error && error.message.includes("market does not exist for this coin pair"))) {
 +        throw error;
 +      }
 +    } finally {
-+      releaseLock();
++        releaseLock();
      }
    }
    /**
