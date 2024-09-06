@@ -1,6 +1,9 @@
 # syntax=docker/dockerfile:1.4
 FROM node:20-bookworm
 
+# Turn off detached HEAD advice
+RUN git config --global advice.detachedHead false
+
 RUN apt-get update \
   && apt-get install -y \
     git curl jq time \
