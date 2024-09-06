@@ -216,7 +216,6 @@ export const ledgerSignTypedMessage = async (
 export const unlockLedgerWalletAccount = async (index: number) => {
   await withLedgerKeyring(async (keyring: LedgerKeyring) => {
     keyring.setAccountToUnlock(index);
-    const addresses = await keyring.addAccounts(1);
-    console.warn('addresses', addresses);
+    await keyring.addAccounts(1);
   });
 };
