@@ -23,6 +23,59 @@ index 0dc70ec..461a210 100644
        }
      };
      return acc;
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-ELSMS5S7.js b/node_modules/@metamask/assets-controllers/dist/chunk-ELSMS5S7.js
+index 45254ad..83634ab 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-ELSMS5S7.js
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-ELSMS5S7.js
+@@ -87,6 +87,7 @@ var CurrencyRateController = class extends _pollingcontroller.StaticIntervalPoll
+     const nativeCurrencyForExchangeRate = Object.values(
+       _controllerutils.TESTNET_TICKER_SYMBOLS
+     ).includes(nativeCurrency) ? _controllerutils.FALL_BACK_VS_CURRENCY : nativeCurrency;
++    let shouldUpdateState = true;
+     try {
+       if (currentCurrency && nativeCurrency && // if either currency is an empty string we can skip the comparison
+       // because it will result in an error from the api and ultimately
+@@ -103,23 +104,27 @@ var CurrencyRateController = class extends _pollingcontroller.StaticIntervalPoll
+       }
+     } catch (error) {
+       if (!(error instanceof Error && error.message.includes("market does not exist for this coin pair"))) {
++        // Don't update state on transient / unexpected errors
++        shouldUpdateState = false;
+         throw error;
+       }
+     } finally {
+       try {
+-        this.update(() => {
+-          return {
+-            currencyRates: {
+-              ...currencyRates,
+-              [nativeCurrency]: {
+-                conversionDate,
+-                conversionRate,
+-                usdConversionRate
+-              }
+-            },
+-            currentCurrency
+-          };
+-        });
++        if (shouldUpdateState) {
++          this.update(() => {
++            return {
++              currencyRates: {
++                ...currencyRates,
++                [nativeCurrency]: {
++                  conversionDate,
++                  conversionRate,
++                  usdConversionRate
++                }
++              },
++              currentCurrency
++            };
++          });
++        }
+       } finally {
+         releaseLock();
+       }
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-FMZML3V5.js b/node_modules/@metamask/assets-controllers/dist/chunk-FMZML3V5.js
 index ee6155c..06a3a04 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-FMZML3V5.js

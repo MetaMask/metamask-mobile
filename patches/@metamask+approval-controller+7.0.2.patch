@@ -385,3 +385,20 @@ index 84c51b2..0000000
 @@ -1 +0,0 @@
 -{"version":3,"sources":[],"sourcesContent":[],"mappings":"","names":[]}
 \ No newline at end of file
+diff --git a/node_modules/@metamask/approval-controller/dist/types/ApprovalController.d.ts b/node_modules/@metamask/approval-controller/dist/types/ApprovalController.d.ts
+index 2b9ad4d..26efec3 100644
+--- a/node_modules/@metamask/approval-controller/dist/types/ApprovalController.d.ts
++++ b/node_modules/@metamask/approval-controller/dist/types/ApprovalController.d.ts
+@@ -101,6 +101,12 @@ export type AcceptOptions = {
+      * If false or unspecified, the promise will resolve immediately.
+      */
+     waitForResult?: boolean;
++    /**
++     * Patch for #10758
++     * provide the AcceptOptions with extra options which have been used in `engine.acceptPendingApproval()` function in mobile.
++     * the metamask mobile already patch the AprrovalControll.accept() function to accept the extra options.
++     */
++    deleteAfterResult?: boolean;
+ };
+ export type StartFlowOptions = OptionalField<ApprovalFlow, 'id' | 'loadingText'> & {
+     show?: boolean;

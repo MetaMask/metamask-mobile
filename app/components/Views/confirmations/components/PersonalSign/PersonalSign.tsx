@@ -98,7 +98,7 @@ const PersonalSign = ({
       }
     }
 
-    let blockaidParams: Record<string, string> = {};
+    let blockaidParams: Record<string, unknown> = {};
     if (securityAlertResponse) {
       blockaidParams = getBlockaidMetricsParams(
         securityAlertResponse as SecurityAlertResponse,
