@@ -1,13 +1,13 @@
 import { AccountsController } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
-import Client, {
-  SingleEthereum,
-  SingleEthereumTypes,
-} from '@walletconnect/se-sdk';
 import { KeyringController } from '@metamask/keyring-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import { NavigationContainerRef } from '@react-navigation/native';
 import { Core } from '@walletconnect/core';
+import Client, {
+  SingleEthereum,
+  SingleEthereumTypes,
+} from '@walletconnect/se-sdk';
 import { SessionTypes } from '@walletconnect/types';
 import { getSdkError } from '@walletconnect/utils';
 
@@ -18,6 +18,7 @@ import StorageWrapper from '../../store/storage-wrapper';
 import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
 import Engine from '../Engine';
+import { getPermittedAccounts } from '../Permissions';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import getAllUrlParams from '../SDKConnect/utils/getAllUrlParams.util';
 import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
