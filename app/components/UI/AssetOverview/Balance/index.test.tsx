@@ -3,8 +3,6 @@ import Balance from '.';
 import { render } from '@testing-library/react-native';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
 import { selectChainId } from '../../../../selectors/networkController';
-// eslint-disable-next-line import/no-namespace
-import * as reactRedux from 'react-redux';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -31,15 +29,19 @@ describe('Balance', () => {
     jest.resetAllMocks();
   });
   it('should render correctly with a fiat balance', () => {
-    const useSelectorSpy = jest.spyOn(reactRedux, 'useSelector');
-    useSelectorSpy.mockImplementation((selector) => {
-      switch (selector) {
-        case selectNetworkName:
-          return {};
-        case selectChainId:
-          return '1';
-      }
-    });
+    jest.mock('react-redux', () => ({
+      ...jest.requireActual('react-redux'), // Keep the rest of react-redux as it is
+      useSelector: jest.fn((selector) => {
+        switch (selector) {
+          case selectNetworkName:
+            return {};
+          case selectChainId:
+            return '1';
+          default:
+            return undefined; // Default case to return undefined if no match
+        }
+      }),
+    }));
     const wrapper = render(
       <Balance asset={mockDAI} mainBalance="123" secondaryBalance="456" />,
     );
