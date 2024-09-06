@@ -95,10 +95,7 @@ import {
   LINEA_DEFAULT_RPC_URL,
   MAINNET_DEFAULT_RPC_URL,
 } from '../../../constants/urls';
-import {
-  selectNetworkClientIdsByDomains,
-  useNetworkInfo,
-} from '../../../selectors/selectedNetworkController';
+import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 
 interface infuraNetwork {
   name: string;
@@ -143,26 +140,17 @@ const NetworkSelector = () => {
   const origin = route.params?.hostInfo?.metadata?.origin;
 
   const {
-    chainId: domainChainId,
-    // rpcUrl: domainRpcUrl,
+    chainId: selectedChainId,
+    rpcUrl: selectedRpcUrl,
     domainIsConnectedDapp,
   } = useNetworkInfo(origin);
 
   console.log(
-    'ALEX LOGGING: testing selectNetworkConfiguration:',
-    useSelector(selectNetworkClientIdsByDomains),
-  );
-
-  console.log(
-    'ALEX LOGGING: NETWORK SELECTOR route values:',
-    origin,
-    'chainId:',
-    domainChainId,
-    'domainIsConnectedDapp:',
+    'ALEX LOGGING: SELECTED CHAINID:  ',
+    selectedChainId,
     domainIsConnectedDapp,
+    selectedRpcUrl,
   );
-
-  const selectedChainId = domainChainId || providerConfig.chainId;
 
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
   const modalTitle = isNetworkUiRedesignEnabled()
@@ -411,6 +399,7 @@ const NetworkSelector = () => {
             imageSource: images.ETHEREUM,
             size: AvatarSize.Sm,
           }}
+          // TODO ALEX what is the `&& !providerConfig.rpcUrl` condition doing here?
           isSelected={chainId === selectedChainId && !providerConfig.rpcUrl}
           onPress={() => onNetworkChange(MAINNET)}
           style={styles.networkCell}
@@ -526,7 +515,7 @@ const NetworkSelector = () => {
                 size: AvatarSize.Sm,
               }}
               isSelected={Boolean(
-                chainId === selectedChainId && providerConfig.rpcUrl,
+                chainId === selectedChainId && selectedRpcUrl,
               )}
               onPress={() => onSetRpcTarget(rpcUrl)}
               style={styles.networkCell}
@@ -558,9 +547,7 @@ const NetworkSelector = () => {
               imageSource: image,
               size: avatarSize,
             }}
-            isSelected={Boolean(
-              chainId === selectedChainId && providerConfig.rpcUrl,
-            )}
+            isSelected={Boolean(chainId === selectedChainId && selectedRpcUrl)}
             onPress={() => onSetRpcTarget(rpcUrl)}
             style={styles.networkCell}
           />

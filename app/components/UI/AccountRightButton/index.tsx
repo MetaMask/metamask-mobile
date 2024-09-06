@@ -24,15 +24,11 @@ import Badge, {
 } from '../../../component-library/components/Badges/Badge';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import { selectProviderConfig } from '../../../selectors/networkController';
-import {
-  selectNetworkName,
-  selectNetworkImageSource,
-} from '../../../selectors/networkInfos';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/AccountOverview.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { useNetworkInfo } from 'app/selectors/selectedNetworkController';
+import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 
 const styles = StyleSheet.create({
   leftButton: {
@@ -145,19 +141,7 @@ const AccountRightButton = ({
     hostname = new URL(currentUrl).hostname;
   }
 
-  const {
-    networkName: domainNetworkName,
-    networkImageSource: domainNetworkImageSource,
-  } = useNetworkInfo(hostname);
-
-  console.log('ALEX LOGGING: origin in accountRightButton:', hostname);
-
-  const networkName = useSelector(selectNetworkName);
-  const networkImageSource = useSelector(selectNetworkImageSource);
-
-  const selectedNetworkName = domainNetworkName || networkName;
-  const selectedNetworkImageSource =
-    domainNetworkImageSource || networkImageSource;
+  const { networkName, networkImageSource } = useNetworkInfo(hostname);
 
   const renderAvatarAccount = () => (
     <AvatarAccount type={accountAvatarType} accountAddress={selectedAddress} />

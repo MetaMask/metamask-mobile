@@ -23,18 +23,11 @@ import getAccountNameWithENS from '../../../../util/accounts';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
 import {
-  selectNetworkClientId,
-  selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../../selectors/networkController';
 import {
-  selectNetworkClientIdsByDomains,
   useNetworkInfo,
 } from '../../../../selectors/selectedNetworkController';
-import {
-  selectNetworkName,
-  selectNetworkImageSource,
-} from '../../../../selectors/networkInfos';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectedAccountModal.selectors';
 
 // Internal dependencies.

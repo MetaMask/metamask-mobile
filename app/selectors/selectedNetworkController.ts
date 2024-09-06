@@ -2,27 +2,19 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
-import { NetworkState } from '@metamask/network-controller';
+import { ProviderConfig } from '@metamask/network-controller';
 import { SelectedNetworkControllerState } from '@metamask/selected-network-controller';
 import { getNetworkImageSource, NetworkList } from '../util/networks';
-
-const selectNetworkControllerState = (state: RootState) =>
-  state?.engine?.backgroundState?.NetworkController;
+import {
+  selectProviderConfig,
+  selectNetworkClientId,
+  selectNetworkConfigurations,
+  selectChainId as selectProviderChainId,
+  selectRpcUrl as selectProviderRpcUrl,
+} from './networkController';
 
 const selectSelectedNetworkControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.SelectedNetworkController;
-
-export const selectNetworkConfigurations = createSelector(
-  selectNetworkControllerState,
-  (networkControllerState: NetworkState) =>
-    networkControllerState.networkConfigurations,
-);
-
-export const selectNetworkClientId = createSelector(
-  selectNetworkControllerState,
-  (networkControllerState: NetworkState) =>
-    networkControllerState.selectedNetworkClientId,
-);
 
 export const selectNetworkClientIdsByDomains = createSelector(
   selectSelectedNetworkControllerState,
@@ -30,41 +22,62 @@ export const selectNetworkClientIdsByDomains = createSelector(
     selectedNetworkControllerState?.domains,
 );
 
-export const makeSelectDomainIsConnectedDapp = () =>
-  createSelector(
-    [
-      selectNetworkClientIdsByDomains,
-      (_: RootState, hostname: string) => hostname,
-    ],
-    (networkClientIdsByDomains, hostname) => {
-      return Boolean(networkClientIdsByDomains?.[hostname]);
-    },
-  );
-
 export const makeSelectDomainNetworkClientId = () =>
   createSelector(
     [
       selectNetworkClientIdsByDomains,
-      (_: RootState, hostname: string) => hostname,
+      (_: RootState, hostname?: string) => hostname,
     ],
     (networkClientIdsByDomains, hostname) =>
-      networkClientIdsByDomains?.[hostname],
+      hostname ? networkClientIdsByDomains?.[hostname] : undefined,
   );
+
+const selectProviderNetworkName = createSelector(
+  [selectProviderConfig, selectNetworkConfigurations],
+  (providerConfig: ProviderConfig, networkConfigurations) => {
+    if (providerConfig.type === 'rpc') {
+      return (
+        networkConfigurations[providerConfig.nickname]?.nickname ||
+        providerConfig.nickname
+      );
+    }
+    // @ts-expect-error The utils/network file is still JS
+    return NetworkList[providerConfig.type]?.name || providerConfig.nickname;
+  },
+);
+
+const selectProviderNetworkImageSource = createSelector(
+  selectProviderConfig,
+  (providerConfig: ProviderConfig) => {
+    return getNetworkImageSource({
+      networkType: providerConfig.type,
+      chainId: providerConfig.chainId,
+    });
+  },
+);
 
 export const makeSelectNetworkName = () =>
   createSelector(
     [
       selectNetworkConfigurations,
-      selectNetworkClientId,
+      selectProviderNetworkName,
       makeSelectDomainNetworkClientId(),
-      (_: RootState, hostname: string) => hostname,
+      selectNetworkClientId,
+      (_: RootState, hostname?: string) => hostname,
     ],
-    (networkConfigurations, globalNetworkClientId, domainNetworkClientId) => {
+    (
+      networkConfigurations,
+      providerNetworkName,
+      domainNetworkClientId,
+      globalNetworkClientId,
+      hostname,
+    ) => {
+      if (!hostname) return providerNetworkName;
       const relevantNetworkClientId =
         domainNetworkClientId || globalNetworkClientId;
+      // @ts-expect-error The utils/network file is still JS
       return (
         networkConfigurations[relevantNetworkClientId]?.nickname ||
-        //@ts-expect-error - The utils/network file is still JS
         NetworkList[relevantNetworkClientId]?.name
       );
     },
@@ -74,26 +87,31 @@ export const makeSelectNetworkImageSource = () =>
   createSelector(
     [
       selectNetworkConfigurations,
-      selectNetworkClientId,
+      selectProviderNetworkImageSource,
       makeSelectDomainNetworkClientId(),
-      (_: RootState, hostname: string) => hostname,
+      selectNetworkClientId,
+      (_: RootState, hostname?: string) => hostname,
     ],
-    (networkConfigurations, globalNetworkClientId, domainNetworkClientId) => {
+    (
+      networkConfigurations,
+      providerNetworkImageSource,
+      domainNetworkClientId,
+      globalNetworkClientId,
+      hostname,
+    ) => {
+      if (!hostname) return providerNetworkImageSource;
       const relevantNetworkClientId =
         domainNetworkClientId || globalNetworkClientId;
       const networkConfig = networkConfigurations[relevantNetworkClientId];
-
       if (networkConfig) {
-        //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-        return getNetworkImageSource({
-          chainId: networkConfig.chainId,
-        });
+        // @ts-expect-error The utils/network file is still JS and this function expects a networkType, and should be optional
+        return getNetworkImageSource({ chainId: networkConfig.chainId });
       } else {
         return getNetworkImageSource({
-          //@ts-expect-error - The utils/network file is still JS
-          networkType: NetworkList[relevantNetworkClientId].networkType,
-          //@ts-expect-error - The utils/network file is still JS
-          chainId: NetworkList[relevantNetworkClientId].chainId,
+          // @ts-expect-error The utils/network file is still JS
+          networkType: NetworkList[relevantNetworkClientId]?.networkType,
+          // @ts-expect-error The utils/network file is still JS
+          chainId: NetworkList[relevantNetworkClientId]?.chainId,
         });
       }
     },
@@ -103,16 +121,26 @@ export const makeSelectChainId = () =>
   createSelector(
     [
       selectNetworkConfigurations,
-      selectNetworkClientId,
+      selectProviderChainId,
       makeSelectDomainNetworkClientId(),
-      (_: RootState, hostname: string) => hostname,
+      selectNetworkClientId,
+      (_: RootState, hostname?: string) => hostname,
     ],
-    (networkConfigurations, globalNetworkClientId, domainNetworkClientId) => {
+    (
+      networkConfigurations,
+      providerChainId,
+      domainNetworkClientId,
+      globalNetworkClientId,
+      hostname,
+    ) => {
+      if (!hostname) {
+        return providerChainId;
+      }
       const relevantNetworkClientId =
         domainNetworkClientId || globalNetworkClientId;
       return (
         networkConfigurations[relevantNetworkClientId]?.chainId ||
-        //@ts-expect-error - The utils/network file is still JS
+        // @ts-expect-error The utils/network file is still JS
         NetworkList[relevantNetworkClientId]?.chainId
       );
     },
@@ -122,31 +150,37 @@ export const makeSelectRpcUrl = () =>
   createSelector(
     [
       selectNetworkConfigurations,
-      selectNetworkClientId,
+      selectProviderRpcUrl,
       makeSelectDomainNetworkClientId(),
-      (_: RootState, hostname: string) => hostname,
+      selectNetworkClientId,
+      (_: RootState, hostname?: string) => hostname,
     ],
-    (networkConfigurations, globalNetworkClientId, domainNetworkClientId) => {
+    (
+      networkConfigurations,
+      providerRpcUrl,
+      domainNetworkClientId,
+      globalNetworkClientId,
+      hostname,
+    ) => {
+      if (!hostname) return providerRpcUrl;
       const relevantNetworkClientId =
         domainNetworkClientId || globalNetworkClientId;
-      return (
-        networkConfigurations[relevantNetworkClientId]?.rpcUrl ||
-        //@ts-expect-error - The utils/network file is still JS
-        // TODO ALEX this isn't where the rpcUrl is stored for preloaded networks
-        NetworkList[relevantNetworkClientId]?.rpcUrl
-      );
+      return networkConfigurations[relevantNetworkClientId]?.rpcUrl;
+    },
+  );
+
+export const makeSelectDomainIsConnectedDapp = () =>
+  createSelector(
+    [
+      selectNetworkClientIdsByDomains,
+      (_: RootState, hostname?: string) => hostname,
+    ],
+    (networkClientIdsByDomains, hostname) => {
+      return Boolean(hostname && networkClientIdsByDomains?.[hostname]);
     },
   );
 
 export const useNetworkInfo = (hostname?: string) => {
-  if (!hostname)
-    return {
-      networkName: '',
-      networkImageSource: '',
-      domainNetworkClientId: '',
-      chainId: '',
-      rpcUrl: '',
-    };
   const selectNetworkName = useMemo(() => makeSelectNetworkName(), []);
   const selectNetworkImageSource = useMemo(
     () => makeSelectNetworkImageSource(),
@@ -190,4 +224,15 @@ export const useNetworkInfo = (hostname?: string) => {
     rpcUrl,
     domainIsConnectedDapp,
   };
+};
+
+export const useDomainNetworkClientId = (hostname: string) => {
+  const selectDomainNetworkClientId = useMemo(
+    () => makeSelectDomainNetworkClientId(),
+    [],
+  );
+
+  return useSelector((state: RootState) =>
+    selectDomainNetworkClientId(state, hostname),
+  );
 };
