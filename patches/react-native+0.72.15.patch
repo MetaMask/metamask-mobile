@@ -301,9 +301,18 @@ index 6507f8b..924edd3 100644
      end
  
 diff --git a/node_modules/react-native/scripts/ios-configure-glog.sh b/node_modules/react-native/scripts/ios-configure-glog.sh
-index f13c61b..7466c74 100755
+index f13c61b..a0a01a2 100755
 --- a/node_modules/react-native/scripts/ios-configure-glog.sh
 +++ b/node_modules/react-native/scripts/ios-configure-glog.sh
+@@ -4,7 +4,7 @@
+ # This source code is licensed under the MIT license found in the
+ # LICENSE file in the root directory of this source tree.
+ 
+-set -e
++set -ex
+ 
+ PLATFORM_NAME="${PLATFORM_NAME:-iphoneos}"
+ CURRENT_ARCH="${CURRENT_ARCH}"
 @@ -42,8 +42,16 @@ EOF
      patch -p1 config.sub fix_glog_0.3.5_apple_silicon.patch
  fi
@@ -324,7 +333,7 @@ index f13c61b..7466c74 100755
  # Remove automake symlink if it exists
  if [ -h "test-driver" ]; then
 diff --git a/node_modules/react-native/scripts/react_native_pods.rb b/node_modules/react-native/scripts/react_native_pods.rb
-index ba4caf2..09f54e3 100644
+index ba4caf2..7335b50 100644
 --- a/node_modules/react-native/scripts/react_native_pods.rb
 +++ b/node_modules/react-native/scripts/react_native_pods.rb
 @@ -251,9 +251,13 @@ def react_native_post_install(
