@@ -72,6 +72,7 @@
     "selectedNetworkClientId": "mainnet"
   },
   "PhishingController": {
+    "c2DomainBlocklistLastFetched": 0,
     "phishingLists": [],
     "whitelist": [],
     "hotlistLastFetched": 0,
