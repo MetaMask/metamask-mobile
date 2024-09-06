@@ -11,6 +11,8 @@ import ledgerDeviceLightImage from 'images/ledger-device-light.png';
 import ledgerDeviceDarkImage from 'images/ledger-device-dark.png';
 import {
   forgetLedger,
+  getHDPath,
+  getLedgerAccounts,
   getLedgerAccountsByOperation,
   setHDPath,
   unlockLedgerWalletAccount,
@@ -33,6 +35,7 @@ import {
   LEDGER_LIVE_PATH,
 } from '../../../core/Ledger/constants';
 import SelectOptionSheet from '../../UI/SelectOptionSheet';
+import { AccountsController } from '@metamask/accounts-controller';
 
 interface OptionType {
   key: string;
@@ -88,6 +91,13 @@ const LedgerSelectAccount = () => {
     return controller;
   }, []);
 
+  const accountsController = useMemo(() => {
+    const { AccountsController: controller } = Engine.context as {
+      AccountsController: AccountsController;
+    };
+    return controller;
+  }, []);
+
   const [blockingModalVisible, setBlockingModalVisible] = useState(false);
   const [accounts, setAccounts] = useState<
     { address: string; index: number; balance: string }[]
@@ -125,9 +135,11 @@ const LedgerSelectAccount = () => {
 
   const onConnectHardware = useCallback(async () => {
     setErrorMsg(null);
+
     trackEvent(MetaMetricsEvents.CONTINUE_LEDGER_HARDWARE_WALLET, {
       device_type: HardwareDeviceTypes.LEDGER,
     });
+
     const _accounts = await getLedgerAccountsByOperation(
       PAGINATION_OPERATIONS.GET_FIRST_PAGE,
     );
@@ -137,6 +149,7 @@ const LedgerSelectAccount = () => {
   useEffect(() => {
     if (accounts.length > 0 && selectedOption) {
       showLoadingModal();
+
       getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE)
         .then((_accounts) => {
           setAccounts(_accounts);
@@ -168,6 +181,28 @@ const LedgerSelectAccount = () => {
     setBlockingModalVisible(false);
   }, []);
 
+  const updateNewLegacyAccountsLabel = useCallback(async () => {
+    if (LEDGER_LEGACY_PATH === (await getHDPath())) {
+      const ledgerAccounts = await getLedgerAccounts();
+      const newAddedAccounts = ledgerAccounts.filter(
+        (account) => !existingAccounts.includes(account.toLowerCase()),
+      );
+
+      if (newAddedAccounts.length > 0) {
+        // get existing account label
+        for (const address of newAddedAccounts) {
+          const account = accountsController.getAccountByAddress(address);
+          if (account) {
+            accountsController.setAccountName(
+              account.id,
+              account.metadata.name + strings('ledger.ledger_legacy_label'),
+            );
+          }
+        }
+      }
+    }
+  }, [accountsController, existingAccounts]);
+
   const onUnlock = useCallback(
     async (accountIndexes: number[]) => {
       showLoadingModal();
@@ -175,6 +210,8 @@ const LedgerSelectAccount = () => {
         for (const index of accountIndexes) {
           await unlockLedgerWalletAccount(index);
         }
+
+        await updateNewLegacyAccountsLabel();
       } catch (err) {
         setErrorMsg((err as Error).message);
       } finally {
@@ -187,7 +224,12 @@ const LedgerSelectAccount = () => {
       });
       navigation.pop(2);
     },
-    [navigation, selectedOption.value, trackEvent],
+    [
+      navigation,
+      selectedOption.value,
+      trackEvent,
+      updateNewLegacyAccountsLabel,
+    ],
   );
 
   const onForget = useCallback(async () => {
@@ -264,7 +306,7 @@ const LedgerSelectAccount = () => {
         <View style-={styles.selectorContainer}>
           {errorMsg && <Text style={styles.error}>{errorMsg}</Text>}
           <Text style={styles.mainTitle}>
-            {strings('ledger.select_accounts')}{' '}
+            {strings('ledger.select_accounts')}
           </Text>
           <Text style={styles.selectorTitle}>
             {strings('ledger.select_hd_path')}

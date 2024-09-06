@@ -136,6 +136,23 @@ export const setHDPath = async (path: string) => {
 };
 
 /**
+ * Get HD Path from Ledger Keyring
+ *
+ * @returns The HD Path
+ */
+export const getHDPath = async (): Promise<string> =>
+  await withLedgerKeyring(async (keyring: LedgerKeyring) => keyring.hdPath);
+
+/**
+ * Get Ledger Accounts
+ * @returns The Ledger Accounts
+ */
+export const getLedgerAccounts = async (): Promise<string[]> =>
+  await withLedgerKeyring(async (keyring: LedgerKeyring) =>
+    keyring.getAccounts(),
+  );
+
+/**
  * Unlock Ledger Accounts by page
  * @param operation - the operation number, <br> 0: Get First Page<br> 1: Get Next Page <br> -1: Get Previous Page
  * @return The Ledger Accounts
@@ -199,6 +216,7 @@ export const ledgerSignTypedMessage = async (
 export const unlockLedgerWalletAccount = async (index: number) => {
   await withLedgerKeyring(async (keyring: LedgerKeyring) => {
     keyring.setAccountToUnlock(index);
-    await keyring.addAccounts(1);
+    const addresses = await keyring.addAccounts(1);
+    console.warn('addresses', addresses);
   });
 };

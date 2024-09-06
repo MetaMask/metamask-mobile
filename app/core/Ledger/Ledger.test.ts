@@ -3,12 +3,13 @@ import {
   connectLedgerHardware,
   forgetLedger,
   getDeviceId,
+  getHDPath, getLedgerAccounts,
   getLedgerAccountsByOperation,
   isValidPath,
   ledgerSignTypedMessage,
   openEthereumAppOnLedger,
   setHDPath,
-  unlockLedgerWalletAccount,
+  unlockLedgerWalletAccount
 } from './Ledger';
 import Engine from '../../core/Engine';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
@@ -32,6 +33,7 @@ const MockEngine = jest.mocked(Engine);
 
 interface mockKeyringType {
   addAccounts: jest.Mock;
+  getAccounts: jest.Mock;
   bridge: {
     getAppNameAndVersion: jest.Mock;
     updateTransportMethod: jest.Mock;
@@ -46,6 +48,7 @@ interface mockKeyringType {
   getPreviousPage: jest.Mock;
   setDeviceId: jest.Mock;
   setHdPath: jest.Mock;
+  hdPath: string;
   setAccountToUnlock: jest.Mock;
 }
 
@@ -108,7 +111,14 @@ describe('Ledger core', () => {
       ]),
       setDeviceId: jest.fn(),
       setHdPath: jest.fn(),
+      hdPath: LEDGER_LIVE_PATH,
       setAccountToUnlock: jest.fn(),
+      getAccounts: jest
+        .fn()
+        .mockResolvedValue([
+          '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
+          '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB3',
+        ]),
     };
 
     mockKeyringController.withKeyring.mockImplementation(
@@ -197,6 +207,24 @@ describe('Ledger core', () => {
         expect(err).toBeInstanceOf(Error);
         expect((err as Error).message).toBe('HD Path is invalid: ');
       }
+    });
+  });
+
+  describe('getHDPath', () => {
+    it('calls keyring.getHdPath', async () => {
+      const path = await getHDPath();
+      expect(path).toBe(LEDGER_LIVE_PATH);
+    });
+  });
+
+  describe('getLedgerAccounts', () => {
+    it('calls keyring.getAccounts', async () => {
+      const accounts = await getLedgerAccounts();
+      expect(ledgerKeyring.getAccounts).toHaveBeenCalled();
+      expect(accounts).toEqual([
+        '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
+        '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB3',
+      ]);
     });
   });
 
