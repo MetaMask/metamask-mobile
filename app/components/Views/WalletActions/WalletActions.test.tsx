@@ -50,6 +50,18 @@ const mockInitialState: DeepPartial<RootState> = {
 
 jest.mock('../../../core/Engine', () => ({
   init: () => mockEngine.init({}),
+  context: {
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+    },
+  },
 }));
 
 const mockNavigate = jest.fn();
@@ -128,11 +140,11 @@ describe('WalletActions', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            selectedNetworkClientId: 'mainnet',
+            selectedNetworkClientId: 'sepolia',
             networksMetadata: {},
             networkConfigurations: {
               sepolia: {
-                id: 'mainnet',
+                id: 'sepolia',
                 rpcUrl: 'http://localhost/v3/',
                 chainId: '0',
                 ticker: 'ETH',

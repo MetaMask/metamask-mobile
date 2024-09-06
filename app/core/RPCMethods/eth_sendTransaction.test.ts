@@ -20,6 +20,14 @@ jest.mock('../../core/Engine', () => ({
       usePPOM: jest.fn(),
     },
     NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
       state: {
         selectedNetworkClientId: 'mainnet',
         networksMetadata: {},

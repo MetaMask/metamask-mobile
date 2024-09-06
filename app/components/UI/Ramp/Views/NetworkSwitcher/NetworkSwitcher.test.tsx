@@ -119,6 +119,14 @@ jest.mock('../../../../../core/Engine', () => ({
     NetworkController: {
       setProviderType: jest.fn(),
       setActiveNetwork: jest.fn(),
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
     },
     CurrencyRateController: {
       updateExchangeRate: jest.fn(),

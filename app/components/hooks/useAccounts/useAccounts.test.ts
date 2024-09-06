@@ -6,6 +6,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { Account } from './useAccounts.types';
 import { Hex } from '@metamask/utils';
+import mockedEngine from '../../../core/__mocks__/MockedEngine';
 
 const MOCK_ENS_CACHED_NAME = 'fox.eth';
 
@@ -14,6 +15,23 @@ const MOCK_CHAIN_ID = '0x1';
 const MOCK_ACCOUNT_ADDRESSES = Object.values(
   MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
 ).map((account) => account.address);
+
+// Mock the Engine context and NetworkController
+jest.mock('../../../core/Engine', () => ({
+  init: () => mockedEngine.init(),
+  context: {
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+    },
+  },
+}));
 
 const MOCK_ACCOUNT_1: Account = {
   name: 'Account 1',

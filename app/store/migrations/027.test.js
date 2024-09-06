@@ -233,7 +233,7 @@ describe('Migration #27', () => {
         chainId: '5',
         hash: '0x2',
         migration: true,
-        networkType: 'goerli',
+        networkType: 'rpc',
         networkUrl: ['http://goerli.test.com', 'http://goerli.test2.com'],
         origin: 'test.com',
         rawTransaction: '0x3',

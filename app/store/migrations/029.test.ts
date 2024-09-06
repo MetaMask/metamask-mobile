@@ -4,6 +4,7 @@ import initialRootState, {
   backgroundState,
 } from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
+import mockedEngine from '../../core/__mocks__/MockedEngine';
 
 const oldState = {
   engine: {
@@ -214,6 +215,23 @@ const expectedNewState = {
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
+
+jest.mock('../../core/Engine', () => ({
+  init: () => mockedEngine.init(),
+  context: {
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+    },
+  },
+}));
+
 const mockedCaptureException = jest.mocked(captureException);
 
 describe('Migration #29', () => {
@@ -456,6 +474,7 @@ describe('Migration #29', () => {
 
   it('All states changing as expected', async () => {
     const newState = await migration(oldState);
+    console.log('newState *****', newState);
 
     expect(newState).toStrictEqual(expectedNewState);
   });

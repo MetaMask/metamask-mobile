@@ -5,6 +5,23 @@ import {
   POLLING_FRECUENCY_IN_SECONDS,
   processAggregatorOrder,
 } from './aggregator';
+import mockedEngine from '../../../../core/__mocks__/MockedEngine';
+
+jest.mock('../../../../core/Engine', () => ({
+  init: () => mockedEngine.init(),
+  context: {
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+    },
+  },
+}));
 
 describe('aggregatorOrderToFiatOrder', () => {
   const now = 1673886669608;

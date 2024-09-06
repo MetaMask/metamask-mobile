@@ -2,6 +2,7 @@ import migration from './031';
 import { merge } from 'lodash';
 import { captureException } from '@sentry/react-native';
 import initialRootState from '../../util/test/initial-root-state';
+import mockedEngine from '../../core/__mocks__/MockedEngine';
 const oldState1 = {
   engine: {
     backgroundState: {
@@ -177,6 +178,22 @@ const expectedState2 = {
     },
   },
 };
+
+jest.mock('../../core/Engine', () => ({
+  init: () => mockedEngine.init(),
+  context: {
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+    },
+  },
+}));
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),

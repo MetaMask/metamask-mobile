@@ -2,6 +2,7 @@ import migrate from './043';
 import { merge } from 'lodash';
 import { captureException } from '@sentry/react-native';
 import initialRootState from '../../util/test/initial-root-state';
+import mockedEngine from '../../core/__mocks__/MockedEngine';
 // This is a state mock with invalid networkConfigurations, derived from the state logs of an affected user
 const oldState = {
   engine: {
@@ -301,6 +302,23 @@ const expectedState = {
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
+
+jest.mock('../../core/Engine', () => ({
+  init: () => mockedEngine.init(),
+  context: {
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+    },
+  },
+}));
+
 const mockedCaptureException = jest.mocked(captureException);
 
 describe('Migration #43', () => {

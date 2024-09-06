@@ -44,15 +44,15 @@ const mockInitialState: DeepPartial<RootState> = {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       NetworkController: {
-        selectedNetworkClientId: 'sepolia',
+        selectedNetworkClientId: 'mainnet',
         networksMetadata: {},
         networkConfigurations: {
-          sepolia: {
-            id: 'sepolia',
+          mainnet: {
+            id: 'mainnet',
             rpcUrl: 'http://localhost/v3/',
             chainId: MOCK_CHAIN_ID,
             ticker: 'ETH',
-            nickname: 'Sepolia',
+            nickname: 'Ethereum Mainnet',
             rpcPrefs: {
               blockExplorerUrl: 'https://etherscan.com',
             },
@@ -65,6 +65,16 @@ const mockInitialState: DeepPartial<RootState> = {
 
 jest.mock('../../../core/Engine', () => ({
   context: {
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+    },
     KeyringController: {
       state: {
         keyrings: [

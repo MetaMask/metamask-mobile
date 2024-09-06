@@ -5,10 +5,28 @@ import initialRootState, {
 } from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
 import { userInitialState } from '../../reducers/user';
+import mockedEngine from '../../core/__mocks__/MockedEngine';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
+
+jest.mock('../../core/Engine', () => ({
+  init: () => mockedEngine.init(),
+  context: {
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+    },
+  },
+}));
+
 const mockedCaptureException = jest.mocked(captureException);
 
 describe('Migration #23', () => {

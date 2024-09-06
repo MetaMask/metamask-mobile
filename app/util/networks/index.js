@@ -62,6 +62,7 @@ export const NetworkList = {
     shortName: 'Ethereum',
     networkId: 1,
     chainId: toHex('1'),
+    ticker: 'ETH',
     // Third party color
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#3cc29e',
@@ -74,6 +75,7 @@ export const NetworkList = {
     shortName: 'Linea',
     networkId: 59144,
     chainId: toHex('59144'),
+    ticker: 'ETH',
     // Third party color
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#121212',
@@ -86,6 +88,7 @@ export const NetworkList = {
     shortName: 'Sepolia',
     networkId: 11155111,
     chainId: toHex('11155111'),
+    ticker: 'ETH',
     // Third party color
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#cfb5f0',
@@ -98,6 +101,7 @@ export const NetworkList = {
     shortName: 'Linea Sepolia',
     networkId: 59141,
     chainId: toHex('59141'),
+    ticker: 'ETH',
     // Third party color
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#61dfff',
@@ -261,7 +265,6 @@ export function getNetworkTypeById(id) {
 }
 
 export function getDefaultNetworkByChainId(chainId) {
-  console.log('CHAIN_ID ----', chainId);
   if (!chainId) {
     throw new Error(NetworkSwitchErrorType.missingChainId);
   }
@@ -418,7 +421,6 @@ export const getNetworkNameFromProviderConfig = (providerConfig) => {
  * @returns {Object} - Image source of the network.
  */
 export const getNetworkImageSource = ({ networkType, chainId }) => {
-  console.log('getNetworkImageSource ---');
   const defaultNetwork = getDefaultNetworkByChainId(chainId);
   const isDefaultEthMainnet = isDefaultMainnet(networkType);
   const isLineaMainnetNetwork = isLineaMainnet(networkType);

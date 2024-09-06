@@ -28,11 +28,6 @@ export const selectProviderConfig = createDeepEqualSelector(
       // @ts-ignore
       NetworkList[networkControllerState?.selectedNetworkClientId];
 
-    console.log(
-      'networkControllerState?.selectedNetworkClientId *********',
-      networkControllerState?.selectedNetworkClientId,
-    );
-
     const networkConfiguration = NetworkController?.getNetworkClientById(
       networkControllerState?.selectedNetworkClientId,
     ).configuration;
@@ -63,10 +58,7 @@ export const selectTicker = createSelector(
 
 export const selectChainId = createSelector(
   selectProviderConfig,
-  (providerConfig: ProviderConfig) => {
-    console.log('providerConfig *****', providerConfig?.chainId);
-    return providerConfig?.chainId;
-  },
+  (providerConfig: ProviderConfig) => providerConfig?.chainId,
 );
 export const selectProviderType = createSelector(
   selectProviderConfig,

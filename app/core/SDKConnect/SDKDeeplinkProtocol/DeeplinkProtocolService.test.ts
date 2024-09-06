@@ -12,6 +12,7 @@ import AppConstants from '../../AppConstants';
 import { DappClient } from '../AndroidSDK/dapp-sdk-types';
 import { createMockInternalAccount } from '../../../util/test/accountsControllerTestUtils';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import mockedEngine from '../../../core/__mocks__/MockedEngine';
 
 jest.mock('../SDKConnect');
 jest.mock('../../../core/Engine');
@@ -56,6 +57,14 @@ describe('DeeplinkProtocolService', () => {
       },
       KeyringController: { unlock: jest.fn() },
       NetworkController: {
+        getNetworkClientById: () => ({
+          configuration: {
+            chainId: '0x1',
+            rpcUrl: 'https://mainnet.infura.io/v3',
+            ticker: 'ETH',
+            type: 'custom',
+          },
+        }),
         state: {
           selectedNetworkClientId: 'mainnet',
           networksMetadata: {},

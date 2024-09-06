@@ -4,11 +4,28 @@ import { SDK } from '../sdk';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../util/test/initial-root-state';
 import { ActivationKey } from '../../../../reducers/fiatOrders/types';
+import mockedEngine from '../../../../core/__mocks__/MockedEngine';
 
 jest.mock('../sdk', () => ({
   SDK: {
     getActivationKeys: jest.fn().mockReturnValue([]),
     setActivationKeys: jest.fn(),
+  },
+}));
+
+jest.mock('../../../../core/Engine', () => ({
+  init: () => mockedEngine.init(),
+  context: {
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+    },
   },
 }));
 

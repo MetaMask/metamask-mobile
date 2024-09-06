@@ -62,6 +62,21 @@ jest.mock('./BalanceChangeList/BalanceChangeList', () => 'BalanceChangeList');
 jest.mock('./useBalanceChanges');
 jest.mock('./useSimulationMetrics');
 
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+    },
+  },
+}));
+
 describe('SimulationDetails', () => {
   const useBalanceChangesMock = jest.mocked(useBalanceChanges);
   const animatedSpinnerMock = jest.mocked(AnimatedSpinner);

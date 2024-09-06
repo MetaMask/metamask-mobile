@@ -9,6 +9,7 @@ import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { fireEvent } from '@testing-library/react-native';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
+import mockedEngine from '../../../core/__mocks__/MockedEngine';
 
 const initialState = {
   engine: {
@@ -27,6 +28,22 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('../../../core/Engine', () => ({
+  init: () => mockedEngine.init(),
+  context: {
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+    },
+  },
+}));
 
 const PENDING_APPROVALS = {
   Dapp: {

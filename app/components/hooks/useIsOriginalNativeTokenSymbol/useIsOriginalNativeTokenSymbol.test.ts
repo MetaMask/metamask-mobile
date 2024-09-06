@@ -3,10 +3,27 @@ import { useSelector } from 'react-redux';
 import useIsOriginalNativeTokenSymbol from './useIsOriginalNativeTokenSymbol';
 import { backgroundState } from '../../../../app/util/test/initial-root-state';
 import axios from 'axios';
+import mockedEngine from '../../../core/__mocks__/MockedEngine';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
+}));
+
+jest.mock('../../../core/Engine', () => ({
+  init: () => mockedEngine.init(),
+  context: {
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+    },
+  },
 }));
 
 describe('useIsOriginalNativeTokenSymbol', () => {

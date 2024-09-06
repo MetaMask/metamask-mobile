@@ -17,6 +17,14 @@ const mockEngine = Engine;
 
 jest.mock('../../../core/Engine', () => ({
   init: () => mockEngine.init({}),
+  getNetworkClientById: () => ({
+    configuration: {
+      chainId: '0x1',
+      rpcUrl: 'https://mainnet.infura.io/v3',
+      ticker: 'ETH',
+      type: 'custom',
+    },
+  }),
   getTotalFiatAccountBalance: jest.fn(),
   context: {
     TokensController: {

@@ -178,6 +178,14 @@ jest.mock('../../../../core/Engine', () => ({
           sendAsync: () => null,
         },
       })),
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
       state: {
         network: '1',
         selectedNetworkClientId: 'mainnet',

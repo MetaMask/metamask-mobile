@@ -1170,35 +1170,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     }
                                   }
                                 >
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "backgroundColor": "#f2f4f6",
-                                          "borderRadius": 30,
-                                          "padding": 14,
-                                        },
-                                        {
-                                          "padding": 8,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        {
-                                          "width": 50,
-                                        },
-                                      ]
-                                    }
-                                  />
+                                  &lt; $0.01
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -2463,35 +2435,7 @@ exports[`Tokens should render correctly 1`] = `
                                     }
                                   }
                                 >
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "backgroundColor": "#f2f4f6",
-                                          "borderRadius": 30,
-                                          "padding": 14,
-                                        },
-                                        {
-                                          "padding": 8,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        {
-                                          "width": 50,
-                                        },
-                                      ]
-                                    }
-                                  />
+                                  &lt; $0.01
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -3764,35 +3708,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     }
                                   }
                                 >
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "backgroundColor": "#f2f4f6",
-                                          "borderRadius": 30,
-                                          "padding": 14,
-                                        },
-                                        {
-                                          "padding": 8,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        {
-                                          "width": 50,
-                                        },
-                                      ]
-                                    }
-                                  />
+                                  &lt; $0.01
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -4056,35 +3972,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     }
                                   }
                                 >
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "backgroundColor": "#f2f4f6",
-                                          "borderRadius": 30,
-                                          "padding": 14,
-                                        },
-                                        {
-                                          "padding": 8,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        {
-                                          "width": 50,
-                                        },
-                                      ]
-                                    }
-                                  />
+                                  &lt; $0.01
                                 </Text>
                               </View>
                             </TouchableOpacity>

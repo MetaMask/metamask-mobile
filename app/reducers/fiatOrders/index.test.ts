@@ -48,6 +48,7 @@ import { FIAT_ORDER_PROVIDERS } from '../../constants/on-ramp';
 import { CustomIdData, Action, FiatOrder, Region } from './types';
 import initialRootState from '../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../util/test/accountsControllerTestUtils';
+import mockedEngine from '../../core/__mocks__/MockedEngine';
 
 const MOCK_ADDRESS_1 = '0x4567';
 const MOCK_ADDRESS_2 = '0x1234';
@@ -231,6 +232,44 @@ const networks: AggregatorNetwork[] = [
     nativeTokenSupported: true,
   },
 ];
+
+jest.mock('../../core/Engine', () => ({
+  init: () => mockedEngine.init(),
+  context: {
+    NetworkController: {
+      getNetworkClientById: (selectedNetwork: string) => {
+        if (selectedNetwork === 'aurora') {
+          return {
+            configuration: {
+              chainId: '0x4e454152',
+              rpcUrl: 'https://aurora.infura.io/v3',
+              ticker: 'ETH',
+              type: 'custom',
+            },
+          };
+        }
+        if (selectedNetwork === 'unknown-network') {
+          return {
+            configuration: {
+              chainId: '0x36bbbe6d',
+              rpcUrl: 'https://unknown-network.infura.io/v3',
+              ticker: 'ETH',
+              type: 'custom',
+            },
+          };
+        }
+        return {
+          configuration: {
+            chainId: '0x38',
+            rpcUrl: 'https://binance.infura.io/v3',
+            ticker: 'BNB',
+            type: 'custom',
+          },
+        };
+      },
+    },
+  },
+}));
 
 describe('fiatOrderReducer', () => {
   it('should return the initial state', () => {
@@ -705,15 +744,15 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              selectedNetworkClientId: 'mainnet',
+              selectedNetworkClientId: 'binance',
               networksMetadata: {},
               networkConfigurations: {
-                mainnet: {
-                  id: 'mainnet',
-                  rpcUrl: 'https://mainnet.infura.io/v3',
-                  chainId: '0x1',
-                  ticker: 'ETH',
-                  nickname: 'Sepolia network',
+                binance: {
+                  id: 'binance',
+                  rpcUrl: 'https://binance.infura.io/v3',
+                  chainId: '0x38',
+                  ticker: 'BNB',
+                  nickname: 'Binance network',
                   rpcPrefs: {
                     blockExplorerUrl: 'https://etherscan.com',
                   },
@@ -821,15 +860,15 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              selectedNetworkClientId: 'mainnet',
+              selectedNetworkClientId: 'binance',
               networksMetadata: {},
               networkConfigurations: {
-                mainnet: {
-                  id: 'mainnet',
+                binance: {
+                  id: 'binance',
                   rpcUrl: 'https://mainnet.infura.io/v3',
                   chainId: '0x38',
-                  ticker: 'ETH',
-                  nickname: 'Sepolia network',
+                  ticker: 'BNB',
+                  nickname: 'Binance network',
                   rpcPrefs: {
                     blockExplorerUrl: 'https://etherscan.com',
                   },
@@ -893,7 +932,7 @@ describe('selectors', () => {
                   rpcUrl: 'https://mainnet.infura.io/v3',
                   chainId: '0x1',
                   ticker: 'ETH',
-                  nickname: 'Sepolia network',
+                  nickname: 'Ethereum network',
                   rpcPrefs: {
                     blockExplorerUrl: 'https://etherscan.com',
                   },
@@ -966,17 +1005,17 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              selectedNetworkClientId: 'mainnet',
+              selectedNetworkClientId: 'sepolia',
               networksMetadata: {},
               networkConfigurations: {
-                mainnet: {
-                  id: 'mainnet',
-                  rpcUrl: 'https://mainnet.infura.io/v3',
+                sepolia: {
+                  id: 'sepolia',
+                  rpcUrl: 'https://sepolia.infura.io/v3',
                   chainId: toHex('11155111'),
                   ticker: 'ETH',
                   nickname: 'Sepolia network',
                   rpcPrefs: {
-                    blockExplorerUrl: 'https://etherscan.com',
+                    blockExplorerUrl: 'https://sepolia-etherscan.com',
                   },
                 },
               },
@@ -1030,12 +1069,12 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              selectedNetworkClientId: 'mainnet',
+              selectedNetworkClientId: 'sepolia',
               networksMetadata: {},
               networkConfigurations: {
-                mainnet: {
-                  id: 'mainnet',
-                  rpcUrl: 'https://mainnet.infura.io/v3',
+                sepolia: {
+                  id: 'sepolia',
+                  rpcUrl: 'https://sepolia.infura.io/v3',
                   chainId: '0xaa36a7',
                   ticker: 'ETH',
                   nickname: 'Sepolia network',
@@ -1147,15 +1186,15 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              selectedNetworkClientId: 'mainnet',
+              selectedNetworkClientId: 'binance',
               networksMetadata: {},
               networkConfigurations: {
-                mainnet: {
-                  id: 'mainnet',
-                  rpcUrl: 'https://mainnet.infura.io/v3',
+                binance: {
+                  id: 'binance',
+                  rpcUrl: 'https://binance.infura.io/v3',
                   chainId: '0x38',
-                  ticker: 'ETH',
-                  nickname: 'Sepolia network',
+                  ticker: 'BNB',
+                  nickname: 'Binance network',
                   rpcPrefs: {
                     blockExplorerUrl: 'https://etherscan.com',
                   },
@@ -1221,7 +1260,7 @@ describe('selectors', () => {
                   rpcUrl: 'https://mainnet.infura.io/v3',
                   chainId: '0x1',
                   ticker: 'ETH',
-                  nickname: 'Sepolia network',
+                  nickname: 'Ethereum network',
                   rpcPrefs: {
                     blockExplorerUrl: 'https://etherscan.com',
                   },
@@ -1343,15 +1382,15 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              selectedNetworkClientId: 'mainnet',
+              selectedNetworkClientId: 'binance',
               networksMetadata: {},
               networkConfigurations: {
-                mainnet: {
-                  id: 'mainnet',
-                  rpcUrl: 'https://mainnet.infura.io/v3',
+                binance: {
+                  id: 'binance',
+                  rpcUrl: 'https://binance.infura.io/v3',
                   chainId: '0x38',
-                  ticker: 'ETH',
-                  nickname: 'Sepolia network',
+                  ticker: 'BNB',
+                  nickname: 'Binance network',
                   rpcPrefs: {
                     blockExplorerUrl: 'https://etherscan.com',
                   },
@@ -1516,7 +1555,7 @@ describe('selectors', () => {
                   rpcUrl: 'https://mainnet.infura.io/v3',
                   chainId: '0x1',
                   ticker: 'ETH',
-                  nickname: 'Sepolia network',
+                  nickname: 'Ethereum network',
                   rpcPrefs: {
                     blockExplorerUrl: 'https://etherscan.com',
                   },
@@ -1579,17 +1618,17 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              selectedNetworkClientId: 'mainnet',
+              selectedNetworkClientId: 'binance',
               networksMetadata: {},
               networkConfigurations: {
-                mainnet: {
-                  id: 'mainnet',
-                  rpcUrl: 'https://mainnet.infura.io/v3',
+                binance: {
+                  id: 'binance',
+                  rpcUrl: 'https://binance.infura.io/v3',
                   chainId: '0x38',
-                  ticker: 'ETH',
-                  nickname: 'Sepolia network',
+                  ticker: 'BNB',
+                  nickname: 'Binance network',
                   rpcPrefs: {
-                    blockExplorerUrl: 'https://etherscan.com',
+                    blockExplorerUrl: 'https://bscscan.com',
                   },
                 },
               },
@@ -1768,15 +1807,15 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              selectedNetworkClientId: 'mainnet',
+              selectedNetworkClientId: 'aurora',
               networksMetadata: {},
               networkConfigurations: {
-                mainnet: {
-                  id: 'mainnet',
-                  rpcUrl: 'https://mainnet.infura.io/v3',
+                aurora: {
+                  id: 'aurora',
+                  rpcUrl: 'https://aurora.infura.io/v3',
                   chainId: '0x4e454152',
                   ticker: 'ETH',
-                  nickname: 'Sepolia network',
+                  nickname: 'Aurora Network',
                   rpcPrefs: {
                     blockExplorerUrl: 'https://etherscan.com',
                   },
@@ -1794,15 +1833,15 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              selectedNetworkClientId: 'mainnet',
+              selectedNetworkClientId: 'unknown-network',
               networksMetadata: {},
               networkConfigurations: {
-                mainnet: {
-                  id: 'mainnet',
-                  rpcUrl: 'https://mainnet.infura.io/v3',
+                'unknown-network': {
+                  id: 'unknown-network',
+                  rpcUrl: 'https://unknown-network.infura.io/v3',
                   chainId: '0x36bbbe6d',
                   ticker: 'ETH',
-                  nickname: 'Sepolia network',
+                  nickname: 'Unknown network',
                   rpcPrefs: {
                     blockExplorerUrl: 'https://etherscan.com',
                   },

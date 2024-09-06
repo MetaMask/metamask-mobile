@@ -12,6 +12,14 @@ jest.mock('../../core/Engine', () => ({
       updateExchangeRate: jest.fn(),
     },
     NetworkController: {
+      getNetworkClientById: jest.fn().mockReturnValue({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
       setActiveNetwork: jest.fn(),
       setProviderType: jest.fn(),
     },
@@ -58,12 +66,27 @@ function setupGetStateMock() {
 }
 
 describe('useHandleNetworkSwitch', () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
+  });
+
   afterEach(() => {
     jest.restoreAllMocks();
     jest.resetAllMocks();
   });
 
   it('does nothing if not given a chain ID', () => {
+    (
+      Engine.context.NetworkController.getNetworkClientById as jest.Mock
+    ).mockReturnValue({
+      configuration: {
+        chainId: '0x1',
+        rpcUrl: 'https://mainnet.infura.io/v3',
+        ticker: 'ETH',
+        type: 'custom',
+      },
+    });
+
     setupGetStateMock();
 
     const result = handleNetworkSwitch('');
@@ -81,6 +104,17 @@ describe('useHandleNetworkSwitch', () => {
   });
 
   it('does nothing if the chain ID matches the current global chain ID', () => {
+    (
+      Engine.context.NetworkController.getNetworkClientById as jest.Mock
+    ).mockReturnValue({
+      configuration: {
+        chainId: '0x1',
+        rpcUrl: 'https://mainnet.infura.io/v3',
+        ticker: 'ETH',
+        type: 'custom',
+      },
+    });
+
     setupGetStateMock();
 
     const result = handleNetworkSwitch('1');
@@ -98,6 +132,17 @@ describe('useHandleNetworkSwitch', () => {
   });
 
   it('throws an error if the chain ID is not recognized', () => {
+    (
+      Engine.context.NetworkController.getNetworkClientById as jest.Mock
+    ).mockReturnValue({
+      configuration: {
+        chainId: '0x1',
+        rpcUrl: 'https://mainnet.infura.io/v3',
+        ticker: 'ETH',
+        type: 'custom',
+      },
+    });
+
     setupGetStateMock();
 
     expect(() => handleNetworkSwitch('123456')).toThrow(
@@ -106,6 +151,17 @@ describe('useHandleNetworkSwitch', () => {
   });
 
   it('switches to a custom network', () => {
+    (
+      Engine.context.NetworkController.getNetworkClientById as jest.Mock
+    ).mockReturnValue({
+      configuration: {
+        chainId: '0x1',
+        rpcUrl: 'https://mainnet.infura.io/v3',
+        ticker: 'ETH',
+        type: 'custom',
+      },
+    });
+
     setupGetStateMock();
 
     const nickname = handleNetworkSwitch('1338');
@@ -123,6 +179,17 @@ describe('useHandleNetworkSwitch', () => {
   });
 
   it('switches to a built-in network', () => {
+    (
+      Engine.context.NetworkController.getNetworkClientById as jest.Mock
+    ).mockReturnValue({
+      configuration: {
+        chainId: '0x1',
+        rpcUrl: 'https://mainnet.infura.io/v3',
+        ticker: 'ETH',
+        type: 'custom',
+      },
+    });
+
     setupGetStateMock();
 
     const networkType = handleNetworkSwitch('11155111');

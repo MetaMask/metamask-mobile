@@ -35,6 +35,14 @@ jest.mock('../../../core/Engine', () => ({
     NetworkController: {
       setActiveNetwork: jest.fn(),
       setProviderType: jest.fn(),
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
     },
     PreferencesController: {
       setShowTestNetworks: jest.fn(),
@@ -172,15 +180,25 @@ describe('Network Selector', () => {
           ...initialState.engine.backgroundState,
           NetworkController: {
             ...initialState.engine.backgroundState.NetworkController,
-            selectedNetworkClientId: 'mainnet',
+            selectedNetworkClientId: 'sepolia',
             networksMetadata: {},
             networkConfigurations: {
-              sepolia: {
+              mainnet: {
                 id: 'mainnet',
-                rpcUrl: 'http://localhost/v3/',
+                rpcUrl: 'http://mainnet.infura.io',
+                chainId: CHAIN_IDS.MAINNET,
+                ticker: 'ETH',
+                nickname: 'Ethereum Mainnet',
+                rpcPrefs: {
+                  blockExplorerUrl: 'https://etherscan.com',
+                },
+              },
+              sepolia: {
+                id: 'sepolia',
+                rpcUrl: 'http://sepolia.infura.io',
                 chainId: CHAIN_IDS.SEPOLIA,
                 ticker: 'ETH',
-                nickname: 'Sepolia network',
+                nickname: 'Sepolia',
                 rpcPrefs: {
                   blockExplorerUrl: 'https://etherscan.com',
                 },

@@ -18,6 +18,16 @@ const mockTransactionTypes = TransactionTypes;
 jest.mock('../../../../../core/Engine', () => ({
   init: () => mockEngine.init({}),
   context: {
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+    },
     GasFeeController: {
       fetchGasFeeEstimates: jest.fn(() =>
         Promise.resolve({
