@@ -3,13 +3,14 @@ import {
   connectLedgerHardware,
   forgetLedger,
   getDeviceId,
-  getHDPath, getLedgerAccounts,
+  getHDPath,
+  getLedgerAccounts,
   getLedgerAccountsByOperation,
   isValidPath,
   ledgerSignTypedMessage,
   openEthereumAppOnLedger,
   setHDPath,
-  unlockLedgerWalletAccount
+  unlockLedgerWalletAccount,
 } from './Ledger';
 import Engine from '../../core/Engine';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
