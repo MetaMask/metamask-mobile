@@ -583,12 +583,12 @@ workflows:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
       - script@1:
-          title: Install repo packages
+          title: Install CCache & symlink
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                sudo apt-get update
-                sudo apt-get install -y ccache cmake libicu-dev
+                sudo apt update
+                sudo apt install ccache -y
       - restore-cache@2:
           title: Restore CCache
           inputs:
