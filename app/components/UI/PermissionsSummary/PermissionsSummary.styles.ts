@@ -41,7 +41,8 @@ const createStyles = (params: { theme: Theme }) => {
       alignItems: 'center',
       flexDirection: 'row',
     },
-    permissionsSummaryHeader: {
+    logoContainer: {
+      flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
     },
@@ -90,6 +91,13 @@ const createStyles = (params: { theme: Theme }) => {
       alignItems: 'center',
       gap: 2,
     },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    backButton: { flex: 1, paddingLeft: 16 },
+    endAccessory: { flex: 1, paddingRight: 16 },
   });
 };
 

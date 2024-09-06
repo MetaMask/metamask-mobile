@@ -9,7 +9,10 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
-import { IconName } from '../../../component-library/components/Icons/Icon';
+import {
+  IconColor,
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
 import TextComponent, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -29,11 +32,14 @@ import { PermissionsSummaryProps } from './PermissionsSummary.types';
 import { useSelector } from 'react-redux';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import { USER_INTENT } from '../../../constants/permissions';
+import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 
 const PermissionsSummary = ({
   currentPageInformation,
   onEdit,
+  onBack,
   onUserAction,
+  showActionButtons = true,
 }: PermissionsSummaryProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
@@ -165,32 +171,52 @@ const PermissionsSummary = ({
     );
   }
 
+  function renderHeader() {
+    return (
+      <View style={styles.header}>
+        {onBack && (
+          <View style={styles.backButton}>
+            <ButtonIcon
+              iconColor={IconColor.Default}
+              onPress={onBack}
+              iconName={IconName.ArrowLeft}
+            />
+          </View>
+        )}
+        <View style={styles.logoContainer}>{renderTopIcon()}</View>
+        <View style={styles.endAccessory}></View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.mainContainer}>
-      <View style={styles.permissionsSummaryHeader}>{renderTopIcon()}</View>
+      {renderHeader()}
       <Text bold centered primary noMargin style={styles.title}>
         {strings('permissions.title_this_site_wants_to')}
       </Text>
       {renderAccountPermissionsRequestInfoCard()}
       {renderNetworkPermissionsRequestInfoCard()}
-      <View style={styles.actionButtonsContainer}>
-        <StyledButton
-          type={'cancel'}
-          onPress={cancel}
-          containerStyle={[styles.buttonPositioning, styles.cancelButton]}
-          testID={CommonSelectorsIDs.CANCEL_BUTTON}
-        >
-          {strings('permissions.cancel')}
-        </StyledButton>
-        <StyledButton
-          type={'confirm'}
-          onPress={confirm}
-          containerStyle={[styles.buttonPositioning, styles.confirmButton]}
-          testID={CommonSelectorsIDs.CONNECT_BUTTON}
-        >
-          {strings('confirmation_modal.confirm_cta')}
-        </StyledButton>
-      </View>
+      {showActionButtons && (
+        <View style={styles.actionButtonsContainer}>
+          <StyledButton
+            type={'cancel'}
+            onPress={cancel}
+            containerStyle={[styles.buttonPositioning, styles.cancelButton]}
+            testID={CommonSelectorsIDs.CANCEL_BUTTON}
+          >
+            {strings('permissions.cancel')}
+          </StyledButton>
+          <StyledButton
+            type={'confirm'}
+            onPress={confirm}
+            containerStyle={[styles.buttonPositioning, styles.confirmButton]}
+            testID={CommonSelectorsIDs.CONNECT_BUTTON}
+          >
+            {strings('confirmation_modal.confirm_cta')}
+          </StyledButton>
+        </View>
+      )}
     </View>
   );
 };

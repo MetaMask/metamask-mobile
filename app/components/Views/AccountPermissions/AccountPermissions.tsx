@@ -379,6 +379,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       },
       onEdit: () => setPermissionsScreen(AccountPermissionsScreens.Connect),
       onUserAction: setUserIntent,
+      showActionButtons: false,
+      onBack: () => setPermissionsScreen(AccountPermissionsScreens.Connected),
     };
     return <PermissionsSummary {...permissionsSummaryProps} />;
   }, [faviconSource, urlWithProtocol]);
