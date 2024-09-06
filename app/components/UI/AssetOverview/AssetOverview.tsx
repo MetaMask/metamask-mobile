@@ -56,9 +56,7 @@ import { TokenI } from '../Tokens/types';
 
 interface AssetOverviewProps {
   navigation: {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    navigate: (route: string, props?: any) => void;
+    navigate: (route: string, params: Record<string, unknown>) => void;
   };
   asset: TokenI;
 }
