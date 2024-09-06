@@ -225,12 +225,6 @@ export class BackgroundBridge extends EventEmitter {
       'SelectedNetworkController:getNetworkClientIdForDomain',
       origin,
     );
-    /* eslint-disable no-console */
-    console.log(
-      'ALEX LOGGING origin + networkClientId',
-      origin,
-      networkClientId,
-    );
 
     const networkClient = Engine.controllerMessenger.call(
       'NetworkController:getNetworkClientById',

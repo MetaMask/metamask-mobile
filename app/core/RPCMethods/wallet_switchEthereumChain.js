@@ -73,7 +73,6 @@ const wallet_switchEthereumChain = async ({
   );
 
   if (existingEntry || existingNetworkDefault) {
-    // const currentChainId = selectChainId(store.getState());
     const currentDomainSelectedChainId =
       Engine.context.SelectedNetworkController.getNetworkClientIdForDomain(
         origin,
@@ -118,20 +117,19 @@ const wallet_switchEthereumChain = async ({
       };
     }
 
-    console.log('ALEX LOGGGING: here 3');
-
     await requestUserApproval({
       type: 'SWITCH_ETHEREUM_CHAIN',
       requestData: { ...requestData, type: 'switch' },
     });
 
-    // ALEX TODO remove this
-    if (networkConfiguration) {
-      CurrencyRateController.updateExchangeRate(networkConfiguration.ticker);
-      NetworkController.setActiveNetwork(networkConfigurationId);
-    } else {
-      CurrencyRateController.updateExchangeRate(NetworksTicker.mainnet);
-      NetworkController.setActiveNetwork(existingNetworkDefault.networkType);
+    if (!process.env.MULTICHAIN_V1) {
+      if (networkConfiguration) {
+        CurrencyRateController.updateExchangeRate(networkConfiguration.ticker);
+        NetworkController.setActiveNetwork(networkConfigurationId);
+      } else {
+        CurrencyRateController.updateExchangeRate(NetworksTicker.mainnet);
+        NetworkController.setActiveNetwork(existingNetworkDefault.networkType);
+      }
     }
 
     const originHasAccountsPermission = PermissionController.hasPermission(
