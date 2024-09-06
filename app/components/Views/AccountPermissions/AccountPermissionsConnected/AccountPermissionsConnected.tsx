@@ -33,6 +33,19 @@ import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Moda
 import { AccountPermissionsConnectedProps } from './AccountPermissionsConnected.types';
 import styles from './AccountPermissionsConnected.styles';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { isMutichainVersion1Enabled } from '../../../../util/networks';
+import Text, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
+import Avatar, {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../../component-library/components/Avatars/Avatar';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../component-library/components/Buttons/Button';
 
 const AccountPermissionsConnected = ({
   ensByAccountAddress,
@@ -134,24 +147,44 @@ const AccountPermissionsConnected = ({
 
   return (
     <>
-      <SheetHeader title={strings('accounts.connected_accounts_title')} />
+      {!isMutichainVersion1Enabled && <SheetHeader title={hostname} />}
+      {isMutichainVersion1Enabled && (
+        <View style={styles.header}>
+          <Avatar
+            variant={AvatarVariant.Favicon}
+            imageSource={favicon}
+            size={AvatarSize.Md}
+            style={styles.favicon}
+          />
+          <Text variant={TextVariant.HeadingMD}>{hostname}</Text>
+        </View>
+      )}
       <View style={styles.body}>
-        <TagUrl
-          imageSource={favicon}
-          label={urlWithProtocol}
-          cta={{
-            label: strings('accounts.permissions'),
-            onPress: openRevokePermissions,
-          }}
-          iconName={secureIcon}
-        />
-        <PickerNetwork
-          label={networkName}
-          imageSource={networkImageSource}
-          onPress={switchNetwork}
-          style={styles.networkPicker}
-          testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
-        />
+        {!isMutichainVersion1Enabled && (
+          <TagUrl
+            imageSource={favicon}
+            label={urlWithProtocol}
+            cta={{
+              label: strings('accounts.permissions'),
+              onPress: openRevokePermissions,
+            }}
+            iconName={secureIcon}
+          />
+        )}
+        {isMutichainVersion1Enabled && (
+          <Text style={styles.sectionTitle} variant={TextVariant.BodyMDMedium}>
+            {strings('accounts.connected_accounts_title')}
+          </Text>
+        )}
+        {!isMutichainVersion1Enabled && (
+          <PickerNetwork
+            label={networkName}
+            imageSource={networkImageSource}
+            onPress={switchNetwork}
+            style={styles.networkPicker}
+            testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
+          />
+        )}
       </View>
       <AccountSelectorList
         onSelectAccount={switchActiveAccount}
@@ -162,6 +195,20 @@ const AccountPermissionsConnected = ({
         isRemoveAccountEnabled
       />
       {renderSheetAction()}
+      {isMutichainVersion1Enabled && (
+        <Button
+          style={styles.managePermissionsButton}
+          variant={ButtonVariants.Secondary}
+          label={strings('permissions.manage_permissions')}
+          size={ButtonSize.Lg}
+          onPress={() => {
+            onSetPermissionsScreen(
+              AccountPermissionsScreens.PermissionsSummary,
+            );
+          }}
+          width={ButtonWidthTypes.Full}
+        />
+      )}
     </>
   );
 };

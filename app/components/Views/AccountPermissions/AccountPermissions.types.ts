@@ -5,6 +5,7 @@ export enum AccountPermissionsScreens {
   Connected = 'Connected',
   Connect = 'Connect',
   Revoke = 'Revoke',
+  PermissionsSummary = 'PermissionsSummary',
 }
 
 /**

@@ -445,13 +445,13 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const renderPermissionsScreens = useCallback(() => {
     switch (permissionsScreen) {
       case AccountPermissionsScreens.Connected:
-        return isMutichainVersion1Enabled
-          ? renderPermissionsSummaryScreen()
-          : renderConnectedScreen();
+        return renderConnectedScreen();
       case AccountPermissionsScreens.Connect:
         return renderConnectScreen();
       case AccountPermissionsScreens.Revoke:
         return renderRevokeScreen();
+      case AccountPermissionsScreens.PermissionsSummary:
+        return renderPermissionsSummaryScreen();
     }
   }, [
     permissionsScreen,
