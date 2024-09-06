@@ -693,7 +693,7 @@ class ChoosePassword extends PureComponent {
                     keyboardAppearance={themeAppearance}
                   />
                   <View style={styles.showMatchingPasswords}>
-                    {true ? (
+                    {passwordsMatch ? (
                       <Icon
                         name="check"
                         size={16}
