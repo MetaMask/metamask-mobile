@@ -101,10 +101,7 @@ import { getRampNetworks } from '../../../../../reducers/fiatOrders';
 import { ConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/ConfirmView.selectors';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import { getDeviceId } from '../../../../../core/Ledger/Ledger';
-import {
-  getBlockaidTransactionMetricsParams,
-  isBlockaidFeatureEnabled,
-} from '../../../../../util/blockaid';
+import { getBlockaidTransactionMetricsParams } from '../../../../../util/blockaid';
 import ppomUtil from '../../../../../lib/ppom/ppom-util';
 import TransactionBlockaidBanner from '../../components/TransactionBlockaidBanner/TransactionBlockaidBanner';
 import { createLedgerTransactionModalNavDetails } from '../../../../../components/UI/LedgerModals/LedgerTransactionModal';
@@ -474,31 +471,26 @@ class Confirm extends PureComponent {
 
     this.setState({ result, transactionMeta });
 
-    const isBlockaidEnabled = await isBlockaidFeatureEnabled();
-    this.setState({ isBlockaidFeatureEnabled: isBlockaidEnabled });
+    // start validate ppom
+    const id = transactionMeta.id;
+    const reqObject = {
+      id,
+      jsonrpc: '2.0',
+      method: 'eth_sendTransaction',
+      origin: isPaymentRequest
+        ? AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
+        : TransactionTypes.MM,
+      params: [
+        {
+          from,
+          to,
+          value,
+          data,
+        },
+      ],
+    };
 
-    if (isBlockaidEnabled) {
-      // start validate ppom
-      const id = transactionMeta.id;
-      const reqObject = {
-        id,
-        jsonrpc: '2.0',
-        method: 'eth_sendTransaction',
-        origin: isPaymentRequest
-          ? AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
-          : TransactionTypes.MM,
-        params: [
-          {
-            from,
-            to,
-            value,
-            data,
-          },
-        ],
-      };
-
-      ppomUtil.validateRequest(reqObject, id);
-    }
+    ppomUtil.validateRequest(reqObject, id);
   };
 
   componentDidUpdate = (prevProps, prevState) => {
@@ -1255,7 +1247,6 @@ class Confirm extends PureComponent {
       EIP1559GasObject,
       EIP1559GasTransaction,
       legacyGasObject,
-      isBlockaidFeatureEnabled,
     } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -1289,7 +1280,7 @@ class Confirm extends PureComponent {
           layout="vertical"
         />
         <ScrollView style={baseStyles.flexGrow} ref={this.setScrollViewRef}>
-          {isBlockaidFeatureEnabled && this.state.transactionMeta?.id && (
+          {this.state.transactionMeta?.id && (
             <TransactionBlockaidBanner
               transactionId={this.state.transactionMeta.id}
               style={styles.blockaidBanner}
