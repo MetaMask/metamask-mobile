@@ -316,6 +316,7 @@ export class BackgroundBridge extends EventEmitter {
     }
     const publicState = await this.getProviderNetworkState(this.hostname);
 
+    console.log('ALEX LOGGING: in onStateUpdate', publicState, memState);
     // Check if update already sent
     if (
       this.lastChainIdSent !== publicState.chainId ||

@@ -328,6 +328,11 @@ const App = ({ userLoggedIn }) => {
     }
   };
 
+  // const route = useRoute<RouteProp<Record<string, NetworkSelectorRouteParams>, string>>();
+  // const { hostname } = route.params || {};
+
+  // console.log('ALEX LOGGING: NETWORK SELECTOR hostnasme:', hostname);
+
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
     const appTriggeredAuth = async () => {

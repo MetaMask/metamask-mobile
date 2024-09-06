@@ -11,10 +11,7 @@ import SheetHeader from '../../../../component-library/components/Sheet/SheetHea
 import { strings } from '../../../../../locales/i18n';
 import TagUrl from '../../../../component-library/components/Tags/TagUrl';
 import PickerNetwork from '../../../../component-library/components/Pickers/PickerNetwork';
-import NetworkList, {
-  getDecimalChainId,
-  getNetworkImageSource,
-} from '../../../../util/networks';
+import { getDecimalChainId } from '../../../../util/networks';
 import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import { switchActiveAccounts } from '../../../../core/Permissions';
@@ -65,8 +62,6 @@ const AccountPermissionsConnected = ({
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
 
   const { networkName, networkImageSource } = useNetworkInfo(hostname);
-  console.log('ALEX LOGGING: networkName:', networkName);
-  console.log('ALEX LOGGING: networkImageSource:', networkImageSource);
 
   const activeAddress = selectedAddresses[0];
   const { toastRef } = useContext(ToastContext);

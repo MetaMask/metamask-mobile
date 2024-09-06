@@ -9,7 +9,7 @@ import {
 import React, { useCallback, useRef, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import {
   NetworkConfiguration,
   ProviderConfig,
@@ -95,6 +95,10 @@ import {
   LINEA_DEFAULT_RPC_URL,
   MAINNET_DEFAULT_RPC_URL,
 } from '../../../constants/urls';
+import {
+  selectNetworkClientIdsByDomains,
+  useNetworkInfo,
+} from '../../../selectors/selectedNetworkController';
 
 interface infuraNetwork {
   name: string;
@@ -106,6 +110,14 @@ interface ShowConfirmDeleteModalState {
   isVisible: boolean;
   networkName: string;
   entry?: [string, NetworkConfiguration & { id: string }];
+}
+
+interface NetworkSelectorRouteParams {
+  hostInfo?: {
+    metadata?: {
+      origin?: string;
+    };
+  };
 }
 
 const NetworkSelector = () => {
@@ -123,10 +135,34 @@ const NetworkSelector = () => {
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+
+  const route =
+    useRoute<RouteProp<Record<string, NetworkSelectorRouteParams>, string>>();
+
+  // origin is defined if network selector is opened from a dapp
+  const origin = route.params?.hostInfo?.metadata?.origin;
+
+  const {
+    chainId: domainChainId,
+    // rpcUrl: domainRpcUrl,
+    domainIsConnectedDapp,
+  } = useNetworkInfo(origin);
+
   console.log(
-    'ALEX LOGGING: NETWORK SELECTOR am I HAPPENING???,',
-    providerConfig,
+    'ALEX LOGGING: testing selectNetworkConfiguration:',
+    useSelector(selectNetworkClientIdsByDomains),
   );
+
+  console.log(
+    'ALEX LOGGING: NETWORK SELECTOR route values:',
+    origin,
+    'chainId:',
+    domainChainId,
+    'domainIsConnectedDapp:',
+    domainIsConnectedDapp,
+  );
+
+  const selectedChainId = domainChainId || providerConfig.chainId;
 
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
   const modalTitle = isNetworkUiRedesignEnabled()
@@ -177,7 +213,16 @@ const NetworkSelector = () => {
       NetworkController,
       CurrencyRateController,
       AccountTrackerController,
+      SelectedNetworkController,
     } = Engine.context;
+
+    if (domainIsConnectedDapp && origin) {
+      SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
+      sheetRef.current?.onCloseBottomSheet();
+      // TODO ALEX are there other actions we want changing network just for the dapp...?
+      // Update is not percolating to dapp...?
+      return;
+    }
 
     let ticker = type;
     if (type === LINEA_SEPOLIA) {
@@ -208,8 +253,19 @@ const NetworkSelector = () => {
   };
 
   const onSetRpcTarget = async (rpcTarget: string) => {
-    const { CurrencyRateController, NetworkController } = Engine.context;
+    const {
+      CurrencyRateController,
+      NetworkController,
+      SelectedNetworkController,
+    } = Engine.context;
 
+    // TODO GET networkClientId from rpcTarget
+
+    if (domainIsConnectedDapp && origin) {
+      SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
+      // TODO ALEX are there other actions we want changing network just for the dapp...?
+      return;
+    }
     const entry = Object.entries(networkConfigurations).find(([, { rpcUrl }]) =>
       compareRpcUrls(rpcUrl, rpcTarget),
     );
@@ -354,9 +410,7 @@ const NetworkSelector = () => {
             imageSource: images.ETHEREUM,
             size: AvatarSize.Sm,
           }}
-          isSelected={
-            chainId === providerConfig.chainId && !providerConfig.rpcUrl
-          }
+          isSelected={chainId === selectedChainId && !providerConfig.rpcUrl}
           onPress={() => onNetworkChange(MAINNET)}
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
@@ -385,9 +439,7 @@ const NetworkSelector = () => {
           imageSource: images.ETHEREUM,
           size: avatarSize,
         }}
-        isSelected={
-          chainId === providerConfig.chainId && !providerConfig.rpcUrl
-        }
+        isSelected={chainId === selectedChainId && !providerConfig.rpcUrl}
         onPress={() => onNetworkChange(MAINNET)}
         style={styles.networkCell}
       />
@@ -412,7 +464,7 @@ const NetworkSelector = () => {
             imageSource: images['LINEA-MAINNET'],
             size: AvatarSize.Sm,
           }}
-          isSelected={chainId === providerConfig.chainId}
+          isSelected={chainId === selectedChainId}
           onPress={() => onNetworkChange(LINEA_MAINNET)}
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
@@ -442,7 +494,7 @@ const NetworkSelector = () => {
           imageSource: images['LINEA-MAINNET'],
           size: avatarSize,
         }}
-        isSelected={chainId === providerConfig.chainId}
+        isSelected={chainId === selectedChainId}
         onPress={() => onNetworkChange(LINEA_MAINNET)}
       />
     );
@@ -473,7 +525,7 @@ const NetworkSelector = () => {
                 size: AvatarSize.Sm,
               }}
               isSelected={Boolean(
-                chainId === providerConfig.chainId && providerConfig.rpcUrl,
+                chainId === selectedChainId && providerConfig.rpcUrl,
               )}
               onPress={() => onSetRpcTarget(rpcUrl)}
               style={styles.networkCell}
@@ -506,7 +558,7 @@ const NetworkSelector = () => {
               size: avatarSize,
             }}
             isSelected={Boolean(
-              chainId === providerConfig.chainId && providerConfig.rpcUrl,
+              chainId === selectedChainId && providerConfig.rpcUrl,
             )}
             onPress={() => onSetRpcTarget(rpcUrl)}
             style={styles.networkCell}
@@ -540,7 +592,7 @@ const NetworkSelector = () => {
               imageSource,
               size: AvatarSize.Sm,
             }}
-            isSelected={chainId === providerConfig.chainId}
+            isSelected={chainId === selectedChainId}
             onPress={() => onNetworkChange(networkType)}
             style={styles.networkCell}
             buttonIcon={IconName.MoreVertical}
@@ -562,7 +614,7 @@ const NetworkSelector = () => {
             imageSource,
             size: avatarSize,
           }}
-          isSelected={chainId === providerConfig.chainId}
+          isSelected={chainId === selectedChainId}
           onPress={() => onNetworkChange(networkType)}
           style={styles.networkCell}
         />
@@ -589,7 +641,7 @@ const NetworkSelector = () => {
           const { PreferencesController } = Engine.context;
           PreferencesController.setShowTestNetworks(value);
         }}
-        value={isTestNet(providerConfig.chainId) || showTestNetworks}
+        value={isTestNet(selectedChainId) || showTestNetworks}
         trackColor={{
           true: colors.primary.default,
           false: colors.border.muted,
@@ -597,7 +649,7 @@ const NetworkSelector = () => {
         thumbColor={theme.brandColors.white}
         ios_backgroundColor={colors.border.muted}
         testID={NetworkListModalSelectorsIDs.TEST_NET_TOGGLE}
-        disabled={isTestNet(providerConfig.chainId)}
+        disabled={isTestNet(selectedChainId)}
       />
     </View>
   );
@@ -873,7 +925,7 @@ const NetworkSelector = () => {
                 });
               }}
             />
-            {showNetworkMenuModal.chainId !== providerConfig.chainId &&
+            {showNetworkMenuModal.chainId !== selectedChainId &&
             showNetworkMenuModal.displayEdit ? (
               <AccountAction
                 actionTitle={strings('app_settings.delete')}
