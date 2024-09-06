@@ -118,11 +118,11 @@ const QRTabSwitcher = () => {
       <View style={styles.overlay}>
         {selectedIndex === Screens.Receive ? (
           <NavbarTitle
-            // @ts-expect-error proptypes issue
+            // @ts-expect-error proptypes components requires ts-expect-error
             title={strings(`receive.title`)}
-            // @ts-expect-error proptypes issue
+            // @ts-expect-error proptypes components requires ts-expect-error
             translate={false}
-            // @ts-expect-error proptypes issue
+            // @ts-expect-error proptypes components requires ts-expect-error
             disableNetwork
           />
         ) : null}
