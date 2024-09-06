@@ -60,5 +60,6 @@ RUN bash -c 'eval "$(/home/node/.rbenv/bin/rbenv init -)" \
 # fix broken ipv6 on nodejs v20
 env NODE_OPTIONS="--no-network-family-autoselection --trace-warnings"
 env PATH=/home/node/.rbenv/shims/:$PATH
+env LANG=en_US.UTF-8
 
 WORKDIR /app

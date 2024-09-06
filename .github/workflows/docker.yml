@@ -38,9 +38,8 @@ jobs:
           sudo chown -R 1234:1235 .
           docker run \
             --rm \
-            -e LANG="en_US.UTF-8" \
             -v "$(pwd):/app" -w /app \
             metamask-mobile-builder:latest \
-            bash -c 'yarn && yarn setup --build-ios'
+            bash -c 'yarn && yarn setup --build-ios --node'
             # restore ownership for cleanup
             sudo chown -R "$(id -u):$(id -g)" .
