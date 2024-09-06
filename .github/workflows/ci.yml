@@ -263,7 +263,7 @@ jobs:
     name: All jobs pass
     runs-on: ubuntu-20.04
     needs: [
-        # setup,
+        setup,
         dedupe,
         scripts,
         unit-tests,
