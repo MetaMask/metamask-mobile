@@ -94,6 +94,7 @@ import PercentageChange from '../../../component-library/components-temp/Price/P
 import AggregatedPercentage from '../../../component-library/components-temp/Price/AggregatedPercentage';
 import { RootState } from '../../../reducers';
 import { Hex } from '@metamask/utils';
+import InAppBrowser from 'react-native-inappbrowser-reborn';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -502,13 +503,17 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     );
   };
 
-  const goToBuy = () => {
-    navigation.navigate(...createBuyNavigationDetails());
-    trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
-      text: 'Buy Native Token',
-      location: 'Home Screen',
-      chain_id_destination: getDecimalChainId(chainId),
-    });
+  const goToBuy = async () => {
+    // navigation.navigate(...createBuyNavigationDetails());
+    // trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+    //   text: 'Buy Native Token',
+    //   location: 'Home Screen',
+    //   chain_id_destination: getDecimalChainId(chainId),
+    // });
+    const result = await InAppBrowser.open(
+      'https://metamask.github.io/test-dapp/'
+    )
+    console.log('inappbrowser result: ', result)
   };
 
   const showDetectedTokens = () => {
@@ -562,15 +567,22 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         <Text variant={TextVariant.HeadingSM} style={styles.buyTitle}>
           {strings('wallet.add_to_get_started')}
         </Text>
-
         <Button
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}
           width={ButtonWidthTypes.Full}
           style={styles.buyButton}
           onPress={goToBuy}
-          label={strings('wallet.buy_asset', { asset: mainToken.symbol })}
+          label={'Test inappbrowser'}
         />
+        {/* <Button
+          variant={ButtonVariants.Primary}
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          style={styles.buyButton}
+          onPress={goToBuy}
+          label={strings('wallet.buy_asset', { asset: mainToken.symbol })}
+        /> */}
       </View>
     );
   };
