@@ -324,10 +324,10 @@ index f13c61b..7466c74 100755
  # Remove automake symlink if it exists
  if [ -h "test-driver" ]; then
 diff --git a/node_modules/react-native/scripts/react_native_pods.rb b/node_modules/react-native/scripts/react_native_pods.rb
-index ba4caf2..072f4e0 100644
+index ba4caf2..09f54e3 100644
 --- a/node_modules/react-native/scripts/react_native_pods.rb
 +++ b/node_modules/react-native/scripts/react_native_pods.rb
-@@ -251,7 +251,9 @@ def react_native_post_install(
+@@ -251,9 +251,13 @@ def react_native_post_install(
    ReactNativePodsUtils.update_search_paths(installer)
    ReactNativePodsUtils.set_node_modules_user_settings(installer, react_native_path)
    ReactNativePodsUtils.apply_flags_for_fabric(installer, fabric_enabled: fabric_enabled)
@@ -336,5 +336,10 @@ index ba4caf2..072f4e0 100644
 +    ReactNativePodsUtils.apply_xcode_15_patch(installer)
 +  end
    ReactNativePodsUtils.updateIphoneOSDeploymentTarget(installer)
-   ReactNativePodsUtils.fix_flipper_for_xcode_15_3(installer)
+-  ReactNativePodsUtils.fix_flipper_for_xcode_15_3(installer)
++  if ReactNativePodsUtils.is_using_xcode15_0
++    ReactNativePodsUtils.fix_flipper_for_xcode_15_3(installer)
++  end
  
+   if privacy_file_aggregation_enabled
+     PrivacyManifestUtils.add_aggregated_privacy_manifest(installer)
