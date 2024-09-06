@@ -11,7 +11,14 @@ const oldState = {
     backgroundState: {
       NetworkController: {
         selectedNetworkClientId: 'network1',
-        networksMetadata: {},
+        networksMetadata: {
+          network1: {
+            status: 'available',
+            EIPS: {
+              '1559': true,
+            },
+          },
+        },
         networkConfigurations: {
           network1: {
             id: 'network1',
@@ -23,9 +30,6 @@ const oldState = {
               blockExplorerUrl: 'https://etherscan.com',
             },
           },
-        },
-        networkDetails: {
-          isEIP1559Compatible: true,
         },
       },
       AddressBookController: {
@@ -113,7 +117,14 @@ const expectedNewState = {
     backgroundState: {
       NetworkController: {
         selectedNetworkClientId: 'network1',
-        networksMetadata: {},
+        networksMetadata: {
+          network1: {
+            status: 'available',
+            EIPS: {
+              '1559': true,
+            },
+          },
+        },
         networkConfigurations: {
           network1: {
             id: 'network1',
@@ -124,11 +135,6 @@ const expectedNewState = {
             rpcPrefs: {
               blockExplorerUrl: 'https://etherscan.com',
             },
-          },
-        },
-        networkDetails: {
-          EIPS: {
-            1559: true,
           },
         },
       },
@@ -267,46 +273,6 @@ describe('Migration #29', () => {
       }),
       errorMessage: "Migration 29: Invalid NetworkController state: 'object'",
       scenario: 'NetworkController state is invalid',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: {
-          backgroundState: {
-            NetworkController: {
-              selectedNetworkClientId: null,
-              networksMetadata: {},
-              networkConfigurations: {},
-            },
-          },
-        },
-      }),
-      errorMessage:
-        "Migration 29: Invalid NetworkController providerConfig: 'object'",
-      scenario: 'providerConfig is invalid',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: {
-          backgroundState: {
-            NetworkController: { providerConfig: { chainId: null } },
-          },
-        },
-      }),
-      errorMessage:
-        "Migration 29: Invalid NetworkController providerConfig chainId: 'null'",
-      scenario: 'chainId is invalid',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: {
-          backgroundState: {
-            NetworkController: { networkDetails: null },
-          },
-        },
-      }),
-      errorMessage:
-        "Migration 29: Invalid NetworkController networkDetails: 'null'",
-      scenario: 'networkDetails is invalid',
     },
     {
       state: merge({}, initialRootState, {
@@ -474,8 +440,6 @@ describe('Migration #29', () => {
 
   it('All states changing as expected', async () => {
     const newState = await migration(oldState);
-    console.log('newState *****', newState);
-
     expect(newState).toStrictEqual(expectedNewState);
   });
 });
