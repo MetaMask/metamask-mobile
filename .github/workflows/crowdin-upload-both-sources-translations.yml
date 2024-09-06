@@ -16,7 +16,7 @@ jobs:
         run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> "$GITHUB_OUTPUT"
         id: extract_current_branch
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Crowdin push
         uses: crowdin/github-action@c953b17499daa6be3e5afbf7a63616fb02d8b18d
