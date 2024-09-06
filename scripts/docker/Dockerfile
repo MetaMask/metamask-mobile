@@ -58,7 +58,10 @@ RUN bash -c 'eval "$(/home/node/.rbenv/bin/rbenv init -)" \
     && bundle install'
 
 # fix broken ipv6 on nodejs v20
-env NODE_OPTIONS="--no-network-family-autoselection --trace-warnings"
-env PATH=/home/node/.rbenv/shims/:$PATH
+ENV NODE_OPTIONS="--no-network-family-autoselection --trace-warnings"
+# minimize ruby memory usage
+ENV MALLOC_ARENA_MAX=1
+ENV PATH=/home/node/.rbenv/shims/:$PATH
+ENV LANG=en_US.UTF-8
 
 WORKDIR /app
