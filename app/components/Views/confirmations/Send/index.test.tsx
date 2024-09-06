@@ -1,21 +1,21 @@
+import Send from '.';
+import { RootState } from '../../../../reducers';
+import { MOCK_KEYRING_CONTROLLER } from '../../../../selectors/keyringController/testUtils';
+import {
+  MOCK_ACCOUNTS_CONTROLLER_STATE,
+  MOCK_ADDRESS_2,
+} from '../../../../util/test/accountsControllerTestUtils';
 import {
   DeepPartial,
   renderScreen,
 } from '../../../../util/test/renderWithProvider';
-import Send from '.';
-import {
-  MOCK_ACCOUNTS_CONTROLLER_STATE,
-  MOCK_ADDRESS_1,
-} from '../../../../util/test/accountsControllerTestUtils';
-import { MOCK_KEYRING_CONTROLLER } from '../../../../selectors/keyringController/testUtils';
-import { RootState } from '../../../../reducers';
 
 const initialState: DeepPartial<RootState> = {
   transaction: {
     transaction: {
       value: '',
       data: '0x0',
-      from: '0x1',
+      from: MOCK_ADDRESS_2,
       gas: '',
       gasPrice: '',
       to: '0x2',
@@ -28,18 +28,18 @@ const initialState: DeepPartial<RootState> = {
     backgroundState: {
       AccountTrackerController: {
         accounts: {
-          [MOCK_ADDRESS_1]: {
+          [MOCK_ADDRESS_2]: {
             balance: '0x0',
           },
         },
         accountsByChainId: {
           64: {
-            [MOCK_ADDRESS_1]: {
+            [MOCK_ADDRESS_2]: {
               balance: '0x0',
             },
           },
           1: {
-            [MOCK_ADDRESS_1]: {
+            [MOCK_ADDRESS_2]: {
               balance: '0x0',
             },
           },
@@ -58,7 +58,7 @@ const initialState: DeepPartial<RootState> = {
         featureFlags: {},
         ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',
         lostIdentities: {},
-        selectedAddress: MOCK_ADDRESS_1,
+        selectedAddress: MOCK_ADDRESS_2,
         useTokenDetection: true,
         useNftDetection: false,
         displayNftMedia: true,
@@ -137,11 +137,9 @@ jest.mock('../../../../core/Engine', () => ({
       state: {
         keyrings: [
           {
-            accounts: [
-              '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
-              '0x519d2CE57898513F676a5C3b66496c3C394c9CC7',
-              '0x07Be9763a718C0539017E2Ab6fC42853b4aEeb6B',
-            ],
+            accounts: ['0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756'],
+            index: 0,
+            type: 'HD Key Tree',
           },
         ],
       },

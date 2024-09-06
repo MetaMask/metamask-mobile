@@ -20,4 +20,5 @@ export const SettingsViewSelectorsIDs = {
   LOCK: 'lock-settings',
   NOTIFICATIONS: 'notifications-settings',
   AES_CRYPTO_TEST_FORM: 'aes-crypto-settings',
+  PERMISSIONS: 'permissions',
 };
