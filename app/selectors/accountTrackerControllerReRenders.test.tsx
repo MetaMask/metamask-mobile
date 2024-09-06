@@ -343,8 +343,3 @@ describe('selectAccountBalanceByChainId', () => {
     });
   });
 });
-
-
-
-
-

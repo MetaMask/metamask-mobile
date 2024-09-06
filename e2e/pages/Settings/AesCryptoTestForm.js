@@ -151,7 +151,7 @@ class AesCryptoTestForm {
     );
   }
 
-  async generateSalt(saltBytesCount: string) {
+  async generateSalt(saltBytesCount) {
     await this.scrollUpToGenerateSalt();
     await Gestures.typeTextAndHideKeyboard(
       this.generateSaltBytesCountInput,
@@ -167,7 +167,7 @@ class AesCryptoTestForm {
     return responseFieldAtts.label;
   }
 
-  async generateEncryptionKey(password: string, salt: string) {
+  async generateEncryptionKey(password, salt) {
     await this.scrollUpToGenerateEncryptionKey();
     await Gestures.typeTextAndHideKeyboard(
       this.generateEncryptionKeyPasswordInput,
@@ -187,7 +187,7 @@ class AesCryptoTestForm {
     return responseFieldAtts.label;
   }
 
-  async encrypt(data: string, encryptionKey: string) {
+  async encrypt(data, encryptionKey) {
     await this.scrollToEncrypt();
     await Gestures.typeTextAndHideKeyboard(this.encryptDataInput, data);
     await Gestures.typeTextAndHideKeyboard(
@@ -197,7 +197,7 @@ class AesCryptoTestForm {
     await Gestures.waitAndTap(this.encryptButton);
   }
 
-  async decrypt(encryptionKey: string) {
+  async decrypt(encryptionKey) {
     await this.scrollToDecrypt();
     await Gestures.typeTextAndHideKeyboard(
       this.decryptPasswordInput,
@@ -206,7 +206,7 @@ class AesCryptoTestForm {
     await Gestures.waitAndTap(this.decryptButton);
   }
 
-  async encryptWithKey(encryptionKey: string, data: string) {
+  async encryptWithKey(encryptionKey, data) {
     await this.scrollToEncryptWithKey();
     await Gestures.typeTextAndHideKeyboard(
       this.encryptWithKeyEncryptionKeyInput,
@@ -216,7 +216,7 @@ class AesCryptoTestForm {
     await Gestures.waitAndTap(this.encryptWithKeyButton);
   }
 
-  async decryptWithKey(encryptionKey: string) {
+  async decryptWithKey(encryptionKey) {
     await this.scrollToDecryptWithKey();
     await Gestures.typeTextAndHideKeyboard(
       this.decryptWithKeyEncryptionKeyInput,
