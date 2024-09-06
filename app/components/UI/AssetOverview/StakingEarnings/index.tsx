@@ -46,7 +46,7 @@ const StakingEarnings = () => {
       strings('tooltip_modal.reward_rate.tooltip'),
     );
 
-  if (isPooledStakingFeatureEnabled()) return <></>;
+  if (!isPooledStakingFeatureEnabled()) return <></>;
 
   return (
     <View style={styles.stakingEarningsContainer}>
