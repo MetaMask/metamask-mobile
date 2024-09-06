@@ -105,7 +105,6 @@ function NotificationsListItem(props: NotificationsListItemProps) {
         isRead={props.notification.isRead}
         {...menuItemState}
       />
-      <NotificationMenuItem.Icon {...menuItemState} />
       <NotificationMenuItem.Content {...menuItemState} />
     </NotificationMenuItem.Root>
   );
