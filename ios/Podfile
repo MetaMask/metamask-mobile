@@ -120,6 +120,7 @@ post_install do |installer|
   installer.pods_project.targets.each do |target|
     if target.name == 'Flipper'
       file_path = 'ios/Pods/Flipper/xplat/Flipper/FlipperTransportTypes.h'
+      system("chmod +w " + file_path)
       contents = File.read(file_path)
       unless contents.include?('#include <functional>')
         File.open(file_path, 'w') do |file|
