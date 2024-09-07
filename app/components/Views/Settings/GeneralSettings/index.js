@@ -195,11 +195,13 @@ class Settings extends PureComponent {
   selectCurrency = async (currency) => {
     const { CurrencyRateController } = Engine.context;
     CurrencyRateController.setCurrentCurrency(currency);
-    // trackEvent
-    this.props.metrics.trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
-      sensitiveProperties: {
-        currentCurrency: currency,
-      },
+
+    // track event and add selected currency to user profile for analytics
+    const traits = { [UserProfileProperty.CURRENT_CURRENCY]: currency };
+    this.props.metrics.addTraitsToUser(traits);
+    this.props.metrics.trackEvent(MetaMetricsEvents.CURRENCY_CHANGED, {
+      ...traits,
+      location: 'app_settings',
     });
   };
 
