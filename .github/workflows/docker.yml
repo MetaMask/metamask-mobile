@@ -39,6 +39,6 @@ jobs:
             --rm \
             -v "$(pwd):/app" -w /app \
             metamask-mobile-builder:latest \
-            bash -c 'yarn && yarn setup --build-ios --docker'
+            bash -c 'yarn && yarn setup --build-ios --skip-pods'
             # restore ownership for cleanup
             sudo chown -R "$(id -u):$(id -g)" .

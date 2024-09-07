@@ -9,7 +9,7 @@ const IS_OSX = process.platform === 'darwin';
 // iOS builds are enabled by default on macOS only but can be enabled explicitly
 let BUILD_IOS = IS_OSX;
 let IS_NODE = false;
-let IS_DOCKER = false;
+let SKIP_PODS = false;
 const args = process.argv.slice(2) || [];
 for (const arg of args) {
   switch (arg) {
@@ -19,8 +19,8 @@ for (const arg of args) {
     case '--node':
       IS_NODE = true;
       continue;
-    case '--docker':
-      IS_DOCKER = true;
+    case '--skip-pods':
+      SKIP_PODS = true;
       continue;
     default:
       throw new Error(`Unrecognized CLI arg ${arg}`);
@@ -168,7 +168,7 @@ const setupIosTask = {
         {
           title: 'Install CocoaPods',
           task: async (_, podInstallTask) => {
-            if (IS_DOCKER) {
+            if (SKIP_PODS) {
               return podInstallTask.skip('Skipping installing cocoapods.');
             }
             await $`yarn pod:install`;
