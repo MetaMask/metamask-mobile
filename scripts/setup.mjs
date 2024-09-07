@@ -9,6 +9,7 @@ const IS_OSX = process.platform === 'darwin';
 // iOS builds are enabled by default on macOS only but can be enabled explicitly
 let BUILD_IOS = IS_OSX;
 let IS_NODE = false;
+let IS_DOCKER = false;
 const args = process.argv.slice(2) || [];
 for (const arg of args) {
   switch (arg) {
@@ -17,6 +18,9 @@ for (const arg of args) {
       continue;
     case '--node':
       IS_NODE = true;
+      continue;
+    case '--docker':
+      IS_DOCKER = true;
       continue;
     default:
       throw new Error(`Unrecognized CLI arg ${arg}`);
@@ -35,8 +39,12 @@ const rendererOptions = {
  */
 const copyAndSourceEnvVarsTask = {
   title: 'Copy and source environment variables',
-  task: (_, task) =>
-    task.newListr(
+  task: (_, task) => {
+    if (IS_CI) {
+      return task.skip('Skipping copying and sourcing environment variables.');
+    }
+
+    return task.newListr(
       [
         {
           title: 'Copy env vars',
@@ -81,12 +89,16 @@ const copyAndSourceEnvVarsTask = {
         exitOnError: true,
         rendererOptions,
       },
-    ),
+    );
+  },
 };
 
 const buildPpomTask = {
   title: 'Build PPOM',
   task: (_, task) => {
+    if (IS_NODE) {
+      return task.skip('Skipping building PPOM.');
+    }
     const $ppom = $({ cwd: 'ppom' });
 
     return task.newListr(
@@ -127,8 +139,12 @@ const buildPpomTask = {
 
 const setupIosTask = {
   title: 'Set up iOS',
-  task: async (_, task) =>
-    task.newListr(
+  task: async (_, task) => {
+    if (!BUILD_IOS) {
+      return task.skip('Skipping iOS set up.');
+    }
+
+    return task.newListr(
       [
         {
           title: 'Install bundler gem',
@@ -143,16 +159,19 @@ const setupIosTask = {
           },
         },
         {
-          title: 'Install CocoaPods',
-          task: async () => {
-            await $`yarn pod:install`;
-          },
-        },
-        {
           title: 'Create xcconfig files',
           task: async () => {
             fs.writeFileSync('ios/debug.xcconfig', '');
             fs.writeFileSync('ios/release.xcconfig', '');
+          },
+        },
+        {
+          title: 'Install CocoaPods',
+          task: async (_, podInstallTask) => {
+            if (IS_DOCKER) {
+              return podInstallTask.skip('Skipping installing cocoapods.');
+            }
+            await $`yarn pod:install`;
           },
         },
       ],
@@ -160,12 +179,16 @@ const setupIosTask = {
         concurrent: false,
         exitOnError: true,
       },
-    ),
+    );
+  },
 };
 
 const buildInpageBridgeTask = {
   title: 'Build inpage bridge',
-  task: async () => {
+  task: async (_, task) => {
+    if (IS_NODE) {
+      return task.skip('Skipping building inpage bridge.');
+    }
     await $`./scripts/build-inpage-bridge.sh`;
   },
 };
@@ -173,7 +196,10 @@ const buildInpageBridgeTask = {
 const nodeifyTask = {
   // TODO: find a saner alternative to bring node modules into react native bundler. See ReactNativify
   title: 'Nodeify npm packages',
-  task: async () => {
+  task: async (_, task) => {
+    if (IS_NODE) {
+      return task.skip('Skipping nodeifying npm packages.');
+    }
     await $`node_modules/.bin/rn-nodeify --install crypto,buffer,react-native-randombytes,vm,stream,http,https,os,url,net,fs --hack`;
   },
 };
@@ -187,7 +213,10 @@ const patchPackageTask = {
 
 const updateGitSubmodulesTask = {
   title: 'Init git submodules',
-  task: async () => {
+  task: async (_, task) => {
+    if (IS_NODE) {
+      return task.skip('Skipping init git submodules.');
+    }
     await $`git submodule update --init`;
   },
 };
@@ -251,24 +280,16 @@ const generateTermsOfUseTask = {
     ),
 };
 
-const yarnSetupNodeTask = {
-  title: 'Yarn setup node',
-  task: (_, task) =>
-    task.newListr([runLavamoatAllowScriptsTask, patchPackageTask], {
-      concurrent: false,
-      exitOnError: true,
-      rendererOptions,
-    }),
-};
-
 /**
- * Tasks that changes node modules and should run asynchronously
+ * Tasks that changes node modules and should run sequentially
  */
 const prepareDependenciesTask = {
   title: 'Prepare dependencies',
   task: (_, task) =>
     task.newListr(
       [
+        copyAndSourceEnvVarsTask,
+        updateGitSubmodulesTask,
         // Inpage bridge must generate before node modules are altered
         buildInpageBridgeTask,
         nodeifyTask,
@@ -276,7 +297,7 @@ const prepareDependenciesTask = {
         patchPackageTask,
       ],
       {
-        exitOnError: false,
+        exitOnError: true,
         concurrent: false,
         rendererOptions,
       },
@@ -284,54 +305,22 @@ const prepareDependenciesTask = {
 };
 
 /**
- * Tasks that are run sequentially
- */
-let sequentialTasks = [
-  ...(IS_NODE
-    ? [yarnSetupNodeTask]
-    : [
-        prepareDependenciesTask,
-        ...(IS_CI ? [] : [copyAndSourceEnvVarsTask]),
-        updateGitSubmodulesTask,
-      ]),
-];
-
-/**
  * Tasks that are run concurrently
  */
-const concurrentTasks = [
-  ...(BUILD_IOS ? [setupIosTask] : []),
-  // Optimized for CI performance
-  ...(IS_NODE ? [] : [buildPpomTask]),
-  generateTermsOfUseTask,
-];
+const concurrentTasks = {
+  title: 'Concurrent tasks',
+  task: (_, task) =>
+    task.newListr([setupIosTask, buildPpomTask, generateTermsOfUseTask], {
+      concurrent: true,
+      exitOnError: true,
+      rendererOptions,
+    }),
+};
 
-const tasks = new Listr(
-  [
-    {
-      title: 'Sequential tasks',
-      task: (_, task) =>
-        task.newListr(sequentialTasks, {
-          concurrent: false,
-          exitOnError: true,
-          rendererOptions,
-        }),
-    },
-    {
-      title: 'Concurrent tasks',
-      task: (_, task) =>
-        task.newListr(concurrentTasks, {
-          concurrent: true,
-          exitOnError: true,
-          rendererOptions,
-        }),
-    },
-  ],
-  {
-    concurrent: false,
-    exitOnError: true,
-    rendererOptions,
-  },
-);
+const tasks = new Listr([prepareDependenciesTask, concurrentTasks], {
+  concurrent: false,
+  exitOnError: true,
+  rendererOptions,
+});
 
 await tasks.run();
