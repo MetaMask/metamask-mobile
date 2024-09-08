@@ -7,6 +7,7 @@ import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 import handleDeeplink from '../../SDKConnect/handlers/handleDeeplink';
+import mockedEngine from '../../../core/__mocks__/MockedEngine';
 
 jest.mock('../../../core/AppConstants');
 jest.mock('../../../core/SDKConnect/handlers/handleDeeplink');
@@ -16,6 +17,9 @@ jest.mock('../../../core/NativeModules', () => ({
   Minimizer: {
     goBack: jest.fn(),
   },
+}));
+jest.mock('../../../core/Engine', () => ({
+  init: () => mockedEngine.init(),
 }));
 
 describe('handleMetaMaskProtocol', () => {

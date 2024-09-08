@@ -1,7 +1,6 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
-import { NetworkState } from '@metamask/network-controller';
 import { NetworkType } from '@metamask/controller-utils';
 import { LINEA_SEPOLIA_BLOCK_EXPLORER } from '../../../app/constants/urls';
 import { ensureValidState } from './util';
@@ -31,7 +30,17 @@ export default function migrate(state: unknown) {
     return state;
   }
   const networkControllerState = state.engine.backgroundState
-    .NetworkController as NetworkState;
+    .NetworkController as {
+    providerConfig: {
+      chainId: string;
+      ticker: string;
+      type: string;
+      rpcPrefs: {
+        blockExplorerUrl: string;
+      };
+    };
+    selectedNetworkClientId: string;
+  };
   if (!isObject(networkControllerState)) {
     captureException(
       new Error(

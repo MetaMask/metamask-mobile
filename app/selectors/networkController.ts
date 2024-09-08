@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
-import { NetworkState, NetworkClientType } from '@metamask/network-controller';
+import { NetworkState } from '@metamask/network-controller';
 import { createDeepEqualSelector } from './util';
 import Engine from '../core/Engine';
 import { Hex } from '@metamask/utils';

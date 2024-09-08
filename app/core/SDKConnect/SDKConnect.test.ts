@@ -33,6 +33,7 @@ import {
   updateSDKLoadingState,
 } from './StateManagement';
 import Engine from '../../core/Engine';
+import mockedEngine from '../__mocks__/MockedEngine';
 
 jest.mock('./Connection');
 jest.mock('@react-navigation/native');
@@ -47,7 +48,9 @@ jest.mock('./RPCQueueManager');
 jest.mock('./SDKConnectConstants');
 jest.mock('./SessionManagement');
 jest.mock('./StateManagement');
-jest.mock('../../core/Engine');
+jest.mock('../../core/Engine', () => ({
+  init: () => mockedEngine.init(),
+}));
 
 describe('SDKConnect', () => {
   let sdkConnect: SDKConnect;

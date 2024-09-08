@@ -18,6 +18,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
   {
     id: 'test-order-1',
     account: MOCK_ADDRESS,
+    network: '1',
     cryptoAmount: '0.01231324',
     orderType: 'BUY',
     state: FIAT_ORDER_STATES.COMPLETED,
@@ -40,6 +41,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
   {
     id: 'test-order-2',
     account: MOCK_ADDRESS,
+    network: '1',
     cryptoAmount: '0.01231324',
     orderType: 'SELL',
     state: FIAT_ORDER_STATES.PENDING,
@@ -62,6 +64,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
   {
     id: 'test-order-3',
     account: MOCK_ADDRESS,
+    network: '1',
     cryptoAmount: '0.01231324',
     orderType: 'BUY',
     state: FIAT_ORDER_STATES.PENDING,
@@ -84,6 +87,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
   {
     id: 'test-order-4',
     account: MOCK_ADDRESS,
+    network: '1',
     orderType: 'BUY',
     state: FIAT_ORDER_STATES.PENDING,
     provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
@@ -108,6 +112,18 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
 
 jest.mock('../../../../../core/Engine', () => ({
   init: () => mockedEngine.init(),
+  context: {
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+    },
+  },
 }));
 
 function render(Component: React.ReactElement, orders = testOrders) {

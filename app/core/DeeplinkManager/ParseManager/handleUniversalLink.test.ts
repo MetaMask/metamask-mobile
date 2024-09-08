@@ -1,3 +1,4 @@
+import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { ACTIONS } from '../../../constants/deeplinks';
 import AppConstants from '../../AppConstants';
 import { Minimizer } from '../../NativeModules';
@@ -17,6 +18,9 @@ jest.mock('../../../core/NativeModules', () => ({
   Minimizer: {
     goBack: jest.fn(),
   },
+}));
+jest.mock('../../../core/Engine', () => ({
+  init: () => mockedEngine.init(),
 }));
 
 describe('handleUniversalLinks', () => {
