@@ -1,6 +1,5 @@
 /* eslint-disable import/no-nodejs-modules */
 import { decode, encode } from 'base-64';
-import { XMLHttpRequest as _XMLHttpRequest } from 'xhr2';
 import {
   FIXTURE_SERVER_PORT,
   isTest,
@@ -53,15 +52,15 @@ if (typeof localStorage !== 'undefined') {
   // eslint-disable-next-line no-undef
   localStorage.debug = isDev ? '*' : '';
 }
-
-if (process.env.IS_TEST) {
+// Send all traffic to proxy when IS_TEST is on
+if (isTest) {
   (async () => {
     const { fetch: originalFetch } = global;
     const MOCKTTP_URL = `http://${
-      Platform.OS === 'ios' ? 'localhost' : '10.0.2.2'
+      Platform.OS === 'ios' ? 'localhost' : '10.0.2.2'// l
     }:8000`;
 
-    const isMockServerAvailable = await originalFetch(
+    const isMockServerAvailable = await originalFetch(// small healthcheck
       `${MOCKTTP_URL}/health-check`,
     )
       .then((res) => res.ok)
@@ -70,7 +69,7 @@ if (process.env.IS_TEST) {
     global.fetch = async (url, options) =>
       isMockServerAvailable
         ? originalFetch(
-            `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(url)}`,
+            `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(url)}`, // if mockserver is off we route to original destination
             options,
           ).catch(() => originalFetch(url, options))
         : originalFetch(url, options);
