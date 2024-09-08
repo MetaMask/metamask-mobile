@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Platform, Switch, View } from 'react-native';
+import { ActivityIndicator, Platform, Switch, View } from 'react-native';
 import { createStyles } from './styles';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import Text, {
@@ -73,6 +73,7 @@ const NotificationOptionToggle = ({
   testId,
   isEnabled,
   disabledSwitch,
+  isLoading,
 }: NotificationOptionsToggleProps) => {
   const theme = useTheme();
   const { colors } = theme;
@@ -121,19 +122,23 @@ const NotificationOptionToggle = ({
         )}
       </View>
       <View style={styles.switchElement}>
-        <Switch
-          value={status}
-          onChange={onPress}
-          trackColor={{
-            true: colors.primary.default,
-            false: colors.border.muted,
-          }}
-          thumbColor={theme.brandColors.white}
-          style={styles.switch}
-          ios_backgroundColor={colors.border.muted}
-          disabled={disabledSwitch}
-          {...generateTestId(Platform, testId)}
-        />
+        {!isLoading ? (
+          <Switch
+            value={status}
+            onChange={onPress}
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={theme.brandColors.white}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+            disabled={disabledSwitch}
+            {...generateTestId(Platform, testId)}
+          />
+        ) : (
+          <ActivityIndicator />
+        )}
       </View>
     </View>
   );
