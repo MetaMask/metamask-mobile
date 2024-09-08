@@ -175,8 +175,10 @@ describe('Migration #27', () => {
       engine: {
         backgroundState: {
           NetworkController: {
-            selectedNetworkClientId: '1-2-3',
-            networksMetadata: {},
+            providerConfig: {
+              chainId: '5',
+              type: 'goerli',
+            },
             networkConfigurations: {
               '1-2-3': {
                 chainId: '5',
@@ -233,7 +235,7 @@ describe('Migration #27', () => {
         chainId: '5',
         hash: '0x2',
         migration: true,
-        networkType: 'rpc',
+        networkType: 'goerli',
         networkUrl: ['http://goerli.test.com', 'http://goerli.test2.com'],
         origin: 'test.com',
         rawTransaction: '0x3',

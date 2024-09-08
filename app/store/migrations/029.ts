@@ -22,7 +22,9 @@ import {
 
 /**
  * Converting chain id on decimal format to hexadecimal format
+ * Replacing rpcTarget property for the rpcUrl new property on providerConfig
  * Converting keys of networkOnboardedState for hexadecimal for not repeat showing the new network modal
+ * Addressing networkDetails property change
  * Addressing networkConfigurations chainId property change to ehxadecimal
  * Swaps on the state initial state key chain id changed for hexadecimal
  * Address book controller chain id identifier changed for hexadecimal
@@ -71,6 +73,74 @@ export default async function migrate(stateAsync: unknown) {
       ),
     );
     return state;
+  }
+
+  if (
+    !hasProperty(networkControllerState, 'providerConfig') ||
+    !isObject(networkControllerState.providerConfig)
+  ) {
+    captureException(
+      new Error(
+        `Migration 29: Invalid NetworkController providerConfig: '${typeof networkControllerState.providerConfig}'`,
+      ),
+    );
+    return state;
+  }
+
+  if (!networkControllerState.providerConfig.chainId) {
+    captureException(
+      new Error(
+        `Migration 29: Invalid NetworkController providerConfig chainId: '${JSON.stringify(
+          networkControllerState.providerConfig.chainId,
+        )}'`,
+      ),
+    );
+    return state;
+  }
+
+  if (networkControllerState.providerConfig.chainId) {
+    const networkControllerChainId = networkControllerState.providerConfig
+      .chainId as string;
+
+    networkControllerState.providerConfig.chainId = toHex(
+      networkControllerChainId,
+    );
+  }
+
+  // Changing rcpTarget property for the new rpcUrl
+  if (networkControllerState.providerConfig.rpcTarget) {
+    const networkControllerRpcTarget =
+      networkControllerState.providerConfig.rpcTarget;
+
+    networkControllerState.providerConfig.rpcUrl = networkControllerRpcTarget;
+
+    delete networkControllerState.providerConfig.rpcTarget;
+  }
+
+  if (
+    !hasProperty(networkControllerState, 'networkDetails') ||
+    !isObject(networkControllerState.networkDetails)
+  ) {
+    captureException(
+      new Error(
+        `Migration 29: Invalid NetworkController networkDetails: '${JSON.stringify(
+          networkControllerState.networkDetails,
+        )}'`,
+      ),
+    );
+    return state;
+  }
+  // Addressing networkDetails property change
+  const isEIP1559Compatible =
+    !!networkControllerState.networkDetails.isEIP1559Compatible;
+
+  networkControllerState.networkDetails = {
+    EIPS: {
+      1559: isEIP1559Compatible,
+    },
+  };
+  if (isObject(networkControllerState.networkDetails)) {
+    delete networkControllerState.networkDetails.isEIP1559Compatible;
   }
 
   if (

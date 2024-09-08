@@ -8,18 +8,12 @@ const expectedState = {
   engine: {
     backgroundState: {
       NetworkController: {
-        networkConfigurations: {
+        providerConfig: {
+          type: 'mainnet',
           chainId: '0x1',
-          id: 'mainnet',
-          nickname: 'Ethereum Mainnet',
-          rpcPrefs: { blockExplorerUrl: 'https://goerli.lineascan.build' },
           rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
           ticker: 'ETH',
         },
-        networksMetadata: {
-          mainnet: { EIPS: { '1559': true }, status: 'available' },
-        },
-        selectedNetworkClientId: 'mainnet',
       },
     },
   },
@@ -119,18 +113,11 @@ describe('Migration #34', () => {
       engine: {
         backgroundState: {
           NetworkController: {
-            networkConfigurations: {
+            providerConfig: {
+              type: 'mainnet',
               chainId: '0x1',
-              id: 'mainnet',
-              nickname: 'Ethereum Mainnet',
-              rpcPrefs: { blockExplorerUrl: 'https://goerli.lineascan.build' },
               rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-              ticker: 'ETH',
             },
-            networksMetadata: {
-              mainnet: { EIPS: { '1559': true }, status: 'available' },
-            },
-            selectedNetworkClientId: 'mainnet',
           },
         },
       },

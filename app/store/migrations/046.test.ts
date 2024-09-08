@@ -10,31 +10,16 @@ const oldState = {
     backgroundState: {
       NetworkController: {
         isCustomNetwork: true,
-        networkConfigurations: {
-          'linea-goerli': {
-            id: 'linea-goerli',
-            chainId: CHAIN_IDS.LINEA_GOERLI,
-            rpcUrl: 'https://linea-goerli.infura.io/v3',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://explorer.goerli.linea.build',
-            },
-            ticker: 'LineaETH',
-            type: 'linea-goerli',
-          },
-          'linea-sepolia': {
-            id: 'linea-sepolia',
-            chainId: CHAIN_IDS.LINEA_SEPOLIA,
-            rpcUrl: 'https://linea-sepolia.infura.io/v3',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://sepolia.lineascan.build',
-            },
-            ticker: 'LineaETH',
-            type: 'linea-sepolia',
-          },
-        },
+        networkConfigurations: {},
         networkDetails: { EIPS: { '1559': true } },
         networkStatus: 'available',
         selectedNetworkClientId: 'linea-goerli',
+        providerConfig: {
+          chainId: CHAIN_IDS.LINEA_GOERLI,
+          rpcPrefs: { blockExplorerUrl: 'https://explorer.goerli.linea.build' },
+          ticker: 'LineaETH',
+          type: 'linea-goerli',
+        },
       },
     },
   },
@@ -45,27 +30,16 @@ const expectedNewState = {
     backgroundState: {
       NetworkController: {
         isCustomNetwork: true,
-        networkConfigurations: {
-          'linea-sepolia': {
-            id: 'linea-sepolia',
-            chainId: CHAIN_IDS.LINEA_SEPOLIA,
-            rpcUrl: 'https://linea-sepolia.infura.io/v3',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://sepolia.lineascan.build',
-            },
-            ticker: 'LineaETH',
-            type: 'linea-sepolia',
-          },
-        },
+        networkConfigurations: {},
         networkDetails: { EIPS: { '1559': true } },
         networkStatus: 'available',
         selectedNetworkClientId: 'linea-sepolia',
-        // providerConfig: {
-        //   chainId: CHAIN_IDS.LINEA_SEPOLIA,
-        //   ticker: 'LineaETH',
-        //   type: 'linea-sepolia',
-        //   rpcPrefs: { blockExplorerUrl: 'https://sepolia.lineascan.build' },
-        // },
+        providerConfig: {
+          chainId: CHAIN_IDS.LINEA_SEPOLIA,
+          ticker: 'LineaETH',
+          type: 'linea-sepolia',
+          rpcPrefs: { blockExplorerUrl: 'https://sepolia.lineascan.build' },
+        },
       },
     },
   },
@@ -119,19 +93,12 @@ describe('Migration #46', () => {
       state: merge({}, initialRootState, {
         engine: {
           backgroundState: {
-            NetworkController: {
-              networkConfigurations: {
-                mainnet: {
-                  chainId: null,
-                },
-              },
-              selectedNetworkClientId: 'mainnet',
-            },
+            NetworkController: { providerConfig: { chainId: null } },
           },
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 46: NetworkController networkConfigurations chainId not found: 'null'",
+        "FATAL ERROR: Migration 46: NetworkController providerConfig chainId not found: 'null'",
       scenario: 'chainId is invalid',
     },
   ];

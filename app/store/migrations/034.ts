@@ -1,6 +1,5 @@
 import { captureException } from '@sentry/react-native';
 import { isObject, hasProperty } from '@metamask/utils';
-import type { NetworkState } from '@metamask/network-controller';
 
 /**
  * This migration addresses the ticker be required
@@ -38,8 +37,9 @@ export default async function migrate(stateAsync: unknown) {
   }
 
   const networkControllerState = state.engine.backgroundState.NetworkController;
-  const newNetworkControllerState = state.engine.backgroundState
-    .NetworkController as NetworkState;
+  const newNetworkControllerState =
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    state.engine.backgroundState.NetworkController as any;
 
   if (!isObject(networkControllerState)) {
     captureException(
@@ -63,9 +63,7 @@ export default async function migrate(stateAsync: unknown) {
   }
 
   if (!networkControllerState.providerConfig.ticker) {
-    newNetworkControllerState.networkConfigurations[
-      newNetworkControllerState.selectedNetworkClientId
-    ].ticker = 'ETH';
+    newNetworkControllerState.providerConfig.ticker = 'ETH';
   }
 
   return state;

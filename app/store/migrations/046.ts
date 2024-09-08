@@ -2,6 +2,7 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
 import { NetworkState } from '@metamask/network-controller';
+import { NetworkType } from '@metamask/controller-utils';
 import { LINEA_SEPOLIA_BLOCK_EXPLORER } from '../../../app/constants/urls';
 import { ensureValidState } from './util';
 import { CHAINLIST_CURRENCY_SYMBOLS_MAP } from '../../constants/network';
@@ -40,56 +41,40 @@ export default function migrate(state: unknown) {
     return state;
   }
 
-  const selectedNetworkConfig =
-    networkControllerState.networkConfigurations[
-      networkControllerState.selectedNetworkClientId
-    ];
-
-  if (!selectedNetworkConfig) {
+  if (!networkControllerState.providerConfig) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 46: NetworkController networkConfigurations not found: '${JSON.stringify(
-          selectedNetworkConfig,
+        `FATAL ERROR: Migration 46: NetworkController providerConfig not found: '${JSON.stringify(
+          networkControllerState.providerConfig,
         )}'`,
       ),
     );
     return state;
   }
 
-  if (!selectedNetworkConfig.chainId) {
+  if (!networkControllerState.providerConfig.chainId) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 46: NetworkController networkConfigurations chainId not found: '${JSON.stringify(
-          selectedNetworkConfig.chainId,
+        `FATAL ERROR: Migration 46: NetworkController providerConfig chainId not found: '${JSON.stringify(
+          networkControllerState.providerConfig.chainId,
         )}'`,
       ),
     );
     return state;
   }
-
-  const chainId = selectedNetworkConfig.chainId;
-
-  // If user is on linea-goerli, switch to linea-sepolia
+  const chainId = networkControllerState.providerConfig.chainId;
+  // If user on linea goerli, fallback to linea Sepolia
   if (chainId === CHAIN_IDS.LINEA_GOERLI) {
-    networkControllerState.selectedNetworkClientId = 'linea-sepolia';
-
-    // Remove linea-goerli from network configurations
-    delete networkControllerState.networkConfigurations['linea-goerli'];
-
-    // Update network configuration to reflect linea-sepolia
-    networkControllerState.networkConfigurations[
-      networkControllerState.selectedNetworkClientId
-    ] = {
-      id: 'linea-sepolia',
+    networkControllerState.providerConfig = {
       chainId: CHAIN_IDS.LINEA_SEPOLIA,
-      ticker: CHAINLIST_CURRENCY_SYMBOLS_MAP.LINEA_SEPOLIA, // Correct the ticker mapping here
+      ticker: CHAINLIST_CURRENCY_SYMBOLS_MAP.LINEA_GOERLI,
       rpcPrefs: {
         blockExplorerUrl: LINEA_SEPOLIA_BLOCK_EXPLORER,
       },
-      rpcUrl:
-        networkControllerState.networkConfigurations['linea-sepolia'].rpcUrl,
+      type: NetworkType['linea-sepolia'],
     };
+    networkControllerState.selectedNetworkClientId =
+      NetworkType['linea-sepolia'];
   }
-
   return state;
 }

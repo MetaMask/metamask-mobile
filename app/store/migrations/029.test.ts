@@ -10,25 +10,16 @@ const oldState = {
   engine: {
     backgroundState: {
       NetworkController: {
-        selectedNetworkClientId: 'network1',
-        networksMetadata: {
-          network1: {
-            status: 'available',
-            EIPS: {
-              '1559': true,
-            },
-          },
+        providerConfig: {
+          chainId: '1',
+          rpcTarget: 'https://api.avax.network/ext/bc/C/rpc',
+        },
+        networkDetails: {
+          isEIP1559Compatible: true,
         },
         networkConfigurations: {
           network1: {
-            id: 'network1',
-            rpcUrl: 'https://mainnet.infura.io/v3',
-            chainId: '0x1',
-            ticker: 'ETH',
-            nickname: 'Sepolia network',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://etherscan.com',
-            },
+            chainId: '1',
           },
         },
       },
@@ -116,25 +107,18 @@ const expectedNewState = {
   engine: {
     backgroundState: {
       NetworkController: {
-        selectedNetworkClientId: 'network1',
-        networksMetadata: {
-          network1: {
-            status: 'available',
-            EIPS: {
-              '1559': true,
-            },
+        providerConfig: {
+          chainId: '0x1',
+          rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
+        },
+        networkDetails: {
+          EIPS: {
+            1559: true,
           },
         },
         networkConfigurations: {
           network1: {
-            id: 'network1',
-            rpcUrl: 'https://mainnet.infura.io/v3',
             chainId: '0x1',
-            ticker: 'ETH',
-            nickname: 'Sepolia network',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://etherscan.com',
-            },
           },
         },
       },
@@ -224,18 +208,32 @@ jest.mock('@sentry/react-native', () => ({
 
 jest.mock('../../core/Engine', () => ({
   init: () => mockedEngine.init(),
-  context: {
-    NetworkController: {
-      getNetworkClientById: () => ({
-        configuration: {
-          chainId: '0x1',
-          rpcUrl: 'https://mainnet.infura.io/v3',
-          ticker: 'ETH',
-          type: 'custom',
-        },
-      }),
-    },
-  },
+  // context: {
+  //   NetworkController: {
+  //     state: {
+  //       providerConfig: {
+  //         chainId: '1',
+  //         rpcTarget: 'https://api.avax.network/ext/bc/C/rpc',
+  //       },
+  //       networkDetails: {
+  //         isEIP1559Compatible: true,
+  //       },
+  //       networkConfigurations: {
+  //         network1: {
+  //           chainId: '1',
+  //         },
+  //       },
+  //     },
+  //     // getNetworkClientById: () => ({
+  //     //   configuration: {
+  //     //     chainId: '0x1',
+  //     //     rpcUrl: 'https://mainnet.infura.io/v3',
+  //     //     ticker: 'ETH',
+  //     //     type: 'custom',
+  //     //   },
+  //     // }),
+  //   },
+  // },
 }));
 
 const mockedCaptureException = jest.mocked(captureException);
@@ -278,12 +276,52 @@ describe('Migration #29', () => {
       state: merge({}, initialRootState, {
         engine: {
           backgroundState: {
+            NetworkController: { providerConfig: null },
+          },
+        },
+      }),
+      errorMessage:
+        "Migration 29: Invalid NetworkController providerConfig: 'object'",
+      scenario: 'providerConfig is invalid',
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            NetworkController: { providerConfig: { chainId: null } },
+          },
+        },
+      }),
+      errorMessage:
+        "Migration 29: Invalid NetworkController providerConfig chainId: 'null'",
+      scenario: 'chainId is invalid',
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkDetails: null,
+              providerConfig: { chainId: '0x1' },
+            },
+          },
+        },
+      }),
+      errorMessage:
+        "Migration 29: Invalid NetworkController networkDetails: 'null'",
+      scenario: 'networkDetails is invalid',
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
             NetworkController: {
               ...backgroundState.NetworkController,
               networkDetails: {
                 isEIP1559Compatible: true,
               },
               networkConfigurations: null,
+              providerConfig: { chainId: '0x1' },
             },
           },
         },
@@ -303,6 +341,7 @@ describe('Migration #29', () => {
                 isEIP1559Compatible: true,
               },
               networkConfigurations: {},
+              providerConfig: { chainId: '0x1' },
             },
             AddressBookController: null,
           },
@@ -322,6 +361,7 @@ describe('Migration #29', () => {
                 isEIP1559Compatible: true,
               },
               networkConfigurations: {},
+              providerConfig: { chainId: '0x1' },
             },
             SwapsController: null,
           },
@@ -341,6 +381,7 @@ describe('Migration #29', () => {
                 isEIP1559Compatible: true,
               },
               networkConfigurations: {},
+              providerConfig: { chainId: '0x1' },
             },
             NftController: null,
           },
@@ -360,6 +401,7 @@ describe('Migration #29', () => {
                 isEIP1559Compatible: true,
               },
               networkConfigurations: {},
+              providerConfig: { chainId: '0x1' },
             },
             TransactionController: null,
           },
@@ -379,6 +421,7 @@ describe('Migration #29', () => {
                 isEIP1559Compatible: true,
               },
               networkConfigurations: {},
+              providerConfig: { chainId: '0x1' },
             },
             TokensController: null,
           },
@@ -398,6 +441,7 @@ describe('Migration #29', () => {
                 isEIP1559Compatible: true,
               },
               networkConfigurations: {},
+              providerConfig: { chainId: '0x1' },
             },
             TokenRatesController: null,
           },
@@ -417,6 +461,7 @@ describe('Migration #29', () => {
                 isEIP1559Compatible: true,
               },
               networkConfigurations: {},
+              providerConfig: { chainId: '0x1' },
             },
             TokenListController: null,
           },
@@ -440,6 +485,7 @@ describe('Migration #29', () => {
 
   it('All states changing as expected', async () => {
     const newState = await migration(oldState);
+
     expect(newState).toStrictEqual(expectedNewState);
   });
 });

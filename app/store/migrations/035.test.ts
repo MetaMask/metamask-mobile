@@ -54,18 +54,18 @@ jest.mock('@sentry/react-native', () => ({
 
 jest.mock('../../core/Engine', () => ({
   init: () => mockedEngine.init(),
-  context: {
-    NetworkController: {
-      getNetworkClientById: () => ({
-        configuration: {
-          chainId: '0x1',
-          rpcUrl: 'https://mainnet.infura.io/v3',
-          ticker: 'ETH',
-          type: 'custom',
-        },
-      }),
-    },
-  },
+  // context: {
+  //   NetworkController: {
+  //     getNetworkClientById: () => ({
+  //       configuration: {
+  //         chainId: '0x1',
+  //         rpcUrl: 'https://mainnet.infura.io/v3',
+  //         ticker: 'ETH',
+  //         type: 'custom',
+  //       },
+  //     }),
+  //   },
+  // },
 }));
 
 const mockedCaptureException = jest.mocked(captureException);
