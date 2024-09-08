@@ -1,6 +1,5 @@
 import { getLocal } from 'mockttp';
 
-// Initialise mock server
 const mockServer = getLocal();
 
 export const startMockServer = async ({
@@ -11,13 +10,8 @@ export const startMockServer = async ({
 }) => {
   if (!mockUrl) throw new Error('The mockUrl parameter is required');
 
-  mockServer.enableDebug();
   await mockServer.start(port);
   console.log(`Mockttp server running at http://localhost:${port}`);
-
-  await mockServer
-    .forGet('/health-check')
-    .thenReply(200, 'Mock server is running'); // health check
 
   await mockServer
     .forGet('/proxy')

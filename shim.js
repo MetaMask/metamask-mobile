@@ -52,26 +52,14 @@ if (typeof localStorage !== 'undefined') {
   // eslint-disable-next-line no-undef
   localStorage.debug = isDev ? '*' : '';
 }
-// Send all traffic to proxy when IS_TEST is on
+
 if (isTest) {
   (async () => {
     const { fetch: originalFetch } = global;
-    const MOCKTTP_URL = `http://${
-      Platform.OS === 'ios' ? 'localhost' : '10.0.2.2'// l
-    }:8000`;
+    const url = `http://${Platform.OS === 'ios' ? 'localhost' : '10.0.2.2'}:8000`;
 
-    const isMockServerAvailable = await originalFetch(// small healthcheck
-      `${MOCKTTP_URL}/health-check`,
-    )
-      .then((res) => res.ok)
-      .catch(() => false);
-
-    global.fetch = async (url, options) =>
-      isMockServerAvailable
-        ? originalFetch(
-            `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(url)}`, // if mockserver is off we route to original destination
-            options,
-          ).catch(() => originalFetch(url, options))
-        : originalFetch(url, options);
+    global.fetch = (u, options) => 
+      originalFetch(`${url}/proxy?url=${encodeURIComponent(u)}`, options);
   })();
 }
+
