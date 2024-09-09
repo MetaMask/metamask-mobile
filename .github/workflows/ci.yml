@@ -264,11 +264,11 @@ jobs:
     name: All jobs pass
     runs-on: ubuntu-20.04
     needs: [
-        setup,
+        # setup,
         # dedupe,
         # scripts,
         # unit-tests,
-        # check-workflows,
+        check-workflows,
         # sonar-cloud,
         # js-bundle-size-check,
         # sonar-cloud-quality-gate-status,
