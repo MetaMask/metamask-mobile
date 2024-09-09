@@ -42,7 +42,6 @@ const snapMethodMiddlewareBuilder = (
       origin,
     ),
     getAllowedKeyringMethods: keyringSnapPermissionsBuilder(
-      engineContext.SubjectMetadataController,
       origin,
     ),
     getSnapFile: controllerMessenger.call.bind(

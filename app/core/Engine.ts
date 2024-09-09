@@ -890,7 +890,6 @@ class Engine {
           },
           getAllowedKeyringMethods: (origin: string) =>
             keyringSnapPermissionsBuilder(
-              this.subjectMetadataController,
               origin,
             ),
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
