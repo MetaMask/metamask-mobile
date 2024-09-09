@@ -1,51 +1,1229 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AssetOverview should render correctly 1`] = `
-<ContextProvider
-  value={
+<View
+  style={
     {
-      "getServerState": undefined,
-      "noopCheck": "once",
-      "stabilityCheck": "once",
-      "store": {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
+      "paddingTop": 20,
     }
   }
+  testID="token-asset-overview"
 >
-  <AssetOverview
-    asset={
-      {
-        "address": "0x0000000000000000000000000000000000000000",
-        "balance": 4,
-        "balanceError": false,
-        "balanceFiat": 1500,
-        "decimals": 18,
-        "isETH": true,
-        "logo": "https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg",
-        "name": "Ethereum",
-        "symbol": "ETH",
+  <View>
+    <View
+      style={
+        {
+          "paddingHorizontal": 16,
+        }
       }
-    }
-    navigation={
-      {
-        "navigate": [MockFunction],
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
+        }
+      >
+        ETH
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontSize": 18,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Ethereum
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            [
+              {
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Bold",
+                "fontSize": 18,
+                "fontWeight": "600",
+                "marginVertical": 3,
+              },
+              undefined,
+              undefined,
+              {
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 32,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 40,
+              },
+            ],
+          ]
+        }
+        testID="token-price"
+      >
+        <View
+          style={
+            {
+              "paddingTop": 8,
+            }
+          }
+        >
+          <View
+            onLayout={[Function]}
+          >
+            <View
+              style={
+                {
+                  "position": "relative",
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 6,
+                      "height": 32,
+                      "width": 100,
+                    },
+                    {
+                      "backgroundColor": "#E1E9EE",
+                      "overflow": "hidden",
+                    },
+                  ]
+                }
+              />
+            </View>
+          </View>
+        </View>
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "paddingTop": 2,
+            }
+          }
+        >
+          <View
+            onLayout={[Function]}
+          >
+            <View
+              style={
+                {
+                  "position": "relative",
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 6,
+                      "height": 18,
+                      "width": 150,
+                    },
+                    {
+                      "backgroundColor": "#E1E9EE",
+                      "overflow": "hidden",
+                    },
+                  ]
+                }
+              />
+            </View>
+          </View>
+        </View>
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "paddingHorizontal": 16,
+          "paddingTop": 10,
+          "width": 750,
+        }
       }
-    }
-  />
-</ContextProvider>
+    >
+      <View
+        onLayout={[Function]}
+      >
+        <View
+          style={
+            {
+              "position": "relative",
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "borderRadius": 6,
+                  "height": 586.96,
+                  "width": 718,
+                },
+                {
+                  "backgroundColor": "#E1E9EE",
+                  "overflow": "hidden",
+                },
+              ]
+            }
+          />
+        </View>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "display": "flex",
+          "flexDirection": "row",
+          "justifyContent": "space-around",
+          "paddingHorizontal": 10,
+          "paddingVertical": 20,
+        }
+      }
+    >
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#0376c9",
+            "borderRadius": 40,
+            "justifyContent": "center",
+            "paddingHorizontal": 8,
+            "paddingLeft": 10,
+            "paddingVertical": 2,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#ffffff",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 12,
+              "fontWeight": "400",
+              "letterSpacing": 3,
+              "lineHeight": 20,
+              "textAlign": "center",
+            }
+          }
+        >
+          1D
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "borderRadius": 40,
+            "justifyContent": "center",
+            "paddingHorizontal": 8,
+            "paddingLeft": 10,
+            "paddingVertical": 2,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#0376c9",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 12,
+              "fontWeight": "400",
+              "letterSpacing": 3,
+              "lineHeight": 20,
+              "textAlign": "center",
+            }
+          }
+        >
+          1W
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "borderRadius": 40,
+            "justifyContent": "center",
+            "paddingHorizontal": 8,
+            "paddingLeft": 10,
+            "paddingVertical": 2,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#0376c9",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 12,
+              "fontWeight": "400",
+              "letterSpacing": 3,
+              "lineHeight": 20,
+              "textAlign": "center",
+            }
+          }
+        >
+          1M
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "borderRadius": 40,
+            "justifyContent": "center",
+            "paddingHorizontal": 8,
+            "paddingLeft": 10,
+            "paddingVertical": 2,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#0376c9",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 12,
+              "fontWeight": "400",
+              "letterSpacing": 3,
+              "lineHeight": 20,
+              "textAlign": "center",
+            }
+          }
+        >
+          3M
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "borderRadius": 40,
+            "justifyContent": "center",
+            "paddingHorizontal": 8,
+            "paddingLeft": 10,
+            "paddingVertical": 2,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#0376c9",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 12,
+              "fontWeight": "400",
+              "letterSpacing": 3,
+              "lineHeight": 20,
+              "textAlign": "center",
+            }
+          }
+        >
+          1Y
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "borderRadius": 40,
+            "justifyContent": "center",
+            "paddingHorizontal": 8,
+            "paddingLeft": 10,
+            "paddingVertical": 2,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#0376c9",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 12,
+              "fontWeight": "400",
+              "letterSpacing": 3,
+              "lineHeight": 20,
+              "textAlign": "center",
+            }
+          }
+        >
+          3Y
+        </Text>
+      </TouchableOpacity>
+    </View>
+    <View
+      style={
+        {
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <View
+        style={{}}
+      >
+        <Text
+          style={
+            [
+              {
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 30,
+                "fontWeight": "400",
+                "marginVertical": 2,
+              },
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              {
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 12,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 20,
+                "marginVertical": 0,
+              },
+            ]
+          }
+        >
+          Your balance
+        </Text>
+        <Text
+          style={
+            [
+              {
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 30,
+                "fontWeight": "400",
+                "marginVertical": 2,
+              },
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              [
+                {
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Bold",
+                  "fontSize": 18,
+                  "fontWeight": "600",
+                  "marginVertical": 3,
+                },
+                undefined,
+                undefined,
+                {
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 18,
+                  "fontWeight": "700",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                },
+              ],
+            ]
+          }
+        >
+          &lt; 0.00001 ETH
+        </Text>
+        <Text
+          style={
+            [
+              {
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 30,
+                "fontWeight": "400",
+                "marginVertical": 2,
+              },
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              {
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 12,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 20,
+                "marginVertical": 0,
+              },
+            ]
+          }
+        />
+      </View>
+      <View
+        style={
+          {
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "center",
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "column",
+            }
+          }
+        >
+          <TouchableOpacity
+            onPress={[Function]}
+            style={
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingTop": 16,
+                "paddingVertical": 2,
+                "width": "100%",
+              }
+            }
+            testID="token-buy-button"
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#0376c9",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "justifyContent": "center",
+                  "marginHorizontal": 16,
+                  "overflow": "hidden",
+                  "width": 32,
+                }
+              }
+            >
+              <SvgMock
+                color="#ffffff"
+                height={20}
+                name="Add"
+                style={
+                  {
+                    "height": 20,
+                    "width": 20,
+                  }
+                }
+                width={20}
+              />
+            </View>
+            <View>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontSize": 16,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              />
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#6a737d",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              />
+            </View>
+          </TouchableOpacity>
+          <Text
+            style={
+              [
+                {
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 30,
+                  "fontWeight": "400",
+                  "marginVertical": 2,
+                },
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                {
+                  "fontSize": 12,
+                  "fontStyle": "normal",
+                  "fontWeight": "400",
+                  "letterSpacing": 0.25,
+                  "lineHeight": 20,
+                },
+              ]
+            }
+          >
+            Buy
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "column",
+            }
+          }
+        >
+          <TouchableOpacity
+            onPress={[Function]}
+            style={
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingTop": 16,
+                "paddingVertical": 2,
+                "width": "100%",
+              }
+            }
+            testID="token-swap-button"
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#0376c9",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "justifyContent": "center",
+                  "marginHorizontal": 16,
+                  "overflow": "hidden",
+                  "width": 32,
+                }
+              }
+            >
+              <SvgMock
+                color="#ffffff"
+                height={20}
+                name="SwapHorizontal"
+                style={
+                  {
+                    "height": 20,
+                    "width": 20,
+                  }
+                }
+                width={20}
+              />
+            </View>
+            <View>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontSize": 16,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              />
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#6a737d",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              />
+            </View>
+          </TouchableOpacity>
+          <Text
+            style={
+              [
+                {
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 30,
+                  "fontWeight": "400",
+                  "marginVertical": 2,
+                },
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                {
+                  "fontSize": 12,
+                  "fontStyle": "normal",
+                  "fontWeight": "400",
+                  "letterSpacing": 0.25,
+                  "lineHeight": 20,
+                },
+              ]
+            }
+          >
+            Swap
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "column",
+            }
+          }
+        >
+          <TouchableOpacity
+            onPress={[Function]}
+            style={
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingTop": 16,
+                "paddingVertical": 2,
+                "width": "100%",
+              }
+            }
+            testID="token-bridge-button"
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#0376c9",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "justifyContent": "center",
+                  "marginHorizontal": 16,
+                  "overflow": "hidden",
+                  "width": 32,
+                }
+              }
+            >
+              <SvgMock
+                color="#ffffff"
+                height={20}
+                name="Bridge"
+                style={
+                  {
+                    "height": 20,
+                    "width": 20,
+                  }
+                }
+                width={20}
+              />
+            </View>
+            <View>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontSize": 16,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              />
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#6a737d",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              />
+            </View>
+          </TouchableOpacity>
+          <Text
+            style={
+              [
+                {
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 30,
+                  "fontWeight": "400",
+                  "marginVertical": 2,
+                },
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                {
+                  "fontSize": 12,
+                  "fontStyle": "normal",
+                  "fontWeight": "400",
+                  "letterSpacing": 0.25,
+                  "lineHeight": 20,
+                },
+              ]
+            }
+          >
+            Bridge
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "column",
+            }
+          }
+        >
+          <TouchableOpacity
+            onPress={[Function]}
+            style={
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingTop": 16,
+                "paddingVertical": 2,
+                "width": "100%",
+              }
+            }
+            testID="token-send-button"
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#0376c9",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "justifyContent": "center",
+                  "marginHorizontal": 16,
+                  "overflow": "hidden",
+                  "width": 32,
+                }
+              }
+            >
+              <SvgMock
+                color="#ffffff"
+                height={20}
+                name="Arrow2Upright"
+                style={
+                  {
+                    "height": 20,
+                    "width": 20,
+                  }
+                }
+                width={20}
+              />
+            </View>
+            <View>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontSize": 16,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              />
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#6a737d",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              />
+            </View>
+          </TouchableOpacity>
+          <Text
+            style={
+              [
+                {
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 30,
+                  "fontWeight": "400",
+                  "marginVertical": 2,
+                },
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                {
+                  "fontSize": 12,
+                  "fontStyle": "normal",
+                  "fontWeight": "400",
+                  "letterSpacing": 0.25,
+                  "lineHeight": 20,
+                },
+              ]
+            }
+          >
+            Send
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "column",
+            }
+          }
+        >
+          <TouchableOpacity
+            onPress={[Function]}
+            style={
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingTop": 16,
+                "paddingVertical": 2,
+                "width": "100%",
+              }
+            }
+            testID="token-receive-button"
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#0376c9",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "justifyContent": "center",
+                  "marginHorizontal": 16,
+                  "overflow": "hidden",
+                  "width": 32,
+                }
+              }
+            >
+              <SvgMock
+                color="#ffffff"
+                height={20}
+                name="QrCode"
+                style={
+                  {
+                    "height": 20,
+                    "width": 20,
+                  }
+                }
+                width={20}
+              />
+            </View>
+            <View>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontSize": 16,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              />
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#6a737d",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              />
+            </View>
+          </TouchableOpacity>
+          <Text
+            style={
+              [
+                {
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 30,
+                  "fontWeight": "400",
+                  "marginVertical": 2,
+                },
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                {
+                  "fontSize": 12,
+                  "fontStyle": "normal",
+                  "fontWeight": "400",
+                  "letterSpacing": 0.25,
+                  "lineHeight": 20,
+                },
+              ]
+            }
+          >
+            Receive
+          </Text>
+        </View>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "marginBottom": 20,
+          "paddingHorizontal": 16,
+        }
+      }
+    />
+  </View>
+</View>
 `;

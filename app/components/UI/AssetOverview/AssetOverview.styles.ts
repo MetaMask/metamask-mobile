@@ -39,6 +39,34 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'center',
       paddingTop: 20,
     },
+    activitiesButton: {
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'center',
+    },
+    buttonWrapper: {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+    },
+    buttonText: {
+      fontSize: 12,
+      fontStyle: 'normal',
+      fontWeight: '400',
+      lineHeight: 20,
+      letterSpacing: 0.25,
+    },
+    containerStyle: {
+      width: '100%',
+      flexDirection: 'row',
+      justifyContent: 'flex-start',
+      alignItems: 'flex-start',
+      paddingTop: 16,
+      paddingVertical: 2,
+    },
+    icon: {
+      marginHorizontal: 16,
+    },
     footerButton: {
       flexGrow: 1,
       flexShrink: 1,

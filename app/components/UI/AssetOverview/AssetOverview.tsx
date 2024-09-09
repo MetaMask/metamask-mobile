@@ -1,7 +1,3 @@
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
 import { zeroAddress } from 'ethereumjs-util';
 import React, { useCallback, useEffect } from 'react';
 import { Platform, TouchableOpacity, View } from 'react-native';
@@ -11,6 +7,9 @@ import {
   TOKEN_ASSET_OVERVIEW,
   TOKEN_OVERVIEW_SEND_BUTTON,
   TOKEN_OVERVIEW_RECEIVE_BUTTON,
+  TOKEN_OVERVIEW_BRIDGE_BUTTON,
+  TOKEN_OVERVIEW_SWAP_BUTTON,
+  TOKEN_OVERVIEW_BUY_BUTTON,
 } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { toggleReceiveModal } from '../../../actions/modals';
@@ -53,6 +52,15 @@ import styleSheet from './AssetOverview.styles';
 import { useStyles } from '../../../component-library/hooks';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
+import WalletAction from '../WalletAction';
+import useGoToBridge from '../Bridge/utils/useGoToBridge';
+import { swapsUtils } from '@metamask/swaps-controller';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { getDecimalChainId } from '../../../util/networks';
+import { useMetrics } from '../../../components/hooks/useMetrics';
+import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 
 interface AssetOverviewProps {
   navigation: {
@@ -61,11 +69,15 @@ interface AssetOverviewProps {
     navigate: (route: string, props?: any) => void;
   };
   asset: Asset;
+  displayBuyButton?: boolean;
+  displaySwapsButton?: boolean;
 }
 
 const AssetOverview: React.FC<AssetOverviewProps> = ({
   navigation,
   asset,
+  displayBuyButton,
+  displaySwapsButton,
 }: AssetOverviewProps) => {
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -74,9 +86,11 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const primaryCurrency = useSelector(
     (state: RootState) => state.settings.primaryCurrency,
   );
+  const goToBridge = useGoToBridge('TokenDetails');
   const selectedAddress = useSelector(
     selectSelectedInternalAccountChecksummedAddress,
   );
+  const { trackEvent } = useMetrics();
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const tokenBalances = useSelector(selectContractBalances);
   const chainId = useSelector((state: RootState) => selectChainId(state));
@@ -122,6 +136,32 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       dispatch(newAssetTransaction(asset));
     }
     navigation.navigate('SendFlowView');
+  };
+
+  const goToSwaps = () => {
+    navigation.navigate('Swaps', {
+      screen: 'SwapsAmountView',
+      params: {
+        sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+        sourcePage: 'MainView',
+      },
+    });
+    trackEvent(MetaMetricsEvents.SWAP_BUTTON_CLICKED, {
+      text: 'Swap',
+      tokenSymbol: '',
+      location: 'TokenDetails',
+      chain_id: getDecimalChainId(chainId),
+    });
+  };
+  const onBuy = () => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    navigation.navigate(...createBuyNavigationDetails());
+    trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+      text: 'Buy',
+      location: 'TokenDetails',
+      chain_id_destination: getDecimalChainId(chainId),
+    });
   };
 
   const goToBrowserUrl = (url: string) => {
@@ -249,23 +289,77 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           </View>
           <View style={styles.balanceWrapper}>
             <Balance balance={mainBalance} fiatBalance={secondaryBalance} />
-            <View style={styles.balanceButtons}>
-              <Button
-                style={{ ...styles.footerButton, ...styles.receiveButton }}
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Lg}
-                label={strings('asset_overview.receive_button')}
-                onPress={onReceive}
-                {...generateTestId(Platform, TOKEN_OVERVIEW_RECEIVE_BUTTON)}
-              />
-              <Button
-                style={{ ...styles.footerButton, ...styles.sendButton }}
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Lg}
-                label={strings('asset_overview.send_button')}
-                onPress={onSend}
-                {...generateTestId(Platform, TOKEN_OVERVIEW_SEND_BUTTON)}
-              />
+            <View style={styles.activitiesButton}>
+              {displayBuyButton ? (
+                <View style={styles.buttonWrapper}>
+                  <WalletAction
+                    iconName={IconName.Add}
+                    iconSize={AvatarSize.Md}
+                    onPress={onBuy}
+                    iconStyle={styles.icon}
+                    containerStyle={styles.containerStyle}
+                    {...generateTestId(Platform, TOKEN_OVERVIEW_BUY_BUTTON)}
+                  />
+                  <Text style={styles.buttonText}>
+                    {strings('asset_overview.buy_button')}
+                  </Text>
+                </View>
+              ) : null}
+
+              {displaySwapsButton ? (
+                <View style={styles.buttonWrapper}>
+                  <WalletAction
+                    iconName={IconName.SwapHorizontal}
+                    iconSize={AvatarSize.Md}
+                    onPress={goToSwaps}
+                    iconStyle={styles.icon}
+                    containerStyle={styles.containerStyle}
+                    {...generateTestId(Platform, TOKEN_OVERVIEW_SWAP_BUTTON)}
+                  />
+                  <Text style={styles.buttonText}>
+                    {strings('asset_overview.swap')}
+                  </Text>
+                </View>
+              ) : null}
+              <View style={styles.buttonWrapper}>
+                <WalletAction
+                  iconName={IconName.Bridge}
+                  iconSize={AvatarSize.Md}
+                  onPress={goToBridge}
+                  iconStyle={styles.icon}
+                  containerStyle={styles.containerStyle}
+                  {...generateTestId(Platform, TOKEN_OVERVIEW_BRIDGE_BUTTON)}
+                />
+                <Text style={styles.buttonText}>
+                  {strings('asset_overview.bridge')}
+                </Text>
+              </View>
+              <View style={styles.buttonWrapper}>
+                <WalletAction
+                  iconName={IconName.Arrow2Upright}
+                  iconSize={AvatarSize.Md}
+                  onPress={onSend}
+                  iconStyle={styles.icon}
+                  containerStyle={styles.containerStyle}
+                  {...generateTestId(Platform, TOKEN_OVERVIEW_SEND_BUTTON)}
+                />
+                <Text style={styles.buttonText}>
+                  {strings('asset_overview.send_button')}
+                </Text>
+              </View>
+              <View style={styles.buttonWrapper}>
+                <WalletAction
+                  iconName={IconName.QrCode}
+                  iconSize={AvatarSize.Md}
+                  onPress={onReceive}
+                  iconStyle={styles.icon}
+                  containerStyle={styles.containerStyle}
+                  {...generateTestId(Platform, TOKEN_OVERVIEW_RECEIVE_BUTTON)}
+                />
+                <Text style={styles.buttonText}>
+                  {strings('asset_overview.receive_button')}
+                </Text>
+              </View>
             </View>
           </View>
           <View style={styles.tokenDetailsWrapper}>
