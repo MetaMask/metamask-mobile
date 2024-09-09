@@ -279,6 +279,8 @@ const Main = (props) => {
       ) {
         NotificationManager.setTransactionToView(initialNotification.data.id);
         props.navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      } else {
+        props.navigation.navigate(Routes.NOTIFICATIONS.VIEW);
       }
     }
   }, [props.navigation]);
