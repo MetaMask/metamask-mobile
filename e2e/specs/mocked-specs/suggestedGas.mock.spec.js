@@ -47,5 +47,6 @@ describe(SmokeAssets('Import all tokens detected'), () => {
     await AmountView.tapNextButton();
 
     await TransactionConfirmView.tapEstimatedGasLink();
+
   });
 });

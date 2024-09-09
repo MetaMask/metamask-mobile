@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { getLocal } from 'mockttp';
 
 const mockServer = getLocal();
@@ -12,6 +13,10 @@ export const startMockServer = async ({
 
   await mockServer.start(port);
   console.log(`Mockttp server running at http://localhost:${port}`);
+
+  await mockServer
+    .forGet('/health-check')
+    .thenReply(200, 'Mock server is running');
 
   await mockServer
     .forGet('/proxy')
