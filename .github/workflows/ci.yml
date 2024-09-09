@@ -274,3 +274,18 @@ jobs:
       ]
     steps:
       - run: echo "Great success!"
+    outputs:
+      all-jobs-passed: true
+  check-all-jobs-pass:
+    name: Check all jobs pass
+    runs-on: ubuntu-20.04
+    needs: all-jobs-pass
+    if: always()
+    steps:
+      - run: |
+          if [[ "${{ needs.all-jobs-passed }}" == "false" ]]; then
+            echo "All jobs passed. Unblock PR."
+          else
+            echo "All jobs passed step skipped. Block PR."
+            exit 1
+          fi
