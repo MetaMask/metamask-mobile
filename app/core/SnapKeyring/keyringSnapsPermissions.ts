@@ -95,7 +95,6 @@ export function isProtocolAllowed(origin: string): boolean {
  * call.
  */
 export function keyringSnapPermissionsBuilder(
-  controller: SubjectMetadataController,
   origin: string,
 ): () => string[] {
   return () => {
@@ -111,30 +110,6 @@ export function keyringSnapPermissionsBuilder(
     if (PORTFOLIO_ORIGINS.includes(origin)) {
       return PORTFOLIO_ALLOWED_METHODS;
     }
-
-    const originMetadata = controller.getSubjectMetadata(origin);
-    console.log(
-      'Accounts/ keyringSnapPermissionsBuilder originMetadata',
-      originMetadata,
-    );
-    let allowedMethods: string[] = [];
-    if (originMetadata?.subjectType === SubjectType.Website) {
-      console.log(
-        'Accounts/ keyringSnapPermissionsBuilder originMetadata?.subjectType === SubjectType.Website',
-        originMetadata,
-      );
-      if (isProtocolAllowed(origin)) {
-        console.log(
-          'Accounts/ keyringSnapPermissionsBuilder isProtocolAllowed',
-          origin,
-        );
-        allowedMethods = WEBSITE_ALLOWED_METHODS;
-      }
-    }
-    console.log(
-      'Accounts/ keyringSnapPermissionsBuilder returning allowedMethods',
-      allowedMethods,
-    );
-    return allowedMethods;
+    return isProtocolAllowed(origin) ? WEBSITE_ALLOWED_METHODS : [];
   };
 }
