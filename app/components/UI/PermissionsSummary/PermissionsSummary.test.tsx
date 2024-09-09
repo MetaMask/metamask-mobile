@@ -20,6 +20,7 @@ describe('PermissionsSummary', () => {
     const { toJSON } = renderWithProvider(
       <PermissionsSummary
         currentPageInformation={{ currentEnsName: '', icon: '', url: '' }}
+        onEdit={() => {}}
       />,
       { state: mockInitialState },
     );
