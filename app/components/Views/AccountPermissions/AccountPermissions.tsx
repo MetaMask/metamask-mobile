@@ -377,7 +377,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         icon: faviconSource as string,
         url: urlWithProtocol,
       },
-      onEdit: () => setPermissionsScreen(AccountPermissionsScreens.Connect),
+      onEdit: () =>
+        setPermissionsScreen(AccountPermissionsScreens.EditAccountsPermissions),
       onUserAction: setUserIntent,
       showActionButtons: false,
       onBack: () => setPermissionsScreen(AccountPermissionsScreens.Connected),
@@ -386,7 +387,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     return <PermissionsSummary {...permissionsSummaryProps} />;
   }, [faviconSource, urlWithProtocol]);
 
-  const renderConnectScreen = useCallback(
+  const renderEditAccountsPermissionsScreen = useCallback(
     () => (
       <AccountConnectMultiSelector
         accounts={accountsFilteredByPermissions.unpermitted}
@@ -403,6 +404,38 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         onBack={() =>
           setPermissionsScreen(AccountPermissionsScreens.PermissionsSummary)
         }
+        screenTitle={strings('accounts.edit_accounts_title')}
+      />
+    ),
+    [
+      ensByAccountAddress,
+      selectedAddresses,
+      isLoading,
+      accountsFilteredByPermissions,
+      setUserIntent,
+      faviconSource,
+      urlWithProtocol,
+      secureIcon,
+      hostname,
+    ],
+  );
+
+  const renderConnectMoreAccountsScreen = useCallback(
+    () => (
+      <AccountConnectMultiSelector
+        accounts={accountsFilteredByPermissions.unpermitted}
+        ensByAccountAddress={ensByAccountAddress}
+        selectedAddresses={selectedAddresses}
+        onSelectAddress={setSelectedAddresses}
+        isLoading={isLoading}
+        onUserAction={setUserIntent}
+        favicon={faviconSource}
+        urlWithProtocol={urlWithProtocol}
+        hostname={hostname}
+        secureIcon={secureIcon}
+        isAutoScrollEnabled={false}
+        onBack={() => setPermissionsScreen(AccountPermissionsScreens.Connected)}
+        screenTitle={strings('accounts.connect_more_accounts')}
       />
     ),
     [
@@ -451,8 +484,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     switch (permissionsScreen) {
       case AccountPermissionsScreens.Connected:
         return renderConnectedScreen();
-      case AccountPermissionsScreens.Connect:
-        return renderConnectScreen();
+      case AccountPermissionsScreens.ConnectMoreAccounts:
+        return renderConnectMoreAccountsScreen();
+      case AccountPermissionsScreens.EditAccountsPermissions:
+        return renderEditAccountsPermissionsScreen();
       case AccountPermissionsScreens.Revoke:
         return renderRevokeScreen();
       case AccountPermissionsScreens.PermissionsSummary:
@@ -461,7 +496,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   }, [
     permissionsScreen,
     renderConnectedScreen,
-    renderConnectScreen,
+    renderConnectMoreAccountsScreen,
+    renderEditAccountsPermissionsScreen,
     renderRevokeScreen,
     renderPermissionsSummaryScreen,
   ]);

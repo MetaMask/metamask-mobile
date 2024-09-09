@@ -11,7 +11,10 @@ import SheetHeader from '../../../../component-library/components/Sheet/SheetHea
 import { strings } from '../../../../../locales/i18n';
 import TagUrl from '../../../../component-library/components/Tags/TagUrl';
 import PickerNetwork from '../../../../component-library/components/Pickers/PickerNetwork';
-import { getDecimalChainId } from '../../../../util/networks';
+import {
+  getDecimalChainId,
+  isMutichainVersion1Enabled,
+} from '../../../../util/networks';
 import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import { switchActiveAccounts } from '../../../../core/Permissions';
@@ -33,7 +36,6 @@ import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Moda
 import { AccountPermissionsConnectedProps } from './AccountPermissionsConnected.types';
 import styles from './AccountPermissionsConnected.styles';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
-import { isMutichainVersion1Enabled } from '../../../../util/networks';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
@@ -73,7 +75,7 @@ const AccountPermissionsConnected = ({
 
   const onConnectMoreAccounts = useCallback(() => {
     onSetSelectedAddresses([]);
-    onSetPermissionsScreen(AccountPermissionsScreens.Connect);
+    onSetPermissionsScreen(AccountPermissionsScreens.ConnectMoreAccounts);
   }, [onSetSelectedAddresses, onSetPermissionsScreen]);
 
   const openRevokePermissions = () =>
@@ -147,7 +149,9 @@ const AccountPermissionsConnected = ({
 
   return (
     <>
-      {!isMutichainVersion1Enabled && <SheetHeader title={hostname} />}
+      {!isMutichainVersion1Enabled && (
+        <SheetHeader title={strings('accounts.connected_accounts_title')} />
+      )}
       {isMutichainVersion1Enabled && (
         <View style={styles.header}>
           <Avatar

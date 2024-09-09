@@ -3,7 +3,8 @@
  */
 export enum AccountPermissionsScreens {
   Connected = 'Connected',
-  Connect = 'Connect',
+  ConnectMoreAccounts = 'ConnectMoreAccounts',
+  EditAccountsPermissions = 'EditAccountsPermissions',
   Revoke = 'Revoke',
   PermissionsSummary = 'PermissionsSummary',
 }
