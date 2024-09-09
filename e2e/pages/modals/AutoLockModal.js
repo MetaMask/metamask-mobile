@@ -1,14 +1,8 @@
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-import {
-  AutoLockModalSelectorsIDs,
-  AutoLockModalSelectorsText,
-} from '../../selectors/Modals/AutoLockModal.selectors';
+import { AutoLockModalSelectorsText } from '../../selectors/Modals/AutoLockModal.selectors';
 
 class AutoLockModal {
-  get container() {
-    return Matchers.getElementByID(AutoLockModalSelectorsIDs.CONTAINER);
-  }
   get autoLockImmediate() {
     return Matchers.getElementByText(
       AutoLockModalSelectorsText.AUTO_LOCK_IMMEDIATE,
