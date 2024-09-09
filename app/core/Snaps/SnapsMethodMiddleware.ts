@@ -63,6 +63,10 @@ const snapMethodMiddlewareBuilder = (
       controllerMessenger,
       'SnapController:get',
     ),
+    handleSnapRpcRequest: controllerMessenger.call.bind(
+      controllerMessenger,
+      'SnapController:handleRequest',
+    ),
   });
 
 export default snapMethodMiddlewareBuilder;
