@@ -381,6 +381,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       onUserAction: setUserIntent,
       showActionButtons: false,
       onBack: () => setPermissionsScreen(AccountPermissionsScreens.Connected),
+      isInitialDappConnection: false,
     };
     return <PermissionsSummary {...permissionsSummaryProps} />;
   }, [faviconSource, urlWithProtocol]);

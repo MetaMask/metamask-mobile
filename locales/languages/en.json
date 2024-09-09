@@ -1803,6 +1803,7 @@
   "permissions": {
     "title_this_site_wants_to": "This site wants to:",
     "title_dapp_url_wants_to": "{{dappUrl}} wants to:",
+    "title_dapp_url_has_approval_to": "{{dappUrl}} has approval to:",
     "use_enabled_networks": "Use your enabled networks",
     "wants_to_see_your_accounts": "See your accounts and suggest transactions",
     "requesting_for": "Requesting for ",

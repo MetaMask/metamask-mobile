@@ -40,6 +40,7 @@ const PermissionsSummary = ({
   onBack,
   onUserAction,
   showActionButtons = true,
+  isInitialDappConnection = true,
 }: PermissionsSummaryProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
@@ -193,9 +194,13 @@ const PermissionsSummary = ({
     <View style={styles.mainContainer}>
       {renderHeader()}
       <Text bold centered primary noMargin style={styles.title}>
-        {strings('permissions.title_dapp_url_wants_to', {
-          dappUrl: new URL(currentPageInformation.url).hostname,
-        })}
+        {isInitialDappConnection
+          ? strings('permissions.title_dapp_url_wants_to', {
+              dappUrl: new URL(currentPageInformation.url).hostname,
+            })
+          : strings('permissions.title_dapp_url_has_approval_to', {
+              dappUrl: new URL(currentPageInformation.url).hostname,
+            })}
       </Text>
       {renderAccountPermissionsRequestInfoCard()}
       {renderNetworkPermissionsRequestInfoCard()}
