@@ -1,7 +1,6 @@
 import React from 'react';
 import { ComponentMeta, ComponentStory } from '@storybook/react-native';
 import AccountBase from './AccountBase';
-import { AccountBaseProps } from './AccountBase.types';
 import { BadgeVariant } from '../../../components/Badges/Badge';
 
 const AccountBaseMeta: ComponentMeta<typeof AccountBase> = {
