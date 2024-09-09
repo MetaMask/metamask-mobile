@@ -16,10 +16,7 @@ pipelines:
   #Builds MetaMask apps and stores apk/ipa into Play(Internal Testing)/App(TestFlight) Store. Not for production release.
   release_builds_to_test_flight:
     stages:
-      - create_build_for_test_flight: {
-        envs:
-            - SKIP_SENTRY_UPLOAD: "true"
-      }
+      - create_build_for_test_flight: {}
       - deploy_build_for_test_flight: {}
       - create_build_qa: {} #Generate QA builds for E2E app upgrade tests
   #Releases MetaMask apps and stores ipa into App(TestFlight) Store
@@ -1057,7 +1054,6 @@ workflows:
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
-          run_if: '{{enveq "SKIP_SENTRY_UPLOAD" ""}}'
           inputs:
             - pipeline_intermediate_files: sourcemaps/android/index.js.map:BITRISE_PLAY_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/android/index.js.map
@@ -1271,7 +1267,6 @@ workflows:
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
-          run_if: '{{enveq "SKIP_SENTRY_UPLOAD" ""}}'
           inputs:
             - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map

@@ -292,7 +292,7 @@ buildIosRelease(){
   	remapEnvVariableRelease
 
 	# Enable Sentry to auto upload source maps and debug symbols
-	export SENTRY_DISABLE_AUTO_UPLOAD="false"
+	export SENTRY_DISABLE_AUTO_UPLOAD="true"
 
 	prebuild_ios
 
