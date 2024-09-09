@@ -3,251 +3,249 @@ on:
   push:
     branches: main
   pull_request:
-env:
-  ALL_JOBS_PASSED: false
 jobs:
-  # setup:
-  #   runs-on: ubuntu-20.04
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: actions/setup-node@v3
-  #       with:
-  #         node-version-file: '.nvmrc'
-  #         cache: yarn
-  #     - name: Determine whether the current PR is a draft
-  #       id: set-is-draft
-  #       if: github.event_name == 'pull_request' && github.event.pull_request.number
-  #       run: echo "IS_DRAFT=$(gh pr view --json isDraft --jq '.isDraft' "${PR_NUMBER}")" >> "$GITHUB_OUTPUT"
-  #       env:
-  #         PR_NUMBER: ${{ github.event.pull_request.number }}
-  #         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #     - name: Setup registry config for using package previews on draft PRs
-  #       if: github.event_name == 'pull_request' && steps.set-is-draft.outputs.IS_DRAFT == 'true'
-  #       run: printf '%s\n\n%s' '@metamask:registry=https://npm.pkg.github.com' "//npm.pkg.github.com/:_authToken=${PACKAGE_READ_TOKEN}" > .npmrc
-  #       env:
-  #         PACKAGE_READ_TOKEN: ${{ secrets.PACKAGE_READ_TOKEN }}
-  #     - run: yarn setup --node
-  #     - name: Require clean working directory
-  #       shell: bash
-  #       run: |
-  #         if ! git diff --exit-code; then
-  #           echo "Working tree dirty at end of job"
-  #           exit 1
-  #         else
-  #           echo "No changes detected"
-  #         fi
-  # dedupe:
-  #   runs-on: ubuntu-20.04
-  #   needs: setup
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: actions/setup-node@v3
-  #       with:
-  #         node-version-file: '.nvmrc'
-  #         cache: yarn
-  #     - run: yarn setup --node
-  #     - name: Deduplicate dependencies
-  #       run: yarn deduplicate
-  #     - name: Print error if duplicates found
-  #       shell: bash
-  #       run: |
-  #         if ! git diff --exit-code; then
-  #           echo "Duplicate dependencies detected; run 'yarn deduplicate' to remove them"
-  #           exit 1
-  #         fi
-  # scripts:
-  #   runs-on: ubuntu-20.04
-  #   needs: setup
-  #   strategy:
-  #     matrix:
-  #       scripts:
-  #         - lint
-  #         - lint:tsc
-  #         - audit:ci
-  #         - test:depcheck
-  #         - test:tgz-check
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: actions/setup-node@v3
-  #       with:
-  #         node-version-file: '.nvmrc'
-  #         cache: yarn
-  #     - run: yarn setup --node
-  #     - run: yarn ${{ matrix['scripts'] }}
-  #     - name: Require clean working directory
-  #       shell: bash
-  #       run: |
-  #         if ! git diff --exit-code; then
-  #           echo "Working tree dirty at end of job"
-  #           exit 1
-  #         else
-  #           echo "No changes detected"
-  #         fi
-  # unit-tests:
-  #   runs-on: ubuntu-20.04
-  #   needs: setup
-  #   strategy:
-  #     matrix:
-  #       shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: actions/setup-node@v3
-  #       with:
-  #         node-version-file: '.nvmrc'
-  #         cache: yarn
-  #     - run: yarn setup
-  #     # The "10" in this command is the total number of shards. It must be kept
-  #     # in sync with the length of matrix.shard
-  #     - run: yarn test:unit --shard=${{ matrix.shard }}/10 --forceExit --silent --coverageReporters=json
-  #       env:
-  #         NODE_OPTIONS: --max_old_space_size=20480
-  #     - name: Rename coverage report to include shard number
-  #       shell: bash
-  #       run: |
-  #         mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-${{ matrix.shard }}.json
-  #     - uses: actions/upload-artifact@v3
-  #       with:
-  #         name: coverage-${{ matrix.shard }}
-  #         path: ./tests/coverage/coverage-${{ matrix.shard }}.json
-  #         if-no-files-found: error
-  #     - name: Require clean working directory
-  #       shell: bash
-  #       run: |
-  #         if ! git diff --exit-code; then
-  #           echo "Working tree dirty at end of job"
-  #           exit 1
-  #         else
-  #           echo "No changes detected"
-  #         fi
-  # merge-unit-tests:
-  #   runs-on: ubuntu-20.04
-  #   needs: unit-tests
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: actions/setup-node@v3
-  #       with:
-  #         node-version-file: '.nvmrc'
-  #         cache: yarn
-  #     - run: yarn setup
-  #     - uses: actions/download-artifact@v3
-  #       with:
-  #         path: tests/coverage/
-  #     - name: Gather partial coverage reports into one directory
-  #       shell: bash
-  #       run: |
-  #         mv ./tests/coverage/coverage-*/* ./tests/coverage
-  #     - run: yarn test:merge-coverage
-  #     - run: yarn test:validate-coverage
-  #     - uses: actions/upload-artifact@v3
-  #       with:
-  #         name: coverage
-  #         path: ./tests/merged-coverage/lcov.info
-  #         if-no-files-found: error
-  #     - name: Require clean working directory
-  #       shell: bash
-  #       run: |
-  #         if ! git diff --exit-code; then
-  #           echo "Working tree dirty at end of job"
-  #           exit 1
-  #         else
-  #           echo "No changes detected"
-  #         fi
+  setup:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Determine whether the current PR is a draft
+        id: set-is-draft
+        if: github.event_name == 'pull_request' && github.event.pull_request.number
+        run: echo "IS_DRAFT=$(gh pr view --json isDraft --jq '.isDraft' "${PR_NUMBER}")" >> "$GITHUB_OUTPUT"
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup registry config for using package previews on draft PRs
+        if: github.event_name == 'pull_request' && steps.set-is-draft.outputs.IS_DRAFT == 'true'
+        run: printf '%s\n\n%s' '@metamask:registry=https://npm.pkg.github.com' "//npm.pkg.github.com/:_authToken=${PACKAGE_READ_TOKEN}" > .npmrc
+        env:
+          PACKAGE_READ_TOKEN: ${{ secrets.PACKAGE_READ_TOKEN }}
+      - run: yarn setup --node
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          else
+            echo "No changes detected"
+          fi
+  dedupe:
+    runs-on: ubuntu-20.04
+    needs: setup
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - run: yarn setup --node
+      - name: Deduplicate dependencies
+        run: yarn deduplicate
+      - name: Print error if duplicates found
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Duplicate dependencies detected; run 'yarn deduplicate' to remove them"
+            exit 1
+          fi
+  scripts:
+    runs-on: ubuntu-20.04
+    needs: setup
+    strategy:
+      matrix:
+        scripts:
+          - lint
+          - lint:tsc
+          - audit:ci
+          - test:depcheck
+          - test:tgz-check
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - run: yarn setup --node
+      - run: yarn ${{ matrix['scripts'] }}
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          else
+            echo "No changes detected"
+          fi
+  unit-tests:
+    runs-on: ubuntu-20.04
+    needs: setup
+    strategy:
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - run: yarn setup
+      # The "10" in this command is the total number of shards. It must be kept
+      # in sync with the length of matrix.shard
+      - run: yarn test:unit --shard=${{ matrix.shard }}/10 --forceExit --silent --coverageReporters=json
+        env:
+          NODE_OPTIONS: --max_old_space_size=20480
+      - name: Rename coverage report to include shard number
+        shell: bash
+        run: |
+          mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-${{ matrix.shard }}.json
+      - uses: actions/upload-artifact@v3
+        with:
+          name: coverage-${{ matrix.shard }}
+          path: ./tests/coverage/coverage-${{ matrix.shard }}.json
+          if-no-files-found: error
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          else
+            echo "No changes detected"
+          fi
+  merge-unit-tests:
+    runs-on: ubuntu-20.04
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - run: yarn setup
+      - uses: actions/download-artifact@v3
+        with:
+          path: tests/coverage/
+      - name: Gather partial coverage reports into one directory
+        shell: bash
+        run: |
+          mv ./tests/coverage/coverage-*/* ./tests/coverage
+      - run: yarn test:merge-coverage
+      - run: yarn test:validate-coverage
+      - uses: actions/upload-artifact@v3
+        with:
+          name: coverage
+          path: ./tests/merged-coverage/lcov.info
+          if-no-files-found: error
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          else
+            echo "No changes detected"
+          fi
 
-  # js-bundle-size-check:
-  #   runs-on: ubuntu-20.04
-  #   needs: setup
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: actions/setup-node@v3
-  #       with:
-  #         node-version-file: '.nvmrc'
-  #         cache: yarn
-  #     - name: Install dependencies
-  #       run: yarn setup
+  js-bundle-size-check:
+    runs-on: ubuntu-20.04
+    needs: setup
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Install dependencies
+        run: yarn setup
 
-  #     - name: Generate iOS bundle
-  #       run: yarn gen-bundle:ios
+      - name: Generate iOS bundle
+        run: yarn gen-bundle:ios
 
-  #     - name: Check bundle size
-  #       run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 40
+      - name: Check bundle size
+        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 40
 
-  # sonar-cloud:
-  #   runs-on: ubuntu-20.04
-  #   needs: merge-unit-tests
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #       with:
-  #         fetch-depth: 0 # SonarCloud needs a full checkout to perform necessary analysis
-  #     - uses: actions/setup-node@v3
-  #       with:
-  #         node-version-file: '.nvmrc'
-  #     - uses: actions/download-artifact@v3
-  #       with:
-  #         name: coverage
-  #         path: coverage/
-  #     - name: Upload coverage reports to Codecov
-  #       if: ${{ always() }}
-  #       uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70
-  #     - name: SonarCloud Scan
-  #       if: ${{ env.HAVE_SONAR_TOKEN == 'true' }}
-  #       # This is SonarSource/sonarcloud-github-action@v2.0.0
-  #       uses: SonarSource/sonarcloud-github-action@4b4d7634dab97dcee0b75763a54a6dc92a9e6bc1
-  #       env:
-  #         HAVE_SONAR_TOKEN: ${{ secrets.SONAR_TOKEN != '' }}
-  #         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  #     - name: Require clean working directory
-  #       shell: bash
-  #       run: |
-  #         if ! git diff --exit-code; then
-  #           echo "Working tree dirty at end of job"
-  #           exit 1
-  #         else
-  #           echo "No changes detected"
-  #         fi
+  sonar-cloud:
+    runs-on: ubuntu-20.04
+    needs: merge-unit-tests
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # SonarCloud needs a full checkout to perform necessary analysis
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+      - uses: actions/download-artifact@v3
+        with:
+          name: coverage
+          path: coverage/
+      - name: Upload coverage reports to Codecov
+        if: ${{ always() }}
+        uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70
+      - name: SonarCloud Scan
+        if: ${{ env.HAVE_SONAR_TOKEN == 'true' }}
+        # This is SonarSource/sonarcloud-github-action@v2.0.0
+        uses: SonarSource/sonarcloud-github-action@4b4d7634dab97dcee0b75763a54a6dc92a9e6bc1
+        env:
+          HAVE_SONAR_TOKEN: ${{ secrets.SONAR_TOKEN != '' }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          else
+            echo "No changes detected"
+          fi
 
-  #         # Revert git update-index --no-assume-unchanged for each entry
-  #         echo "Reverting assume unchanged for the following paths:"
-  #         for path in "${EXCLUDES[@]}"; do
-  #           echo "$path"
-  #           git update-index --no-assume-unchanged "$path"
-  #         done
-  # sonar-cloud-quality-gate-status:
-  #   if: github.event_name == 'pull_request'
-  #   runs-on: ubuntu-latest
-  #   needs: sonar-cloud
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v3
+          # Revert git update-index --no-assume-unchanged for each entry
+          echo "Reverting assume unchanged for the following paths:"
+          for path in "${EXCLUDES[@]}"; do
+            echo "$path"
+            git update-index --no-assume-unchanged "$path"
+          done
+  sonar-cloud-quality-gate-status:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    needs: sonar-cloud
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-  #     - name: SonarCloud Quality Gate Status
-  #       id: sonar-status
-  #       run: |
-  #         sleep 30
+      - name: SonarCloud Quality Gate Status
+        id: sonar-status
+        run: |
+          sleep 30
 
-  #         PROJECT_KEY="metamask-mobile"
-  #         PR_NUMBER="${{ github.event.pull_request.number }}"
-  #         SONAR_TOKEN="${{ secrets.SONAR_TOKEN }}"
+          PROJECT_KEY="metamask-mobile"
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          SONAR_TOKEN="${{ secrets.SONAR_TOKEN }}"
 
-  #         if [ -z "$PR_NUMBER" ]; then
-  #           echo "No pull request number found. Failing the check."
-  #           exit 1
-  #         fi
+          if [ -z "$PR_NUMBER" ]; then
+            echo "No pull request number found. Failing the check."
+            exit 1
+          fi
 
-  #         RESPONSE=$(curl -s -u "$SONAR_TOKEN:" \
-  #           "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT_KEY&pullRequest=$PR_NUMBER")
-  #         echo "SonarCloud API Response: $RESPONSE"
+          RESPONSE=$(curl -s -u "$SONAR_TOKEN:" \
+            "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT_KEY&pullRequest=$PR_NUMBER")
+          echo "SonarCloud API Response: $RESPONSE"
 
-  #         STATUS=$(echo "$RESPONSE" | jq -r '.projectStatus.status')
+          STATUS=$(echo "$RESPONSE" | jq -r '.projectStatus.status')
 
-  #         if [[ "$STATUS" == "ERROR" ]]; then
-  #           echo "Quality Gate failed."
-  #           exit 1
-  #         elif [[ "$STATUS" == "OK" ]]; then
-  #           echo "Quality Gate passed."
-  #         else
-  #           echo "Could not determine Quality Gate status."
-  #           exit 1
-  #         fi
+          if [[ "$STATUS" == "ERROR" ]]; then
+            echo "Quality Gate failed."
+            exit 1
+          elif [[ "$STATUS" == "OK" ]]; then
+            echo "Quality Gate passed."
+          else
+            echo "Could not determine Quality Gate status."
+            exit 1
+          fi
   check-workflows:
     name: Check workflows
     runs-on: ubuntu-latest
@@ -264,20 +262,17 @@ jobs:
   all-jobs-pass:
     name: All jobs pass
     runs-on: ubuntu-20.04
-    needs: [
-        # setup,
-        # dedupe,
-        # scripts,
-        # unit-tests,
+    needs:
+      [
+        setup,
+        dedupe,
+        scripts,
+        unit-tests,
         check-workflows,
-        # sonar-cloud,
-        # js-bundle-size-check,
-        # sonar-cloud-quality-gate-status,
+        sonar-cloud,
+        js-bundle-size-check,
+        sonar-cloud-quality-gate-status,
       ]
-    # steps:
-    #   - name: Set jobs passed env var
-    #     run: |
-    #       echo "ALL_JOBS_PASSED=true" >> "$GITHUB_ENV"
     outputs:
       ALL_JOBS_PASSED: ${{ steps.jobs-passed-status.outputs.ALL_JOBS_PASSED }}
     steps:
