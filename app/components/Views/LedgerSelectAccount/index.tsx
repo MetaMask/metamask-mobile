@@ -31,8 +31,12 @@ import { Device as LedgerDevice } from '@ledgerhq/react-native-hw-transport-ble/
 import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
 import {
   LEDGER_BIP44_PATH,
+  LEDGER_BIP44_STRING,
   LEDGER_LEGACY_PATH,
+  LEDGER_LEGACY_STRING,
   LEDGER_LIVE_PATH,
+  LEDGER_LIVE_STRING,
+  LEDGER_UNKNOWN_STRING,
 } from '../../../core/Ledger/constants';
 import SelectOptionSheet from '../../UI/SelectOptionSheet';
 import { AccountsController } from '@metamask/accounts-controller';
@@ -203,6 +207,17 @@ const LedgerSelectAccount = () => {
     }
   }, [accountsController, existingAccounts]);
 
+  const getPathString = (value: string) => {
+    if (value === LEDGER_LIVE_PATH) {
+      return LEDGER_LIVE_STRING;
+    } else if (value === LEDGER_LEGACY_PATH) {
+      return LEDGER_LEGACY_STRING;
+    } else if (value === LEDGER_BIP44_PATH) {
+      return LEDGER_BIP44_STRING;
+    }
+    return LEDGER_UNKNOWN_STRING;
+  };
+
   const onUnlock = useCallback(
     async (accountIndexes: number[]) => {
       showLoadingModal();
@@ -220,7 +235,7 @@ const LedgerSelectAccount = () => {
 
       trackEvent(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS, {
         device_type: HardwareDeviceTypes.LEDGER,
-        hd_path: selectedOption.value,
+        hd_path: getPathString(selectedOption.value),
       });
       navigation.pop(2);
     },
