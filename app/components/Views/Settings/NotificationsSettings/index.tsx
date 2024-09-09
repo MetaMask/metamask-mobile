@@ -43,9 +43,57 @@ import {
 import { useAccountSettingsProps } from '../../../../util/notifications/hooks/useSwitchNotifications';
 import styleSheet from './NotificationsSettings.styles';
 import AppConstants from '../../../../core/AppConstants';
+import { store } from '../../../../store';
 
+
+interface MainNotificationSettingsProps extends Props {
+  toggleNotificationsEnabled: () => void;
+  isMetamaskNotificationsEnabled: boolean;
+  goToLearnMore: () => void;
+  styles: ReturnType<typeof styleSheet>;
+
+}
+const MainNotificationSettings = ({ styles, toggleNotificationsEnabled, isMetamaskNotificationsEnabled, goToLearnMore }: MainNotificationSettingsProps) => {
+  const { colors, brandColors } = useTheme();
+
+  return (
+  <>
+    <Pressable
+      style={styles.switchElement}
+      onPressOut={toggleNotificationsEnabled}
+    >
+      <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
+        {strings('app_settings.allow_notifications')}
+      </Text>
+      <Switch
+        value={isMetamaskNotificationsEnabled}
+        onChange={toggleNotificationsEnabled}
+        trackColor={{
+          true: colors.primary.default,
+          false: colors.border.muted,
+        }}
+        thumbColor={brandColors.white}
+        style={styles.switch}
+        ios_backgroundColor={colors.border.muted}
+      />
+    </Pressable>
+    <View style={styles.setting}>
+      <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+        {strings('app_settings.allow_notifications_desc')}{' '}
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Info}
+          onPress={goToLearnMore}
+        >
+          {strings('notifications.activation_card.learn_more')}
+        </Text>
+      </Text>
+    </View>
+  </>
+);};
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const { accounts } = useAccounts();
+  const accountsNotificationState = store.getState().notifications;
   const theme = useTheme();
   const accountAddresses = useMemo(
     () => accounts.map((a) => a.address),
@@ -150,41 +198,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     reFetchingAccountSettings();
   }, [colors, isFullScreenModal, navigation, reFetchingAccountSettings]);
 
-  const MainNotificationSettings: FC = () => (
-    <>
-      <Pressable
-        style={styles.switchElement}
-        onPressOut={toggleNotificationsEnabled}
-      >
-        <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
-          {strings('app_settings.allow_notifications')}
-        </Text>
-        <Switch
-          value={isMetamaskNotificationsEnabled}
-          onChange={toggleNotificationsEnabled}
-          trackColor={{
-            true: colors.primary.default,
-            false: colors.border.muted,
-          }}
-          thumbColor={theme.brandColors.white}
-          style={styles.switch}
-          ios_backgroundColor={colors.border.muted}
-        />
-      </Pressable>
-      <View style={styles.setting}>
-        <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-          {strings('app_settings.allow_notifications_desc')}{' '}
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Info}
-            onPress={goToLearnMore}
-          >
-            {strings('notifications.activation_card.learn_more')}
-          </Text>
-        </Text>
-      </View>
-    </>
-  );
+
 
   const refetchAccountSettings = useCallback(async () => {
     await accountSettingsProps.update(accountAddresses);
@@ -192,34 +206,34 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
 
   const renderAccounts = useCallback(
     () =>
-      accounts.map((account) => (
-        <NotificationOptionToggle
-          type={NotificationsToggleTypes.ACCOUNT}
-          icon={accountAvatarType}
-          key={account.address}
-          title={account.name}
-          address={account.address}
-          disabledSwitch={accountSettingsProps.initialLoading}
-          isLoading={accountSettingsProps.accountsBeingUpdated.includes(
-            account.address,
-          )}
-          isEnabled={accountSettingsProps.data?.[account.address.toLowerCase()]}
-          refetchAccountSettings={refetchAccountSettings}
-        />
-      )),
-    [
-      accounts,
-      accountAvatarType,
-      accountSettingsProps.initialLoading,
-      accountSettingsProps.accountsBeingUpdated,
-      accountSettingsProps.data,
-      refetchAccountSettings,
-    ],
+      accounts.map((account) => {
+        const isEnabled = accountsNotificationState[account.address.toLowerCase()];
+        return (
+        (
+          <NotificationOptionToggle
+            type={NotificationsToggleTypes.ACCOUNT}
+            icon={accountAvatarType}
+            key={account.address}
+            title={account.name}
+            address={account.address}
+            isEnabled={isEnabled}
+            refetchAccountSettings={refetchAccountSettings}
+          />
+        )
+      );}),
+    [ accountSettingsProps.initialLoading, accountsNotificationState],
   );
 
   return (
     <ScrollView style={styles.wrapper}>
-      <MainNotificationSettings />
+       <MainNotificationSettings
+        styles={styles}
+        toggleNotificationsEnabled={toggleNotificationsEnabled}
+        isMetamaskNotificationsEnabled={isMetamaskNotificationsEnabled}
+        goToLearnMore={goToLearnMore}
+        navigation={navigation}
+        route={route}
+        />
 
       {isMetamaskNotificationsEnabled && (
         <>
