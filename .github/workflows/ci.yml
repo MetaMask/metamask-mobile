@@ -251,6 +251,7 @@ jobs:
   check-workflows:
     name: Check workflows
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_requestsa'
     steps:
       - uses: actions/checkout@v4
       - name: Download actionlint
