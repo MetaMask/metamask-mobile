@@ -1,0 +1,14 @@
+diff --git a/node_modules/@metamask/eslint-config-typescript/src/index.js b/node_modules/@metamask/eslint-config-typescript/src/index.js
+index 18b469e..63c6db8 100644
+--- a/node_modules/@metamask/eslint-config-typescript/src/index.js
++++ b/node_modules/@metamask/eslint-config-typescript/src/index.js
+@@ -42,7 +42,8 @@ module.exports = {
+       { allowDefinitionFiles: true },
+     ],
+     '@typescript-eslint/no-non-null-assertion': 'error',
+-    '@typescript-eslint/no-parameter-properties': 'error',
++    // no-parameter-properties is deprecating for this rule: https://typescript-eslint.io/rules/no-parameter-properties/
++    '@typescript-eslint/parameter-properties': 'error',
+     '@typescript-eslint/no-require-imports': 'error',
+     '@typescript-eslint/prefer-for-of': 'error',
+     '@typescript-eslint/prefer-function-type': 'error',
