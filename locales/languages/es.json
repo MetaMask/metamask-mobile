@@ -499,11 +499,14 @@
     "address": "Dirección de contrato del token",
     "decimal": "Decimales del token",
     "network": "Red",
+    "network_fee": "Network fee",
     "lists": "Listas de tokens",
     "hide_cta": "Ocultar token",
     "options": {
+      "view_on_portfolio": "View on Portfolio",
       "view_on_block": "Ver en el explorador de bloques",
-      "token_details": "Detalles del token"
+      "token_details": "Detalles del token",
+      "remove_token": "Remove token"
     }
   },
   "activity_view": {
@@ -550,6 +553,7 @@
     "description_title": "Ayúdenos a mejorar MetaMask",
     "description_content_1": "Nos gustaría recopilar datos básicos de uso para mejorar MetaMask. Tenga en cuenta que nunca venderemos los datos que nos proporcione aquí.",
     "description_content_2": "Al recopilar métricas, siempre serán...",
+    "description_content_3": "Learn how we protect your privacy while collecting usage data for your profile.",
     "checkbox": "Utilizaremos estos datos para saber cómo interactúa con nuestras comunicaciones de marketing. Podemos compartir noticias relevantes (como características de productos).",
     "action_description_1_prefix": "Privadas:",
     "action_description_2_prefix": "Generales:",
@@ -600,7 +604,21 @@
     "decimals_is_required": "Se requiere decimal. Encuéntrelo en:",
     "no_tokens_found": "No se encontró ningún token con ese nombre.",
     "select_token": "Seleccionar token",
-    "address_must_be_smart_contract": "Se detectó una dirección personal. Escriba la dirección de contrato del token."
+    "address_must_be_smart_contract": "Se detectó una dirección personal. Escriba la dirección de contrato del token.",
+    "billion_abbreviation": "B",
+    "trillion_abbreviation": "T",
+    "million_abbreviation": "M",
+    "token_details": "Token details",
+    "contract_address": "Contract address",
+    "token_list": "Token list",
+    "market_details": "Market details",
+    "market_cap": "Market Cap",
+    "total_volume": "Total Volume (24h)",
+    "volume_to_marketcap": "Volume / Market Cap",
+    "circulating_supply": "Circulating supply",
+    "all_time_high": "All time high",
+    "all_time_low": "All time low",
+    "fully_diluted": "Fully diluted"
   },
   "collectible": {
     "collectible_address": "Dirección",
@@ -669,7 +687,10 @@
     "address_balance_activity_permission": "Ver dirección, saldo de cuenta y actividad",
     "suggest_transactions": "Sugerir transacciones para aprobar",
     "disconnect": "Desconectar",
+    "disconnect_all": "Disconnect all",
+    "reconnect_notice": "If you disconnect your accounts from {{dappUrl}}, you’ll need to reconnect to use them again.",
     "disconnect_all_accounts": "Desconectar todas las cuentas",
+    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
     "deceptive_site_ahead": "Sitio engañoso más adelante",
     "deceptive_site_desc": "El sitio que intenta visitar no es seguro. Los atacantes pueden engañarlo para que haga algo peligroso.",
     "learn_more": "Más información",
@@ -687,6 +708,7 @@
     "accounts_connected": "cuentas conectadas.",
     "disconnected": "desconectadas.",
     "disconnected_all": "Todas las cuentas desconectadas.",
+    "disconnected_from": "Disconnected from {{dappHostName}}",
     "nft_detection_enabled": "Autodetección de NFT habilitada"
   },
   "connect_qr_hardware": {
@@ -843,6 +865,10 @@
     },
     "contacts_title": "Contactos",
     "contacts_desc": "Agregar, editar, quitar y administrar sus cuentas",
+    "permissions_title": "Permissions",
+    "permissions_desc": "Manage the permissions given to sites and apps",
+    "no_permissions": "No permissions",
+    "no_permissions_desc": "If you connect an account to a site or an app, you’ll see it here.",
     "security_title": "Seguridad y privacidad",
     "back": "Volver",
     "security_desc": "Configuración de privacidad, MetaMetrics, clave privada y frase secreta de recuperación del monedero",
@@ -932,6 +958,10 @@
     "custom_network_name": "Redes personalizadas",
     "popular": "Popular",
     "delete": "Eliminar",
+    "account": "account",
+    "accounts": "accounts",
+    "network": "network",
+    "networks": "networks",
     "network_exists": "La red ya ha sido instalada",
     "unMatched_chain": "According to our records, this URL does not match a known provider for this chain ID.",
     "unMatched_chain_name": "This chain ID doesn’t match the network name.",
@@ -1296,13 +1326,14 @@
     "error": "Error",
     "attempting_to_scan_with_wallet_locked": "Si desea escanear un código QR, desbloqueé su monedero para poder usarlo.",
     "attempting_sync_from_wallet_error": "Parece que intenta sincronizar con la extensión. debe borrar el monedero actual. \n\nUna vez que haya borrado o vuelto a instalar una versión nueva de la aplicación, seleccione la opción \"Sincronizar con la extensión MetaMask\". Importante: Antes de borrar el monedero, asegúrese de haber hecho una copia de seguridad de la frase secreta de recuperación.",
-    "not_allowed_error_title": "Habilitar acceso a la cámara",
-    "not_allowed_error_desc": "Se necesita acceso a la cámara para escanear un código QR asociado con una dirección de cuenta o una dirección de contrato",
+    "not_allowed_error_title": "Turn on camera access",
+    "not_allowed_error_desc": "To scan a QR code, you'll need to give MetaMask camera access from your device's settings menu.",
     "unrecognized_address_qr_code_title": "Código QR no reconocido",
     "unrecognized_address_qr_code_desc": "Lo sentimos, este código QR no está asociado con una dirección de cuenta o una dirección de contrato.",
     "url_redirection_alert_title": "Está a punto de visitar un enlace externo",
     "url_redirection_alert_desc": "Los enlaces se pueden usar para tratar de estafar o hacer phishing a las personas, así que asegúrese de visitar solo sitios web en los que confíe.",
-    "label": "Escanear un código QR"
+    "label": "Escanear un código QR",
+    "open_settings": "Settings"
   },
   "action_view": {
     "cancel": "Cancelar",
@@ -1312,6 +1343,7 @@
     "transaction_id": "ID de transacción",
     "alert": "ALERTA",
     "amount": "Importe",
+    "details": "Details",
     "next": "Siguiente",
     "back": "Volver",
     "confirm": "Confirmar",
@@ -1703,6 +1735,10 @@
     "network_chain_id": "Identificador de cadena",
     "network_rpc_url": "URL de la red",
     "network_rpc_url_label": "Network RPC URL",
+    "new_default_network_url": "New default network URL",
+    "current_label": "Current",
+    "new_label": "New",
+    "review": "Review",
     "view_details": "Ver detalles",
     "network_details": "Detalles de la red",
     "network_select_confirm_use_safe_check": "Al seleccionar Confirmar, se activa la verificación de detalles de la red. Puedes desactivar el registro de detalles de la red ",
@@ -2129,9 +2165,9 @@
     "transaction_id_copied_to_clipboard": "ID de transacción copiado al portapapeles",
     "activation_card": {
       "title": "Activar las notificaciones",
-      "description_1": "Manténgase informado sobre lo que sucede en su monedero con notificaciones. ",
+      "description_1": "Stay in the loop on what's happening in your wallet with notifications.",
       "description_2": "Para utilizar esta función, generaremos un ID anónimo para su cuenta. Se utiliza únicamente para sincronizar sus datos en MetaMask y no se vincula a sus actividades ni a otros identificadores, lo que garantiza su privacidad.",
-      "learn_more": "Obtenga más información sobre cómo protegemos su privacidad mientras utiliza esta función. ",
+      "learn_more": "Learn how we protect your privacy while using this feature.",
       "manage_preferences_1": "Puede desactivar las notificaciones en cualquier momento ",
       "manage_preferences_2": "Configuración > Notificaciones.",
       "cancel": "Cancelar",
@@ -2523,7 +2559,8 @@
       "sale_completed_title": "Orden completada",
       "sale_completed_description": "¡Su orden fue exitosa!",
       "sale_pending_title": "Procesamiento de venta de {{currency}}",
-      "sale_pending_description": "Su orden esta siendo procesada."
+      "sale_pending_description": "Su orden esta siendo procesada.",
+      "no_date": "Unknown"
     }
   },
   "swaps": {
@@ -3150,9 +3187,7 @@
     "how_to_install_eth_webview_title": "Cómo instalar la aplicación Ethereum",
     "nonce_too_low": "Nonce demasiado bajo",
     "nonce_too_low_error": "El nonce establecido es demasiado bajo",
-    "select_accounts": "Select an Account",
-    "select_accounts_warning": "Note: these accounts might be different to what you're used to.",
-    "select_accounts_sub_msg": "These accounts are derived using the BIP44 derivation path, which is different to the default Ledger Live derivation path on MetaMask Extension, Different derivation paths for Ledger will be available on MetaMask Mobile soon."
+    "select_accounts": "Select an Account"
   },
   "account_actions": {
     "edit_name": "Editar nombre de la cuenta",
@@ -3225,7 +3260,7 @@
       "title_off": "Desactivar la funcionalidad básica",
       "description_off": "Esto significa que no optimizará completamente su tiempo en MetaMask. Las funciones básicas (como los detalles de los tokenes, la configuración óptima de gas y otras) no estarán disponibles para usted.",
       "title_on": "Activar la funcionalidad básica",
-      "description_on": "Para optimizar su tiempo en MetaMask, tendrá que activar esta función. Las funciones básicas (como los detalles de los tokenes, la configuración óptima de gas y otras) son importantes para la experiencia Web3.",
+      "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, notifications, and others) are important to the web3 experience.",
       "checkbox_label": "Entiendo y deseo continuar",
       "buttons": {
         "cancel": "Cancelar",
