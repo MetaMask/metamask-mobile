@@ -21,5 +21,5 @@ export interface UserProfileMetaData {
   [UserProfileProperty.MULTI_ACCOUNT_BALANCE]: string;
   [UserProfileProperty.SECURITY_PROVIDERS]: string;
   [UserProfileProperty.PRIMARY_CURRENCY]?: string;
-  [UserProfileProperty.CURRENT_CURRENCY]: string;
+  [UserProfileProperty.CURRENT_CURRENCY]?: string;
 }
