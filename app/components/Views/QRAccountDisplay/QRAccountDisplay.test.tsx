@@ -2,13 +2,13 @@ import React from 'react';
 import QRAccountDisplay from './index';
 import { fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import backgroundState from '../../../util/test/initial-background-state.json';
 import ClipboardManager from '../../../core/ClipboardManager';
 
 const initialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
     },
   },
 };
