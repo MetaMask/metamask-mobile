@@ -174,7 +174,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1416
-        versionName "7.30.0"
+        versionName "7.31.0"
         testBuildType System.getProperty('testBuildType', 'debug')
         missingDimensionStrategy 'react-native-camera', 'general'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
