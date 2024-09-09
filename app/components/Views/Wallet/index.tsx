@@ -403,6 +403,7 @@ const Wallet = ({
         navigation,
         colors,
         isNotificationEnabled,
+        unreadNotificationCount,
       ),
     );
     /* eslint-disable-next-line */

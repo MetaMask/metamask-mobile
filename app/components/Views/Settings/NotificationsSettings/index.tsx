@@ -1,14 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/display-name */
 import React, { FC, useEffect, useMemo, useCallback } from 'react';
-import {
-  Pressable,
-  ScrollView,
-  Switch,
-  View,
-  Linking,
-  ActivityIndicator,
-} from 'react-native';
+import { Pressable, ScrollView, Switch, View, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
@@ -239,11 +232,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
             )}
             styles={styles}
           />
-          {accountSettingsProps.initialLoading ? (
-            <ActivityIndicator />
-          ) : (
-            renderAccounts()
-          )}
+          {renderAccounts()}
         </>
       )}
       <SwitchLoadingModal
