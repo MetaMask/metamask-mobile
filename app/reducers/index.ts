@@ -30,6 +30,7 @@ import smartTransactionsReducer from '../core/redux/slices/smartTransactions';
 import transactionMetricsReducer from '../core/redux/slices/transactionMetrics';
 import originThrottlingReducer from '../core/redux/slices/originThrottling';
 import notificationsAccountsProvider from '../core/redux/slices/notifications';
+import performanceMetricsReducer from '../core/redux/slices/performanceMetrics';
 
 /**
  * Infer state from a reducer
@@ -122,6 +123,7 @@ export interface RootState {
   transactionMetrics: StateFromReducer<typeof transactionMetricsReducer>;
   originThrottling: StateFromReducer<typeof originThrottlingReducer>;
   notifications: StateFromReducer<typeof notificationsAccountsProvider>;
+  performanceMetrics: StateFromReducer<typeof performanceMetricsReducer>;
 }
 
 // TODO: Fix the Action type. It's set to `any` now because some of the
@@ -161,6 +163,7 @@ const rootReducer = combineReducers<RootState, any>({
   transactionMetrics: transactionMetricsReducer,
   originThrottling: originThrottlingReducer,
   notifications: notificationsAccountsProvider,
+  performanceMetrics: performanceMetricsReducer,
 });
 
 export default rootReducer;

@@ -25,6 +25,12 @@ import { WELCOME_SCREEN_CAROUSEL_TITLE_ID } from '../../../../wdio/screen-object
 import { OnboardingCarouselSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingCarousel.selectors';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { isE2E } from '../../../util/test/utils';
+import {
+  useNativeLaunchDuration,
+  useJsBundleDuration,
+  useAppStartTime,
+} from '../../../core/redux/slices/performanceMetrics';
 
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;
@@ -181,6 +187,11 @@ class OnboardingCarousel extends PureComponent {
     const { currentTab } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
+    const nativeLaunchDuration = useNativeLaunchDuration();
+    const jsBundleDuration = useJsBundleDuration();
+    const appStartTime = useAppStartTime();
+    // eslint-disable-next-line no-console
+    console.log('VALUE =============', nativeLaunchDuration);
 
     return (
       <View
@@ -216,6 +227,13 @@ class OnboardingCarousel extends PureComponent {
                         <Text style={styles.title}>
                           {strings(`onboarding_carousel.title${key}`)}
                         </Text>
+                        {isE2E && (
+                          <Text style={styles.title}>
+                            <Text>{nativeLaunchDuration}</Text>
+                            <Text>{jsBundleDuration}</Text>
+                            <Text>{appStartTime}</Text>
+                          </Text>
+                        )}
                         <Text style={styles.subtitle}>
                           {strings(`onboarding_carousel.subtitle${key}`)}
                         </Text>

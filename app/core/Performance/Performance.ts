@@ -1,5 +1,7 @@
 /* eslint-disable no-console */
 import performance, { PerformanceObserver } from 'react-native-performance';
+import { store } from '../../store';
+import { setPerformanceMetrics } from '../redux/slices/performanceMetrics';
 
 /**
  * Service for measuring app performance
@@ -51,6 +53,15 @@ class Performance {
         );
         console.info(`-------------------------------------------------------`);
         console.info(`-------------------------------------------------------`);
+
+        // store values in performanceMetrics slice
+        store.dispatch(
+          setPerformanceMetrics({
+            nativeLaunchDuration,
+            jsBundleDuration,
+            appStartTime,
+          }),
+        );
       }
     }).observe({ type: 'react-native-mark', buffered: true });
   };
