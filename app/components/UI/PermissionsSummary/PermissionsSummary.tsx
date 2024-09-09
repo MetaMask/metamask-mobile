@@ -193,7 +193,9 @@ const PermissionsSummary = ({
     <View style={styles.mainContainer}>
       {renderHeader()}
       <Text bold centered primary noMargin style={styles.title}>
-        {strings('permissions.title_this_site_wants_to')}
+        {strings('permissions.title_dapp_url_wants_to', {
+          dappUrl: new URL(currentPageInformation.url).hostname,
+        })}
       </Text>
       {renderAccountPermissionsRequestInfoCard()}
       {renderNetworkPermissionsRequestInfoCard()}
