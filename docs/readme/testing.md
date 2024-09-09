@@ -90,13 +90,9 @@ Ensure that these devices are set up. You can change the default devices at any 
     yarn test:e2e:android:debug:run --testNamePattern="Smoke"
     ```
 
-### Appium Tests
-
+### Appium
 **Platform**: Android  
 **Test Location**: `wdio`
-
-
-# Appium
 
 We currently utilize [Appium](https://appium.io/), [Webdriver.io](http://webdriver.io/), and [Cucumber](https://cucumber.io/) to test the application launch times and the upgrade between different versions. As a brief explanation, webdriver.io is the test framework that uses Appium Server as a service. This is responsible for communicating between our tests and devices, and cucumber as the test framework. 
 
