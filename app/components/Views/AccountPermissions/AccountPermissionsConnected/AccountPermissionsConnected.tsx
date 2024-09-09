@@ -22,12 +22,8 @@ import {
 import getAccountNameWithENS from '../../../../util/accounts';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
-import {
-  selectProviderConfig,
-} from '../../../../selectors/networkController';
-import {
-  useNetworkInfo,
-} from '../../../../selectors/selectedNetworkController';
+import { selectProviderConfig } from '../../../../selectors/networkController';
+import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectedAccountModal.selectors';
 
 // Internal dependencies.

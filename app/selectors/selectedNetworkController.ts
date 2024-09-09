@@ -9,6 +9,7 @@ import {
   selectProviderConfig,
   selectNetworkClientId,
   selectNetworkConfigurations,
+  selectSelectedNetworkClientId,
   selectChainId as selectProviderChainId,
   selectRpcUrl as selectProviderRpcUrl,
 } from './networkController';
@@ -33,11 +34,19 @@ export const makeSelectDomainNetworkClientId = () =>
   );
 
 const selectProviderNetworkName = createSelector(
-  [selectProviderConfig, selectNetworkConfigurations],
-  (providerConfig: ProviderConfig, networkConfigurations) => {
+  [
+    selectProviderConfig,
+    selectNetworkConfigurations,
+    selectSelectedNetworkClientId,
+  ],
+  (
+    providerConfig: ProviderConfig,
+    networkConfigurations,
+    selectedNetworkClientId,
+  ) => {
     if (providerConfig.type === 'rpc') {
       return (
-        networkConfigurations[providerConfig.nickname]?.nickname ||
+        networkConfigurations[selectedNetworkClientId]?.nickname ||
         providerConfig.nickname
       );
     }
@@ -48,12 +57,11 @@ const selectProviderNetworkName = createSelector(
 
 const selectProviderNetworkImageSource = createSelector(
   selectProviderConfig,
-  (providerConfig: ProviderConfig) => {
-    return getNetworkImageSource({
+  (providerConfig: ProviderConfig) =>
+    getNetworkImageSource({
       networkType: providerConfig.type,
       chainId: providerConfig.chainId,
-    });
-  },
+    }),
 );
 
 export const makeSelectNetworkName = () =>
@@ -75,9 +83,9 @@ export const makeSelectNetworkName = () =>
       if (!hostname) return providerNetworkName;
       const relevantNetworkClientId =
         domainNetworkClientId || globalNetworkClientId;
-      // @ts-expect-error The utils/network file is still JS
       return (
         networkConfigurations[relevantNetworkClientId]?.nickname ||
+        // @ts-expect-error The utils/network file is still JS
         NetworkList[relevantNetworkClientId]?.name
       );
     },
@@ -106,14 +114,13 @@ export const makeSelectNetworkImageSource = () =>
       if (networkConfig) {
         // @ts-expect-error The utils/network file is still JS and this function expects a networkType, and should be optional
         return getNetworkImageSource({ chainId: networkConfig.chainId });
-      } else {
-        return getNetworkImageSource({
-          // @ts-expect-error The utils/network file is still JS
-          networkType: NetworkList[relevantNetworkClientId]?.networkType,
-          // @ts-expect-error The utils/network file is still JS
-          chainId: NetworkList[relevantNetworkClientId]?.chainId,
-        });
       }
+      return getNetworkImageSource({
+        // @ts-expect-error The utils/network file is still JS
+        networkType: NetworkList[relevantNetworkClientId]?.networkType,
+        // @ts-expect-error The utils/network file is still JS
+        chainId: NetworkList[relevantNetworkClientId]?.chainId,
+      });
     },
   );
 
@@ -175,9 +182,8 @@ export const makeSelectDomainIsConnectedDapp = () =>
       selectNetworkClientIdsByDomains,
       (_: RootState, hostname?: string) => hostname,
     ],
-    (networkClientIdsByDomains, hostname) => {
-      return Boolean(hostname && networkClientIdsByDomains?.[hostname]);
-    },
+    (networkClientIdsByDomains, hostname) =>
+      Boolean(hostname && networkClientIdsByDomains?.[hostname]),
   );
 
 export const useNetworkInfo = (hostname?: string) => {
