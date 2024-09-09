@@ -4,7 +4,7 @@ import OptionsSheet from './OptionsSheet';
 import Routes from '../../../constants/navigation/Routes';
 import { SELECT_OPTION_PREFIX, SELECT_VALUE_TICK_PREFIX } from './constants';
 import { fireEvent } from '@testing-library/react-native';
-import { iSelectOptionSheet } from './types';
+import { ISelectOptionSheet } from './types';
 
 function render(Component: React.ComponentType) {
   return renderScreen(Component, {
@@ -12,7 +12,7 @@ function render(Component: React.ComponentType) {
   });
 }
 
-const mockUseParamsValues: iSelectOptionSheet = {
+const mockUseParamsValues: ISelectOptionSheet = {
   options: [
     { key: 'key1', value: 'val 1', label: 'option 1' },
     { key: 'key2', value: 'val 2', label: 'option 2' },

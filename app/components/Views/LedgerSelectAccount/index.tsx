@@ -283,7 +283,9 @@ const LedgerSelectAccount = () => {
 
   const onSelectedPathChanged = useCallback(
     async (path: string) => {
-      const option = ledgerPathOptions.find((d) => d.key === path);
+      const option = ledgerPathOptions.find(
+        (pathOption) => pathOption.key === path,
+      );
       if (!option) return;
       setSelectedOption(option);
       await setHDPath(path);

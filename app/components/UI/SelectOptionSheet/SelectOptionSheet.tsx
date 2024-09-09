@@ -4,7 +4,7 @@ import { baseStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useTheme } from '../../../util/theme';
 import createStyles from './styles';
-import { iSelectOptionSheet } from './types';
+import { ISelectOptionSheet } from './types';
 import { createOptionsSheetNavDetails } from './OptionsSheet';
 import { useNavigation } from '@react-navigation/native';
 import { SELECT_DROP_DOWN } from './constants';
@@ -15,7 +15,7 @@ const SelectOptionSheet = ({
   selectedValue,
   options,
   onValueChange,
-}: iSelectOptionSheet) => {
+}: ISelectOptionSheet) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const navigation = useNavigation();

@@ -1,20 +1,20 @@
-export interface iSelectOption {
+export interface ISelectOption {
   key?: string;
   value?: string;
   label?: string;
 }
 
-export interface iSelectOptionSheet {
+export interface ISelectOptionSheet {
   defaultValue?: string;
   label: string;
   selectedValue?: string;
-  options: iSelectOption[];
+  options: ISelectOption[];
   onValueChange: (val: string) => void;
 }
 
 export interface OptionsSheetParams {
   label: string;
-  options: iSelectOption[];
+  options: ISelectOption[];
   selectedValue?: string;
   onValueChange: (val: string) => void;
 }

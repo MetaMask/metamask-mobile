@@ -15,7 +15,9 @@ import {
   BluetoothPermissionErrors,
   LedgerCommunicationErrors,
 } from '../../../core/Ledger/ledgerErrors';
-import SelectOptionSheet, { iSelectOption } from '../../UI/SelectOptionSheet';
+import SelectOptionSheet, {
+  SelectOptionType,
+} from '../../UI/SelectOptionSheet';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -180,7 +182,7 @@ const Scan = ({
     }
   }, [hasBluetoothPermissions]);
 
-  const options: iSelectOption[] = devices?.map(
+  const options: SelectOptionType[] = devices?.map(
     ({ id, name, ...rest }: Partial<BluetoothDevice>) => ({
       key: id,
       label: name,

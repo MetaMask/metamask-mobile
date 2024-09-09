@@ -1,7 +1,7 @@
 import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import SelectOptionSheet from './';
-import { iSelectOption } from './types';
+import { ISelectOption } from './types';
 import {
   NavigationProp,
   ParamListBase,
@@ -23,7 +23,7 @@ jest.mock('@react-navigation/native', () => ({
 
 describe('SelectOptionSheet', () => {
   it('render matches the snapshot', () => {
-    const options: iSelectOption[] = [
+    const options: ISelectOption[] = [
       { key: 'key 1', value: 'val 1', label: 'option 1' },
       { key: 'key 2', value: 'val 2', label: 'option 2' },
     ];
@@ -43,7 +43,7 @@ describe('SelectOptionSheet', () => {
   });
 
   it('shows selected value', () => {
-    const options: iSelectOption[] = [
+    const options: ISelectOption[] = [
       { key: 'key 1', value: 'val 1', label: 'option 1' },
       { key: 'key 2', value: 'val 2', label: 'option 2' },
     ];
@@ -64,7 +64,7 @@ describe('SelectOptionSheet', () => {
   });
 
   it('shows default value when selectedValue is not provided', () => {
-    const options: iSelectOption[] = [
+    const options: ISelectOption[] = [
       { key: 'key 1', value: 'val 1', label: 'option 1' },
       { key: 'key 2', value: 'val 2', label: 'option 2' },
     ];
@@ -84,7 +84,7 @@ describe('SelectOptionSheet', () => {
   });
 
   it('shows empty string when selectedValue and defaultValue are not provided', () => {
-    const options: iSelectOption[] = [
+    const options: ISelectOption[] = [
       { key: 'key 1', value: 'val 1', label: 'option 1' },
       { key: 'key 2', value: 'val 2', label: 'option 2' },
     ];
@@ -103,7 +103,7 @@ describe('SelectOptionSheet', () => {
   });
 
   it('calls navigation.navigate with correct params', () => {
-    const options: iSelectOption[] = [
+    const options: ISelectOption[] = [
       { key: 'key 1', value: 'val 1', label: 'option 1' },
       { key: 'key 2', value: 'val 2', label: 'option 2' },
     ];
