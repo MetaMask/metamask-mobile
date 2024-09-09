@@ -35,7 +35,7 @@ const createStyles = (theme: Theme) =>
     overlay: {
       flex: 1,
       flexBasis: 0,
-      backgroundColor: theme.colors.background,
+      backgroundColor: colors.overlay,
       flexDirection: 'column',
       display: 'flex',
     },
