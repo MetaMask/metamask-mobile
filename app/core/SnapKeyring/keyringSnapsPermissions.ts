@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import {
   SubjectType,
   SubjectMetadataController,
@@ -112,10 +113,28 @@ export function keyringSnapPermissionsBuilder(
     }
 
     const originMetadata = controller.getSubjectMetadata(origin);
+    console.log(
+      'Accounts/ keyringSnapPermissionsBuilder originMetadata',
+      originMetadata,
+    );
+    let allowedMethods: string[] = [];
     if (originMetadata?.subjectType === SubjectType.Website) {
-      return isProtocolAllowed(origin) ? WEBSITE_ALLOWED_METHODS : [];
+      console.log(
+        'Accounts/ keyringSnapPermissionsBuilder originMetadata?.subjectType === SubjectType.Website',
+        originMetadata,
+      );
+      if (isProtocolAllowed(origin)) {
+        console.log(
+          'Accounts/ keyringSnapPermissionsBuilder isProtocolAllowed',
+          origin,
+        );
+        allowedMethods = WEBSITE_ALLOWED_METHODS;
+      }
     }
-
-    return [];
+    console.log(
+      'Accounts/ keyringSnapPermissionsBuilder returning allowedMethods',
+      allowedMethods,
+    );
+    return allowedMethods;
   };
 }
