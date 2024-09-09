@@ -10,7 +10,6 @@ import {
 import { addHexPrefix, safeBNToHex } from '../number';
 import { safeToChecksumAddress } from '../address';
 
-// eslint-disable-next-line import/prefer-default-export
 export function buildTransactionParams({
   gasDataEIP1559,
   gasDataLegacy,

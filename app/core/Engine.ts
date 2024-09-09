@@ -274,6 +274,7 @@ type GlobalActions =
   | UserStorageControllerActions
   | NotificationsServicesControllerActions
   ///: END:ONLY_INCLUDE_IF
+  | KeyringControllerActions
   | AccountsControllerActions
   | PreferencesControllerActions
   | TokensControllerActions
@@ -291,6 +292,7 @@ type GlobalEvents =
   | SnapsGlobalEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
+  | KeyringControllerEvents
   | PPOMControllerEvents
   | AccountsControllerEvents
   | PreferencesControllerEvents
@@ -1192,6 +1194,7 @@ class Engine {
           `${accountsController.name}:getSelectedAccount`,
           `${approvalController.name}:addRequest`,
           `${networkController.name}:getNetworkClientById`,
+          `${networkController.name}:findNetworkClientIdByChainId`,
         ],
         allowedEvents: [`NetworkController:stateChange`],
       }),
@@ -1377,6 +1380,7 @@ class Engine {
       new SwapsController(
         {
           fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
+          // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
           fetchEstimatedMultiLayerL1Fee,
         },
         {
@@ -1555,6 +1559,7 @@ class Engine {
     this.configureControllersOnNetworkChange();
     this.startPolling();
     this.handleVaultBackup();
+    this.transactionController.clearUnapprovedTransactions();
 
     Engine.instance = this;
   }
@@ -1873,6 +1878,7 @@ class Engine {
     requestData?: Record<string, Json>,
     opts: AcceptOptions & { handleErrors?: boolean } = {
       waitForResult: false,
+      deleteAfterResult: false,
       handleErrors: true,
     },
   ) {
@@ -1881,6 +1887,7 @@ class Engine {
     try {
       return await ApprovalController.accept(id, requestData, {
         waitForResult: opts.waitForResult,
+        deleteAfterResult: opts.deleteAfterResult,
       });
     } catch (err) {
       if (opts.handleErrors === false) {
