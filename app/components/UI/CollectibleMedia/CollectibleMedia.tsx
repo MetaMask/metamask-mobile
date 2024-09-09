@@ -165,11 +165,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
       displayNftMedia ||
       (!displayNftMedia && isIpfsGatewayEnabled && isIPFSUri(sourceUri))
     ) {
-      if (
-        renderAnimation &&
-        collectible.animation &&
-        collectible.animation.includes('.mp4')
-      ) {
+      if (renderAnimation && collectible?.animation?.includes('.mp4')) {
         return (
           <MediaPlayer
             onClose={onClose}
