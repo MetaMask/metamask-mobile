@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable import/prefer-default-export */
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { useSelector } from 'react-redux';
 
 import { getErrorMessage } from '../../../util/errorHandling';
 import {
@@ -11,15 +10,15 @@ import {
 } from '../../../actions/notification/helpers';
 import { UseSwitchAccountNotificationsData } from './types';
 import Engine from '../../../core/Engine';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   selectIsMetamaskNotificationsEnabled,
   selectIsUpdatingMetamaskNotificationsAccount,
 } from '../../../selectors/notifications';
-
+import { updateAccountState } from '../../../core/redux/slices/notifications';
 export function useSwitchNotifications() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-
   const resetStates = useCallback(() => {
     setLoading(false);
     setError(null);
@@ -125,7 +124,7 @@ export function useAccountSettingsProps(accounts: string[]) {
   const [data, setData] = useState<UseSwitchAccountNotificationsData>({});
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-
+  const dispatch = useDispatch();
   // Memoize the accounts array to avoid unnecessary re-fetching
   const memoizedAccounts = useMemo(() => accounts, [accounts]);
 
@@ -140,11 +139,19 @@ export function useAccountSettingsProps(accounts: string[]) {
           const errorMessage = getErrorMessage(e);
           setError(errorMessage);
         })
-        .finally(() => setLoading(false));
+        .finally(() => {
+          dispatch(updateAccountState(data));
+          setLoading(false);
+        });
     };
-
     isMetamaskNotificationsEnabled && fetchData();
-  }, [fetchAccountSettings, isMetamaskNotificationsEnabled, memoizedAccounts]);
+  }, [
+    data,
+    dispatch,
+    fetchAccountSettings,
+    isMetamaskNotificationsEnabled,
+    memoizedAccounts,
+  ]);
 
   return {
     data,

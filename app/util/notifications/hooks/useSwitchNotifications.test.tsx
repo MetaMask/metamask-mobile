@@ -152,12 +152,17 @@ describe('useAccountSettingsProps', () => {
       .mockReturnValue([]);
 
     const selectIsMetamaskNotificationsEnabled = jest
-      .spyOn(Selectors, 'selectIsMetamaskNotificationsEnabled')
+      .spyOn(Selectors, 'selectIsMetamaskNotificationsEnabled');
+      const isMetamaskNotificationsEnabled = jest
+      .spyOn(Selectors,
+        'selectIsMetamaskNotificationsEnabled',
+      )
       .mockReturnValue(true);
 
     return {
       selectIsUpdatingMetamaskNotificationsAccount,
       selectIsMetamaskNotificationsEnabled,
+      isMetamaskNotificationsEnabled
     };
   }
 
