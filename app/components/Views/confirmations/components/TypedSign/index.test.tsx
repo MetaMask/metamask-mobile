@@ -370,11 +370,12 @@ describe('TypedSign', () => {
       expect(lastMockCall[0]).toEqual({ category: 'Signature Rejected' });
       expect(lastMockCall[1]).toEqual({
         account_type: 'Metamask',
-        dapp_host_name: undefined,
+        dapp_host_name: 'N/A',
         chain_id: undefined,
         signature_type: undefined,
-        version: undefined,
+        version: 'N/A',
         security_alert_response: 'Benign',
+        security_alert_source: undefined,
         security_alert_reason: '',
         ppom_eth_chainId_count: 1,
       });
@@ -410,11 +411,12 @@ describe('TypedSign', () => {
       expect(lastMockCall[0]).toEqual({ category: 'Signature Approved' });
       expect(lastMockCall[1]).toEqual({
         account_type: 'Metamask',
-        dapp_host_name: undefined,
+        dapp_host_name: 'N/A',
         chain_id: undefined,
-        version: undefined,
+        version: 'N/A',
         signature_type: undefined,
         security_alert_response: 'Benign',
+        security_alert_source: undefined,
         security_alert_reason: '',
         ppom_eth_chainId_count: 1,
       });

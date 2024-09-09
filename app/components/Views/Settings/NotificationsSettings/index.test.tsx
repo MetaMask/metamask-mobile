@@ -7,6 +7,22 @@ import NotificationsSettings from '.';
 import { Props } from './NotificationsSettings.types';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 
+// Mock store.getState
+let mockGetState: jest.Mock;
+jest.mock('../../../../store', () => {
+  mockGetState = jest.fn();
+  mockGetState.mockImplementation(() => ({
+    notifications: {},
+  }));
+
+  return {
+    store: {
+      getState: mockGetState,
+      dispatch: jest.fn(),
+    },
+  };
+});
+
 const mockInitialState = {
   settings: {
     useBlockieIcon: false,
@@ -26,6 +42,9 @@ const setOptions = jest.fn();
 
 describe('NotificationsSettings', () => {
   it('should render correctly', () => {
+    mockGetState.mockImplementation(() => ({
+      notifications: {},
+    }));
     const { toJSON } = renderWithProvider(
       <NotificationsSettings
         navigation={

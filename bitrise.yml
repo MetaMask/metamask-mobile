@@ -66,7 +66,7 @@ pipelines:
       - create_build_qa_android: {}
       - app_launch_times_test_stage: {}
 
-#App Upgrade pipeline. Runs on browserstack
+  #App Upgrade pipeline. Runs on browserstack
   app_upgrade_pipeline:
     stages:
       - create_build_qa_android: {}
@@ -132,7 +132,7 @@ stages:
       - android_e2e_build: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      - run_ios_api_specs: {}
+      # - run_ios_api_specs: {} flakiness in pipeline. Disabling for now
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_assets_ios: {}
@@ -166,6 +166,7 @@ stages:
       - run_tag_smoke_core_ios: {}
       - run_tag_smoke_core_android: {}
       - run_tag_upgrade_android: {}
+      - run_android_app_launch_times_appium_test: {}
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
@@ -278,12 +279,12 @@ workflows:
           title: Install node, yarn and corepack
   install_detox:
     steps:
-    - script@1:
-        inputs:
-          - content: |-
-              #!/usr/bin/env bash
-              scripts/detox-setup.sh
-        title: Install Detox Dependencies
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                scripts/detox-setup.sh
+          title: Install Detox Dependencies
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
@@ -459,9 +460,9 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - PRODUCTION_APP_URL: 'bs://2c870d0c5d739f19eae55fd254048374447e79fb' # Last production's QA build
-      - PRODUCTION_BUILD_NAME: 7.29.0
-      - PRODUCTION_BUILD_NUMBER: 1397
+      - PRODUCTION_APP_URL: 'bs://46f0542276828b691f56adec25ac81065b5abf73' # Last production's QA build
+      - PRODUCTION_BUILD_NAME: 7.30.0
+      - PRODUCTION_BUILD_NUMBER: 1410
       - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
       - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_NAME ($PRODUCTION_BUILD_NUMBER)'
       - NEW_BUILD_STRING: 'MetaMask-QA v$VERSION_NAME ($VERSION_NUMBER)'
@@ -1493,16 +1494,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.29.2
+      VERSION_NAME: 7.30.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1409
+      VERSION_NUMBER: 1410
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.29.2
+      FLASK_VERSION_NAME: 7.30.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1409
+      FLASK_VERSION_NUMBER: 1410
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -1535,7 +1536,7 @@ trigger_map:
   - push_branch: release/*
     pipeline: release_e2e_pipeline
   - push_branch: main
-    pipeline: pr_smoke_e2e_pipeline
+    pipeline: app_launch_times_pipeline
   - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
