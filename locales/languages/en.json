@@ -499,6 +499,7 @@
     "address": "Token contract address",
     "decimal": "Token decimal",
     "network": "Network",
+    "network_fee": "Network fee",
     "lists": "Token Lists",
     "hide_cta": "Hide token",
     "options": {
@@ -1365,6 +1366,7 @@
     "transaction_id": "Transaction ID",
     "alert": "ALERT",
     "amount": "Amount",
+    "details": "Details",
     "next": "Next",
     "back": "Back",
     "confirm": "Confirm",
