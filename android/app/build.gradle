@@ -173,7 +173,7 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1414
+        versionCode 1416
         versionName "7.30.0"
         testBuildType System.getProperty('testBuildType', 'debug')
         missingDimensionStrategy 'react-native-camera', 'general'
