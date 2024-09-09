@@ -210,7 +210,7 @@ jobs:
             git update-index --no-assume-unchanged "$path"
           done
   sonar-cloud-quality-gate-status:
-    if: github.event_name != 'pull_request'
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     needs: sonar-cloud
     steps:
@@ -220,6 +220,7 @@ jobs:
       - name: SonarCloud Quality Gate Status
         id: sonar-status
         run: |
+          exit 1
           sleep 30
 
           PROJECT_KEY="metamask-mobile"
