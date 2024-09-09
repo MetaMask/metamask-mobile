@@ -77,7 +77,7 @@ export const setupBridge = ({
         title: {
           current: originatorInfo?.title,
         },
-        icon: { current: undefined },
+        icon: { current: originatorInfo.icon },
         // Bookmarks
         isHomepage: () => false,
         // Show autocomplete

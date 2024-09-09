@@ -48,6 +48,7 @@ const initialRootState: RootState = {
   inpageProvider: initialInpageProvider,
   transactionMetrics,
   originThrottling,
+  notifications: {},
 };
 
 export default initialRootState;

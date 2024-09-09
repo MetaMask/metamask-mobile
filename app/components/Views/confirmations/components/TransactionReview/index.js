@@ -7,7 +7,6 @@ import { connect } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import AppConstants from '../../../../../core/AppConstants';
 import Engine from '../../../../../core/Engine';
 import { SDKConnect } from '../../../../../core/SDKConnect/SDKConnect';
 import {
@@ -52,7 +51,6 @@ import {
   getTransactionReviewActionKey,
   isApprovalTransaction,
 } from '../../../../../util/transactions';
-import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
 import AccountFromToInfoCard from '../../../../UI/AccountFromToInfoCard';
 import ActionView, { ConfirmButtonState } from '../../../../UI/ActionView';
 import QRSigningDetails from '../../../../UI/QRHardware/QRSigningDetails';
@@ -65,6 +63,7 @@ import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionB
 import TransactionReviewData from './TransactionReviewData';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -453,20 +452,8 @@ class TransactionReview extends PureComponent {
   };
 
   getUrlFromBrowser() {
-    const { browser, transaction } = this.props;
+    const { browser } = this.props;
     let url;
-    if (
-      transaction.origin &&
-      transaction.origin.startsWith(WALLET_CONNECT_ORIGIN)
-    ) {
-      return transaction.origin.split(WALLET_CONNECT_ORIGIN)[1];
-    } else if (
-      transaction.origin &&
-      transaction.origin.startsWith(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)
-    ) {
-      return transaction.origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1];
-    }
-
     browser.tabs.forEach((tab) => {
       if (tab.id === browser.activeTab) {
         url = tab.url;
@@ -525,11 +512,21 @@ class TransactionReview extends PureComponent {
       approveTransaction,
       multiLayerL1FeeTotal,
     } = this.state;
-    const url = this.getUrlFromBrowser();
+    const { origin: channelIdOrHostname } = transaction;
+    DevLogger.log(
+      `TransactionReview render channelIdOrHostname=${channelIdOrHostname}`,
+    );
 
     const sdkConnections = SDKConnect.getInstance().getConnections();
 
-    const currentConnection = sdkConnections[origin ?? ''];
+    const currentConnection = sdkConnections[channelIdOrHostname ?? ''];
+
+    let url = '';
+    if (currentConnection) {
+      url = currentConnection.originatorInfo.url;
+    } else {
+      url = this.getUrlFromBrowser();
+    }
 
     const styles = this.getStyles();
 
