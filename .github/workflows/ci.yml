@@ -282,7 +282,7 @@ jobs:
     steps:
       - name: Set jobs passed status
         id: jobs-passed-status
-        run: echo "ALL_JOBS_PASSED=true" >> $GITHUB_OUTPUT
+        run: echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
   check-all-jobs-pass:
     name: Check all jobs pass
     runs-on: ubuntu-20.04
