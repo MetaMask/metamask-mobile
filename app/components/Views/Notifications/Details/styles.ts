@@ -120,7 +120,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
       alignSelf: 'center',
     },
     ctaBtn: {
-      bottom: 0,
+      bottom: 10,
       position: 'absolute',
       width: '90%',
       alignSelf: 'center',
