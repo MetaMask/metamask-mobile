@@ -95,12 +95,7 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
-import {
-  PPOMController,
-  PPOMControllerActions,
-  PPOMControllerEvents,
-  PPOMState,
-} from '@metamask/ppom-validator';
+import { PPOMController, PPOMState } from '@metamask/ppom-validator';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   JsonSnapsRegistry,
@@ -282,7 +277,8 @@ type GlobalActions =
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | PreferencesControllerActions
-  | PPOMControllerActions
+  // TODO: uncomment once `PPOMController` is upgraded to V2
+  // | PPOMControllerActions
   | TokenBalancesControllerActions
   | TokensControllerActions
   | TokenListControllerActions
@@ -316,7 +312,8 @@ type GlobalEvents =
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
-  | PPOMControllerEvents
+  // TODO: uncomment once `PPOMController` is upgraded to V2
+  // | PPOMControllerEvents
   | AccountsControllerEvents
   | PreferencesControllerEvents
   | TokenBalancesControllerEvents
@@ -1573,7 +1570,6 @@ class Engine {
           // TODO: Remove `ts-expect-error` directive once `UserStorageController` is upgraded to a version that fixes its `messagingSystem` and `stateChange` event.
           // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
           'UserStorageController:stateChange',
-          
           /**
            * V1 controllers that should be excluded from the datamodel's events allowlist for now.
            * TODO: Each of these events should be added to the allowlist once its controller is migrated to V2.
