@@ -46,7 +46,7 @@ Before running the app, keep in mind that MetaMask uses FCM (Firebase Cloud Mess
 The value you should provide to `GOOGLE_SERVICES_B64` is the base64 encoded version of your Firebase project config file, which can be generated as follows:
 
 ```bash
-base64 -i ./android/app/google-services-example.json
+base64 -w0 -i ./android/app/google-services-example.json
 ```
 
 Copy the result to your clipboard and paste it in the `GOOGLE_SERVICES_B64` variable in the `.env` file you are running the app.
