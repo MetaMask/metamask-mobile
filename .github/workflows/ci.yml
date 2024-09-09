@@ -210,7 +210,7 @@ jobs:
             git update-index --no-assume-unchanged "$path"
           done
   sonar-cloud-quality-gate-status:
-    if: github.event_name == 'pull_request'
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     needs: sonar-cloud
     steps:
