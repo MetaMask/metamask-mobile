@@ -25,8 +25,6 @@ describe('NotificationOptionToggle', () => {
         address={'0x123123123'}
         title={'0x123123123'}
         isEnabled
-        isLoading={false}
-        disabledSwitch={false}
         refetchAccountSettings={() => Promise.resolve()}
       />,
     );

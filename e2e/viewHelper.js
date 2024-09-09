@@ -9,7 +9,6 @@ import NetworkView from './pages/Settings/NetworksView';
 import OnboardingView from './pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from './pages/Onboarding/OnboardingCarouselView';
 import OnboardingWizardModal from './pages/modals/OnboardingWizardModal';
-import ExperienceEnhancerModal from './pages/modals/ExperienceEnhancerModal';
 import SettingsView from './pages/Settings/SettingsView';
 import WalletView from './pages/wallet/WalletView';
 import Accounts from '../wdio/helpers/Accounts';
@@ -56,16 +55,6 @@ have to have all these workarounds in the tests
     /* eslint-disable no-console */
 
     console.log('The onboarding modal is not visible');
-  }
-
-  try {
-    // Handle Marketing consent modal
-
-    await Assertions.checkIfVisible(ExperienceEnhancerModal.container);
-    await ExperienceEnhancerModal.tapNoThanks();
-    await Assertions.checkIfNotVisible(ExperienceEnhancerModal.container);
-  } catch {
-    console.log('The marketing consent modal is not visible');
   }
 
   try {

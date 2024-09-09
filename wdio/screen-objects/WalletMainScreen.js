@@ -144,7 +144,7 @@ class WalletMainScreen {
 
   async isMainWalletViewVisible() {
     const element = await this.walletButton;
-    await element.waitForDisplayed();
+    await expect(element).toBeDisplayed();
   }
 
   async isSubmittedNotificationDisplayed() {

@@ -5,7 +5,6 @@ import {
   TRUE,
 } from '../../constants/storage';
 
-// eslint-disable-next-line import/prefer-default-export
 export const updateAuthTypeStorageFlags = async (
   newBiometryChoice: boolean,
 ) => {
