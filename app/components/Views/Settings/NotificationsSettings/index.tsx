@@ -223,7 +223,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           />
         );
       }),
-    /* eslint-enable react-hooks/exhaustive-deps */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [accountSettingsProps.initialLoading, accountsNotificationState],
   );
 
