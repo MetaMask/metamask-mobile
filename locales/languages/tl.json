@@ -5,6 +5,8 @@
     "deceptive_request_title": "Isa itong mapanlinlang na kahilingan",
     "failed_title": "Baka hindi ligtas ang kahilingan",
     "failed_description": "Dahil sa pagkakamali, ang kahilingang ito ay hindi na-verify ng tagapaglaan ng seguridad. Magpatuloy nang may pag-iingat.",
+    "loading_title": "Sinusuri ang mga alertong pangseguridad...",
+    "loading_complete_title": "Walang alerto na natanggap. Palaging gumawa ng sarili mong pagsusuri bago aprubahan ang mga kahilingan.",
     "malicious_domain_description": "Nakikipag-ugnayan ka sa isang mapaminsalang domain. Kung aaprubahan mo ang kahilingang ito, posibleng mawala sa iyo ang mga asset mo.",
     "other_description": "Kung aaprubahan mo ang kahilingang ito, posibleng mawala sa iyo ang mga asset mo.",
     "raw_signature_farming_description": "Kung aaprubahan mo ang kahilingang ito, posibleng mawala sa iyo ang mga asset mo.",
@@ -497,11 +499,14 @@
     "address": "Address ng kontrata ng token",
     "decimal": "Decimal ng token",
     "network": "Network",
+    "network_fee": "Network fee",
     "lists": "Mga Listahan ng Token",
     "hide_cta": "Itago ang token",
     "options": {
+      "view_on_portfolio": "View on Portfolio",
       "view_on_block": "Tingnan sa block explorer",
-      "token_details": "Mga detalye ng token"
+      "token_details": "Mga detalye ng token",
+      "remove_token": "Remove token"
     }
   },
   "activity_view": {
@@ -548,6 +553,7 @@
     "description_title": "Tulungan kaming mapahusay ang MetaMask",
     "description_content_1": "Nais naming mangalap ng data para sa batayang paggamit upang mapahusay ang MetaMask. Dapat mong malaman na hindi namin ibebenta ang data na iyong ibibigay rito.",
     "description_content_2": "Kapag kami ay nangangalap ng metrics, ito ay palaging...",
+    "description_content_3": "Learn how we protect your privacy while collecting usage data for your profile.",
     "checkbox": "Gagamitin namin ang data na ito upang matutunan paano ka nakikipag-ugnayan sa aming mga komunikasyon sa marketing. Maaari kaming magbahagi ng kaugnay na balita (tulad ng mga tampok ng produkto).",
     "action_description_1_prefix": "Pribado:",
     "action_description_2_prefix": "Pangkalahatan:",
@@ -598,7 +604,21 @@
     "decimals_is_required": "Kailangan ang decimal. Hanapin ito sa:",
     "no_tokens_found": "Wala kaming mahanap na anumang token na may ganyang pangalan.",
     "select_token": "Pumili ng Token",
-    "address_must_be_smart_contract": "Natukoy ang personal na address. Ilagay ang address ng kontrata ng token."
+    "address_must_be_smart_contract": "Natukoy ang personal na address. Ilagay ang address ng kontrata ng token.",
+    "billion_abbreviation": "B",
+    "trillion_abbreviation": "T",
+    "million_abbreviation": "M",
+    "token_details": "Token details",
+    "contract_address": "Contract address",
+    "token_list": "Token list",
+    "market_details": "Market details",
+    "market_cap": "Market Cap",
+    "total_volume": "Total Volume (24h)",
+    "volume_to_marketcap": "Volume / Market Cap",
+    "circulating_supply": "Circulating supply",
+    "all_time_high": "All time high",
+    "all_time_low": "All time low",
+    "fully_diluted": "Fully diluted"
   },
   "collectible": {
     "collectible_address": "Address",
@@ -667,7 +687,10 @@
     "address_balance_activity_permission": "Tingnan ang address, balanse ng account, at aktibidad",
     "suggest_transactions": "Magmungkahi ng mga transaksyong aaprubahan",
     "disconnect": "Idiskonekta",
+    "disconnect_all": "Disconnect all",
+    "reconnect_notice": "If you disconnect your accounts from {{dappUrl}}, you’ll need to reconnect to use them again.",
     "disconnect_all_accounts": "Idiskonekta ang lahat ng account",
+    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
     "deceptive_site_ahead": "Papunta sa isang mapanlinlang na site",
     "deceptive_site_desc": "Ang site na iyong sinusubukang bisitahin ay hindi ligtas. Maaari kang linlangin ng mga umaatake na gumawa ng mapanganib na bagay.",
     "learn_more": "Matuto pa",
@@ -685,6 +708,7 @@
     "accounts_connected": "mga account na konektado.",
     "disconnected": "nadiskonekta.",
     "disconnected_all": "Nadiskonekta ang lahat ng account.",
+    "disconnected_from": "Disconnected from {{dappHostName}}",
     "nft_detection_enabled": "Pinagana ang autodetection ng NFT"
   },
   "connect_qr_hardware": {
@@ -841,6 +865,10 @@
     },
     "contacts_title": "Mga Kontak",
     "contacts_desc": "Magdagdag, mag-edit, mag-alis, at mamahala ng iyong mga account",
+    "permissions_title": "Permissions",
+    "permissions_desc": "Manage the permissions given to sites and apps",
+    "no_permissions": "No permissions",
+    "no_permissions_desc": "If you connect an account to a site or an app, you’ll see it here.",
     "security_title": "Seguridad at Pagkapribado",
     "back": "Bumalik",
     "security_desc": "Mga setting ng pagkapribado, MetaMetrics, pribadong key at Lihim na Parirala sa Pagbawi ng wallet",
@@ -930,6 +958,10 @@
     "custom_network_name": "Mga custom na network",
     "popular": "Sikat",
     "delete": "Tanggalin",
+    "account": "account",
+    "accounts": "accounts",
+    "network": "network",
+    "networks": "networks",
     "network_exists": "Naidagdag na ang network na ito.",
     "unMatched_chain": "According to our records, this URL does not match a known provider for this chain ID.",
     "unMatched_chain_name": "This chain ID doesn’t match the network name.",
@@ -1294,13 +1326,14 @@
     "error": "Error",
     "attempting_to_scan_with_wallet_locked": "Mukhang sinusubukan mong mag-scan ng QR code, kailangan mong i-unlock ang iyong wallet para magamit ito.",
     "attempting_sync_from_wallet_error": "Mukhang sinusubukan mong mag-sync sa extension. Para magawa ito, kakailanganin mong burahin ang iyong kasalukuyang wallet. \n\nSa oras na magbura o mag-install ka ng bagong bersyon ng app, piliin ang opsyong \"I-sync gamit ang MetaMask Extension\". Mahalaga! Bago burahin ang iyong wallet, tiyaking na-back up mo ang iyong Lihim na Parirala sa Pagbawi.",
-    "not_allowed_error_title": "Paganahin ang access sa camera",
-    "not_allowed_error_desc": "Kailangan ng access sa camera para mag-scan ng QR code na nauugnay sa isang address ng account o address ng kontrata",
+    "not_allowed_error_title": "Turn on camera access",
+    "not_allowed_error_desc": "To scan a QR code, you'll need to give MetaMask camera access from your device's settings menu.",
     "unrecognized_address_qr_code_title": "Hindi nakikilalang QR Code",
     "unrecognized_address_qr_code_desc": "Paumanhin, ang QR code na ito ay hindi nauugnay sa isang address ng account o isang address ng kontrata.",
     "url_redirection_alert_title": "Bibisitahin mo ang isang panlabas na link",
     "url_redirection_alert_desc": "Maaaring gamitin ang mga link upang subukang manlinlang o mag-phish ng mga tao, kaya siguraduhing bisitahin lamang ang mga website na pinagkakatiwalaan mo.",
-    "label": "Mag-scan ng QR code"
+    "label": "Mag-scan ng QR code",
+    "open_settings": "Settings"
   },
   "action_view": {
     "cancel": "Kanselahin",
@@ -1310,6 +1343,7 @@
     "transaction_id": "ID ng Transaksyon",
     "alert": "ALERTO",
     "amount": "Halaga",
+    "details": "Details",
     "next": "Susunod",
     "back": "Bumalik",
     "confirm": "Kumpirmahin",
@@ -1701,6 +1735,10 @@
     "network_chain_id": "ID ng Chain",
     "network_rpc_url": "URL ng Network",
     "network_rpc_url_label": "Network RPC URL",
+    "new_default_network_url": "New default network URL",
+    "current_label": "Current",
+    "new_label": "New",
+    "review": "Review",
     "view_details": "Tingnan ang mga detalye",
     "network_details": "Mga detalye ng network",
     "network_select_confirm_use_safe_check": "Ang pagpili ng Kumpirmahin ay magbubukas ng pagsusuri ng detalye ng network. Maaari mong i-off ang pagsusuri ng detalye ng network sa ",
@@ -2127,9 +2165,9 @@
     "transaction_id_copied_to_clipboard": "Nakopya ang ID ng transaksyon sa clipboard",
     "activation_card": {
       "title": "I-on ang mga notipikasyon",
-      "description_1": "Manatiling may-alam sa nangyayari sa iyong wallet gamit ang mga notipikasyon. ",
+      "description_1": "Stay in the loop on what's happening in your wallet with notifications.",
       "description_2": "Para gamitin ang tampok na ito, kami ay gagawa ng isang hindi kilalang ID para sa iyong account. Ginagamit lang ito para sa pag-sync ng data sa MetaMask at hindi inuugnay ang iyong mga aktibidad o iba pang mga pagkakakilanlan, tinitiyak ang iyong pagkapribado.",
-      "learn_more": "Matutunan kung paano namin protektahan ang iyong pagkapribado habang gamit ang tampok na ito. ",
+      "learn_more": "Learn how we protect your privacy while using this feature.",
       "manage_preferences_1": "Maaari mong i-off ang mga notipikasypon anumang oras sa ",
       "manage_preferences_2": "Mga Setting > Mga notipikasyon.",
       "cancel": "Kanselahin",
@@ -2521,7 +2559,8 @@
       "sale_completed_title": "Nakumpleto ang order",
       "sale_completed_description": "Matagumpay ang iyong order!.",
       "sale_pending_title": "Pinoproseso ang pagbenta ng {{currency}}",
-      "sale_pending_description": "Pinoproseso na ang iyong order."
+      "sale_pending_description": "Pinoproseso na ang iyong order.",
+      "no_date": "Unknown"
     }
   },
   "swaps": {
@@ -3148,9 +3187,7 @@
     "how_to_install_eth_webview_title": "Paano i-install ang App ng Ethereum",
     "nonce_too_low": "Masyadong mababa ang nonce",
     "nonce_too_low_error": "Masyadong mababa ang itinakdang nonce",
-    "select_accounts": "Select an Account",
-    "select_accounts_warning": "Note: these accounts might be different to what you're used to.",
-    "select_accounts_sub_msg": "These accounts are derived using the BIP44 derivation path, which is different to the default Ledger Live derivation path on MetaMask Extension, Different derivation paths for Ledger will be available on MetaMask Mobile soon."
+    "select_accounts": "Select an Account"
   },
   "account_actions": {
     "edit_name": "I-edit ang pangalan ng account",
@@ -3223,7 +3260,7 @@
       "title_off": "I-off ang batayang kapakinabangan",
       "description_off": "Ibig sabihin nito hindi mo lubos na mao-optimize ang iyong oras sa MetaMask. Ang mga batayang tampok (tulad ng mga detalye ng token, optimal na settings ng gas, at iba pa) ay hindi magiging available para sa iyo.",
       "title_on": "I-on ang batayang kapakinabangan",
-      "description_on": "Upang ma-optimize ang iyong oras sa MetaMask, kailangan mong i-on ang tampok na ito. Ang mga batayang function (tulad ng mga detalye ng token, optimal na settings ng gas, at iba pa) ay mahalaga sa karanasan sa web3.",
+      "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, notifications, and others) are important to the web3 experience.",
       "checkbox_label": "Nauunawaan ko at nais kong magpatuloy",
       "buttons": {
         "cancel": "Kanselahin",

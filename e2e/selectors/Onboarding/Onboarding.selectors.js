@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/prefer-default-export
 export const OnboardingSelectorIDs = {
   CONTAINER_ID: 'onboarding-screen',
   IMPORT_SEED_BUTTON: 'wallet-setup-screen-import-from-seed-button-id',
