@@ -107,16 +107,3 @@ AppRegistry.registerComponent(name, () =>
   // Disable Sentry for E2E tests
   isTest ? Root : Sentry.wrap(Root),
 );
-
-// Example request for testing mock server
-setTimeout(() => {
-  fetch('https://www.google.com', (res) => {
-    console.log('GOT GOOGLE.com', res);
-  })
-    .then(async (res) => {
-      console.log('RESPONSE', res.status);
-    })
-    .catch((err) => {
-      console.log('FAILED ERROR GOOGLE', err);
-    });
-}, 5000);
