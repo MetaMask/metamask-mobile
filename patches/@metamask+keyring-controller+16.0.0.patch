@@ -47,13 +47,22 @@ index 6d75e83..f45940f 100644
  export {
    AccountImportStrategy,
 diff --git a/node_modules/@metamask/keyring-controller/dist/chunk-2GJQ6KDW.js b/node_modules/@metamask/keyring-controller/dist/chunk-EGSSQX6L.js
-similarity index 99%
+similarity index 98%
 rename from node_modules/@metamask/keyring-controller/dist/chunk-2GJQ6KDW.js
 rename to node_modules/@metamask/keyring-controller/dist/chunk-EGSSQX6L.js
-index 81fdecf..3844651 100644
+index 81fdecf..abb4140 100644
 --- a/node_modules/@metamask/keyring-controller/dist/chunk-2GJQ6KDW.js
 +++ b/node_modules/@metamask/keyring-controller/dist/chunk-EGSSQX6L.js
-@@ -1113,9 +1113,7 @@ getKeyringBuilderForType_fn = function(type) {
+@@ -880,6 +880,8 @@ var KeyringController = class extends _basecontroller.BaseController {
+    */
+   async submitPassword(password) {
+     return _chunkZGV2QNCGjs.__privateMethod.call(void 0, this, _withRollback, withRollback_fn).call(this, async () => {
++      console.log('ENTER submit Password');
++      
+       _chunkZGV2QNCGjs.__privateSet.call(void 0, this, _keyrings, await _chunkZGV2QNCGjs.__privateMethod.call(void 0, this, _unlockKeyrings, unlockKeyrings_fn).call(this, password));
+       _chunkZGV2QNCGjs.__privateMethod.call(void 0, this, _setUnlocked, setUnlocked_fn).call(this);
+     });
+@@ -1113,9 +1115,7 @@ getKeyringBuilderForType_fn = function(type) {
  _addQRKeyring = new WeakSet();
  addQRKeyring_fn = async function() {
    _chunkZGV2QNCGjs.__privateMethod.call(void 0, this, _assertControllerMutexIsLocked, assertControllerMutexIsLocked_fn).call(this);
@@ -64,7 +73,76 @@ index 81fdecf..3844651 100644
  };
  _subscribeToQRKeyringEvents = new WeakSet();
  subscribeToQRKeyringEvents_fn = function(qrKeyring) {
-@@ -1465,4 +1463,4 @@ var KeyringController_default = KeyringController;
+@@ -1177,7 +1177,11 @@ restoreSerializedKeyrings_fn = async function(serializedKeyrings) {
+ };
+ _unlockKeyrings = new WeakSet();
+ unlockKeyrings_fn = async function(password, encryptionKey, encryptionSalt) {
++  console.log('ETNER unlock keyrings 0');
++  
+   return _chunkZGV2QNCGjs.__privateMethod.call(void 0, this, _withVaultLock, withVaultLock_fn).call(this, async ({ releaseLock }) => {
++  console.log('ETNER unlock keyrings 1');
++
+     const encryptedVault = this.state.vault;
+     if (!encryptedVault) {
+       throw new Error("KeyringController - Cannot unlock without a previous vault." /* VaultError */);
+@@ -1185,12 +1189,17 @@ unlockKeyrings_fn = async function(password, encryptionKey, encryptionSalt) {
+     let vault;
+     const updatedState = {};
+     if (_chunkZGV2QNCGjs.__privateGet.call(void 0, this, _cacheEncryptionKey)) {
++  console.log('ETNER unlock keyrings 2');
++
+       assertIsExportableKeyEncryptor(_chunkZGV2QNCGjs.__privateGet.call(void 0, this, _encryptor));
++  console.log('ETNER unlock keyrings 3');
++
+       if (password) {
+         const result = await _chunkZGV2QNCGjs.__privateGet.call(void 0, this, _encryptor).decryptWithDetail(
+           password,
+           encryptedVault
+         );
++        console.log('ENTER result decrypt with detail', result);
+         vault = result.vault;
+         _chunkZGV2QNCGjs.__privateSet.call(void 0, this, _password, password);
+         updatedState.encryptionKey = result.exportedKeyString;
+@@ -1204,10 +1213,15 @@ unlockKeyrings_fn = async function(password, encryptionKey, encryptionSalt) {
+           throw new TypeError("KeyringController - Password must be of type string." /* WrongPasswordType */);
+         }
+         const key = await _chunkZGV2QNCGjs.__privateGet.call(void 0, this, _encryptor).importKey(encryptionKey);
++        console.log('ENTER after import key', key);
++
+         vault = await _chunkZGV2QNCGjs.__privateGet.call(void 0, this, _encryptor).decryptWithKey(
+           key,
+           parsedEncryptedVault
+         );
++
++        console.log('ENTER after decryptWithKey vault', vault);
++
+         updatedState.encryptionKey = encryptionKey;
+         updatedState.encryptionSalt = encryptionSalt;
+       }
+@@ -1215,14 +1229,16 @@ unlockKeyrings_fn = async function(password, encryptionKey, encryptionSalt) {
+       if (typeof password !== "string") {
+         throw new TypeError("KeyringController - Password must be of type string." /* WrongPasswordType */);
+       }
+-      vault = await _chunkZGV2QNCGjs.__privateGet.call(void 0, this, _encryptor).decrypt(password, encryptedVault);
++     // vault = await _chunkZGV2QNCGjs.__privateGet.call(void 0, this, _encryptor).decrypt(password, encryptedVault);
++      console.log('ENTER vault after decrypt', vault);
++      
+       _chunkZGV2QNCGjs.__privateSet.call(void 0, this, _password, password);
+     }
+-    if (!isSerializedKeyringsArray(vault)) {
+-      throw new Error("KeyringController - The decrypted vault has an unexpected shape." /* VaultDataError */);
+-    }
+-    await _chunkZGV2QNCGjs.__privateMethod.call(void 0, this, _restoreSerializedKeyrings, restoreSerializedKeyrings_fn).call(this, vault);
+-    const updatedKeyrings = await _chunkZGV2QNCGjs.__privateMethod.call(void 0, this, _getUpdatedKeyrings, getUpdatedKeyrings_fn).call(this);
++ 
++  //  await _chunkZGV2QNCGjs.__privateMethod.call(void 0, this, _restoreSerializedKeyrings, restoreSerializedKeyrings_fn).call(this, vault);
++    const updatedKeyrings = [{"accounts": ["0x6312c98831d74754f86dd4936668a13b7e9ba411"], "type": "HD Key Tree"}, {"accounts": [], "type": "QR Hardware Wallet Device"}, {"accounts": ["0x2990079bcdee240329a520d2444386fc119da21a"], "type": "Simple Key Pair"}]; //await _chunkZGV2QNCGjs.__privateMethod.call(void 0, this, _getUpdatedKeyrings, getUpdatedKeyrings_fn).call(this);
++    console.log('ENTER updatedKeyrings', updatedKeyrings);
++    
+     this.update((state) => {
+       state.keyrings = updatedKeyrings;
+       if (updatedState.encryptionKey || updatedState.encryptionSalt) {
+@@ -1465,4 +1481,4 @@ var KeyringController_default = KeyringController;
  
  
  exports.KeyringTypes = KeyringTypes; exports.isCustodyKeyring = isCustodyKeyring; exports.AccountImportStrategy = AccountImportStrategy; exports.SignTypedDataVersion = SignTypedDataVersion; exports.keyringBuilderFactory = keyringBuilderFactory; exports.getDefaultKeyringState = getDefaultKeyringState; exports.KeyringController = KeyringController; exports.KeyringController_default = KeyringController_default;
