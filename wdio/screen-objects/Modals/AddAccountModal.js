@@ -20,6 +20,10 @@ class AddAccountModal {
     await newAccountButton.waitForExist({ reverse: true });
   }
 
+  async dismissEnhancedTransactionProtectionModal(text) {
+    await Gestures.tapByTextContaining(text);
+  }
+
   async tapImportAccountButton() {
     await Gestures.waitAndTap(this.importAccountButton);
   }

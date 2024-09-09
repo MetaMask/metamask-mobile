@@ -9,6 +9,7 @@ import AddAccountModal from '../screen-objects/Modals/AddAccountModal';
 Then(/^I tap Create a new account/, async () => {
   await AccountListComponent.tapAddAccountButton();
   await AddAccountModal.tapNewAccountButton();
+  await AddAccountModal.dismissEnhancedTransactionProtectionModal('No thanks');
 });
 
 When(/^A new account is created/, async () => {
