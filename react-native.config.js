@@ -5,7 +5,7 @@ module.exports = {
     ...(process.env.NO_FLIPPER
       ? { 'react-native-flipper': { platforms: { ios: null } } }
       : {}),
-    'react-native-aes-crypto-forked': {
+    '@metamask/react-native-aes-crypto': {
       platforms: {
         ios: null, // disable Android platform, other platforms will still autolink if provided
       },
