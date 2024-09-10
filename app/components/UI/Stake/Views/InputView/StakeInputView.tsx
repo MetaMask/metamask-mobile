@@ -40,12 +40,18 @@ const StakeInputView = () => {
   const { styles, theme } = useStyles(styleSheet, {});
 
   const [amount, setAmount] = useState('0');
+  const [amountBN, setAmountBN] = useState<BN>(new BN(0));
+  const { balance, balanceBN } = useBalance();
+
+  const isNonZeroAmount: boolean = amountBN.gt(new BN(0));
+  const additionalFundsRequired = amountBN.sub(balanceBN || new BN(0));
+  const isOverMaximum: boolean =
+    isNonZeroAmount && additionalFundsRequired.gt(new BN(0));
+
   const [fiatAmount, setFiatAmount] = useState('0');
   const [isEth, setIsEth] = useState<boolean>(true);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate) || 1;
-
-  const { balance, balanceBN } = useBalance();
 
   useEffect(() => {
     navigation.setOptions(getStakeInputNavbar(navigation, theme.colors));
@@ -57,7 +63,7 @@ const StakeInputView = () => {
     ({ value }) => {
       if (isEth) {
         setAmount(value);
-
+        setAmountBN(toWei(value, 'ether'));
         const fiatValue = weiToFiatNumber(
           toWei(value, 'ether'),
           conversionRate,
@@ -66,7 +72,6 @@ const StakeInputView = () => {
         setFiatAmount(fiatValue);
       } else {
         setFiatAmount(value);
-
         const ethValue = renderFromTokenMinimalUnit(
           fiatNumberToWei(value, conversionRate).toString(),
           18,
@@ -74,6 +79,7 @@ const StakeInputView = () => {
         );
 
         setAmount(ethValue);
+        setAmountBN(toWei(ethValue, 'ether'));
       }
     },
     [isEth, conversionRate],
@@ -149,10 +155,16 @@ const StakeInputView = () => {
     <ScreenLayout style={styles.container}>
       <View style={styles.inputContainer}>
         <View>
-          <Text variant={TextVariant.BodySM}>
-            {'Balance : '}
-            {balance}
-          </Text>
+          {isOverMaximum ? (
+            <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+              Not enough ETH to complete this stake
+            </Text>
+          ) : (
+            <Text variant={TextVariant.BodySM}>
+              {'Balance : '}
+              {balance}
+            </Text>
+          )}
         </View>
         <View style={styles.amountRow}>
           <Text variant={TextVariant.DisplayMD} color={TextColor.Muted}>
@@ -189,11 +201,17 @@ const StakeInputView = () => {
       />
       <View style={styles.reviewButtonContainer}>
         <Button
-          label={amount === '0' ? 'Enter amount' : 'Review'}
+          label={
+            !isNonZeroAmount
+              ? 'Enter amount'
+              : isOverMaximum
+              ? 'Not enough ETH'
+              : 'Review'
+          }
           size={ButtonSize.Lg}
           labelTextVariant={TextVariant.BodyMDMedium}
           variant={ButtonVariants.Primary}
-          isDisabled={amount === '0'}
+          isDisabled={isOverMaximum || !isNonZeroAmount}
           width={ButtonWidthTypes.Full}
           onPress={handleStakePress}
         />
