@@ -34,7 +34,7 @@ export const selectInternalAccounts = createDeepEqualSelector(
       (a, b) =>
         (keyringAccountsMap.get(a.address.toLowerCase()) || 0) -
         (keyringAccountsMap.get(b.address.toLowerCase()) || 0),
-    ) as InternalAccount[];
+    );
     return sortedAccounts;
   },
 );
