@@ -3,18 +3,26 @@ name: Update Versions
 on:
   workflow_dispatch:
     inputs:
-      release_version:
-        description: 'Release version to update (optional)'
-        required: false
-        default: ''
       branch:
         description: 'Branch to run the workflow on'
         required: true
         default: ''
+      version_type:
+        description: 'Version type to increment (major, minor, patch)'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
       rc_number:
         description: 'Release candidate number (optional)'
         required: true
         default: '1'
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   update-versions:
@@ -29,9 +37,9 @@ jobs:
         run: |
           if [ -z "${{ github.event.inputs.branch }}" ]; then
             BRANCH=$(git ls-remote --heads origin | grep 'refs/heads/release/' | awk '{print $2}' | sort -r | head -n 1 | sed 's/refs\/heads\///')
-            echo "::set-output name=branch::$BRANCH"
+            echo "branch=$BRANCH" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=branch::${{ github.event.inputs.branch }}"
+            echo "branch=${{ github.event.inputs.branch }}" >> $GITHUB_OUTPUT
           fi
 
       - name: Checkout specified branch
@@ -47,49 +55,68 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Run shell script to update versions
-        run: ./scripts/update-versions.sh
-
-      - name: Extract build version
-        id: extract-build-version
+      - name: Get current version from GitHub variable
+        id: get-version
         run: |
-          BUILD_VERSION=$(grep -oP 'version\s*=\s*"\K[0-9.]+' path/to/version/file)
-          echo "::set-output name=build_version::$BUILD_VERSION"
+          CURRENT_VERSION=$(gh api /repos/${{ github.repository }}/actions/variables/VERSION --jq .value)
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
 
-      - name: Determine release version
-        id: determine-release-version
+      - name: Increment version
+        id: increment-version
         run: |
-          if [ -z "${{ github.event.inputs.release_version }}" ]; then
-            RELEASE_VERSION=$(grep -oP 'version\s*=\s*"\K[0-9.]+' path/to/current-release-version/file)
-            echo "::set-output name=release_version::$RELEASE_VERSION"
-          else
-            echo "::set-output name=release_version::${{ github.event.inputs.release_version }}"
-          fi
+          IFS='.' read -ra VERSION_PARTS <<< "${{ steps.get-version.outputs.current_version }}"
+          MAJOR=${VERSION_PARTS[0]}
+          MINOR=${VERSION_PARTS[1]}
+          PATCH=${VERSION_PARTS[2]}
+          case "${{ github.event.inputs.version_type }}" in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Update GitHub version variable
+        run: |
+          gh api --method PATCH /repos/${{ github.repository }}/actions/variables/VERSION \
+            -f name='VERSION' \
+            -f value='${{ steps.increment-version.outputs.new_version }}'
+
+      - name: Run shell script to update versions in files
+        run: |
+          NEW_VERSION=${{ steps.increment-version.outputs.new_version }} ./scripts/update-versions.sh
 
       - name: Create new branch
         id: create-new-branch
         run: |
-          NEW_BRANCH="chore/bump-release-version-${{ steps.determine-release-version.outputs.release_version }}-${{ steps.extract-build-version.outputs.build_version }}"
+          NEW_BRANCH="chore/bump-release-version-${{ steps.increment-version.outputs.new_version }}"
           git checkout -b $NEW_BRANCH
-          echo "::set-output name=new_branch::$NEW_BRANCH"
+          echo "new_branch=$NEW_BRANCH" >> $GITHUB_OUTPUT
 
       - name: Commit changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add .
-          git commit -m "chore: bump release version to ${{ steps.determine-release-version.outputs.release_version }} and build version"
+          git commit -m "chore: bump release version to ${{ steps.increment-version.outputs.new_version }}"
 
       - name: Push changes
         run: |
           git push origin ${{ steps.create-new-branch.outputs.new_branch }}
 
       - name: Create pull request
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PR_TITLE="chore: bump release version ${{ steps.determine-release-version.outputs.release_version }} - ${{ steps.extract-build-version.outputs.build_version }}"
+          PR_TITLE="chore: bump release version ${{ steps.increment-version.outputs.new_version }}"
           if [ -n "${{ github.event.inputs.rc_number }}" ]; then
             PR_TITLE="$PR_TITLE - RC${{ github.event.inputs.rc_number }}"
           fi
-          gh pr create --base ${{ steps.determine-branch.outputs.branch }} --head ${{ steps.create-new-branch.outputs.new_branch }} --title "$PR_TITLE" --body "This PR updates the release version to ${{ steps.determine-release-version.outputs.release_version }} and build version to ${{ steps.extract-build-version.outputs.build_version }}."
+          gh pr create --base ${{ steps.determine-branch.outputs.branch }} --head ${{ steps.create-new-branch.outputs.new_branch }} --title "$PR_TITLE" --body "This PR updates the release version to ${{ steps.increment-version.outputs.new_version }}."
