@@ -23,8 +23,6 @@ export default function migrate(state: unknown) {
   }
 
   if (
-    !isObject(state.engine) ||
-    !isObject(state.engine.backgroundState) ||
     !isObject(state.engine.backgroundState.AccountsController)
   ) {
     captureException(
