@@ -6,15 +6,72 @@ import { AccountsControllerState } from '@metamask/accounts-controller';
 function isAccountsControllerState(
   state: unknown,
 ): state is AccountsControllerState {
-  return (
-    isObject(state) &&
-    hasProperty(state, 'internalAccounts') &&
-    isObject(state.internalAccounts) &&
-    hasProperty(state.internalAccounts, 'accounts') &&
-    isObject(state.internalAccounts.accounts) &&
-    hasProperty(state.internalAccounts, 'selectedAccount') &&
-    typeof state.internalAccounts.selectedAccount === 'string'
-  );
+  if (!isObject(state)) {
+    captureException(
+      new Error(
+        `FATAL ERROR: Migration 52: Invalid AccountsController state error: AccountsController state is not an object, type: '${typeof state}'`,
+      ),
+    );
+    return false;
+  }
+
+  if (!hasProperty(state, 'internalAccounts')) {
+    captureException(
+      new Error(
+        'FATAL ERROR: Migration 52: Invalid AccountsController state error: missing internalAccounts',
+      ),
+    );
+    return false;
+  }
+
+  if (!isObject(state.internalAccounts)) {
+    captureException(
+      new Error(
+        `FATAL ERROR: Migration 52: Invalid AccountsController state error: internalAccounts is not an object, type: '${typeof state.internalAccounts}'`,
+      ),
+    );
+    return false;
+  }
+
+  if (!hasProperty(state.internalAccounts, 'accounts')) {
+    captureException(
+      new Error(
+        'FATAL ERROR: Migration 52: Invalid AccountsController state error: missing internalAccounts.accounts',
+      ),
+    );
+    return false;
+  }
+
+  if (!isObject(state.internalAccounts.accounts)) {
+    captureException(
+      new Error(
+        `FATAL ERROR: Migration 52: Invalid AccountsController state error: internalAccounts.accounts is not an object, type: '${typeof state
+          .internalAccounts.accounts}'`,
+      ),
+    );
+    return false;
+  }
+
+  if (!hasProperty(state.internalAccounts, 'selectedAccount')) {
+    captureException(
+      new Error(
+        'FATAL ERROR: Migration 52: Invalid AccountsController state error: missing internalAccounts.selectedAccount',
+      ),
+    );
+    return false;
+  }
+
+  if (typeof state.internalAccounts.selectedAccount !== 'string') {
+    captureException(
+      new Error(
+        `FATAL ERROR: Migration 52: Invalid AccountsController state error: internalAccounts.selectedAccount is not a string, type: '${typeof state
+          .internalAccounts.selectedAccount}'`,
+      ),
+    );
+    return false;
+  }
+
+  return true;
 }
 
 export default function migrate(state: unknown) {
@@ -22,20 +79,10 @@ export default function migrate(state: unknown) {
     return state;
   }
 
-  if (!isObject(state.engine.backgroundState.AccountsController)) {
-    captureException(
-      new Error('FATAL ERROR: Migration 52: Invalid AccountsController state'),
-    );
-    return state;
-  }
-
   const accountsControllerState =
     state.engine.backgroundState.AccountsController;
 
   if (!isAccountsControllerState(accountsControllerState)) {
-    captureException(
-      new Error('FATAL ERROR: Migration 52: Invalid AccountsController state'),
-    );
     return state;
   }
 
