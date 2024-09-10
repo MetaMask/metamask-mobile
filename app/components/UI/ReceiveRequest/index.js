@@ -337,9 +337,7 @@ class ReceiveRequest extends PureComponent {
                 containerStyle={styles.actionButton}
                 onPress={this.onBuy}
               >
-                {strings('fiat_on_ramp.buy', {
-                  ticker: getTicker(this.props.ticker),
-                })}
+                {strings('fiat_on_ramp_aggregator.token_marketplace')}
               </StyledButton>
             )}
             <StyledButton

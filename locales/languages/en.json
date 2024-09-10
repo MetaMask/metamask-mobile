@@ -2395,6 +2395,7 @@
     "All": "All",
     "Buy": "Buy",
     "Sell": "Sell",
+    "token_marketplace": "Token marketplace",
     "Purchased": "Purchased",
     "Sold": "Sold",
     "empty_buy_orders_list": "You don't have any buy orders",
