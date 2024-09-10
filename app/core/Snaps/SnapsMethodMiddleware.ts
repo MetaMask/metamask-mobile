@@ -5,6 +5,7 @@ import {
   RequestedPermissions,
   SubjectType,
 } from '@metamask/permission-controller';
+import { HandlerType } from '@metamask/snaps-utils';
 import { RestrictedMethods } from '../Permissions/constants';
 import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermissions';
 
@@ -23,7 +24,7 @@ async function handleSnapRequest(
   subjectType: SubjectType,
   snapId: string,
   origin: string,
-  handler: any,
+  handler: any, //HandlerType.OnKeyringRequest,
   request: any,
 ) {
   // eslint-disable-next-line no-console
@@ -35,15 +36,13 @@ async function handleSnapRequest(
     handler,
     request,
   );
-  return await controllerMessenger.call(
-    'SnapController:handleRequest',
+  return await controllerMessenger.call('SnapController:handleRequest', {
     snapId,
     origin,
     handler,
     request,
-  );
+  });
 }
-
 // Snaps middleware
 /*
     from extension https://github.dev/MetaMask/metamask-extension/blob/1d5e8a78400d7aaaf2b3cbdb30cff9399061df34/app/scripts/metamask-controller.js#L3830-L3861
@@ -104,8 +103,15 @@ const snapMethodMiddlewareBuilder = (
         subjectType,
         'npm:@metamask/snap-simple-keyring-snap',
         origin,
-        null,
-        null,
+        HandlerType.OnKeyringRequest,
+        {
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'keyring_createAccount',
+          params: {
+            options: {},
+          },
+        },
       ),
   });
 
