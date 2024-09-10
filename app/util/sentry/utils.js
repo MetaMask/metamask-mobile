@@ -502,7 +502,7 @@ export function setupSentry() {
               }),
             ]
           : integrations,
-      tracesSampleRate: 0.04,
+      tracesSampleRate: 0.08,
       beforeSend: (report) => rewriteReport(report),
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
       beforeSendTransaction: (event) => excludeEvents(event),
