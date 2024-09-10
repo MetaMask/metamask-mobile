@@ -22,11 +22,9 @@ export default function migrate(state: unknown) {
     return state;
   }
 
-  if (
-    !isObject(state.engine.backgroundState.AccountsController)
-  ) {
+  if (!isObject(state.engine.backgroundState.AccountsController)) {
     captureException(
-      new Error('FATAL ERROR: Migration 52: Invalid engine state structure'),
+      new Error('FATAL ERROR: Migration 52: Invalid AccountsController state'),
     );
     return state;
   }
