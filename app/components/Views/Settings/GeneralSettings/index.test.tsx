@@ -41,7 +41,7 @@ describe('GeneralSettings', () => {
 });
 
 describe('updateUserTraitsWithCurrentCurrency', () => {
-  let mockMetrics: { addTraitsToUser: any; trackEvent: any };
+  let mockMetrics: { addTraitsToUser: Function; trackEvent: Function };
 
   beforeEach(() => {
     // Create a mock for the metrics object with spies on the required methods
@@ -91,7 +91,7 @@ describe('updateUserTraitsWithCurrentCurrency', () => {
 });
 
 describe('updateUserTraitsWithCurrencyType', () => {
-  let mockMetrics: { addTraitsToUser: any; trackEvent: any };
+  let mockMetrics: { addTraitsToUser: Function; trackEvent: Function };
 
   beforeEach(() => {
     // Create a mock for the metrics object with spies on the required methods
