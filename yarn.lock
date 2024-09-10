@@ -15513,10 +15513,15 @@ detect-node@^2.0.4:
   resolved "https://registry.yarnpkg.com/detect-node/-/detect-node-2.1.0.tgz#c9c70775a49c3d03bc2c06d9a73be550f978f8b1"
   integrity sha512-T0NIuQpnTvFDATNuHN5roPwSBG83rFsuO+MXXH9/3N1eFbn4wcPjttvjMLEPWJ0RGUYgQE7cGgS3tNxbqCGM7g==
 
-detox@20.23.1:
-  version "20.23.1"
-  resolved "https://registry.yarnpkg.com/detox/-/detox-20.23.1.tgz#57970c4bd7bdfc35f395c98106bbfb4be1c65150"
-  integrity sha512-K3UWCatYokzQStXxBTqrWzX0pLUBUCngNY3jGL61q6b1UH37vXPziGtOjWmKZ9zDQlxWC/HT7QWSiJqHn81DwA==
+detox-copilot@^0.0.0:
+  version "0.0.0"
+  resolved "https://registry.yarnpkg.com/detox-copilot/-/detox-copilot-0.0.0.tgz#646b1df5b992b547dd8373618d325f8ac2e709a6"
+  integrity sha512-BasCw/JXlplL1UZfe19xJYT0i0JU4tdGPWutsmybGy6166Jvj2ryikbgoE1ls44F+41p9Y0Yei0cdBC7KawXeQ==
+
+detox@20.26.2:
+  version "20.26.2"
+  resolved "https://registry.yarnpkg.com/detox/-/detox-20.26.2.tgz#0535e99dd91482943be001df6c501f228bd9dd58"
+  integrity sha512-pJU8WHD7GuoGlCuDzZxCD784mQfOO/ihRxe2/EebnesniWnV6FOwbC+32J1kGivhAdyvvPawfMQ7PoD4FwkxfA==
   dependencies:
     ajv "^8.6.3"
     bunyan "^1.8.12"
@@ -15524,6 +15529,7 @@ detox@20.23.1:
     caf "^15.0.1"
     chalk "^4.0.0"
     child-process-promise "^2.2.0"
+    detox-copilot "^0.0.0"
     execa "^5.1.1"
     find-up "^5.0.0"
     fs-extra "^11.0.0"
