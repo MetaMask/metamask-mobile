@@ -56,6 +56,17 @@ const infuraCurrencyOptions = sortedCurrencies.map(
   }),
 );
 
+export const updateUserTraitsWithCurrentCurrency = (currency) => {
+  const metrics = MetaMetrics.getInstance();
+  // track event and add selected currency to user profile for analytics
+  const traits = { [UserProfileProperty.CURRENT_CURRENCY]: currency };
+  metrics.addTraitsToUser(traits);
+  metrics.trackEvent(MetaMetricsEvents.CURRENCY_CHANGED, {
+    ...traits,
+    location: 'app_settings',
+  });
+};
+
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
@@ -195,14 +206,7 @@ class Settings extends PureComponent {
   selectCurrency = async (currency) => {
     const { CurrencyRateController } = Engine.context;
     CurrencyRateController.setCurrentCurrency(currency);
-
-    // track event and add selected currency to user profile for analytics
-    const traits = { [UserProfileProperty.CURRENT_CURRENCY]: currency };
-    this.props.metrics.addTraitsToUser(traits);
-    this.props.metrics.trackEvent(MetaMetricsEvents.CURRENCY_CHANGED, {
-      ...traits,
-      location: 'app_settings',
-    });
+    updateUserTraitsWithCurrentCurrency(currency);
   };
 
   selectLanguage = (language) => {
