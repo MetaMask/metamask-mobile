@@ -16,8 +16,6 @@ class AddAccountModal {
 
   async tapNewAccountButton() {
     await Gestures.waitAndTap(this.newAccountButton);
-    const newAccountButton = await this.newAccountButton;
-    await newAccountButton.waitForExist({ reverse: true });
   }
 
   async tapImportAccountButton() {
