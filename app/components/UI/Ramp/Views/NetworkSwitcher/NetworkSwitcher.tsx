@@ -375,6 +375,7 @@ function NetworkSwitcher() {
                   shouldNetworkSwitchPopToWallet={false}
                   customNetworksList={rampNetworksDetails}
                   showCompletionMessage={false}
+                  showPopularNetworkModal
                   displayContinue
                 />
               </>
