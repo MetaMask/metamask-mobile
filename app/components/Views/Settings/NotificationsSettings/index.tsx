@@ -223,8 +223,12 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           />
         );
       }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [accountSettingsProps.initialLoading, accountsNotificationState],
+    [
+      accountAvatarType,
+      accounts,
+      accountsNotificationState,
+      refetchAccountSettings,
+    ],
   );
 
   return (
