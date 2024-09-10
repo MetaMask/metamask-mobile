@@ -6,6 +6,8 @@ import {
   AssetsContractController,
   CurrencyRateController,
   CurrencyRateState,
+  CurrencyRateControllerEvents,
+  CurrencyRateControllerActions,
   NftController,
   NftDetectionController,
   NftState,
@@ -22,11 +24,11 @@ import {
   TokensControllerEvents,
   TokenListControllerActions,
   TokenListControllerEvents,
-  CurrencyRateControllerActions,
   TokenBalancesControllerActions,
-  CurrencyRateControllerEvents,
   TokenBalancesControllerEvents,
 } from '@metamask/assets-controllers';
+// TODO: Remove subpath import once it is exported at the package-level in `@metamask/assets-controllers@37.0.0`
+import { TokenBalancesControllerState } from '@metamask/assets-controllers/dist/types/TokenBalancesController';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { AppState } from 'react-native';
 import PREINSTALLED_SNAPS from '../lib/snaps/preinstalled-snaps';
@@ -55,7 +57,6 @@ import {
 } from '@metamask/network-controller';
 import {
   PhishingController,
-  PhishingControllerActions,
   PhishingControllerState,
 } from '@metamask/phishing-controller';
 import {
@@ -66,14 +67,17 @@ import {
 } from '@metamask/preferences-controller';
 import {
   TransactionController,
+  TransactionControllerActions,
   TransactionControllerEvents,
   TransactionControllerState,
 } from '@metamask/transaction-controller';
+// TODO: Remove subpath import once it is exported at the package level by `@metamask/transaction-controller`
+import { TransactionControllerOptions } from '@metamask/transaction-controller/dist/types/TransactionController';
 import {
   GasFeeController,
-  GasFeeControllerActions,
-  GasFeeControllerEvents,
   GasFeeState,
+  GasFeeControllerEvents,
+  GasFeeControllerActions,
 } from '@metamask/gas-fee-controller';
 import {
   AcceptOptions,
@@ -220,12 +224,6 @@ import { zeroAddress } from 'ethereumjs-util';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
 import EthQuery from '@metamask/eth-query';
-import {
-  TransactionControllerActions,
-  TransactionControllerOptions,
-} from '@metamask/transaction-controller/dist/types/TransactionController';
-// TODO: Remove subpath import once this variable is exported by the package in `@metamask/assets-controllers@37.0.0`
-import { TokenBalancesControllerState } from '@metamask/assets-controllers/dist/types/TokenBalancesController';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -237,6 +235,22 @@ const encryptor = new Encryptor({
 let currentChainId: any;
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+// TODO remove these custom types when the PhishingController is to version >= 7.0.0
+interface MaybeUpdateState {
+  type: `${PhishingController['name']}:maybeUpdateState`;
+  handler: PhishingController['maybeUpdateState'];
+}
+
+interface TestOrigin {
+  type: `${PhishingController['name']}:testOrigin`;
+  handler: PhishingController['test'];
+}
+
+type PhishingControllerActions = MaybeUpdateState | TestOrigin;
+type AuthenticationControllerActions = AuthenticationController.AllowedActions;
+type UserStorageControllerActions = UserStorageController.AllowedActions;
+type NotificationsServicesControllerActions =
+  NotificationServicesController.AllowedActions;
 
 type SnapsGlobalActions =
   | SnapControllerActions
@@ -275,9 +289,9 @@ type GlobalActions =
   | LoggingControllerActions
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalActions
-  | AuthenticationController.Actions
-  | UserStorageController.Actions
-  | NotificationServicesController.Actions
+  | AuthenticationControllerActions
+  | UserStorageControllerActions
+  | NotificationsServicesControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | PreferencesControllerActions
