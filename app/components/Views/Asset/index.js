@@ -539,7 +539,7 @@ class Asset extends PureComponent {
               <Button
                 variant={ButtonVariants.Secondary}
                 size={ButtonSize.Lg}
-                label={strings('asset_overview.buy_button')}
+                label={strings('asset_overview.token_marketplace')}
                 style={{
                   ...styles.footerButton,
                   ...styles.buyButton,
