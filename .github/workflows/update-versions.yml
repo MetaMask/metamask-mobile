@@ -59,15 +59,15 @@ jobs:
         id: get-version
         run: |
           CURRENT_VERSION=$(gh api /repos/${{ github.repository }}/actions/variables/VERSION --jq .value)
-          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "current_version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Increment version
         id: increment-version
         run: |
           IFS='.' read -ra VERSION_PARTS <<< "${{ steps.get-version.outputs.current_version }}"
-          MAJOR=${VERSION_PARTS[0]}
-          MINOR=${VERSION_PARTS[1]}
-          PATCH=${VERSION_PARTS[2]}
+          MAJOR="${VERSION_PARTS[0]}"
+          MINOR="${VERSION_PARTS[1]}"
+          PATCH="${VERSION_PARTS[2]}"
           case "${{ github.event.inputs.version_type }}" in
             major)
               MAJOR=$((MAJOR + 1))
@@ -99,8 +99,8 @@ jobs:
         id: create-new-branch
         run: |
           NEW_BRANCH="chore/bump-release-version-${{ steps.increment-version.outputs.new_version }}"
-          git checkout -b $NEW_BRANCH
-          echo "new_branch=$NEW_BRANCH" >> $GITHUB_OUTPUT
+          git checkout -b "$NEW_BRANCH"
+          echo "new_branch=$NEW_BRANCH" >> "$GITHUB_OUTPUT"
 
       - name: Commit changes
         run: |
