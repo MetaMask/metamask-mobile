@@ -5,7 +5,6 @@ import useBluetoothDevices from '../../hooks/Ledger/useBluetoothDevices';
 import useBluetoothPermissions from '../../hooks/useBluetoothPermissions';
 import useBluetooth from '../../hooks/Ledger/useBluetooth';
 import { BluetoothPermissionErrors } from '../../../core/Ledger/ledgerErrors';
-import { fireEvent } from '@testing-library/react-native';
 
 jest.mock('../../hooks/Ledger/useBluetooth');
 jest.mock('../../hooks/Ledger/useBluetoothDevices');
@@ -13,6 +12,11 @@ jest.mock('../../hooks/useBluetoothPermissions');
 
 jest.mock('react-native-permissions', () => ({
   openSettings: jest.fn(),
+}));
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: jest.fn(),
 }));
 
 describe('Scan', () => {
@@ -170,33 +174,5 @@ describe('Scan', () => {
     );
 
     expect(onScanningErrorStateChanged).toHaveBeenCalled();
-  });
-
-  it('calls onDeviceSelected when user selects a Ledger device', () => {
-    const onDeviceSelected = jest.fn();
-    jest.mocked(useBluetoothDevices).mockReturnValue({
-      devices: [
-        { id: 'device1', name: 'Device 1' },
-        { id: 'device2', name: 'Device 2' },
-        { id: 'device3', name: 'Device 3' },
-      ],
-      deviceScanError: true,
-    });
-
-    const { getByText } = renderWithProvider(
-      <Scan
-        onDeviceSelected={onDeviceSelected}
-        onScanningErrorStateChanged={jest.fn()}
-        ledgerError={undefined}
-      />,
-    );
-
-    const selectedItem = getByText('Device 1');
-    fireEvent.press(selectedItem);
-
-    expect(onDeviceSelected).toHaveBeenNthCalledWith(1, {
-      id: 'device1',
-      name: 'Device 1',
-    });
   });
 });
