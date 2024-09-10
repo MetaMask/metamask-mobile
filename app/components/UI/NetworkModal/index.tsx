@@ -112,12 +112,12 @@ const NetworkModals = (props: NetworkProps) => {
         source: 'Popular network list',
         symbol: ticker,
       });
-    } else if (!showPopularNetworkModal && safeChains) {
+    } else if (safeChains) {
       const { safeChain, safeRPCUrl } = rpcIdentifierUtility(
         rpcUrl,
         safeChains,
       );
-      // emit custom network
+      // emit custom network, this shouldn't be in popular networks modal
       trackEvent(MetaMetricsEvents.NETWORK_ADDED, {
         chain_id: toHex(safeChain.chainId),
         source: 'Custom Network Added',
