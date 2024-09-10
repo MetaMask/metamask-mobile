@@ -56,3 +56,28 @@ if (typeof localStorage !== 'undefined') {
 // If using the crypto shim, uncomment the following line to ensure
 // crypto is loaded first, so it can populate global.crypto
 // require('crypto')
+
+if (isTest) {
+  (async () => {
+    const { fetch: originalFetch } = global;
+    const MOCKTTP_URL = `http://${
+      // eslint-disable-next-line no-undef
+      Platform.OS === 'ios' ? 'localhost' : '10.0.2.2' // l
+    }:8000`;
+
+    const isMockServerAvailable = await originalFetch(
+      // small healthcheck
+      `${MOCKTTP_URL}/health-check`,
+    )
+      .then((res) => res.ok)
+      .catch(() => false);
+    // if mockserver is off we route to original destination
+    global.fetch = async (url, options) =>
+      isMockServerAvailable
+        ? originalFetch(
+            `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(url)}`,
+            options,
+          ).catch(() => originalFetch(url, options))
+        : originalFetch(url, options);
+  })();
+}
