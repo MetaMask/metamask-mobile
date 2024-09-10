@@ -72,8 +72,8 @@
 	<key>NSFaceIDUsageDescription</key>
 	<string>$(PRODUCT_NAME) needs to authenticate</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<key>NSMicrophoneUsageDescription</key>
 	<string></string>
+	<key>NSMicrophoneUsageDescription</key>
 	<string>MetaMask needs microphone access to record audio</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Allow MetaMask to save an image to your Photo Library</string>
