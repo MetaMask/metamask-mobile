@@ -335,12 +335,11 @@ class SignatureRequest extends PureComponent {
   };
 
   renderSignatureRequest() {
-    const { securityAlertResponse, showWarning, type, selectedAddress } =
+    const { securityAlertResponse, showWarning, type, fromAddress } =
       this.props;
     let expandedHeight;
     const styles = this.getStyles();
-
-    const isLedgerAccount = isHardwareAccount(selectedAddress, [
+    const isLedgerAccount = isHardwareAccount(fromAddress, [
       ExtendedKeyringTypes.ledger,
     ]);
 
