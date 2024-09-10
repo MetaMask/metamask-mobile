@@ -33,8 +33,7 @@ interface GenericObject {
 type DataArray<T extends GenericObject> = T[];
 
 interface FeatureFlagResponse {
-  status: string;
-  data: DataArray<GenericObject>[];
+  response: DataArray<GenericObject>[];
   message?: string;
 }
 export function* appLockStateMachine() {
@@ -144,19 +143,21 @@ export function* basicFunctionalityToggle() {
 
 function* fetchFeatureFlags(): Generator {
   try {
-    let response: FeatureFlagResponse = {
-      status: '',
-      data: [],
-    };
-    yield fetch(launchDarklyURL('main', 'production'))
-      .then((res) => res.json())
-      .then((res) => (response = res));
+    const response: Response = (yield fetch(
+      launchDarklyURL('main', 'production'),
+    )) as Response;
+    const jsonData = (yield response.json()) as { message: string } | [];
 
-    if (response.status !== 'ok' && response.message) {
-      yield put(getFeatureFlagsError(response.message));
+    if (!response.ok) {
+      if (jsonData && typeof jsonData === 'object' && 'message' in jsonData) {
+        yield put(getFeatureFlagsError(jsonData.message));
+      } else {
+        yield put(getFeatureFlagsError('Unknown error'));
+      }
       return;
     }
-    yield put(getFeatureFlagsSuccess(response.data));
+
+    yield put(getFeatureFlagsSuccess(jsonData as []));
   } catch (error) {
     console.error(error);
     yield put(getFeatureFlagsError(error as string));
