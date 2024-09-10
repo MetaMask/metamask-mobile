@@ -59,7 +59,7 @@ describe('updateUserTraitsWithCurrentCurrency', () => {
     jest.clearAllMocks();
   });
 
-  it('should add the selected currency as a trait', () => {
+  it('adds selected currency trait', () => {
     const mockCurrency = 'USD';
 
     updateUserTraitsWithCurrentCurrency(mockCurrency);
