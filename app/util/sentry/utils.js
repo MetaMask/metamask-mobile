@@ -472,13 +472,16 @@ export function deriveSentryEnvironment(
 
 // Setup sentry remote error reporting
 export function setupSentry() {
+  const MM_SENTRY_DSN_DEV = process.env.MM_SENTRY_DSN_DEV;
+  const MM_SENTRY_DSN = process.env.MM_SENTRY_DSN;
+
   // Disable Sentry for E2E tests
-  if (isTest) {
+  if (isTest && !MM_SENTRY_DSN_DEV) {
     return;
   }
 
   const init = async () => {
-    const dsn = process.env.MM_SENTRY_DSN;
+    const dsn = __DEV__ ? MM_SENTRY_DSN_DEV : MM_SENTRY_DSN;
 
     const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
 
@@ -502,7 +505,8 @@ export function setupSentry() {
               }),
             ]
           : integrations,
-      tracesSampleRate: 0.04,
+      // Set tracesSampleRate to 1.0, as that ensures that every transaction will be sent to Sentry for development builds.
+      tracesSampleRate: __DEV__ ? 1.0 : 0.04,
       beforeSend: (report) => rewriteReport(report),
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
       beforeSendTransaction: (event) => excludeEvents(event),

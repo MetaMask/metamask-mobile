@@ -18,6 +18,7 @@ import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
 import OptIn from '../../Views/Notifications/OptIn';
 import AppInformation from '../../Views/Settings/AppInformation';
+import DeveloperOptions from '../../Views/Settings/DeveloperOptions';
 import Contacts from '../../Views/Settings/Contacts';
 import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
@@ -312,6 +313,14 @@ const SettingsFlow = () => (
       component={AppInformation}
       options={AppInformation.navigationOptions}
     />
+    {process.env.MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS === 'true' && (
+      <Stack.Screen
+        name="DeveloperOptions"
+        component={DeveloperOptions}
+        options={DeveloperOptions.navigationOptions}
+      />
+    )}
+
     <Stack.Screen
       name="ContactsSettings"
       component={Contacts}

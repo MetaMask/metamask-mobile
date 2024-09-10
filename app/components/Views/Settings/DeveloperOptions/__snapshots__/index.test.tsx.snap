@@ -1,0 +1,91 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DeveloperOptions should render correctly 1`] = `
+[
+  <RCTScrollView
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+        "padding": 24,
+        "paddingBottom": 48,
+      }
+    }
+  >
+    <View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontSize": 24,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 32,
+            "marginTop": 16,
+          }
+        }
+      >
+        Sentry
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "marginTop": 8,
+          }
+        }
+      >
+        Generate a Developer Test Sentry trace.
+      </Text>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "backgroundColor": "transparent",
+            "borderColor": "#0376c9",
+            "borderRadius": 24,
+            "borderWidth": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "marginTop": 16,
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#0376c9",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Generate Trace Test
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </RCTScrollView>,
+  ",",
+]
+`;
