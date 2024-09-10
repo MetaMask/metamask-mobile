@@ -35,6 +35,7 @@ import createNetworkModalStyles from './index.styles';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { toHex } from '@metamask/controller-utils';
 import { rpcIdentifierUtility } from '../../../components/hooks/useSafeChains';
+import Logger from '../../../util/Logger';
 
 export interface SafeChain {
   chainId: string;
@@ -104,7 +105,14 @@ const NetworkModals = (props: NetworkProps) => {
 
   const addNetwork = async () => {
     const validUrl = validateRpcUrl(rpcUrl);
-    if (!showPopularNetworkModal && safeChains) {
+    if (showPopularNetworkModal) {
+      // emit popular network
+      trackEvent(MetaMetricsEvents.NETWORK_ADDED, {
+        chain_id: toHex(chainId),
+        source: 'Popular network list',
+        symbol: ticker,
+      });
+    } else if (!showPopularNetworkModal && safeChains) {
       const { safeChain, safeRPCUrl } = rpcIdentifierUtility(
         rpcUrl,
         safeChains,
@@ -119,12 +127,7 @@ const NetworkModals = (props: NetworkProps) => {
         },
       });
     } else {
-      // emit popular network
-      trackEvent(MetaMetricsEvents.NETWORK_ADDED, {
-        chain_id: toHex(chainId),
-        source: 'Popular network list',
-        symbol: ticker,
-      });
+      Logger.log('Unable to capture custom network');
     }
 
     setNetworkAdded(validUrl);
