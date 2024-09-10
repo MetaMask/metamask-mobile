@@ -8,12 +8,19 @@ import { MMKV } from 'react-native-mmkv';
  * (Will want to eventuall re-name since no longer async once migratted to mmkv)
  */
 class StorageWrapper {
+  static instance;
+
   constructor() {
-    /**
-     * The underlying storage implementation.
-     * Use `ReadOnlyNetworkStore` in test mode otherwise use `AsyncStorage`.
-     */
-    this.storage = isE2E ? ReadOnlyNetworkStore : new MMKV();
+    if (!StorageWrapper.instance) {
+      /**
+       * The underlying storage implementation.
+       * Use `ReadOnlyNetworkStore` in test mode otherwise use `AsyncStorage`.
+       */
+      this.storage = isE2E ? ReadOnlyNetworkStore : new MMKV();
+      StorageWrapper.instance = this;
+    }
+
+    return StorageWrapper.instance;
   }
 
   async getItem(key) {
@@ -66,4 +73,4 @@ class StorageWrapper {
   }
 }
 
-export default new StorageWrapper();
+export default StorageWrapper.instance || new StorageWrapper();
