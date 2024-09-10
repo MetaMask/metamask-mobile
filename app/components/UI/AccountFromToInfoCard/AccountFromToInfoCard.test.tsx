@@ -120,7 +120,7 @@ describe('AccountFromToInfoCard', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <Provider store={store}>
-        {/* @ts-ignore: Rest props are ignored for testing purposes */}
+        {/* @ts-expect-error: Rest props are ignored for testing purposes */}
         <AccountFromToInfoCard transactionState={transactionState} />
       </Provider>,
     );
