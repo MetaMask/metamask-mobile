@@ -23,6 +23,8 @@ describe(SmokeAssets('Import all tokens detected'), () => {
     await TestHelpers.reverseServerPort();
   });
 
+  
+
   const RECIPIENT = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
   const AMOUNT = '0.0003';
   const validPrivateKey = Accounts.getAccountPrivateKey();
@@ -32,6 +34,12 @@ describe(SmokeAssets('Import all tokens detected'), () => {
     responseCode: 500,
     port: 8000,
     mockResponse: { error: 'Internal server error' },
+  });
+
+  afterAll(async () => {
+    if(mockServer){
+      await stopMockServer(mockServer);
+    }
   });
 
   it('should import all tokens detected', async () => {
