@@ -11,6 +11,7 @@ export const createStyle = (colors: any) =>
       flex: 1,
       width: '100%',
       paddingHorizontal: 32,
+      marginTop: 20,
     },
     title: {
       marginTop: 40,
