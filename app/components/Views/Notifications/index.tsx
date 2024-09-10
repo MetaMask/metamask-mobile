@@ -41,7 +41,7 @@ const NotificationsView = ({
 }: {
   navigation: NavigationProp<ParamListBase>;
 }) => {
-  const { listNotifications, isLoading } = useListNotifications();
+  const { isLoading } = useListNotifications();
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
@@ -80,13 +80,7 @@ const NotificationsView = ({
     () => allNotifications.filter((n) => !n.isRead).length,
     [allNotifications],
   );
-  // Effect - fetch notifications when component/view is visible.
-  useEffect(() => {
-    async function updateNotifications() {
-      await listNotifications();
-    }
-    updateNotifications();
-  }, [listNotifications]);
+
 
   return (
     <View
