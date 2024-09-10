@@ -119,15 +119,16 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     } else {
       dispatch(newAssetTransaction(asset));
     }
-    navigation.navigate('SendFlowView');
+    navigation.navigate('SendFlowView', {});
   };
 
   const goToBrowserUrl = (url: string) => {
-    navigation.navigate(
-      ...createWebviewNavDetails({
-        url,
-      }),
-    );
+    const [screen, params] = createWebviewNavDetails({
+      url,
+    });
+
+    // TODO: params should not have to be cast here
+    navigation.navigate(screen, params as Record<string, unknown>);
   };
 
   const renderWarning = () => (
