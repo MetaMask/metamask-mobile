@@ -56,4 +56,8 @@ export interface TextProps extends RNTextProps {
    * Optional prop to add color to text.
    */
   color?: TextColor | string;
+  /**
+   * Temporary prop to enable brand evolution fonts
+   */
+  isBrandEvolution?: boolean;
 }

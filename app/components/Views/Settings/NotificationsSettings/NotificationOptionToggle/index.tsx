@@ -32,8 +32,6 @@ interface NotificationOptionsToggleProps {
   testId?: string;
 
   isEnabled: boolean;
-  isLoading?: boolean;
-  disabledSwitch?: boolean;
   refetchAccountSettings: () => Promise<void>;
 }
 
@@ -72,8 +70,6 @@ const NotificationOptionToggle = ({
   type,
   testId,
   isEnabled,
-  disabledSwitch,
-  isLoading,
 }: NotificationOptionsToggleProps) => {
   const theme = useTheme();
   const { colors } = theme;
@@ -122,7 +118,9 @@ const NotificationOptionToggle = ({
         )}
       </View>
       <View style={styles.switchElement}>
-        {!isLoading ? (
+      {isEnabled === undefined ? (
+          <ActivityIndicator />
+        ) : (
           <Switch
             value={status}
             onChange={onPress}
@@ -133,11 +131,8 @@ const NotificationOptionToggle = ({
             thumbColor={theme.brandColors.white}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
-            disabled={disabledSwitch}
             {...generateTestId(Platform, testId)}
           />
-        ) : (
-          <ActivityIndicator />
         )}
       </View>
     </View>
