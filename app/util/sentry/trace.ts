@@ -1,4 +1,8 @@
-import * as Sentry from '@sentry/react-native';
+import {
+  startSpan as sentryStartSpan,
+  startSpanManual,
+  withScope,
+} from '@sentry/react-native';
 import performance from 'react-native-performance';
 import type { Primitive, Span, StartSpanOptions } from '@sentry/types';
 import Logger from '../../util/Logger';
@@ -101,7 +105,9 @@ function traceCallback<T>(request: TraceRequest, fn: TraceCallback<T>): T {
     ) as T;
   };
 
-  return startSpan(request, (spanOptions) => Sentry.startSpan(spanOptions, callback));
+  return startSpan(request, (spanOptions) =>
+    sentryStartSpan(spanOptions, callback),
+  );
 }
 
 function startTrace(request: TraceRequest): TraceContext {
@@ -124,7 +130,7 @@ function startTrace(request: TraceRequest): TraceContext {
   };
 
   return startSpan(request, (spanOptions) =>
-    Sentry.startSpanManual(spanOptions, callback),
+    startSpanManual(spanOptions, callback),
   );
 }
 
@@ -145,7 +151,7 @@ function startSpan<T>(
     startTime,
   };
 
-  return Sentry.withScope((scope) => {
+  return withScope((scope) => {
     scope.setTags(tags as Record<string, Primitive>);
 
     return callback(spanOptions);
