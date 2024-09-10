@@ -1,16 +1,26 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import Avatar, {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../../../component-library/components/Avatars/Avatar';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { ModalFieldNetworkFee } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
-import { NotificationDetailStyles } from '../styles';
 import useStyles from '../useStyles';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
+import { NotificationDetailStyles } from '../styles';
+import { CURRENCY_SYMBOL_BY_CHAIN_ID } from '../../../../../constants/network';
 
 type NetworkFeeFieldProps = ModalFieldNetworkFee & {
   isCollapsed: boolean;
@@ -53,7 +63,8 @@ function NetworkFeeLabelAndValue(props: {
 }
 
 function NetworkFeeField(props: NetworkFeeFieldProps) {
-  const { styles } = useStyles();
+  const { setIsCollapsed, isCollapsed } = props;
+  const { styles, theme } = useStyles();
   const sheetRef = useRef<BottomSheetRef>(null);
   const networkFee = useNetworkFee(props);
 
@@ -61,45 +72,81 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
     return null;
   }
 
-  if (props.isCollapsed) {
-    return null;
-  }
+  const collapsedIcon = isCollapsed ? IconName.ArrowDown : IconName.ArrowUp;
+  const ticker = CURRENCY_SYMBOL_BY_CHAIN_ID[networkFee.chainId];
 
-  // TODO: Present an error screen when there is an error fetching the network fees
   return (
-    <BottomSheet
-      ref={sheetRef}
-      shouldNavigateBack={false}
-      onClose={() => props.setIsCollapsed(true)}
-    >
-      <View style={styles.gasDetails}>
-        <NetworkFeeLabelAndValue
-          label={strings('transactions.gas_limit')}
-          value={`${networkFee.gasLimit}`}
-          styles={styles}
-        />
-        <NetworkFeeLabelAndValue
-          label={strings('transactions.gas_used')}
-          value={`${networkFee.gasUsed}`}
-          styles={styles}
-        />
-        <NetworkFeeLabelAndValue
-          label={strings('transactions.base_fee')}
-          value={`${networkFee.baseFee}`}
-          styles={styles}
-        />
-        <NetworkFeeLabelAndValue
-          label={strings('transactions.priority_fee')}
-          value={`${networkFee.priorityFee}`}
-          styles={styles}
-        />
-        <NetworkFeeLabelAndValue
-          label={strings('transactions.max_fee')}
-          value={`${networkFee.maxFeePerGas}`}
-          styles={styles}
-        />
-      </View>
-    </BottomSheet>
+    <>
+      <TouchableOpacity onPress={() => setIsCollapsed(!isCollapsed)}>
+        <View style={styles.row}>
+          <Avatar
+            variant={AvatarVariant.Icon}
+            size={AvatarSize.Md}
+            style={styles.badgeWrapper}
+            name={IconName.Gas}
+            backgroundColor={theme.colors.info.muted}
+            iconColor={IconColor.Info}
+          />
+
+          <View style={styles.boxLeft}>
+            <Text variant={TextVariant.BodyLGMedium}>
+              {strings('asset_details.network_fee')}
+            </Text>
+
+            <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+              {networkFee.transactionFeeInEth} {ticker} ($
+              {networkFee.transactionFeeInUsd})
+            </Text>
+          </View>
+          <View style={styles.copyContainer}>
+            <Text variant={TextVariant.BodyMD} style={styles.copyTextBtn}>
+              {strings('transaction.details')}
+            </Text>
+            <Icon
+              name={collapsedIcon}
+              size={IconSize.Md}
+              color={IconColor.Info}
+            />
+          </View>
+        </View>
+      </TouchableOpacity>
+
+      {!isCollapsed && (
+        <BottomSheet
+          ref={sheetRef}
+          shouldNavigateBack={false}
+          onClose={() => props.setIsCollapsed(true)}
+        >
+          <View style={styles.gasDetails}>
+            <NetworkFeeLabelAndValue
+              label={strings('transactions.gas_limit')}
+              value={`${networkFee.gasLimit}`}
+              styles={styles}
+            />
+            <NetworkFeeLabelAndValue
+              label={strings('transactions.gas_used')}
+              value={`${networkFee.gasUsed}`}
+              styles={styles}
+            />
+            <NetworkFeeLabelAndValue
+              label={strings('transactions.base_fee')}
+              value={`${networkFee.baseFee}`}
+              styles={styles}
+            />
+            <NetworkFeeLabelAndValue
+              label={strings('transactions.priority_fee')}
+              value={`${networkFee.priorityFee}`}
+              styles={styles}
+            />
+            <NetworkFeeLabelAndValue
+              label={strings('transactions.max_fee')}
+              value={`${networkFee.maxFeePerGas}`}
+              styles={styles}
+            />
+          </View>
+        </BottomSheet>
+      )}
+    </>
   );
 }
 

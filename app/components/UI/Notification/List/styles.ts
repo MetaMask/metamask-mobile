@@ -9,23 +9,22 @@ export const createStyles = ({ colors, typography }: Theme) =>
     container: {
       flex: 1,
       backgroundColor: colors.background.default,
-      marginHorizontal: 8,
     },
     itemContainer: {
       flex: 1,
       paddingVertical: 10,
-      paddingHorizontal: 8,
+      paddingHorizontal: 32,
     },
     unreadItemContainer: {
       flex: 1,
       paddingVertical: 10,
-      paddingHorizontal: 8,
+      paddingHorizontal: 16,
       backgroundColor: colors.info.muted,
     },
     readItemContainer: {
       flex: 1,
       paddingVertical: 10,
-      paddingHorizontal: 8,
+      paddingHorizontal: 16,
       backgroundColor: colors.background.default,
     },
     unreadDot: {

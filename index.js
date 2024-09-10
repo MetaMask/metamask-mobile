@@ -90,8 +90,10 @@ isNotificationsFeatureEnabled() &&
     const { notification, pressAction } = detail;
 
     if (type === EventType.ACTION_PRESS && pressAction.id === 'mark-as-read') {
+      await notifee.decrementBadgeCount();
       await notifee.cancelNotification(notification.id);
     } else {
+      await notifee.incrementBadgeCount();
       NotificationManager.onMessageReceived(notification);
     }
   });
