@@ -5,7 +5,7 @@ import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { selectFlattenedKeyringAccounts } from './keyringController';
-import { InternalAccountTypes } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-api';
 
 /**
  *
@@ -21,7 +21,7 @@ const selectAccountsControllerState = (state: RootState) =>
 export const selectInternalAccounts = createDeepEqualSelector(
   selectAccountsControllerState,
   selectFlattenedKeyringAccounts,
-  (accountControllerState, orderedKeyringAccounts): InternalAccountTypes[] => {
+  (accountControllerState, orderedKeyringAccounts): InternalAccount[] => {
     const keyringAccountsMap = new Map(
       orderedKeyringAccounts.map((account, index) => [
         account.toLowerCase(),
@@ -34,7 +34,7 @@ export const selectInternalAccounts = createDeepEqualSelector(
       (a, b) =>
         (keyringAccountsMap.get(a.address.toLowerCase()) || 0) -
         (keyringAccountsMap.get(b.address.toLowerCase()) || 0),
-    ) as InternalAccountTypes[];
+    ) as InternalAccount[];
     return sortedAccounts;
   },
 );
