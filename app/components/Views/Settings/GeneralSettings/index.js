@@ -56,12 +56,21 @@ const infuraCurrencyOptions = sortedCurrencies.map(
   }),
 );
 
-export const updateUserTraitsWithCurrentCurrency = (currency) => {
-  const metrics = MetaMetrics.getInstance();
+export const updateUserTraitsWithCurrentCurrency = (currency, metrics) => {
   // track event and add selected currency to user profile for analytics
   const traits = { [UserProfileProperty.CURRENT_CURRENCY]: currency };
   metrics.addTraitsToUser(traits);
   metrics.trackEvent(MetaMetricsEvents.CURRENCY_CHANGED, {
+    ...traits,
+    location: 'app_settings',
+  });
+};
+
+export const updateUserTraitsWithCurrencyType = (primaryCurrency, metrics) => {
+  // track event and add primary currency preference (fiat/crypto) to user profile for analytics
+  const traits = { [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency };
+  metrics.addTraitsToUser(traits);
+  metrics.trackEvent(MetaMetricsEvents.PRIMARY_CURRENCY_TOGGLE, {
     ...traits,
     location: 'app_settings',
   });
@@ -192,6 +201,10 @@ class Settings extends PureComponent {
      * App theme
      */
     // appTheme: PropTypes.string,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -202,7 +215,7 @@ class Settings extends PureComponent {
   selectCurrency = async (currency) => {
     const { CurrencyRateController } = Engine.context;
     CurrencyRateController.setCurrentCurrency(currency);
-    updateUserTraitsWithCurrentCurrency(currency);
+    updateUserTraitsWithCurrentCurrency(currency, this.props.metrics);
   };
 
   selectLanguage = (language) => {
@@ -219,13 +232,7 @@ class Settings extends PureComponent {
   selectPrimaryCurrency = (primaryCurrency) => {
     this.props.setPrimaryCurrency(primaryCurrency);
 
-    const metrics = MetaMetrics.getInstance();
-    const traits = { [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency };
-    metrics.addTraitsToUser(traits);
-    metrics.trackEvent(MetaMetricsEvents.PRIMARY_CURRENCY_TOGGLE, {
-      ...traits,
-      location: 'app_settings',
-    });
+    updateUserTraitsWithCurrencyType(primaryCurrency, this.props.metrics);
   };
 
   toggleHideZeroBalanceTokens = (toggleHideZeroBalanceTokens) => {
