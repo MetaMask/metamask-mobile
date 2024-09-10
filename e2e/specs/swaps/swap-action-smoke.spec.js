@@ -33,11 +33,9 @@ describe(SmokeSwaps('Swap from Actions'), () => {
 
   beforeAll(async () => {
 
-    TenderlyMainnet.createVirtualTestNet()
-    await TestHelpers.delay(5000);
+    await TenderlyMainnet.createVirtualTestNet()
+    await TenderlyMainnet.addFunds("0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3", "0xDE0B6B3A7640000",)
     CustomNetworks.TenderlyMainnet.providerConfig.rpcUrl = TenderlyMainnet.getRpcURL()
-    console.log(TenderlyMainnet.getRpcURL())
-    return
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
       //.withNetworkController( CustomNetworks.TenderlyAvalance)
