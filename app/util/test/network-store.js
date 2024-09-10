@@ -62,6 +62,11 @@ class ReadOnlyNetworkStore {
     delete this._asyncState[key];
   }
 
+  async clearAll() {
+    await this._initIfRequired();
+    delete this._asyncState;
+  }
+
   async _initIfRequired() {
     if (!this._initialized) {
       await this._init();

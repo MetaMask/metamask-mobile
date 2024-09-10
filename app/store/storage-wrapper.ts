@@ -3,7 +3,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isE2E } from '../util/test/utils';
 import { MMKV } from 'react-native-mmkv';
 
-
 /**
  * Wrapper class for MMKV.
  * (Will want to eventuall re-name since no longer async once migratted to mmkv)
@@ -70,7 +69,7 @@ class StorageWrapper {
   }
 
   static getInstance() {
-    if(!StorageWrapper.instance){
+    if (!StorageWrapper.instance) {
       StorageWrapper.instance = new StorageWrapper();
     }
     return StorageWrapper.instance;
