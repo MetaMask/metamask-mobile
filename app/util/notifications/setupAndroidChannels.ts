@@ -7,6 +7,6 @@ export async function setupAndroidChannel() {
     id: STORAGE_IDS.ANDROID_DEFAULT_CHANNEL_ID,
     importance: AndroidImportance.HIGH,
     name: 'Default',
-    badge: false,
+    badge: true,
   });
 }
