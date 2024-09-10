@@ -6,7 +6,8 @@ const createStyles = (colors: Colors) =>
     root: {
       flex: 1,
       paddingHorizontal: 16,
-      paddingTop: 16,
+      paddingVertical: 8,
+      paddingBottom: 16,
     },
     backButton: {
       padding: 10,
@@ -46,6 +47,14 @@ const createStyles = (colors: Colors) =>
       borderRadius: 5,
       borderWidth: 2,
       marginTop: 16,
+    },
+    transactionsContainer: {
+      marginTop: 24,
+      marginLeft: -16,
+      marginRight: -16,
+    },
+    cellBorder: {
+      borderWidth: 0,
     },
   });
 
