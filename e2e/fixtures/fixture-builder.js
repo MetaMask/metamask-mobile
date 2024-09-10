@@ -143,11 +143,6 @@ class FixtureBuilder {
             },
             NetworkController: {
               selectedNetworkClientId: 'mainnet',
-              providerConfig: {
-                type: 'mainnet',
-                chainId: '0x1',
-                ticker: 'ETH',
-              },
               networksMetadata: {
                 goerli: {
                   EIPS: {},
@@ -175,6 +170,14 @@ class FixtureBuilder {
                 },
               },
               networkConfigurations: {
+                mainnet: {
+                  mainnet: {
+                    id: 'mainnet',
+                    chainId: '0x1',
+                    ticker: 'ETH',
+                    rpcPrefs: {},
+                  },
+                },
                 networkId1: {
                   rpcUrl: `http://localhost:${getGanachePort()}`,
                   chainId: '1337',
@@ -648,9 +651,11 @@ class FixtureBuilder {
   withNetworkController(data) {
     merge(this.fixture.state.engine.backgroundState.NetworkController, data);
 
-    if (data.providerConfig.ticker !== 'ETH')
+    if (
+      data.networkConfigurations[data.selectedNetworkClientId].ticker !== 'ETH'
+    )
       this.fixture.state.engine.backgroundState.CurrencyRateController.pendingNativeCurrency =
-        data.providerConfig.ticker;
+        data.networkConfigurations[data.selectedNetworkClientId].ticker;
     return this;
   }
 
@@ -725,9 +730,7 @@ class FixtureBuilder {
           chainId: '0x539',
           ticker: 'ETH',
           nickname: 'Localhost',
-          rpcPrefs: {
-            blockExplorerUrl: 'https://bscscan.com',
-          },
+          rpcPrefs: {},
         },
       },
     };
@@ -739,12 +742,24 @@ class FixtureBuilder {
 
     fixtures.NetworkController = {
       isCustomNetwork: true,
-      providerConfig: {
-        type: 'rpc',
-        chainId: CustomNetworks.Sepolia.providerConfig.chainId,
-        rpcUrl: CustomNetworks.Sepolia.providerConfig.rpcTarget,
-        nickname: CustomNetworks.Sepolia.providerConfig.nickname,
-        ticker: CustomNetworks.Sepolia.providerConfig.ticker,
+      selectedNetworkClientId: 'sepolia',
+      networksMetadata: {
+        sepolia: {
+          status: 'sepolia',
+          EIPS: {
+            1559: true,
+          },
+        },
+      },
+      networkConfigurations: {
+        sepolia: {
+          id: 'sepolia',
+          rpcUrl: CustomNetworks.Sepolia.providerConfig.rpcTarget,
+          chainId: CustomNetworks.Sepolia.providerConfig.chainId,
+          ticker: CustomNetworks.Sepolia.providerConfig.ticker,
+          nickname: CustomNetworks.Sepolia.providerConfig.nickname,
+          rpcPrefs: {},
+        },
       },
     };
     return this;
@@ -757,7 +772,8 @@ class FixtureBuilder {
     // Loop through each network in PopularNetworkList
     for (const key in PopularNetworksList) {
       const network = PopularNetworksList[key];
-      const { rpcUrl, chainId, ticker, nickname } = network.providerConfig;
+      const { rpcUrl, chainId, ticker, nickname } =
+        network.networkConfigurations[network.selectedNetworkClientId];
 
       networkIDs[nickname] = { rpcUrl, chainId, ticker, nickname };
     }
