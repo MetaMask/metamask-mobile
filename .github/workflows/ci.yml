@@ -210,16 +210,20 @@ jobs:
             git update-index --no-assume-unchanged "$path"
           done
   sonar-cloud-quality-gate-status:
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     needs: sonar-cloud
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
       - name: SonarCloud Quality Gate Status
         id: sonar-status
         run: |
+          # Skip step if event is a PR
+          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+            echo "This job only runs for pull requests."
+            exit 0
+          fi
+
           sleep 30
 
           PROJECT_KEY="metamask-mobile"
