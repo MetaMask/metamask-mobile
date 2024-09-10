@@ -107,14 +107,6 @@ export const makeSelectNetworkImageSource = () =>
       globalNetworkClientId,
       hostname,
     ) => {
-      console.log(
-        'ALEX LOGGING in makeSelectNetworkImageSource: hostname',
-        hostname,
-      );
-      console.log(
-        'ALEX LOGGING in makeSelectNetworkImageSource: MULTICHAIN_V1',
-        process.env.MULTICHAIN_V1,
-      );
       if (!hostname || !process.env.MULTICHAIN_V1)
         return providerNetworkImageSource;
       const relevantNetworkClientId =
@@ -149,7 +141,6 @@ export const makeSelectChainId = () =>
       globalNetworkClientId,
       hostname,
     ) => {
-      console.log('process.env.MULTICHAIN_V1:', process.env.MULTICHAIN_V1);
       if (!hostname || !process.env.MULTICHAIN_V1) {
         return providerChainId;
       }

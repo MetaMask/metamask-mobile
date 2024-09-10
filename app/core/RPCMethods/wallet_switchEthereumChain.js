@@ -6,11 +6,7 @@ import {
   isPrefixedFormattedHexString,
 } from '../../util/networks';
 import { MetaMetricsEvents, MetaMetrics } from '../../core/Analytics';
-import {
-  selectChainId,
-  selectNetworkConfigurations,
-} from '../../selectors/networkController';
-import { getDomainNetworkClientId } from '../../selectors/selectedNetworkController';
+import { selectNetworkConfigurations } from '../../selectors/networkController';
 import { store } from '../../store';
 import { NetworksTicker, isSafeChainId } from '@metamask/controller-utils';
 import { RestrictedMethods } from '../Permissions/constants';

@@ -143,6 +143,7 @@ const NetworkSelector = () => {
     chainId: selectedChainId,
     rpcUrl: selectedRpcUrl,
     domainIsConnectedDapp,
+    networkName: selectedNetworkName,
   } = useNetworkInfo(origin);
 
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
@@ -221,11 +222,7 @@ const NetworkSelector = () => {
 
     trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
       chain_id: getDecimalChainId(selectedChainId),
-      from_network:
-        // TODO ALEX
-        providerConfig.type === 'rpc'
-          ? providerConfig.nickname
-          : providerConfig.type,
+      from_network: selectedNetworkName,
       to_network: type,
     });
   };
@@ -250,7 +247,6 @@ const NetworkSelector = () => {
           origin,
           networkConfigurationId,
         );
-        // TODO ALEX are there other actions we want changing network just for the dapp...?
       } else {
         CurrencyRateController.updateExchangeRate(ticker);
 
@@ -260,7 +256,7 @@ const NetworkSelector = () => {
       sheetRef.current?.onCloseBottomSheet();
       trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
         chain_id: getDecimalChainId(providerConfig.chainId),
-        from_network: providerConfig.type,
+        from_network: selectedNetworkName,
         to_network: nickname,
       });
     }

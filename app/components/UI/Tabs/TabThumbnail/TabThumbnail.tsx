@@ -6,7 +6,6 @@ import {
   View,
 } from 'react-native';
 import ElevatedView from 'react-native-elevated-view';
-import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Avatar, {
   AvatarSize,
