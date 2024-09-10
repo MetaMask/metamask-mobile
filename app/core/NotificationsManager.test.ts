@@ -69,9 +69,7 @@ describe('NotificationManager', () => {
     expect(NotificationManager.getTransactionToView()).toBeTruthy();
   });
 
-  const selectedNotificationTypes: Array<
-    keyof typeof NotificationTransactionTypes
-  > = [
+  const selectedNotificationTypes: (keyof typeof NotificationTransactionTypes)[] = [
     'pending',
     'pending_deposit',
     'pending_withdrawal',
