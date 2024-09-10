@@ -80,7 +80,7 @@ export const makeSelectNetworkName = () =>
       globalNetworkClientId,
       hostname,
     ) => {
-      if (!hostname) return providerNetworkName;
+      if (!hostname || !process.env.MULTICHAIN_V1) return providerNetworkName;
       const relevantNetworkClientId =
         domainNetworkClientId || globalNetworkClientId;
       return (
@@ -107,7 +107,16 @@ export const makeSelectNetworkImageSource = () =>
       globalNetworkClientId,
       hostname,
     ) => {
-      if (!hostname) return providerNetworkImageSource;
+      console.log(
+        'ALEX LOGGING in makeSelectNetworkImageSource: hostname',
+        hostname,
+      );
+      console.log(
+        'ALEX LOGGING in makeSelectNetworkImageSource: MULTICHAIN_V1',
+        process.env.MULTICHAIN_V1,
+      );
+      if (!hostname || !process.env.MULTICHAIN_V1)
+        return providerNetworkImageSource;
       const relevantNetworkClientId =
         domainNetworkClientId || globalNetworkClientId;
       const networkConfig = networkConfigurations[relevantNetworkClientId];
@@ -140,7 +149,8 @@ export const makeSelectChainId = () =>
       globalNetworkClientId,
       hostname,
     ) => {
-      if (!hostname) {
+      console.log('process.env.MULTICHAIN_V1:', process.env.MULTICHAIN_V1);
+      if (!hostname || !process.env.MULTICHAIN_V1) {
         return providerChainId;
       }
       const relevantNetworkClientId =
@@ -169,7 +179,7 @@ export const makeSelectRpcUrl = () =>
       globalNetworkClientId,
       hostname,
     ) => {
-      if (!hostname) return providerRpcUrl;
+      if (!hostname || !process.env.MULTICHAIN_V1) return providerRpcUrl;
       const relevantNetworkClientId =
         domainNetworkClientId || globalNetworkClientId;
       return networkConfigurations[relevantNetworkClientId]?.rpcUrl;

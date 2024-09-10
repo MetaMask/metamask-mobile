@@ -145,13 +145,6 @@ const NetworkSelector = () => {
     domainIsConnectedDapp,
   } = useNetworkInfo(origin);
 
-  console.log(
-    'ALEX LOGGING: SELECTED CHAINID:  ',
-    selectedChainId,
-    domainIsConnectedDapp,
-    selectedRpcUrl,
-  );
-
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
   const modalTitle = isNetworkUiRedesignEnabled()
     ? 'networks.additional_network_information_title'
@@ -204,11 +197,8 @@ const NetworkSelector = () => {
       SelectedNetworkController,
     } = Engine.context;
 
-    if (domainIsConnectedDapp && origin) {
+    if (domainIsConnectedDapp && origin && process.env.MULTICHAIN_V1) {
       SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
-      sheetRef.current?.onCloseBottomSheet();
-      // TODO ALEX are there other actions we want changing network just for the dapp...?
-      // Update is not percolating to dapp...?
     } else {
       let ticker = type;
       if (type === LINEA_SEPOLIA) {
@@ -254,8 +244,8 @@ const NetworkSelector = () => {
     if (entry) {
       const [networkConfigurationId, networkConfiguration] = entry;
       const { ticker, nickname } = networkConfiguration;
-      // TODO GET networkClientId from rpcTarget
-      if (domainIsConnectedDapp && origin) {
+
+      if (domainIsConnectedDapp && origin && process.env.MULTICHAIN_V1) {
         SelectedNetworkController.setNetworkClientIdForDomain(
           origin,
           networkConfigurationId,

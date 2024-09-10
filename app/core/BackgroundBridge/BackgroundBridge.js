@@ -134,6 +134,11 @@ export class BackgroundBridge extends EventEmitter {
     );
 
     Engine.controllerMessenger.subscribe(
+      'SelectedNetworkController:stateChange',
+      this.sendStateUpdate,
+    );
+
+    Engine.controllerMessenger.subscribe(
       'KeyringController:lock',
       this.onLock.bind(this),
     );
@@ -257,7 +262,6 @@ export class BackgroundBridge extends EventEmitter {
 
   async notifyChainChanged(params) {
     DevLogger.log(`notifyChainChanged: `, params);
-    console.log('ALEX LOGGING notifyChainChanged: ', params);
     this.sendNotification({
       method: NOTIFICATION_NAMES.chainChanged,
       params: params ?? (await this.getProviderNetworkState(this.hostname)),
@@ -310,7 +314,6 @@ export class BackgroundBridge extends EventEmitter {
     }
     const publicState = await this.getProviderNetworkState(this.hostname);
 
-    console.log('ALEX LOGGING: in onStateUpdate', publicState, memState);
     // Check if update already sent
     if (
       this.lastChainIdSent !== publicState.chainId ||
