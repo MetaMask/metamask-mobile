@@ -127,7 +127,7 @@ const NetworkModals = (props: NetworkProps) => {
         },
       });
     } else {
-      Logger.log('Unable to capture custom network');
+      Logger.log('MetaMetrics - Unable to capture custom network');
     }
 
     setNetworkAdded(isValidUrl);
