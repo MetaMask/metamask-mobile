@@ -723,17 +723,11 @@ class FixtureBuilder {
     networkController.networkConfigurationsByChainId[providerConfig.chainId] =
       networkConfig;
 
-    // Update selectedNetworkClientId to the new network client ID
-    networkController.selectedNetworkClientId = newNetworkClientId;
+    NetworkController.selectedNetworkClientId = network.id,
+    NetworkController.providerConfig = network
 
-    // Merge the rest of the data
-    merge(networkController, data);
-
-    if (data.providerConfig.ticker !== 'ETH') {
-      this.fixture.state.engine.backgroundState.CurrencyRateController.pendingNativeCurrency =
-        data.providerConfig.ticker;
-    }
-
+    NetworkController.networksMetadata[network.id] = { status:"available",  EIPS :{"1559":true} }
+    NetworkController.networkConfigurations[network.id] = network
     return this;
   }
 
