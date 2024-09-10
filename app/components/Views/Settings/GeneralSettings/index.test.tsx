@@ -69,7 +69,7 @@ describe('updateUserTraitsWithCurrentCurrency', () => {
     });
   });
 
-  it('should track the currency changed event', () => {
+  it('tracks currency changed event', () => {
     const mockCurrency = 'USD';
 
     updateUserTraitsWithCurrentCurrency(mockCurrency);
