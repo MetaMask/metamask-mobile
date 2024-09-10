@@ -175,10 +175,6 @@ class SignatureRequest extends PureComponent {
     fromAddress: PropTypes.string,
     isSigningQRObject: PropTypes.bool,
     QRState: PropTypes.object,
-    /**
-     * A string that represents the selected address
-     */
-    selectedAddress: PropTypes.string,
     testID: PropTypes.string,
     securityAlertResponse: PropTypes.object,
     /**
