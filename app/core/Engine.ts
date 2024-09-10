@@ -95,7 +95,11 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
-import { PPOMController, PPOMState } from '@metamask/ppom-validator';
+import {
+  PPOMController,
+  PPOMControllerEvents,
+  PPOMState,
+} from '@metamask/ppom-validator';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   JsonSnapsRegistry,
@@ -312,8 +316,7 @@ type GlobalEvents =
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
-  // TODO: uncomment once `PPOMController` is upgraded to V2
-  // | PPOMControllerEvents
+  | PPOMControllerEvents
   | AccountsControllerEvents
   | PreferencesControllerEvents
   | TokenBalancesControllerEvents
