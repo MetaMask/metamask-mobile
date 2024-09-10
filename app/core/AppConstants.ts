@@ -17,6 +17,9 @@ export default {
   SWARM_DEFAULT_GATEWAY_URL: 'https://swarm-gateways.net/bzz:/',
   supportedTLDs: ['eth', 'xyz', 'test'],
   MAX_PUSH_NOTIFICATION_PROMPT_TIMES: 2,
+  SECURITY_ALERTS_API_URL: {
+    URL: process.env.SECURITY_ALERTS_API_URL ?? 'https://security-alerts.dev-api.cx.metamask.io',
+  },
   PORTFOLIO: {
     URL: PORTFOLIO_URL,
   },
@@ -212,5 +215,6 @@ export default {
     'static.metafi',
     'static.cx',
     'config-api.metamask.io/featureFlags',
+    'security-alerts',
   ],
 } as const;

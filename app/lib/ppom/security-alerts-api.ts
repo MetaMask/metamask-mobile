@@ -1,5 +1,6 @@
 import { Hex } from '@metamask/utils';
 import { SecurityAlertResponse } from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
+import AppConstants from '../../core/AppConstants';
 
 const ENDPOINT_VALIDATE = 'validate';
 const ENDPOINT_SUPPORTED_CHAINS = 'supportedChains';
@@ -7,10 +8,6 @@ const ENDPOINT_SUPPORTED_CHAINS = 'supportedChains';
 export interface SecurityAlertsAPIRequest {
   method: string;
   params: unknown[];
-}
-
-export function isSecurityAlertsAPIEnabled() {
-  return process.env.SECURITY_ALERTS_API_ENABLED === 'true';
 }
 
 export async function validateWithSecurityAlertsAPI(
@@ -46,7 +43,7 @@ async function request(endpoint: string, options?: RequestInit) {
 }
 
 function getUrl(endpoint: string) {
-  const host = process.env.SECURITY_ALERTS_API_URL;
+  const host = AppConstants.SECURITY_ALERTS_API_URL.URL;
 
   if (!host) {
     throw new Error('Security alerts API URL is not set');

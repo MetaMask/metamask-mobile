@@ -19,7 +19,6 @@ import { WALLET_CONNECT_ORIGIN } from '../../util/walletconnect';
 import AppConstants from '../../core/AppConstants';
 import {
   getSecurityAlertsAPISupportedChainIds,
-  isSecurityAlertsAPIEnabled,
   validateWithSecurityAlertsAPI,
 } from './security-alerts-api';
 import { PPOMController } from '@metamask/ppom-validator';
@@ -109,10 +108,9 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
     );
 
     const normalizedRequest = normalizeRequest(req);
+    console.log('>>>>>>')
 
-    securityAlertResponse = isSecurityAlertsAPIEnabled()
-      ? await validateWithAPI(ppomController, chainId, normalizedRequest)
-      : await validateWithController(ppomController, normalizedRequest);
+    securityAlertResponse = await validateWithAPI(ppomController, chainId, normalizedRequest);
 
     securityAlertResponse = {
       ...securityAlertResponse,
@@ -135,9 +133,7 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
 async function isChainSupported(chainId: Hex): Promise<boolean> {
   let supportedChainIds = BLOCKAID_SUPPORTED_CHAIN_IDS;
   try {
-    if (isSecurityAlertsAPIEnabled()) {
       supportedChainIds = await getSecurityAlertsAPISupportedChainIds();
-    }
   } catch (e) {
     Logger.log(
       `Error fetching supported chains from security alerts API: ${e}`,
@@ -168,13 +164,14 @@ async function validateWithAPI(
 ): Promise<SecurityAlertResponse> {
   try {
     const response = await validateWithSecurityAlertsAPI(chainId, request);
-
+    console.log('>>>>>>1 ')
     return {
       ...response,
       source: SecurityAlertSource.API,
     };
   } catch (e) {
     Logger.log(`Error validating request with security alerts API: ${e}`);
+    console.log('>>>>>> throw')
     return await validateWithController(ppomController, request);
   }
 }
