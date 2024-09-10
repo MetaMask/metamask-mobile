@@ -20,17 +20,23 @@ import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { SmokeSwaps } from '../../tags';
 import Assertions from '../../utils/Assertions';
+import Tenderly from '../../tenderly'
 
 const fixtureServer = new FixtureServer();
 
 describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
   let swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
   let tokenDetected = false;
+
+  const TenderlyMainnet = new Tenderly(1)
+
+  beforeAll(async () => {
+    await TenderlyMainnet.createVirtualTestNet()
+    await TenderlyMainnet.addFunds("0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3", "0xDE0B6B3A7640000",)
+    CustomNetworks.TenderlyMainnet.providerConfig.rpcUrl = TenderlyMainnet.getRpcURL()
     await TestHelpers.reverseServerPort();
-    CustomNetworks.TenderlyAvalance.providerConfig.rpcUrl = 'https://virtual.avalanche.rpc.tenderly.co/d3c3aea4-fed4-45a0-93e0-7adbe35001e7'
-    CustomNetworks.TenderlyMainnet.providerConfig.rpcUrl = 'https://virtual.mainnet.rpc.tenderly.co/2207a2e4-6758-4d40-a25b-e70062e9e1ce'
-    const fixture = new FixtureBuilder()
-      .withNetworkController( CustomNetworks.TenderlyAvalance)
+     const fixture = new FixtureBuilder()
+      //.withNetworkController( CustomNetworks.TenderlyAvalance)
       .withNetworkController( CustomNetworks.TenderlyMainnet)
       .build();
     await startFixtureServer(fixtureServer);
@@ -43,11 +49,12 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
   });
 
   afterAll(async () => {
+    await TenderlyMainnet.deleteVirtualTestNet()
     await stopFixtureServer(fixtureServer);
   });
 
   beforeEach(async () => {
-    jest.setTimeout(15000000);
+    jest.setTimeout(150000);
   });
   it.each`
     quantity | sourceTokenSymbol | destTokenSymbol
@@ -56,7 +63,6 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
   `(
     "should Swap $quantity '$sourceTokenSymbol' to '$destTokenSymbol'",
     async ({ quantity, sourceTokenSymbol, destTokenSymbol }) => {
-      await TestHelpers.delay(10000000);
       await TabBarComponent.tapWallet();
       await Assertions.checkIfVisible(WalletView.container);
       await TabBarComponent.tapActions();
@@ -109,6 +115,14 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
       }
       await device.enableSynchronization();
       await TestHelpers.delay(5000);
+      if (!tokenDetected) {
+        tokenDetected = true
+        await TabBarComponent.tapWallet();
+        await WalletView.tapNewTokensFound();
+        await DetectedTokensView.tapImport();
+        await Assertions.checkIfVisible(WalletView.container);
+      }
+
       await TabBarComponent.tapActivity();
       await Assertions.checkIfVisible(ActivitiesView.title);
       await Assertions.checkIfVisible(
@@ -137,11 +151,6 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
       await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
       await DetailsModal.tapOnCloseIcon();
       await Assertions.checkIfNotVisible(DetailsModal.title);
-
-      if (!tokenDetected) {
-        tokenDetected = true
-        await Assertions.checkIfTextIsDisplayed('new tokens found')
-      }
     },
   );
 });
