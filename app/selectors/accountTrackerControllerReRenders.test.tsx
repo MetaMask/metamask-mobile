@@ -91,7 +91,7 @@ jest.mock('../core/Engine', () => ({
         },
         selectedAccount: '30786334-3936-4663-b064-363539643939',
       },
-    } as Partial<AccountsControllerState>,
+    } as unknown as Partial<AccountsControllerState>,
     AccountTrackerController: {
       accountsByChainId: {
         '0x1': {
