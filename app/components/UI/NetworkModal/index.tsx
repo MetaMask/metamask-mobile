@@ -104,7 +104,7 @@ const NetworkModals = (props: NetworkProps) => {
   };
 
   const addNetwork = async () => {
-    const validUrl = validateRpcUrl(rpcUrl);
+    const isValidUrl = validateRpcUrl(rpcUrl);
     if (showPopularNetworkModal) {
       // emit popular network
       trackEvent(MetaMetricsEvents.NETWORK_ADDED, {
@@ -130,7 +130,7 @@ const NetworkModals = (props: NetworkProps) => {
       Logger.log('Unable to capture custom network');
     }
 
-    setNetworkAdded(validUrl);
+    setNetworkAdded(isValidUrl);
   };
 
   const cancelButtonProps: ButtonProps = {
