@@ -803,7 +803,7 @@ class Engine {
       keyringBuilders: additionalKeyrings,
     });
 
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps,keyring-snaps)
     /**
      * Gets the mnemonic of the user's primary keyring.
      */
@@ -907,6 +907,8 @@ class Engine {
               origin,
               target,
             ),
+          // TODO: Code fence this
+          getSnapKeyring: this.getSnapKeyring.bind(this),
         },
       ),
     });
@@ -1860,6 +1862,7 @@ class Engine {
     };
   };
 
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   getSnapKeyring = async () => {
     let [snapKeyring] = this.keyringController.getKeyringsByType(
       KeyringTypes.snap,
@@ -1871,6 +1874,7 @@ class Engine {
     }
     return snapKeyring;
   };
+  ///: END:ONLY_INCLUDE_IF
 
   /**
    * Returns true or false whether the user has funds or not
@@ -2186,11 +2190,6 @@ export default {
   hasFunds() {
     assertEngineExists(instance);
     return instance.hasFunds();
-  },
-
-  getSnapKeyring() {
-    assertEngineExists(instance);
-    return instance.getSnapKeyring();
   },
 
   resetState() {
