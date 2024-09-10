@@ -709,12 +709,26 @@ class FixtureBuilder {
 
     fixtures.NetworkController = {
       isCustomNetwork: true,
-      providerConfig: {
-        type: 'rpc',
-        chainId: '0x539',
-        rpcUrl: `http://localhost:${getGanachePort()}`,
-        nickname: 'Localhost',
-        ticker: 'ETH',
+      selectedNetworkClientId: 'localhost',
+      networksMetadata: {
+        localhost: {
+          status: 'available',
+          EIPS: {
+            1559: true,
+          },
+        },
+      },
+      networkConfigurations: {
+        localhost: {
+          id: 'localhost',
+          rpcUrl: `http://localhost:${getGanachePort()}`,
+          chainId: '0x539',
+          ticker: 'ETH',
+          nickname: 'Localhost',
+          rpcPrefs: {
+            blockExplorerUrl: 'https://bscscan.com',
+          },
+        },
       },
     };
     return this;
