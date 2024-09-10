@@ -33,6 +33,7 @@ const Routes = {
   },
   LEDGER_MESSAGE_SIGN_MODAL: 'LedgerMessageSignModal',
   LEDGER_TRANSACTION_MODAL: 'LedgerTransactionModal',
+  OPTIONS_SHEET: 'OptionsSheet',
   QR_SCANNER: 'QRScanner',
   TRANSACTIONS_VIEW: 'TransactionsView',
   MODAL: {

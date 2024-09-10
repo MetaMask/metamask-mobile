@@ -175,10 +175,6 @@ class SignatureRequest extends PureComponent {
     fromAddress: PropTypes.string,
     isSigningQRObject: PropTypes.bool,
     QRState: PropTypes.object,
-    /**
-     * A string that represents the selected address
-     */
-    selectedAddress: PropTypes.string,
     testID: PropTypes.string,
     securityAlertResponse: PropTypes.object,
     /**
@@ -335,12 +331,11 @@ class SignatureRequest extends PureComponent {
   };
 
   renderSignatureRequest() {
-    const { securityAlertResponse, showWarning, type, selectedAddress } =
+    const { securityAlertResponse, showWarning, type, fromAddress } =
       this.props;
     let expandedHeight;
     const styles = this.getStyles();
-
-    const isLedgerAccount = isHardwareAccount(selectedAddress, [
+    const isLedgerAccount = isHardwareAccount(fromAddress, [
       ExtendedKeyringTypes.ledger,
     ]);
 
