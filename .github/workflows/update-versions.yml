@@ -30,7 +30,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Determine branch
         id: determine-branch
@@ -43,12 +43,12 @@ jobs:
           fi
 
       - name: Checkout specified branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ steps.determine-branch.outputs.branch }}
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '14'
 
@@ -83,7 +83,7 @@ jobs:
               ;;
           esac
           NEW_VERSION="$MAJOR.$MINOR.$PATCH"
-          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Update GitHub version variable
         run: |
