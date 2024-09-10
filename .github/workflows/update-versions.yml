@@ -35,11 +35,11 @@ jobs:
       - name: Determine branch
         id: determine-branch
         run: |
-          if [ -z "${GITHUB_EVENT_INPUTS_BRANCH}" ]; then
+          if [ -z "${{ github.event.inputs.branch }}" ]; then
             BRANCH=$(git ls-remote --heads origin | grep 'refs/heads/release/' | awk '{print $2}' | sort -r | head -n 1 | sed 's/refs\/heads\///')
             echo "branch=$BRANCH" >> $GITHUB_OUTPUT
           else
-            echo "branch=${GITHUB_EVENT_INPUTS_BRANCH}" >> $GITHUB_OUTPUT
+            echo "branch=${{ github.event.inputs.branch }}" >> $GITHUB_OUTPUT
           fi
 
       - name: Checkout specified branch
@@ -58,17 +58,17 @@ jobs:
       - name: Get current version from GitHub variable
         id: get-version
         run: |
-          CURRENT_VERSION=$(gh api /repos/${github.repository}/actions/variables/VERSION --jq .value)
+          CURRENT_VERSION=$(gh api /repos/${{ github.repository }}/actions/variables/VERSION --jq .value)
           echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
 
       - name: Increment version
         id: increment-version
         run: |
-          IFS='.' read -ra VERSION_PARTS <<< "${steps.get-version.outputs.current_version}"
+          IFS='.' read -ra VERSION_PARTS <<< "${{ steps.get-version.outputs.current_version }}"
           MAJOR=${VERSION_PARTS[0]}
           MINOR=${VERSION_PARTS[1]}
           PATCH=${VERSION_PARTS[2]}
-          case "${GITHUB_EVENT_INPUTS_VERSION_TYPE}" in
+          case "${{ github.event.inputs.version_type }}" in
             major)
               MAJOR=$((MAJOR + 1))
               MINOR=0
@@ -87,7 +87,7 @@ jobs:
 
       - name: Update GitHub version variable
         run: |
-          gh api --method PATCH /repos/${github.repository}/actions/variables/VERSION \
+          gh api --method PATCH /repos/${{ github.repository }}/actions/variables/VERSION \
             -f name='VERSION' \
             -f value='${{ steps.increment-version.outputs.new_version }}'
 
@@ -98,7 +98,7 @@ jobs:
       - name: Create new branch
         id: create-new-branch
         run: |
-          NEW_BRANCH="chore/bump-release-version-${steps.increment-version.outputs.new_version}"
+          NEW_BRANCH="chore/bump-release-version-${{ steps.increment-version.outputs.new_version }}"
           git checkout -b $NEW_BRANCH
           echo "new_branch=$NEW_BRANCH" >> $GITHUB_OUTPUT
 
@@ -107,16 +107,16 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add .
-          git commit -m "chore: bump release version to ${steps.increment-version.outputs.new_version}"
+          git commit -m "chore: bump release version to ${{ steps.increment-version.outputs.new_version }}"
 
       - name: Push changes
         run: |
-          git push origin ${steps.create-new-branch.outputs.new_branch}
+          git push origin ${{ steps.create-new-branch.outputs.new_branch }}
 
       - name: Create pull request
         run: |
-          PR_TITLE="chore: bump release version ${steps.increment-version.outputs.new_version}"
-          if [ -n "${GITHUB_EVENT_INPUTS_RC_NUMBER}" ]; then
-            PR_TITLE="$PR_TITLE - RC${GITHUB_EVENT_INPUTS_RC_NUMBER}"
+          PR_TITLE="chore: bump release version ${{ steps.increment-version.outputs.new_version }}"
+          if [ -n "${{ github.event.inputs.rc_number }}" ]; then
+            PR_TITLE="$PR_TITLE - RC${{ github.event.inputs.rc_number }}"
           fi
-          gh pr create --base ${steps.determine-branch.outputs.branch} --head ${steps.create-new-branch.outputs.new_branch} --title "$PR_TITLE" --body "This PR updates the release version to ${steps.increment-version.outputs.new_version}."
+          gh pr create --base ${{ steps.determine-branch.outputs.branch }} --head ${{ steps.create-new-branch.outputs.new_branch }} --title "$PR_TITLE" --body "This PR updates the release version to ${{ steps.increment-version.outputs.new_version }}."
