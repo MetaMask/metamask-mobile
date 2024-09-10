@@ -55,7 +55,7 @@ describe('updateUserTraitsWithCurrentCurrency', () => {
     jest.clearAllMocks(); // Clear mocks after each test to avoid interference
   });
 
-  it('should add the selected currency as trait', () => {
+  it('adds selected currency trait', () => {
     const mockCurrency = 'USD';
 
     updateUserTraitsWithCurrentCurrency(mockCurrency, mockMetrics);
@@ -66,7 +66,7 @@ describe('updateUserTraitsWithCurrentCurrency', () => {
     });
   });
 
-  it('should track the currency changed event', () => {
+  it('tracks currency changed event', () => {
     const mockCurrency = 'USD';
 
     updateUserTraitsWithCurrentCurrency(mockCurrency, mockMetrics);
@@ -81,7 +81,7 @@ describe('updateUserTraitsWithCurrentCurrency', () => {
     );
   });
 
-  it('should not throw errors when a valid currency is passed', () => {
+  it('does not throw errors when a valid currency is passed', () => {
     const mockCurrency = 'USD';
 
     expect(() => {
@@ -105,7 +105,7 @@ describe('updateUserTraitsWithCurrencyType', () => {
     jest.clearAllMocks(); // Reset mocks after each test
   });
 
-  it('should add the primary currency preference', () => {
+  it('adds the primary currency preference', () => {
     const primaryCurrency = 'fiat';
 
     updateUserTraitsWithCurrencyType(primaryCurrency, mockMetrics);
@@ -116,7 +116,7 @@ describe('updateUserTraitsWithCurrencyType', () => {
     });
   });
 
-  it('should track the primary currency toggle event', () => {
+  it('tracks the primary currency toggle event', () => {
     const primaryCurrency = 'crypto';
 
     updateUserTraitsWithCurrencyType(primaryCurrency, mockMetrics);
@@ -131,7 +131,7 @@ describe('updateUserTraitsWithCurrencyType', () => {
     );
   });
 
-  it('should not throw errors if metrics object is properly passed', () => {
+  it('does not throw errors if metrics object is properly passed', () => {
     const primaryCurrency = 'fiat';
 
     expect(() => {
