@@ -899,9 +899,7 @@ class Engine {
             );
           },
           getAllowedKeyringMethods: (origin: string) =>
-            keyringSnapPermissionsBuilder(
-              origin,
-            ),
+            keyringSnapPermissionsBuilder(origin),
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           hasPermission: (origin: string, target: any) =>
             this.controllerMessenger.call<'PermissionController:hasPermission'>(
@@ -913,6 +911,7 @@ class Engine {
       ),
     });
     ///: END:ONLY_INCLUDE_IF
+
     const accountTrackerController = new AccountTrackerController({
       onPreferencesStateChange,
       getIdentities: () => preferencesController.state.identities,
@@ -1861,6 +1860,18 @@ class Engine {
     };
   };
 
+  getSnapKeyring = async () => {
+    let [snapKeyring] = this.keyringController.getKeyringsByType(
+      KeyringTypes.snap,
+    );
+    if (!snapKeyring) {
+      snapKeyring = await this.keyringController.addNewKeyring(
+        KeyringTypes.snap,
+      );
+    }
+    return snapKeyring;
+  };
+
   /**
    * Returns true or false whether the user has funds or not
    */
@@ -2175,6 +2186,11 @@ export default {
   hasFunds() {
     assertEngineExists(instance);
     return instance.hasFunds();
+  },
+
+  getSnapKeyring() {
+    assertEngineExists(instance);
+    return instance.getSnapKeyring();
   },
 
   resetState() {
