@@ -8,7 +8,6 @@ import {
   internalAccount1,
   internalAccount2,
 } from '../../util/test/accountsControllerTestUtils';
-import { RootState } from '../../reducers';
 
 const oldState = {
   engine: {
@@ -66,7 +65,7 @@ describe('Migration #52', () => {
       }),
       scenario: 'AccountsController internalAccounts state is invalid',
       expectedError:
-        'FATAL ERROR: Migration 52: Invalid AccountsController state',
+        "FATAL ERROR: Migration 52: Invalid AccountsController state error: internalAccounts is not an object, type: 'object'",
     },
     {
       state: merge({}, initialRootState, {
@@ -82,7 +81,7 @@ describe('Migration #52', () => {
       }),
       scenario: 'AccountsController internalAccounts accounts state is invalid',
       expectedError:
-        'FATAL ERROR: Migration 52: Invalid AccountsController state',
+        "FATAL ERROR: Migration 52: Invalid AccountsController state error: internalAccounts.accounts is not an object, type: 'object'",
     },
     {
       state: merge({}, initialRootState, {
@@ -100,7 +99,7 @@ describe('Migration #52', () => {
       scenario:
         'AccountsController internalAccounts selectedAccount is not a string',
       expectedError:
-        'FATAL ERROR: Migration 52: Invalid AccountsController state',
+        "FATAL ERROR: Migration 52: Invalid AccountsController state error: internalAccounts.selectedAccount is not a string, type: 'object'",
     },
   ];
 
@@ -160,9 +159,7 @@ describe('Migration #52', () => {
       },
     });
 
-    const newState: Pick<RootState, 'engine'> = migration(
-      emptyAccountsState,
-    ) as Pick<RootState, 'engine'>;
+    const newState = migration(emptyAccountsState) as typeof emptyAccountsState;
 
     expect(newState).toStrictEqual(emptyAccountsState);
   });
@@ -180,9 +177,9 @@ describe('Migration #52', () => {
       },
     });
 
-    const newState: Pick<RootState, 'engine'> = migration(
+    const newState = migration(
       invalidSelectedState,
-    ) as Pick<RootState, 'engine'>;
+    ) as typeof invalidSelectedState;
 
     expect(
       newState.engine.backgroundState.AccountsController.internalAccounts
