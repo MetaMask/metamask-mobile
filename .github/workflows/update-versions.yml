@@ -35,11 +35,11 @@ jobs:
       - name: Determine branch
         id: determine-branch
         run: |
-          if [ -z "${github.event.inputs.branch}" ]; then
+          if [ -z "${{ github.event.inputs.branch }}" ]; then
             BRANCH=$(git ls-remote --heads origin | grep 'refs/heads/release/' | awk '{print $2}' | sort -r | head -n 1 | sed 's/refs\/heads\///')
-            echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+            echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
           else
-            echo "branch=${github.event.inputs.branch}" >> $GITHUB_OUTPUT
+            echo "branch=${{ github.event.inputs.branch }}" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Checkout specified branch
