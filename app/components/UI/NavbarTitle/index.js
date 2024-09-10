@@ -1,21 +1,21 @@
-import React, { PureComponent } from 'react';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import { scale } from 'react-native-size-matters';
-import { TouchableOpacity, View, StyleSheet } from 'react-native';
-import { fontStyles, colors as importedColors } from '../../../styles/common';
-import Networks, { getDecimalChainId } from '../../../util/networks';
-import { strings } from '../../../../locales/i18n';
-import Device from '../../../util/device';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import Routes from '../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import { withNavigation } from '@react-navigation/compat';
-import { selectProviderConfig } from '../../../selectors/networkController';
-import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
+import PropTypes from 'prop-types';
+import React, { PureComponent } from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { scale } from 'react-native-size-matters';
+import { connect } from 'react-redux';
+import { strings } from '../../../../locales/i18n';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
+import Routes from '../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { selectProviderConfig } from '../../../selectors/networkController';
+import { fontStyles, colors as importedColors } from '../../../styles/common';
+import Device from '../../../util/device';
+import Networks, { getDecimalChainId } from '../../../util/networks';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -26,6 +26,7 @@ const createStyles = (colors) =>
     },
     network: {
       flexDirection: 'row',
+      alignItems: 'center',
     },
     networkName: {
       fontSize: 11,
@@ -37,7 +38,7 @@ const createStyles = (colors) =>
       height: 5,
       borderRadius: 100,
       marginRight: 5,
-      marginTop: Device.isIos() ? 4 : 5,
+      marginTop: Device.isIos() ? 2 : 5,
     },
     title: {
       fontSize: scale(14),
