@@ -1,7 +1,7 @@
-// Third party dependencies.
+// third party dependencies.
 import React from 'react';
 
-// Internal dependencies.
+// internal dependencies
 import DefaultSettings from '.';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';

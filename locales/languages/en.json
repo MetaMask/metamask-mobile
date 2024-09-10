@@ -3308,7 +3308,14 @@
         "turn_on": "Turn on",
         "turn_off": "Turn off"
       }
-    }
+    },
+      "drawer_general_title": "General",
+      "drawer_general_title_desc": "Sync settings across devices, select network preferences, and track token data",
+      "drawer_assets_title": "Assets",
+      "drawer_assets_desc": "Autodetect tokens in your wallet, display NFTs, and get batched account balance updates",
+      "drawer_security_title": "Security",
+      "drawer_security_desc": "Reduce your chances of joining unsafe networks and protect your accounts",
+      "network_details_check_desc": "MetaMask uses a third-party service called chainid.network to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to chainid.network."
   },
   "simulation_details": {
     "failed": "There was an error loading your estimation.",

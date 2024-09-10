@@ -11,12 +11,22 @@ import Icon, {
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
+import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
+import ManageNetworksComponent from '../../../UI/ManageNetworks/ManageNetworks';
 import AppConstants from '../../../../core/AppConstants';
 import styles from './index.styles';
-import SettingsDrawer from '../../../UI/SettingsDrawer';
+import ProfileSyncingComponent from '../../../../components/UI/ProfileSyncing/ProfileSyncing';
+import { useSelector } from 'react-redux';
+import { selectIsProfileSyncingEnabled } from '../../../../selectors/notifications';
+import { enableProfileSyncing } from '../../../../actions/notification/helpers';
+import { RootState } from '../../../../reducers';
 
-const DefaultSettings = () => {
+const GeneralSettings = () => {
   const navigation = useNavigation();
+  const isBasicFunctionalityEnabled = useSelector(
+    (state: RootState) => state?.settings?.basicFunctionalityEnabled,
+  );
+  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
   const renderBackButton = useCallback(
     () => (
       <TouchableOpacity
@@ -31,7 +41,7 @@ const DefaultSettings = () => {
   const renderTitle = useCallback(
     () => (
       <Text variant={TextVariant.HeadingMD}>
-        {strings('onboarding_success.default_settings')}
+        {strings('default_settings.drawer_general_title')}
       </Text>
     ),
     [],
@@ -44,8 +54,24 @@ const DefaultSettings = () => {
     });
   }, [navigation, renderBackButton, renderTitle]);
 
+  const handleSwitchToggle = () => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.BASIC_FUNCTIONALITY,
+    });
+  };
+
   const handleLink = () => {
     Linking.openURL(AppConstants.URLS.PRIVACY_BEST_PRACTICES);
+  };
+
+  const toggleProfileSyncing = async () => {
+    if (isProfileSyncingEnabled) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.PROFILE_SYNCING,
+      });
+    } else {
+      await enableProfileSyncing();
+    }
   };
 
   return (
@@ -57,23 +83,15 @@ const DefaultSettings = () => {
           {strings('default_settings.learn_more_about_privacy')}
         </Text>
       </Text>
-      <SettingsDrawer
-        title={strings('default_settings.drawer_general_title')}
-        description={strings('default_settings.drawer_general_title_desc')}
-        onPress={() => navigation.navigate(Routes.ONBOARDING.GENERAL_SETTINGS)}
+      <BasicFunctionalityComponent handleSwitchToggle={handleSwitchToggle} />
+      <ProfileSyncingComponent
+        handleSwitchToggle={toggleProfileSyncing}
+        isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
+        isProfileSyncingEnabled={isProfileSyncingEnabled}
       />
-      <SettingsDrawer
-        title={strings('default_settings.drawer_assets_title')}
-        description={strings('default_settings.drawer_assets_desc')}
-        onPress={() => navigation.navigate(Routes.ONBOARDING.ASSETS_SETTINGS)}
-      />
-      <SettingsDrawer
-        title={strings('default_settings.drawer_security_title')}
-        description={strings('default_settings.drawer_security_desc')}
-        onPress={() => navigation.navigate(Routes.ONBOARDING.SECURITY_SETTINGS)}
-      />
+      <ManageNetworksComponent />
     </ScrollView>
   );
 };
 
-export default DefaultSettings;
+export default GeneralSettings;
