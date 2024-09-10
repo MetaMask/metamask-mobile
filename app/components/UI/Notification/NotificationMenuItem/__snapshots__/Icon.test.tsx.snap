@@ -6,7 +6,6 @@ exports[`NotificationIcon matches snapshot when icon is provided 1`] = `
     style={
       {
         "height": 32,
-        "marginLeft": 4,
         "width": 32,
       }
     }

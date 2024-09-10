@@ -124,6 +124,7 @@ import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRe
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
+import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -929,6 +930,10 @@ const App = ({ userLoggedIn, basicFunctionalityEnabled }) => {
               }}
               name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
               component={LedgerMessageSignModal}
+            />
+            <Stack.Screen
+              name={Routes.OPTIONS_SHEET}
+              component={OptionsSheet}
             />
             <Stack.Screen
               name="EditAccountName"
