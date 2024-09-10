@@ -192,10 +192,6 @@ class Settings extends PureComponent {
      * App theme
      */
     // appTheme: PropTypes.string,
-    /**
-     * Metrics injected by withMetricsAwareness HOC
-     */
-    metrics: PropTypes.object,
   };
 
   state = {

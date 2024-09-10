@@ -1,11 +1,10 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import GeneralSettings from './';
+import GeneralSettings, { updateUserTraitsWithCurrentCurrency } from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import { updateUserTraitsWithCurrentCurrency } from '.';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
