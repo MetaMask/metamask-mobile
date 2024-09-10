@@ -685,9 +685,7 @@ class Engine {
       }),
       getProvider: () =>
         // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
-        networkController.getNetworkClientById(
-          networkController?.state.selectedNetworkClientId,
-        ).configuration,
+        networkController.getProviderAndBlockTracker().provider,
       getCurrentNetworkEIP1559Compatibility: async () =>
         (await networkController.getEIP1559Compatibility()) ?? false,
       getCurrentNetworkLegacyGasAPICompatibility: () => {
