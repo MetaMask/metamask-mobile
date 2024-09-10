@@ -758,7 +758,7 @@ exports[`Confirm should render correctly 1`] = `
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 12,
                                         "fontWeight": "400",
                                         "letterSpacing": 0,
@@ -782,7 +782,7 @@ exports[`Confirm should render correctly 1`] = `
                                       style={
                                         {
                                           "color": "#141618",
-                                          "fontFamily": "Euclid Circular B",
+                                          "fontFamily": "EuclidCircularB-Bold",
                                           "fontSize": 14,
                                           "fontWeight": "700",
                                           "letterSpacing": 0,
@@ -801,7 +801,7 @@ exports[`Confirm should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#141618",
-                                      "fontFamily": "Euclid Circular B",
+                                      "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 12,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
@@ -817,7 +817,7 @@ exports[`Confirm should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#141618",
-                                      "fontFamily": "Euclid Circular B",
+                                      "fontFamily": "EuclidCircularB-Bold",
                                       "fontSize": 14,
                                       "fontWeight": "700",
                                       "letterSpacing": 0,

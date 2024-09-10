@@ -2,7 +2,6 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { shallow } from 'enzyme';
 import configureMockStore from 'redux-mock-store';
-import Engine from '../../../core/Engine';
 
 import renderWithProvider, {
   DeepPartial,
@@ -121,6 +120,7 @@ describe('AccountFromToInfoCard', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <Provider store={store}>
+        {/* @ts-ignore: Rest props are ignored for testing purposes */}
         <AccountFromToInfoCard transactionState={transactionState} />
       </Provider>,
     );
@@ -129,6 +129,7 @@ describe('AccountFromToInfoCard', () => {
 
   it('should match snapshot', async () => {
     const container = renderWithProvider(
+      // @ts-ignore: Rest props are ignored for testing purposes
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
@@ -137,6 +138,7 @@ describe('AccountFromToInfoCard', () => {
 
   it('should render to account name', async () => {
     const { findByText } = renderWithProvider(
+      // @ts-ignore: Rest props are ignored for testing purposes
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
@@ -145,6 +147,7 @@ describe('AccountFromToInfoCard', () => {
 
   it('should render to address', async () => {
     const { findByText } = renderWithProvider(
+      // @ts-ignore: Rest props are ignored for testing purposes
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
@@ -171,9 +174,8 @@ describe('AccountFromToInfoCard', () => {
       transactionToName: '0xF4e8263979A89Dc357d7f9F79533Febc7f3e287B',
     };
     const { findByText } = renderWithProvider(
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      <AccountFromToInfoCard transactionState={NFTTransaction as any} />,
+      // @ts-ignore: Rest props are ignored for testing purposes
+      <AccountFromToInfoCard transactionState={NFTTransaction} />,
       { state: mockInitialState },
     );
     expect(await findByText('0xF4e8...287B')).toBeDefined();
@@ -201,6 +203,7 @@ describe('AccountFromToInfoCard', () => {
       },
     };
     const { queryByText } = renderWithProvider(
+      // @ts-ignore: Rest props are ignored for testing purposes
       <AccountFromToInfoCard transactionState={txState} />,
       { state: mockInitialState },
     );
