@@ -6,8 +6,7 @@ import { strings } from '../../../../locales/i18n';
 import TagUrl from '../../../component-library/components/Tags/TagUrl';
 import AppConstants from '../../../core/AppConstants';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
-import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
-import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
+import { prefixUrlWithProtocol } from '../../../util/browser';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { useStyles } from '../../../component-library/hooks';
@@ -36,8 +35,6 @@ const ApprovalTagUrl = ({
 }: ApprovalTagUrlProps) => {
   const { styles } = useStyles(stylesheet, {});
   const [isOriginDeepLink, setIsOriginDeepLink] = useState(false);
-  const [isOriginWalletConnect, setIsOriginWalletConnect] = useState(false);
-  const [isOriginMMSDKRemoteConn, setIsOriginMMSDKRemoteConn] = useState(false);
 
   const accountsByChainId = useSelector(selectAccountsByChainId);
 
@@ -49,57 +46,21 @@ const ApprovalTagUrl = ({
       origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
 
     setIsOriginDeepLink(isOriginDeepLinkVal);
-
-    if (!origin) {
-      setIsOriginWalletConnect(false);
-      setIsOriginMMSDKRemoteConn(false);
-
-      return;
-    }
-
-    setIsOriginWalletConnect(origin.startsWith(WALLET_CONNECT_ORIGIN));
-    setIsOriginMMSDKRemoteConn(
-      origin.startsWith(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN),
-    );
   }, [accountsByChainId, internalAccounts, activeAddress, origin]);
 
   const domainTitle = useMemo(() => {
     let title = '';
 
-    if (isOriginWalletConnect) {
-      title = getUrlObj(
-        (origin as string).split(WALLET_CONNECT_ORIGIN)[1],
-      ).origin;
-    } else if (isOriginMMSDKRemoteConn) {
-      title = getUrlObj(
-        (origin as string).split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1],
-      ).origin;
-    } else if (url || currentEnsName) {
+    if (url || currentEnsName) {
       title = prefixUrlWithProtocol(currentEnsName || url || '');
     } else {
       title = '';
     }
 
     return title;
-  }, [
-    currentEnsName,
-    origin,
-    isOriginWalletConnect,
-    isOriginMMSDKRemoteConn,
-    url,
-  ]);
+  }, [currentEnsName, url]);
 
-  const faviconUpdatedOrigin = useMemo(() => {
-    let newOrigin = origin as string;
-    if (isOriginWalletConnect) {
-      newOrigin = newOrigin.split(WALLET_CONNECT_ORIGIN)[1];
-    } else if (isOriginMMSDKRemoteConn) {
-      newOrigin = newOrigin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1];
-    }
-    return newOrigin;
-  }, [origin, isOriginWalletConnect, isOriginMMSDKRemoteConn]);
-
-  const faviconSource = useFavicon(faviconUpdatedOrigin);
+  const faviconSource = useFavicon(origin);
 
   const imageSource = faviconSource?.uri
     ? faviconSource
