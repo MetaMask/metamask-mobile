@@ -18,7 +18,7 @@ import { safeToChecksumAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
 import { selectChainId } from '../selectors/networkController';
 import { store } from '../store';
-const constructTitleAndMessage = (notification) => {
+export const constructTitleAndMessage = (notification) => {
   let title, message;
   switch (notification.type) {
     case NotificationTransactionTypes.pending:
