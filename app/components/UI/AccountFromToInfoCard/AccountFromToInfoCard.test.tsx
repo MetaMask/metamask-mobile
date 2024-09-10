@@ -51,7 +51,7 @@ jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
   isQRHardwareAccount: () => false,
 }));
-let mockGetERC20BalanceOf = jest.fn().mockReturnValue(0x0186a0);
+const mockGetERC20BalanceOf = jest.fn().mockReturnValue(0x0186a0);
 
 jest.mock('../../../core/Engine', () => ({
   context: {
