@@ -37,7 +37,7 @@ exports[`AssetOverview should render correctly 1`] = `
         style={
           {
             "color": "#141618",
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 18,
             "fontWeight": "500",
             "letterSpacing": 0,
