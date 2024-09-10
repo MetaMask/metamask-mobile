@@ -159,11 +159,11 @@ class NotificationManager {
         },
         ios: {
           foregroundPresentationOptions: {
-            alert: false,
-            sound: false,
-            badge: false,
-            banner: false,
-            list: false,
+            alert: true,
+            sound: true,
+            badge: true,
+            banner: true,
+            list: true,
           },
         },
       };
