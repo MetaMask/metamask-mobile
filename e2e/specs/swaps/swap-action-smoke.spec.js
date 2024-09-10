@@ -7,7 +7,10 @@ import TabBarComponent from '../../pages/TabBarComponent';
 import ActivitiesView from '../../pages/ActivitiesView';
 import DetailsModal from '../../pages/modals/DetailsModal';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
+import WalletView from '../../pages/wallet/WalletView';
+import DetectedTokensView from '../../pages/wallet/DetectedTokensView';
 import FixtureBuilder from '../../fixtures/fixture-builder';
+import Tenderly from '../../tenderly'
 import {
   loadFixture,
   startFixtureServer,
@@ -24,10 +27,21 @@ const fixtureServer = new FixtureServer();
 
 describe(SmokeSwaps('Swap from Actions'), () => {
   let swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
+  let tokenDetected = false;
+
+  const TenderlyMainnet = new Tenderly(1)
+
   beforeAll(async () => {
+
+    TenderlyMainnet.createVirtualTestNet()
+    await TestHelpers.delay(5000);
+    CustomNetworks.TenderlyMainnet.providerConfig.rpcUrl = TenderlyMainnet.getRpcURL()
+    console.log(TenderlyMainnet.getRpcURL())
+    return
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
-      .withNetworkController(CustomNetworks.Tenderly)
+      //.withNetworkController( CustomNetworks.TenderlyAvalance)
+      .withNetworkController( CustomNetworks.TenderlyMainnet)
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
@@ -40,6 +54,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
 
   afterAll(async () => {
     await stopFixtureServer(fixtureServer);
+    await TenderlyMainnet.deleteVirtualTestNet()
   });
 
   beforeEach(async () => {
@@ -48,8 +63,8 @@ describe(SmokeSwaps('Swap from Actions'), () => {
 
   it.each`
     quantity | sourceTokenSymbol | destTokenSymbol
-    ${'.05'} | ${'ETH'}          | ${'USDT'}
-    ${'100'} | ${'USDT'}         | ${'ETH'}
+    ${'.05'} | ${'ETH'}          | ${'DAI'}
+    ${'100'} | ${'DAI'}          | ${'ETH'}
   `(
     "should Swap $quantity '$sourceTokenSymbol' to '$destTokenSymbol'",
     async ({ quantity, sourceTokenSymbol, destTokenSymbol }) => {
@@ -104,6 +119,15 @@ describe(SmokeSwaps('Swap from Actions'), () => {
       }
       await device.enableSynchronization();
       await TestHelpers.delay(5000);
+
+      if (!tokenDetected) {
+        tokenDetected = true
+        await TabBarComponent.tapWallet();
+        await WalletView.tapNewTokensFound();
+        await DetectedTokensView.tapImport();
+        await Assertions.checkIfVisible(WalletView.container);
+      }
+
       await TabBarComponent.tapActivity();
       await Assertions.checkIfVisible(ActivitiesView.title);
       await Assertions.checkIfVisible(

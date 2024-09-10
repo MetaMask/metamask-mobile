@@ -25,10 +25,13 @@ const fixtureServer = new FixtureServer();
 
 describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
   let swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
-  beforeAll(async () => {
+  let tokenDetected = false;
     await TestHelpers.reverseServerPort();
+    CustomNetworks.TenderlyAvalance.providerConfig.rpcUrl = 'https://virtual.avalanche.rpc.tenderly.co/d3c3aea4-fed4-45a0-93e0-7adbe35001e7'
+    CustomNetworks.TenderlyMainnet.providerConfig.rpcUrl = 'https://virtual.mainnet.rpc.tenderly.co/2207a2e4-6758-4d40-a25b-e70062e9e1ce'
     const fixture = new FixtureBuilder()
-      .withNetworkController(CustomNetworks.Tenderly)
+      .withNetworkController( CustomNetworks.TenderlyAvalance)
+      .withNetworkController( CustomNetworks.TenderlyMainnet)
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
@@ -44,7 +47,7 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
   });
 
   beforeEach(async () => {
-    jest.setTimeout(150000);
+    jest.setTimeout(15000000);
   });
   it.each`
     quantity | sourceTokenSymbol | destTokenSymbol
@@ -53,6 +56,7 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
   `(
     "should Swap $quantity '$sourceTokenSymbol' to '$destTokenSymbol'",
     async ({ quantity, sourceTokenSymbol, destTokenSymbol }) => {
+      await TestHelpers.delay(10000000);
       await TabBarComponent.tapWallet();
       await Assertions.checkIfVisible(WalletView.container);
       await TabBarComponent.tapActions();
@@ -133,6 +137,11 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
       await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
       await DetailsModal.tapOnCloseIcon();
       await Assertions.checkIfNotVisible(DetailsModal.title);
+
+      if (!tokenDetected) {
+        tokenDetected = true
+        await Assertions.checkIfTextIsDisplayed('new tokens found')
+      }
     },
   );
 });
