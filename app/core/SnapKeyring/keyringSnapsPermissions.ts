@@ -1,8 +1,4 @@
 /* eslint-disable no-console */
-import {
-  SubjectType,
-  SubjectMetadataController,
-} from '@metamask/permission-controller';
 import { KeyringRpcMethod } from '@metamask/keyring-api';
 
 /**
