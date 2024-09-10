@@ -3,27 +3,24 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isE2E } from '../util/test/utils';
 import { MMKV } from 'react-native-mmkv';
 
+
 /**
- * Wrapper class for AsyncStorage.
+ * Wrapper class for MMKV.
  * (Will want to eventuall re-name since no longer async once migratted to mmkv)
  */
 class StorageWrapper {
-  static instance;
+  private static instance: StorageWrapper | null = null;
+  storage: typeof ReadOnlyNetworkStore | MMKV;
 
-  constructor() {
-    if (!StorageWrapper.instance) {
-      /**
-       * The underlying storage implementation.
-       * Use `ReadOnlyNetworkStore` in test mode otherwise use `AsyncStorage`.
-       */
-      this.storage = isE2E ? ReadOnlyNetworkStore : new MMKV();
-      StorageWrapper.instance = this;
-    }
-
-    return StorageWrapper.instance;
+  private constructor() {
+    /**
+     * The underlying storage implementation.
+     * Use `ReadOnlyNetworkStore` in test mode otherwise use `AsyncStorage`.
+     */
+    this.storage = isE2E ? ReadOnlyNetworkStore : new MMKV();
   }
 
-  async getItem(key) {
+  async getItem(key: string) {
     try {
       // asyncStorage returns null for no value
       // mmkv returns undefined for no value
@@ -40,7 +37,7 @@ class StorageWrapper {
     }
   }
 
-  async setItem(key, value) {
+  async setItem(key: string, value: string) {
     try {
       if (typeof value !== 'string')
         throw new Error(
@@ -56,7 +53,7 @@ class StorageWrapper {
     }
   }
 
-  async removeItem(key) {
+  async removeItem(key: string) {
     try {
       return await this.storage.delete(key);
     } catch (error) {
@@ -71,6 +68,13 @@ class StorageWrapper {
   async clearAll() {
     await this.storage.clearAll();
   }
+
+  static getInstance() {
+    if(!StorageWrapper.instance){
+      StorageWrapper.instance = new StorageWrapper();
+    }
+    return StorageWrapper.instance;
+  }
 }
 
-export default StorageWrapper.instance || new StorageWrapper();
+export default StorageWrapper.getInstance();
