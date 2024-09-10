@@ -10,15 +10,7 @@ import ExperienceEnhancerModal from '../screen-objects/Modals/ExperienceEnhancer
 Then(/^I tap Create a new account/, async () => {
   await AccountListComponent.tapAddAccountButton();
   await AddAccountModal.tapNewAccountButton();
-  try {
-    // Handle Marketing consent modal
-
-    await ExperienceEnhancerModal.waitForDisplay();
-    await ExperienceEnhancerModal.tapNoThanks();
-    await ExperienceEnhancerModal.waitForDisappear();
-  } catch {
-    console.log('The marketing consent modal is not visible');
-  }
+  await CommonScreen.tapOnText('No thanks');
 });
 
 When(/^A new account is created/, async () => {
