@@ -9,7 +9,7 @@ import { MMKV } from 'react-native-mmkv';
  */
 class StorageWrapper {
   private static instance: StorageWrapper | null = null;
-  storage: typeof ReadOnlyNetworkStore | MMKV;
+  private storage: typeof ReadOnlyNetworkStore | MMKV;
 
   private constructor() {
     /**
