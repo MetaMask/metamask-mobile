@@ -10,6 +10,7 @@ import { selectNetworkConfigurations } from '../../../../../selectors/networkCon
 import { getBlockExplorerByChainId } from '../../../../../util/notifications';
 import { ModalFooterBlockExplorer } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
 import useStyles from '../useStyles';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 
 type BlockExplorerFooterProps = ModalFooterBlockExplorer;
 
@@ -37,6 +38,7 @@ export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {
       variant={ButtonVariants.Secondary}
       label={strings('asset_details.options.view_on_block')}
       style={styles.ctaBtn}
+      endIconName={IconName.Arrow2Upright}
       onPress={() => Linking.openURL(txHashUrl)}
     />
   );

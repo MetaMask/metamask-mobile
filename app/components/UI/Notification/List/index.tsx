@@ -71,9 +71,8 @@ function NotificationsListItem(props: NotificationsListItemProps) {
           notification: item,
         });
       }
-      const unreadedCount = async () => await notifee.getBadgeCount();
 
-      unreadedCount().then((count) => {
+      notifee.getBadgeCount().then((count) => {
         if (count > 0) {
           notifee.setBadgeCount(count - 1);
         } else {
@@ -105,7 +104,6 @@ function NotificationsListItem(props: NotificationsListItemProps) {
         isRead={props.notification.isRead}
         {...menuItemState}
       />
-      <NotificationMenuItem.Icon {...menuItemState} />
       <NotificationMenuItem.Content {...menuItemState} />
     </NotificationMenuItem.Root>
   );
