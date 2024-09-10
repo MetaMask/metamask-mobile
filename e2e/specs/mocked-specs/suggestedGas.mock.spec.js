@@ -23,8 +23,6 @@ describe(SmokeAssets('Import all tokens detected'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  
-
   const RECIPIENT = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
   const AMOUNT = '0.0003';
   const validPrivateKey = Accounts.getAccountPrivateKey();
@@ -37,8 +35,14 @@ describe(SmokeAssets('Import all tokens detected'), () => {
   });
 
   afterAll(async () => {
-    if(mockServer){
-      await stopMockServer(mockServer);
+    try {
+      const response = await fetch(`http://localhost:8000/health-check`);
+      if (response.ok) {
+        await stopMockServer(mockServer);
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.log('Mock server already stopped');
     }
   });
 
