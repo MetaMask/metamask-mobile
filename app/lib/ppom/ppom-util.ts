@@ -18,10 +18,13 @@ import {
 import { WALLET_CONNECT_ORIGIN } from '../../util/walletconnect';
 import AppConstants from '../../core/AppConstants';
 import {
+  getSecurityAlertsAPISupportedChainIds,
   isSecurityAlertsAPIEnabled,
   validateWithSecurityAlertsAPI,
 } from './security-alerts-api';
 import { PPOMController } from '@metamask/ppom-validator';
+import { Hex } from '@metamask/utils';
+import { BLOCKAID_SUPPORTED_CHAIN_IDS } from '../../util/networks';
 
 export interface PPOMRequest {
   method: string;
@@ -61,11 +64,16 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
     NetworkController,
     PPOMController: ppomController,
   } = Engine.context;
-
   const chainId = NetworkController.state.providerConfig.chainId;
   const isConfirmationMethod = CONFIRMATION_METHODS.includes(req.method);
-
-  if (!ppomController || !isBlockaidFeatureEnabled() || !isConfirmationMethod) {
+  const isSupportedChain = await isChainSupported(chainId);
+  const isBlockaidFeatEnabled = await isBlockaidFeatureEnabled();
+  if (
+    !ppomController ||
+    !isBlockaidFeatEnabled ||
+    !isConfirmationMethod ||
+    !isSupportedChain
+  ) {
     return;
   }
 
@@ -122,6 +130,21 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
       updateControllerState: true,
     });
   }
+}
+
+async function isChainSupported(chainId: Hex): Promise<boolean> {
+  let supportedChainIds = BLOCKAID_SUPPORTED_CHAIN_IDS;
+  try {
+    if (isSecurityAlertsAPIEnabled()) {
+      supportedChainIds = await getSecurityAlertsAPISupportedChainIds();
+    }
+  } catch (e) {
+    Logger.log(
+      `Error fetching supported chains from security alerts API: ${e}`,
+    );
+  }
+
+  return supportedChainIds.includes(chainId);
 }
 
 async function validateWithController(
@@ -198,4 +221,4 @@ function normalizeRequest(request: PPOMRequest): PPOMRequest {
   };
 }
 
-export default { validateRequest };
+export default { validateRequest, isChainSupported };

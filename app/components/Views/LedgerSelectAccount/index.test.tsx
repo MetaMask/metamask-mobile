@@ -2,8 +2,19 @@ import React from 'react';
 import LedgerSelectAccount from './index';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
+import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
 
 const mockedNavigate = jest.fn();
+
+jest.mock('../../hooks/Ledger/useLedgerBluetooth', () => ({
+  __esModule: true,
+  default: jest.fn((_deviceId?: string) => ({
+    isSendingLedgerCommands: false,
+    isAppLaunchConfirmationNeeded: false,
+    ledgerLogicToRun: jest.fn(),
+    error: undefined,
+  })),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -24,6 +35,10 @@ jest.mock('../../../core/Engine', () => ({
       },
       getAccounts: jest.fn(),
     },
+    AccountsController: {
+      getAccountByAddress: jest.fn(),
+      setAccountName: jest.fn(),
+    },
   },
 }));
 const MockEngine = jest.mocked(Engine);
@@ -33,6 +48,20 @@ describe('LedgerSelectAccount', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    (
+      useLedgerBluetooth as unknown as jest.MockedFunction<
+        typeof useLedgerBluetooth
+      >
+    ).mockImplementation(() => ({
+      isSendingLedgerCommands: false,
+      isAppLaunchConfirmationNeeded: false,
+      ledgerLogicToRun: jest.fn(),
+      error: undefined,
+      cleanupBluetoothConnection(): void {
+        throw new Error('Function not implemented.');
+      },
+    }));
   });
 
   it('renders correctly to match snapshot', () => {

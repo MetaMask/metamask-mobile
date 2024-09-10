@@ -62,7 +62,9 @@ import {
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { store } from '../../../store';
+import { createBuyNavigationDetails } from '../../UI/Ramp/routes/utils';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { selectSwapsTransactions } from '../../../selectors/transactionController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -472,7 +474,7 @@ class Asset extends PureComponent {
       asset.isETH || asset.address?.toLowerCase() in this.props.swapsTokens;
 
     const onBuy = () => {
-      navigation.navigate(Routes.RAMP.BUY);
+      navigation.navigate(...createBuyNavigationDetails());
 
       this.props.metrics.trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy',
@@ -491,6 +493,7 @@ class Asset extends PureComponent {
           sourceToken: asset.isETH
             ? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS
             : asset.address,
+          sourcePage: 'TokenView',
         },
       });
     };
@@ -575,8 +578,7 @@ Asset.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   swapsIsLive: swapsLivenessSelector(state),
   swapsTokens: swapsTokensObjectSelector(state),
-  swapsTransactions:
-    state.engine.backgroundState.TransactionController.swapsTransactions || {},
+  swapsTransactions: selectSwapsTransactions(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   selectedInternalAccount: selectSelectedInternalAccount(state),

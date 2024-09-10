@@ -252,6 +252,8 @@ jest.mock('../../hooks/useGasPriceEstimation', () =>
   jest.fn(() => mockUseGasPriceEstimationValue),
 );
 
+jest.mock('../../hooks/useIntentAmount');
+
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../util/navigation/navUtils'),
   useParams: jest.fn(() => mockUseParamsValues),

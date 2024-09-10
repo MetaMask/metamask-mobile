@@ -1,5 +1,5 @@
 import MetaMetrics from './MetaMetrics';
-import DefaultPreference from 'react-native-default-preference';
+import StorageWrapper from '../../store/storage-wrapper';
 import {
   AGREED,
   ANALYTICS_DATA_DELETION_DATE,
@@ -14,9 +14,10 @@ import {
   DataDeleteResponseStatus,
   DataDeleteStatus,
   IMetaMetricsEvent,
+  ISegmentClient,
 } from './MetaMetrics.types';
 
-jest.mock('react-native-default-preference');
+jest.mock('../../store/storage-wrapper');
 const mockGet = jest.fn();
 const mockSet = jest.fn();
 const mockClear = jest.fn();
@@ -32,11 +33,15 @@ class TestMetaMetrics extends MetaMetrics {
   }
 }
 
+interface GlobalWithSegmentClient {
+  segmentMockClient: ISegmentClient;
+}
+
 describe('MetaMetrics', () => {
   beforeEach(async () => {
-    DefaultPreference.get = mockGet;
-    DefaultPreference.set = mockSet;
-    DefaultPreference.clear = mockClear;
+    StorageWrapper.getItem = mockGet;
+    StorageWrapper.setItem = mockSet;
+    StorageWrapper.clearAll = mockClear;
     TestMetaMetrics.resetInstance();
   });
 
@@ -64,7 +69,7 @@ describe('MetaMetrics', () => {
       expect(await metaMetrics.configure()).toBeTruthy();
     });
     it('fails silently', async () => {
-      DefaultPreference.get = jest.fn().mockRejectedValue(new Error('error'));
+      StorageWrapper.getItem = jest.fn().mockRejectedValue(new Error('error'));
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeFalsy();
     });
@@ -76,7 +81,7 @@ describe('MetaMetrics', () => {
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
 
-      expect(DefaultPreference.get).toHaveBeenCalledWith(METRICS_OPT_IN);
+      expect(StorageWrapper.getItem).toHaveBeenCalledWith(METRICS_OPT_IN);
       expect(metaMetrics.isEnabled()).toBeFalsy();
     });
 
@@ -85,7 +90,7 @@ describe('MetaMetrics', () => {
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
 
-      expect(DefaultPreference.get).toHaveBeenCalledWith(METRICS_OPT_IN);
+      expect(StorageWrapper.getItem).toHaveBeenCalledWith(METRICS_OPT_IN);
       expect(metaMetrics.isEnabled()).toBeTruthy();
     });
 
@@ -94,7 +99,7 @@ describe('MetaMetrics', () => {
       expect(await metaMetrics.configure()).toBeTruthy();
       await metaMetrics.enable();
 
-      expect(DefaultPreference.set).toHaveBeenLastCalledWith(
+      expect(StorageWrapper.setItem).toHaveBeenLastCalledWith(
         METRICS_OPT_IN,
         AGREED,
       );
@@ -107,7 +112,7 @@ describe('MetaMetrics', () => {
       // Enable first as it is disabled by default
       await metaMetrics.enable();
       // Test it is enabled before disabling
-      expect(DefaultPreference.set).toHaveBeenLastCalledWith(
+      expect(StorageWrapper.setItem).toHaveBeenLastCalledWith(
         METRICS_OPT_IN,
         AGREED,
       );
@@ -115,141 +120,296 @@ describe('MetaMetrics', () => {
 
       await metaMetrics.enable(false);
 
-      expect(DefaultPreference.set).toHaveBeenLastCalledWith(
+      expect(StorageWrapper.setItem).toHaveBeenLastCalledWith(
         METRICS_OPT_IN,
         DENIED,
       );
       expect(metaMetrics.isEnabled()).toBeFalsy();
     });
-  });
 
-  describe('Tracking', () => {
-    it('tracks event', async () => {
+    it('does not track event when disabled', async () => {
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
-      await metaMetrics.enable();
-      const event: IMetaMetricsEvent = { category: 'event1' };
-      const properties = { prop1: 'value1' };
+      const event: IMetaMetricsEvent = { category: 'test event' };
+      const properties = { regular_prop: 'test value' };
 
       metaMetrics.trackEvent(event, properties);
 
-      expect(DefaultPreference.get).toHaveBeenCalledWith(METRICS_OPT_IN);
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { segmentMockClient } = global as any;
-      expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
-        anonymous: false,
-        ...properties,
-      });
+      const { segmentMockClient } =
+        global as unknown as GlobalWithSegmentClient;
+
+      expect(StorageWrapper.setItem).not.toHaveBeenCalledWith(
+        METRICS_OPT_IN,
+        AGREED,
+      );
+      expect(StorageWrapper.getItem).toHaveBeenCalledWith(METRICS_OPT_IN);
+      expect(segmentMockClient.track).not.toHaveBeenCalled();
     });
 
-    it('tracks event without param', async () => {
+    it('tracks event when enabled', async () => {
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
       await metaMetrics.enable();
-      const event: IMetaMetricsEvent = { category: 'event1' };
+      const event: IMetaMetricsEvent = { category: 'test event' };
 
       metaMetrics.trackEvent(event);
 
-      expect(DefaultPreference.get).toHaveBeenCalledWith(METRICS_OPT_IN);
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { segmentMockClient } = global as any;
-      expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
-        anonymous: false,
-        ...{},
+      const { segmentMockClient } =
+        global as unknown as GlobalWithSegmentClient;
+
+      // check tracking enabling
+      expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+        METRICS_OPT_IN,
+        AGREED,
+      );
+      expect(StorageWrapper.getItem).toHaveBeenCalledWith(METRICS_OPT_IN);
+
+      // check that the tracking was called
+      expect(segmentMockClient.track).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Tracking', () => {
+    /* This is the matrix of tracking use cases based on extension behaviour.
+     * it's also retro compatible with our individual anonymous events.
+     *
+     * How to read it? Here are some examples:
+     * - Test A means non-anonymous tracking (NA) and it has no props at all:
+     *   The result must be only one non-anonymous event without any props (EMPTY) and no anonymous event at all (NONE).
+     * - Test D means anonymous tracking (A) and it has both non-anonymous and anonymous props:
+     *   The result must be a non-anonymous event with non-anonymous props (NA PROPS) and an anonymous event with all props (NA PROPS + A PROPS).
+     *
+     * | Test | Non-anon prop | Anon prop | Result non-anon (NA) event | Result anon (A) event |
+     * |------|---------------|-----------|----------------------------|-----------------------|
+     * | A    | NO            | NO        | EMPTY                      | NONE                  |
+     * | B    | YES           | NO        | NA PROPS                   | NONE                  |
+     * | C0   | NO            | YES(indiv)| EMPTY                      | A PROPS               |
+     * | C1   | NO            | YES(group)| EMPTY                      | A PROPS               |
+     * | C2   | NO            | YES(mixed)| EMPTY                      | A PROPS               |
+     * | D    | YES           | YES       | NA PROPS                   | NA PROPS + A PROPS    |
+     *
+     * For C0/C1/C2:
+     * - individual prop is one that is mixed with others but is of the form `prop = { anonymous: true, value: 'anon value' }`
+     * - group anonymous props are of the form `prop = 'anon value'` but are grouped in an object implementing the SensitiveProperties interface.
+     * - mixed means both types in the same event
+     *
+     * The following test cases include the code (A,B, C0/C1 and D) of the test in the table for reference.
+     */
+    describe('tracks event', () => {
+      it('without properties (test A)', async () => {
+        const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.configure();
+        await metaMetrics.enable();
+        const event: IMetaMetricsEvent = { category: 'test event' };
+
+        metaMetrics.trackEvent(event);
+
+        const { segmentMockClient } =
+          global as unknown as GlobalWithSegmentClient;
+
+        // check if the event was tracked
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: false,
+        });
+        expect(segmentMockClient.track).toHaveBeenCalledTimes(1);
+      });
+
+      it('with only non-anonymous properties (test B)', async () => {
+        const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.configure();
+        await metaMetrics.enable();
+        const event: IMetaMetricsEvent = { category: 'test event' };
+        const nonAnonProp = { non_anon_prop: 'test value' };
+
+        metaMetrics.trackEvent(event, nonAnonProp);
+
+        const { segmentMockClient } =
+          global as unknown as GlobalWithSegmentClient;
+
+        // check if the event was tracked
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: false,
+          ...nonAnonProp,
+        });
+        expect(segmentMockClient.track).toHaveBeenCalledTimes(1);
+      });
+
+      it('with only individual anonymous properties (test C0)', async () => {
+        const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.configure();
+        await metaMetrics.enable();
+        const event: IMetaMetricsEvent = { category: 'test event' };
+
+        const individualAnonProperties = {
+          individual_anon_property: { anonymous: true, value: 'anon value' },
+        };
+
+        // this call is backward-compatible with the previous system
+        metaMetrics.trackEvent(event, individualAnonProperties);
+
+        const { segmentMockClient } =
+          global as unknown as GlobalWithSegmentClient;
+
+        // check if the event was tracked
+        // non-anonymous event has no properties.
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: false,
+          ...{},
+        });
+
+        // anonymous event has individual anon properties
+        // the prop value must be extracted and passed directly as a value.
+        // the original anonymous prop of the prop is discarded.
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: true,
+          ...{
+            individual_anon_property:
+              individualAnonProperties.individual_anon_property.value,
+          },
+        });
+
+        // two events should be tracked, one anonymous and one non-anonymous
+        expect(segmentMockClient.track).toHaveBeenCalledTimes(2);
+      });
+
+      it('with only anonymous properties group (test C1)', async () => {
+        const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.configure();
+        await metaMetrics.enable();
+        const event: IMetaMetricsEvent = { category: 'test event' };
+
+        const groupAnonProperties = { group_anon_property: 'group anon value' };
+        const properties = {
+          sensitiveProperties: { ...groupAnonProperties },
+        };
+
+        metaMetrics.trackEvent(event, properties);
+
+        const { segmentMockClient } =
+          global as unknown as GlobalWithSegmentClient;
+
+        // check if the event was tracked
+        // non-anonymous event has no properties.
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: false,
+          ...{},
+        });
+
+        // anonymous event has group anon properties
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: true,
+          ...groupAnonProperties,
+        });
+
+        // two events should be tracked, one anonymous and one non-anonymous
+        expect(segmentMockClient.track).toHaveBeenCalledTimes(2);
+      });
+
+      it('with mixed (group and individual) anonymous properties (test C2)', async () => {
+        const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.configure();
+        await metaMetrics.enable();
+        const event: IMetaMetricsEvent = { category: 'test event' };
+
+        const individualAnonProperties = {
+          anon_prop: { anonymous: true, value: 'anon value' },
+        };
+        const groupAnonProperties = { group_anon_property: 'group anon value' };
+        const properties = {
+          properties: { ...individualAnonProperties },
+          sensitiveProperties: { ...groupAnonProperties },
+        };
+
+        metaMetrics.trackEvent(event, properties);
+
+        const { segmentMockClient } =
+          global as unknown as GlobalWithSegmentClient;
+
+        // check if the event was tracked
+        // non-anonymous event has no properties.
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: false,
+          ...{},
+        });
+
+        // anonymous event has both individual and group anon properties
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: true,
+          ...{
+            anon_prop: individualAnonProperties.anon_prop.value,
+          },
+          ...groupAnonProperties,
+        });
+
+        // two events should be tracked, one anonymous and one non-anonymous
+        expect(segmentMockClient.track).toHaveBeenCalledTimes(2);
+      });
+
+      it('with anonymous and non-anonymous properties (test D)', async () => {
+        const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.configure();
+        await metaMetrics.enable();
+        const event: IMetaMetricsEvent = { category: 'test event' };
+
+        const nonAnonProperties = { non_anon_prop: 'non anon value' };
+        const individualAnonProperties = {
+          anon_prop: { anonymous: true, value: 'anon value' },
+        };
+        const groupAnonProperties = { group_anon_property: 'group anon value' };
+
+        // Testing only the mixed non-anon/individual-anon/group-anon properties case as it covers all other cases.
+        const properties = {
+          properties: {
+            ...nonAnonProperties,
+            ...individualAnonProperties,
+          },
+          sensitiveProperties: { ...groupAnonProperties },
+        };
+
+        metaMetrics.trackEvent(event, properties);
+
+        const { segmentMockClient } =
+          global as unknown as GlobalWithSegmentClient;
+
+        // non-anonymous event only has the non-anonymous properties.
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: false,
+          ...nonAnonProperties,
+        });
+
+        // anonymous event has all properties
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: true,
+          ...nonAnonProperties,
+          ...{ anon_prop: individualAnonProperties.anon_prop.value },
+          ...groupAnonProperties,
+        });
+
+        // Only two events should be tracked, one anonymous and one non-anonymous
+        expect(segmentMockClient.track).toHaveBeenCalledTimes(2);
       });
     });
 
-    it('does not track event when diabled', async () => {
-      const metaMetrics = TestMetaMetrics.getInstance();
-      expect(await metaMetrics.configure()).toBeTruthy();
-      const event: IMetaMetricsEvent = { category: 'event1' };
-      const properties = { prop1: 'value1' };
+    describe('saveDataRecording', () => {
+      it('tracks event without updating dataRecorded status', async () => {
+        const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.configure();
+        await metaMetrics.enable();
+        const event: IMetaMetricsEvent = { category: 'test event' };
+        const properties = { regular_prop: 'test value' };
 
-      metaMetrics.trackEvent(event, properties);
+        metaMetrics.trackEvent(event, properties, false);
 
-      expect(DefaultPreference.get).toHaveBeenCalledWith(METRICS_OPT_IN);
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { segmentMockClient } = global as any;
-      expect(segmentMockClient.track).not.toHaveBeenCalled();
-    });
+        const { segmentMockClient } =
+          global as unknown as GlobalWithSegmentClient;
 
-    it('tracks anonymous event', async () => {
-      const metaMetrics = TestMetaMetrics.getInstance();
-      await metaMetrics.enable();
-      const event: IMetaMetricsEvent = { category: 'event1' };
-      const properties = { prop1: 'value1' };
-
-      metaMetrics.trackAnonymousEvent(event, properties);
-
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { segmentMockClient } = global as any;
-      // the anonymous part should not have a user id
-      expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
-        anonymous: true,
-        ...properties,
+        expect(StorageWrapper.getItem).toHaveBeenCalledWith(METRICS_OPT_IN);
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: false,
+          ...properties,
+        });
+        expect(metaMetrics.isDataRecorded()).toBeFalsy();
       });
-      // non anonymous part should not have properties
-      expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
-        anonymous: true,
-      });
-    });
-
-    it('tracks anonymous event without param', async () => {
-      const metaMetrics = TestMetaMetrics.getInstance();
-      await metaMetrics.enable();
-      const event: IMetaMetricsEvent = { category: 'event1' };
-
-      metaMetrics.trackAnonymousEvent(event);
-
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { segmentMockClient } = global as any;
-      // the anonymous part should not have a user id
-      expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
-        anonymous: true,
-        ...{},
-      });
-      // non anonymous part should not have properties
-      expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
-        anonymous: true,
-      });
-    });
-
-    it('does not track anonymous event if disabled', async () => {
-      const metaMetrics = TestMetaMetrics.getInstance();
-      const event: IMetaMetricsEvent = { category: 'event1' };
-      const properties = { prop1: 'value1' };
-
-      metaMetrics.trackAnonymousEvent(event, properties);
-
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { segmentMockClient } = global as any;
-      expect(segmentMockClient.track).not.toHaveBeenCalled();
-    });
-
-    it('tracks event without updating dataRecorded status', async () => {
-      const metaMetrics = TestMetaMetrics.getInstance();
-      expect(await metaMetrics.configure()).toBeTruthy();
-      await metaMetrics.enable();
-      const event: IMetaMetricsEvent = { category: 'event1' };
-      const properties = { prop1: 'value1' };
-
-      metaMetrics.trackEvent(event, properties, false);
-
-      expect(DefaultPreference.get).toHaveBeenCalledWith(METRICS_OPT_IN);
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { segmentMockClient } = global as any;
-      expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
-        anonymous: false,
-        ...properties,
-      });
-      expect(metaMetrics.isDataRecorded()).toBeFalsy();
     });
 
     describe('Legacy events', () => {
@@ -258,15 +418,15 @@ describe('MetaMetrics', () => {
         expect(await metaMetrics.configure()).toBeTruthy();
         await metaMetrics.enable();
         const event: IMetaMetricsEvent = {
-          category: 'event1',
-          properties: { action: 'action1', name: 'description1' },
+          category: 'test event',
+          properties: { action: 'test action', name: 'test description' },
         };
 
         metaMetrics.trackEvent(event);
 
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { segmentMockClient } = global as any;
+        const { segmentMockClient } =
+          global as unknown as GlobalWithSegmentClient;
+
         expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
           anonymous: false,
           ...event.properties,
@@ -278,16 +438,22 @@ describe('MetaMetrics', () => {
         expect(await metaMetrics.configure()).toBeTruthy();
         await metaMetrics.enable();
         const event: IMetaMetricsEvent = {
-          category: 'event1',
-          properties: { action: 'action1', name: 'description1' },
+          category: 'test event',
+          properties: {
+            action: 'legacy test action',
+            name: 'legacy test description',
+          },
         };
-        const properties = { action: 'action2', name: 'description2' };
+        const properties = {
+          action: 'overriding test action',
+          name: 'overriding test description',
+        };
 
         metaMetrics.trackEvent(event, properties);
 
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { segmentMockClient } = global as any;
+        const { segmentMockClient } =
+          global as unknown as GlobalWithSegmentClient;
+
         expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
           anonymous: false,
           ...properties,
@@ -305,9 +471,9 @@ describe('MetaMetrics', () => {
         // @ts-expect-error: Testing untyped legacy JS call with undefined event
         metaMetrics.trackEvent(event);
 
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { segmentMockClient } = global as any;
+        const { segmentMockClient } =
+          global as unknown as GlobalWithSegmentClient;
+
         expect(segmentMockClient.track).toHaveBeenCalledWith(undefined, {
           anonymous: false,
           undefined,
@@ -323,9 +489,10 @@ describe('MetaMetrics', () => {
       const groupId = 'group1';
       const groupTraits = { trait1: 'value1' };
       metaMetrics.group(groupId, groupTraits);
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { segmentMockClient } = global as any;
+
+      const { segmentMockClient } =
+        global as unknown as GlobalWithSegmentClient;
+
       expect(segmentMockClient.group).toHaveBeenCalledWith(
         groupId,
         groupTraits,
@@ -337,9 +504,10 @@ describe('MetaMetrics', () => {
       const groupId = 'group1';
       const groupTraits = { trait1: 'value1' };
       metaMetrics.group(groupId, groupTraits);
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { segmentMockClient } = global as any;
+
+      const { segmentMockClient } =
+        global as unknown as GlobalWithSegmentClient;
+
       expect(segmentMockClient.group).not.toHaveBeenCalled();
     });
   });
@@ -351,9 +519,10 @@ describe('MetaMetrics', () => {
       await metaMetrics.enable();
       const userTraits = { trait1: 'value1' };
       await metaMetrics.addTraitsToUser(userTraits);
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { segmentMockClient } = global as any;
+
+      const { segmentMockClient } =
+        global as unknown as GlobalWithSegmentClient;
+
       expect(segmentMockClient.identify).toHaveBeenCalledWith(
         expect.any(String),
         userTraits,
@@ -364,9 +533,10 @@ describe('MetaMetrics', () => {
       const metaMetrics = TestMetaMetrics.getInstance();
       const userTraits = { trait1: 'value1' };
       await metaMetrics.addTraitsToUser(userTraits);
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { segmentMockClient } = global as any;
+
+      const { segmentMockClient } =
+        global as unknown as GlobalWithSegmentClient;
+
       expect(segmentMockClient.identify).not.toHaveBeenCalled();
     });
   });
@@ -375,32 +545,34 @@ describe('MetaMetrics', () => {
     it('resets', async () => {
       const metaMetrics = TestMetaMetrics.getInstance();
       await metaMetrics.reset();
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { segmentMockClient } = global as any;
+
+      const { segmentMockClient } =
+        global as unknown as GlobalWithSegmentClient;
+
       expect(segmentMockClient.reset).toHaveBeenCalledWith(true);
-      expect(DefaultPreference.set).toHaveBeenCalledWith(METAMETRICS_ID, '');
+      expect(StorageWrapper.setItem).toHaveBeenCalledWith(METAMETRICS_ID, '');
     });
 
     it('flushes the segment client', async () => {
       const metaMetrics = TestMetaMetrics.getInstance();
       await metaMetrics.flush();
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { segmentMockClient } = global as any;
+
+      const { segmentMockClient } =
+        global as unknown as GlobalWithSegmentClient;
+
       expect(segmentMockClient.flush).toHaveBeenCalled();
     });
   });
 
   describe('Ids', () => {
-    it('is returned from DefaultPreference when instance not configured', async () => {
+    it('is returned from StorageWrapper when instance not configured', async () => {
       const UUID = '00000000-0000-0000-0000-000000000000';
       mockGet.mockImplementation(async (key: string) =>
         key === METAMETRICS_ID ? UUID : '',
       );
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.getMetaMetricsId()).toEqual(UUID);
-      expect(DefaultPreference.get).toHaveBeenCalledWith(METAMETRICS_ID);
+      expect(StorageWrapper.getItem).toHaveBeenCalledWith(METAMETRICS_ID);
     });
 
     it('is returned from memory when instance configured', async () => {
@@ -413,7 +585,7 @@ describe('MetaMetrics', () => {
       mockGet.mockClear();
 
       expect(await metaMetrics.getMetaMetricsId()).toEqual(testID);
-      expect(DefaultPreference.get).not.toHaveBeenCalled();
+      expect(StorageWrapper.getItem).not.toHaveBeenCalled();
     });
 
     it('uses Mixpanel ID if it is set', async () => {
@@ -422,15 +594,15 @@ describe('MetaMetrics', () => {
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
 
-      expect(DefaultPreference.get).toHaveBeenNthCalledWith(
+      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(
         2,
         MIXPANEL_METAMETRICS_ID,
       );
-      expect(DefaultPreference.set).toHaveBeenCalledWith(
+      expect(StorageWrapper.setItem).toHaveBeenCalledWith(
         METAMETRICS_ID,
         mixPanelUUID,
       );
-      expect(DefaultPreference.get).not.toHaveBeenCalledWith(METAMETRICS_ID);
+      expect(StorageWrapper.getItem).not.toHaveBeenCalledWith(METAMETRICS_ID);
       expect(await metaMetrics.getMetaMetricsId()).toEqual(mixPanelUUID);
     });
 
@@ -442,12 +614,12 @@ describe('MetaMetrics', () => {
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
 
-      expect(DefaultPreference.get).toHaveBeenNthCalledWith(
+      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(
         2,
         MIXPANEL_METAMETRICS_ID,
       );
-      expect(DefaultPreference.get).toHaveBeenNthCalledWith(3, METAMETRICS_ID);
-      expect(DefaultPreference.set).not.toHaveBeenCalled();
+      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(3, METAMETRICS_ID);
+      expect(StorageWrapper.setItem).not.toHaveBeenCalled();
       expect(await metaMetrics.getMetaMetricsId()).toEqual(UUID);
     });
 
@@ -460,11 +632,11 @@ describe('MetaMetrics', () => {
       // create a new instance and check that user id was not changed
       TestMetaMetrics.getInstance();
 
-      expect(DefaultPreference.set).not.toHaveBeenCalledWith(
+      expect(StorageWrapper.setItem).not.toHaveBeenCalledWith(
         METAMETRICS_ID,
         '',
       );
-      expect(DefaultPreference.get).toHaveBeenNthCalledWith(3, METAMETRICS_ID);
+      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(3, METAMETRICS_ID);
       expect(await metaMetrics.getMetaMetricsId()).toEqual(metricsId);
     });
 
@@ -478,16 +650,16 @@ describe('MetaMetrics', () => {
       await metaMetrics.reset();
 
       // Check change on the MetaMerics class side
-      expect(DefaultPreference.set).toHaveBeenNthCalledWith(
+      expect(StorageWrapper.setItem).toHaveBeenNthCalledWith(
         2,
         METAMETRICS_ID,
         '',
       );
 
+      const { segmentMockClient } =
+        global as unknown as GlobalWithSegmentClient;
+
       // Check MetaMerics class calls the Segment SDK reset
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { segmentMockClient } = global as any;
       expect(segmentMockClient.reset).toHaveBeenCalledTimes(1);
       expect(segmentMockClient.reset).toHaveBeenCalledWith(true);
 
@@ -515,7 +687,7 @@ describe('MetaMetrics', () => {
 
         expect(result).toEqual({ status: DataDeleteResponseStatus.ok });
 
-        expect(DefaultPreference.set).toHaveBeenCalledWith(
+        expect(StorageWrapper.setItem).toHaveBeenCalledWith(
           METAMETRICS_DELETION_REGULATION_ID,
           'TWV0YU1hc2t1c2Vzbm9wb2ludCE',
         );
@@ -524,7 +696,7 @@ describe('MetaMetrics', () => {
         const day = currentDate.getUTCDate();
         const month = currentDate.getUTCMonth() + 1;
         const year = currentDate.getUTCFullYear();
-        expect(DefaultPreference.set).toHaveBeenCalledWith(
+        expect(StorageWrapper.setItem).toHaveBeenCalledWith(
           ANALYTICS_DATA_DELETION_DATE,
           `${day}/${month}/${year}`,
         );
@@ -543,11 +715,11 @@ describe('MetaMetrics', () => {
 
         expect(result.status).toBe(DataDeleteResponseStatus.error);
         expect(result.error).toBe('Analytics Deletion Task Error');
-        expect(DefaultPreference.set).not.toHaveBeenCalledWith(
+        expect(StorageWrapper.setItem).not.toHaveBeenCalledWith(
           METAMETRICS_DELETION_REGULATION_ID,
           expect.any(String),
         );
-        expect(DefaultPreference.set).not.toHaveBeenCalledWith(
+        expect(StorageWrapper.setItem).not.toHaveBeenCalledWith(
           ANALYTICS_DATA_DELETION_DATE,
           expect.any(String),
         );
@@ -557,38 +729,38 @@ describe('MetaMetrics', () => {
     describe('Date', () => {
       it('gets date from preferences storage', async () => {
         const expectedDate = '04/05/2023';
-        DefaultPreference.get = jest.fn().mockResolvedValue(expectedDate);
+        StorageWrapper.getItem = jest.fn().mockResolvedValue(expectedDate);
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
         expect(metaMetrics.getDeleteRegulationCreationDate()).toBe(
           expectedDate,
         );
-        expect(DefaultPreference.get).toHaveBeenCalledWith(
+        expect(StorageWrapper.getItem).toHaveBeenCalledWith(
           ANALYTICS_DATA_DELETION_DATE,
         );
       });
 
       it('keeps date in instance', async () => {
         const expectedDate = '04/05/2023';
-        DefaultPreference.get = jest.fn().mockResolvedValue(expectedDate);
+        StorageWrapper.getItem = jest.fn().mockResolvedValue(expectedDate);
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
         // this resets the call count and changes the return value to nothing
-        DefaultPreference.get = jest.fn().mockResolvedValue(null);
+        StorageWrapper.getItem = jest.fn().mockResolvedValue(null);
         expect(metaMetrics.getDeleteRegulationCreationDate()).toBe(
           expectedDate,
         );
-        expect(DefaultPreference.get).not.toHaveBeenCalledWith(
+        expect(StorageWrapper.getItem).not.toHaveBeenCalledWith(
           ANALYTICS_DATA_DELETION_DATE,
         );
       });
 
       it('returns empty string if no date in preferences storage', async () => {
-        DefaultPreference.get = jest.fn().mockResolvedValue(undefined);
+        StorageWrapper.getItem = jest.fn().mockResolvedValue(undefined);
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
         expect(metaMetrics.getDeleteRegulationCreationDate()).toBeUndefined();
-        expect(DefaultPreference.get).toHaveBeenCalledWith(
+        expect(StorageWrapper.getItem).toHaveBeenCalledWith(
           ANALYTICS_DATA_DELETION_DATE,
         );
       });
@@ -597,38 +769,38 @@ describe('MetaMetrics', () => {
     describe('Regulation Id', () => {
       it('gets id from preferences storage', async () => {
         const expecterRegulationId = 'TWV0YU1hc2t1c2Vzbm9wb2ludCE';
-        DefaultPreference.get = jest
+        StorageWrapper.getItem = jest
           .fn()
           .mockResolvedValue(expecterRegulationId);
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
         expect(metaMetrics.getDeleteRegulationId()).toBe(expecterRegulationId);
-        expect(DefaultPreference.get).toHaveBeenCalledWith(
+        expect(StorageWrapper.getItem).toHaveBeenCalledWith(
           METAMETRICS_DELETION_REGULATION_ID,
         );
       });
 
       it('keeps id in instance', async () => {
         const expecterRegulationId = 'TWV0YU1hc2t1c2Vzbm9wb2ludCE';
-        DefaultPreference.get = jest
+        StorageWrapper.getItem = jest
           .fn()
           .mockResolvedValue(expecterRegulationId);
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
         // this resets the call count and changes the return value to nothing
-        DefaultPreference.get = jest.fn().mockResolvedValue(null);
+        StorageWrapper.getItem = jest.fn().mockResolvedValue(null);
         expect(metaMetrics.getDeleteRegulationId()).toBe(expecterRegulationId);
-        expect(DefaultPreference.get).not.toHaveBeenCalledWith(
+        expect(StorageWrapper.getItem).not.toHaveBeenCalledWith(
           METAMETRICS_DELETION_REGULATION_ID,
         );
       });
 
       it('returns empty string if no id in preferences storage', async () => {
-        DefaultPreference.get = jest.fn().mockResolvedValue(undefined);
+        StorageWrapper.getItem = jest.fn().mockResolvedValue(undefined);
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
         expect(metaMetrics.getDeleteRegulationId()).toBeUndefined();
-        expect(DefaultPreference.get).toHaveBeenCalledWith(
+        expect(StorageWrapper.getItem).toHaveBeenCalledWith(
           METAMETRICS_DELETION_REGULATION_ID,
         );
       });
@@ -636,7 +808,7 @@ describe('MetaMetrics', () => {
 
     describe('check request', () => {
       it('data deletion task check succeeds', async () => {
-        DefaultPreference.get = jest.fn((key) => {
+        StorageWrapper.getItem = jest.fn((key) => {
           switch (key) {
             case METAMETRICS_DELETION_REGULATION_ID:
               return Promise.resolve('TWV0YU1hc2t1c2Vzbm9wb2ludCE');
@@ -692,7 +864,7 @@ describe('MetaMetrics', () => {
       });
 
       it('data deletion task check fails without METAMETRICS_DELETION_REGULATION_ID', async () => {
-        DefaultPreference.get = jest.fn().mockResolvedValue(undefined);
+        StorageWrapper.getItem = jest.fn().mockResolvedValue(undefined);
         const metaMetrics = TestMetaMetrics.getInstance();
 
         const {

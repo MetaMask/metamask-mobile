@@ -2,13 +2,18 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { shallow } from 'enzyme';
 import configureMockStore from 'redux-mock-store';
+import Engine from '../../../core/Engine';
 
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../util/test/renderWithProvider';
 import { ENSCache } from '../../../util/ENSUtils';
 import { Transaction } from './AccountFromToInfoCard.types';
 import AccountFromToInfoCard from '.';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
+import { RootState } from '../../../reducers';
+import { AssetsContractController } from '@metamask/assets-controllers';
 
 const MOCK_ADDRESS_1 = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
 const MOCK_ADDRESS_2 = '0x519d2CE57898513F676a5C3b66496c3C394c9CC7';
@@ -18,7 +23,7 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS_2,
 ]);
 
-const mockInitialState = {
+const mockInitialState: DeepPartial<RootState> = {
   settings: {},
   engine: {
     backgroundState: {
@@ -26,10 +31,10 @@ const mockInitialState = {
       AccountTrackerController: {
         accounts: {
           [MOCK_ADDRESS_1]: {
-            balance: 200,
+            balance: '200',
           },
           [MOCK_ADDRESS_2]: {
-            balance: 200,
+            balance: '200',
           },
         },
       },
@@ -47,6 +52,7 @@ jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
   isQRHardwareAccount: () => false,
 }));
+let mockGetERC20BalanceOf = jest.fn().mockReturnValue(0x0186a0);
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -67,6 +73,9 @@ jest.mock('../../../core/Engine', () => ({
       },
     },
     AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+    AssetsContractController: {
+      getERC20BalanceOf: mockGetERC20BalanceOf,
+    } as Partial<AssetsContractController> as AssetsContractController,
   },
 }));
 
@@ -77,9 +86,9 @@ jest.mock('../../../util/ENSUtils', () => ({
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  useSelector: (fn: any) => fn(mockInitialState),
+
+  useSelector: (fn: (arg: DeepPartial<RootState>) => void) =>
+    fn(mockInitialState),
 }));
 
 jest.mock('../../../util/address', () => ({

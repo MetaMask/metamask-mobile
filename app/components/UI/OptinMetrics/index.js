@@ -7,6 +7,7 @@ import {
   ScrollView,
   BackHandler,
   Alert,
+  Linking,
   InteractionManager,
   TouchableOpacity,
 } from 'react-native';
@@ -25,7 +26,7 @@ import {
   MetaMetricsEvents,
   withMetricsAwareness,
 } from '../../hooks/useMetrics';
-import DefaultPreference from 'react-native-default-preference';
+import StorageWrapper from '../../../store/storage-wrapper';
 import { ThemeContext } from '../../../util/theme';
 import { MetaMetricsOptInSelectorsIDs } from '../../../../e2e/selectors/Onboarding/MetaMetricsOptIn.selectors';
 import Checkbox from '../../../component-library/components/Checkbox';
@@ -85,6 +86,12 @@ const createStyles = ({ colors }) =>
       ...fontStyles.normal,
       fontSize: 14,
       color: colors.text.default,
+      paddingVertical: 10,
+    },
+    linkText: {
+      ...fontStyles.normal,
+      fontSize: 14,
+      color: colors.info.default,
       paddingVertical: 10,
     },
     wrapper: {
@@ -236,7 +243,7 @@ class OptinMetrics extends PureComponent {
     }
 
     // Get onboarding wizard state
-    const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
+    const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
     if (onboardingWizard) {
       this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
     } else {
@@ -299,8 +306,18 @@ class OptinMetrics extends PureComponent {
    * Callback on press cancel
    */
   onCancel = async () => {
+    const {
+      isDataCollectionForMarketingEnabled,
+      setDataCollectionForMarketing,
+    } = this.props;
     setTimeout(async () => {
       const { clearOnboardingEvents, metrics } = this.props;
+      if (
+        isDataCollectionForMarketingEnabled === null &&
+        setDataCollectionForMarketing
+      ) {
+        setDataCollectionForMarketing(false);
+      }
       // if users refuses tracking, get rid of the stored events
       // and never send them to Segment
       // and disable analytics
@@ -314,10 +331,22 @@ class OptinMetrics extends PureComponent {
    * Callback on press confirm
    */
   onConfirm = async () => {
-    const { events, metrics } = this.props;
+    const {
+      events,
+      metrics,
+      isDataCollectionForMarketingEnabled,
+      setDataCollectionForMarketing,
+    } = this.props;
     await metrics.enable();
     InteractionManager.runAfterInteractions(async () => {
       // add traits to user for identification
+
+      if (
+        isDataCollectionForMarketingEnabled === null &&
+        setDataCollectionForMarketing
+      ) {
+        setDataCollectionForMarketing(false);
+      }
 
       // trait indicating if user opts in for data collection for marketing
       let dataCollectionForMarketingTraits;
@@ -543,6 +572,10 @@ class OptinMetrics extends PureComponent {
     if (currentYOffset >= endThreshold) this.onScrollEndReached();
   };
 
+  handleLink = () => {
+    Linking.openURL(AppConstants.URLS.PROFILE_SYNC);
+  };
+
   render() {
     const {
       isDataCollectionForMarketingEnabled,
@@ -581,6 +614,9 @@ class OptinMetrics extends PureComponent {
                   ? 'privacy_policy.description_content_1'
                   : 'privacy_policy.description_content_1_legacy',
               )}
+            </Text>
+            <Text style={styles.linkText} onPress={this.handleLink}>
+              {strings('privacy_policy.description_content_3')}
             </Text>
             <Text style={styles.content}>
               {strings(

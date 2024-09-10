@@ -6,8 +6,12 @@ import {
   LedgerKeyring,
   LedgerMobileBridge,
 } from '@metamask/eth-ledger-bridge-keyring';
-import LEDGER_HD_PATH from './constants';
-import OperationTypes from './types';
+import {
+  LEDGER_BIP44_PATH,
+  LEDGER_LEGACY_PATH,
+  LEDGER_LIVE_PATH,
+} from './constants';
+import PAGINATION_OPERATIONS from '../../constants/pagination';
 
 /**
  * Perform an operation with the Ledger keyring.
@@ -48,7 +52,7 @@ export const connectLedgerHardware = async (
 ): Promise<string> => {
   const appAndVersion = await withLedgerKeyring(
     async (keyring: LedgerKeyring) => {
-      keyring.setHdPath(LEDGER_HD_PATH);
+      keyring.setHdPath(LEDGER_LIVE_PATH);
       keyring.setDeviceId(deviceId);
 
       const bridge = keyring.bridge as LedgerMobileBridge;
@@ -81,7 +85,7 @@ export const closeRunningAppOnLedger = async (): Promise<void> => {
 };
 
 /**
- * Forgets the ledger keyring's previous device specific state.
+ * Forgets the ledger device.
  */
 export const forgetLedger = async (): Promise<void> => {
   await withLedgerKeyring(async (keyring: LedgerKeyring) => {
@@ -100,6 +104,55 @@ export const getDeviceId = async (): Promise<string> =>
   );
 
 /**
+ * Check if the path is valid
+ * @param path - The HD Path to check
+ * @returns Whether the path is valid
+ */
+export const isValidPath = (path: string): boolean => {
+  if (!path) return false;
+  if (!path.startsWith("m/44'/60'")) return false;
+  switch (path) {
+    case LEDGER_LIVE_PATH:
+    case LEDGER_LEGACY_PATH:
+    case LEDGER_BIP44_PATH:
+      return true;
+    default:
+      return false;
+  }
+};
+
+/**
+ * Set HD Path for Ledger Keyring
+ * @param path - The HD Path to set
+ */
+export const setHDPath = async (path: string) => {
+  await withLedgerKeyring(async (keyring: LedgerKeyring) => {
+    if (isValidPath(path)) {
+      keyring.setHdPath(path);
+    } else {
+      throw new Error(`HD Path is invalid: ${path}`);
+    }
+  });
+};
+
+/**
+ * Get HD Path from Ledger Keyring
+ *
+ * @returns The HD Path
+ */
+export const getHDPath = async (): Promise<string> =>
+  await withLedgerKeyring(async (keyring: LedgerKeyring) => keyring.hdPath);
+
+/**
+ * Get Ledger Accounts
+ * @returns The Ledger Accounts
+ */
+export const getLedgerAccounts = async (): Promise<string[]> =>
+  await withLedgerKeyring(async (keyring: LedgerKeyring) =>
+    keyring.getAccounts(),
+  );
+
+/**
  * Unlock Ledger Accounts by page
  * @param operation - the operation number, <br> 0: Get First Page<br> 1: Get Next Page <br> -1: Get Previous Page
  * @return The Ledger Accounts
@@ -110,9 +163,9 @@ export const getLedgerAccountsByOperation = async (
   try {
     const accounts = await withLedgerKeyring(async (keyring: LedgerKeyring) => {
       switch (operation) {
-        case OperationTypes.GET_PREVIOUS_PAGE:
+        case PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE:
           return await keyring.getPreviousPage();
-        case OperationTypes.GET_NEXT_PAGE:
+        case PAGINATION_OPERATIONS.GET_NEXT_PAGE:
           return await keyring.getNextPage();
         default:
           return await keyring.getFirstPage();

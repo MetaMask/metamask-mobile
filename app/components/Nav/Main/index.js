@@ -29,6 +29,7 @@ import Notification from '../../UI/Notification';
 import RampOrders from '../../UI/Ramp';
 import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
+import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import {
   showTransactionNotification,
   hideCurrentNotification,
@@ -151,8 +152,8 @@ const Main = (props) => {
   const checkInfuraAvailability = useCallback(async () => {
     if (props.providerType !== 'rpc') {
       try {
-        const { TransactionController } = Engine.context;
-        await query(TransactionController.ethQuery, 'blockNumber', []);
+        const ethQuery = Engine.getGlobalEthQuery();
+        await query(ethQuery, 'blockNumber', []);
         props.setInfuraAvailabilityNotBlocked();
       } catch (e) {
         if (e.message === AppConstants.ERRORS.INFURA_BLOCKED_MESSAGE) {
@@ -279,6 +280,8 @@ const Main = (props) => {
       ) {
         NotificationManager.setTransactionToView(initialNotification.data.id);
         props.navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      } else if (isNotificationsFeatureEnabled()) {
+        props.navigation.navigate(Routes.NOTIFICATIONS.VIEW);
       }
     }
   }, [props.navigation]);
