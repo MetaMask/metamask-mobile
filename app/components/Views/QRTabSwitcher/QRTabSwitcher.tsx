@@ -14,7 +14,7 @@ import ButtonIcon, {
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 
-export enum Screens {
+export enum QRTabSwitcherScreens {
   Scanner,
   Receive,
 }
@@ -42,7 +42,7 @@ export interface QRTabSwitcherParams {
   onScanSuccess: (data: ScanSuccess, content?: string) => void;
   onStartScan?: (data: StartScan) => Promise<void>;
   onScanError?: (error: string) => void;
-  initialScreen?: Screens;
+  initialScreen?: QRTabSwitcherScreens;
   disableTabber?: boolean;
   origin?: string;
 }
@@ -62,7 +62,7 @@ const QRTabSwitcher = () => {
   } = route.params as QRTabSwitcherParams;
 
   const [selectedIndex, setSelectedIndex] = useState(
-    initialScreen || Screens.Scanner,
+    initialScreen || QRTabSwitcherScreens.Scanner,
   );
   const navigation = useNavigation();
   const theme = useTheme();
@@ -98,7 +98,7 @@ const QRTabSwitcher = () => {
 
   return (
     <View style={styles.container}>
-      {selectedIndex === Screens.Scanner ? (
+      {selectedIndex === QRTabSwitcherScreens.Scanner ? (
         <QRScanner
           onScanError={onScanError}
           onScanSuccess={onScanSuccess}
@@ -107,7 +107,7 @@ const QRTabSwitcher = () => {
         />
       ) : null}
 
-      {selectedIndex === Screens.Receive ? (
+      {selectedIndex === QRTabSwitcherScreens.Receive ? (
         <ReceiveRequest
           navigation={navigation}
           hideModal={() => false}
@@ -116,7 +116,7 @@ const QRTabSwitcher = () => {
       ) : null}
 
       <View style={styles.overlay}>
-        {selectedIndex === Screens.Receive ? (
+        {selectedIndex === QRTabSwitcherScreens.Receive ? (
           <NavbarTitle
             // @ts-expect-error proptypes components requires ts-expect-error
             title={strings(`receive.title`)}
@@ -143,12 +143,12 @@ const QRTabSwitcher = () => {
             ]}
           />
           <TouchableWithoutFeedback
-            onPress={() => setSelectedIndex(Screens.Scanner)}
+            onPress={() => setSelectedIndex(QRTabSwitcherScreens.Scanner)}
           >
             <View style={styles.segmentedControlItem}>
               <Text
                 style={
-                  selectedIndex === Screens.Scanner
+                  selectedIndex === QRTabSwitcherScreens.Scanner
                     ? styles.selectedText
                     : styles.text
                 }
@@ -158,12 +158,12 @@ const QRTabSwitcher = () => {
             </View>
           </TouchableWithoutFeedback>
           <TouchableWithoutFeedback
-            onPress={() => setSelectedIndex(Screens.Receive)}
+            onPress={() => setSelectedIndex(QRTabSwitcherScreens.Receive)}
           >
             <View style={styles.segmentedControlItem}>
               <Text
                 style={
-                  selectedIndex === Screens.Receive
+                  selectedIndex === QRTabSwitcherScreens.Receive
                     ? styles.selectedText
                     : styles.text
                 }

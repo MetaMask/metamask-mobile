@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import QRTabSwitcher, { Screens } from './QRTabSwitcher';
+import QRTabSwitcher, { QRTabSwitcherScreens } from './QRTabSwitcher';
 import { useRoute } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 
@@ -46,7 +46,7 @@ describe('QRTabSwitcher', () => {
     useRoute.mockReturnValue({
       params: {
         disableTabber: true,
-        initialScreen: Screens.Scanner,
+        initialScreen: QRTabSwitcherScreens.Scanner,
       },
     });
     const { queryByText } = render(<QRTabSwitcher />);

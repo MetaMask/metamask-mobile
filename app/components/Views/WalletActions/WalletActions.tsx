@@ -34,7 +34,7 @@ import { WalletActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals
 // Internal dependencies
 import styleSheet from './WalletActions.styles';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { Screens } from '../QRTabSwitcher';
+import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import {
   createBuyNavigationDetails,
   createSellNavigationDetails,
@@ -57,7 +57,7 @@ const WalletActions = () => {
   const onReceive = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       navigate(Routes.QR_TAB_SWITCHER, {
-        initialScreen: Screens.Receive,
+        initialScreen: QRTabSwitcherScreens.Receive,
       });
     });
 

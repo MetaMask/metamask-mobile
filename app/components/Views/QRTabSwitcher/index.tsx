@@ -1,7 +1,7 @@
 export {
   default,
   createQRScannerNavDetails,
-  Screens,
+  QRTabSwitcherScreens,
   type QRTabSwitcherParams,
   type ScanSuccess,
   type StartScan,

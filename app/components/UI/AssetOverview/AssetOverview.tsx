@@ -50,7 +50,7 @@ import ChartNavigationButton from './ChartNavigationButton';
 import Price from './Price';
 import styleSheet from './AssetOverview.styles';
 import { useStyles } from '../../../component-library/hooks';
-import { Screens } from '../../../components/Views/QRTabSwitcher';
+import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
 import Routes from '../../../constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
@@ -114,7 +114,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   const onReceive = () => {
     navigation.navigate(Routes.QR_TAB_SWITCHER, {
-      initialScreen: Screens.Receive,
+      initialScreen: QRTabSwitcherScreens.Receive,
       disableTabber: true,
     });
   };
