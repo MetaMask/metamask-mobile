@@ -138,7 +138,8 @@
     "**/puppeteer-core/ws": "^8.17.1",
     "react-native/ws": "^6.2.3",
     "socket.io-client/engine.io-client/ws": "^8.17.1",
-    "micromatch": "4.0.8"
+    "micromatch": "4.0.8",
+    "send": "0.19.0"
   },
   "dependencies": {
     "@consensys/on-ramp-sdk": "1.28.3",
@@ -179,7 +180,7 @@
     "@metamask/react-native-payments": "^2.0.0",
     "@metamask/react-native-search-api": "1.0.1",
     "@metamask/react-native-splash-screen": "^3.2.0",
-    "@metamask/react-native-webview": "^14.0.2",
+    "@metamask/react-native-webview": "^14.0.3",
     "@metamask/rpc-errors": "^6.2.1",
     "@metamask/scure-bip39": "^2.1.0",
     "@metamask/sdk-communication-layer": "^0.28.1",
