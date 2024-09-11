@@ -1,13 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`MarketDetailsList should render correctly 1`] = `
-<View
-  style={
-    {
-      "marginTop": 20,
-    }
-  }
->
+<View>
   <Text
     style={
       [
@@ -93,7 +87,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         style={
           {
             "color": "#6a737d",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -108,7 +102,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         style={
           {
             "color": "#141618",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -133,7 +127,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         style={
           {
             "color": "#6a737d",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -148,7 +142,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         style={
           {
             "color": "#141618",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -173,7 +167,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         style={
           {
             "color": "#6a737d",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -188,7 +182,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         style={
           {
             "color": "#141618",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -213,7 +207,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         style={
           {
             "color": "#6a737d",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -228,7 +222,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         style={
           {
             "color": "#141618",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -253,7 +247,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         style={
           {
             "color": "#6a737d",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -268,7 +262,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         style={
           {
             "color": "#141618",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -293,7 +287,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         style={
           {
             "color": "#6a737d",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -308,7 +302,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         style={
           {
             "color": "#141618",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -333,7 +327,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         style={
           {
             "color": "#6a737d",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -348,7 +342,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         style={
           {
             "color": "#141618",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
             "fontWeight": "400",
             "letterSpacing": 0,

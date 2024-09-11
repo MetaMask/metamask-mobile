@@ -229,7 +229,7 @@ const AccountConnectMultiSelector = ({
           <View style={styles.disconnectAllContainer}>
             <View style={styles.helpTextContainer}>
               <HelpText severity={HelpTextSeverity.Error}>
-                {strings('accounts.disconnect_you_from', {
+                {strings('common.disconnect_you_from', {
                   dappUrl: hostname,
                 })}
               </HelpText>
@@ -281,9 +281,6 @@ const AccountConnectMultiSelector = ({
             />
           )}
           <Text style={styles.description}>
-            {isMutichainVersion1Enabled
-              ? strings('accounts.select_accounts_description')
-              : strings('accounts.connect_description')}
             {isMutichainVersion1Enabled
               ? strings('accounts.select_accounts_description')
               : strings('accounts.connect_description')}
