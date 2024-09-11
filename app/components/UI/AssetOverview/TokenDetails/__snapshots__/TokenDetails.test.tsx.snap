@@ -4,17 +4,12 @@ exports[`TokenDetails should render correctly 1`] = `
 <View
   style={
     {
-      "marginTop": 20,
+      "gap": 24,
+      "marginTop": 24,
     }
   }
 >
-  <View
-    style={
-      {
-        "marginTop": 20,
-      }
-    }
-  >
+  <View>
     <Text
       style={
         [
@@ -240,13 +235,7 @@ exports[`TokenDetails should render correctly 1`] = `
       </View>
     </View>
   </View>
-  <View
-    style={
-      {
-        "marginTop": 20,
-      }
-    }
-  >
+  <View>
     <Text
       style={
         [
