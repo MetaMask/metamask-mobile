@@ -175,15 +175,16 @@ const PermissionsSummary = ({
   function renderHeader() {
     return (
       <View style={styles.header}>
-        {onBack && (
-          <View style={styles.backButton}>
+        <View style={styles.startAccessory}>
+          {onBack && (
             <ButtonIcon
               iconColor={IconColor.Default}
               onPress={onBack}
               iconName={IconName.ArrowLeft}
             />
-          </View>
-        )}
+          )}
+        </View>
+
         <View style={styles.logoContainer}>{renderTopIcon()}</View>
         <View style={styles.endAccessory}></View>
       </View>
