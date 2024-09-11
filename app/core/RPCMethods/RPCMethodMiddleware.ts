@@ -458,7 +458,7 @@ export const getRpcMethodMiddleware = ({
       },
       eth_chainId: async () => {
         const providerConfig = selectProviderConfig(store.getState());
-        const networkType = providerConfig.network as NetworkType;
+        const networkType = providerConfig.type as NetworkType;
         const isInitialNetwork =
           networkType && getAllNetworks().includes(networkType);
         let chainId;
