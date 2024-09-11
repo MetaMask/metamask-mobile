@@ -673,11 +673,6 @@ class FixtureBuilder {
     // Merge the rest of the data
     merge(networkController, data);
 
-    console.log(
-      'this.fixture.state.engine.backgroundState.NetworkController ---',
-      networkController,
-    );
-
     if (data.providerConfig.ticker !== 'ETH') {
       this.fixture.state.engine.backgroundState.CurrencyRateController.pendingNativeCurrency =
         data.providerConfig.ticker;
