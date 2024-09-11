@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import Icon, {
+  IconColor,
   IconName,
 } from '../../../../component-library/components/Icons/Icon';
 import Text, {
@@ -56,7 +57,7 @@ const AnnualRewardRateCard = ({
         <View style={styles.labelWithIcon}>
           <Text variant={TextVariant.BodyMDMedium}>MetaMask Pool</Text>
           <TouchableOpacity onPress={onIconPress}>
-            <Icon name={IconName.Question} />
+            <Icon name={IconName.Question} color={IconColor.Alternative} />
           </TouchableOpacity>
         </View>
         <View style={styles.rewardRateContainer}>

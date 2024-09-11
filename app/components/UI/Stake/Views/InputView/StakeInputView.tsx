@@ -20,7 +20,6 @@ import {
   fiatNumberToWei,
   fromTokenMinimalUnitString,
   limitToMaximumDecimalPlaces,
-  renderFiat,
   renderFromTokenMinimalUnit,
   toWei,
   weiToFiatNumber,
@@ -41,7 +40,7 @@ const StakeInputView = () => {
 
   const [amount, setAmount] = useState('0');
   const [amountBN, setAmountBN] = useState<BN>(new BN(0));
-  const { balance, balanceBN } = useBalance();
+  const { balance, balanceBN, balanceFiatNumber } = useBalance();
 
   const isNonZeroAmount: boolean = amountBN.gt(new BN(0));
   const additionalFundsRequired = amountBN.sub(balanceBN || new BN(0));
@@ -157,12 +156,14 @@ const StakeInputView = () => {
         <View>
           {isOverMaximum ? (
             <Text variant={TextVariant.BodySM} color={TextColor.Error}>
-              Not enough ETH to complete this stake
+              Not enough ETH
             </Text>
           ) : (
             <Text variant={TextVariant.BodySM}>
               {'Balance : '}
-              {balance}
+              {isEth
+                ? `${balance} ETH`
+                : `${balanceFiatNumber?.toString()} ${currentCurrency.toUpperCase()}`}
             </Text>
           )}
         </View>
@@ -178,7 +179,7 @@ const StakeInputView = () => {
             onPress={handleCurrencySwitch}
             value={
               isEth
-                ? renderFiat(Number(fiatAmount), currentCurrency, 2)
+                ? `${fiatAmount} ${currentCurrency.toUpperCase()}`
                 : `${amount} ETH`
             }
           />

@@ -11,12 +11,14 @@ import {
   renderFromWei,
   toHexadecimal,
   weiToFiat,
+  weiToFiatNumber,
 } from '../../../../util/number';
 
 const defaultReturn = {
   balance: null,
   balanceFiat: null,
   balanceBN: null,
+  balanceFiatNumber: null,
 };
 
 export default function useBalance() {
@@ -25,7 +27,7 @@ export default function useBalance() {
   const selectedAddress = useSelector(
     selectSelectedInternalAccountChecksummedAddress,
   );
-  const conversionRate = useSelector(selectConversionRate);
+  const conversionRate = useSelector(selectConversionRate) || 1;
   const currentCurrency = useSelector(selectCurrentCurrency);
 
   if (!selectedAddress) {
@@ -40,6 +42,7 @@ export default function useBalance() {
     accountsByChainId[toHexadecimal(chainId)][selectedAddress].balance,
   );
   const balanceFiat = weiToFiat(balanceBN, conversionRate, currentCurrency);
+  const balanceFiatNumber = weiToFiatNumber(balanceBN, conversionRate, 2);
 
-  return { balance, balanceFiat, balanceBN };
+  return { balance, balanceFiat, balanceBN, balanceFiatNumber };
 }
