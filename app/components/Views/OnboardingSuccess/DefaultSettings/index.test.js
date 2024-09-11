@@ -39,7 +39,6 @@ describe('DefaultSettings', () => {
   });
 
   it('navigates back when back button is pressed', () => {
-    const { getByTestId } = render(<DefaultSettings />);
     const backButton = mockNavigation.setOptions.mock.calls[0][0].headerLeft();
     fireEvent.press(backButton);
     expect(mockNavigation.goBack).toHaveBeenCalled();

@@ -28,8 +28,6 @@ import { AvatarVariant } from '../../../../component-library/components/Avatars/
 import ipfsGateways from '../../../../util/ipfs-gateways.json';
 import { timeoutFetch } from '../../../../util/general';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
-import { selectUseTokenDetection } from '../../../../selectors/preferencesController';
-import { selectChainId } from '../../../../selectors/networkController';
 import Text, {
   TextVariant,
   TextColor,
@@ -50,8 +48,12 @@ import {
   selectShowIncomingTransactionNetworks,
   selectShowTestNetworks,
   selectIsMultiAccountBalancesEnabled,
+  selectUseTokenDetection,
 } from '../../../../selectors/preferencesController';
-import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import {
+  selectNetworkConfigurations,
+  selectChainId,
+} from '../../../../selectors/networkController';
 import {
   Gateway,
   NetworksI,
@@ -102,7 +104,7 @@ const AssetSettings = () => {
         <Icon name={IconName.ArrowLeft} size={IconSize.Lg} />
       </TouchableOpacity>
     ),
-    [navigation],
+    [navigation, styles.backButton],
   );
   const renderTitle = useCallback(
     () => (
@@ -359,6 +361,17 @@ const AssetSettings = () => {
     setOnlineIpfsGateways(sortedOnlineIpfsGateways);
   }, [isIpfsGatewayEnabled]);
 
+  const toggleEnableIncomingTransactions = (
+    hexChainId: EtherscanSupportedHexChainId,
+    value: boolean,
+  ) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setEnableNetworkIncomingTransactions(
+      hexChainId,
+      value,
+    );
+  };
+
   const renderShowIncomingTransactions = () => {
     const renderMainnet = () => {
       const { name: mainnetName, chainId } = Networks.mainnet;
@@ -426,17 +439,6 @@ const AssetSettings = () => {
             ios_backgroundColor={colors.border.muted}
           />
         </Cell>
-      );
-    };
-
-    const toggleEnableIncomingTransactions = (
-      hexChainId: EtherscanSupportedHexChainId,
-      value: boolean,
-    ) => {
-      const { PreferencesController } = Engine.context;
-      PreferencesController.setEnableNetworkIncomingTransactions(
-        hexChainId,
-        value,
       );
     };
 
