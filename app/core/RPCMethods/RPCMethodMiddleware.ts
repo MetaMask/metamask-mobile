@@ -444,11 +444,6 @@ export const getRpcMethodMiddleware = ({
         );
       },
       eth_getTransactionByBlockHashAndIndex: async () => {
-        /* eslint-disable no-console */
-        console.log(
-          'ALEX LOGGING: origin in eth_getTransactionByBlockHashAndIndex',
-          origin,
-        );
         res.result = await polyfillGasPrice(
           'getTransactionByBlockHashAndIndex',
           origin,
@@ -456,10 +451,6 @@ export const getRpcMethodMiddleware = ({
         );
       },
       eth_getTransactionByBlockNumberAndIndex: async () => {
-        console.log(
-          'ALEX LOGGING: origin in eth_getTransactionByBlockNumberAndIndex',
-          origin,
-        );
         res.result = await polyfillGasPrice(
           'getTransactionByBlockNumberAndIndex',
           origin,
@@ -468,11 +459,6 @@ export const getRpcMethodMiddleware = ({
       },
       eth_chainId: async () => {
         const networkProviderState = await getProviderState(origin);
-        console.log(
-          'ALEX LOGGING: in eth_chainId',
-          origin,
-          networkProviderState.chainId,
-        );
         res.result = networkProviderState.chainId;
       },
       eth_hashrate: () => {
