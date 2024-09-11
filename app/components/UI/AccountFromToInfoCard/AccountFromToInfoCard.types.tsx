@@ -27,4 +27,11 @@ export interface AccountFromToInfoCardProps {
   ticker?: string;
   transactionState: Transaction;
   layout?: string;
+  asset: SelectedAsset;
+  origin: string;
+  sdkDappMetadata?: {
+    url: string;
+    icon: string;
+  };
+  url: string;
 }

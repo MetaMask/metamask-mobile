@@ -261,6 +261,7 @@ export const getNetworkFees = async (
       baseFee,
       priorityFee,
       maxFeePerGas,
+      chainId,
     };
   } catch (error) {
     throw new Error(

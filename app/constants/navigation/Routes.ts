@@ -33,6 +33,7 @@ const Routes = {
   },
   LEDGER_MESSAGE_SIGN_MODAL: 'LedgerMessageSignModal',
   LEDGER_TRANSACTION_MODAL: 'LedgerTransactionModal',
+  OPTIONS_SHEET: 'OptionsSheet',
   QR_SCANNER: 'QRScanner',
   TRANSACTIONS_VIEW: 'TransactionsView',
   MODAL: {
@@ -104,6 +105,7 @@ const Routes = {
     SHOW_NFT_DISPLAY_MEDIA: 'ShowNftDisplayMedia',
     SHOW_TOKEN_ID: 'ShowTokenId',
     ORIGIN_SPAM_MODAL: 'OriginSpamModal',
+    TOOLTIP_MODAL: 'tooltipModal',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',

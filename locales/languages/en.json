@@ -499,6 +499,7 @@
     "address": "Token contract address",
     "decimal": "Token decimal",
     "network": "Network",
+    "network_fee": "Network fee",
     "lists": "Token Lists",
     "hide_cta": "Hide token",
     "options": {
@@ -710,9 +711,8 @@
     "suggest_transactions": "Suggest transactions to approve",
     "disconnect": "Disconnect",
     "disconnect_all": "Disconnect all",
-    "reconnect_notice": "If you disconnect your accounts from {{dappUrl}}, you’ll need to reconnect to use them again.",
+    "reconnect_notice": "If you disconnect from {{dappUrl}}, you’ll need to reconnect your accounts and networks to use this site again.",
     "disconnect_all_accounts": "Disconnect all accounts",
-    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
     "deceptive_site_ahead": "Deceptive site ahead",
     "deceptive_site_desc": "The site you’re trying to visit isn’t safe. Attackers may trick you into doing something dangerous.",
     "learn_more": "Learn more",
@@ -1365,6 +1365,7 @@
     "transaction_id": "Transaction ID",
     "alert": "ALERT",
     "amount": "Amount",
+    "details": "Details",
     "next": "Next",
     "back": "Back",
     "confirm": "Confirm",
@@ -1485,7 +1486,8 @@
     "hex_data_copied": "Hex data copied to clipboard",
     "invalid_recipient": "Invalid recipient",
     "invalid_recipient_description": "Check the address and make sure it's valid",
-    "swap_tokens": "Swap tokens"
+    "swap_tokens": "Swap tokens",
+    "fromWithColon": "From:"
   },
   "custom_gas": {
     "total": "Total",
@@ -1772,6 +1774,7 @@
     "continue": "Continue",
     "cancel": "Cancel",
     "approve": "Approve",
+    "update": "Update",
     "edit_network_details": "Edit network details",
     "malicious_network_warning": "A malicious network provider can lie about the state of the blockchain and record your network activity. Only add custom networks you trust.",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
@@ -1779,10 +1782,12 @@
     "additional_network_information_title": "Additional Networks Information",
     "network_warning_desc": "This network connection relies on third parties. This connection may be less reliable or enable third-parties to track activity.",
     "additonial_network_information_desc": "Some of these networks rely on third parties. The connections may be less reliable or enable third-parties to track activity.",
+    "connect_more_networks": "Connect more networks",
     "learn_more": "Learn more",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "Switch to network",
     "switch": "Switch",
+    "select_all": "Select all",
     "new_network": "New network added",
     "network_name": "{{networkName}} Network",
     "network_added": " is now available in the network selector.",
@@ -1799,7 +1804,8 @@
     "show_test_networks": "Show test networks",
     "deprecated_goerli": "Due to the protocol changes of Ethereum: Goerli test network may not work as reliably and will be deprecated soon.",
     "network_deprecated_title": "This network is deprecated",
-    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
+    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask.",
+    "edit_networks_title": "Edit networks"
   },
   "select": {
     "cancel": "Cancel",
@@ -2139,6 +2145,8 @@
     "success_withdrawal_title": "Withdrawal Complete!",
     "error_title": "Oops, something went wrong :/",
     "received_title": "You received {{amount}} {{assetType}}",
+    "default_message_title": "New transaction notification",
+    "default_message_description": "Tap to view this transaction",
     "received_payment_title": "Instant payment received",
     "pending_message": "Waiting for confirmation",
     "pending_deposit_message": "Waiting for deposit to complete",
@@ -2938,7 +2946,7 @@
   },
   "transaction_review_eip1559": {
     "estimated_gas_fee": "Estimated gas fee",
-    "suggested_gas_fee": "%{origin} suggested gas fee",
+    "network_fee": "Network fee",
     "max_fee": "Max fee",
     "total": "Total",
     "max_amount": "Max amount",
@@ -3208,7 +3216,13 @@
     "how_to_install_eth_webview_title": "How to install the Ethereum App",
     "nonce_too_low": "Nonce too low",
     "nonce_too_low_error": "The set nonce is too low",
-    "select_accounts": "Select an Account"
+    "select_accounts": "Select an account",
+    "select_hd_path": "Select HD Path",
+    "select_hd_path_description": "If you don't see the accounts you expect, try switching the HD path or current selected network.",
+    "ledger_live_path": "Ledger Live",
+    "ledger_legacy_path": "Legacy(MEW/MyCrypto)",
+    "ledger_bip44_path": "BIP44(e.g. MetaMask, Trezor)",
+    "ledger_legacy_label": " (legacy)"
   },
   "account_actions": {
     "edit_name": "Edit account name",
@@ -3311,6 +3325,23 @@
     "title": "We've noticed multiple requests"
   },
   "common": {
-    "please_wait": "Please wait"
+    "please_wait": "Please wait",
+    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
+    "disconnect": "Disconnect"
+  },
+  "staking": {
+    "your_earnings": "Your earnings",
+    "annual_rate": "Annual rate",
+    "lifetime_rewards": "Lifetime rewards",
+    "estimated_annual_earnings": "Est. annual earnings",
+    "accessibility_labels": {
+      "stake_annual_rate_tooltip": "Annual rate tooltip"
+    }
+  },
+  "tooltip_modal": {
+    "reward_rate": {
+      "title": "Reward rate",
+      "tooltip": "Expected yearly increase in the value of your stake, based on the reward rate over the past week."
+    }
   }
 }

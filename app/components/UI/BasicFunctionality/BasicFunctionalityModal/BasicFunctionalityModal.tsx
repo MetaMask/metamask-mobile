@@ -30,7 +30,9 @@ import {
   asyncAlert,
   requestPushNotificationsPermission,
 } from '../../../../util/notifications';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
+import { useMetrics } from '../../../hooks/useMetrics';
 
 interface Props {
   route: {
@@ -41,6 +43,7 @@ interface Props {
 }
 
 const BasicFunctionalityModal = ({ route }: Props) => {
+  const { trackEvent } = useMetrics();
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -68,9 +71,14 @@ const BasicFunctionalityModal = ({ route }: Props) => {
   }, [enableNotifications]);
 
   const closeBottomSheet = async () => {
-    bottomSheetRef.current?.onCloseBottomSheet(() =>
-      dispatch(toggleBasicFunctionality(!isEnabled)),
-    );
+    bottomSheetRef.current?.onCloseBottomSheet(() => {
+      dispatch(toggleBasicFunctionality(!isEnabled));
+      trackEvent(
+        !isEnabled
+          ? MetaMetricsEvents.BASIC_FUNCTIONALITY_ENABLED
+          : MetaMetricsEvents.BASIC_FUNCTIONALITY_DISABLED,
+      );
+    });
 
     if (
       route.params.caller === Routes.SETTINGS.NOTIFICATIONS ||
