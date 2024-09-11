@@ -61,6 +61,7 @@ export default class Root extends PureComponent {
       await this.waitForStore();
       this.setState({ isLoading: false });
     }
+    SplashScreen.hide();
   }
 
   render() {
@@ -68,7 +69,6 @@ export default class Root extends PureComponent {
     if (isTest && isLoading) {
       return null;
     }
-    SplashScreen.hide();
 
     return (
       <Provider store={store}>

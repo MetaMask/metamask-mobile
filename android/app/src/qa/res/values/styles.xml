@@ -11,7 +11,7 @@
 	</style>
 
 	<style name="SplashTheme" parent="Theme.AppCompat.DayNight">
-		<item name="android:windowBackground">@drawable/background_splash</item>
+		<item name="android:windowBackground">@drawable/fox</item>
 		<item name="android:statusBarColor">@color/theme</item>
 		<item name="android:navigationBarColor">@color/navBar</item>
 		<item name="android:windowLightStatusBar">@bool/useLightStatusBar</item>

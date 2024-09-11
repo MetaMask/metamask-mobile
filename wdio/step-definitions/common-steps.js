@@ -28,10 +28,6 @@ Given(/^the app displayed the splash animation$/, async () => {
   await WelcomeScreen.isScreenDisplayed();
 });
 
-Given(/^the splash animation disappears$/, async () => {
-  await WelcomeScreen.waitForSplashAnimationToNotExit();
-});
-
 Then(/^Terms of Use is displayed$/, async () => {
   await TermOfUseScreen.isDisplayed();
   await TermOfUseScreen.textIsDisplayed();
@@ -80,7 +76,6 @@ Given(/^I have imported my wallet$/, async () => {
 Given(/^I create a new wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
 
-  await WelcomeScreen.waitForSplashAnimationToDisplay();
   await WelcomeScreen.waitForScreenToDisplay();
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
@@ -301,9 +296,6 @@ Then(/^removed test app$/, async () => {
   }
 });
 
-Given(/^the splash animation completes$/, async () => {
-  await WelcomeScreen.waitForSplashAnimationToComplete();
-});
 
 Then(/^I am on the "([^"]*)" account$/, async (accountName) => {
   await CommonScreen.isTextDisplayed(accountName)

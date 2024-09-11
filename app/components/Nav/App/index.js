@@ -29,7 +29,6 @@ import ImportFromSecretRecoveryPhrase from '../../Views/ImportFromSecretRecovery
 import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
-import MetaMaskAnimation from '../../UI/MetaMaskAnimation';
 import SimpleWebview from '../../Views/SimpleWebview';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import branch from 'react-native-branch';
@@ -313,7 +312,6 @@ const App = ({ userLoggedIn }) => {
   const prevNavigator = useRef(navigator);
   const [route, setRoute] = useState();
   const queueOfHandleDeeplinkFunctions = useRef([]);
-  const [animationPlayed, setAnimationPlayed] = useState(false);
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
@@ -556,31 +554,6 @@ const App = ({ userLoggedIn }) => {
       setNavigator(ref);
       NavigationService.setNavigationRef(ref);
     }
-  };
-
-  const onAnimationFinished = useCallback(() => {
-    Animated.timing(opacity, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-      isInteraction: false,
-    }).start(() => {
-      setAnimationPlayed(true);
-    });
-  }, [opacity]);
-
-  const renderSplash = () => {
-    if (!animationPlayed) {
-      return (
-        <MetaMaskAnimation
-          animationRef={animationRef}
-          animationName={animationNameRef}
-          opacity={opacity}
-          onAnimationFinish={onAnimationFinished}
-        />
-      );
-    }
-    return null;
   };
 
   const DetectedTokensFlow = () => (
