@@ -13,12 +13,29 @@ import { CellModalSelectorsIDs } from '../../../../../../../e2e/selectors/Modals
 import styleSheet from './CellDisplay.styles';
 import { CellDisplayProps } from './CellDisplay.types';
 
-const CellDisplay = ({ style, ...props }: CellDisplayProps) => {
+const CellDisplay = ({
+  style,
+  avatarProps,
+  title,
+  secondaryText,
+  tertiaryText,
+  tagLabel,
+  children,
+  ...props
+}: CellDisplayProps) => {
   const { styles } = useStyles(styleSheet, { style });
 
   return (
     <Card style={styles.base} testID={CellModalSelectorsIDs.DISPLAY} {...props}>
-      <CellBase {...props} />
+      <CellBase
+        avatarProps={avatarProps}
+        title={title}
+        secondaryText={secondaryText}
+        tertiaryText={tertiaryText}
+        tagLabel={tagLabel}
+      >
+        {children}
+      </CellBase>
     </Card>
   );
 };
