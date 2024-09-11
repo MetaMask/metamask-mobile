@@ -384,7 +384,6 @@ const NetworkSelector = () => {
             imageSource: images.ETHEREUM,
             size: AvatarSize.Sm,
           }}
-          // TODO ALEX what is the `&& !providerConfig.rpcUrl` condition doing here?
           isSelected={chainId === selectedChainId && !providerConfig.rpcUrl}
           onPress={() => onNetworkChange(MAINNET)}
           style={styles.networkCell}
