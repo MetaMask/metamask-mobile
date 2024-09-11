@@ -59,8 +59,8 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
     await Tenderly.addFunds(
       CustomNetworks.Tenderly.providerConfig.rpcUrl,
       wallet.address,
-      '0xDE0B6B3A7640000',
-    ); // 1 ETH
+      '0xDE0B6B3A7640000', // 1 ETH
+    );
 
     await WalletView.tapIdenticon();
     await Assertions.checkIfVisible(AccountListView.accountList);

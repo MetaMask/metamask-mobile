@@ -55,12 +55,12 @@ describe(SmokeSwaps('Swap from Actions'), () => {
   });
 
   it('should be able to import account', async () => {
-    const TenderlyNetwork = new Tenderly(
-      CustomNetworks.Tenderly.providerConfig.chainId,
-      CustomNetworks.Tenderly.providerConfig.rpcUrl,
-    );
     const wallet = ethers.Wallet.createRandom();
-    await TenderlyNetwork.addFunds(wallet.address, '0xDE0B6B3A7640000'); // 1 ETH
+    await Tenderly.addFunds(
+      CustomNetworks.Tenderly.providerConfig.rpcUrl,
+      wallet.address,
+      '0xDE0B6B3A7640000', // 1 ETH
+    );
 
     await WalletView.tapIdenticon();
     await Assertions.checkIfVisible(AccountListView.accountList);
