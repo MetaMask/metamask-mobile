@@ -95,11 +95,11 @@ describe('Engine', () => {
     });
   });
 
-  it("updates datamodel state when a controller's state is updated", async () => {
+  it("updates datamodel state when a controller's state is updated", () => {
     const engine = Engine.init({});
 
     expect(
-      await engine.controllerMessenger.call('LoggingController:add', {
+      engine.controllerMessenger.call('LoggingController:add', {
         type: LogType.GenericLog,
         data: `Generic log`,
       }),
