@@ -1,5 +1,7 @@
 import { Web3Provider } from '@ethersproject/providers';
 import { toHex } from '@metamask/controller-utils';
+import '@formatjs/intl-relativetimeformat/polyfill';
+import '@formatjs/intl-relativetimeformat/locale-data/en';
 import BigNumber from 'bignumber.js';
 import { NotificationServicesController } from '@metamask/notification-services-controller';
 
