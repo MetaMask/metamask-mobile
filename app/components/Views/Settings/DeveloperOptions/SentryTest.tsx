@@ -12,6 +12,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 import { trace, TraceName } from '../../../../util/trace';
+import { sleep } from '../../../../util/testUtils';
 
 function GenerateTrace() {
   const theme = useTheme();
@@ -19,9 +20,6 @@ function GenerateTrace() {
   const styles = createStyles(colors);
 
   const handleGenerateTraceTest = useCallback(async () => {
-    const sleep = (ms: number) =>
-      new Promise((resolve) => setTimeout(resolve, ms));
-
     await trace(
       {
         name: TraceName.DeveloperTest,
