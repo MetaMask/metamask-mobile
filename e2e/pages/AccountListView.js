@@ -6,6 +6,7 @@ import {
 import { ConnectAccountModalSelectorsIDs } from '../selectors/Modals/ConnectAccountModal.selectors';
 import Matchers from '../utils/Matchers';
 import Gestures from '../utils/Gestures';
+import Assertions from '../utils/Assertions';
 
 class AccountListView {
   get accountList() {
@@ -74,6 +75,7 @@ class AccountListView {
 
   async swipeToDismissAccountsModal() {
     await Gestures.swipe(this.title, 'down', 'fast', 0.6);
+    await Assertions.checkIfNotVisible(this.title);
   }
 
   async tapYesToRemoveImportedAccountAlertButton() {
