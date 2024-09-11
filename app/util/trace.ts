@@ -5,7 +5,7 @@ import {
 } from '@sentry/react-native';
 import performance from 'react-native-performance';
 import type { Primitive, Span, StartSpanOptions } from '@sentry/types';
-import Logger from '../../util/Logger';
+import Logger from './Logger';
 
 export enum TraceName {
   DeveloperTest = 'Developer Test',
