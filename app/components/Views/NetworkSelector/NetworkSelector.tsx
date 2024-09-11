@@ -618,6 +618,7 @@ const NetworkSelector = () => {
             searchString.length > 0 ? filteredNetworks : undefined
           }
           showCompletionMessage={false}
+          showPopularNetworkModal
           hideWarningIcons
         />
       </View>
