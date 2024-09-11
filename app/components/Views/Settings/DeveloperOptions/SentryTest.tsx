@@ -5,7 +5,6 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import createStyles from './DeveloperOptions.styles';
 import Button, {
   ButtonVariants,
   ButtonSize,
