@@ -1,8 +1,7 @@
 import React, { useCallback, useLayoutEffect } from 'react';
-import { ScrollView, TouchableOpacity, Linking } from 'react-native';
+import { ScrollView, TouchableOpacity } from 'react-native';
 import Text, {
   TextVariant,
-  TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import Icon, {
   IconSize,
@@ -13,7 +12,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
 import ManageNetworksComponent from '../../../UI/ManageNetworks/ManageNetworks';
-import AppConstants from '../../../../core/AppConstants';
 import styles from './index.styles';
 import ProfileSyncingComponent from '../../../../components/UI/ProfileSyncing/ProfileSyncing';
 import { useSelector } from 'react-redux';
@@ -60,10 +58,6 @@ const GeneralSettings = () => {
     });
   };
 
-  const handleLink = () => {
-    Linking.openURL(AppConstants.URLS.PRIVACY_BEST_PRACTICES);
-  };
-
   const toggleProfileSyncing = async () => {
     if (isProfileSyncingEnabled) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -76,13 +70,6 @@ const GeneralSettings = () => {
 
   return (
     <ScrollView style={styles.root}>
-      <Text variant={TextVariant.BodyMD}>
-        {strings('default_settings.description')}
-        <Text color={TextColor.Info} onPress={handleLink}>
-          {' '}
-          {strings('default_settings.learn_more_about_privacy')}
-        </Text>
-      </Text>
       <BasicFunctionalityComponent handleSwitchToggle={handleSwitchToggle} />
       <ProfileSyncingComponent
         handleSwitchToggle={toggleProfileSyncing}

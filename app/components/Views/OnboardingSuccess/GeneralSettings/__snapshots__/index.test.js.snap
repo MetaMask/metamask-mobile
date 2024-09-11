@@ -11,38 +11,6 @@ exports[`GeneralSettings should render correctly 1`] = `
   }
 >
   <View>
-    <Text
-      accessibilityRole="text"
-      style={
-        {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
-          "fontWeight": "400",
-          "letterSpacing": 0,
-          "lineHeight": 22,
-        }
-      }
-    >
-      MetaMask uses default settings to best balance safety and ease of use. Change these settings to further increase your privacy.
-      <Text
-        accessibilityRole="text"
-        onPress={[Function]}
-        style={
-          {
-            "color": "#0376c9",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
-            "fontWeight": "400",
-            "letterSpacing": 0,
-            "lineHeight": 22,
-          }
-        }
-      >
-         
-        Learn more about privacy best practices.
-      </Text>
-    </Text>
     <View
       style={
         {

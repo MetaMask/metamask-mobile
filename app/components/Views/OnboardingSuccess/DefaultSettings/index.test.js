@@ -4,11 +4,15 @@ import DefaultSettings from './';
 import { strings } from '../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
+import { Linking } from 'react-native';
+import AppConstants from '../../../../core/AppConstants';
 
+// Mock the react-navigation hook
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
+// Mock the Linking API
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(),
 }));
@@ -24,11 +28,9 @@ describe('DefaultSettings', () => {
     useNavigation.mockReturnValue(mockNavigation);
   });
 
-  it('renders correctly', () => {
-    const { getByText } = render(<DefaultSettings />);
-    expect(
-      getByText(strings('default_settings.description'), { exact: false }),
-    ).toBeTruthy();
+  it('should render correctly', () => {
+    const tree = render(<DefaultSettings />).toJSON();
+    expect(tree).toMatchSnapshot();
   });
 
   it('sets navigation options', () => {
@@ -38,7 +40,7 @@ describe('DefaultSettings', () => {
 
   it('navigates back when back button is pressed', () => {
     const { getByTestId } = render(<DefaultSettings />);
-    const backButton = getByTestId('back-button');
+    const backButton = mockNavigation.setOptions.mock.calls[0][0].headerLeft();
     fireEvent.press(backButton);
     expect(mockNavigation.goBack).toHaveBeenCalled();
   });
