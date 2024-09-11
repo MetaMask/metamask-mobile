@@ -59,6 +59,7 @@ export function formatMenuItemDate(date?: Date) {
   if (!date) {
     return strings('notifications.no_date');
   }
+
   const currentDate = new Date();
 
   // E.g. 12:21
