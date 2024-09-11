@@ -66,7 +66,7 @@ describe(SmokeCore('Mock suggestedGasApi fallback to legacy when EIP1559 endpoin
         await SendView.tapNextButton();
         await AmountView.typeInTransactionAmount(AMOUNT);
         await AmountView.tapNextButton();
-        await TransactionConfirmView.tapEstimatedGasLink();
+        await TransactionConfirmView.tapEstimatedGasLink(1);
         await Assertions.checkIfVisible(
           TransactionConfirmView.editPriorityModal,
         );
