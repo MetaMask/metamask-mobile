@@ -622,9 +622,7 @@ class Engine {
       ).configuration.chainId,
       config: {
         // @ts-expect-error TODO: Resolve mismatch between network-controller versions.
-        provider: networkController.getNetworkClientById(
-          networkController?.state.selectedNetworkClientId,
-        ).configuration,
+        provider: networkController.getProviderAndBlockTracker().provider,
         chainId: networkController.getNetworkClientById(
           networkController?.state.selectedNetworkClientId,
         ).configuration.chainId,
@@ -1230,9 +1228,7 @@ class Engine {
         isResubmitEnabled: () => false,
       },
       // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
-      provider: networkController.getNetworkClientById(
-        networkController?.state.selectedNetworkClientId,
-      ).configuration,
+      provider: networkController.getProviderAndBlockTracker().provider,
       sign: keyringController.signTransaction.bind(
         keyringController,
       ) as unknown as TransactionControllerOptions['sign'],
