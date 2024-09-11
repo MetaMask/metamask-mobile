@@ -60,3 +60,6 @@ patches/react-native+0.*.patch       @MetaMask/supply-chain
 # Snaps Team
 **/snaps/**                          @MetaMask/snaps-devs
 **/Snaps/**                          @MetaMask/snaps-devs
+
+# Wallet API Platform Team
+ app/core/RPCMethods/                @MetaMask/wallet-api-platform-engineers
