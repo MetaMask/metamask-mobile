@@ -5,7 +5,7 @@ import renderWithProvider, {
 } from '../../../../../util/test/renderWithProvider';
 import ApproveTransactionHeader from '.';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { APPROVE_TRANSACTION_ORIGIN_PILL } from './ApproveTransactionHeader.constants';
+import { APPROVAL_TAG_URL_ORIGIN_PILL } from '../../../../UI/ApprovalTagUrl';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../../../reducers';
 
@@ -148,7 +148,7 @@ describe('ApproveTransactionHeader', () => {
       { state: mockInitialState },
     );
 
-    const originPill = queryByTestId(APPROVE_TRANSACTION_ORIGIN_PILL);
+    const originPill = queryByTestId(APPROVAL_TAG_URL_ORIGIN_PILL);
     expect(originPill).toBeNull();
   });
 });
