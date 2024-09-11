@@ -14,24 +14,27 @@ export const selectSnaps = createSelector(
 
 export const selectSnapsMetadata = createDeepEqualSelector(
   selectSnaps,
-  (snaps) =>
-    Object.values(snaps).reduce<
-      Record<string, { name: string; description: string }>
-    >((snapsMetadata, snap) => {
-      const snapId = snap.id;
-      const manifest = snap.localizationFiles
-        ? getLocalizedSnapManifest(
-            snap.manifest,
-            // TODO: Use actual locale here.
-            'en',
-            snap.localizationFiles,
-          )
-        : snap.manifest;
+  (snaps) => {
+    if (snaps) {
+      return Object.values(snaps).reduce<
+        Record<string, { name: string; description: string }>
+      >((snapsMetadata, snap) => {
+        const snapId = snap.id;
+        const manifest = snap.localizationFiles
+          ? getLocalizedSnapManifest(
+              snap.manifest,
+              // TODO: Use actual locale here.
+              'en',
+              snap.localizationFiles,
+            )
+          : snap.manifest;
 
-      snapsMetadata[snapId] = {
-        name: manifest.proposedName,
-        description: manifest.description,
-      };
-      return snapsMetadata;
-    }, {}),
+        snapsMetadata[snapId] = {
+          name: manifest.proposedName,
+          description: manifest.description,
+        };
+        return snapsMetadata;
+      }, {});
+    }
+  },
 );
