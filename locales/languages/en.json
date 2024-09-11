@@ -2149,6 +2149,8 @@
     "success_withdrawal_title": "Withdrawal Complete!",
     "error_title": "Oops, something went wrong :/",
     "received_title": "You received {{amount}} {{assetType}}",
+    "default_message_title": "New transaction notification",
+    "default_message_description": "Tap to view this transaction",
     "received_payment_title": "Instant payment received",
     "pending_message": "Waiting for confirmation",
     "pending_deposit_message": "Waiting for deposit to complete",
