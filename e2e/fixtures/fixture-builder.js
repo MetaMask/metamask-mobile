@@ -723,32 +723,57 @@ class FixtureBuilder {
   withGanacheNetwork() {
     const fixtures = this.fixture.state.engine.backgroundState;
 
-    fixtures.NetworkController = {
-      isCustomNetwork: true,
-      providerConfig: {
-        type: 'rpc',
-        chainId: '0x539',
-        rpcUrl: `http://localhost:${getGanachePort()}`,
-        nickname: 'Localhost',
-        ticker: 'ETH',
-      },
+    // Generate a unique key for the new network configuration
+    const newNetworkId = `networkId${
+      Object.keys(fixtures.NetworkController.networkConfigurations).length + 1
+    }`;
+
+    // Add the new Ganache network configuration
+    fixtures.NetworkController.networkConfigurations[newNetworkId] = {
+      id: newNetworkId,
+      rpcUrl: `http://localhost:${getGanachePort()}`,
+      chainId: '0x539',
+      ticker: 'ETH',
+      nickname: 'Localhost',
+      type: 'rpc',
     };
+
+    // Update selectedNetworkClientId to the new network configuration ID
+    fixtures.NetworkController.selectedNetworkClientId = newNetworkId;
+
+    // Set isCustomNetwork to true
+    fixtures.NetworkController.isCustomNetwork = true;
+
     return this;
   }
 
   withSepoliaNetwork() {
     const fixtures = this.fixture.state.engine.backgroundState;
 
-    fixtures.NetworkController = {
-      isCustomNetwork: true,
-      providerConfig: {
-        type: 'rpc',
-        chainId: CustomNetworks.Sepolia.providerConfig.chainId,
-        rpcUrl: CustomNetworks.Sepolia.providerConfig.rpcTarget,
-        nickname: CustomNetworks.Sepolia.providerConfig.nickname,
-        ticker: CustomNetworks.Sepolia.providerConfig.ticker,
-      },
+    // Extract Sepolia network configuration from CustomNetworks
+    const sepoliaConfig = CustomNetworks.Sepolia.providerConfig;
+
+    // Generate a unique key for the new network configuration
+    const newNetworkId = `networkId${
+      Object.keys(fixtures.NetworkController.networkConfigurations).length + 1
+    }`;
+
+    // Add the new Sepolia network configuration
+    fixtures.NetworkController.networkConfigurations[newNetworkId] = {
+      id: newNetworkId,
+      rpcUrl: sepoliaConfig.rpcTarget,
+      chainId: sepoliaConfig.chainId,
+      ticker: sepoliaConfig.ticker,
+      nickname: sepoliaConfig.nickname,
+      type: sepoliaConfig.type,
     };
+
+    // Update selectedNetworkClientId to the new network configuration ID
+    fixtures.NetworkController.selectedNetworkClientId = newNetworkId;
+
+    // Set isCustomNetwork to true
+    fixtures.NetworkController.isCustomNetwork = true;
+
     return this;
   }
 
