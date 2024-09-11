@@ -88,8 +88,8 @@ class TransactionConfirmationView {
   async tapEstimatedGasLink(index = 0) {
     await Gestures.swipe(this.transactionAmount, 'up', 'fast');
 
-    if (index !== 0) {
-      await Gestures.waitAndTap(this.estimatedGasLink);
+    if (index == 0) {
+      await Gestures.waitAndTap(this.estimatedGasLink, 30000);
     } else {
       await Gestures.TapAtIndex(this.estimatedGasLink, index);
     }
