@@ -88,12 +88,12 @@ export const useSwapConfirmedEvent = ({ trackSwaps }) => {
 
   const addTransactionMetaIdForListening = useCallback(
     (txMetaId) => {
-      setTransactionMetaIdsForListening([
+      setTransactionMetaIdsForListening((transactionMetaIdsForListening) => [
         ...transactionMetaIdsForListening,
         txMetaId,
       ]);
     },
-    [transactionMetaIdsForListening],
+    [],
   );
   const swapsTransactions = useSwapsTransactions();
 
