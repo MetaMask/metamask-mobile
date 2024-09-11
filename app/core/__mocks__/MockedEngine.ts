@@ -34,11 +34,14 @@ export const mockedEngine = {
       },
     },
     NetworkController: {
-      getNetworkClientById: () => ({
-        configuration: {
-          chainId: '0x1',
-        },
-      }),
+      // getNetworkClientById: (args) => {
+      //   console.log('ARGS --------', args);
+      //   return {
+      //     configuration: {
+      //       chainId: '0x1',
+      //     },
+      //   };
+      // },
       state: {
         ...mockNetworkStateOld({
           chainId: CHAIN_IDS.MAINNET,

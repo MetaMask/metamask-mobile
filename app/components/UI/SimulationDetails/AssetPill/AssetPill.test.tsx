@@ -7,7 +7,6 @@ import {
   selectTicker,
 } from '../../../../selectors/networkController';
 import { AssetType, AssetIdentifier } from '../types';
-import mockedEngine from '../../../../core/__mocks__/MockedEngine';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -21,10 +20,6 @@ jest.mock(
 jest.mock('../../Name/Name', () => 'Name');
 jest.mock('../../../hooks/useStyles', () => ({
   useStyles: () => ({ styles: {} }),
-}));
-
-jest.mock('../../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
 }));
 
 describe('AssetPill', () => {

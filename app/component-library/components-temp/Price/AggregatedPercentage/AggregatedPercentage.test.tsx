@@ -3,16 +3,11 @@ import { render } from '@testing-library/react-native';
 import AggregatedPercentage from './AggregatedPercentage';
 import { mockTheme } from '../../../../util/theme';
 import { useSelector } from 'react-redux';
-import mockedEngine from '../../../../core/__mocks__/MockedEngine';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
-}));
-
-jest.mock('../../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
 }));
 
 describe('AggregatedPercentage', () => {

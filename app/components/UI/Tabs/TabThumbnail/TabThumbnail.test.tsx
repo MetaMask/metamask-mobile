@@ -3,7 +3,6 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import TabThumbnail from './TabThumbnail';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
-import mockedEngine from '../../../../core/__mocks__/MockedEngine';
 
 const mockInitialState = {
   wizard: {
@@ -16,10 +15,6 @@ const mockInitialState = {
     },
   },
 };
-
-jest.mock('../../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
 
 describe('TabThumbnail', () => {
   it('should render correctly', () => {

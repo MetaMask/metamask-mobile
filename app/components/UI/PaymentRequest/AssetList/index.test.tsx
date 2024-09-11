@@ -4,7 +4,6 @@ import AssetList from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import mockedEngine from '../../../../core/__mocks__/MockedEngine';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -13,10 +12,6 @@ const initialState = {
   },
 };
 const store = mockStore(initialState);
-
-jest.mock('../../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
 
 describe('AssetList', () => {
   it('should render correctly', () => {

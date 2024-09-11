@@ -321,10 +321,30 @@ require('react-native-reanimated/lib/module/reanimated2/jestUtils').setUpTests()
 global.__reanimatedWorkletInit = jest.fn();
 global.__DEV__ = false;
 
-jest.mock(
-  '../../core/Engine',
-  () => require('../../core/__mocks__/MockedEngine').default,
-);
+// Import the mocked engine
+const mockedEngine = require('../../core/__mocks__/MockedEngine').default;
+
+// Mock the entire module and provide specific implementations
+jest.mock('../../core/Engine', () => {
+  const originalModule = jest.requireActual('../../core/Engine');
+  return {
+    ...originalModule,
+    default: mockedEngine,
+    init: () => mockedEngine.init(),
+    context: {
+      NetworkController: {
+        getNetworkClientById: (args) => {
+          console.log('ARGS --------', args);
+          return {
+            configuration: {
+              chainId: '0x1',
+            },
+          };
+        },
+      },
+    },
+  };
+});
 
 afterEach(() => {
   jest.restoreAllMocks();

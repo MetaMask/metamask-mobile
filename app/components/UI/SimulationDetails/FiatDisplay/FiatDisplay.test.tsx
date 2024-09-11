@@ -7,13 +7,8 @@ import { IndividualFiatDisplay, TotalFiatDisplay } from './FiatDisplay';
 import { FIAT_UNAVAILABLE } from '../types';
 import useFiatFormatter from './useFiatFormatter';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
-import mockedEngine from '../../../../core/__mocks__/MockedEngine';
 
 jest.mock('./useFiatFormatter');
-
-jest.mock('../../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
 
 const mockInitialState = {
   engine: {

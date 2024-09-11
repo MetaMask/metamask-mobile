@@ -1,11 +1,6 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 import TokenIcon from './TokenIcon';
-import mockedEngine from '../../../../core/__mocks__/MockedEngine';
-
-jest.mock('../../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
 
 describe('TokenIcon component', () => {
   it('should Render correctly', () => {

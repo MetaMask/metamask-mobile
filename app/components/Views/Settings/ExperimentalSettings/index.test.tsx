@@ -7,7 +7,6 @@ import { render } from '@testing-library/react-native';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
 import ExperimentalSettings from './';
-import mockedEngine from '../../../../core/__mocks__/MockedEngine';
 
 const mockStore = configureMockStore();
 
@@ -23,10 +22,6 @@ const initialState = {
 const store = mockStore(initialState);
 
 const setOptions = jest.fn();
-
-jest.mock('../../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
 
 describe('ExperimentalSettings', () => {
   it('should render correctly', () => {

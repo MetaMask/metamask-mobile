@@ -7,7 +7,6 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
-import mockedEngine from '../../../../core/__mocks__/MockedEngine';
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -28,10 +27,6 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
-}));
-
-jest.mock('../../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
 }));
 
 const mockNetworkName = 'Ethereum Main Network';

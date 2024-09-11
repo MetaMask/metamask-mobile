@@ -46,21 +46,21 @@ jest.mock('react-redux', () => ({
 const mockedGetNetworkClientById = jest.fn();
 
 // Mock the Engine context and NetworkController
-jest.mock('../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-  context: {
-    NetworkController: {
-      getNetworkClientById: () => ({
-        configuration: {
-          chainId: '0xe704',
-          rpcUrl: 'https://linea-goerli.infura.io/v3',
-          ticker: 'LINEA',
-          type: 'custom',
-        },
-      }),
-    },
-  },
-}));
+// jest.mock('../../core/Engine', () => ({
+//   init: () => mockedEngine.init(),
+//   context: {
+//     NetworkController: {
+//       getNetworkClientById: () => ({
+//         configuration: {
+//           chainId: '0xe704',
+//           rpcUrl: 'https://linea-goerli.infura.io/v3',
+//           ticker: 'LINEA',
+//           type: 'custom',
+//         },
+//       }),
+//     },
+//   },
+// }));
 
 const mockedNavigate = jest.fn();
 

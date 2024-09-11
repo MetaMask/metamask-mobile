@@ -6,7 +6,6 @@ import renderWithProvider, {
 } from '../../../../util/test/renderWithProvider';
 import SDKSessionAccountListItem from './SDKSessionAccountListItem';
 import { RootState } from '../../../../reducers';
-import mockedEngine from '../../../../core/__mocks__/MockedEngine';
 
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
@@ -44,10 +43,6 @@ const mockInitialState: DeepPartial<RootState> = {
     },
   },
 };
-
-jest.mock('../../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
 
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: jest.fn(),

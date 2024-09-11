@@ -9,7 +9,6 @@ import initialBackgroundState from '../../../../util/test/initial-background-sta
 
 import SVG_ETH_LOGO_PATH from '../../../../component-library/components/Icons/Icon/assets/ethereum.svg';
 import type { RootState } from '../../../../reducers';
-import mockedEngine from '../../../../core/__mocks__/MockedEngine';
 
 Linking.openURL = jest.fn(() => Promise.resolve('opened https://metamask.io!'));
 
@@ -20,10 +19,6 @@ const mockInitialState = {
     },
   },
 } as unknown as RootState;
-
-jest.mock('../../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
 
 describe('NotificationIcon', () => {
   const walletNotification = {
