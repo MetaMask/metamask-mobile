@@ -22828,7 +22828,7 @@ mockery@^2.1.0:
   resolved "https://registry.yarnpkg.com/mockery/-/mockery-2.1.0.tgz#5b0aef1ff564f0f8139445e165536c7909713470"
   integrity sha512-9VkOmxKlWXoDO/h1jDZaS4lH33aWfRiJiNT/tKj+8OGzrcFDLo8d0syGdbsc3Bc4GvRXPb+NMMvojotmuGJTvA==
 
-mockttp@3.15.2:
+mockttp@^3.15.2:
   version "3.15.2"
   resolved "https://registry.yarnpkg.com/mockttp/-/mockttp-3.15.2.tgz#4850ab8c4803e610635bb1e0a6158acaa8c73fdb"
   integrity sha512-/zvEHam3SiHX0uIbtoJsqe85SMYHq5x4Tqgl0E5rBrI7D714UhS+rCU+q6Q3fMWI+NlDyW2xJ3lploJ4cwI/Vg==
