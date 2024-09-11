@@ -52,12 +52,12 @@ import {
   isApprovalTransaction,
 } from '../../../../../util/transactions';
 import AccountFromToInfoCard from '../../../../UI/AccountFromToInfoCard';
+import ApprovalTagUrl from '../../../../UI/ApprovalTagUrl';
 import ActionView, { ConfirmButtonState } from '../../../../UI/ActionView';
 import QRSigningDetails from '../../../../UI/QRHardware/QRSigningDetails';
 import withQRHardwareAwareness from '../../../../UI/QRHardware/withQRHardwareAwareness';
 import SimulationDetails from '../../../../UI/SimulationDetails/SimulationDetails';
 import TransactionHeader from '../../../../UI/TransactionHeader';
-import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
 import TransactionReviewData from './TransactionReviewData';
@@ -85,10 +85,10 @@ const createStyles = (colors) =>
       ...fontStyles.bold,
     },
     actionViewWrapper: {
-      height: Device.isMediumDevice() ? 470 : 550,
+      height: Device.isMediumDevice() ? 590 : 670,
     },
     actionViewChildren: {
-      height: Device.isMediumDevice() ? 390 : 470,
+      height: Device.isMediumDevice() ? 510 : 590,
     },
     accountTransactionWrapper: {
       flex: 1,
@@ -108,19 +108,19 @@ const createStyles = (colors) =>
       opacity: 0,
       height: 0,
     },
-    accountWrapper: {
-      marginTop: -24,
-      marginBottom: 24,
-    },
     blockaidWarning: {
-      marginBottom: 10,
-      marginTop: 20,
-      marginHorizontal: 10,
+      marginBottom: 0,
+      marginTop: 0,
+      marginHorizontal: 0,
     },
     transactionSimulations: {
       marginLeft: 24,
       marginRight: 24,
       marginBottom: 24,
+    },
+    blockAidBannerContainer: {
+      marginHorizontal: 16,
+      marginBottom: -8,
     },
   });
 
@@ -544,16 +544,6 @@ class TransactionReview extends PureComponent {
             -Device.getDeviceWidth(),
           ])}
         >
-          {from && (
-            <ApproveTransactionHeader
-              currentEnsName={ensRecipient}
-              origin={origin}
-              url={url}
-              from={from}
-              asset={transaction?.selectedAsset}
-              sdkDappMetadata={sdkDappMetadata}
-            />
-          )}
           <View style={styles.actionViewWrapper}>
             <ActionView
               confirmButtonMode="confirm"
@@ -572,11 +562,28 @@ class TransactionReview extends PureComponent {
                     style={styles.accountTransactionWrapper}
                     onStartShouldSetResponder={() => true}
                   >
-                    <TransactionBlockaidBanner
-                      transactionId={transactionId}
-                      style={styles.blockaidWarning}
-                      onContactUsClicked={this.onContactUsClicked}
+                    <ApprovalTagUrl
+                      currentEnsName={ensRecipient}
+                      from={from}
+                      origin={origin}
+                      sdkDappMetadata={sdkDappMetadata}
+                      url={url}
                     />
+                    <View style={styles.blockAidBannerContainer}>
+                      <TransactionBlockaidBanner
+                        transactionId={transactionId}
+                        style={styles.blockaidWarning}
+                        onContactUsClicked={this.onContactUsClicked}
+                      />
+                    </View>
+                    {to && (
+                      <View style={styles.accountWrapper}>
+                        <AccountFromToInfoCard
+                          transactionState={transaction}
+                          layout="vertical"
+                        />
+                      </View>
+                    )}
                     <TransactionReviewSummary
                       actionKey={actionKey}
                       assetAmount={assetAmount}
@@ -586,14 +593,6 @@ class TransactionReview extends PureComponent {
                       primaryCurrency={primaryCurrency}
                       chainId={chainId}
                     />
-                    {to && (
-                      <View style={styles.accountWrapper}>
-                        <AccountFromToInfoCard
-                          transactionState={transaction}
-                          layout="vertical"
-                        />
-                      </View>
-                    )}
                     {useTransactionSimulations && (
                       <View style={styles.transactionSimulations}>
                         <SimulationDetails
