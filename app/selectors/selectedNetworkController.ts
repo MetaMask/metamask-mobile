@@ -5,6 +5,7 @@ import { RootState } from '../reducers';
 import { ProviderConfig } from '@metamask/network-controller';
 import { SelectedNetworkControllerState } from '@metamask/selected-network-controller';
 import { getNetworkImageSource, NetworkList } from '../util/networks';
+import { strings } from '../../locales/i18n';
 import {
   selectProviderConfig,
   selectNetworkClientId,
@@ -50,8 +51,15 @@ const selectProviderNetworkName = createSelector(
         providerConfig.nickname
       );
     }
-    // @ts-expect-error The utils/network file is still JS
-    return NetworkList[providerConfig.type]?.name || providerConfig.nickname;
+    let name = strings('network_information.unknown_network');
+    if (providerConfig.nickname) {
+      name = providerConfig.nickname;
+    } else {
+      const networkType = providerConfig.type;
+      // @ts-expect-error The utils/network file is still JS
+      name = NetworkList?.[networkType]?.name || NetworkList.rpc.name;
+    }
+    return name;
   },
 );
 
