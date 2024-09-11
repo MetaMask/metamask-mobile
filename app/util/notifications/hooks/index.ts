@@ -25,6 +25,8 @@ const useNotificationHandler = (
         if (navigation) {
           navigation.navigate(Routes.TRANSACTIONS_VIEW);
         }
+      } else {
+        navigation.navigate(Routes.NOTIFICATIONS.VIEW);
       }
     },
     [navigation],
