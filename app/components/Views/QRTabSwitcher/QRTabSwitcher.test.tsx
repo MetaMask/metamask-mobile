@@ -42,8 +42,7 @@ describe('QRTabSwitcher', () => {
   });
 
   it('does not render tabber when disableTabber is true', () => {
-    // @ts-expect-error useRoute doesn't have mockReturnValue
-    useRoute.mockReturnValue({
+    (useRoute as jest.Mock).mockReturnValue({
       params: {
         disableTabber: true,
         initialScreen: QRTabSwitcherScreens.Scanner,
