@@ -723,11 +723,14 @@ class FixtureBuilder {
     networkController.networkConfigurationsByChainId[providerConfig.chainId] =
       networkConfig;
 
-    NetworkController.selectedNetworkClientId = network.id,
-    NetworkController.providerConfig = network
+    (NetworkController.selectedNetworkClientId = network.id),
+      (NetworkController.providerConfig = network);
 
-    NetworkController.networksMetadata[network.id] = { status:"available",  EIPS :{"1559":true} }
-    NetworkController.networkConfigurations[network.id] = network
+    NetworkController.networksMetadata[network.id] = {
+      status: 'available',
+      EIPS: { 1559: true },
+    };
+    NetworkController.networkConfigurations[network.id] = network;
     return this;
   }
 

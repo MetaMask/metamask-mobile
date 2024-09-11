@@ -1,4 +1,5 @@
 'use strict';
+import { ethers } from 'ethers';
 import { loginToApp } from '../../viewHelper';
 import Onboarding from '../../pages/swaps/OnBoarding';
 import QuoteView from '../../pages/swaps/QuoteView';
@@ -15,29 +16,26 @@ import {
   stopFixtureServer,
 } from '../../fixtures/fixture-helper';
 import { CustomNetworks } from '../../resources/networks.e2e';
+import NetworkListModal from '../../pages/modals/NetworkListModal';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
-import { SmokeSwaps } from '../../tags';
+import { Regression } from '../../tags';
+import AccountListView from '../../pages/AccountListView';
+import ImportAccountView from '../../pages/ImportAccountView';
 import Assertions from '../../utils/Assertions';
-import Tenderly from '../../tenderly'
+import AddAccountModal from '../../pages/modals/AddAccountModal';
+import Tenderly from '../../tenderly';
 
 const fixtureServer = new FixtureServer();
 
 describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
   let swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
-  let tokenDetected = false;
-
-  const TenderlyMainnet = new Tenderly(1)
 
   beforeAll(async () => {
-    await TenderlyMainnet.createVirtualTestNet()
-    await TenderlyMainnet.addFunds("0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3", "0xDE0B6B3A7640000",)
-    CustomNetworks.TenderlyMainnet.providerConfig.rpcUrl = TenderlyMainnet.getRpcURL()
     await TestHelpers.reverseServerPort();
-     const fixture = new FixtureBuilder()
-      //.withNetworkController( CustomNetworks.TenderlyAvalance)
-      .withNetworkController( CustomNetworks.TenderlyMainnet)
+    const fixture = new FixtureBuilder()
+      .withNetworkController(CustomNetworks.Tenderly)
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
@@ -49,17 +47,47 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
   });
 
   afterAll(async () => {
-    await TenderlyMainnet.deleteVirtualTestNet()
     await stopFixtureServer(fixtureServer);
   });
 
   beforeEach(async () => {
     jest.setTimeout(150000);
   });
+
+  it('should be able to import account', async () => {
+    const wallet = ethers.Wallet.createRandom();
+    await Tenderly.addFunds(
+      CustomNetworks.Tenderly.providerConfig.rpcUrl,
+      wallet.address,
+      '0xDE0B6B3A7640000',
+    ); // 1 ETH
+
+    await WalletView.tapIdenticon();
+    await Assertions.checkIfVisible(AccountListView.accountList);
+    await AccountListView.tapAddAccountButton();
+    await AddAccountModal.tapImportAccount();
+    await ImportAccountView.isVisible();
+    // Tap on import button to make sure alert pops up
+    await ImportAccountView.tapImportButton();
+    await ImportAccountView.tapOKAlertButton();
+    await ImportAccountView.enterPrivateKey(wallet.privateKey);
+    await ImportAccountView.isImportSuccessSreenVisible();
+    await ImportAccountView.tapCloseButtonOnImportSuccess();
+    await AccountListView.swipeToDismissAccountsModal();
+    await Assertions.checkIfVisible(WalletView.container);
+    await Assertions.checkIfElementNotToHaveText(
+      WalletView.accountName,
+      'Account 1',
+    );
+    await Assertions.checkIfElementNotToHaveText(WalletView.totalBalance, '$0');
+  });
+
   it.each`
     quantity | sourceTokenSymbol | destTokenSymbol
-    ${'1'}   | ${'ETH'}          | ${'WETH'}
-    ${'1'}   | ${'WETH'}         | ${'ETH'}
+    ${'.5'}  | ${'ETH'}          | ${'WETH'}
+    ${'.4'}  | ${'WETH'}         | ${'ETH'}
+    ${'.4'}  | ${'ETH'}          | ${'DAI'}
+    ${'500'} | ${'DAI'}          | ${'USDT'}
   `(
     "should Swap $quantity '$sourceTokenSymbol' to '$destTokenSymbol'",
     async ({ quantity, sourceTokenSymbol, destTokenSymbol }) => {
@@ -115,13 +143,12 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
       }
       await device.enableSynchronization();
       await TestHelpers.delay(5000);
-      if (!tokenDetected) {
-        tokenDetected = true
-        await TabBarComponent.tapWallet();
-        await WalletView.tapNewTokensFound();
-        await DetectedTokensView.tapImport();
-        await Assertions.checkIfVisible(WalletView.container);
-      }
+
+      await WalletView.tapNetworksButtonOnNavBar();
+      await NetworkListModal.changeNetworkTo(
+        CustomNetworks.Tenderly.providerConfig.nickname,
+        true,
+      );
 
       await TabBarComponent.tapActivity();
       await Assertions.checkIfVisible(ActivitiesView.title);
