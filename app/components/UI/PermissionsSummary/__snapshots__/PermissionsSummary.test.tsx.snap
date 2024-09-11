@@ -17,7 +17,8 @@ exports[`PermissionsSummary should render correctly 1`] = `
     style={
       {
         "alignItems": "center",
-        "justifyContent": "center",
+        "flexDirection": "row",
+        "justifyContent": "space-between",
       }
     }
   >
@@ -25,68 +26,67 @@ exports[`PermissionsSummary should render correctly 1`] = `
       style={
         {
           "alignItems": "center",
-          "borderRadius": 10,
+          "flex": 1,
           "justifyContent": "center",
         }
       }
     >
       <View
-        placeholderStyle={
+        style={
           {
-            "backgroundColor": "#f2f4f6",
+            "alignItems": "center",
+            "borderRadius": 10,
+            "justifyContent": "center",
           }
         }
-        useNativeDriver={true}
       >
-        <Image
-          onError={[Function]}
-          onLoadEnd={[Function]}
-          source={
-            {
-              "uri": undefined,
-            }
-          }
-          style={
-            {
-              "borderRadius": 16,
-              "height": 32,
-              "width": 32,
-            }
-          }
-        />
         <View
-          collapsable={false}
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-            }
+            [
+              {
+                "alignContent": "center",
+                "backgroundColor": "#ffffff",
+                "borderRadius": 27,
+                "height": 54,
+                "justifyContent": "center",
+                "width": 54,
+              },
+              {
+                "borderRadius": 16,
+                "height": 32,
+                "width": 32,
+              },
+            ]
           }
         >
-          <View
+          <Text
             style={
               [
                 {
-                  "borderRadius": 16,
-                  "height": 32,
-                  "width": 32,
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 24,
+                  "fontWeight": "400",
+                  "textAlign": "center",
+                  "textTransform": "uppercase",
                 },
-                {
-                  "backgroundColor": "#eee",
-                },
-                {
-                  "backgroundColor": "#f2f4f6",
-                },
+                undefined,
               ]
             }
-          />
+          >
+            a
+          </Text>
         </View>
       </View>
     </View>
+    <View
+      style={
+        {
+          "flex": 1,
+          "paddingRight": 16,
+        }
+      }
+    />
   </View>
   <Text
     style={
@@ -140,7 +140,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
       ]
     }
   >
-    This site wants to:
+    app.uniswap.org wants to:
   </Text>
   <View
     style={
