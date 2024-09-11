@@ -622,23 +622,27 @@ class FixtureBuilder {
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
   withNetworkController(data) {
-    const NetworkController = this.fixture.state.engine.backgroundState.NetworkController;
+    const NetworkController =
+      this.fixture.state.engine.backgroundState.NetworkController;
 
     const network = {
       id: data.providerConfig.nickname,
       rpcUrl: data.providerConfig.rpcUrl,
-      chainId:  data.providerConfig.chainId,
-      ticker:  data.providerConfig.ticker,
+      chainId: data.providerConfig.chainId,
+      ticker: data.providerConfig.ticker,
       nickname: data.providerConfig.nickname,
       rpcPrefs: {},
-      type: data.providerConfig.type
-    }
+      type: data.providerConfig.type,
+    };
 
-    NetworkController.selectedNetworkClientId = network.id,
-    NetworkController.providerConfig = network
+    (NetworkController.selectedNetworkClientId = network.id),
+      (NetworkController.providerConfig = network);
 
-    NetworkController.networksMetadata[network.id] = { status:"available",  EIPS :{"1559":true} }
-    NetworkController.networkConfigurations[network.id] = network
+    NetworkController.networksMetadata[network.id] = {
+      status: 'available',
+      EIPS: { 1559: true },
+    };
+    NetworkController.networkConfigurations[network.id] = network;
     return this;
   }
 

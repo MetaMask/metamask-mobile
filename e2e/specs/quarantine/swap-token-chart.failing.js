@@ -1,4 +1,5 @@
 'use strict';
+import { ethers } from 'ethers';
 import { loginToApp } from '../../viewHelper';
 import Onboarding from '../../pages/swaps/OnBoarding';
 import QuoteView from '../../pages/swaps/QuoteView';
@@ -17,9 +18,13 @@ import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { Regression } from '../../tags';
+import AccountListView from '../../pages/AccountListView';
+import ImportAccountView from '../../pages/ImportAccountView';
 import Assertions from '../../utils/Assertions';
+import AddAccountModal from '../../pages/modals/AddAccountModal';
 import ActivitiesView from '../../pages/ActivitiesView';
 import DetailsModal from '../../pages/modals/DetailsModal';
+import Tenderly from '../../tenderly';
 
 const fixtureServer = new FixtureServer();
 const sourceTokenSymbol = 'USDT';

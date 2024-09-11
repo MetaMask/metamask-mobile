@@ -5,7 +5,6 @@ import {
 
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-import Assertions from '../../utils/Assertions.js';
 
 class SwapView {
   get quoteSummary() {
