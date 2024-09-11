@@ -92,20 +92,14 @@ const CustomNetworks = {
     },
   },
 
-  TenderlyMainnet: {
+  Tenderly: {
+    isCustomNetwork: true,
     providerConfig: {
       type: 'rpc',
       chainId: '0x1',
-      nickname: 'Tenderly Mainnet',
+      rpcUrl: `https://virtual.mainnet.rpc.tenderly.co/1b425756-55e5-444d-aaec-889a7b4987cc`,
+      nickname: 'Tenderly',
       ticker: 'ETH',
-    },
-  },
-  TenderlyAvalance: {
-    providerConfig: {
-      type: 'rpc',
-      chainId: '0xa86a',
-      nickname: 'Tenderly Avalanche',
-      ticker: 'AVAX',
     },
   },
   Gnosis: {
