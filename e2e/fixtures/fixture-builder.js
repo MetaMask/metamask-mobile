@@ -651,11 +651,9 @@ class FixtureBuilder {
   withNetworkController(data) {
     merge(this.fixture.state.engine.backgroundState.NetworkController, data);
 
-    if (
-      data.networkConfigurations[data.selectedNetworkClientId].ticker !== 'ETH'
-    )
+    if (data.providerConfig.ticker !== 'ETH')
       this.fixture.state.engine.backgroundState.CurrencyRateController.pendingNativeCurrency =
-        data.networkConfigurations[data.selectedNetworkClientId].ticker;
+        data.providerConfig.ticker;
     return this;
   }
 
