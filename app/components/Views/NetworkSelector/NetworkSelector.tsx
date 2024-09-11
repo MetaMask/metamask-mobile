@@ -249,7 +249,6 @@ const NetworkSelector = () => {
         );
       } else {
         CurrencyRateController.updateExchangeRate(ticker);
-
         NetworkController.setActiveNetwork(networkConfigurationId);
       }
 
