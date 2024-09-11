@@ -119,6 +119,13 @@
 		<string>EuclidCircularB-RegularItalic.otf</string>
 		<string>EuclidCircularB-Semibold.otf</string>
 		<string>EuclidCircularB-SemiboldItalic.otf</string>
+		<string>CentraNo1-Bold.otf</string>
+		<string>CentraNo1-BoldItalic.otf</string>
+		<string>CentraNo1-Book.otf</string>
+		<string>CentraNo1-BookItalic.otf</string>
+		<string>CentraNo1-Medium.otf</string>
+		<string>CentraNo1-MediumItalic.otf</string>
+		<string>MMSans-Regular.otf</string>
 	</array>
 	<key>UIBackgroundModes</key>
 	<array>

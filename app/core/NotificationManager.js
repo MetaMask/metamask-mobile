@@ -18,9 +18,9 @@ import { safeToChecksumAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
 import { selectChainId } from '../selectors/networkController';
 import { store } from '../store';
-const constructTitleAndMessage = (data) => {
+export const constructTitleAndMessage = (notification) => {
   let title, message;
-  switch (data.type) {
+  switch (notification.type) {
     case NotificationTransactionTypes.pending:
       title = strings('notifications.pending_title');
       message = strings('notifications.pending_message');
@@ -35,13 +35,13 @@ const constructTitleAndMessage = (data) => {
       break;
     case NotificationTransactionTypes.success:
       title = strings('notifications.success_title', {
-        nonce: data?.transaction?.nonce || '',
+        nonce: notification?.transaction?.nonce || '',
       });
       message = strings('notifications.success_message');
       break;
     case NotificationTransactionTypes.speedup:
       title = strings('notifications.speedup_title', {
-        nonce: data?.transaction?.nonce || '',
+        nonce: notification?.transaction?.nonce || '',
       });
       message = strings('notifications.speedup_message');
       break;
@@ -63,16 +63,20 @@ const constructTitleAndMessage = (data) => {
       break;
     case NotificationTransactionTypes.received:
       title = strings('notifications.received_title', {
-        amount: data.transaction.amount,
-        assetType: data.transaction.assetType,
+        amount: notification.transaction.amount,
+        assetType: notification.transaction.assetType,
       });
       message = strings('notifications.received_message');
       break;
     case NotificationTransactionTypes.received_payment:
       title = strings('notifications.received_payment_title');
       message = strings('notifications.received_payment_message', {
-        amount: data.transaction.amount,
+        amount: notification.transaction.amount,
       });
+      break;
+    default:
+      title = notification.data.title || strings('notifications.default_message_title');
+      message = notification.data.shortDescription || strings('notifications.default_message_description');
       break;
   }
   return { title, message };
@@ -159,11 +163,11 @@ class NotificationManager {
         },
         ios: {
           foregroundPresentationOptions: {
-            alert: false,
-            sound: false,
-            badge: false,
-            banner: false,
-            list: false,
+            alert: true,
+            sound: true,
+            badge: true,
+            banner: true,
+            list: true,
           },
         },
       };
@@ -429,9 +433,9 @@ class NotificationManager {
         .filter(
           (tx) =>
             safeToChecksumAddress(tx.txParams?.to) ===
-              selectedInternalAccountChecksummedAddress &&
+            selectedInternalAccountChecksummedAddress &&
             safeToChecksumAddress(tx.txParams?.from) !==
-              selectedInternalAccountChecksummedAddress &&
+            selectedInternalAccountChecksummedAddress &&
             tx.chainId === chainId &&
             tx.status === 'confirmed' &&
             lastBlock <= parseInt(tx.blockNumber, 10) &&

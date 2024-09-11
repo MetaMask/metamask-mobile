@@ -9,13 +9,15 @@ import {
 } from '../../../actions/notification/helpers';
 import { UseSwitchAccountNotificationsData } from './types';
 import Engine from '../../../core/Engine';
-import { useSelector } from 'react-redux';
-import { selectIsUpdatingMetamaskNotificationsAccount } from '../../../selectors/notifications';
-
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  selectIsMetamaskNotificationsEnabled,
+  selectIsUpdatingMetamaskNotificationsAccount,
+} from '../../../selectors/notifications';
+import { updateAccountState } from '../../../core/redux/slices/notifications';
 export function useSwitchNotifications() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-
   const resetStates = useCallback(() => {
     setLoading(false);
     setError(null);
@@ -75,10 +77,13 @@ export function useSwitchNotifications() {
   };
 }
 
-function useRefetchAccountSettings() {
+function useRefetchAccountSettings(isMetamaskNotificationsEnabled: boolean) {
   const getAccountSettings = useCallback(
     async (accounts: string[]): Promise<UseSwitchAccountNotificationsData> => {
       try {
+        if (!isMetamaskNotificationsEnabled) {
+          return {};
+        }
         const result =
           await Engine.context.NotificationServicesController.checkAccountsPresence(
             accounts,
@@ -89,7 +94,7 @@ function useRefetchAccountSettings() {
         return {};
       }
     },
-    [],
+    [isMetamaskNotificationsEnabled],
   );
 
   return getAccountSettings;
@@ -107,11 +112,17 @@ export function useAccountSettingsProps(accounts: string[]) {
   const accountsBeingUpdated = useSelector(
     selectIsUpdatingMetamaskNotificationsAccount,
   );
-  const fetchAccountSettings = useRefetchAccountSettings();
+  const isMetamaskNotificationsEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
+
+  const fetchAccountSettings = useRefetchAccountSettings(
+    isMetamaskNotificationsEnabled,
+  );
   const [data, setData] = useState<UseSwitchAccountNotificationsData>({});
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-
+  const dispatch = useDispatch();
   // Memoize the accounts array to avoid unnecessary re-fetching
   const memoizedAccounts = useMemo(() => accounts, [accounts]);
 
@@ -126,10 +137,19 @@ export function useAccountSettingsProps(accounts: string[]) {
           const errorMessage = getErrorMessage(e);
           setError(errorMessage);
         })
-        .finally(() => setLoading(false));
+        .finally(() => {
+          dispatch(updateAccountState(data));
+          setLoading(false);
+        });
     };
-    fetchData();
-  }, [memoizedAccounts, fetchAccountSettings]);
+    isMetamaskNotificationsEnabled && fetchData();
+  }, [
+    data,
+    dispatch,
+    fetchAccountSettings,
+    isMetamaskNotificationsEnabled,
+    memoizedAccounts,
+  ]);
 
   return {
     data,

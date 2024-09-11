@@ -84,7 +84,6 @@ exports[`NotificationOptionToggle should render correctly 1`] = `
   >
     <RCTSwitch
       accessibilityRole="switch"
-      disabled={false}
       onChange={[Function]}
       onResponderTerminationRequest={[Function]}
       onStartShouldSetResponder={[Function]}
