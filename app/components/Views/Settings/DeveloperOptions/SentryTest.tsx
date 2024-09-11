@@ -11,7 +11,7 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
-import { trace, TraceName } from '../../../../util/sentry/trace';
+import { trace, TraceName } from '../../../../util/trace';
 
 function GenerateTrace() {
   const theme = useTheme();

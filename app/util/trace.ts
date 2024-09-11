@@ -16,10 +16,11 @@ export enum TraceName {
 
 const ID_DEFAULT = 'default';
 const OP_DEFAULT = 'custom';
+export const TRACES_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
-const tracesByKey: Map<string, PendingTrace> = new Map();
+export const tracesByKey: Map<string, PendingTrace> = new Map();
 
-interface PendingTrace {
+export interface PendingTrace {
   end: (timestamp?: number) => void;
   request: TraceRequest;
   startTime: number;
@@ -200,4 +201,13 @@ function tryCatchMaybePromise<T>(
   }
 
   return undefined;
+}
+
+export function cleanupTraces() {
+  const now = Date.now();
+  for (const [key, trace] of tracesByKey.entries()) {
+    if (now - trace.startTime > TRACES_CLEANUP_INTERVAL) {
+      tracesByKey.delete(key);
+    }
+  }
 }

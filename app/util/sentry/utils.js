@@ -7,6 +7,7 @@ import { regex } from '../regex';
 import { AGREED, METRICS_OPT_IN } from '../../constants/storage';
 import { isTest } from '../test/utils';
 import { store } from '../../store';
+import { cleanupTraces, TRACES_CLEANUP_INTERVAL } from '../trace';
 
 /**
  * This symbol matches all object properties when used in a mask
@@ -491,6 +492,8 @@ export function setupSentry() {
       METAMASK_ENVIRONMENT,
       METAMASK_BUILD_TYPE,
     );
+
+    setInterval(cleanupTraces, TRACES_CLEANUP_INTERVAL);
 
     Sentry.init({
       dsn,

@@ -1,11 +1,15 @@
-import {
-  startSpan,
-  startSpanManual,
-  withScope,
-} from '@sentry/react-native';
+import { startSpan, startSpanManual, withScope } from '@sentry/react-native';
 
 import { Span } from '@sentry/types';
-import { endTrace, trace, TraceName } from './trace';
+import {
+  cleanupTraces,
+  endTrace,
+  PendingTrace,
+  trace,
+  tracesByKey,
+  TraceName,
+  TRACES_CLEANUP_INTERVAL,
+} from './trace';
 
 jest.mock('@sentry/react-native', () => ({
   withScope: jest.fn(),
@@ -43,9 +47,7 @@ describe('Trace', () => {
     startSpanMock.mockImplementation((_, fn) => fn({} as Span));
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    withScopeMock.mockImplementation((fn: any) =>
-      fn({ setTags: setTagsMock }),
-    );
+    withScopeMock.mockImplementation((fn: any) => fn({ setTags: setTagsMock }));
   });
 
   describe('trace', () => {
@@ -238,6 +240,45 @@ describe('Trace', () => {
       endTrace({ name: NAME_MOCK, id: 'invalidId' });
 
       expect(spanEndMock).toHaveBeenCalledTimes(0);
+    });
+  });
+
+  describe('cleanupTraces', () => {
+    beforeEach(() => {
+      tracesByKey.clear();
+      jest.useRealTimers();
+      Date.now = jest.fn(() => 123456789);
+    });
+
+    it('removes traces older than the cleanup interval', () => {
+      const now = Date.now();
+      const oldTrace = {
+        startTime: now - TRACES_CLEANUP_INTERVAL - 10000,
+      } as PendingTrace;
+      const newTrace = { startTime: now - 1000 } as PendingTrace;
+      tracesByKey.set('old-key', oldTrace);
+      tracesByKey.set('new-key', newTrace);
+
+      cleanupTraces();
+
+      expect(tracesByKey.size).toBe(1);
+      expect(tracesByKey.has('new-key')).toBe(true);
+      expect(tracesByKey.has('old-key')).toBe(false);
+    });
+
+    it('does not remove traces newer than the cleanup interval', () => {
+      const now = Date.now();
+      const newTrace = { startTime: now - 1000 } as PendingTrace;
+      tracesByKey.set('new-key', newTrace);
+
+      cleanupTraces();
+
+      expect(tracesByKey.size).toBe(1);
+      expect(tracesByKey.has('new-key')).toBe(true);
+    });
+
+    it('does not throw an error if the tracesByKey map is empty', () => {
+      expect(() => cleanupTraces()).not.toThrow();
     });
   });
 });
