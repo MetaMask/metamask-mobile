@@ -26,16 +26,6 @@ import {
 
 import launchDarklyURL from '../../../app/util/featureFlags';
 
-interface GenericObject {
-  [key: string]: unknown;
-}
-
-type DataArray<T extends GenericObject> = T[];
-
-interface FeatureFlagResponse {
-  response: DataArray<GenericObject>[];
-  message?: string;
-}
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
   while (true) {
@@ -141,10 +131,20 @@ export function* basicFunctionalityToggle() {
   }
 }
 
+function arrayToObject(data: []): object {
+  return data.reduce((obj, current) => {
+    Object.assign(obj, current);
+    return obj;
+  }, {});
+}
+
 function* fetchFeatureFlags(): Generator {
   try {
     const response: Response = (yield fetch(
-      launchDarklyURL('main', 'production'),
+      launchDarklyURL(
+        process.env.METAMASK_BUILD_TYPE,
+        process.env.METAMASK_ENVIRONMENT,
+      ),
     )) as Response;
     const jsonData = (yield response.json()) as { message: string } | [];
 
@@ -157,9 +157,9 @@ function* fetchFeatureFlags(): Generator {
       return;
     }
 
-    yield put(getFeatureFlagsSuccess(jsonData as []));
+    yield put(getFeatureFlagsSuccess(arrayToObject(jsonData as [])));
   } catch (error) {
-    console.error(error);
+    Logger.log(error);
     yield put(getFeatureFlagsError(error as string));
   }
 }

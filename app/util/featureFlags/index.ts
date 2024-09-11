@@ -16,7 +16,8 @@ export default function launchDarklyURL(
 ): string {
   const client = 'mobile';
 
-  let environment: string | undefined = environmentMapping[metamaskEnvironment];
+  // Map the env value to the expected naming for the API
+  let environment = environmentMapping[metamaskEnvironment];
 
   if (!environment) {
     console.warn(
