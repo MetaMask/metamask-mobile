@@ -1,7 +1,12 @@
 import axios from 'axios';
 
 export default class Tenderly {
-  async addFunds(rpcURL, account, amount) {
+  constructor(id, url) {
+    this.chainId = id;
+    this.rpcURL = url;
+  }
+
+ static async addFunds(rpcURL, account, amount) {
     const data = {
       jsonrpc: '2.0',
       method: 'tenderly_setBalance',
