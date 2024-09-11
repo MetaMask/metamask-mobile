@@ -96,7 +96,7 @@ const createStyles = (params: { theme: Theme }) => {
       alignItems: 'center',
       justifyContent: 'space-between',
     },
-    backButton: { flex: 1, paddingLeft: 16 },
+    startAccessory: { flex: 1, paddingLeft: 16 },
     endAccessory: { flex: 1, paddingRight: 16 },
   });
 };
