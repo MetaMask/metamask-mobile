@@ -76,7 +76,7 @@ const InstallSnapApproval = () => {
   };
 
   const getSnapMetadata = (snapId: string) =>
-    snapsMetadata[snapId] ?? { name: stripSnapPrefix(snapId) };
+    snapsMetadata?.[snapId] ?? { name: stripSnapPrefix(snapId) };
 
   if (!approvalRequest) return null;
 
