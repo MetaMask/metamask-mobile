@@ -1,6 +1,6 @@
 'use strict';
 import { loginToApp } from '../../viewHelper.js';
-import { SmokeAssets } from '../../tags.js';
+import {SmokeAssets, SmokeCore} from '../../tags.js';
 import TabBarComponent from '../../pages/TabBarComponent.js';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal.js';
 import SendView from '../../pages/Send/SendView.js';
@@ -17,7 +17,7 @@ import { withFixtures } from '../../fixtures/fixture-helper.js';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
 import TestHelpers from '../../helpers.js';
 
-describe(SmokeAssets('Mock suggestedGasApi fallback to legacy when EIP1559 endpoint is down'), () => {
+describe(SmokeCore('Mock suggestedGasApi fallback to legacy when EIP1559 endpoint is down'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
@@ -38,6 +38,7 @@ describe(SmokeAssets('Mock suggestedGasApi fallback to legacy when EIP1559 endpo
     try {
       await stopMockServer(mockServer);
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.log('Mock server already stopped');
     }
   });
