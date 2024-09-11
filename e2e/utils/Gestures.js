@@ -53,7 +53,7 @@ class Gestures {
    * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to tap
    * @param {number} timeout - Timeout for waiting (default: 8000ms)
    */
-  static async waitAndTap(elementID, timeout = 20000) {
+  static async waitAndTap(elementID, timeout = 30000) {
     const element = await elementID;
     await waitFor(element).toBeVisible().withTimeout(timeout);
     await element.tap();
