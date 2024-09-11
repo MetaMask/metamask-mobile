@@ -49,6 +49,8 @@ const TransactionReviewEIP1559Update = ({
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
   const [
     isVisibleTimeEstimateInfoModal,
+    ,
+    // extra comma above is to ignore second value in array returned from hook useModalHandler
     showTimeEstimateInfoModal,
     hideTimeEstimateInfoModal,
   ] = useModalHandler(false);
@@ -129,9 +131,7 @@ const TransactionReviewEIP1559Update = ({
             >
               {!origin
                 ? strings('transaction_review_eip1559.estimated_gas_fee')
-                : strings('transaction_review_eip1559.suggested_gas_fee', {
-                    origin,
-                  })}
+                : strings('transaction_review_eip1559.network_fee')}
               <TouchableOpacity
                 style={styles.gasInfoContainer}
                 onPress={() =>
