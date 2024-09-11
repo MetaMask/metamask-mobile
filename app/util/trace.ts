@@ -20,7 +20,7 @@ export const TRACES_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 export const tracesByKey: Map<string, PendingTrace> = new Map();
 
-export interface PendingTrace {
+export type PendingTrace = {
   end: (timestamp?: number) => void;
   request: TraceRequest;
   startTime: number;
@@ -30,7 +30,7 @@ export type TraceContext = unknown;
 
 export type TraceCallback<T> = (context?: TraceContext) => T;
 
-export interface TraceRequest {
+export type TraceRequest = {
   data?: Record<string, number | string | boolean>;
   id?: string;
   name: TraceName;
@@ -39,7 +39,7 @@ export interface TraceRequest {
   tags?: Record<string, number | string | boolean>;
 }
 
-export interface EndTraceRequest {
+export type EndTraceRequest = {
   id?: string;
   name: TraceName;
   timestamp?: number;
