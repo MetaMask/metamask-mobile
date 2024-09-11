@@ -887,6 +887,7 @@ class Amount extends PureComponent {
       contractExchangeRates,
     } = this.props;
     const { internalPrimaryCurrencyIsCrypto, estimatedTotalGas } = this.state;
+    const tokenBalance = contractBalances[selectedAsset.address] || '0x0';
     let input;
     if (selectedAsset.isETH) {
       const balanceBN = hexToBN(accounts[selectedAddress].balance);
@@ -907,15 +908,12 @@ class Amount extends PureComponent {
         : undefined;
       if (internalPrimaryCurrencyIsCrypto || !exchangeRate) {
         input = fromTokenMinimalUnitString(
-          contractBalances[selectedAsset.address]?.toString(10),
+          tokenBalance,
           selectedAsset.decimals,
         );
       } else {
         input = `${balanceToFiatNumber(
-          fromTokenMinimalUnitString(
-            contractBalances[selectedAsset.address]?.toString(10),
-            selectedAsset.decimals,
-          ),
+          fromTokenMinimalUnitString(tokenBalance, selectedAsset.decimals),
           conversionRate,
           exchangeRate,
         )}`;
