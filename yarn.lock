@@ -4075,6 +4075,14 @@
     "@metamask/utils" "^9.1.0"
     immer "^9.0.6"
 
+"@metamask/base-controller@^7.0.0":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-7.0.0.tgz#c6eedac9692d65222d7715e048b1b6f74af07b12"
+  integrity sha512-/wFqfXe/caAWvsHcSNJOTQdUPL7HJeM15d/7IzTI/Jpd1aaO4u/CVY5dPxnBXjhSVtQGQZC6jIGlWim5GluoUw==
+  dependencies:
+    "@metamask/utils" "^9.1.0"
+    immer "^9.0.6"
+
 "@metamask/browser-passworder@^4.3.0":
   version "4.3.0"
   resolved "https://registry.yarnpkg.com/@metamask/browser-passworder/-/browser-passworder-4.3.0.tgz#62c200750efcea864bd31d685120331859e1ab1e"
@@ -4717,16 +4725,15 @@
     "@ethersproject/providers" "^5.7.2"
     async-mutex "^0.3.1"
 
-"@metamask/notification-services-controller@^0.4.0":
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/@metamask/notification-services-controller/-/notification-services-controller-0.4.0.tgz#ef9cbbaccb501294748478c98f6651a5450e05fc"
-  integrity sha512-mMRH1fwKBmvi+yD5hTOZoqfh4ZcvLsZm24MkuOjnmBDDBo7PRZ9dnw8F/E2WTmXz9WyD23pYjaD8S4NbXPWtxA==
+"@metamask/notification-services-controller@^0.5.0":
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/@metamask/notification-services-controller/-/notification-services-controller-0.5.0.tgz#2211b44a3f028ff6a062b1cb03b7a2dc8749e269"
+  integrity sha512-VLB6Y4TWwGHlCr754vGyxqx7R86W+TkdxBUZVyL922X9nx/U6PGaN8/FCVLsKgZou3jjEo7d5C0TI7oNbZnqVw==
   dependencies:
     "@contentful/rich-text-html-renderer" "^16.5.2"
     "@metamask/base-controller" "^7.0.0"
     "@metamask/controller-utils" "^11.2.0"
     bignumber.js "^4.1.0"
-    contentful "^10.15.0"
     firebase "^10.11.0"
     loglevel "^1.8.1"
     uuid "^8.3.2"
@@ -4923,10 +4930,10 @@
     "@metamask/base-controller" "^5.0.2"
     "@metamask/controller-utils" "^9.1.0"
 
-"@metamask/profile-sync-controller@^0.4.0":
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-0.4.0.tgz#eebddb791315188247a216dc31639d384d5bd129"
-  integrity sha512-M043fOpNESXP6acBSyVcWLYgyU5Qn/49qvb1LM5FDolbjhTeMwxkLfMtC5CgS/ZoszVnUPv98avqLB8VrFWRlw==
+"@metamask/profile-sync-controller@^0.5.0":
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-0.5.0.tgz#6b3fec2e6915ffc3442cbefe7d18dca6f2156092"
+  integrity sha512-tofFWJgdfi1RGxK/c1ebKj1P3MEBLaX4a5oerXeXEV6hrTxR9uQfEIumLDFhiy9Nmw9DLic01yhCovgVxQ6mNA==
   dependencies:
     "@metamask/base-controller" "^7.0.0"
     "@metamask/snaps-sdk" "^6.1.1"
@@ -14519,7 +14526,7 @@ contentful-sdk-core@^8.3.1:
     p-throttle "^4.1.1"
     qs "^6.11.2"
 
-contentful@^10.15.0, contentful@^10.8.7:
+contentful@^10.8.7:
   version "10.15.0"
   resolved "https://registry.yarnpkg.com/contentful/-/contentful-10.15.0.tgz#0f8cc2887f583b283f1326357777c4e4a0764c2f"
   integrity sha512-gkkMRf2FK1SQHMs2UKOuIeCdBXQKF/fMzIRCDL038lUScyE6mvnPu8aHrAQuUZwfcd58J0cibqT+iqj+pAVyGA==
