@@ -2,7 +2,7 @@
 import React from 'react';
 
 // internal dependencies
-import DefaultSettings from '.';
+import GeneralSettings from '.';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -31,13 +31,13 @@ jest.mock('react-redux', () => ({
 
 const mockNetworkName = 'Ethereum Main Network';
 
-describe('DefaultSettings', () => {
+describe('GeneralSettings', () => {
   it('should render correctly', () => {
     useSelector.mockImplementation((selector) => {
       if (selector === selectNetworkName) return mockNetworkName;
     });
     const { toJSON } = renderWithProvider(
-      <DefaultSettings navigation={useNavigation()} />,
+      <GeneralSettings navigation={useNavigation()} />,
     );
     expect(toJSON()).toMatchSnapshot();
   });

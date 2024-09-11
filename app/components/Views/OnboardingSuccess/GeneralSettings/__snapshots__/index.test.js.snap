@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`DefaultSettings should render correctly 1`] = `
+exports[`GeneralSettings should render correctly 1`] = `
 <RCTScrollView
   style={
     {
