@@ -315,7 +315,7 @@ const SettingsFlow = () => (
     />
     {process.env.MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS === 'true' && (
       <Stack.Screen
-        name="DeveloperOptions"
+        name={Routes.SETTINGS.DEVELOPER_OPTIONS}
         component={DeveloperOptions}
         options={DeveloperOptions.navigationOptions}
       />

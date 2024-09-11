@@ -1,8 +1,10 @@
 import { StyleSheet } from 'react-native';
-import { Colors } from '../../../../util/theme/models';
+import { Theme } from '../../../../util/theme/models';
 
-const createStyles = (colors: Colors) =>
-  StyleSheet.create({
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { colors } = theme;
+  return StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
@@ -19,5 +21,6 @@ const createStyles = (colors: Colors) =>
       marginTop: 16,
     },
   });
+};
 
-export default createStyles;
+export default styleSheet;

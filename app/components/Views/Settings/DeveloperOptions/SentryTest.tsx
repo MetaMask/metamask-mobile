@@ -13,11 +13,12 @@ import Button, {
 } from '../../../../component-library/components/Buttons/Button';
 import { trace, TraceName } from '../../../../util/trace';
 import { sleep } from '../../../../util/testUtils';
+import { useStyles } from '../../../../component-library/hooks';
+import styleSheet from './DeveloperOptions.styles';
 
 function GenerateTrace() {
   const theme = useTheme();
-  const { colors } = theme;
-  const styles = createStyles(colors);
+  const { styles } = useStyles(styleSheet, { theme });
 
   const handleGenerateTraceTest = useCallback(async () => {
     await trace(
@@ -73,8 +74,7 @@ function GenerateTrace() {
 
 export default function SentryTest() {
   const theme = useTheme();
-  const { colors } = theme;
-  const styles = createStyles(colors);
+  const { styles } = useStyles(styleSheet, { theme });
 
   return (
     <>
@@ -83,9 +83,9 @@ export default function SentryTest() {
         variant={TextVariant.HeadingLG}
         style={styles.heading}
       >
-        Sentry
+        {'Sentry'}
       </Text>
-      {<GenerateTrace />}
+      <GenerateTrace />
     </>
   );
 }

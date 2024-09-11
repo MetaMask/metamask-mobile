@@ -1,19 +1,23 @@
 import React, { useEffect } from 'react';
 import { ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
-import { Props } from './DeveloperOptions.types';
-import createStyles from './DeveloperOptions.styles';
+import { useParams } from '../../../../util/navigation/navUtils';
+import { useStyles } from '../../../../component-library/hooks';
+import styleSheet from './DeveloperOptions.styles';
 import SentryTest from './SentryTest';
 
-const DeveloperOptions = ({ navigation, route }: Props) => {
-  const isFullScreenModal = route?.params?.isFullScreenModal;
+const DeveloperOptions = () => {
+  const navigation = useNavigation();
+  const params = useParams<{ isFullScreenModal: boolean }>();
+  const isFullScreenModal = params?.isFullScreenModal;
 
   const theme = useTheme();
   const { colors } = theme;
-  const styles = createStyles(colors);
+  const { styles } = useStyles(styleSheet, { theme });
 
   useEffect(
     () => {

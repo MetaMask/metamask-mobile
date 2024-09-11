@@ -24,30 +24,30 @@ export const TRACES_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 export const tracesByKey: Map<string, PendingTrace> = new Map();
 
-export type PendingTrace = {
+export interface PendingTrace {
   end: (timestamp?: number) => void;
   request: TraceRequest;
   startTime: number;
-};
+}
 
 export type TraceContext = unknown;
 
 export type TraceCallback<T> = (context?: TraceContext) => T;
 
-export type TraceRequest = {
+export interface TraceRequest {
   data?: Record<string, number | string | boolean>;
   id?: string;
   name: TraceName;
   parentContext?: TraceContext;
   startTime?: number;
   tags?: Record<string, number | string | boolean>;
-};
+}
 
-export type EndTraceRequest = {
+export interface EndTraceRequest {
   id?: string;
   name: TraceName;
   timestamp?: number;
-};
+}
 
 export function trace<T>(request: TraceRequest, fn: TraceCallback<T>): T;
 
@@ -209,8 +209,8 @@ function tryCatchMaybePromise<T>(
 
 export function cleanupTraces() {
   const now = Date.now();
-  for (const [key, trace] of tracesByKey.entries()) {
-    if (now - trace.startTime > TRACES_CLEANUP_INTERVAL) {
+  for (const [key, traceValue ] of tracesByKey.entries()) {
+    if (now - traceValue.startTime > TRACES_CLEANUP_INTERVAL) {
       tracesByKey.delete(key);
     }
   }
