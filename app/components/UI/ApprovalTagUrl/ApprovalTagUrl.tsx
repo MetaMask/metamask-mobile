@@ -53,8 +53,6 @@ const ApprovalTagUrl = ({
 
     if (url || currentEnsName) {
       title = prefixUrlWithProtocol(currentEnsName || url || '');
-    } else {
-      title = '';
     }
 
     return title;
