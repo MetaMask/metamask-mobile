@@ -88,7 +88,7 @@ export const NetworkList = {
     shortName: 'Sepolia',
     networkId: 11155111,
     chainId: toHex('11155111'),
-    ticker: 'ETH',
+    ticker: 'SepoliaETH',
     // Third party color
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#cfb5f0',
@@ -101,7 +101,7 @@ export const NetworkList = {
     shortName: 'Linea Sepolia',
     networkId: 59141,
     chainId: toHex('59141'),
-    ticker: 'ETH',
+    ticker: 'LineaETH',
     // Third party color
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#61dfff',
