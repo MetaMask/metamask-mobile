@@ -1,5 +1,5 @@
 import { zeroAddress } from 'ethereumjs-util';
-import React from 'react';
+import React, { useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import i18n from '../../../../../locales/i18n';
@@ -21,6 +21,8 @@ import Logger from '../../../../util/Logger';
 import TokenDetailsList from './TokenDetailsList';
 import MarketDetailsList from './MarketDetailsList';
 import { Asset } from '../AssetOverview.types';
+import StakingEarnings from '../StakingEarnings';
+import { isPooledStakingFeatureEnabled } from '../../Stake/constants';
 
 export interface TokenDetails {
   contractAddress: string | null;
@@ -49,6 +51,9 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const tokenContractAddress = safeToChecksumAddress(asset.address);
+
+  // TEMP: Remove once component has been implemented.
+  const [hasStakingPositions] = useState(true);
 
   let tokenMetadata;
   let marketData;
@@ -121,7 +126,10 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   };
 
   return (
-    <View style={styles.wrapper}>
+    <View style={styles.tokenDetailsContainer}>
+      {asset.isETH &&
+        hasStakingPositions &&
+        isPooledStakingFeatureEnabled() && <StakingEarnings />}
       {(asset.isETH || tokenMetadata) && (
         <TokenDetailsList tokenDetails={tokenDetails} />
       )}
