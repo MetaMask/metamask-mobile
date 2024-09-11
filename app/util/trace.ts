@@ -5,7 +5,11 @@ import {
 } from '@sentry/react-native';
 import performance from 'react-native-performance';
 import type { Primitive, Span, StartSpanOptions } from '@sentry/types';
-import Logger from './Logger';
+import { createModuleLogger, createProjectLogger } from '@metamask/utils';
+
+// Cannot create this 'sentry' logger in Sentry util file because of circular dependency
+const projectLogger = createProjectLogger('sentry');
+const log = createModuleLogger(projectLogger, 'trace');
 
 export enum TraceName {
   DeveloperTest = 'Developer Test',
@@ -24,7 +28,7 @@ export type PendingTrace = {
   end: (timestamp?: number) => void;
   request: TraceRequest;
   startTime: number;
-}
+};
 
 export type TraceContext = unknown;
 
@@ -37,13 +41,13 @@ export type TraceRequest = {
   parentContext?: TraceContext;
   startTime?: number;
   tags?: Record<string, number | string | boolean>;
-}
+};
 
 export type EndTraceRequest = {
   id?: string;
   name: TraceName;
   timestamp?: number;
-}
+};
 
 export function trace<T>(request: TraceRequest, fn: TraceCallback<T>): T;
 
@@ -67,7 +71,7 @@ export function endTrace(request: EndTraceRequest) {
   const pendingTrace = tracesByKey.get(key);
 
   if (!pendingTrace) {
-    Logger.log('No pending trace found', name, id);
+    log('No pending trace found', name, id);
     return;
   }
 
@@ -79,14 +83,14 @@ export function endTrace(request: EndTraceRequest) {
   const endTime = timestamp ?? getPerformanceTimestamp();
   const duration = endTime - startTime;
 
-  Logger.log('Finished trace', name, id, duration, { request: pendingRequest });
+  log('Finished trace', name, id, duration, { request: pendingRequest });
 }
 
 function traceCallback<T>(request: TraceRequest, fn: TraceCallback<T>): T {
   const { name } = request;
 
   const callback = (span: Span | undefined) => {
-    Logger.log('Starting trace', name, request);
+    log('Starting trace', name, request);
 
     const start = Date.now();
     let error: unknown;
@@ -101,7 +105,7 @@ function traceCallback<T>(request: TraceRequest, fn: TraceCallback<T>): T {
         const end = Date.now();
         const duration = end - start;
 
-        Logger.log('Finished trace', name, duration, { error, request });
+        log('Finished trace', name, duration, { error, request });
       },
     ) as T;
   };
@@ -125,7 +129,7 @@ function startTrace(request: TraceRequest): TraceContext {
     const key = getTraceKey(request);
     tracesByKey.set(key, pendingTrace);
 
-    Logger.log('Started trace', name, id, request);
+    log('Started trace', name, id, request);
 
     return span;
   };
