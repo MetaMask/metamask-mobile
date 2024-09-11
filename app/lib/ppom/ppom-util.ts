@@ -108,7 +108,6 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
     );
 
     const normalizedRequest = normalizeRequest(req);
-    console.log('>>>>>>')
 
     securityAlertResponse = await validateWithAPI(ppomController, chainId, normalizedRequest);
 
@@ -164,14 +163,12 @@ async function validateWithAPI(
 ): Promise<SecurityAlertResponse> {
   try {
     const response = await validateWithSecurityAlertsAPI(chainId, request);
-    console.log('>>>>>>1 ')
     return {
       ...response,
       source: SecurityAlertSource.API,
     };
   } catch (e) {
     Logger.log(`Error validating request with security alerts API: ${e}`);
-    console.log('>>>>>> throw')
     return await validateWithController(ppomController, request);
   }
 }
