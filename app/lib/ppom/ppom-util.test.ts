@@ -31,24 +31,24 @@ jest.mock('../../core/Engine', () => ({
     PPOMController: {
       usePPOM: jest.fn(),
     },
-    NetworkController: {
-      state: {
-        selectedNetworkClientId: 'mainnet',
-        networksMetadata: {},
-        networkConfigurations: {
-          mainnet: {
-            id: 'mainnet',
-            rpcUrl: 'https://mainnet.infura.io/v3',
-            chainId: CHAIN_ID_MOCK,
-            ticker: 'ETH',
-            nickname: 'Sepolia network',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://etherscan.com',
-            },
-          },
-        },
-      },
-    },
+    // NetworkController: {
+    //   state: {
+    //     selectedNetworkClientId: 'mainnet',
+    //     networksMetadata: {},
+    //     networkConfigurations: {
+    //       mainnet: {
+    //         id: 'mainnet',
+    //         rpcUrl: 'https://mainnet.infura.io/v3',
+    //         chainId: CHAIN_ID_MOCK,
+    //         ticker: 'ETH',
+    //         nickname: 'Sepolia network',
+    //         rpcPrefs: {
+    //           blockExplorerUrl: 'https://etherscan.com',
+    //         },
+    //       },
+    //     },
+    //   },
+    // },
     AccountsController: {
       state: {
         internalAccounts: { accounts: [] },

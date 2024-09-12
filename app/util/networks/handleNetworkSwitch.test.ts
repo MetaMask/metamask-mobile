@@ -39,7 +39,7 @@ function setupGetStateMock() {
         engine: {
           backgroundState: {
             NetworkController: {
-              isCustomNetwork: false,
+              selectedNetworkClientId: 'networkId1',
               networkConfigurations: {
                 networkId1: {
                   rpcUrl: 'custom-testnet-rpc-url',
@@ -48,12 +48,10 @@ function setupGetStateMock() {
                   nickname: 'Testnet',
                 },
               },
-              providerConfig: {
-                type: 'mainnet',
-                chainId: '0x1',
-              },
-              networkDetails: {
-                EIPS: { 1559: false },
+              networksMetadata: {
+                networkId1: {
+                  EIPS: { 1559: false },
+                },
               },
             },
           },
@@ -66,27 +64,12 @@ function setupGetStateMock() {
 }
 
 describe('useHandleNetworkSwitch', () => {
-  beforeEach(() => {
-    jest.resetAllMocks();
-  });
-
   afterEach(() => {
     jest.restoreAllMocks();
     jest.resetAllMocks();
   });
 
   it('does nothing if not given a chain ID', () => {
-    (
-      Engine.context.NetworkController.getNetworkClientById as jest.Mock
-    ).mockReturnValue({
-      configuration: {
-        chainId: '0x1',
-        rpcUrl: 'https://mainnet.infura.io/v3',
-        ticker: 'ETH',
-        type: 'custom',
-      },
-    });
-
     setupGetStateMock();
 
     const result = handleNetworkSwitch('');
@@ -132,17 +115,6 @@ describe('useHandleNetworkSwitch', () => {
   });
 
   it('throws an error if the chain ID is not recognized', () => {
-    (
-      Engine.context.NetworkController.getNetworkClientById as jest.Mock
-    ).mockReturnValue({
-      configuration: {
-        chainId: '0x1',
-        rpcUrl: 'https://mainnet.infura.io/v3',
-        ticker: 'ETH',
-        type: 'custom',
-      },
-    });
-
     setupGetStateMock();
 
     expect(() => handleNetworkSwitch('123456')).toThrow(
@@ -179,17 +151,6 @@ describe('useHandleNetworkSwitch', () => {
   });
 
   it('switches to a built-in network', () => {
-    (
-      Engine.context.NetworkController.getNetworkClientById as jest.Mock
-    ).mockReturnValue({
-      configuration: {
-        chainId: '0x1',
-        rpcUrl: 'https://mainnet.infura.io/v3',
-        ticker: 'ETH',
-        type: 'custom',
-      },
-    });
-
     setupGetStateMock();
 
     const networkType = handleNetworkSwitch('11155111');

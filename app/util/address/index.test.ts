@@ -15,47 +15,6 @@ import {
   getKeyringByAddress,
   getLabelTextByAddress,
 } from '.';
-import mockedEngine from '../../core/__mocks__/MockedEngine';
-
-jest.mock('../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-  context: {
-    NetworkController: {
-      getNetworkClientById: () => ({
-        configuration: {
-          chainId: '0x1',
-          rpcUrl: 'https://mainnet.infura.io/v3',
-          ticker: 'ETH',
-          type: 'custom',
-        },
-      }),
-    },
-    KeyringController: {
-      createNewVaultAndKeychain: () => jest.fn(),
-      setLocked: () => jest.fn(),
-      isUnlocked: () => jest.fn(),
-      state: {
-        keyrings: [
-          {
-            accounts: ['0xB374Ca013934e498e5baD3409147F34E6c462389'],
-            index: 0,
-            type: 'QR Hardware Wallet Device',
-          },
-          {
-            accounts: ['0xd018538C87232FF95acbCe4870629b75640a78E7'],
-            index: 1,
-            type: 'Simple Key Pair',
-          },
-
-          {
-            accounts: ['0x71C7656EC7ab88b098defB751B7401B5f6d8976F'],
-            index: 2,
-          },
-        ],
-      },
-    },
-  },
-}));
 
 describe('isENS', () => {
   it('should return false by default', () => {

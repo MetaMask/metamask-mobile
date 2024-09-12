@@ -6,7 +6,8 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import { IndividualFiatDisplay, TotalFiatDisplay } from './FiatDisplay';
 import { FIAT_UNAVAILABLE } from '../types';
 import useFiatFormatter from './useFiatFormatter';
-import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
+import { mockNetworkStateOld } from '../../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.mock('./useFiatFormatter');
 
@@ -20,20 +21,12 @@ const mockStateWithTestnet = merge({}, mockInitialState, {
   engine: {
     backgroundState: {
       NetworkController: {
-        selectedNetworkClientId: 'sepolia',
-        networksMetadata: {},
-        networkConfigurations: {
-          sepolia: {
-            id: 'sepolia',
-            rpcUrl: 'http://localhost/v3/',
-            chainId: NETWORKS_CHAIN_ID.SEPOLIA,
-            ticker: 'ETH',
-            nickname: 'Sepolia network',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://etherscan.com',
-            },
-          },
-        },
+        ...mockNetworkStateOld({
+          chainId: CHAIN_IDS.SEPOLIA,
+          id: 'sepolia',
+          nickname: 'Sepolia',
+          ticker: 'ETH',
+        }),
       },
     },
   },

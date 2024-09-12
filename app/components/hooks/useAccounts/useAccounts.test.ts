@@ -54,22 +54,6 @@ const MOCK_STORE_STATE = {
           },
         },
       },
-      NetworkController: {
-        selectedNetworkClientId: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
-        networksMetadata: {},
-        networkConfigurations: {
-          '673a4523-3c49-47cd-8d48-68dfc8a47a9c': {
-            id: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
-            rpcUrl: 'http://localhost/v3/',
-            chainId: MOCK_CHAIN_ID,
-            ticker: 'ETH',
-            nickname: 'Ethereum chain',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://etherscan.com',
-            },
-          },
-        },
-      },
     },
   },
 };

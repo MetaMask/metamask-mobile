@@ -17,6 +17,8 @@ import Engine from '../../../core/Engine';
 import TestHelpers from '../../../../e2e/helpers';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../reducers';
+import { mockNetworkStateOld } from '../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -84,20 +86,12 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networksMetadata: {},
-            networkConfigurations: {
-              mainnet: {
-                id: 'mainnet',
-                rpcUrl: 'http://localhost/v3/',
-                chainId: '0x1',
-                ticker: 'ETH',
-                nickname: 'mainnet',
-                rpcPrefs: {
-                  blockExplorerUrl: 'https://etherscan.com',
-                },
-              },
-            },
+            ...mockNetworkStateOld({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
+              ticker: 'ETH',
+            }),
           },
           AccountTrackerController: {
             accounts: { [MOCK_ADDRESS]: { balance: '0' } },
@@ -209,20 +203,12 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networksMetadata: {},
-            networkConfigurations: {
-              mainnet: {
-                id: 'mainnet',
-                rpcUrl: 'http://localhost/v3/',
-                chainId: '0x1',
-                ticker: 'ETH',
-                nickname: 'mainnet',
-                rpcPrefs: {
-                  blockExplorerUrl: 'https://etherscan.com',
-                },
-              },
-            },
+            ...mockNetworkStateOld({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
+              ticker: 'ETH',
+            }),
           },
           AccountTrackerController: {
             accounts: { [MOCK_ADDRESS]: { balance: '0' } },
@@ -328,20 +314,12 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networksMetadata: {},
-            networkConfigurations: {
-              mainnet: {
-                id: 'mainnet',
-                rpcUrl: 'http://localhost/v3/',
-                chainId: '0x1',
-                ticker: 'ETH',
-                nickname: 'mainnet',
-                rpcPrefs: {
-                  blockExplorerUrl: 'https://etherscan.com',
-                },
-              },
-            },
+            ...mockNetworkStateOld({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
+              ticker: 'ETH',
+            }),
           },
           AccountTrackerController: {
             accounts: { [MOCK_ADDRESS]: { balance: '0' } },
@@ -448,20 +426,12 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networksMetadata: {},
-            networkConfigurations: {
-              mainnet: {
-                id: 'mainnet',
-                rpcUrl: 'http://localhost/v3/',
-                chainId: '0x1',
-                ticker: 'ETH',
-                nickname: 'mainnet',
-                rpcPrefs: {
-                  blockExplorerUrl: 'https://etherscan.com',
-                },
-              },
-            },
+            ...mockNetworkStateOld({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
+              ticker: 'ETH',
+            }),
           },
           AccountTrackerController: {
             accounts: { [MOCK_ADDRESS]: { balance: '0' } },
@@ -530,20 +500,12 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networksMetadata: {},
-            networkConfigurations: {
-              mainnet: {
-                id: 'mainnet',
-                rpcUrl: 'http://localhost/v3/',
-                chainId: '0x1',
-                ticker: 'ETH',
-                nickname: 'mainnet',
-                rpcPrefs: {
-                  blockExplorerUrl: 'https://etherscan.com',
-                },
-              },
-            },
+            ...mockNetworkStateOld({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
+              ticker: 'ETH',
+            }),
           },
           AccountTrackerController: {
             accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
@@ -592,20 +554,12 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networksMetadata: {},
-            networkConfigurations: {
-              mainnet: {
-                id: 'mainnet',
-                rpcUrl: 'http://localhost/v3/',
-                chainId: '0x1',
-                ticker: 'ETH',
-                nickname: 'mainnet',
-                rpcPrefs: {
-                  blockExplorerUrl: 'https://etherscan.com',
-                },
-              },
-            },
+            ...mockNetworkStateOld({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
+              ticker: 'ETH',
+            }),
           },
           AccountTrackerController: {
             accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },

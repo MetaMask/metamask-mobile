@@ -19,6 +19,8 @@ import handleSendMessage from './handleSendMessage';
 import { createMockInternalAccount } from '../../../util/test/accountsControllerTestUtils';
 import { AccountsController } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { mockNetworkStateOld } from '../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.mock('../../Engine');
 jest.mock('@metamask/keyring-controller');
@@ -106,20 +108,12 @@ describe('handleConnectionMessage', () => {
           },
         }),
         state: {
-          networkConfigurations: {
-            mainnet: {
-              id: 'mainnet',
-              rpcUrl: 'https://mainnet.infura.io/v3',
-              chainId: '0x1',
-              ticker: 'ETH',
-              nickname: 'Ethereum mainnet',
-              rpcPrefs: {
-                blockExplorerUrl: 'https://etherscan.com',
-              },
-            },
-          },
-          selectedNetworkClientId: 'mainnet',
-          networkMetadata: {},
+          ...mockNetworkStateOld({
+            chainId: CHAIN_IDS.MAINNET,
+            id: 'mainnet',
+            nickname: 'Ethereum Mainnet',
+            ticker: 'ETH',
+          }),
         },
       } as unknown as NetworkController,
       AccountsController: {

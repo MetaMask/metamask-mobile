@@ -9,7 +9,6 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
 }));
-
 describe('AggregatedPercentage', () => {
   beforeEach(() => {
     (useSelector as jest.Mock).mockImplementation((selector) => {

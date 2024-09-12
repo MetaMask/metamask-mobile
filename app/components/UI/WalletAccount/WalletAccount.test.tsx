@@ -22,6 +22,8 @@ import { RootState } from '../../../reducers';
 
 // Internal dependencies
 import WalletAccount from './WalletAccount';
+import { mockNetworkStateOld } from '../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const MOCK_CHAIN_ID: Hex = '0x1';
 
@@ -44,20 +46,12 @@ const mockInitialState: DeepPartial<RootState> = {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       NetworkController: {
-        selectedNetworkClientId: 'mainnet',
-        networksMetadata: {},
-        networkConfigurations: {
-          mainnet: {
-            id: 'mainnet',
-            rpcUrl: 'http://localhost/v3/',
-            chainId: MOCK_CHAIN_ID,
-            ticker: 'ETH',
-            nickname: 'Ethereum Mainnet',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://etherscan.com',
-            },
-          },
-        },
+        ...mockNetworkStateOld({
+          chainId: CHAIN_IDS.MAINNET,
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+        }),
       },
     },
   },

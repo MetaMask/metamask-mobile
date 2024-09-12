@@ -1,3 +1,4 @@
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import Send from '.';
 import { RootState } from '../../../../reducers';
 import { MOCK_KEYRING_CONTROLLER } from '../../../../selectors/keyringController/testUtils';
@@ -5,10 +6,18 @@ import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_2,
 } from '../../../../util/test/accountsControllerTestUtils';
+import { mockNetworkStateOld } from '../../../../util/test/network';
 import {
   DeepPartial,
   renderScreen,
 } from '../../../../util/test/renderWithProvider';
+
+const mockedNetworkControllerState = mockNetworkStateOld({
+  chainId: CHAIN_IDS.MAINNET,
+  id: 'mainnet',
+  nickname: 'Ethereum Mainnet',
+  ticker: 'ETH',
+});
 
 const initialState: DeepPartial<RootState> = {
   transaction: {
@@ -92,20 +101,7 @@ const initialState: DeepPartial<RootState> = {
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       KeyringController: MOCK_KEYRING_CONTROLLER,
       NetworkController: {
-        selectedNetworkClientId: 'mainnet',
-        networksMetadata: {},
-        networkConfigurations: {
-          sepolia: {
-            id: 'mainnet',
-            rpcUrl: 'http://localhost/v3/',
-            chainId: '0x1',
-            ticker: 'ETH',
-            nickname: 'Sepolia network',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://etherscan.com',
-            },
-          },
-        },
+        ...mockedNetworkControllerState,
       },
       NftController: {
         allNftContracts: {},
@@ -186,20 +182,7 @@ jest.mock('../../../../core/Engine', () => ({
         },
       }),
       state: {
-        selectedNetworkClientId: 'mainnet',
-        networksMetadata: {},
-        networkConfigurations: {
-          sepolia: {
-            id: 'mainnet',
-            rpcUrl: 'http://localhost/v3/',
-            chainId: '0x1',
-            ticker: 'ETH',
-            nickname: 'Sepolia network',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://etherscan.com',
-            },
-          },
-        },
+        ...mockedNetworkControllerState,
       },
     },
   },

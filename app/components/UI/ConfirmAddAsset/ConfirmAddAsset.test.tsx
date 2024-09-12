@@ -9,6 +9,8 @@ import { toTokenMinimalUnit } from '../../../util/number';
 import { fireEvent } from '@testing-library/react-native';
 import { BN } from 'ethereumjs-util';
 import { RootState } from '../../../reducers';
+import { mockNetworkStateOld } from '../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
@@ -73,20 +75,12 @@ const mockInitialState: DeepPartial<RootState> = {
         },
       },
       NetworkController: {
-        selectedNetworkClientId: 'sepolia',
-        networksMetadata: {},
-        networkConfigurations: {
-          sepolia: {
-            id: 'sepolia',
-            rpcUrl: 'http://localhost/v3/',
-            chainId: '0xaa36a7',
-            ticker: 'ETH',
-            nickname: 'Sepolia',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://etherscan.com',
-            },
-          },
-        },
+        ...mockNetworkStateOld({
+          chainId: CHAIN_IDS.SEPOLIA,
+          id: 'sepolia',
+          nickname: 'Sepolia',
+          ticker: 'ETH',
+        }),
       },
     },
   },

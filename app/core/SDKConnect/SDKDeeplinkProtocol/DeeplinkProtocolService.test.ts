@@ -58,27 +58,8 @@ describe('DeeplinkProtocolService', () => {
         getNetworkClientById: () => ({
           configuration: {
             chainId: '0x1',
-            rpcUrl: 'https://mainnet.infura.io/v3',
-            ticker: 'ETH',
-            type: 'custom',
           },
         }),
-        state: {
-          selectedNetworkClientId: 'mainnet',
-          networksMetadata: {},
-          networkConfigurations: {
-            mainnet: {
-              id: 'mainnet',
-              rpcUrl: 'https://mainnet.infura.io/v3',
-              chainId: '0x1',
-              ticker: 'ETH',
-              nickname: 'Sepolia network',
-              rpcPrefs: {
-                blockExplorerUrl: 'https://etherscan.com',
-              },
-            },
-          },
-        },
       },
       AccountsController: {
         getSelectedAccount: jest.fn().mockReturnValue(mockInternalAccount),

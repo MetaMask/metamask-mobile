@@ -11,6 +11,8 @@ import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
+import { mockNetworkStateOld } from '../../../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 const MOCK_ADDRESS = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
 
 const testOrders: DeepPartial<FiatOrder>[] = [
@@ -116,20 +118,12 @@ function render(Component: React.ReactElement, orders = testOrders) {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networksMetadata: {},
-            networkConfigurations: {
-              mainnet: {
-                id: 'mainnet',
-                rpcUrl: 'http://localhost/v3/',
-                chainId: '0x1',
-                ticker: 'ETH',
-                nickname: 'Ethereum mainnet',
-                rpcPrefs: {
-                  blockExplorerUrl: 'https://etherscan.com',
-                },
-              },
-            },
+            ...mockNetworkStateOld({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
+              ticker: 'ETH',
+            }),
           },
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
         },

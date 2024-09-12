@@ -17,22 +17,6 @@ jest.mock('../Engine', () => ({
   init: () => mockEngine.init({}),
   context: {
     NetworkController: {
-      state: {
-        selectedNetworkClientId: 'mainnet',
-        networksMetadata: {},
-        networkConfigurations: {
-          mainnet: {
-            id: 'mainnet',
-            rpcUrl: 'https://mainnet.infura.io/v3',
-            chainId: '0x1',
-            ticker: 'ETH',
-            nickname: 'Sepolia network',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://etherscan.com',
-            },
-          },
-        },
-      },
       setActiveNetwork: jest.fn(),
       upsertNetworkConfiguration: jest.fn(),
     },

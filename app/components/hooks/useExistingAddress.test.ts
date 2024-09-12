@@ -20,22 +20,6 @@ const mockInitialState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
       ...backgroundState,
-      NetworkController: {
-        selectedNetworkClientId: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
-        networksMetadata: {},
-        networkConfigurations: {
-          '673a4523-3c49-47cd-8d48-68dfc8a47a9c': {
-            id: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
-            rpcUrl: 'http://localhost/v3/',
-            chainId: '0x1',
-            ticker: 'ETH',
-            nickname: 'Ethereum chain',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://etherscan.com',
-            },
-          },
-        },
-      },
       AddressBookController: {
         addressBook: {
           [MOCK_ADDRESS_2]: {

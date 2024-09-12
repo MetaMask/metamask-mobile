@@ -11,6 +11,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Engine from '../../../../../core/Engine';
 import { RampType } from '../../../../../reducers/fiatOrders/types';
+import { mockNetworkStateOld } from '../../../../../util/test/network';
 
 const mockedRampNetworksValues: AggregatorNetwork[] = [
   {
@@ -78,31 +79,20 @@ function render(Component: React.ComponentType, chainId?: `0x${string}`) {
           backgroundState: {
             ...backgroundState,
             NetworkController: {
-              ...backgroundState.NetworkController,
-              selectedNetworkClientId: 'networkId2',
-              networksMetadata: {},
-              networkConfigurations: {
-                networkId1: {
-                  id: 'networkId1',
-                  rpcUrl: 'https://polygon-mainnet.infura.io/v3/12345',
-                  chainId: '0x89',
-                  ticker: 'MATIC',
-                  nickname: 'Polygon Mainnet',
-                  rpcPrefs: {
-                    blockExplorerUrl: 'https://etherscan.com',
-                  },
-                },
-                networkId2: {
-                  id: 'networkId2',
-                  rpcUrl: 'http://localhost/v3/',
+              ...mockNetworkStateOld(
+                {
                   chainId: chainId ?? '0x38',
-                  ticker: 'BNB',
+                  id: 'networkId2',
                   nickname: 'BNB Smart Chain',
-                  rpcPrefs: {
-                    blockExplorerUrl: 'https://etherscan.com',
-                  },
+                  ticker: 'BNB',
                 },
-              },
+                {
+                  chainId: '0x89',
+                  id: 'networkId1',
+                  nickname: 'Polygon Mainnet',
+                  ticker: 'MATIC',
+                },
+              ),
             },
           },
         },

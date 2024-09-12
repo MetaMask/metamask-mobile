@@ -9,6 +9,8 @@ import WalletActions from './WalletActions';
 import { WalletActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/WalletActionsModal.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
+import { mockNetworkStateOld } from '../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const mockInitialState: DeepPartial<RootState> = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
@@ -26,20 +28,12 @@ const mockInitialState: DeepPartial<RootState> = {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
-        selectedNetworkClientId: 'mainnet',
-        networksMetadata: {},
-        networkConfigurations: {
-          sepolia: {
-            id: 'mainnet',
-            rpcUrl: 'http://localhost/v3/',
-            chainId: '0x1',
-            ticker: 'ETH',
-            nickname: 'Sepolia network',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://etherscan.com',
-            },
-          },
-        },
+        ...mockNetworkStateOld({
+          chainId: CHAIN_IDS.MAINNET,
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+        }),
       },
     },
   },
@@ -121,20 +115,12 @@ describe('WalletActions', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            selectedNetworkClientId: 'sepolia',
-            networksMetadata: {},
-            networkConfigurations: {
-              sepolia: {
-                id: 'sepolia',
-                rpcUrl: 'http://localhost/v3/',
-                chainId: '0x0',
-                ticker: 'ETH',
-                nickname: 'Sepolia network',
-                rpcPrefs: {
-                  blockExplorerUrl: 'https://etherscan.com',
-                },
-              },
-            },
+            ...mockNetworkStateOld({
+              chainId: CHAIN_IDS.SEPOLIA,
+              id: 'sepolia',
+              nickname: 'Sepolia',
+              ticker: 'ETH',
+            }),
           },
         },
       },

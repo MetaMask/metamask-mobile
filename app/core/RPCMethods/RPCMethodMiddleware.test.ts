@@ -61,22 +61,6 @@ jest.mock('../Engine', () => ({
           chainId: '0x1',
         },
       }),
-      state: {
-        networkConfigurations: {
-          mainnet: {
-            id: 'mainnet',
-            rpcUrl: 'https://mainnet.infura.io/v3',
-            chainId: '0x1',
-            ticker: 'ETH',
-            nickname: 'Ethereum mainnet',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://etherscan.com',
-            },
-          },
-        },
-        selectedNetworkClientId: 'mainnet',
-        networkMetadata: {},
-      },
     },
   },
 }));

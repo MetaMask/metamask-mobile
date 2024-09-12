@@ -42,8 +42,6 @@ jest.mock('react-redux', () => ({
   useSelector: (fn: any) => fn(mockInitialState),
 }));
 
-const mockedGetNetworkClientById = jest.fn();
-
 const mockedNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
@@ -57,18 +55,8 @@ jest.mock('@react-navigation/native', () => {
 });
 
 describe('useBlockExplorer', () => {
-  beforeEach(() => {
-    // Clear any previous mocks
-    jest.clearAllMocks();
-  });
-
   it('should navigate to the correct block explorer for no-RPC provider', () => {
-    mockedGetNetworkClientById.mockReturnValue({
-      configuration: { type: 'infura', chainId: '0x5' },
-    });
-    const { result } = renderHookWithProvider(() => useBlockExplorer(), {
-      state: mockInitialState,
-    });
+    const { result } = renderHookWithProvider(() => useBlockExplorer());
     const { toBlockExplorer } = result.current;
     const address = '0x1234567890abcdef';
     toBlockExplorer(address);
@@ -81,32 +69,7 @@ describe('useBlockExplorer', () => {
   });
 
   it('should navigate to the correct block explorer for RPC provider', () => {
-    const { result } = renderHookWithProvider(() => useBlockExplorer(), {
-      state: {
-        settings: {},
-        engine: {
-          backgroundState: {
-            ...backgroundState,
-            NetworkController: {
-              selectedNetworkClientId: 'mainnet',
-              networksMetadata: {},
-              networkConfigurations: {
-                mainnet: {
-                  id: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
-                  rpcUrl: 'http://localhost/v3/',
-                  chainId: '0xe708',
-                  ticker: 'ETH',
-                  nickname: 'Ethereum chain',
-                  rpcPrefs: {
-                    blockExplorerUrl: 'https://etherscan.com',
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
+    const { result } = renderHookWithProvider(() => useBlockExplorer());
     const { toBlockExplorer } = result.current;
     const address = '0x1234567890abcdef';
     toBlockExplorer(address);
