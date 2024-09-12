@@ -30,12 +30,13 @@ import { toDataUrl } from '../../../../util/blockies.js';
 import Jazzicon from 'react-native-jazzicon';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 const diameter = 40;
@@ -54,6 +55,26 @@ const infuraCurrencyOptions = sortedCurrencies.map(
     value: code,
   }),
 );
+
+export const updateUserTraitsWithCurrentCurrency = (currency, metrics) => {
+  // track event and add selected currency to user profile for analytics
+  const traits = { [UserProfileProperty.CURRENT_CURRENCY]: currency };
+  metrics.addTraitsToUser(traits);
+  metrics.trackEvent(MetaMetricsEvents.CURRENCY_CHANGED, {
+    ...traits,
+    location: 'app_settings',
+  });
+};
+
+export const updateUserTraitsWithCurrencyType = (primaryCurrency, metrics) => {
+  // track event and add primary currency preference (fiat/crypto) to user profile for analytics
+  const traits = { [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency };
+  metrics.addTraitsToUser(traits);
+  metrics.trackEvent(MetaMetricsEvents.PRIMARY_CURRENCY_TOGGLE, {
+    ...traits,
+    location: 'app_settings',
+  });
+};
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -180,6 +201,10 @@ class Settings extends PureComponent {
      * App theme
      */
     // appTheme: PropTypes.string,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -190,6 +215,7 @@ class Settings extends PureComponent {
   selectCurrency = async (currency) => {
     const { CurrencyRateController } = Engine.context;
     CurrencyRateController.setCurrentCurrency(currency);
+    updateUserTraitsWithCurrentCurrency(currency, this.props.metrics);
   };
 
   selectLanguage = (language) => {
@@ -206,13 +232,7 @@ class Settings extends PureComponent {
   selectPrimaryCurrency = (primaryCurrency) => {
     this.props.setPrimaryCurrency(primaryCurrency);
 
-    const metrics = MetaMetrics.getInstance();
-    const traits = { [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency };
-    metrics.addTraitsToUser(traits);
-    metrics.trackEvent(MetaMetricsEvents.PRIMARY_CURRENCY_TOGGLE, {
-      ...traits,
-      location: 'app_settings',
-    });
+    updateUserTraitsWithCurrencyType(primaryCurrency, this.props.metrics);
   };
 
   toggleHideZeroBalanceTokens = (toggleHideZeroBalanceTokens) => {
@@ -506,4 +526,7 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(setHideZeroBalanceTokens(hideZeroBalanceTokens)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Settings);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(Settings));

@@ -582,7 +582,6 @@ class Engine {
       }),
       state: initialState.LoggingController,
     });
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     const accountsControllerMessenger: AccountsControllerMessenger =
       this.controllerMessenger.getRestricted({
         name: 'AccountsController',
