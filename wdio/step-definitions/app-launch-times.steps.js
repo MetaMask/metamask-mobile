@@ -1,5 +1,6 @@
 import cucumberJson from 'wdio-cucumberjs-json-reporter';
 import { Given, When, Then } from '@wdio/cucumber-framework';
+import LoginScreen from '../screen-objects/LoginScreen';
 
 let startTimer;
 let stopTimer;
@@ -10,6 +11,19 @@ Then(/^the app should launch within "([^"]*)?" seconds$/, async (time) => {
   console.log(`The Launch time is: ${launchTime}`);
 
   await expect(launchTime).toBeLessThan(time * 1000);
+  cucumberJson.attach(`Milliseconds: ${launchTime}`);
+  await driver.pause(100);
+});
+
+Then(/^the Login screen should be visible$/, async () => {
+  let time;
+  await LoginScreen.isLoginScreenVisible();
+
+  stopTimer = new Date().getTime();
+  const launchTime = stopTimer - startTimer;
+  console.log(`The time it takes the login view to appear is: ${launchTime}`);
+
+  // await expect(launchTime).toBeLessThan(time * 1000);
   cucumberJson.attach(`Milliseconds: ${launchTime}`);
   await driver.pause(100);
 });
