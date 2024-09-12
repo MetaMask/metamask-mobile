@@ -419,7 +419,7 @@ function checkIfAddressAlreadySaved(
   internalAccounts: InternalAccount[],
 ) {
   if (address) {
-    const networkAddressBook = addressBook[chainId] || {};
+    const networkAddressBook = addressBook?.[chainId] ?? {};
 
     const checksummedResolvedAddress = toChecksumAddress(address);
     if (

@@ -17,7 +17,7 @@ const useExistingAddress = (address?: string): AccountInfo | undefined => {
 
   if (!address) return;
 
-  const networkAddressBook = addressBook[chainId] || {};
+  const networkAddressBook = addressBook?.[chainId] ?? {};
   const checksummedAddress = toChecksumAddress(address);
 
   const matchingAddressBookEntry: AddressBookEntry | undefined =

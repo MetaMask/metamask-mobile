@@ -189,7 +189,7 @@ class SendFlow extends PureComponent {
     this.updateNavBar();
     // For analytics
     navigation.setParams({ providerType, isPaymentRequest });
-    const networkAddressBook = addressBook[chainId] || {};
+    const networkAddressBook = addressBook?.[chainId] ?? {};
     if (!Object.keys(networkAddressBook).length) {
       setTimeout(() => {
         this.addressToInputRef &&
@@ -223,7 +223,7 @@ class SendFlow extends PureComponent {
   isAddressSaved = () => {
     const { toAccount } = this.state;
     const { addressBook, chainId, internalAccounts } = this.props;
-    const networkAddressBook = addressBook[chainId] || {};
+    const networkAddressBook = addressBook?.[chainId] ?? {};
     const checksummedAddress = toChecksumAddress(toAccount);
     return !!(
       networkAddressBook[checksummedAddress] ||
@@ -369,7 +369,7 @@ class SendFlow extends PureComponent {
     const { addressBook, internalAccounts, chainId } = this.props;
     if (!toAccount) return;
 
-    const networkAddressBook = addressBook[chainId] || {};
+    const networkAddressBook = addressBook?.[chainId] ?? {};
 
     const checksummedAddress = toChecksumAddress(toAccount);
     const matchingAccount = internalAccounts.find((account) =>
@@ -491,8 +491,7 @@ class SendFlow extends PureComponent {
     );
     const existingContact =
       checksummedAddress &&
-      addressBook[chainId] &&
-      addressBook[chainId][checksummedAddress];
+      addressBook?.[chainId]?.[checksummedAddress];
     const displayConfusableWarning =
       !existingContact && confusableCollection && !!confusableCollection.length;
     const displayAsWarning =
