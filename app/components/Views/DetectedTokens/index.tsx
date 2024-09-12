@@ -223,7 +223,7 @@ const DetectedTokens = () => {
 
   const renderDetectedTokens = () => (
     <FlatList
-      style={styles.tokenList}
+      style={styles?.tokenList}
       data={detectedTokens}
       keyExtractor={getTokenId}
       renderItem={renderToken}
