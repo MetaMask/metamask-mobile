@@ -39,13 +39,13 @@ describe(Regression('Auto-Lock'), () => {
     await stopFixtureServer(fixtureServer);
   });
 
-  it('with default auto-lock setting, background the app and relaunch without needing password', async () => {
+  it('backgrounds then relaunches without needing password on default auto-lock setting', async () => {
     await device.sendToHome();
     await device.launchApp();
     await Assertions.checkIfVisible(WalletView.container);
   });
 
-  it('set auto-lock to Immediately, then background the app and relaunch to confirm locked', async () => {
+  it('sets auto-lock to immediately then requires password to reopen from background', async () => {
     await TabBarComponent.tapSettings();
     await SettingsView.tapSecurityAndPrivacy();
     await SecurityAndPrivacy.scrollToAutoLockSection();
