@@ -1,2 +1,2 @@
 export { default } from './Text';
-export { TextColor, TextVariant } from './Text.types';
+export { TextVariant, TextColor } from './Text.types';

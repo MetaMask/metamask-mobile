@@ -1,9 +1,9 @@
-import PropTypes from 'prop-types';
 import React, { useCallback } from 'react';
-import { ViewPropTypes } from 'react-native';
+import PropTypes from 'prop-types';
 import Keypad from './components';
 import { KEYS } from './constants';
 import useCurrency from './useCurrency';
+import { ViewPropTypes } from 'react-native';
 function KeypadComponent({
   onChange,
   value,
