@@ -127,7 +127,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   useEffect(() => {
     if (
       previousPermittedAccounts.current === undefined &&
-      permittedAccountsByHostname.length === 0
+      permittedAccountsByHostname.length === 0 &&
+      isRenderedAsBottomSheet
     ) {
       // TODO - Figure out better UX instead of auto dismissing. However, we cannot be in this state as long as accounts are not connected.
       hideSheet();
