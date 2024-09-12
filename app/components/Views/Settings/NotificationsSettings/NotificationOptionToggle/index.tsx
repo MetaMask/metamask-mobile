@@ -32,7 +32,7 @@ interface NotificationOptionsToggleProps {
   testId?: string;
 
   isEnabled: boolean;
-  refetchAccountSettings: () => Promise<void>;
+  refetchAccountSettings?: () => Promise<void>;
 }
 
 function useUpdateAccountSetting(address: string) {
