@@ -49,6 +49,8 @@ interface IQRSigningDetails {
   fromAddress: string;
 }
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     wrapper: {
@@ -132,6 +134,8 @@ const QRSigningDetails = ({
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const KeyringController = useMemo(() => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController: keyring } = Engine.context as any;
     return keyring;
   }, []);
@@ -222,22 +226,24 @@ const QRSigningDetails = ({
       hideScanner();
       const signature = ETHSignature.fromCBOR(ur.cbor);
       const buffer = signature.getRequestId();
-      const requestId = uuidStringify(buffer);
-      if (QRState.sign.request?.requestId === requestId) {
-        KeyringController.submitQRSignature(
-          QRState.sign.request?.requestId as string,
-          ur.cbor.toString('hex'),
-        );
-        setSentOrCanceled(true);
-        successCallback?.();
-      } else {
-        trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
-          error:
-            'received signature request id is not matched with origin request',
-        });
-        setErrorMessage(strings('transaction.mismatched_qr_request_id'));
-        failureCallback?.(strings('transaction.mismatched_qr_request_id'));
+      if (buffer) {
+        const requestId = uuidStringify(buffer);
+        if (QRState.sign.request?.requestId === requestId) {
+          KeyringController.submitQRSignature(
+            QRState.sign.request?.requestId as string,
+            ur.cbor.toString('hex'),
+          );
+          setSentOrCanceled(true);
+          successCallback?.();
+          return;
+        }
       }
+      trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
+        error:
+          'received signature request id is not matched with origin request',
+      });
+      setErrorMessage(strings('transaction.mismatched_qr_request_id'));
+      failureCallback?.(strings('transaction.mismatched_qr_request_id'));
     },
     [
       KeyringController,

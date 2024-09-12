@@ -9,6 +9,8 @@ import Text from '../../../Base/Text';
 import { Colors } from '../../../../util/theme/models';
 
 // TODO: Convert into typescript and correctly type
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ListItem = ListItemBase as any;
 
 const createStyles = (colors: Colors) =>
@@ -24,6 +26,8 @@ interface IProps {
   label?: string;
   icon?: ReactNode;
   highlighted?: boolean;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onPress?: () => any;
 }
 

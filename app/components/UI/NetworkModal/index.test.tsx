@@ -7,10 +7,15 @@ import { selectUseSafeChainsListValidation } from '../../../selectors/preference
 interface NetworkProps {
   isVisible: boolean;
   onClose: () => void;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   networkConfiguration: any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   shouldNetworkSwitchPopToWallet: boolean;
   onNetworkSwitch?: () => void;
+  showPopularNetworkModal: boolean;
 }
 
 jest.mock('react-redux', () => ({
@@ -32,6 +37,7 @@ describe('NetworkDetails', () => {
     },
     navigation: 'navigation',
     shouldNetworkSwitchPopToWallet: true,
+    showPopularNetworkModal: true,
   };
   it('renders correctly', () => {
     (useSelector as jest.MockedFn<typeof useSelector>).mockImplementation(

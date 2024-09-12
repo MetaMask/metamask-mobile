@@ -12,8 +12,8 @@ exports[`CellDisplay should render default settings correctly 1`] = `
   secondaryText="0x2990079bcdEe240329a520d2444386FC119da21a"
   style={
     {
-      "backgroundColor": "#FFFFFF",
-      "borderColor": "#BBC0C5",
+      "backgroundColor": "#ffffff",
+      "borderColor": "#bbc0c5",
       "borderRadius": 4,
       "borderWidth": 1,
       "padding": 16,
@@ -34,7 +34,7 @@ exports[`CellDisplay should render default settings correctly 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#ffffff",
           "borderRadius": 16,
           "height": 32,
           "marginRight": 16,
@@ -186,8 +186,8 @@ exports[`CellDisplay should render default settings correctly 1`] = `
         numberOfLines={1}
         style={
           {
-            "color": "#24272A",
-            "fontFamily": "Euclid Circular B",
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -203,8 +203,8 @@ exports[`CellDisplay should render default settings correctly 1`] = `
         numberOfLines={1}
         style={
           {
-            "color": "#535A61",
-            "fontFamily": "Euclid Circular B",
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -219,8 +219,8 @@ exports[`CellDisplay should render default settings correctly 1`] = `
         numberOfLines={1}
         style={
           {
-            "color": "#535A61",
-            "fontFamily": "Euclid Circular B",
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -233,8 +233,8 @@ exports[`CellDisplay should render default settings correctly 1`] = `
       <View
         style={
           {
-            "backgroundColor": "#FFFFFF",
-            "borderColor": "#BBC0C5",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#bbc0c5",
             "borderRadius": 10,
             "borderWidth": 1,
             "height": 24,
@@ -248,8 +248,8 @@ exports[`CellDisplay should render default settings correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#24272A",
-              "fontFamily": "Euclid Circular B",
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,

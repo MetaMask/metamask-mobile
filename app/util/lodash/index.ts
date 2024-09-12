@@ -4,8 +4,14 @@
  * @param value number | any
  * @returns
  */
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const isZero = (value: number | any): boolean => {
-  if (value?.toString && value?.toString?.() === '0') {
+
+  if (
+    value?.toString &&
+    (value?.toString?.() === '0' || value?.toString?.() === '0x0')
+  ) {
     return true;
   }
   return false;
@@ -57,6 +63,8 @@ export const gt = (value: number, other: number): boolean =>
  * @param {*} value The value to query.
  * @returns {string} Returns the `toStringTag`.
  */
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getTag(value: any): string {
   const objToString = Object.prototype.toString;
   if (value === null) {
@@ -71,6 +79,8 @@ function getTag(value: any): string {
  * @param {*} value The value to check.
  * @returns {boolean} Returns `true` if `value` is a string, else `false`.
  */
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isString(value: any): boolean {
   const type = typeof value;
   return (

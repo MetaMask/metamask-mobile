@@ -17,8 +17,8 @@ exports[`BlockaidSettings should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#24272A",
-          "fontFamily": "Euclid Circular B",
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -33,7 +33,7 @@ exports[`BlockaidSettings should render correctly 1`] = `
       onChange={[Function]}
       onResponderTerminationRequest={[Function]}
       onStartShouldSetResponder={[Function]}
-      onTintColor="#0376C9"
+      onTintColor="#0376c9"
       style={
         [
           {
@@ -45,7 +45,7 @@ exports[`BlockaidSettings should render correctly 1`] = `
               "alignSelf": "flex-end",
             },
             {
-              "backgroundColor": "#D6D9DC",
+              "backgroundColor": "#bbc0c566",
               "borderRadius": 16,
             },
           ],
@@ -53,7 +53,7 @@ exports[`BlockaidSettings should render correctly 1`] = `
       }
       testID="security-alerts-toggle"
       thumbTintColor="#ffffff"
-      tintColor="#D6D9DC"
+      tintColor="#bbc0c566"
       value={true}
     />
   </View>,
@@ -61,8 +61,8 @@ exports[`BlockaidSettings should render correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#535A61",
-        "fontFamily": "Euclid Circular B",
+        "color": "#6a737d",
+        "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",
         "letterSpacing": 0,
@@ -71,7 +71,24 @@ exports[`BlockaidSettings should render correctly 1`] = `
       }
     }
   >
-    Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism, Polygon, Sepolia and Base.
+    This feature alerts you to malicious activity by actively reviewing transaction and signature requests.
+     
+    <Text
+      accessibilityRole="text"
+      onPress={[Function]}
+      style={
+        {
+          "color": "#6a737d",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Learn more.
+    </Text>
   </Text>,
 ]
 `;

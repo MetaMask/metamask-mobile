@@ -29,6 +29,8 @@ interface SlideButton {
   type: 'button';
   buttonType: SlideButtonType;
   buttonText: string;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onPress: (props: { navigation: any }) => void;
 }
 

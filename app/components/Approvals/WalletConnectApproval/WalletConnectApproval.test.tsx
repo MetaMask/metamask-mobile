@@ -7,11 +7,15 @@ import WalletConnectApproval from './WalletConnectApproval';
 
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockApprovalRequest = (approvalRequest?: ApprovalRequest<any>) => {
   (
     useApprovalRequest as jest.MockedFn<typeof useApprovalRequest>
   ).mockReturnValue({
     approvalRequest,
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
 };
 
@@ -24,6 +28,8 @@ describe('WalletConnectApproval', () => {
     mockApprovalRequest({
       type: ApprovalTypes.WALLET_CONNECT,
       requestData: {},
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     const wrapper = shallow(<WalletConnectApproval />);
@@ -37,6 +43,8 @@ describe('WalletConnectApproval', () => {
       requestData: {
         peerMeta: { name: 'testName', url: 'testUrl', icons: ['testIcon'] },
       },
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     const wrapper = shallow(<WalletConnectApproval />);
@@ -55,6 +63,8 @@ describe('WalletConnectApproval', () => {
     mockApprovalRequest({
       type: ApprovalTypes.ADD_ETHEREUM_CHAIN,
       requestData: {},
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     const wrapper = shallow(<WalletConnectApproval />);

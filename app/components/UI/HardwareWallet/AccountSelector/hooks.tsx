@@ -16,6 +16,8 @@ export interface AccountBalances {
 export const useAccountsBalance = (accounts: IAccount[]) => {
   const [trackedAccounts, setTrackedAccounts] = useState<AccountBalances>({});
   const AccountTrackerController = useMemo(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     () => (Engine.context as any).AccountTrackerController,
     [],
   );

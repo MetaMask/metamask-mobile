@@ -1,28 +1,25 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../util/test/renderWithProvider';
 
 import WalletActions from './WalletActions';
-import {
-  WALLET_BRIDGE,
-  WALLET_BUY,
-  WALLET_RECEIVE,
-  WALLET_SEND,
-  WALLET_SWAP,
-} from './WalletActions.constants';
+import { WalletActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/WalletActionsModal.selectors';
 import Engine from '../../../core/Engine';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
+import { RootState } from '../../../reducers';
 
 const mockEngine = Engine;
 
-const mockInitialState = {
+const mockInitialState: DeepPartial<RootState> = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
   fiatOrders: {
     networks: [
       {
         active: true,
-        chainId: 1,
+        chainId: '1',
         chainName: 'Ethereum Mainnet',
         nativeTokenSupported: true,
       },
@@ -30,7 +27,7 @@ const mockInitialState = {
   },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       NetworkController: {
         providerConfig: { type: 'mainnet', chainId: '0x1', ticker: 'ETH' },
       },
@@ -84,21 +81,31 @@ describe('WalletActions', () => {
       state: mockInitialState,
     });
 
-    expect(getByTestId(WALLET_BUY)).toBeDefined();
-    expect(getByTestId(WALLET_SEND)).toBeDefined();
-    expect(getByTestId(WALLET_RECEIVE)).toBeDefined();
-    expect(getByTestId(WALLET_SWAP)).toBeDefined();
-    expect(getByTestId(WALLET_BRIDGE)).toBeDefined();
+    expect(
+      getByTestId(WalletActionsModalSelectorsIDs.BUY_BUTTON),
+    ).toBeDefined();
+    expect(
+      getByTestId(WalletActionsModalSelectorsIDs.SEND_BUTTON),
+    ).toBeDefined();
+    expect(
+      getByTestId(WalletActionsModalSelectorsIDs.RECEIVE_BUTTON),
+    ).toBeDefined();
+    expect(
+      getByTestId(WalletActionsModalSelectorsIDs.SWAP_BUTTON),
+    ).toBeDefined();
+    expect(
+      getByTestId(WalletActionsModalSelectorsIDs.BRIDGE_BUTTON),
+    ).toBeDefined();
   });
 
   it('should not show the buy button and swap button if the chain does not allow buying', () => {
-    const mockState = {
+    const mockState: DeepPartial<RootState> = {
       swaps: { '0x1': { isLive: false }, hasOnboarded: false, isLive: true },
       fiatOrders: {
         networks: [
           {
             active: true,
-            chainId: 1,
+            chainId: '1',
             chainName: 'Ethereum Mainnet',
             nativeTokenSupported: true,
           },
@@ -106,11 +113,11 @@ describe('WalletActions', () => {
       },
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           NetworkController: {
             providerConfig: {
               type: 'mainnet',
-              chainId: '0',
+              chainId: '0x1asdscxds',
               ticker: 'eth',
             },
           },
@@ -129,9 +136,13 @@ describe('WalletActions', () => {
       state: mockState,
     });
 
-    expect(queryByTestId(WALLET_BUY)).toBeNull();
-    expect(queryByTestId(WALLET_SWAP)).toBeNull();
-    expect(queryByTestId(WALLET_BRIDGE)).toBeNull();
+    expect(queryByTestId(WalletActionsModalSelectorsIDs.BUY_BUTTON)).toBeNull();
+    expect(
+      queryByTestId(WalletActionsModalSelectorsIDs.SWAP_BUTTON),
+    ).toBeNull();
+    expect(
+      queryByTestId(WalletActionsModalSelectorsIDs.BRIDGE_BUTTON),
+    ).toBeNull();
   });
 
   it('should call the onBuy function when the Buy button is pressed', () => {
@@ -139,14 +150,14 @@ describe('WalletActions', () => {
       state: mockInitialState,
     });
 
-    fireEvent.press(getByTestId(WALLET_BUY));
+    fireEvent.press(getByTestId(WalletActionsModalSelectorsIDs.BUY_BUTTON));
     expect(mockNavigate).toHaveBeenCalled();
   });
 
   it('should call the onSend function when the Send button is pressed', () => {
     const { getByTestId } = renderWithProvider(<WalletActions />);
 
-    fireEvent.press(getByTestId(WALLET_SEND));
+    fireEvent.press(getByTestId(WalletActionsModalSelectorsIDs.SEND_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalled();
   });
@@ -155,7 +166,7 @@ describe('WalletActions', () => {
       state: mockInitialState,
     });
 
-    fireEvent.press(getByTestId(WALLET_SWAP));
+    fireEvent.press(getByTestId(WalletActionsModalSelectorsIDs.SWAP_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalled();
   });
@@ -164,7 +175,7 @@ describe('WalletActions', () => {
       state: mockInitialState,
     });
 
-    fireEvent.press(getByTestId(WALLET_BRIDGE));
+    fireEvent.press(getByTestId(WalletActionsModalSelectorsIDs.BRIDGE_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalled();
   });

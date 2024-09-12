@@ -1,6 +1,6 @@
 'use strict';
 import { SmokeSwaps } from '../../tags';
-import WalletView from '../../pages/WalletView';
+import WalletView from '../../pages/wallet/WalletView';
 import TokenOverview from '../../pages/TokenOverview';
 import {
   importWalletWithRecoveryPhrase,
@@ -20,7 +20,6 @@ describe(SmokeSwaps('Token Chart Tests'), () => {
 
   it('should view the token chart', async () => {
     await WalletView.tapOnToken();
-    await TokenOverview.isVisible();
     await TokenOverview.TokenQuoteIsNotZero();
     await TokenOverview.checkIfChartIsVisible();
     await TokenOverview.scrollOnScreen();
@@ -33,7 +32,6 @@ describe(SmokeSwaps('Token Chart Tests'), () => {
   it('should not display the chart when using Sepolia test network', async () => {
     await switchToSepoliaNetwork();
     await WalletView.tapOnToken(CustomNetworks.Sepolia.providerConfig.ticker);
-    await TokenOverview.isVisible();
     await TokenOverview.ChartNotVisible();
     await TokenOverview.TokenQuoteIsZero();
   });

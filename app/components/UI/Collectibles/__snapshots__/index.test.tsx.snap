@@ -4,7 +4,7 @@ exports[`Collectibles should render correctly 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "flex": 1,
     }
   }
@@ -15,11 +15,11 @@ exports[`Collectibles should render correctly 1`] = `
       <RefreshControlMock
         colors={
           [
-            "#0376C9",
+            "#0376c9",
           ]
         }
         refreshing={false}
-        tintColor="#24272A"
+        tintColor="#141618"
       />
     }
   >
@@ -29,7 +29,7 @@ exports[`Collectibles should render correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "#ffffff",
             "justifyContent": "center",
             "marginTop": 50,
           }
@@ -38,7 +38,7 @@ exports[`Collectibles should render correctly 1`] = `
         <Text
           style={
             {
-              "color": "#BBC0C5",
+              "color": "#9fa6ae",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 20,
               "fontWeight": "400",

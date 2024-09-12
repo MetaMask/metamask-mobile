@@ -2,7 +2,7 @@ import {
   selectShouldUseSmartTransaction,
   selectSmartTransactionsEnabled,
 } from './smartTransactionsController';
-import initialBackgroundState from '../util/test/initial-background-state.json';
+import { backgroundState } from '../util/test/initial-root-state';
 import { isHardwareAccount } from '../util/address';
 import { cloneDeep } from 'lodash';
 
@@ -12,9 +12,11 @@ jest.mock('../util/address', () => ({
 
 // Default state is setup to be on mainnet, with smart transactions enabled and opted into
 const getDefaultState = () => {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const defaultState: any = {
     engine: {
-      backgroundState: cloneDeep(initialBackgroundState),
+      backgroundState: cloneDeep(backgroundState),
     },
     swaps: {
       featureFlags: {
@@ -41,8 +43,6 @@ const getDefaultState = () => {
       },
     },
   };
-  defaultState.engine.backgroundState.PreferencesController.selectedAddress =
-    '0xabc';
   defaultState.engine.backgroundState.NetworkController.providerConfig = {
     rpcUrl: undefined, // default rpc for chain 0x1
     chainId: '0x1',

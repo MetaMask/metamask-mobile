@@ -15,6 +15,8 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 
 // TODO: Convert into typescript and correctly type optionals
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ListItem = BaseListItem as any;
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */

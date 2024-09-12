@@ -7,8 +7,8 @@ exports[`SelectButton should render snapshot correctly 1`] = `
   style={
     {
       "alignItems": "center",
-      "backgroundColor": "#FFFFFF",
-      "borderColor": "#BBC0C5",
+      "backgroundColor": "#ffffff",
+      "borderColor": "#bbc0c5",
       "borderRadius": 8,
       "borderWidth": 1,
       "flexDirection": "row",
@@ -44,7 +44,7 @@ exports[`SelectButton should render snapshot correctly 1`] = `
       <View
         style={
           {
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "#ffffff",
             "borderRadius": 16,
             "height": 32,
             "overflow": "hidden",
@@ -203,8 +203,8 @@ exports[`SelectButton should render snapshot correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#24272A",
-            "fontFamily": "Euclid Circular B",
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -219,8 +219,8 @@ exports[`SelectButton should render snapshot correctly 1`] = `
         numberOfLines={1}
         style={
           {
-            "color": "#535A61",
-            "fontFamily": "Euclid Circular B",
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -234,7 +234,7 @@ exports[`SelectButton should render snapshot correctly 1`] = `
   </View>
   <View>
     <SvgMock
-      color="#24272A"
+      color="#141618"
       height={16}
       name="ArrowDown"
       style={

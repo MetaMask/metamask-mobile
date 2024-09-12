@@ -20,6 +20,8 @@ jest.mock('./util', () => {
       res: PendingJsonRpcResponse<Json>,
       _next: JsonRpcEngineNextCallback,
       end: JsonRpcEngineEndCallback,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       hooks: Record<string, any>,
     ) => {
       if (Array.isArray(req.params)) {

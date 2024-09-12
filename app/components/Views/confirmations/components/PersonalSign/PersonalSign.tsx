@@ -1,35 +1,35 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { InteractionManager, Text, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { View, Text, InteractionManager } from 'react-native';
-import Engine from '../../../../../core/Engine';
-import SignatureRequest from '../SignatureRequest';
-import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
-import NotificationManager from '../../../../../core/NotificationManager';
 import { strings } from '../../../../../../locales/i18n';
-import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
+import { KEYSTONE_TX_CANCELED } from '../../../../../constants/error';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import Engine from '../../../../../core/Engine';
+import NotificationManager from '../../../../../core/NotificationManager';
 import {
   getAddressAccountType,
   isExternalHardwareAccount,
   stripHexPrefix,
 } from '../../../../../util/address';
-import sanitizeString from '../../../../../util/string';
-import { KEYSTONE_TX_CANCELED } from '../../../../../constants/error';
+import { sanitizeString } from '../../../../../util/string';
 import { useTheme } from '../../../../../util/theme';
-import { PersonalSignProps } from './types';
-import { useNavigation } from '@react-navigation/native';
+import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
+import SignatureRequest from '../SignatureRequest';
+import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import createStyles from './styles';
+import { PersonalSignProps } from './types';
 
+import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals/SigningModal.selectors';
+import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import AppConstants from '../../../../../core/AppConstants';
-import createExternalSignModelNav from '../../../../../util/hardwareWallet/signatureUtils';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { store } from '../../../../../store';
-import { getBlockaidMetricsParams } from '../../../../../util/blockaid';
-import { SecurityAlertResponse } from '../BlockaidBanner/BlockaidBanner.types';
-import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals/SigningModal.selectors';
-import { getDecimalChainId } from '../../../../../util/networks';
 import Logger from '../../../../../util/Logger';
-import { useMetrics } from '../../../../../components/hooks/useMetrics';
+import { getBlockaidMetricsParams } from '../../../../../util/blockaid';
+import createExternalSignModelNav from '../../../../../util/hardwareWallet/signatureUtils';
+import { getDecimalChainId } from '../../../../../util/networks';
+import { SecurityAlertResponse } from '../BlockaidBanner/BlockaidBanner.types';
 
 /**
  * Converts a hexadecimal string to a utf8 string.
@@ -64,9 +64,13 @@ const PersonalSign = ({
   const { trackEvent } = useMetrics();
   const [truncateMessage, setTruncateMessage] = useState<boolean>(false);
   const { securityAlertResponse } = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (reduxState: any) => reduxState.signatureRequest,
   );
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { colors }: any = useTheme();
   const styles = createStyles(colors);
 
@@ -79,30 +83,36 @@ const PersonalSign = ({
   }
 
   const getAnalyticsParams = useCallback((): AnalyticsParams => {
-    try {
-      const chainId = selectChainId(store.getState());
-      const pageInfo = currentPageInformation || messageParams.meta;
-      const url = new URL(pageInfo.url);
+    const pageInfo = currentPageInformation || messageParams.meta || {};
 
-      let blockaidParams = {};
+    const chainId = selectChainId(store.getState());
+    const fallbackUrl = 'N/A';
 
-      if (securityAlertResponse) {
-        blockaidParams = getBlockaidMetricsParams(
-          securityAlertResponse as SecurityAlertResponse,
-        );
+    let urlHost = fallbackUrl;
+    if (pageInfo.url) {
+      try {
+        const url = new URL(pageInfo.url);
+        urlHost = url.host || fallbackUrl;
+      } catch (error) {
+        Logger.error(error as Error, 'Error parsing URL in signature request');
       }
-
-      return {
-        account_type: getAddressAccountType(messageParams.from),
-        dapp_host_name: url?.host,
-        chain_id: getDecimalChainId(chainId),
-        signature_type: 'personal_sign',
-        ...pageInfo?.analytics,
-        ...blockaidParams,
-      };
-    } catch (error) {
-      return {};
     }
+
+    let blockaidParams: Record<string, unknown> = {};
+    if (securityAlertResponse) {
+      blockaidParams = getBlockaidMetricsParams(
+        securityAlertResponse as SecurityAlertResponse,
+      );
+    }
+
+    return {
+      account_type: getAddressAccountType(messageParams.from),
+      dapp_host_name: urlHost,
+      chain_id: chainId ? getDecimalChainId(chainId) : 'N/A',
+      signature_type: 'personal_sign',
+      ...pageInfo.analytics,
+      ...blockaidParams,
+    };
   }, [currentPageInformation, messageParams, securityAlertResponse]);
 
   useEffect(() => {
@@ -167,6 +177,8 @@ const PersonalSign = ({
     }
   };
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const shouldTruncateMessage = (e: any) => {
     if (e.nativeEvent.lines.length > 5) {
       setTruncateMessage(true);
@@ -231,6 +243,7 @@ const PersonalSign = ({
       truncateMessage={truncateMessage}
       type="personal_sign"
       fromAddress={messageParams.from}
+      origin={messageParams.origin}
       testID={SigningModalSelectorsIDs.PERSONAL_REQUEST}
     >
       <View style={styles.messageWrapper}>{renderMessageText()}</View>

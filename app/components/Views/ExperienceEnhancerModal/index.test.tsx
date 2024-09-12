@@ -12,6 +12,8 @@ import { ExperienceEnhancerModalSelectorsIDs } from '../../../../e2e/selectors/M
 jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheet',
   () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mockBottomSheet = ({ children }: any) => <>{children}</>;
     return mockBottomSheet;
   },

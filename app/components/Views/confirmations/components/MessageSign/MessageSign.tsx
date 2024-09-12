@@ -78,6 +78,8 @@ const MessageSign = ({
   const { trackEvent } = useMetrics();
   const [truncateMessage, setTruncateMessage] = useState<boolean>(false);
   const { securityAlertResponse } = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (reduxState: any) => reduxState.signatureRequest,
   );
 
@@ -90,6 +92,8 @@ const MessageSign = ({
       getAnalyticsParams(messageParams, 'eth_sign'),
     );
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onSignatureError = ({ error }: any) => {
       if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
         trackEvent(
@@ -111,6 +115,8 @@ const MessageSign = ({
     };
   }, [messageParams, trackEvent]);
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const shouldTruncateMessage = (e: any) => {
     if (e.nativeEvent.lines.length > 5) {
       setTruncateMessage(true);
@@ -193,6 +199,7 @@ const MessageSign = ({
       type="eth_sign"
       showWarning
       fromAddress={messageParams.from}
+      origin={messageParams.origin}
       testID={SigningModalSelectorsIDs.ETH_REQUEST}
     >
       <View style={styles.messageWrapper}>{renderMessageText()}</View>

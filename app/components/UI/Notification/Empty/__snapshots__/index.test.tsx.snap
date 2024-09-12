@@ -11,7 +11,7 @@ exports[`Empty should render correctly 1`] = `
   }
 >
   <SvgMock
-    color="#24272A"
+    color="#141618"
     height={32}
     name="Notification"
     style={
@@ -29,8 +29,8 @@ exports[`Empty should render correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#24272A",
-        "fontFamily": "Euclid Circular B",
+        "color": "#141618",
+        "fontFamily": "EuclidCircularB-Bold",
         "fontSize": 18,
         "fontWeight": "700",
         "letterSpacing": 0,
@@ -47,8 +47,8 @@ exports[`Empty should render correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#24272A",
-        "fontFamily": "Euclid Circular B",
+        "color": "#141618",
+        "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",
         "letterSpacing": 0,

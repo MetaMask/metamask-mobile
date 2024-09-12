@@ -3,17 +3,21 @@ import React from 'react';
 import CollectibleModal from './CollectibleModal';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import {
   selectDisplayNftMedia,
   selectIsIpfsGatewayEnabled,
 } from '../../../selectors/preferencesController';
 import { useSelector } from 'react-redux';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
 const mockInitialState = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState: {
+      ...backgroundState,
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+    },
   },
 };
 

@@ -12,6 +12,8 @@ const getDefaultBridgeParams = (clientInfo: DappClient) => ({
     getProviderState,
   }: {
     hostname: string;
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     getProviderState: any;
   }) =>
     getRpcMethodMiddleware({

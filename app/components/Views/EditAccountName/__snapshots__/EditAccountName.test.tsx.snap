@@ -4,7 +4,7 @@ exports[`EditAccountName should render correctly 1`] = `
 <RCTSafeAreaView
   style={
     {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "flex": 1,
       "paddingHorizontal": 16,
     }
@@ -12,7 +12,6 @@ exports[`EditAccountName should render correctly 1`] = `
 >
   <View
     collapsable={false}
-    forwardedRef={[Function]}
     style={
       {
         "flex": 1,
@@ -22,7 +21,6 @@ exports[`EditAccountName should render correctly 1`] = `
   >
     <View
       collapsable={false}
-      forwardedRef={[Function]}
       style={
         {
           "marginTop": 24,
@@ -33,8 +31,8 @@ exports[`EditAccountName should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#24272A",
-            "fontFamily": "Euclid Circular B",
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -48,8 +46,8 @@ exports[`EditAccountName should render correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#FFFFFF",
-            "borderColor": "#BBC0C5",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#bbc0c5",
             "borderRadius": 8,
             "borderWidth": 1,
             "flexDirection": "row",
@@ -75,10 +73,10 @@ exports[`EditAccountName should render correctly 1`] = `
             onFocus={[Function]}
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderColor": "transparent",
                 "borderWidth": 1,
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -96,7 +94,6 @@ exports[`EditAccountName should render correctly 1`] = `
     </View>
     <View
       collapsable={false}
-      forwardedRef={[Function]}
       style={
         {
           "marginTop": 24,
@@ -107,8 +104,8 @@ exports[`EditAccountName should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#24272A",
-            "fontFamily": "Euclid Circular B",
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -122,8 +119,8 @@ exports[`EditAccountName should render correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#FFFFFF",
-            "borderColor": "#BBC0C5",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#bbc0c5",
             "borderRadius": 8,
             "borderWidth": 1,
             "flexDirection": "row",
@@ -149,10 +146,10 @@ exports[`EditAccountName should render correctly 1`] = `
             placeholder="0x0"
             style={
               {
-                "backgroundColor": "#FFFFFF",
+                "backgroundColor": "#ffffff",
                 "borderColor": "transparent",
                 "borderWidth": 1,
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -170,7 +167,6 @@ exports[`EditAccountName should render correctly 1`] = `
   </View>
   <View
     collapsable={false}
-    forwardedRef={[Function]}
     style={
       {
         "flexDirection": "row",
@@ -190,7 +186,7 @@ exports[`EditAccountName should render correctly 1`] = `
           "alignItems": "center",
           "alignSelf": "stretch",
           "backgroundColor": "transparent",
-          "borderColor": "#0376C9",
+          "borderColor": "#0376c9",
           "borderRadius": 24,
           "borderWidth": 1,
           "flex": 1,
@@ -201,14 +197,13 @@ exports[`EditAccountName should render correctly 1`] = `
           "paddingHorizontal": 16,
         }
       }
-      variant="Secondary"
     >
       <Text
         accessibilityRole="text"
         style={
           {
-            "color": "#0376C9",
-            "fontFamily": "Euclid Circular B",
+            "color": "#0376c9",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -231,7 +226,7 @@ exports[`EditAccountName should render correctly 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#0376C9",
+          "backgroundColor": "#0376c9",
           "borderRadius": 24,
           "flex": 1,
           "flexDirection": "row",
@@ -241,15 +236,14 @@ exports[`EditAccountName should render correctly 1`] = `
           "paddingHorizontal": 16,
         }
       }
-      testID="save-button"
-      variant="Primary"
+      testID="edit-account-name-save-button"
     >
       <Text
         accessibilityRole="text"
         style={
           {
-            "color": "#FFFFFF",
-            "fontFamily": "Euclid Circular B",
+            "color": "#ffffff",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,

@@ -1,20 +1,33 @@
-import TestHelpers from '../../helpers';
-import {
-  WALLET_RECEIVE_ACTION_BUTTON,
-  WALLET_SEND_ACTION_BUTTON,
-  WALLET_SWAP_ACTION_BUTTON,
-} from '../../../wdio/screen-objects/testIDs/Components/WalletActionModal.testIds';
+import { WalletActionsModalSelectorsIDs } from '../../selectors/Modals/WalletActionsModal.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 
-export default class WalletActionsModal {
-  static async tapSendButton() {
-    await TestHelpers.waitAndTap(WALLET_SEND_ACTION_BUTTON);
+class WalletActionsModal {
+  get sendButton() {
+    return Matchers.getElementByID(WalletActionsModalSelectorsIDs.SEND_BUTTON);
   }
 
-  static async tapReceiveButton() {
-    await TestHelpers.waitAndTap(WALLET_RECEIVE_ACTION_BUTTON);
+  get receiveButton() {
+    return Matchers.getElementByID(
+      WalletActionsModalSelectorsIDs.RECEIVE_BUTTON,
+    );
   }
 
-  static async tapSwapButton() {
-    await TestHelpers.waitAndTap(WALLET_SWAP_ACTION_BUTTON);
+  get swapButton() {
+    return Matchers.getElementByID(WalletActionsModalSelectorsIDs.SWAP_BUTTON);
+  }
+
+  async tapSendButton() {
+    await Gestures.waitAndTap(this.sendButton);
+  }
+
+  async tapReceiveButton() {
+    await Gestures.waitAndTap(this.receiveButton);
+  }
+
+  async tapSwapButton() {
+    await Gestures.waitAndTap(this.swapButton);
   }
 }
+
+export default new WalletActionsModal();

@@ -22,7 +22,7 @@ exports[`MessageSign ExpandedMessage should render Message text correctly 1`] = 
 <Text
   style={
     {
-      "color": "#24272A",
+      "color": "#141618",
       "fontFamily": "EuclidCircularB-Regular",
       "fontSize": 14,
       "fontWeight": "400",
@@ -50,6 +50,7 @@ exports[`MessageSign SignatureRequest should render correctly 1`] = `
   }
   onConfirm={[Function]}
   onReject={[Function]}
+  origin="example.com"
   showExpandedMessage={false}
   showWarning={true}
   testID="SignatureRequest"
@@ -71,7 +72,7 @@ exports[`MessageSign SignatureRequest should render correctly 1`] = `
       onTextLayout={[Function]}
       style={
         {
-          "color": "#24272A",
+          "color": "#141618",
         }
       }
     >

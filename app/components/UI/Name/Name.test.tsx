@@ -14,8 +14,14 @@ jest.mock('../../hooks/DisplayName/useDisplayName', () => ({
   default: jest.fn(),
 }));
 
+jest.mock('../Identicon', () => ({
+  __esModule: true,
+  default: () => 'Identicon',
+}));
+
 const UNKNOWN_ADDRESS_CHECKSUMMED =
   '0x299007B3F9E23B8d432D5f545F8a4a2B3E9A5B4e';
+const EXPECTED_UNKNOWN_ADDRESS_CHECKSUMMED = '0x29900...A5B4e';
 
 const UNKNOWN_ADDRESS_NOT_CHECKSUMMED =
   UNKNOWN_ADDRESS_CHECKSUMMED.toLowerCase();
@@ -33,6 +39,7 @@ describe('Name', () => {
     useDisplayName as jest.MockedFunction<typeof useDisplayName>
   ).mockReturnValue({
     variant: DisplayNameVariant.Unknown,
+    name: KNOWN_NAME_MOCK,
   });
 
   describe('unknown address', () => {
@@ -46,7 +53,9 @@ describe('Name', () => {
         </Provider>,
       );
 
-      expect(wrapper.getByText(UNKNOWN_ADDRESS_CHECKSUMMED)).toBeTruthy();
+      expect(
+        wrapper.getByText(EXPECTED_UNKNOWN_ADDRESS_CHECKSUMMED),
+      ).toBeTruthy();
       expect(wrapper).toMatchSnapshot();
     });
   });

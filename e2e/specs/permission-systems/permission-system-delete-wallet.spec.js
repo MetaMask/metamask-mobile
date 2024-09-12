@@ -4,7 +4,7 @@ import { Regression } from '../../tags';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView';
 import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
-import WalletView from '../../pages/WalletView';
+import WalletView from '../../pages/wallet/WalletView';
 import Browser from '../../pages/Browser/BrowserView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import TabBarComponent from '../../pages/TabBarComponent';
@@ -20,7 +20,7 @@ import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
 import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
 import Assertions from '../../utils/Assertions';
-import CommonView from '../../pages/CommonView';
+import ToastModal from '../../pages/modals/ToastModal';
 
 const PASSWORD = '12345678';
 
@@ -71,9 +71,9 @@ describe(
           await TestHelpers.delay(2000);
           await Assertions.checkIfVisible(OnboardingView.container);
           if (device.getPlatform() === 'ios') {
-            await Assertions.checkIfVisible(await CommonView.toast);
+            await Assertions.checkIfVisible(ToastModal.notificationTitle);
           }
-          await Assertions.checkIfNotVisible(await CommonView.toast);
+          await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
           await OnboardingView.tapCreateWallet();
 
           // Create new wallet
@@ -89,7 +89,7 @@ describe(
           await SkipAccountSecurityModal.tapIUnderstandCheckBox();
           await SkipAccountSecurityModal.tapSkipButton();
           await OnboardingSuccessView.tapDone();
-          await WalletView.isVisible();
+          await Assertions.checkIfVisible(WalletView.container);
           await ProtectYourWalletModal.tapRemindMeLaterButton();
           await SkipAccountSecurityModal.tapIUnderstandCheckBox();
           await SkipAccountSecurityModal.tapSkipButton();

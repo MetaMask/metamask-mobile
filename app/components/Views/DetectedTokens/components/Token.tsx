@@ -21,8 +21,34 @@ import {
 } from '../../../../selectors/currencyRateController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
+import { Colors } from '../../../../util/theme/models';
+import { Hex } from '@metamask/utils';
 
-const createStyles = (colors: any) =>
+// Replace this interface by importing from TokenRatesController when it exports it
+interface MarketDataDetails {
+  tokenAddress: `0x${string}`;
+  currency: string;
+  allTimeHigh: number;
+  allTimeLow: number;
+  circulatingSupply: number;
+  dilutedMarketCap: number;
+  high1d: number;
+  low1d: number;
+  marketCap: number;
+  marketCapPercentChange1d: number;
+  price: number;
+  priceChange1d: number;
+  pricePercentChange1d: number;
+  pricePercentChange1h: number;
+  pricePercentChange1y: number;
+  pricePercentChange7d: number;
+  pricePercentChange14d: number;
+  pricePercentChange30d: number;
+  pricePercentChange200d: number;
+  totalVolume: number;
+}
+
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     logo: {
       height: 40,
@@ -31,13 +57,13 @@ const createStyles = (colors: any) =>
     tokenContainer: { flexDirection: 'row', paddingVertical: 16 },
     tokenInfoContainer: { flex: 1, marginLeft: 8, marginRight: 16 },
     tokenUnitLabel: {
-      ...(fontStyles.normal as any),
+      ...fontStyles.normal,
       fontSize: 18,
       color: colors.text.default,
       marginBottom: 4,
     },
     tokenDollarLabel: {
-      ...(fontStyles.normal as any),
+      ...fontStyles.normal,
       fontSize: 14,
       color: colors.text.alternative,
       marginBottom: 4,
@@ -47,7 +73,7 @@ const createStyles = (colors: any) =>
       marginBottom: 4,
     },
     tokenAddressLabel: {
-      ...(fontStyles.normal as any),
+      ...fontStyles.normal,
       fontSize: 14,
       color: colors.text.alternative,
     },
@@ -56,7 +82,7 @@ const createStyles = (colors: any) =>
       alignItems: 'center',
     },
     addressLinkLabel: {
-      ...(fontStyles.normal as any),
+      ...fontStyles.normal,
       fontSize: 14,
       color: colors.primary.default,
     },
@@ -70,12 +96,12 @@ const createStyles = (colors: any) =>
       flexWrap: 'wrap',
     },
     tokenAggregatorLabel: {
-      ...(fontStyles.normal as any),
+      ...fontStyles.normal,
       fontSize: 14,
       color: colors.text.default,
     },
     aggregatorLinkLabel: {
-      ...(fontStyles.normal as any),
+      ...fontStyles.normal,
       fontSize: 14,
       color: colors.primary.default,
     },
@@ -97,7 +123,9 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
   const tokenBalances = useSelector(selectContractBalances);
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const exchangeRate = tokenExchangeRates[address];
+  const tokenMarketData =
+    (tokenExchangeRates as Record<Hex, MarketDataDetails>)?.[address as Hex] ??
+    null;
   const tokenBalance = renderFromTokenMinimalUnit(
     tokenBalances[address],
     decimals,
@@ -108,7 +136,7 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
   const fiatBalance = balanceToFiat(
     tokenBalance,
     conversionRate,
-    exchangeRate,
+    tokenMarketData?.price || undefined,
     currentCurrency,
   );
 

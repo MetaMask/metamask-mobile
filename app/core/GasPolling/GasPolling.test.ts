@@ -90,6 +90,8 @@ const transactionState = {
 
 describe('GasPolling', () => {
   const token = undefined;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { GasFeeController }: any = Engine.context;
   it('should call the start gas polling controller', async () => {
     await startGasPolling(token);
@@ -134,6 +136,8 @@ describe('GetEIP1559TransactionData', () => {
 
     try {
       const result = getEIP1559TransactionData(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         incompleteTransactionData as any,
       );
       expect(result).toEqual('Incomplete data for EIP1559 transaction');

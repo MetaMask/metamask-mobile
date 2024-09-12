@@ -23,7 +23,7 @@ exports[`SelectValue should render snapshot correctly 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#ffffff",
           "borderRadius": 16,
           "height": 32,
           "overflow": "hidden",
@@ -182,8 +182,8 @@ exports[`SelectValue should render snapshot correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#24272A",
-          "fontFamily": "Euclid Circular B",
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -198,8 +198,8 @@ exports[`SelectValue should render snapshot correctly 1`] = `
       numberOfLines={1}
       style={
         {
-          "color": "#535A61",
-          "fontFamily": "Euclid Circular B",
+          "color": "#6a737d",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 12,
           "fontWeight": "400",
           "letterSpacing": 0,

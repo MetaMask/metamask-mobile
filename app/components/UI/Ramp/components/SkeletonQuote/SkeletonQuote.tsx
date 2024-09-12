@@ -5,6 +5,8 @@ import Box from '../Box';
 import SkeletonText from '../SkeletonText';
 
 // TODO: Convert into typescript and correctly type
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ListItem = BaseListItem as any;
 
 const SkeletonQuote = ({

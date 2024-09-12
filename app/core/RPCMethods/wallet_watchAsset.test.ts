@@ -7,43 +7,52 @@ import {
   TOKEN_NOT_VALID,
 } from '../../constants/error';
 
-const mockEngine = Engine;
-jest.mock('../Engine', () => ({
-  init: () => mockEngine.init({}),
-  context: {
-    AssetsContractController: {
-      getERC20TokenDecimals: jest.fn(),
-      getERC721AssetSymbol: jest.fn().mockResolvedValue('WBTC'),
-    },
-    NetworkController: {
-      state: {
-        networkConfigurations: {},
-        providerConfig: {
-          chainId: '0x1',
+jest.mock('../Engine', () => {
+  const {
+    createMockInternalAccount,
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  } = require('../../util/test/accountsControllerTestUtils');
+  const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
+  const MOCK_INTERNAL_ACCOUNT = createMockInternalAccount(
+    MOCK_ADDRESS,
+    'Account 1',
+  );
+  return {
+    init: () => jest.fn(),
+    context: {
+      AssetsContractController: {
+        getERC20TokenDecimals: jest.fn(),
+        getERC721AssetSymbol: jest.fn().mockResolvedValue('WBTC'),
+      },
+      NetworkController: {
+        state: {
+          networkConfigurations: {},
+          providerConfig: {
+            chainId: '0x1',
+          },
         },
       },
-    },
-    TokensController: {
-      watchAsset: jest.fn(),
-    },
-    TokenListController: {
-      state: {
-        tokenList: {
-          '0x1': [],
+      TokensController: {
+        watchAsset: jest.fn(),
+      },
+      TokenListController: {
+        state: {
+          tokenList: {
+            '0x1': [],
+          },
         },
       },
-    },
-    PermissionController: {
-      requestPermissions: jest.fn(),
-      getPermissions: jest.fn(),
-    },
-    PreferencesController: {
-      state: {
-        selectedAddress: '0x123',
+      PermissionController: {
+        requestPermissions: jest.fn(),
+        getPermissions: jest.fn(),
+      },
+      AccountsController: {
+        getSelectedAccount: jest.fn().mockReturnValue(MOCK_INTERNAL_ACCOUNT),
       },
     },
-  },
-}));
+  };
+});
+
 const MockEngine = jest.mocked(Engine);
 
 jest.mock('../Permissions', () => ({
@@ -75,6 +84,7 @@ describe('wallet_watchAsset', () => {
     decimals: '8',
     image: 'https://metamask.github.io/test-dapp/metamask-fox.svg',
   };
+
   it('should throw an error if the token address is not valid', async () => {
     await expect(
       wallet_watchAsset({
@@ -92,12 +102,17 @@ describe('wallet_watchAsset', () => {
           method: '',
           id: '',
         },
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         res: {} as any,
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         checkTabActive: () => null as any,
         hostname: '',
       }),
     ).rejects.toThrow(TOKEN_NOT_VALID);
   });
+
   it('should throw an error if the token address is not a smart contract address', async () => {
     jest
       .spyOn(transactionsUtils, 'isSmartContractAddress')
@@ -118,7 +133,11 @@ describe('wallet_watchAsset', () => {
           method: '',
           id: '',
         },
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         res: {} as any,
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         checkTabActive: () => null as any,
         hostname: '',
       }),
@@ -149,16 +168,21 @@ describe('wallet_watchAsset', () => {
         method: '',
         id: '',
       },
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       res: {} as any,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       checkTabActive: () => null as any,
       hostname: '',
     });
     expect(spyOnWatchAsset).toHaveBeenCalledWith({
       asset: correctWBTC,
       type: ERC20,
-      interactingAddress: '0x123',
+      interactingAddress: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272', // Checksummed version of MOCK_ADDRESS
     });
   });
+
   it('should call watchAsset with fake WBTC decimals and symbol', async () => {
     const fakeWBTC = {
       address: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
@@ -190,14 +214,18 @@ describe('wallet_watchAsset', () => {
         method: '',
         id: '',
       },
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       res: {} as any,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       checkTabActive: () => null as any,
       hostname: '',
     });
     expect(spyOnWatchAsset).toHaveBeenCalledWith({
       asset: correctWBTC,
       type: ERC20,
-      interactingAddress: '0x123',
+      interactingAddress: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272', // Checksummed version of MOCK_ADDRESS
     });
   });
 });

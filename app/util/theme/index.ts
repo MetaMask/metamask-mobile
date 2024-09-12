@@ -24,6 +24,8 @@ export const mockTheme = {
   brandColors: brandColor,
 };
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const ThemeContext = React.createContext<any>(undefined);
 
 /**
@@ -38,7 +40,11 @@ export const ThemeContext = React.createContext<any>(undefined);
 export const getAssetFromTheme = (
   appTheme: AppThemeKey,
   osColorScheme: ColorSchemeName,
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   light: any,
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dark: any,
 ) => {
   let asset = light;
@@ -99,6 +105,8 @@ const useColorSchemeCustom = (
 export const useAppTheme = (): Theme => {
   const osThemeName = useColorSchemeCustom();
   const appTheme: AppThemeKey = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.user.appTheme,
   );
   const themeAppearance = getAssetFromTheme(
@@ -187,8 +195,12 @@ export const useTheme = (): Theme => {
  * @param dark Dark asset
  * @returns Asset based on theme
  */
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const useAssetFromTheme = (light: any, dark: any) => {
   const osColorScheme = useColorScheme();
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const appTheme = useSelector((state: any) => state.user.appTheme);
   const asset = getAssetFromTheme(appTheme, osColorScheme, light, dark);
 

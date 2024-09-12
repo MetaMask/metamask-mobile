@@ -8,6 +8,8 @@ import Device from '../../../util/device';
 import Text from '../../Base/Text';
 import { useTheme } from '../../../util/theme';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
+import { isMutichainVersion1Enabled } from '../../../util/networks';
+import PermissionSummary from '../PermissionsSummary';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -102,8 +104,7 @@ const SwitchCustomNetwork = ({
   const cancel = () => {
     onCancel && onCancel();
   };
-
-  return (
+  const renderNetworkSwitchingNotice = () => (
     <View style={styles.root}>
       {type === 'switch' ? (
         <TransactionHeader currentPageInformation={currentPageInformation} />
@@ -164,6 +165,19 @@ const SwitchCustomNetwork = ({
       </View>
     </View>
   );
+
+  const renderPermissionSummary = () => (
+    <PermissionSummary
+      customNetworkInformation={customNetworkInformation}
+      currentPageInformation={currentPageInformation}
+      onCancel={onCancel}
+      onConfirm={onConfirm}
+    />
+  );
+
+  return isMutichainVersion1Enabled
+    ? renderPermissionSummary()
+    : renderNetworkSwitchingNotice();
 };
 
 SwitchCustomNetwork.propTypes = {

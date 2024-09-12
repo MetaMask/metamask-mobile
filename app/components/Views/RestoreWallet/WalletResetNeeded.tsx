@@ -30,6 +30,8 @@ const WalletResetNeeded = () => {
   const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<StackNavigationProp<any>>();
 
   const deviceMetaData = useMemo(() => generateDeviceAnalyticsMetaData(), []);

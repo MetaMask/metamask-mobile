@@ -21,7 +21,7 @@ exports[`SheetActionView should render correctly 1`] = `
         "alignItems": "center",
         "alignSelf": "flex-start",
         "backgroundColor": "transparent",
-        "borderColor": "#0376C9",
+        "borderColor": "#0376c9",
         "borderRadius": 24,
         "borderWidth": 1,
         "flex": 1,
@@ -32,14 +32,13 @@ exports[`SheetActionView should render correctly 1`] = `
         "paddingHorizontal": 16,
       }
     }
-    variant="Secondary"
   >
     <Text
       accessibilityRole="text"
       style={
         {
-          "color": "#0376C9",
-          "fontFamily": "Euclid Circular B",
+          "color": "#0376c9",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -61,7 +60,7 @@ exports[`SheetActionView should render correctly 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "flex-start",
-        "backgroundColor": "#0376C9",
+        "backgroundColor": "#0376c9",
         "borderRadius": 24,
         "flex": 1,
         "flexDirection": "row",
@@ -71,14 +70,13 @@ exports[`SheetActionView should render correctly 1`] = `
         "paddingHorizontal": 16,
       }
     }
-    variant="Primary"
   >
     <Text
       accessibilityRole="text"
       style={
         {
-          "color": "#FFFFFF",
-          "fontFamily": "Euclid Circular B",
+          "color": "#ffffff",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,

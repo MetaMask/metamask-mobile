@@ -16,12 +16,16 @@ jest.mock('react-redux', () => ({
 
 const URL_MOCK = 'test.com';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockApprovalRequest = (approvalRequest?: ApprovalRequest<any>) => {
   (
     useApprovalRequest as jest.MockedFn<typeof useApprovalRequest>
   ).mockReturnValue({
     approvalRequest,
     onConfirm: jest.fn(),
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
 };
 
@@ -33,6 +37,8 @@ describe('SwitchChainApproval', () => {
   it('renders', () => {
     mockApprovalRequest({
       type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     const wrapper = shallow(<SwitchChainApproval />);
@@ -48,6 +54,8 @@ describe('SwitchChainApproval', () => {
   });
 
   it('returns null if incorrect approval request type', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockApprovalRequest({ type: ApprovalTypes.ADD_ETHEREUM_CHAIN } as any);
 
     const wrapper = shallow(<SwitchChainApproval />);
@@ -60,6 +68,8 @@ describe('SwitchChainApproval', () => {
       requestData: {
         rpcUrl: URL_MOCK,
       },
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     const wrapper = shallow(<SwitchChainApproval />);

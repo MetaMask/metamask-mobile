@@ -21,6 +21,7 @@ export function createMockInternalAccount(
     id: createMockUuidFromAddress(address),
     metadata: {
       name: nickname,
+      importTime: 1684232000456,
       keyring: {
         type: 'HD Key Tree',
       },

@@ -16,6 +16,8 @@ interface IQRSigningModalProps {
   onFailure?: (error: string) => void;
 }
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     modal: {

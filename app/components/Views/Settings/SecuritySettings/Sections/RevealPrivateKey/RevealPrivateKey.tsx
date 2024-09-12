@@ -15,13 +15,10 @@ import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { strings } from '../../../../../../../locales/i18n';
 import { createStyles } from './styles';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { selectAccounts } from '../../../../../../selectors/accountTrackerController';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../../../../selectors/preferencesController';
+import { selectSelectedInternalAccount } from '../../../../../../selectors/accountsController';
 import { REVEAL_PRIVATE_KEY_SECTION } from '../../SecuritySettings.constants';
 import { useMetrics } from '../../../../../../components/hooks/useMetrics';
+import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 
 const testIds = {
   section: REVEAL_PRIVATE_KEY_SECTION,
@@ -32,14 +29,7 @@ const RevealPrivateKey = () => {
   const navigation = useNavigation();
   const { trackEvent } = useMetrics();
 
-  const accounts = useSelector(selectAccounts);
-  const identities = useSelector(selectIdentities);
-  const selectedAddress = useSelector(selectSelectedAddress);
-
-  const account = {
-    ...identities[selectedAddress],
-    ...accounts[selectedAddress],
-  };
+  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
   const goToExportPrivateKey = () => {
     trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED, {});
@@ -53,7 +43,7 @@ const RevealPrivateKey = () => {
     <View style={styles.setting} testID={testIds.section}>
       <Text variant={TextVariant.BodyLGMedium}>
         {strings('reveal_credential.private_key_title_for_account', {
-          accountName: account.name,
+          accountName: selectedInternalAccount?.metadata.name,
         })}
       </Text>
       <Text
@@ -62,7 +52,7 @@ const RevealPrivateKey = () => {
         style={styles.desc}
       >
         {strings('reveal_credential.private_key_warning', {
-          accountName: account.name,
+          accountName: selectedInternalAccount?.metadata.name,
         })}
       </Text>
       <Button
@@ -72,6 +62,7 @@ const RevealPrivateKey = () => {
         width={ButtonWidthTypes.Full}
         onPress={goToExportPrivateKey}
         style={styles.confirm}
+        testID={SecurityPrivacyViewSelectorsIDs.SHOW_PRIVATE_KEY}
       />
     </View>
   );

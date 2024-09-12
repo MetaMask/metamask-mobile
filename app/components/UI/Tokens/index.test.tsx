@@ -6,20 +6,12 @@ import { BN } from 'ethereumjs-util';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import Engine from '../../../core/Engine';
-import {
-  getAssetTestId,
-  IMPORT_TOKEN_BUTTON_ID,
-  MAIN_WALLET_VIEW_VIA_TOKENS_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import {
-  PORTFOLIO_BUTTON,
-  STAKE_BUTTON,
-  TOTAL_BALANCE_TEXT,
-} from '../../../../wdio/screen-objects/testIDs/Components/Tokens.testIds';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../../app/core/AppConstants';
 import Routes from '../../../../app/constants/navigation/Routes';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 const mockEngine = Engine;
 
@@ -36,7 +28,7 @@ jest.mock('../../../core/Engine', () => ({
 const initialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       TokensController: {
         tokens: [
           {
@@ -68,10 +60,12 @@ const initialState = {
         ],
       },
       TokenRatesController: {
-        contractExchangeRates: {
-          '0x0': 0.005,
-          '0x01': 0.005,
-          '0x02': 0.005,
+        marketData: {
+          '0x1': {
+            '0x0': { price: 0.005 },
+            '0x01': { price: 0.005 },
+            '0x02': { price: 0.005 },
+          },
         },
       },
       CurrencyRateController: {
@@ -95,6 +89,9 @@ const initialState = {
     primaryCurrency: 'usd',
     hideZeroBalanceTokens: true,
   },
+  security: {
+    dataCollectionForMarketing: true,
+  },
 };
 
 const mockNavigate = jest.fn();
@@ -112,6 +109,8 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const Stack = createStackNavigator();
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderComponent = (state: any = {}) =>
   renderWithProvider(
     <Stack.Navigator>
@@ -173,33 +172,37 @@ describe('Tokens', () => {
 
   it('navigates to AddAsset screen when Add Tokens button is pressed', () => {
     const { getByTestId } = renderComponent(initialState);
-    fireEvent.press(getByTestId(IMPORT_TOKEN_BUTTON_ID));
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON));
     expect(mockPush).toHaveBeenCalledWith('AddAsset', { assetType: 'token' });
   });
 
   it('shows remove menu when remove button is pressed', () => {
     const { getByTestId, queryAllByTestId } = renderComponent(initialState);
     fireEvent.press(queryAllByTestId(getAssetTestId('BAT'))[0], 'longPress');
-    expect(getByTestId(MAIN_WALLET_VIEW_VIA_TOKENS_ID)).toBeDefined();
+    expect(getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER)).toBeDefined();
   });
 
   it('fiat balance must be defined', () => {
     const { getByTestId } = renderComponent(initialState);
 
-    expect(getByTestId(TOTAL_BALANCE_TEXT)).toBeDefined();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+    ).toBeDefined();
   });
   it('portfolio button should render correctly', () => {
     const { getByTestId } = renderComponent(initialState);
 
-    expect(getByTestId(PORTFOLIO_BUTTON)).toBeDefined();
+    expect(getByTestId(WalletViewSelectorsIDs.PORTFOLIO_BUTTON)).toBeDefined();
   });
   it('navigates to Portfolio url when portfolio button is pressed', () => {
     const { getByTestId } = renderComponent(initialState);
 
-    fireEvent.press(getByTestId(PORTFOLIO_BUTTON));
+    const expectedUrl = `${AppConstants.PORTFOLIO.URL}/?metamaskEntry=mobile&metricsEnabled=false&marketingEnabled=${initialState.security.dataCollectionForMarketing}`;
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.PORTFOLIO_BUTTON));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
       params: {
-        newTabUrl: `${AppConstants.PORTFOLIO.URL}/?metamaskEntry=mobile`,
+        newTabUrl: expectedUrl,
         timestamp: 123,
       },
       screen: Routes.BROWSER.VIEW,
@@ -209,7 +212,7 @@ describe('Tokens', () => {
     const state = {
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           TokensController: {
             tokens: [
               {
@@ -223,8 +226,10 @@ describe('Tokens', () => {
             ],
           },
           TokenRatesController: {
-            contractExchangeRates: {
-              '0x02': undefined,
+            marketData: {
+              0x1: {
+                '0x02': undefined,
+              },
             },
           },
           CurrencyRateController: {
@@ -252,12 +257,12 @@ describe('Tokens', () => {
   it('renders stake button correctly', () => {
     const { getByTestId } = renderComponent(initialState);
 
-    expect(getByTestId(STAKE_BUTTON)).toBeDefined();
+    expect(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeDefined();
   });
   it('navigates to Portfolio Stake url when stake button is pressed', () => {
     const { getByTestId } = renderComponent(initialState);
 
-    fireEvent.press(getByTestId(STAKE_BUTTON));
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
       params: {
         newTabUrl: `${AppConstants.STAKE.URL}?metamaskEntry=mobile`,

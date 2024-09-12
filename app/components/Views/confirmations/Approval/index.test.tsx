@@ -3,7 +3,7 @@ import Approval from '.';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
-import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -21,12 +21,16 @@ const initialState = {
     assetType: undefined,
   },
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 const store = mockStore(initialState);
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const navigation = { state: { params: { address: '0x1' } } } as any;
 // noop
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 navigation.setParams = (params: any) => ({ ...params });
 
 describe('Approval', () => {

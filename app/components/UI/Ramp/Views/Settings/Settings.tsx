@@ -28,6 +28,8 @@ import ActivationKeys from './ActivationKeys';
 import styles from './Settings.styles';
 
 // TODO: Convert into typescript and correctly type optionals
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ListItem = BaseListItem as any;
 
 function Settings() {

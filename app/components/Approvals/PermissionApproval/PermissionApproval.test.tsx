@@ -6,7 +6,7 @@ import PermissionApproval from './PermissionApproval';
 import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { render } from '@testing-library/react-native';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
@@ -35,15 +35,21 @@ const NAV_DETAILS_MOCK = [
   },
 ];
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockApprovalRequest = (approvalRequest?: ApprovalRequest<any>) => {
   (
     useApprovalRequest as jest.MockedFn<typeof useApprovalRequest>
   ).mockReturnValue({
     approvalRequest,
     onConfirm: jest.fn(),
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
 };
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockCreateAccountConnectNavDetails = (details: any) => {
   (
     createAccountConnectNavDetails as jest.MockedFn<
@@ -52,6 +58,8 @@ const mockCreateAccountConnectNavDetails = (details: any) => {
   ).mockReturnValue(details);
 };
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockSelectorState = (state: any) => {
   (useSelector as jest.MockedFn<typeof useSelector>).mockImplementation(
     (selector) => selector(state),
@@ -65,7 +73,6 @@ describe('PermissionApproval', () => {
     jest.resetAllMocks();
     (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
       trackEvent: mockTrackEvent,
-      trackAnonymousEvent: jest.fn(),
       enable: jest.fn(),
       addTraitsToUser: jest.fn(),
       createDataDeletionTask: jest.fn(),
@@ -86,6 +93,8 @@ describe('PermissionApproval', () => {
     mockApprovalRequest({
       type: ApprovalTypes.REQUEST_PERMISSIONS,
       requestData: HOST_INFO_MOCK,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     mockCreateAccountConnectNavDetails(NAV_DETAILS_MOCK);
@@ -110,6 +119,8 @@ describe('PermissionApproval', () => {
     mockApprovalRequest({
       type: ApprovalTypes.REQUEST_PERMISSIONS,
       requestData: HOST_INFO_MOCK,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     mockCreateAccountConnectNavDetails(NAV_DETAILS_MOCK);
@@ -117,7 +128,7 @@ describe('PermissionApproval', () => {
     mockSelectorState({
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           AccountTrackerController: {
             accounts: {
               1: 'testAccount',
@@ -161,6 +172,8 @@ describe('PermissionApproval', () => {
     mockApprovalRequest({
       type: ApprovalTypes.ADD_ETHEREUM_CHAIN,
       requestData: HOST_INFO_MOCK,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     render(<PermissionApproval navigation={navigationMock} />);
@@ -176,6 +189,8 @@ describe('PermissionApproval', () => {
     mockApprovalRequest({
       type: ApprovalTypes.REQUEST_PERMISSIONS,
       requestData: { ...HOST_INFO_MOCK, permissions: { eth_accounts: false } },
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     render(<PermissionApproval navigation={navigationMock} />);
@@ -193,6 +208,8 @@ describe('PermissionApproval', () => {
     mockApprovalRequest({
       type: ApprovalTypes.REQUEST_PERMISSIONS,
       requestData: HOST_INFO_MOCK,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     const { rerender } = render(
@@ -202,6 +219,8 @@ describe('PermissionApproval', () => {
     mockApprovalRequest({
       type: ApprovalTypes.REQUEST_PERMISSIONS,
       requestData: HOST_INFO_MOCK,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     rerender(<PermissionApproval navigation={navigationMock} />);
@@ -219,6 +238,8 @@ describe('PermissionApproval', () => {
     mockApprovalRequest({
       type: ApprovalTypes.REQUEST_PERMISSIONS,
       requestData: HOST_INFO_MOCK,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     const { rerender } = render(
@@ -232,6 +253,8 @@ describe('PermissionApproval', () => {
     mockApprovalRequest({
       type: ApprovalTypes.REQUEST_PERMISSIONS,
       requestData: HOST_INFO_MOCK,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     rerender(<PermissionApproval navigation={navigationMock} />);

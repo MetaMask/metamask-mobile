@@ -4,7 +4,7 @@ exports[`AvatarBase should render correctly 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "borderRadius": 16,
       "height": 32,
       "overflow": "hidden",

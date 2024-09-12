@@ -1,10 +1,9 @@
 import {
   addBreadcrumb,
   captureException,
-  captureMessage,
   withScope,
 } from '@sentry/react-native';
-import DefaultPreference from 'react-native-default-preference';
+import StorageWrapper from '../../store/storage-wrapper';
 import { METRICS_OPT_IN, AGREED, DEBUG } from '../../constants/storage';
 
 interface ExtraInfo {
@@ -17,6 +16,11 @@ interface ExtraInfo {
  * console.log and console.error and in the future
  * we will have flags to do different actions based on
  * the environment, for ex. log to a remote server if prod
+ *
+ * The previously available message function has been removed
+ * favoring the use of the error or log function:
+ * - error: for logging errors that you want to see in Sentry,
+ * - log: for logging general information and sending breadcrumbs only with the next Sentry event.
  */
 export class AsyncLogger {
   /**
@@ -25,6 +29,8 @@ export class AsyncLogger {
    * @param {object} args - data to be logged
    * @returns - void
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static async log(...args: any[]): Promise<void> {
     if (__DEV__) {
       args.unshift(DEBUG);
@@ -33,7 +39,7 @@ export class AsyncLogger {
     }
 
     // Check if user passed accepted opt-in to metrics
-    const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
+    const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
     if (metricsOptIn === AGREED) {
       addBreadcrumb({
         message: JSON.stringify(args),
@@ -50,6 +56,8 @@ export class AsyncLogger {
    */
   static async error(
     error: Error,
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     extra?: ExtraInfo | string | any,
   ): Promise<void> {
     if (__DEV__) {
@@ -62,7 +70,7 @@ export class AsyncLogger {
     }
 
     // Check if user passed accepted opt-in to metrics
-    const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
+    const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
     if (metricsOptIn === AGREED) {
       let exception = error;
 
@@ -74,6 +82,8 @@ export class AsyncLogger {
           // error is an object but not an Error instance
           exception = new Error(JSON.stringify(error));
         }
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (exception as any).originalError = error;
       }
 
@@ -89,26 +99,6 @@ export class AsyncLogger {
       }
     }
   }
-
-  /**
-   * captureMessage wrapper
-   *
-   * @param {object} args - data to be logged
-   * @returns - void
-   */
-  static async message(...args: unknown[]): Promise<void> {
-    if (__DEV__) {
-      args.unshift('[MetaMask DEBUG]:');
-      // console.log.apply(null, args); // eslint-disable-line no-console
-      return;
-    }
-
-    // Check if user passed accepted opt-in to metrics
-    const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-    if (metricsOptIn === 'agreed') {
-      captureMessage(JSON.stringify(args));
-    }
-  }
 }
 
 export default class Logger {
@@ -118,6 +108,8 @@ export default class Logger {
    * @param {object} args - data to be logged
    * @returns - void
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static log(...args: any[]) {
     AsyncLogger.log(...args).catch(() => {
       // ignore error but avoid dangling promises
@@ -131,20 +123,10 @@ export default class Logger {
    * @param {string|object} extra - Extra error info
    * @returns - void
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static error(error: Error, extra?: ExtraInfo | string | any) {
     AsyncLogger.error(error, extra).catch(() => {
-      // ignore error but avoid dangling promises
-    });
-  }
-
-  /**
-   * captureMessage wrapper
-   *
-   * @param {object} args - data to be logged
-   * @returns - void
-   */
-  static message(...args: unknown[]) {
-    AsyncLogger.message(...args).catch(() => {
       // ignore error but avoid dangling promises
     });
   }

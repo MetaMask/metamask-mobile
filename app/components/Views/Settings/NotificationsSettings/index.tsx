@@ -1,9 +1,11 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/display-name */
-import React, { FC, useEffect } from 'react';
-import { Pressable, ScrollView, Switch, View } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
-import { camelCase } from 'lodash';
+import React, { useEffect, useMemo, useCallback } from 'react';
+import { Pressable, ScrollView, Switch, View, Linking } from 'react-native';
+import { useSelector } from 'react-redux';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
+
+import { RootState } from '../../../../reducers';
 
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
@@ -15,159 +17,235 @@ import { useAccounts } from '../../../../components/hooks/useAccounts';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 
+import SwitchLoadingModal from '../../../UI/Notification/SwitchLoadingModal';
 import { Props } from './NotificationsSettings.types';
-import createStyles from './NotificationsSettings.styles';
+import { useStyles } from '../../../../component-library/hooks';
+
 import NotificationOptionToggle from './NotificationOptionToggle';
-import notificationsRows from './notificationsRows';
-import {
-  NotificationsToggleTypes,
-  NotificationsViewSelectorsIDs,
-} from './NotificationsSettings.constants';
+import CustomNotificationsRow from './CustomNotificationsRow';
+import { NotificationsToggleTypes } from './NotificationsSettings.constants';
+import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 
 import {
-  notificationSettings as defaultDisabledNotificationSettings,
-  mmStorage,
   requestPushNotificationsPermission,
+  asyncAlert,
 } from '../../../../util/notifications';
-import { updateNotificationStatus } from '../../../../actions/notification';
-import { STORAGE_IDS } from '../../../../util/notifications/settings/storage/constants';
 import Routes from '../../../../constants/navigation/Routes';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
+
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../component-library/components/Buttons/ButtonIcon';
+import SessionHeader from './sectionHeader';
+import {
+  useDisableNotifications,
+  useEnableNotifications,
+} from '../../../../util/notifications/hooks/useNotifications';
+import { useAccountSettingsProps, useSwitchNotifications } from '../../../../util/notifications/hooks/useSwitchNotifications';
+import styleSheet from './NotificationsSettings.styles';
+import AppConstants from '../../../../core/AppConstants';
+import { store } from '../../../../store';
+import notificationsRows from './notificationsRows';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
 
-/**
- * TODO: Discuss the granularity of the notifications settings.
- * i.e. Users can turn off all notifications for a particular account, for all accounts, or some notifications to account A, but not for account B.
- *
- */
-interface SessionHeaderProps {
-  title: string;
-  description: string;
-  styles: ReturnType<typeof createStyles>;
+
+interface MainNotificationSettingsProps extends Props {
+  toggleNotificationsEnabled: () => void;
+  isMetamaskNotificationsEnabled: boolean;
+  goToLearnMore: () => void;
+  styles: ReturnType<typeof styleSheet>;
+
 }
+const MainNotificationSettings = ({ styles, toggleNotificationsEnabled, isMetamaskNotificationsEnabled, goToLearnMore }: MainNotificationSettingsProps) => {
+  const { colors, brandColors } = useTheme();
 
-const SessionHeader = ({ title, description, styles }: SessionHeaderProps) => (
+  return (
   <>
-    <View style={styles.switchElement}>
+    <Pressable
+      style={styles.switchElement}
+      onPressOut={toggleNotificationsEnabled}
+    >
       <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
-        {title}
+        {strings('app_settings.allow_notifications')}
       </Text>
-    </View>
+      <Switch
+        value={isMetamaskNotificationsEnabled}
+        onChange={toggleNotificationsEnabled}
+        trackColor={{
+          true: colors.primary.default,
+          false: colors.border.muted,
+        }}
+        thumbColor={brandColors.white}
+        style={styles.switch}
+        ios_backgroundColor={colors.border.muted}
+      />
+    </Pressable>
     <View style={styles.setting}>
       <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-        {description}
+        {strings('app_settings.allow_notifications_desc')}{' '}
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Info}
+          onPress={goToLearnMore}
+        >
+          {strings('notifications.activation_card.learn_more')}
+        </Text>
       </Text>
     </View>
   </>
-);
-
+);};
 const NotificationsSettings = ({ navigation, route }: Props) => {
-  const notificationsSettingsState = useSelector(
-    (state: any) => state.notification.notificationsSettings,
-  );
-
-  const isNotificationEnabled = notificationsSettingsState?.isEnabled;
-
-  const dispatch = useDispatch();
   const { accounts } = useAccounts();
+  const { switchFeatureAnnouncements } = useSwitchNotifications();
+  const accountsNotificationState = store.getState().notifications;
+  const theme = useTheme();
+  const accountAddresses = useMemo(
+    () => accounts.map((a) => a.address),
+    [accounts],
+  );
+  const accountSettingsProps = useAccountSettingsProps(accountAddresses);
+  const {
+    enableNotifications,
+    loading: enableLoading,
+    error: enablingError,
+  } = useEnableNotifications();
 
-  const accountAvatarType = useSelector((state: any) =>
+  const {
+    disableNotifications,
+    loading: disableLoading,
+    error: disablingError,
+  } = useDisableNotifications();
+
+  const accountAvatarType = useSelector((state: RootState) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
+  const basicFunctionalityEnabled = useSelector(
+    (state: RootState) => state.settings.basicFunctionalityEnabled,
+  );
+  const [uiNotificationStatus, setUiNotificationStatus] = React.useState(false);
+  const [platformAnnouncementsState, setPlatformAnnouncementsState] = React.useState(false);
 
-  const toggleNotificationsEnabled = () => {
-    !isNotificationEnabled
-      ? requestPushNotificationsPermission()
-      : dispatch(
-          updateNotificationStatus({
-            isEnabled: false,
-            notificationsOpts: defaultDisabledNotificationSettings,
-            accounts: [],
-          }),
-        );
-  };
+  const loading = enableLoading || disableLoading;
+  const errorText = enablingError || disablingError;
+  const loadingText = !uiNotificationStatus
+    ? strings('app_settings.disabling_notifications')
+    : strings('app_settings.enabling_notifications');
 
-  const isFullScreenModal = route?.params?.isFullScreenModal;
-
-  const theme = useTheme();
-  const { colors } = theme;
-  const styles = createStyles(colors);
-
-  useEffect(() => {
-    notificationsSettingsState &&
-      mmStorage.saveLocal(
-        STORAGE_IDS.NOTIFICATIONS_SETTINGS,
-        JSON.stringify(notificationsSettingsState),
-      );
-  }, [notificationsSettingsState]);
-
-  useEffect(
-    () => {
-      navigation.setOptions(
-        getNavigationOptionsTitle(
-          strings('app_settings.notifications_title'),
-          navigation,
-          isFullScreenModal,
-          colors,
-          null,
-        ),
-      );
-      dispatch(
-        updateNotificationStatus({
-          ...notificationsSettingsState,
-          accounts:
-            notificationsSettingsState?.accounts ??
-            accounts.reduce((acc: { [key: string]: boolean }, account) => {
-              acc[account.address] = true;
-              return acc;
-            }, {}),
-        }),
-      );
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [colors],
+  const isMetamaskNotificationsEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
   );
 
-  const MainNotificationSettings: FC = () => (
-    <>
-      <Pressable
-        style={styles.switchElement}
-        onPressOut={toggleNotificationsEnabled}
-      >
-        <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
-          {strings('app_settings.allow_notifications')}
-        </Text>
-        <Switch
-          disabled={!isNotificationEnabled}
-          value={isNotificationEnabled}
-          onChange={toggleNotificationsEnabled}
-          trackColor={{
-            true: colors.primary.default,
-            false: colors.border.muted,
-          }}
-          thumbColor={theme.brandColors.white000}
-          style={styles.switch}
-          ios_backgroundColor={colors.border.muted}
-        />
-      </Pressable>
-      <View style={styles.setting}>
-        <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-          {strings('app_settings.allow_notifications_desc')}
-        </Text>
-      </View>
-    </>
+  // Params
+  const isFullScreenModal = route?.params?.isFullScreenModal;
+  // Style
+  const { colors } = theme;
+  const { styles } = useStyles(styleSheet, {});
+
+  /**
+   * Initializes the notifications feature.
+   * If the notifications are disabled and the basic functionality is enabled,
+   * it will request the push notifications permission and enable the notifications
+   * if the permission is granted.
+   */
+  const toggleNotificationsEnabled = useCallback(async () => {
+    if (!basicFunctionalityEnabled) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.BASIC_FUNCTIONALITY,
+        params: {
+          caller: Routes.SETTINGS.NOTIFICATIONS,
+        },
+      });
+    } else if (isMetamaskNotificationsEnabled) {
+      disableNotifications();
+      setUiNotificationStatus(false);
+    } else {
+      const nativeNotificationStatus = await requestPushNotificationsPermission(
+        asyncAlert,
+      );
+
+      if (nativeNotificationStatus) {
+        /**
+         * Although this is an async function, we are dispatching an action (firing & forget)
+         * to emulate optimistic UI.
+         */
+        enableNotifications();
+        setUiNotificationStatus(true);
+      }
+    }
+  }, [
+    basicFunctionalityEnabled,
+    disableNotifications,
+    enableNotifications,
+    isMetamaskNotificationsEnabled,
+    navigation,
+  ]);
+
+
+  const toggleCustomNotificationsEnabled = useCallback(async() => {
+    setPlatformAnnouncementsState(!platformAnnouncementsState);
+    await switchFeatureAnnouncements(!platformAnnouncementsState);
+  },[platformAnnouncementsState, switchFeatureAnnouncements]);
+
+  const goToLearnMore = () => {
+    Linking.openURL(AppConstants.URLS.PROFILE_SYNC);
+  };
+
+  const reFetchingAccountSettings = useCallback(async () => {
+    await accountSettingsProps.update(accountAddresses);
+  }, [accountAddresses, accountSettingsProps]);
+
+  useEffect(() => {
+    navigation.setOptions(
+      getNavigationOptionsTitle(
+        strings('app_settings.notifications_title'),
+        navigation,
+        isFullScreenModal,
+        colors,
+        null,
+      ),
+    );
+    reFetchingAccountSettings();
+  }, [colors, isFullScreenModal, navigation, reFetchingAccountSettings]);
+
+  const refetchAccountSettings = useCallback(async () => {
+    await accountSettingsProps.update(accountAddresses);
+  }, [accountSettingsProps, accountAddresses]);
+
+  const renderAccounts = useCallback(
+    () =>
+      accounts.map((account) => {
+        const isEnabled = accountsNotificationState[account.address.toLowerCase()];
+        return (
+        (
+          <NotificationOptionToggle
+            type={NotificationsToggleTypes.ACCOUNT}
+            icon={accountAvatarType}
+            key={account.address}
+            title={account.name}
+            address={account.address}
+            isEnabled={isEnabled}
+            refetchAccountSettings={refetchAccountSettings}
+          />
+        )
+      );}),
+    [accountAvatarType, accounts, accountsNotificationState, refetchAccountSettings],
   );
 
   return (
     <ScrollView style={styles.wrapper}>
-      <MainNotificationSettings />
-      {notificationsSettingsState?.isEnabled && (
+       <MainNotificationSettings
+        styles={styles}
+        toggleNotificationsEnabled={toggleNotificationsEnabled}
+        isMetamaskNotificationsEnabled={isMetamaskNotificationsEnabled}
+        goToLearnMore={goToLearnMore}
+        navigation={navigation}
+        route={route}
+        />
+
+      {isMetamaskNotificationsEnabled && (
         <>
-          <SessionHeader
+        <SessionHeader
             title={strings(
               'app_settings.notifications_opts.customize_session_title',
             )}
@@ -176,33 +254,12 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
             )}
             styles={styles}
           />
-          {notificationsRows.map((opt) => (
-            <NotificationOptionToggle
-              type={NotificationsToggleTypes.ACTIONS}
-              key={opt.title}
-              icon={opt.icon}
-              title={opt.title}
-              description={opt.description}
-              value={
-                notificationsSettingsState.notificationsOpts[
-                  camelCase(opt.title)
-                ]
-              }
-              onOptionUpdated={(value) => {
-                dispatch(
-                  updateNotificationStatus({
-                    ...notificationsSettingsState,
-                    notificationsOpts: {
-                      ...notificationsSettingsState.notificationsOpts,
-                      [camelCase(opt.title)]: value,
-                    },
-                  }),
-                );
-              }}
-              testId={NotificationsViewSelectorsIDs[opt.title]}
-              disabled={opt.disabled}
+          <CustomNotificationsRow
+            title={notificationsRows[4].title}
+            icon={notificationsRows[4].icon}
+            isEnabled={platformAnnouncementsState}
+            onChange={toggleCustomNotificationsEnabled}
             />
-          ))}
           <SessionHeader
             title={strings(
               'app_settings.notifications_opts.account_session_title',
@@ -212,31 +269,15 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
             )}
             styles={styles}
           />
-          {accounts.map((account) => (
-            <NotificationOptionToggle
-              type={NotificationsToggleTypes.ACCOUNT}
-              icon={accountAvatarType}
-              key={account.address}
-              title={account.name}
-              description={account.address}
-              value={
-                notificationsSettingsState?.accounts[account.address] ?? true
-              }
-              onOptionUpdated={(value) => {
-                dispatch(
-                  updateNotificationStatus({
-                    ...notificationsSettingsState,
-                    accounts: {
-                      ...notificationsSettingsState.accounts,
-                      [account.address]: value,
-                    },
-                  }),
-                );
-              }}
-            />
-          ))}
+
+          {renderAccounts()}
         </>
       )}
+      <SwitchLoadingModal
+        loading={loading}
+        loadingText={loadingText}
+        error={errorText}
+      />
     </ScrollView>
   );
 };
@@ -247,7 +288,7 @@ NotificationsSettings.navigationOptions = ({
   navigation,
   isNotificationEnabled,
 }: {
-  navigation: any;
+  navigation: NavigationProp<ParamListBase>;
   isNotificationEnabled: boolean;
 }) => ({
   headerLeft: () => (

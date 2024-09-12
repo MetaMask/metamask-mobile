@@ -37,6 +37,8 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { isBuyQuote } from '../../utils';
 import { RampType } from '../../types';
 // TODO: Convert into typescript and correctly type optionals
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ListItem = BaseListItem as any;
 
 interface Props {

@@ -16,6 +16,8 @@ describe('selectAccountBalanceByChainId', () => {
             providerConfig: {
               chainId: MOCK_CHAIN_ID,
             },
+            // TODO: Replace "any" with type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } as any,
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           AccountTrackerController: {
@@ -24,6 +26,8 @@ describe('selectAccountBalanceByChainId', () => {
                 [MOCK_ADDRESS_2]: { balance: '0x1' },
               },
             },
+            // TODO: Replace "any" with type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } as any,
         },
       },
@@ -36,6 +40,8 @@ describe('selectAccountBalanceByChainId', () => {
         backgroundState: {
           NetworkController: {
             providerConfig: {},
+            // TODO: Replace "any" with type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } as any,
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           AccountTrackerController: {
@@ -44,6 +50,8 @@ describe('selectAccountBalanceByChainId', () => {
                 [MOCK_ADDRESS_2]: { balance: '0x1' },
               },
             },
+            // TODO: Replace "any" with type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } as any,
         },
       },

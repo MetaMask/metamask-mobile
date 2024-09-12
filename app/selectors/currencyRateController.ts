@@ -11,6 +11,8 @@ export const selectConversionRate = createSelector(
   selectCurrencyRateControllerState,
   selectChainId,
   selectTicker,
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (state: any) => state.settings.showFiatOnTestnets,
   (
     currencyRateControllerState: CurrencyRateState,

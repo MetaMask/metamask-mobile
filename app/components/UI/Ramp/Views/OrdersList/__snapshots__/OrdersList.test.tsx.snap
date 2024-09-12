@@ -53,7 +53,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
   data={
     [
       {
-        "account": "0x0",
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
@@ -76,7 +76,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         "state": "COMPLETED",
       },
       {
-        "account": "0x0",
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
@@ -99,7 +99,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         "state": "PENDING",
       },
       {
-        "account": "0x0",
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "cryptocurrency": "ETH",
         "currency": "USD",
         "data": {
@@ -138,6 +138,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
 >
   <View>
     <View
+      collapsable={false}
       onLayout={[Function]}
     >
       <RCTScrollView
@@ -177,7 +178,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376C9",
+                  "borderColor": "#0376c9",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -186,14 +187,13 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376C9",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -215,8 +215,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#0376C9",
-                  "borderColor": "#0376C9",
+                  "backgroundColor": "#0376c9",
+                  "borderColor": "#0376c9",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -225,14 +225,13 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Primary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#FFFFFF",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#ffffff",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -255,7 +254,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376C9",
+                  "borderColor": "#0376c9",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -264,14 +263,13 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376C9",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -299,10 +297,10 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#D6D9DC",
+            "borderColor": "#bbc0c566",
           }
         }
-        underlayColor="#F2F4F6"
+        underlayColor="#f2f4f6"
       >
         <View
           style={
@@ -318,7 +316,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             style={
               [
                 {
-                  "color": "#24272A",
+                  "color": "#141618",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 30,
                   "fontWeight": "400",
@@ -349,7 +347,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 undefined,
                 [
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 12,
                     "fontWeight": "400",
@@ -416,7 +414,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -447,7 +445,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     undefined,
                     [
                       {
-                        "color": "#24272A",
+                        "color": "#141618",
                         "fontSize": 15,
                       },
                       undefined,
@@ -464,8 +462,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#1C8234",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#1c8234",
+                    "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -491,7 +489,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -522,7 +520,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     undefined,
                     [
                       {
-                        "color": "#24272A",
+                        "color": "#141618",
                         "fontSize": 15,
                       },
                       undefined,
@@ -538,7 +536,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -569,7 +567,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     undefined,
                     [
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontSize": 12,
                         "textTransform": "uppercase",
                       },
@@ -598,10 +596,10 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#D6D9DC",
+            "borderColor": "#bbc0c566",
           }
         }
-        underlayColor="#F2F4F6"
+        underlayColor="#f2f4f6"
       >
         <View
           style={
@@ -617,7 +615,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             style={
               [
                 {
-                  "color": "#24272A",
+                  "color": "#141618",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 30,
                   "fontWeight": "400",
@@ -648,7 +646,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 undefined,
                 [
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 12,
                     "fontWeight": "400",
@@ -715,7 +713,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -746,7 +744,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     undefined,
                     [
                       {
-                        "color": "#24272A",
+                        "color": "#141618",
                         "fontSize": 15,
                       },
                       undefined,
@@ -763,8 +761,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376C9",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -790,7 +788,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -821,7 +819,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     undefined,
                     [
                       {
-                        "color": "#24272A",
+                        "color": "#141618",
                         "fontSize": 15,
                       },
                       undefined,
@@ -837,7 +835,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -868,7 +866,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     undefined,
                     [
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontSize": 12,
                         "textTransform": "uppercase",
                       },
@@ -897,10 +895,10 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#D6D9DC",
+            "borderColor": "#bbc0c566",
           }
         }
-        underlayColor="#F2F4F6"
+        underlayColor="#f2f4f6"
       >
         <View
           style={
@@ -966,7 +964,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -997,7 +995,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     undefined,
                     [
                       {
-                        "color": "#24272A",
+                        "color": "#141618",
                         "fontSize": 15,
                       },
                       undefined,
@@ -1014,8 +1012,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376C9",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -1041,7 +1039,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -1072,7 +1070,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     undefined,
                     [
                       {
-                        "color": "#24272A",
+                        "color": "#141618",
                         "fontSize": 15,
                       },
                       undefined,
@@ -1088,7 +1086,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -1119,7 +1117,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     undefined,
                     [
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontSize": 12,
                         "textTransform": "uppercase",
                       },
@@ -1190,7 +1188,7 @@ exports[`OrdersList renders correctly 1`] = `
   data={
     [
       {
-        "account": "0x0",
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
@@ -1213,7 +1211,7 @@ exports[`OrdersList renders correctly 1`] = `
         "state": "COMPLETED",
       },
       {
-        "account": "0x0",
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
@@ -1236,7 +1234,7 @@ exports[`OrdersList renders correctly 1`] = `
         "state": "PENDING",
       },
       {
-        "account": "0x0",
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
@@ -1259,7 +1257,7 @@ exports[`OrdersList renders correctly 1`] = `
         "state": "PENDING",
       },
       {
-        "account": "0x0",
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "cryptocurrency": "ETH",
         "currency": "USD",
         "data": {
@@ -1298,6 +1296,7 @@ exports[`OrdersList renders correctly 1`] = `
 >
   <View>
     <View
+      collapsable={false}
       onLayout={[Function]}
     >
       <RCTScrollView
@@ -1336,8 +1335,8 @@ exports[`OrdersList renders correctly 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#0376C9",
-                  "borderColor": "#0376C9",
+                  "backgroundColor": "#0376c9",
+                  "borderColor": "#0376c9",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -1346,14 +1345,13 @@ exports[`OrdersList renders correctly 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Primary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#FFFFFF",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#ffffff",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -1376,7 +1374,7 @@ exports[`OrdersList renders correctly 1`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376C9",
+                  "borderColor": "#0376c9",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -1385,14 +1383,13 @@ exports[`OrdersList renders correctly 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376C9",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -1415,7 +1412,7 @@ exports[`OrdersList renders correctly 1`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376C9",
+                  "borderColor": "#0376c9",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -1424,14 +1421,13 @@ exports[`OrdersList renders correctly 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376C9",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -1459,10 +1455,10 @@ exports[`OrdersList renders correctly 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#D6D9DC",
+            "borderColor": "#bbc0c566",
           }
         }
-        underlayColor="#F2F4F6"
+        underlayColor="#f2f4f6"
       >
         <View
           style={
@@ -1478,7 +1474,7 @@ exports[`OrdersList renders correctly 1`] = `
             style={
               [
                 {
-                  "color": "#24272A",
+                  "color": "#141618",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 30,
                   "fontWeight": "400",
@@ -1509,7 +1505,7 @@ exports[`OrdersList renders correctly 1`] = `
                 undefined,
                 [
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 12,
                     "fontWeight": "400",
@@ -1576,7 +1572,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -1607,7 +1603,7 @@ exports[`OrdersList renders correctly 1`] = `
                     undefined,
                     [
                       {
-                        "color": "#24272A",
+                        "color": "#141618",
                         "fontSize": 15,
                       },
                       undefined,
@@ -1624,8 +1620,8 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#1C8234",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#1c8234",
+                    "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -1651,7 +1647,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -1682,7 +1678,7 @@ exports[`OrdersList renders correctly 1`] = `
                     undefined,
                     [
                       {
-                        "color": "#24272A",
+                        "color": "#141618",
                         "fontSize": 15,
                       },
                       undefined,
@@ -1698,7 +1694,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -1729,7 +1725,7 @@ exports[`OrdersList renders correctly 1`] = `
                     undefined,
                     [
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontSize": 12,
                         "textTransform": "uppercase",
                       },
@@ -1758,10 +1754,10 @@ exports[`OrdersList renders correctly 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#D6D9DC",
+            "borderColor": "#bbc0c566",
           }
         }
-        underlayColor="#F2F4F6"
+        underlayColor="#f2f4f6"
       >
         <View
           style={
@@ -1777,7 +1773,7 @@ exports[`OrdersList renders correctly 1`] = `
             style={
               [
                 {
-                  "color": "#24272A",
+                  "color": "#141618",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 30,
                   "fontWeight": "400",
@@ -1808,7 +1804,7 @@ exports[`OrdersList renders correctly 1`] = `
                 undefined,
                 [
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 12,
                     "fontWeight": "400",
@@ -1875,7 +1871,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -1906,7 +1902,7 @@ exports[`OrdersList renders correctly 1`] = `
                     undefined,
                     [
                       {
-                        "color": "#24272A",
+                        "color": "#141618",
                         "fontSize": 15,
                       },
                       undefined,
@@ -1923,8 +1919,8 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376C9",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -1950,7 +1946,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -1981,7 +1977,7 @@ exports[`OrdersList renders correctly 1`] = `
                     undefined,
                     [
                       {
-                        "color": "#24272A",
+                        "color": "#141618",
                         "fontSize": 15,
                       },
                       undefined,
@@ -1997,7 +1993,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -2028,7 +2024,7 @@ exports[`OrdersList renders correctly 1`] = `
                     undefined,
                     [
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontSize": 12,
                         "textTransform": "uppercase",
                       },
@@ -2057,10 +2053,10 @@ exports[`OrdersList renders correctly 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#D6D9DC",
+            "borderColor": "#bbc0c566",
           }
         }
-        underlayColor="#F2F4F6"
+        underlayColor="#f2f4f6"
       >
         <View
           style={
@@ -2076,7 +2072,7 @@ exports[`OrdersList renders correctly 1`] = `
             style={
               [
                 {
-                  "color": "#24272A",
+                  "color": "#141618",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 30,
                   "fontWeight": "400",
@@ -2107,7 +2103,7 @@ exports[`OrdersList renders correctly 1`] = `
                 undefined,
                 [
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 12,
                     "fontWeight": "400",
@@ -2174,7 +2170,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -2205,7 +2201,7 @@ exports[`OrdersList renders correctly 1`] = `
                     undefined,
                     [
                       {
-                        "color": "#24272A",
+                        "color": "#141618",
                         "fontSize": 15,
                       },
                       undefined,
@@ -2222,8 +2218,8 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376C9",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -2249,7 +2245,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -2280,7 +2276,7 @@ exports[`OrdersList renders correctly 1`] = `
                     undefined,
                     [
                       {
-                        "color": "#24272A",
+                        "color": "#141618",
                         "fontSize": 15,
                       },
                       undefined,
@@ -2296,7 +2292,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -2327,7 +2323,7 @@ exports[`OrdersList renders correctly 1`] = `
                     undefined,
                     [
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontSize": 12,
                         "textTransform": "uppercase",
                       },
@@ -2356,10 +2352,10 @@ exports[`OrdersList renders correctly 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#D6D9DC",
+            "borderColor": "#bbc0c566",
           }
         }
-        underlayColor="#F2F4F6"
+        underlayColor="#f2f4f6"
       >
         <View
           style={
@@ -2425,7 +2421,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -2456,7 +2452,7 @@ exports[`OrdersList renders correctly 1`] = `
                     undefined,
                     [
                       {
-                        "color": "#24272A",
+                        "color": "#141618",
                         "fontSize": 15,
                       },
                       undefined,
@@ -2473,8 +2469,8 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376C9",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -2500,7 +2496,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -2531,7 +2527,7 @@ exports[`OrdersList renders correctly 1`] = `
                     undefined,
                     [
                       {
-                        "color": "#24272A",
+                        "color": "#141618",
                         "fontSize": 15,
                       },
                       undefined,
@@ -2547,7 +2543,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -2578,7 +2574,7 @@ exports[`OrdersList renders correctly 1`] = `
                     undefined,
                     [
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontSize": 12,
                         "textTransform": "uppercase",
                       },
@@ -2667,6 +2663,7 @@ exports[`OrdersList renders empty buy message 1`] = `
 >
   <View>
     <View
+      collapsable={false}
       onLayout={[Function]}
     >
       <RCTScrollView
@@ -2706,7 +2703,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376C9",
+                  "borderColor": "#0376c9",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -2715,14 +2712,13 @@ exports[`OrdersList renders empty buy message 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376C9",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -2744,8 +2740,8 @@ exports[`OrdersList renders empty buy message 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#0376C9",
-                  "borderColor": "#0376C9",
+                  "backgroundColor": "#0376c9",
+                  "borderColor": "#0376c9",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -2754,14 +2750,13 @@ exports[`OrdersList renders empty buy message 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Primary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#FFFFFF",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#ffffff",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -2784,7 +2779,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376C9",
+                  "borderColor": "#0376c9",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -2793,14 +2788,13 @@ exports[`OrdersList renders empty buy message 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376C9",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -2832,8 +2826,8 @@ exports[`OrdersList renders empty buy message 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#BBC0C5",
-            "fontFamily": "Euclid Circular B",
+            "color": "#9fa6ae",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 18,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -2918,6 +2912,7 @@ exports[`OrdersList renders empty sell message 1`] = `
 >
   <View>
     <View
+      collapsable={false}
       onLayout={[Function]}
     >
       <RCTScrollView
@@ -2957,7 +2952,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376C9",
+                  "borderColor": "#0376c9",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -2966,14 +2961,13 @@ exports[`OrdersList renders empty sell message 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376C9",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -2996,7 +2990,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376C9",
+                  "borderColor": "#0376c9",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -3005,14 +2999,13 @@ exports[`OrdersList renders empty sell message 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376C9",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -3034,8 +3027,8 @@ exports[`OrdersList renders empty sell message 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#0376C9",
-                  "borderColor": "#0376C9",
+                  "backgroundColor": "#0376c9",
+                  "borderColor": "#0376c9",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -3044,14 +3037,13 @@ exports[`OrdersList renders empty sell message 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Primary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#FFFFFF",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#ffffff",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -3083,8 +3075,8 @@ exports[`OrdersList renders empty sell message 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#BBC0C5",
-            "fontFamily": "Euclid Circular B",
+            "color": "#9fa6ae",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 18,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -3153,7 +3145,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
   data={
     [
       {
-        "account": "0x0",
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
@@ -3195,6 +3187,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
 >
   <View>
     <View
+      collapsable={false}
       onLayout={[Function]}
     >
       <RCTScrollView
@@ -3234,7 +3227,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376C9",
+                  "borderColor": "#0376c9",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -3243,14 +3236,13 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376C9",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -3273,7 +3265,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376C9",
+                  "borderColor": "#0376c9",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -3282,14 +3274,13 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376C9",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -3311,8 +3302,8 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#0376C9",
-                  "borderColor": "#0376C9",
+                  "backgroundColor": "#0376c9",
+                  "borderColor": "#0376c9",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -3321,14 +3312,13 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Primary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#FFFFFF",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#ffffff",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -3356,10 +3346,10 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#D6D9DC",
+            "borderColor": "#bbc0c566",
           }
         }
-        underlayColor="#F2F4F6"
+        underlayColor="#f2f4f6"
       >
         <View
           style={
@@ -3375,7 +3365,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
             style={
               [
                 {
-                  "color": "#24272A",
+                  "color": "#141618",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 30,
                   "fontWeight": "400",
@@ -3406,7 +3396,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 undefined,
                 [
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 12,
                     "fontWeight": "400",
@@ -3473,7 +3463,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -3504,7 +3494,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                     undefined,
                     [
                       {
-                        "color": "#24272A",
+                        "color": "#141618",
                         "fontSize": 15,
                       },
                       undefined,
@@ -3521,8 +3511,8 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376C9",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -3548,7 +3538,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -3579,7 +3569,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                     undefined,
                     [
                       {
-                        "color": "#24272A",
+                        "color": "#141618",
                         "fontSize": 15,
                       },
                       undefined,
@@ -3595,7 +3585,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -3626,7 +3616,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                     undefined,
                     [
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontSize": 12,
                         "textTransform": "uppercase",
                       },
@@ -3699,7 +3689,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
   data={
     [
       {
-        "account": "0x0",
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
@@ -3741,6 +3731,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
 >
   <View>
     <View
+      collapsable={false}
       onLayout={[Function]}
     >
       <RCTScrollView
@@ -3780,7 +3771,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376C9",
+                  "borderColor": "#0376c9",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -3789,14 +3780,13 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376C9",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -3819,7 +3809,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376C9",
+                  "borderColor": "#0376c9",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -3828,14 +3818,13 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376C9",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -3857,8 +3846,8 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#0376C9",
-                  "borderColor": "#0376C9",
+                  "backgroundColor": "#0376c9",
+                  "borderColor": "#0376c9",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -3867,14 +3856,13 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Primary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#FFFFFF",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#ffffff",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -3902,10 +3890,10 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#D6D9DC",
+            "borderColor": "#bbc0c566",
           }
         }
-        underlayColor="#F2F4F6"
+        underlayColor="#f2f4f6"
       >
         <View
           style={
@@ -3921,7 +3909,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
             style={
               [
                 {
-                  "color": "#24272A",
+                  "color": "#141618",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 30,
                   "fontWeight": "400",
@@ -3952,7 +3940,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 undefined,
                 [
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 12,
                     "fontWeight": "400",
@@ -4019,7 +4007,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -4050,7 +4038,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                     undefined,
                     [
                       {
-                        "color": "#24272A",
+                        "color": "#141618",
                         "fontSize": 15,
                       },
                       undefined,
@@ -4067,8 +4055,8 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376C9",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -4094,7 +4082,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -4125,7 +4113,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                     undefined,
                     [
                       {
-                        "color": "#24272A",
+                        "color": "#141618",
                         "fontSize": 15,
                       },
                       undefined,
@@ -4141,7 +4129,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -4172,7 +4160,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                     undefined,
                     [
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontSize": 12,
                         "textTransform": "uppercase",
                       },
@@ -4243,7 +4231,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
   data={
     [
       {
-        "account": "0x0",
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
@@ -4266,7 +4254,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         "state": "COMPLETED",
       },
       {
-        "account": "0x0",
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
@@ -4289,7 +4277,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         "state": "PENDING",
       },
       {
-        "account": "0x0",
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
@@ -4312,7 +4300,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         "state": "PENDING",
       },
       {
-        "account": "0x0",
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "cryptocurrency": "ETH",
         "currency": "USD",
         "data": {
@@ -4351,6 +4339,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
 >
   <View>
     <View
+      collapsable={false}
       onLayout={[Function]}
     >
       <RCTScrollView
@@ -4389,8 +4378,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#0376C9",
-                  "borderColor": "#0376C9",
+                  "backgroundColor": "#0376c9",
+                  "borderColor": "#0376c9",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -4399,14 +4388,13 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Primary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#FFFFFF",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#ffffff",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -4429,7 +4417,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376C9",
+                  "borderColor": "#0376c9",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -4438,14 +4426,13 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376C9",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -4468,7 +4455,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376C9",
+                  "borderColor": "#0376c9",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -4477,14 +4464,13 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376C9",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -4512,10 +4498,10 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#D6D9DC",
+            "borderColor": "#bbc0c566",
           }
         }
-        underlayColor="#F2F4F6"
+        underlayColor="#f2f4f6"
       >
         <View
           style={
@@ -4531,7 +4517,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             style={
               [
                 {
-                  "color": "#24272A",
+                  "color": "#141618",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 30,
                   "fontWeight": "400",
@@ -4562,7 +4548,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 undefined,
                 [
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 12,
                     "fontWeight": "400",
@@ -4629,7 +4615,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -4660,7 +4646,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     undefined,
                     [
                       {
-                        "color": "#24272A",
+                        "color": "#141618",
                         "fontSize": 15,
                       },
                       undefined,
@@ -4677,8 +4663,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#1C8234",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#1c8234",
+                    "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -4704,7 +4690,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -4735,7 +4721,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     undefined,
                     [
                       {
-                        "color": "#24272A",
+                        "color": "#141618",
                         "fontSize": 15,
                       },
                       undefined,
@@ -4751,7 +4737,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -4782,7 +4768,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     undefined,
                     [
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontSize": 12,
                         "textTransform": "uppercase",
                       },
@@ -4811,10 +4797,10 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#D6D9DC",
+            "borderColor": "#bbc0c566",
           }
         }
-        underlayColor="#F2F4F6"
+        underlayColor="#f2f4f6"
       >
         <View
           style={
@@ -4830,7 +4816,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             style={
               [
                 {
-                  "color": "#24272A",
+                  "color": "#141618",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 30,
                   "fontWeight": "400",
@@ -4861,7 +4847,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 undefined,
                 [
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 12,
                     "fontWeight": "400",
@@ -4928,7 +4914,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -4959,7 +4945,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     undefined,
                     [
                       {
-                        "color": "#24272A",
+                        "color": "#141618",
                         "fontSize": 15,
                       },
                       undefined,
@@ -4976,8 +4962,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376C9",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -5003,7 +4989,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -5034,7 +5020,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     undefined,
                     [
                       {
-                        "color": "#24272A",
+                        "color": "#141618",
                         "fontSize": 15,
                       },
                       undefined,
@@ -5050,7 +5036,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -5081,7 +5067,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     undefined,
                     [
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontSize": 12,
                         "textTransform": "uppercase",
                       },
@@ -5110,10 +5096,10 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#D6D9DC",
+            "borderColor": "#bbc0c566",
           }
         }
-        underlayColor="#F2F4F6"
+        underlayColor="#f2f4f6"
       >
         <View
           style={
@@ -5129,7 +5115,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             style={
               [
                 {
-                  "color": "#24272A",
+                  "color": "#141618",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 30,
                   "fontWeight": "400",
@@ -5160,7 +5146,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 undefined,
                 [
                   {
-                    "color": "#24272A",
+                    "color": "#141618",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 12,
                     "fontWeight": "400",
@@ -5227,7 +5213,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -5258,7 +5244,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     undefined,
                     [
                       {
-                        "color": "#24272A",
+                        "color": "#141618",
                         "fontSize": 15,
                       },
                       undefined,
@@ -5275,8 +5261,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376C9",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -5302,7 +5288,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -5333,7 +5319,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     undefined,
                     [
                       {
-                        "color": "#24272A",
+                        "color": "#141618",
                         "fontSize": 15,
                       },
                       undefined,
@@ -5349,7 +5335,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -5380,7 +5366,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     undefined,
                     [
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontSize": 12,
                         "textTransform": "uppercase",
                       },
@@ -5409,10 +5395,10 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#D6D9DC",
+            "borderColor": "#bbc0c566",
           }
         }
-        underlayColor="#F2F4F6"
+        underlayColor="#f2f4f6"
       >
         <View
           style={
@@ -5478,7 +5464,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -5509,7 +5495,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     undefined,
                     [
                       {
-                        "color": "#24272A",
+                        "color": "#141618",
                         "fontSize": 15,
                       },
                       undefined,
@@ -5526,8 +5512,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376C9",
-                    "fontFamily": "Euclid Circular B",
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -5553,7 +5539,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -5584,7 +5570,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     undefined,
                     [
                       {
-                        "color": "#24272A",
+                        "color": "#141618",
                         "fontSize": 15,
                       },
                       undefined,
@@ -5600,7 +5586,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   [
                     {
-                      "color": "#24272A",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
@@ -5631,7 +5617,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     undefined,
                     [
                       {
-                        "color": "#535A61",
+                        "color": "#6a737d",
                         "fontSize": 12,
                         "textTransform": "uppercase",
                       },

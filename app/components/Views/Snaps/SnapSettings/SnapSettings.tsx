@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import React, { useCallback, useEffect } from 'react';
 import { View, ScrollView, SafeAreaView } from 'react-native';
 
@@ -27,6 +27,7 @@ import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../hooks/useStyles';
 import { useSelector } from 'react-redux';
 import SNAP_SETTINGS_REMOVE_BUTTON from './SnapSettings.constants';
+import { selectPermissionControllerState } from '../../../../selectors/snaps/permissionController';
 
 interface SnapSettingsProps {
   snap: Snap;
@@ -42,14 +43,16 @@ const SnapSettings = () => {
 
   const { snap } = useParams<SnapSettingsProps>();
 
-  const permissionsState = useSelector(
-    (state: any) => state.engine.backgroundState.PermissionController,
-  );
+  const permissionsState = useSelector(selectPermissionControllerState);
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function getPermissionSubjects(state: any) {
     return state.subjects || {};
   }
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function getPermissions(state: any, origin: any) {
     return getPermissionSubjects(state)[origin]?.permissions;
   }
@@ -68,6 +71,8 @@ const SnapSettings = () => {
   }, [colors, navigation, snap.manifest.proposedName]);
 
   const removeSnap = useCallback(async () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { SnapController } = Engine.context as any;
     await SnapController.removeSnap(snap.id);
     navigation.goBack();

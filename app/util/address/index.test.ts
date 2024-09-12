@@ -1,3 +1,4 @@
+import { NetworkState } from '@metamask/network-controller';
 import {
   isENS,
   renderSlightlyLongAddress,
@@ -35,9 +36,6 @@ describe('isENS', () => {
 
 describe('renderSlightlyLongAddress', () => {
   const mockAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
-  it('should return the address when the address do not exist', () => {
-    expect(renderSlightlyLongAddress(null)).toBeNull();
-  });
   it('should return 5 characters before ellipsis and 4 final characters of the address after the ellipsis', () => {
     expect(renderSlightlyLongAddress(mockAddress).split('.')[0].length).toBe(
       24,
@@ -171,12 +169,13 @@ describe('getAddress', () => {
 });
 
 describe('shouldShowBlockExplorer', () => {
-  const networkConfigurations = {
+  const networkConfigurations: NetworkState['networkConfigurations'] = {
     networkId1: {
-      chainId: '1',
+      id: 'networkId1',
+      chainId: '0x1',
       nickname: 'Main Ethereum Network',
+      ticker: 'USD',
       rpcUrl: 'https://mainnet.infura.io/v3/123',
-      rpcPrefs: {},
     },
   };
 
@@ -184,11 +183,11 @@ describe('shouldShowBlockExplorer', () => {
     const providerType = 'mainnet';
     const providerRpcTarget = networkConfigurations.networkId1.rpcUrl;
 
-    const result = shouldShowBlockExplorer({
+    const result = shouldShowBlockExplorer(
       providerType,
       providerRpcTarget,
       networkConfigurations,
-    });
+    );
 
     expect(result).toBe(true);
   });
@@ -199,11 +198,11 @@ describe('shouldShowBlockExplorer', () => {
     const blockExplorerUrl = 'https://rpc.testnet.fantom.network';
     networkConfigurations.networkId1.rpcPrefs = { blockExplorerUrl };
 
-    const result = shouldShowBlockExplorer({
+    const result = shouldShowBlockExplorer(
       providerType,
       providerRpcTarget,
       networkConfigurations,
-    });
+    );
 
     expect(result).toBe(blockExplorerUrl);
   });
@@ -211,19 +210,21 @@ describe('shouldShowBlockExplorer', () => {
   it('returns undefined if block explorer URL is not defined', () => {
     const providerType = 'rpc';
     const providerRpcTarget = networkConfigurations.networkId1.rpcUrl;
-    networkConfigurations.networkId1.rpcPrefs = {};
+    networkConfigurations.networkId1.rpcPrefs = undefined;
 
-    const result = shouldShowBlockExplorer({
+    const result = shouldShowBlockExplorer(
       providerType,
       providerRpcTarget,
       networkConfigurations,
-    });
+    );
 
     expect(result).toBe(undefined);
   });
 });
 describe('isQRHardwareAccount', () => {
   it('should return false if argument address is undefined', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(isQRHardwareAccount(undefined as any)).toBeFalsy();
   });
   it('should return false if address does not exist on keyring', () => {
@@ -248,6 +249,8 @@ describe('isQRHardwareAccount', () => {
 });
 describe('getKeyringByAddress', () => {
   it('should return undefined if argument address is undefined', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(getKeyringByAddress(undefined as any)).toBeUndefined();
   });
   it('should return undefined if argument address is not hex address', () => {
@@ -302,6 +305,8 @@ describe('getLabelTextByAddress,', () => {
 });
 describe('getAddressAccountType', () => {
   it('should throw an error if argument address is undefined', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(() => getAddressAccountType(undefined as any)).toThrow(
       'Invalid address: undefined',
     );
@@ -324,6 +329,8 @@ describe('getAddressAccountType', () => {
 });
 describe('resemblesAddress', () => {
   it('should return false if argument address is undefined', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(resemblesAddress(undefined as any)).toBeFalsy();
   });
   it('should return false if address does not resemble an eth address', () => {

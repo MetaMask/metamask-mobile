@@ -6,6 +6,8 @@ import Text from '../../../Base/Text';
 import { useTheme } from '../../../../util/theme';
 import { getDecimalChainId } from '../../../../util/networks';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     accountInformation: {

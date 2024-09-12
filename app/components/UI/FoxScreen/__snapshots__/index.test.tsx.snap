@@ -5,7 +5,7 @@ exports[`FoxScreen should render correctly 1`] = `
   style={
     {
       "alignItems": "center",
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "bottom": 0,
       "flex": 1,
       "justifyContent": "center",

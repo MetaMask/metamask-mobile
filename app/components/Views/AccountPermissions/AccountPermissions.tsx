@@ -15,7 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import UntypedEngine from '../../../core/Engine';
+import Engine from '../../../core/Engine';
 import {
   addPermittedAccounts,
   getPermittedAccountsByHostname,
@@ -36,7 +36,6 @@ import { getActiveTabUrl } from '../../../util/transactions';
 import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { selectIdentities } from '../../../selectors/preferencesController';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
 
 // Internal dependencies.
@@ -50,17 +49,22 @@ import { USER_INTENT } from '../../../constants/permissions';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
 import URLParse from 'url-parse';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { selectInternalAccounts } from '../../../selectors/accountsController';
+import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
+import { RootState } from '../../../reducers';
+import { isMutichainVersion1Enabled } from '../../../util/networks';
+import PermissionsSummary from '../../../components/UI/PermissionsSummary';
+import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const navigation = useNavigation();
   const { trackEvent } = useMetrics();
-  const Engine = UntypedEngine as any;
   const {
     hostInfo: {
       metadata: { origin: hostname },
     },
   } = props.route.params;
-  const accountAvatarType = useSelector((state: any) =>
+  const accountAvatarType = useSelector((state: RootState) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
@@ -69,7 +73,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const accountsLength = useSelector(selectAccountsLength);
 
   const nonTestnetNetworks = useSelector(
-    (state: any) => Object.keys(selectNetworkConfigurations(state)).length + 1,
+    (state: RootState) =>
+      Object.keys(selectNetworkConfigurations(state)).length + 1,
   );
 
   const origin: string = useSelector(getActiveTabUrl, isEqual);
@@ -88,9 +93,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   const { toastRef } = useContext(ToastContext);
   const [isLoading, setIsLoading] = useState(false);
-  const permittedAccountsList = useSelector(
-    (state: any) => state.engine.backgroundState.PermissionController,
-  );
+  const permittedAccountsList = useSelector(selectPermissionControllerState);
   const permittedAccountsByHostname = getPermittedAccountsByHostname(
     permittedAccountsList,
     hostname,
@@ -104,7 +107,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   });
   const previousPermittedAccounts = useRef<string[]>();
   const previousIdentitiesListSize = useRef<number>();
-  const identitiesMap = useSelector(selectIdentities);
+  const internalAccounts = useSelector(selectInternalAccounts);
   const activeAddress: string = permittedAccountsByHostname[0];
 
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
@@ -124,26 +127,56 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     ) {
       // TODO - Figure out better UX instead of auto dismissing. However, we cannot be in this state as long as accounts are not connected.
       hideSheet();
-      toastRef?.current?.showToast({
+
+      const plainToastProps: ToastOptions = {
         variant: ToastVariants.Plain,
         labelOptions: [{ label: strings('toast.disconnected_all') }],
-      });
+        hasNoTimeout: false,
+      };
+
+      const networkToastProps: ToastOptions = {
+        variant: ToastVariants.Network,
+        labelOptions: [
+          {
+            label: strings('toast.disconnected_from', {
+              dappHostName: hostname,
+            }),
+          },
+        ],
+        hasNoTimeout: false,
+        networkImageSource: faviconSource,
+      };
+
+      toastRef?.current?.showToast(
+        isMutichainVersion1Enabled ? networkToastProps : plainToastProps,
+      );
+
       previousPermittedAccounts.current = permittedAccountsByHostname.length;
     }
-  }, [permittedAccountsByHostname, hideSheet, toastRef]);
+  }, [
+    permittedAccountsByHostname,
+    hideSheet,
+    toastRef,
+    hostname,
+    faviconSource,
+  ]);
 
   // Refreshes selected addresses based on the addition and removal of accounts.
   useEffect(() => {
-    const identitiesAddressList = Object.keys(identitiesMap);
-    if (previousIdentitiesListSize.current !== identitiesAddressList.length) {
-      // Clean up selected addresses that are no longer part of identities.
+    // Extract the address list from the internalAccounts array
+    const accountsAddressList = internalAccounts.map((account) =>
+      account.address.toLowerCase(),
+    );
+
+    if (previousIdentitiesListSize.current !== accountsAddressList.length) {
+      // Clean up selected addresses that are no longer part of accounts.
       const updatedSelectedAddresses = selectedAddresses.filter((address) =>
-        identitiesAddressList.includes(address),
+        accountsAddressList.includes(address.toLowerCase()),
       );
       setSelectedAddresses(updatedSelectedAddresses);
-      previousIdentitiesListSize.current = identitiesAddressList.length;
+      previousIdentitiesListSize.current = accountsAddressList.length;
     }
-  }, [identitiesMap, selectedAddresses]);
+  }, [internalAccounts, selectedAddresses]);
 
   const accountsFilteredByPermissions = useMemo(() => {
     const accountsByPermittedStatus: Record<
@@ -177,8 +210,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           source: metricsSource,
           number_of_accounts: accounts?.length,
         });
-      } catch (e: any) {
-        Logger.error(e, 'Error while trying to add a new account.');
+      } catch (e) {
+        Logger.error(e as Error, 'Error while trying to add a new account.');
       } finally {
         setIsLoading(false);
       }
@@ -187,10 +220,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     [setIsLoading],
   );
 
-  const handleConnect = useCallback(async () => {
+  const handleConnect = useCallback(() => {
     try {
       setIsLoading(true);
-      const newActiveAddress = await addPermittedAccounts(
+      const newActiveAddress = addPermittedAccounts(
         hostname,
         selectedAddresses,
       );
@@ -221,6 +254,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         labelOptions,
         accountAddress: newActiveAddress,
         accountAvatarType,
+        hasNoTimeout: false,
       });
       const totalAccounts = accountsLength;
       // TODO: confirm this value is the newly added accounts or total connected accounts
@@ -230,8 +264,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         number_of_accounts_connected: connectedAccounts,
         number_of_networks: nonTestnetNetworks,
       });
-    } catch (e: any) {
-      Logger.error(e, 'Error while trying to connect to a dApp.');
+    } catch (e) {
+      Logger.error(e as Error, 'Error while trying to connect to a dApp.');
     } finally {
       setIsLoading(false);
     }
@@ -336,7 +370,24 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     ],
   );
 
-  const renderConnectScreen = useCallback(
+  const renderPermissionsSummaryScreen = useCallback(() => {
+    const permissionsSummaryProps: PermissionsSummaryProps = {
+      currentPageInformation: {
+        currentEnsName: '',
+        icon: faviconSource as string,
+        url: urlWithProtocol,
+      },
+      onEdit: () =>
+        setPermissionsScreen(AccountPermissionsScreens.EditAccountsPermissions),
+      onUserAction: setUserIntent,
+      showActionButtons: false,
+      onBack: () => setPermissionsScreen(AccountPermissionsScreens.Connected),
+      isInitialDappConnection: false,
+    };
+    return <PermissionsSummary {...permissionsSummaryProps} />;
+  }, [faviconSource, urlWithProtocol]);
+
+  const renderEditAccountsPermissionsScreen = useCallback(
     () => (
       <AccountConnectMultiSelector
         accounts={accountsFilteredByPermissions.unpermitted}
@@ -347,9 +398,13 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         onUserAction={setUserIntent}
         favicon={faviconSource}
         urlWithProtocol={urlWithProtocol}
+        hostname={hostname}
         secureIcon={secureIcon}
         isAutoScrollEnabled={false}
-        onBack={() => setPermissionsScreen(AccountPermissionsScreens.Connected)}
+        onBack={() =>
+          setPermissionsScreen(AccountPermissionsScreens.PermissionsSummary)
+        }
+        screenTitle={strings('accounts.edit_accounts_title')}
       />
     ),
     [
@@ -361,6 +416,38 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       faviconSource,
       urlWithProtocol,
       secureIcon,
+      hostname,
+    ],
+  );
+
+  const renderConnectMoreAccountsScreen = useCallback(
+    () => (
+      <AccountConnectMultiSelector
+        accounts={accountsFilteredByPermissions.unpermitted}
+        ensByAccountAddress={ensByAccountAddress}
+        selectedAddresses={selectedAddresses}
+        onSelectAddress={setSelectedAddresses}
+        isLoading={isLoading}
+        onUserAction={setUserIntent}
+        favicon={faviconSource}
+        urlWithProtocol={urlWithProtocol}
+        hostname={hostname}
+        secureIcon={secureIcon}
+        isAutoScrollEnabled={false}
+        onBack={() => setPermissionsScreen(AccountPermissionsScreens.Connected)}
+        screenTitle={strings('accounts.connect_more_accounts')}
+      />
+    ),
+    [
+      ensByAccountAddress,
+      selectedAddresses,
+      isLoading,
+      accountsFilteredByPermissions,
+      setUserIntent,
+      faviconSource,
+      urlWithProtocol,
+      secureIcon,
+      hostname,
     ],
   );
 
@@ -397,16 +484,22 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     switch (permissionsScreen) {
       case AccountPermissionsScreens.Connected:
         return renderConnectedScreen();
-      case AccountPermissionsScreens.Connect:
-        return renderConnectScreen();
+      case AccountPermissionsScreens.ConnectMoreAccounts:
+        return renderConnectMoreAccountsScreen();
+      case AccountPermissionsScreens.EditAccountsPermissions:
+        return renderEditAccountsPermissionsScreen();
       case AccountPermissionsScreens.Revoke:
         return renderRevokeScreen();
+      case AccountPermissionsScreens.PermissionsSummary:
+        return renderPermissionsSummaryScreen();
     }
   }, [
     permissionsScreen,
     renderConnectedScreen,
-    renderConnectScreen,
+    renderConnectMoreAccountsScreen,
+    renderEditAccountsPermissionsScreen,
     renderRevokeScreen,
+    renderPermissionsSummaryScreen,
   ]);
 
   return <BottomSheet ref={sheetRef}>{renderPermissionsScreens()}</BottomSheet>;

@@ -23,6 +23,8 @@ import createModalStyles from './Modal.styles';
 const MAX_TOKENS_RESULTS = 20;
 
 // TODO: Convert into typescript and correctly type
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ListItem = BaseListItem as any;
 
 const Separator = () => {
@@ -37,6 +39,8 @@ interface Props {
   title?: string;
   description?: string;
   currencies?: FiatCurrency[] | null;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onItemPress: (currency: any) => void;
   excludeIds?: FiatCurrency['id'][];
 }

@@ -4,16 +4,8 @@ import React, { PureComponent } from 'react';
 import { Linking, SafeAreaView, StyleSheet, Switch, View } from 'react-native';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
-import {
-  getApplicationName,
-  getBuildNumber,
-  getVersion,
-} from 'react-native-device-info';
-import Share from 'react-native-share'; // eslint-disable-line  import/default
-import RNFS from 'react-native-fs';
-// eslint-disable-next-line import/no-nodejs-modules
-import { Buffer } from 'buffer';
+import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
+
 import { typography } from '@metamask/design-tokens';
 
 // External dependencies.
@@ -27,8 +19,6 @@ import {
   setShowHexData,
 } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
-import Logger from '../../../../util/Logger';
-import { generateStateLogs } from '../../../../util/logs';
 import Device from '../../../../util/device';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
 import { selectChainId } from '../../../../selectors/networkController';
@@ -58,6 +48,7 @@ import Banner, {
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import { wipeTransactions } from '../../../../util/transaction-controller';
 import AppConstants from '../../../../../app/core/AppConstants';
+import { downloadStateLogs } from '../../../../util/logs';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -273,38 +264,7 @@ class AdvancedSettings extends PureComponent {
 
   downloadStateLogs = async () => {
     const { fullState } = this.props;
-    const appName = await getApplicationName();
-    const appVersion = await getVersion();
-    const buildNumber = await getBuildNumber();
-    const path =
-      RNFS.DocumentDirectoryPath +
-      `/state-logs-v${appVersion}-(${buildNumber}).json`;
-    // A not so great way to copy objects by value
-
-    try {
-      const stateLogsWithReleaseDetails = generateStateLogs({
-        ...fullState,
-        appVersion,
-        buildNumber,
-      });
-
-      let url = `data:text/plain;base64,${new Buffer(
-        stateLogsWithReleaseDetails,
-      ).toString('base64')}`;
-      // // Android accepts attachements as BASE64
-      if (Device.isIos()) {
-        await RNFS.writeFile(path, stateLogsWithReleaseDetails, 'utf8');
-        url = path;
-      }
-
-      await Share.open({
-        subject: `${appName} State logs -  v${appVersion} (${buildNumber})`,
-        title: `${appName} State logs -  v${appVersion} (${buildNumber})`,
-        url,
-      });
-    } catch (err) {
-      Logger.error(err, 'State log error');
-    }
+    downloadStateLogs(fullState);
   };
 
   onEthSignSettingChangeAttempt = (enabled) => {
@@ -353,7 +313,7 @@ class AdvancedSettings extends PureComponent {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={theme.brandColors.white000}
+              thumbColor={theme.brandColors.white}
               ios_backgroundColor={colors.border.muted}
               style={styles.switch}
             />
@@ -464,7 +424,7 @@ class AdvancedSettings extends PureComponent {
                       true: colors.primary.default,
                       false: colors.border.muted,
                     }}
-                    thumbColor={theme.brandColors.white000}
+                    thumbColor={theme.brandColors.white}
                     style={styles.switch}
                     ios_backgroundColor={colors.border.muted}
                     accessibilityLabel={strings(
@@ -503,7 +463,7 @@ class AdvancedSettings extends PureComponent {
                       true: colors.primary.default,
                       false: colors.border.muted,
                     }}
-                    thumbColor={theme.brandColors.white000}
+                    thumbColor={theme.brandColors.white}
                     style={styles.switch}
                     ios_backgroundColor={colors.border.muted}
                   />
@@ -543,7 +503,7 @@ class AdvancedSettings extends PureComponent {
                       true: colors.primary.default,
                       false: colors.border.muted,
                     }}
-                    thumbColor={theme.brandColors.white000}
+                    thumbColor={theme.brandColors.white}
                     style={styles.switch}
                     ios_backgroundColor={colors.border.muted}
                     accessibilityRole={'switch'}
@@ -582,7 +542,7 @@ class AdvancedSettings extends PureComponent {
                       true: colors.primary.default,
                       false: colors.border.muted,
                     }}
-                    thumbColor={theme.brandColors.white000}
+                    thumbColor={theme.brandColors.white}
                     style={styles.switch}
                     ios_backgroundColor={colors.border.muted}
                   />
@@ -622,7 +582,7 @@ class AdvancedSettings extends PureComponent {
                       true: colors.primary.default,
                       false: colors.border.muted,
                     }}
-                    thumbColor={theme.brandColors.white000}
+                    thumbColor={theme.brandColors.white}
                     style={styles.switch}
                     ios_backgroundColor={colors.border.muted}
                   />

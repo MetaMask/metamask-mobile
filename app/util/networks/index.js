@@ -1,8 +1,4 @@
 import URL from 'url-parse';
-import { utils } from 'ethers';
-import EthContract from 'ethjs-contract';
-import { getContractFactory } from '@eth-optimism/contracts/dist/contract-defs';
-import { predeploys } from '@eth-optimism/contracts/dist/predeploys';
 import networksWithImages from 'images/image-icons';
 import {
   MAINNET,
@@ -24,7 +20,6 @@ import { isStrictHexString } from '@metamask/utils';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
-import buildUnserializedTransaction from '../transactions/optimismTransaction';
 import handleNetworkSwitch from './handleNetworkSwitch';
 import { regex } from '../../../app/util/regex';
 
@@ -122,6 +117,10 @@ export const BLOCKAID_SUPPORTED_CHAIN_IDS = [
   NETWORKS_CHAIN_ID.LINEA_MAINNET,
   NETWORKS_CHAIN_ID.SEPOLIA,
   NETWORKS_CHAIN_ID.OPBNB,
+  NETWORKS_CHAIN_ID.ZKSYNC_ERA,
+  NETWORKS_CHAIN_ID.SCROLL,
+  NETWORKS_CHAIN_ID.BERACHAIN,
+  NETWORKS_CHAIN_ID.METACHAIN_ONE,
 ];
 
 export const BLOCKAID_SUPPORTED_NETWORK_NAMES = {
@@ -134,6 +133,10 @@ export const BLOCKAID_SUPPORTED_NETWORK_NAMES = {
   [NETWORKS_CHAIN_ID.LINEA_MAINNET]: 'Linea',
   [NETWORKS_CHAIN_ID.SEPOLIA]: 'Sepolia',
   [NETWORKS_CHAIN_ID.OPBNB]: 'opBNB',
+  [NETWORKS_CHAIN_ID.ZKSYNC_ERA]: 'zkSync Era Mainnet',
+  [NETWORKS_CHAIN_ID.SCROLL]: 'Scroll',
+  [NETWORKS_CHAIN_ID.BERACHAIN]: 'Berachain Artio',
+  [NETWORKS_CHAIN_ID.METACHAIN_ONE]: 'Metachain One Mainnet',
 };
 
 export default NetworkList;
@@ -430,32 +433,28 @@ export const getNetworkImageSource = ({ networkType, chainId }) => {
   return getTestNetImage(networkType);
 };
 
-// The code in this file is largely drawn from https://community.optimism.io/docs/developers/l2/new-fees.html#for-frontend-and-wallet-developers
-const buildOVMGasPriceOracleContract = (eth) => {
-  const OVMGasPriceOracle = getContractFactory('OVM_GasPriceOracle').attach(
-    predeploys.OVM_GasPriceOracle,
-  );
-  const abi = JSON.parse(
-    OVMGasPriceOracle.interface.format(utils.FormatTypes.json),
-  );
-  const contract = new EthContract(eth);
-  return contract(abi).at(OVMGasPriceOracle.address);
-};
-
 /**
  * It returns an estimated L1 fee for a multi layer network.
  * Currently only for the Optimism network, but can be extended to other networks.
  *
  * @param {Object} eth
  * @param {Object} txMeta
- * @returns {String}
+ * @returns {String} Hex string gas fee, with no 0x prefix
  */
 export const fetchEstimatedMultiLayerL1Fee = async (eth, txMeta) => {
-  const contract = buildOVMGasPriceOracleContract(eth);
-  const serializedTransaction =
-    buildUnserializedTransaction(txMeta).serialize();
-  const result = await contract.getL1Fee(serializedTransaction);
-  return result?.[0]?.toString(16);
+  const chainId = txMeta.chainId;
+
+  const layer1GasFee =
+    await Engine.context.TransactionController.getLayer1GasFee({
+      transactionParams: txMeta.txParams,
+      chainId,
+    });
+
+  const layer1GasFeeNoPrefix = layer1GasFee.startsWith('0x')
+    ? layer1GasFee.slice(2)
+    : layer1GasFee;
+
+  return layer1GasFeeNoPrefix;
 };
 
 /**
@@ -564,3 +563,6 @@ export const deprecatedGetNetworkId = async () => {
     });
   });
 };
+
+export const isMutichainVersion1Enabled =
+  process.env.MM_MULTICHAIN_V1_ENABLED === '1';

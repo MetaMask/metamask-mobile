@@ -5,25 +5,34 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
 import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals/SigningModal.selectors';
 import { strings } from '../../../../../../locales/i18n';
+import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../../../selectors/accountsController';
 import { selectProviderType } from '../../../../../selectors/networkController';
 import { fontStyles } from '../../../../../styles/common';
 import { isHardwareAccount } from '../../../../../util/address';
-import { getHost } from '../../../../../util/browser';
 import { getAnalyticsParams } from '../../../../../util/confirmation/signatureUtils';
 import Device from '../../../../../util/device';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
-import WarningMessage from '../../SendFlow/WarningMessage';
 import AccountInfoCard from '../../../../UI/AccountInfoCard';
 import ActionView, { ConfirmButtonState } from '../../../../UI/ActionView';
-import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
 import QRSigningDetails from '../../../../UI/QRHardware/QRSigningDetails';
 import withQRHardwareAwareness from '../../../../UI/QRHardware/withQRHardwareAwareness';
 import WebsiteIcon from '../../../../UI/WebsiteIcon';
+import WarningMessage from '../../SendFlow/WarningMessage';
+import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
 import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
-import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
-import { selectSelectedAddress } from '../../../../../selectors/preferencesController';
+
+const getCleanUrl = (url) => {
+  try {
+    const urlObject = new URL(url);
+
+    return urlObject.origin;
+  } catch (error) {
+    return '';
+  }
+};
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -166,10 +175,6 @@ class SignatureRequest extends PureComponent {
     fromAddress: PropTypes.string,
     isSigningQRObject: PropTypes.bool,
     QRState: PropTypes.object,
-    /**
-     * A string that represents the selected address
-     */
-    selectedAddress: PropTypes.string,
     testID: PropTypes.string,
     securityAlertResponse: PropTypes.object,
     /**
@@ -218,8 +223,8 @@ class SignatureRequest extends PureComponent {
     this.props.navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://metamask.zendesk.com/hc/en-us/articles/360015488751',
-        title: 'metamask.zendesk.com',
+        url: 'https://support.metamask.io',
+        title: 'support.metamask.io',
       },
     });
   };
@@ -254,8 +259,10 @@ class SignatureRequest extends PureComponent {
     const styles = this.getStyles();
     const url = currentPageInformation.url;
     const icon = currentPageInformation.icon;
-    const title = getHost(url);
+
+    const title = getCleanUrl(url);
     const arrowIcon = truncateMessage ? this.renderArrowIcon() : null;
+
     return (
       <View style={styles.actionViewChild}>
         <View style={styles.accountInfoCardWrapper}>
@@ -324,12 +331,11 @@ class SignatureRequest extends PureComponent {
   };
 
   renderSignatureRequest() {
-    const { securityAlertResponse, showWarning, type, selectedAddress } =
+    const { securityAlertResponse, showWarning, type, fromAddress } =
       this.props;
     let expandedHeight;
     const styles = this.getStyles();
-
-    const isLedgerAccount = isHardwareAccount(selectedAddress, [
+    const isLedgerAccount = isHardwareAccount(fromAddress, [
       ExtendedKeyringTypes.ledger,
     ]);
 
@@ -418,7 +424,7 @@ class SignatureRequest extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   networkType: selectProviderType(state),
   securityAlertResponse: state.signatureRequest.securityAlertResponse,
 });

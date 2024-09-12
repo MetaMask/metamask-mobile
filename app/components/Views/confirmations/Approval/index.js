@@ -4,7 +4,7 @@ import Engine from '../../../../core/Engine';
 import PropTypes from 'prop-types';
 import TransactionEditor from './components/TransactionEditor';
 import Modal from 'react-native-modal';
-import { addHexPrefix, BNToHex } from '../../../../util/number';
+import { safeBNToHex } from '../../../../util/number';
 import { getTransactionOptionsTitle } from '../../../UI/Navbar';
 import { resetTransaction } from '../../../../actions/transaction';
 import { connect } from 'react-redux';
@@ -20,12 +20,10 @@ import { strings } from '../../../../../locales/i18n';
 import {
   getAddressAccountType,
   isQRHardwareAccount,
-  safeToChecksumAddress,
   isHardwareAccount,
 } from '../../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../../util/walletconnect';
 import Logger from '../../../../util/Logger';
-import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { createLedgerTransactionModalNavDetails } from '../../../UI/LedgerModals/LedgerTransactionModal';
@@ -40,7 +38,7 @@ import {
   selectChainId,
   selectProviderType,
 } from '../../../../selectors/networkController';
-import { selectSelectedAddress } from '../../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
 import { providerErrors } from '@metamask/rpc-errors';
 import { getDeviceId } from '../../../../core/Ledger/Ledger';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
@@ -53,6 +51,13 @@ import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../../util/smart-transactions';
 import { selectTransactionMetrics } from '../../../../core/redux/slices/transactionMetrics';
+import { selectCurrentTransactionSecurityAlertResponse } from '../../../../selectors/confirmTransaction';
+import { selectTransactions } from '../../../../selectors/transactionController';
+import { selectShowCustomNonce } from '../../../../selectors/settings';
+import { buildTransactionParams } from '../../../../util/confirmation/transactions';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import SDKConnect from '../../../../core/SDKConnect/SDKConnect';
+import WC2Manager from '../../../../core/WalletConnect/WalletConnectV2';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -70,6 +75,8 @@ const styles = StyleSheet.create({
  */
 class Approval extends PureComponent {
   appStateListener;
+
+  #transactionFinishedListener;
 
   static propTypes = {
     /**
@@ -108,7 +115,6 @@ class Approval extends PureComponent {
      * Indicates whether custom nonce should be shown in transaction editor
      */
     showCustomNonce: PropTypes.bool,
-    nonce: PropTypes.number,
 
     /**
      * A string representing the network chainId
@@ -128,6 +134,11 @@ class Approval extends PureComponent {
      * Object containing transaction metrics by id
      */
     transactionMetricsById: PropTypes.object,
+
+    /**
+     * Object containing blockaid validation response for confirmation
+     */
+    securityAlertResponse: PropTypes.object,
   };
 
   state = {
@@ -136,13 +147,8 @@ class Approval extends PureComponent {
     transactionConfirmed: false,
   };
 
-  originIsWalletConnect = this.props.transaction.origin?.startsWith(
-    WALLET_CONNECT_ORIGIN,
-  );
-
-  originIsMMSDKRemoteConn = this.props.transaction.origin?.startsWith(
-    AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-  );
+  originIsWalletConnect = false;
+  originIsMMSDKRemoteConn = false;
 
   updateNavBar = () => {
     const colors = this.context.colors || mockTheme.colors;
@@ -161,6 +167,7 @@ class Approval extends PureComponent {
       const { transactionHandled } = this.state;
       const { transaction, selectedAddress } = this.props;
       const { KeyringController } = Engine.context;
+
       if (!transactionHandled) {
         if (isQRHardwareAccount(selectedAddress)) {
           KeyringController.cancelQRSignRequest();
@@ -174,12 +181,16 @@ class Approval extends PureComponent {
             },
           );
         }
-        Engine.context.TransactionController.hub.removeAllListeners(
-          `${transaction.id}:finished`,
+
+        Engine.controllerMessenger.tryUnsubscribe(
+          'TransactionController:transactionFinished',
+          this.#transactionFinishedListener,
         );
+
         this.appStateListener?.remove();
-        this.clear();
       }
+
+      this.clear();
     } catch (e) {
       if (e) {
         throw e;
@@ -237,9 +248,37 @@ class Approval extends PureComponent {
     navigation &&
       navigation.setParams({ mode: REVIEW, dispatch: this.onModeChange });
 
+    // Detect origin: WalletConnect / SDK / InAppBrowser
+    this.detectOrigin();
+
     this.props.metrics.trackEvent(
       MetaMetricsEvents.DAPP_TRANSACTION_STARTED,
       this.getAnalyticsParams(),
+    );
+  };
+
+  detectOrigin = async () => {
+    const { transaction } = this.props;
+    const { origin } = transaction;
+
+    const connection = SDKConnect.getInstance().getConnection({
+      channelId: origin,
+    });
+    if (connection) {
+      this.originIsMMSDKRemoteConn = true;
+    } else {
+      // Check if origin is WalletConnect
+      const wc2Manager = await WC2Manager.getInstance();
+      const sessions = wc2Manager.getSessions();
+      this.originIsWalletConnect = sessions.some((session) => {
+        DevLogger.log(
+          `Approval::detectOrigin Comparing session URL ${session.peer.metadata.url} with origin ${origin}`,
+        );
+        return session.peer.metadata.url === origin;
+      });
+    }
+    DevLogger.log(
+      `Approval::detectOrigin originIsWalletConnect=${this.originIsWalletConnect} originIsMMSDKRemoteConn=${this.originIsMMSDKRemoteConn}`,
     );
   };
 
@@ -299,36 +338,34 @@ class Approval extends PureComponent {
   };
 
   getBlockaidMetricsParams = () => {
-    const { transaction } = this.props;
-
-    let blockaidParams = {};
-
-    if (
-      transaction.id === transaction.currentTransactionSecurityAlertResponse?.id
-    ) {
-      blockaidParams = getBlockaidMetricsParams(
-        transaction.currentTransactionSecurityAlertResponse?.response,
-      );
-    }
-
-    return blockaidParams;
+    const { securityAlertResponse } = this.props;
+    return securityAlertResponse
+      ? getBlockaidMetricsParams(securityAlertResponse)
+      : {};
   };
 
   getAnalyticsParams = ({ gasEstimateType, gasSelected } = {}) => {
+    const { chainId, transaction, selectedAddress, shouldUseSmartTransaction } =
+      this.props;
+
+    const baseParams = {
+      dapp_host_name: transaction?.origin || 'N/A',
+      asset_type: { value: transaction?.assetType, anonymous: true },
+      request_source: this.originIsMMSDKRemoteConn
+        ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
+        : this.originIsWalletConnect
+        ? AppConstants.REQUEST_SOURCES.WC
+        : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+    };
+
     try {
-      const {
-        chainId,
-        transaction,
-        selectedAddress,
-        shouldUseSmartTransaction,
-      } = this.props;
       const { selectedAsset } = transaction;
       const { TransactionController, SmartTransactionsController } =
         Engine.context;
 
-      const transactionMeta = TransactionController.getTransaction(
-        transaction.id,
-      );
+      const transactionMeta = TransactionController.getTransactions({
+        searchCriteria: { id: transaction.id },
+      })?.[0];
 
       const smartTransactionMetricsProperties =
         getSmartTransactionMetricsProperties(
@@ -337,24 +374,22 @@ class Approval extends PureComponent {
         );
 
       return {
+        ...baseParams,
         account_type: getAddressAccountType(selectedAddress),
-        dapp_host_name: transaction?.origin,
         chain_id: getDecimalChainId(chainId),
         active_currency: { value: selectedAsset?.symbol, anonymous: true },
-        asset_type: { value: transaction?.assetType, anonymous: true },
         gas_estimate_type: gasEstimateType,
         gas_mode: gasSelected ? 'Basic' : 'Advanced',
         speed_set: gasSelected || undefined,
-        request_source: this.originIsMMSDKRemoteConn
-          ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
-          : this.originIsWalletConnect
-          ? AppConstants.REQUEST_SOURCES.WC
-          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
         is_smart_transaction: shouldUseSmartTransaction,
         ...smartTransactionMetricsProperties,
       };
     } catch (error) {
-      return {};
+      Logger.error(
+        error,
+        'Error while getting analytics params for approval screen',
+      );
+      return baseParams;
     }
   };
 
@@ -402,8 +437,9 @@ class Approval extends PureComponent {
       if (!approve) {
         //cancelTransaction will change transaction status to reject and throw error from event listener
         //component is being unmounted, error will be unhandled, hence remove listener before cancel
-        TransactionController.hub.removeAllListeners(
-          `${transactionId}:finished`,
+        Engine.controllerMessenger.tryUnsubscribe(
+          'TransactionController:transactionFinished',
+          this.#transactionFinishedListener,
         );
 
         TransactionController.cancelTransaction(transactionId);
@@ -429,26 +465,11 @@ class Approval extends PureComponent {
    * Callback on confirm transaction
    */
   onConfirm = async ({ gasEstimateType, EIP1559GasData, gasSelected }) => {
-    const { TransactionController, KeyringController, ApprovalController } =
-      Engine.context;
-    const {
-      transactions,
-      transaction: { assetType, selectedAsset },
-      showCustomNonce,
-      chainId,
-      shouldUseSmartTransaction,
-    } = this.props;
+    const { KeyringController, ApprovalController } = Engine.context;
+    const { transactions, chainId, shouldUseSmartTransaction } = this.props;
     let { transaction } = this.props;
-    const { nonce } = transaction;
     const { transactionConfirmed } = this.state;
     if (transactionConfirmed) return;
-
-    if (showCustomNonce && nonce) {
-      transaction.nonce = BNToHex(nonce);
-    } else {
-      // If nonce is not set in transaction, TransactionController will set it to the next nonce
-      transaction.nonce = undefined;
-    }
 
     const isLedgerAccount = isHardwareAccount(transaction.from, [
       ExtendedKeyringTypes.ledger,
@@ -457,20 +478,10 @@ class Approval extends PureComponent {
     this.setState({ transactionConfirmed: true });
 
     try {
-      if (assetType === 'ETH') {
-        transaction = this.prepareTransaction({
-          transaction,
-          gasEstimateType,
-          EIP1559GasData,
-        });
-      } else {
-        transaction = this.prepareAssetTransaction({
-          transaction,
-          selectedAsset,
-          gasEstimateType,
-          EIP1559GasData,
-        });
-      }
+      transaction = this.prepareTransaction({
+        gasEstimateType,
+        EIP1559GasData,
+      });
 
       // For STX, don't wait for TxController to get finished event, since it will take some time to get hash for STX
       if (shouldUseSmartTransaction) {
@@ -478,23 +489,25 @@ class Approval extends PureComponent {
         this.props.hideModal();
       }
 
-      TransactionController.hub.once(
-        `${transaction.id}:finished`,
-        (transactionMeta) => {
-          if (transactionMeta.status === 'submitted') {
-            if (!isLedgerAccount) {
-              this.setState({ transactionHandled: true });
-              this.props.hideModal();
+      this.#transactionFinishedListener =
+        Engine.controllerMessenger.subscribeOnceIf(
+          'TransactionController:transactionFinished',
+          (transactionMeta) => {
+            if (transactionMeta.status === 'submitted') {
+              if (!isLedgerAccount) {
+                this.setState({ transactionHandled: true });
+                this.props.hideModal();
+              }
+              NotificationManager.watchSubmittedTransaction({
+                ...transactionMeta,
+                assetType: transaction.assetType,
+              });
+            } else {
+              throw transactionMeta.error;
             }
-            NotificationManager.watchSubmittedTransaction({
-              ...transactionMeta,
-              assetType: transaction.assetType,
-            });
-          } else {
-            throw transactionMeta.error;
-          }
-        },
-      );
+          },
+          (transactionMeta) => transactionMeta.id === transaction.id,
+        );
 
       const fullTx = transactions.find(({ id }) => id === transaction.id);
 
@@ -592,69 +605,37 @@ class Approval extends PureComponent {
   };
 
   /**
-   * Returns transaction object with gas, gasPrice and value in hex format
-   *
-   * @param {object} transaction - Transaction object
-   */
-  prepareTransaction = ({ transaction, gasEstimateType, EIP1559GasData }) => {
-    const transactionToSend = {
-      ...transaction,
-      value: BNToHex(transaction.value),
-      to: safeToChecksumAddress(transaction.to),
-    };
-
-    if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-      transactionToSend.gas = EIP1559GasData.gasLimitHex;
-      transactionToSend.maxFeePerGas = addHexPrefix(
-        EIP1559GasData.suggestedMaxFeePerGasHex,
-      ); //'0x2540be400'
-      transactionToSend.maxPriorityFeePerGas = addHexPrefix(
-        EIP1559GasData.suggestedMaxPriorityFeePerGasHex,
-      ); //'0x3b9aca00';
-      transactionToSend.to = safeToChecksumAddress(transaction.to);
-      delete transactionToSend.gasPrice;
-    } else {
-      transactionToSend.gas = BNToHex(transaction.gas);
-      transactionToSend.gasPrice = BNToHex(transaction.gasPrice);
-    }
-
-    return transactionToSend;
-  };
-
-  /**
    * Returns transaction object with gas and gasPrice in hex format, value set to 0 in hex format
    * and to set to selectedAsset address
    *
    * @param {object} transaction - Transaction object
    * @param {object} selectedAsset - Asset object
    */
-  prepareAssetTransaction = ({
-    transaction,
-    selectedAsset,
-    gasEstimateType,
-    EIP1559GasData,
-  }) => {
-    const transactionToSend = {
-      ...transaction,
-      value: '0x0',
-      to: selectedAsset.address,
+  prepareTransaction = ({ EIP1559GasData, gasEstimateType }) => {
+    const { transaction: rawTransaction, showCustomNonce } = this.props;
+    const { assetType, gas, gasPrice, selectedAsset } = rawTransaction;
+
+    const transaction = {
+      ...rawTransaction,
     };
 
-    if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-      transactionToSend.gas = EIP1559GasData.gasLimitHex;
-      transactionToSend.maxFeePerGas = addHexPrefix(
-        EIP1559GasData.suggestedMaxFeePerGasHex,
-      ); //'0x2540be400'
-      transactionToSend.maxPriorityFeePerGas = addHexPrefix(
-        EIP1559GasData.suggestedMaxPriorityFeePerGasHex,
-      ); //'0x3b9aca00';
-      delete transactionToSend.gasPrice;
-    } else {
-      transactionToSend.gas = BNToHex(transaction.gas);
-      transactionToSend.gasPrice = BNToHex(transaction.gasPrice);
+    if (assetType !== 'ETH') {
+      transaction.to = selectedAsset.address;
+      transaction.value = '0x0';
     }
 
-    return transactionToSend;
+    const gasDataLegacy = {
+      suggestedGasLimitHex: safeBNToHex(gas),
+      suggestedGasPriceHex: safeBNToHex(gasPrice),
+    };
+
+    return buildTransactionParams({
+      gasDataEIP1559: EIP1559GasData,
+      gasDataLegacy,
+      gasEstimateType,
+      showCustomNonce,
+      transaction,
+    });
   };
 
   getTransactionMetrics = () => {
@@ -702,14 +683,15 @@ class Approval extends PureComponent {
 
 const mapStateToProps = (state) => ({
   transaction: getNormalizedTxState(state),
-  transactions: state.engine.backgroundState.TransactionController.transactions,
-  selectedAddress: selectSelectedAddress(state),
+  transactions: selectTransactions(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   networkType: selectProviderType(state),
-  showCustomNonce: state.settings.showCustomNonce,
+  showCustomNonce: selectShowCustomNonce(state),
   chainId: selectChainId(state),
   activeTabUrl: getActiveTabUrl(state),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
   transactionMetricsById: selectTransactionMetrics(state),
+  securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

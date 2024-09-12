@@ -30,6 +30,8 @@ import useAnalytics from '../../hooks/useAnalytics';
 import useRegions from '../../hooks/useRegions';
 
 // TODO: Convert into typescript and correctly type
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ListItem = BaseListItem as any;
 
 export const createRegionsNavDetails = createNavigationDetails(

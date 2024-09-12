@@ -5,7 +5,7 @@ import { ParamListBase, TabNavigationState } from '@react-navigation/native';
 
 // External dependencies
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 
 // Internal dependencies
 import TabBar from './TabBar';
@@ -22,7 +22,7 @@ const mockInitialState = {
     step: 1,
   },
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 
@@ -86,7 +86,11 @@ describe('TabBar', () => {
     const { toJSON } = renderWithProvider(
       <TabBar
         state={state as TabNavigationState<ParamListBase>}
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         descriptors={descriptors as any}
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         navigation={navigation as any}
       />,
       { state: mockInitialState },
@@ -98,7 +102,11 @@ describe('TabBar', () => {
     const { getByTestId } = renderWithProvider(
       <TabBar
         state={state as TabNavigationState<ParamListBase>}
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         descriptors={descriptors as any}
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         navigation={navigation as any}
       />,
       { state: mockInitialState },

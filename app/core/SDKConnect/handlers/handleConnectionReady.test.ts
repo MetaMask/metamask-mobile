@@ -243,6 +243,8 @@ describe.skip('handleConnectionReady', () => {
       const mockApprovalController = engine.context
         .ApprovalController as jest.Mocked<ApprovalController>;
 
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockApprovalController.get.mockReturnValueOnce('fakeApproval' as any);
 
       await handleConnectionReady({
@@ -299,6 +301,8 @@ describe.skip('handleConnectionReady', () => {
     it('should setup the background bridge', async () => {
       mockSetupBridge.mockReturnValueOnce({
         backgroundBridge: 'fakeBackgroundBridge',
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       await handleConnectionReady({

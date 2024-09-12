@@ -20,7 +20,7 @@ describe('Term of service', () => {
 
     await Assertions.checkIfVisible(OnboardingCarouselView.container);
     await MetaMetricsOptIn.tapAgreeButton();
-    await TermsOfUseModal.isDisplayed();
+    await Assertions.checkIfVisible(TermsOfUseModal.container);
   });
 
   it('should prevent attempts to bypass term of use', async () => {
@@ -29,14 +29,14 @@ describe('Term of service', () => {
     await OnboardingCarouselView.tapOnGetStartedButton();
     await Assertions.checkIfVisible(OnboardingView.container);
     await OnboardingView.tapImportWalletFromSeedPhrase();
-    await TermsOfUseModal.isDisplayed();
+    await Assertions.checkIfVisible(TermsOfUseModal.container);
   });
 
   it('should accept to term of use', async () => {
     await TermsOfUseModal.tapScrollEndButton();
     await TermsOfUseModal.tapAgreeCheckBox();
     await TermsOfUseModal.tapAcceptButton();
-    await TermsOfUseModal.isNotDisplayed();
+    await Assertions.checkIfNotVisible(TermsOfUseModal.container);
     await Assertions.checkIfVisible(ImportWalletView.container);
   });
 
@@ -46,6 +46,6 @@ describe('Term of service', () => {
     await OnboardingCarouselView.tapOnGetStartedButton();
     await Assertions.checkIfVisible(OnboardingView.container);
     await OnboardingView.tapImportWalletFromSeedPhrase();
-    await TermsOfUseModal.isNotDisplayed();
+    await Assertions.checkIfNotVisible(TermsOfUseModal.container);
   });
 });

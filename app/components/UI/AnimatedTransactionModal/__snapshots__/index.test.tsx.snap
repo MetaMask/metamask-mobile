@@ -1,12 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AnimatedTransactionModal should render correctly 1`] = `
-<ForwardRef(AnimatedComponentWrapper)
+<ForwardRef
   onLayout={[Function]}
   style={
     [
       {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#ffffff",
         "borderTopLeftRadius": 20,
         "borderTopRightRadius": 20,
         "minHeight": 200,

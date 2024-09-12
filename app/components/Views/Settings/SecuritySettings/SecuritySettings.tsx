@@ -7,11 +7,10 @@ import {
   View,
   ActivityIndicator,
   Keyboard,
-  InteractionManager,
   Platform,
   Linking,
 } from 'react-native';
-import AsyncStorage from '../../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../../store/storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
@@ -19,11 +18,7 @@ import { clearHistory } from '../../../../actions/browser';
 import Logger from '../../../../util/Logger';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
-import { setDataCollectionForMarketing } from '../../../../actions/security';
-import {
-  HOW_TO_MANAGE_METRAMETRICS_SETTINGS,
-  SIMULATION_DETALS_ARTICLE_URL,
-} from '../../../../constants/urls';
+import { SIMULATION_DETALS_ARTICLE_URL } from '../../../../constants/urls';
 import { strings } from '../../../../../locales/i18n';
 import { passwordSet } from '../../../../actions/user';
 import Engine from '../../../../core/Engine';
@@ -79,7 +74,6 @@ import SelectComponent from '../../../UI/SelectComponent';
 import { timeoutFetch } from '../../../../util/general';
 import createStyles from './SecuritySettings.styles';
 import {
-  EtherscanNetworksType,
   Gateway,
   HeadingProps,
   NetworksI,
@@ -95,8 +89,6 @@ import {
   HASH_STRING,
   HASH_TO_TEST,
   IPFS_GATEWAY_SECTION,
-  META_METRICS_DATA_MARKETING_SECTION,
-  META_METRICS_SECTION,
   NFT_AUTO_DETECT_MODE_SECTION,
   NFT_DISPLAY_MEDIA_MODE_SECTION,
   PASSCODE_CHOICE_STRING,
@@ -112,11 +104,8 @@ import Networks, {
   toggleUseSafeChainsListValidation,
 } from '../../../../util/networks';
 import images from 'images/image-icons';
-import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller/dist/constants';
+import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
-import generateDeviceAnalyticsMetaData, {
-  UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
-} from '../../../../util/metrics';
 import Text, {
   TextVariant,
   TextColor,
@@ -126,13 +115,22 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
-import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
 import trackErrorAsAnalytics from '../../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
+import ProfileSyncingComponent from '../../../UI/ProfileSyncing/ProfileSyncing';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetrics } from '../../../../core/Analytics';
-import { isTransactionSimulationsFeatureEnabled } from '../../../../util/transaction-controller';
-
+import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
+import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import {
+  selectIsMetamaskNotificationsEnabled,
+  selectIsProfileSyncingEnabled,
+} from '../../../../selectors/notifications';
+import { useProfileSyncing } from '../../../../util/notifications/hooks/useProfileSyncing';
+import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
+import { RootState } from '../../../../reducers';
+import { EtherscanSupportedHexChainId } from '@metamask/preferences-controller';
+import { useDisableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -146,7 +144,7 @@ const Heading: React.FC<HeadingProps> = ({ children, first }) => {
 };
 
 const Settings: React.FC = () => {
-  const { trackEvent, isEnabled, enable, addTraitsToUser } = useMetrics();
+  const { trackEvent, isEnabled, addTraitsToUser } = useMetrics();
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
@@ -161,12 +159,30 @@ const Settings: React.FC = () => {
   const [hintText, setHintText] = useState('');
   const [onlineIpfsGateways, setOnlineIpfsGateways] = useState<Gateway[]>([]);
   const [gotAvailableGateways, setGotAvailableGateways] = useState(false);
+  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+  const isBasicFunctionalityEnabled = useSelector(
+    (state: RootState) => state?.settings?.basicFunctionalityEnabled,
+  );
+  const {
+    enableProfileSyncing,
+    disableProfileSyncing,
+    loading: profileSyncLoading,
+    error: profileSyncError,
+  } = useProfileSyncing();
 
   const scrollViewRef = useRef<ScrollView>(null);
   const detectNftComponentRef = useRef<View>(null);
-
+  const {
+    disableNotifications,
+    loading: disableNotificationsLoading,
+    error: disableNotificationsError,
+  } = useDisableNotifications();
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserHistory = useSelector((state: any) => state.browser.history);
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const lockTime = useSelector((state: any) => state.settings.lockTime);
   const showTestNetworks = useSelector(selectShowTestNetworks);
   const showIncomingTransactionsNetworks = useSelector(
@@ -183,7 +199,13 @@ const Settings: React.FC = () => {
 
   const useNftDetection = useSelector(selectUseNftDetection);
 
+  const isNotificationEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
+
   const seedphraseBackedUp = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.user.seedphraseBackedUp,
   );
   const type = useSelector(selectProviderType);
@@ -192,12 +214,7 @@ const Settings: React.FC = () => {
   );
   const ipfsGateway = useSelector(selectIpfsGateway);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
-  const myNetworks = ETHERSCAN_SUPPORTED_NETWORKS as EtherscanNetworksType;
-
-  const isDataCollectionForMarketingEnabled = useSelector(
-    (state: any) => state.security.dataCollectionForMarketing,
-  );
-
+  const myNetworks = ETHERSCAN_SUPPORTED_NETWORKS;
   const isMainnet = type === MAINNET;
 
   const updateNavBar = useCallback(() => {
@@ -241,7 +258,7 @@ const Settings: React.FC = () => {
   }, [isIpfsGatewayEnabled]);
 
   const handleHintText = useCallback(async () => {
-    const currentSeedphraseHints = await AsyncStorage.getItem(
+    const currentSeedphraseHints = await StorageWrapper.getItem(
       SEED_PHRASE_HINTS,
     );
     const parsedHints =
@@ -264,9 +281,27 @@ const Settings: React.FC = () => {
     trackEvent,
   ]);
 
+  useEffect(() => {
+    const triggerCascadeBasicFunctionalityDisable = async () => {
+      if (!isBasicFunctionalityEnabled) {
+        isNotificationEnabled && (await disableNotifications());
+        isProfileSyncingEnabled && (await disableProfileSyncing());
+      }
+    };
+    triggerCascadeBasicFunctionalityDisable();
+  }, [
+    disableNotifications,
+    disableProfileSyncing,
+    isBasicFunctionalityEnabled,
+    isNotificationEnabled,
+    isProfileSyncingEnabled,
+  ]);
+
   const scrollToDetectNFTs = useCallback(() => {
     if (detectNftComponentRef.current) {
       detectNftComponentRef.current?.measureLayout(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         scrollViewRef.current as any,
         (_, y) => {
           scrollViewRef.current?.scrollTo({
@@ -306,12 +341,12 @@ const Settings: React.FC = () => {
   const saveHint = async () => {
     if (!hintText) return;
     toggleHint();
-    const currentSeedphraseHints = await AsyncStorage.getItem(
+    const currentSeedphraseHints = await StorageWrapper.getItem(
       SEED_PHRASE_HINTS,
     );
     if (currentSeedphraseHints) {
       const parsedHints = JSON.parse(currentSeedphraseHints);
-      await AsyncStorage.setItem(
+      await StorageWrapper.setItem(
         SEED_PHRASE_HINTS,
         JSON.stringify({ ...parsedHints, manualBackup: hintText }),
       );
@@ -328,15 +363,15 @@ const Settings: React.FC = () => {
 
       await Engine.context.KeyringController.exportSeedPhrase(password);
 
-      await AsyncStorage.setItem(EXISTING_USER, TRUE);
+      await StorageWrapper.setItem(EXISTING_USER, TRUE);
 
       if (!enabled) {
         setLoading(false);
         if (authChoice === PASSCODE_CHOICE_STRING) {
-          await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
         } else if (authChoice === BIOMETRY_CHOICE_STRING) {
-          await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-          await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+          await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
         }
 
         return;
@@ -353,7 +388,7 @@ const Settings: React.FC = () => {
         }
         await Authentication.storePassword(password, authType);
       } catch (error) {
-        Logger.error(error as string, {});
+        Logger.error(error as unknown as Error, {});
       }
 
       dispatch(passwordSet());
@@ -375,7 +410,7 @@ const Settings: React.FC = () => {
           '',
         );
       } else {
-        Logger.error(e as string, 'SecuritySettings:biometrics');
+        Logger.error(e as unknown as Error, 'SecuritySettings:biometrics');
       }
       setLoading(false);
     }
@@ -387,7 +422,7 @@ const Settings: React.FC = () => {
     try {
       credentials = await Authentication.getPassword();
     } catch (error) {
-      Logger.error(error as string, {});
+      Logger.error(error as unknown as Error, {});
     }
 
     if (credentials && credentials.password !== '') {
@@ -466,139 +501,6 @@ const Settings: React.FC = () => {
     </View>
   );
 
-  const toggleMetricsOptIn = async (metricsEnabled: boolean) => {
-    if (metricsEnabled) {
-      const consolidatedTraits = {
-        ...generateDeviceAnalyticsMetaData(),
-        ...generateUserSettingsAnalyticsMetaData(),
-      };
-      await enable();
-      setAnalyticsEnabled(true);
-
-      InteractionManager.runAfterInteractions(async () => {
-        await addTraitsToUser(consolidatedTraits);
-        trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
-          analytics_option_selected: 'Metrics Opt in',
-          updated_after_onboarding: true,
-        });
-      });
-    } else {
-      await enable(false);
-      setAnalyticsEnabled(false);
-      if (isDataCollectionForMarketingEnabled) {
-        dispatch(setDataCollectionForMarketing(false));
-      }
-      Alert.alert(
-        strings('app_settings.metametrics_opt_out'),
-        strings('app_settings.metametrics_restart_required'),
-      );
-
-      const traits = {
-        is_metrics_opted_in: false,
-        has_marketing_consent: false,
-      };
-      addTraitsToUser(traits);
-      trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
-        ...traits,
-        location: 'settings',
-      });
-    }
-  };
-
-  const toggleDataCollectionForMarketing = async (value: boolean) => {
-    if (value) {
-      if (!analyticsEnabled) {
-        toggleMetricsOptIn(true);
-      }
-    } else {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.DATA_COLLECTION,
-      });
-
-      const traits = {
-        is_metrics_opted_in: true,
-        has_marketing_consent: false,
-      };
-      addTraitsToUser(traits);
-      trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
-        ...traits,
-        location: 'settings',
-      });
-    }
-    dispatch(setDataCollectionForMarketing(value));
-  };
-
-  const renderMetaMetricsSection = () => (
-    <View style={styles.halfSetting} testID={META_METRICS_SECTION}>
-      <View style={styles.titleContainer}>
-        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-          {strings('app_settings.metametrics_title')}
-        </Text>
-        <View style={styles.switchElement}>
-          <Switch
-            value={analyticsEnabled}
-            onValueChange={toggleMetricsOptIn}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={theme.brandColors.white000}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-            testID={SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH}
-          />
-        </View>
-      </View>
-      <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
-        style={styles.desc}
-      >
-        {strings('app_settings.metametrics_description')}{' '}
-        <Button
-          variant={ButtonVariants.Link}
-          size={ButtonSize.Auto}
-          onPress={() => Linking.openURL(HOW_TO_MANAGE_METRAMETRICS_SETTINGS)}
-          label={strings('app_settings.learn_more')}
-        />
-      </Text>
-    </View>
-  );
-
-  const renderDataCollectionSection = () => (
-    <View
-      style={styles.halfSetting}
-      testID={META_METRICS_DATA_MARKETING_SECTION}
-    >
-      <View style={styles.titleContainer}>
-        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-          {strings('app_settings.data_collection_title')}
-        </Text>
-        <View style={styles.switchElement}>
-          <Switch
-            value={isDataCollectionForMarketingEnabled}
-            onValueChange={toggleDataCollectionForMarketing}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={theme.brandColors.white000}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-            testID={SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH}
-          />
-        </View>
-      </View>
-      <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
-        style={styles.desc}
-      >
-        {strings('app_settings.data_collection_description')}
-      </Text>
-    </View>
-  );
-
   const toggleIsMultiAccountBalancesEnabled = (
     multiAccountBalancesEnabled: boolean,
   ) => {
@@ -622,7 +524,7 @@ const Settings: React.FC = () => {
               true: colors.primary.default,
               false: colors.border.muted,
             }}
-            thumbColor={theme.brandColors.white000}
+            thumbColor={theme.brandColors.white}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
             {...generateTestId(
@@ -642,7 +544,7 @@ const Settings: React.FC = () => {
     </View>
   );
   const toggleEnableIncomingTransactions = (
-    hexChainId: string,
+    hexChainId: EtherscanSupportedHexChainId,
     value: boolean,
   ) => {
     const { PreferencesController } = Engine.context;
@@ -683,13 +585,26 @@ const Settings: React.FC = () => {
     if (!value) PreferencesController?.setUseNftDetection(value);
   };
 
-  const toggleNftAutodetect = (value: boolean) => {
-    const { PreferencesController } = Engine.context;
-    if (value) {
-      PreferencesController.setDisplayNftMedia(value);
-    }
-    PreferencesController.setUseNftDetection(value);
-  };
+  const toggleNftAutodetect = useCallback(
+    (value) => {
+      const { PreferencesController } = Engine.context;
+      if (value) {
+        PreferencesController.setDisplayNftMedia(value);
+      }
+      PreferencesController.setUseNftDetection(value);
+      const traits = {
+        [UserProfileProperty.NFT_AUTODETECTION]: value
+          ? UserProfileProperty.ON
+          : UserProfileProperty.OFF,
+      };
+      addTraitsToUser(traits);
+      trackEvent(MetaMetricsEvents.NFT_AUTO_DETECTION_ENABLED, {
+        ...traits,
+        location: 'app_settings',
+      });
+    },
+    [addTraitsToUser, trackEvent],
+  );
 
   const renderDisplayNftMedia = useCallback(
     () => (
@@ -706,7 +621,7 @@ const Settings: React.FC = () => {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={theme.brandColors.white000}
+              thumbColor={theme.brandColors.white}
               style={styles.switch}
               ios_backgroundColor={colors.border.muted}
               testID="display-nft-toggle"
@@ -740,7 +655,7 @@ const Settings: React.FC = () => {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={theme.brandColors.white000}
+              thumbColor={theme.brandColors.white}
               style={styles.switch}
               ios_backgroundColor={colors.border.muted}
               testID={DISPLAY_SAFE_CHAINS_LIST_VALIDATION}
@@ -782,7 +697,7 @@ const Settings: React.FC = () => {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={theme.brandColors.white000}
+              thumbColor={theme.brandColors.white}
               style={styles.switch}
               ios_backgroundColor={colors.border.muted}
             />
@@ -813,7 +728,7 @@ const Settings: React.FC = () => {
         </Text>
       </View>
     ),
-    [colors, styles, useTransactionSimulations, theme.brandColors.white000],
+    [colors, styles, useTransactionSimulations, theme.brandColors.white],
   );
 
   const renderAutoDetectNft = useCallback(
@@ -835,7 +750,7 @@ const Settings: React.FC = () => {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={theme.brandColors.white000}
+              thumbColor={theme.brandColors.white}
               style={styles.switch}
               ios_backgroundColor={colors.border.muted}
             />
@@ -850,7 +765,7 @@ const Settings: React.FC = () => {
         </Text>
       </View>
     ),
-    [colors, styles, useNftDetection, theme],
+    [colors, styles, useNftDetection, theme, toggleNftAutodetect],
   );
 
   const setIpfsGateway = (gateway: string) => {
@@ -877,7 +792,7 @@ const Settings: React.FC = () => {
               true: colors.primary.default,
               false: colors.border.muted,
             }}
-            thumbColor={theme.brandColors.white000}
+            thumbColor={theme.brandColors.white}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
           />
@@ -950,13 +865,16 @@ const Settings: React.FC = () => {
           <Switch
             value={showIncomingTransactionsNetworks[chainId]}
             onValueChange={(value) =>
-              toggleEnableIncomingTransactions(chainId, value)
+              toggleEnableIncomingTransactions(
+                chainId as EtherscanSupportedHexChainId,
+                value,
+              )
             }
             trackColor={{
               true: colors.primary.default,
               false: colors.border.muted,
             }}
-            thumbColor={theme.brandColors.white000}
+            thumbColor={theme.brandColors.white}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
           />
@@ -982,13 +900,16 @@ const Settings: React.FC = () => {
           <Switch
             value={showIncomingTransactionsNetworks[chainId]}
             onValueChange={(value) =>
-              toggleEnableIncomingTransactions(chainId, value)
+              toggleEnableIncomingTransactions(
+                chainId as EtherscanSupportedHexChainId,
+                value,
+              )
             }
             trackColor={{
               true: colors.primary.default,
               false: colors.border.muted,
             }}
-            thumbColor={theme.brandColors.white000}
+            thumbColor={theme.brandColors.white}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
           />
@@ -1012,7 +933,9 @@ const Settings: React.FC = () => {
               key={chainId}
               variant={CellVariant.Display}
               title={name}
-              secondaryText={myNetworks[chainId].domain}
+              secondaryText={
+                myNetworks[chainId as keyof typeof myNetworks].domain
+              }
               avatarProps={{
                 variant: AvatarVariant.Network,
                 name,
@@ -1023,13 +946,16 @@ const Settings: React.FC = () => {
               <Switch
                 value={showIncomingTransactionsNetworks[chainId]}
                 onValueChange={(value) =>
-                  toggleEnableIncomingTransactions(chainId, value)
+                  toggleEnableIncomingTransactions(
+                    chainId as EtherscanSupportedHexChainId,
+                    value,
+                  )
                 }
                 trackColor={{
                   true: colors.primary.default,
                   false: colors.border.muted,
                 }}
-                thumbColor={theme.brandColors.white000}
+                thumbColor={theme.brandColors.white}
                 style={styles.switch}
                 ios_backgroundColor={colors.border.muted}
               />
@@ -1049,7 +975,9 @@ const Settings: React.FC = () => {
             key={chainId}
             variant={CellVariant.Display}
             title={name}
-            secondaryText={myNetworks[chainId]?.domain}
+            secondaryText={
+              myNetworks[chainId as keyof typeof myNetworks].domain
+            }
             avatarProps={{
               variant: AvatarVariant.Network,
               name,
@@ -1060,13 +988,17 @@ const Settings: React.FC = () => {
             <Switch
               value={showIncomingTransactionsNetworks[chainId]}
               onValueChange={(value) => {
-                chainId && toggleEnableIncomingTransactions(chainId, value);
+                chainId &&
+                  toggleEnableIncomingTransactions(
+                    chainId as keyof typeof myNetworks,
+                    value,
+                  );
               }}
               trackColor={{
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={theme.brandColors.white000}
+              thumbColor={theme.brandColors.white}
               style={styles.switch}
               ios_backgroundColor={colors.border.muted}
             />
@@ -1100,6 +1032,16 @@ const Settings: React.FC = () => {
     );
   };
 
+  const toggleProfileSyncing = async () => {
+    if (isProfileSyncingEnabled) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.PROFILE_SYNCING,
+      });
+    } else {
+      await enableProfileSyncing();
+    }
+  };
+
   const toggleBasicFunctionality = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY,
@@ -1113,6 +1055,13 @@ const Settings: React.FC = () => {
       </View>
     );
   }
+
+  const profileSyncModalMessage = !isProfileSyncingEnabled
+    ? strings('app_settings.enabling_profile_sync')
+    : strings('app_settings.disabling_profile_sync');
+
+  const modalLoading = profileSyncLoading || disableNotificationsLoading;
+  const modalError = profileSyncError || disableNotificationsError;
 
   return (
     <ScrollView
@@ -1137,7 +1086,7 @@ const Settings: React.FC = () => {
           <RememberMeOptionSection />
         </View>
         <RevealPrivateKey />
-        {isBlockaidFeatureEnabled() && <BlockaidSettings />}
+        <BlockaidSettings />
         <Heading>{strings('app_settings.privacy_heading')}</Heading>
         <View>
           <Text
@@ -1151,6 +1100,11 @@ const Settings: React.FC = () => {
             handleSwitchToggle={toggleBasicFunctionality}
           />
         </View>
+        <ProfileSyncingComponent
+          handleSwitchToggle={toggleProfileSyncing}
+          isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
+          isProfileSyncingEnabled={isProfileSyncingEnabled}
+        />
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}
@@ -1181,8 +1135,7 @@ const Settings: React.FC = () => {
         {renderMultiAccountBalancesSection()}
         {renderShowIncomingTransactions()}
         {renderHistoryModal()}
-        {isTransactionSimulationsFeatureEnabled() &&
-          renderUseTransactionSimulations()}
+        {renderUseTransactionSimulations()}
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}
@@ -1210,12 +1163,16 @@ const Settings: React.FC = () => {
         >
           {strings('app_settings.analytics_subheading')}
         </Text>
-        {renderMetaMetricsSection()}
-        {renderDataCollectionSection()}
+        <MetaMetricsAndDataCollectionSection />
         <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
         <DeleteWalletData />
         {renderHint()}
       </View>
+      <SwitchLoadingModal
+        loading={modalLoading}
+        loadingText={profileSyncModalMessage}
+        error={modalError}
+      />
     </ScrollView>
   );
 };

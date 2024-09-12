@@ -1,4 +1,10 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from 'react';
 import {
   Text,
   StyleSheet,
@@ -11,7 +17,7 @@ import {
 } from 'react-native';
 import { isEqual } from 'lodash';
 import { withNavigation } from '@react-navigation/compat';
-import { WebView } from 'react-native-webview';
+import { WebView } from '@metamask/react-native-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
@@ -83,8 +89,8 @@ import {
 import {
   selectIpfsGateway,
   selectIsIpfsGatewayEnabled,
-  selectSelectedAddress,
 } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
 import { IPFS_GATEWAY_DISABLED_ERROR } from './constants';
 import Banner from '../../../component-library/components/Banners/Banner/Banner';
@@ -101,6 +107,11 @@ import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/Brows
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { trackDappViewedEvent } from '../../../util/metrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
+import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
+import { useIsFocused } from '@react-navigation/native';
+import handleWebViewFocus from '../../../util/browser/webViewFocus';
+import { isTest } from '../../../util/test/utils.js';
+import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -265,9 +276,11 @@ export const BrowserTab = (props) => {
   const [blockedUrl, setBlockedUrl] = useState(undefined);
   const [ipfsBannerVisible, setIpfsBannerVisible] = useState(false);
   const [isResolvedIpfsUrl, setIsResolvedIpfsUrl] = useState(false);
+  const previousChainIdRef = useRef('0x1');
   const webviewRef = useRef(null);
   const blockListType = useRef('');
   const allowList = useRef([]);
+  const isFocused = useIsFocused();
 
   const url = useRef('');
   const title = useRef('');
@@ -276,8 +289,7 @@ export const BrowserTab = (props) => {
   const fromHomepage = useRef(false);
   const wizardScrollAdjusted = useRef(false);
   const permittedAccountsList = useSelector((state) => {
-    const permissionsControllerState =
-      state.engine.backgroundState.PermissionController;
+    const permissionsControllerState = selectPermissionControllerState(state);
     const hostname = new URL(url.current).hostname;
     const permittedAcc = getPermittedAccountsByHostname(
       permissionsControllerState,
@@ -479,7 +491,6 @@ export const BrowserTab = (props) => {
           const statusCode = response.status;
           if (statusCode >= 400) {
             Logger.log('Status code ', statusCode, gatewayUrl);
-            //urlNotFound(gatewayUrl);
             return null;
           }
         } else if (type === 'swarm-ns') {
@@ -706,6 +717,16 @@ export const BrowserTab = (props) => {
     };
   }, [goBack, isTabActive, props.navigation]);
 
+  useEffect(() => {
+    handleWebViewFocus({
+      webviewRef,
+      isFocused,
+      chainId: props.chainId,
+      previousChainId: previousChainIdRef.current,
+    });
+    previousChainIdRef.current = props.chainId;
+  }, [webviewRef, isFocused, props.chainId]);
+
   /**
    * Inject home page scripts to get the favourites and set analytics key
    */
@@ -873,7 +894,7 @@ export const BrowserTab = (props) => {
     // Continue request loading it the protocol is whitelisted
     const { protocol } = new URL(url);
     if (protocolAllowList.includes(protocol)) return true;
-    Logger.message(`Protocol not allowed ${protocol}`);
+    Logger.log(`Protocol not allowed ${protocol}`);
 
     // If it is a trusted deeplink protocol, do not show the
     // warning alert. Allow the OS to deeplink the URL
@@ -1118,7 +1139,6 @@ export const BrowserTab = (props) => {
               params: {
                 hostInfo: {
                   metadata: {
-                    // origin: url.current,
                     origin: url.current && new URL(url.current).hostname,
                   },
                 },
@@ -1491,6 +1511,11 @@ export const BrowserTab = (props) => {
     </View>
   );
 
+  const isExternalLink = useMemo(
+    () => props.linkType === EXTERNAL_LINK_TYPE,
+    [props.linkType],
+  );
+
   /**
    * Main render
    */
@@ -1512,13 +1537,18 @@ export const BrowserTab = (props) => {
                   'wc://',
                   'ethereum://',
                   'file://',
+                  // Needed for Recaptcha
+                  'about:srcdoc',
                 ]}
                 decelerationRate={'normal'}
                 ref={webviewRef}
                 renderError={() => (
                   <WebviewError error={error} returnHome={returnHome} />
                 )}
-                source={{ uri: initialUrl }}
+                source={{
+                  uri: initialUrl,
+                  ...(isExternalLink ? { headers: { Cookie: '' } } : null),
+                }}
                 injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
                 style={styles.webview}
                 onLoadStart={onLoadStart}
@@ -1528,13 +1558,11 @@ export const BrowserTab = (props) => {
                 onMessage={onMessage}
                 onError={onError}
                 onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
-                sendCookies
-                javascriptEnabled
                 allowsInlineMediaPlayback
-                useWebkit
                 testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
                 applicationNameForUserAgent={'WebView MetaMaskMobile'}
                 onFileDownload={handleOnFileDownload}
+                webviewDebuggingEnabled={isTest}
               />
               {ipfsBannerVisible && renderIpfsBanner()}
             </>
@@ -1565,6 +1593,10 @@ BrowserTab.propTypes = {
    * InitialUrl
    */
   initialUrl: PropTypes.string,
+  /**
+   * linkType - type of link to open
+   */
+  linkType: PropTypes.string,
   /**
    * Protocol string to append to URLs that have none
    */
@@ -1655,7 +1687,8 @@ BrowserTab.defaultProps = {
 const mapStateToProps = (state) => ({
   bookmarks: state.bookmarks,
   ipfsGateway: selectIpfsGateway(state),
-  selectedAddress: selectSelectedAddress(state)?.toLowerCase(),
+  selectedAddress:
+    selectSelectedInternalAccountChecksummedAddress(state)?.toLowerCase(),
   isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
   searchEngine: state.settings.searchEngine,
   whitelist: state.browser.whitelist,

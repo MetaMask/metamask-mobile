@@ -18,6 +18,7 @@ import { hexToBN, toHexadecimal } from '../../../../util/number';
 import { selectAccountsByChainId } from '../../../../selectors/accountTrackerController';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectChainId } from '../../../../selectors/networkController';
+import { Token } from '@metamask/assets-controllers';
 
 function useHandleSuccessfulOrder() {
   const { selectedChainId, selectedAddress } = useRampSDK();
@@ -33,8 +34,7 @@ function useHandleSuccessfulOrder() {
       if (!token) return;
 
       const { address, symbol, decimals, network, name } = token;
-      // TODO(ramp, chainId-string): remove once chainId is a string
-      const chainId = `${network?.chainId}`;
+      const chainId = network?.chainId;
 
       if (chainId !== selectedChainId || address === NATIVE_ADDRESS) {
         return;
@@ -43,8 +43,8 @@ function useHandleSuccessfulOrder() {
       const { TokensController } = Engine.context;
 
       if (
-        !TokensController.state.tokens.includes((t: any) =>
-          toLowerCaseEquals(t.address, address),
+        !TokensController.state.tokens.find((stateToken: Token) =>
+          toLowerCaseEquals(stateToken.address, address),
         )
       ) {
         await TokensController.addToken({ address, symbol, decimals, name });
@@ -64,6 +64,8 @@ function useHandleSuccessfulOrder() {
         isApplePay?: boolean;
       },
     ) => {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await addTokenToTokensController((order as any)?.data?.cryptoCurrency);
       handleDispatchUserWalletProtection();
       // @ts-expect-error navigation prop mismatch
@@ -116,6 +118,8 @@ function useHandleSuccessfulOrder() {
                     accountsByChainId[toHexadecimal(chainIdFromProvider)][
                       selectedAddress
                     ].balance,
+                    // TODO: Replace "any" with type
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   ) as any
                 )?.isZero?.()
               : undefined,

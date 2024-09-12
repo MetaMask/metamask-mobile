@@ -33,6 +33,7 @@ function loadStories() {
   require('../app/component-library/components/Cells/Cell/variants/CellDisplay/CellDisplay.stories');
   require('../app/component-library/components/Cells/Cell/variants/CellMultiSelect/CellMultiSelect.stories');
   require('../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories');
+  require('../app/component-library/components/Cells/Cell/variants/CellSelectWithMenu/CellSelectWithMenu.stories');
   require('../app/component-library/components/Checkbox/Checkbox.stories');
   require('../app/component-library/components/Form/HelpText/HelpText.stories');
   require('../app/component-library/components/Form/Label/Label.stories');
@@ -78,6 +79,8 @@ function loadStories() {
   require('../app/component-library/components-temp/Contracts/ContractBox/ContractBox.stories');
   require('../app/component-library/components-temp/CustomSpendCap/CustomSpendCap.stories');
   require('../app/component-library/components-temp/TagColored/TagColored.stories');
+  require('../app/component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentage.stories');
+  require('../app/component-library/components-temp/Price/PercentageChange/PercentageChange.stories');
 }
 
 const stories = [
@@ -110,6 +113,7 @@ const stories = [
   '../app/component-library/components/Cells/Cell/variants/CellDisplay/CellDisplay.stories',
   '../app/component-library/components/Cells/Cell/variants/CellMultiSelect/CellMultiSelect.stories',
   '../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories',
+  '..app/component-library/components-temp/CellSelectWithMenu/CellSelectWithMenu.stories.tsx',
   '../app/component-library/components/Checkbox/Checkbox.stories',
   '../app/component-library/components/Form/HelpText/HelpText.stories',
   '../app/component-library/components/Form/Label/Label.stories',
@@ -155,6 +159,8 @@ const stories = [
   '../app/component-library/components-temp/Contracts/ContractBox/ContractBox.stories',
   '../app/component-library/components-temp/CustomSpendCap/CustomSpendCap.stories',
   '../app/component-library/components-temp/TagColored/TagColored.stories',
+  '../app/component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentage.stories.tsx',
+  '../app/component-library/components-temp/Price/PercentageChange/PercentageChange.stories.tsx',
 ];
 
 module.exports = {

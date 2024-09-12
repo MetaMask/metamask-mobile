@@ -39,6 +39,16 @@ class ConnectModal {
     );
   }
 
+  get cancelButton() {
+    return Matchers.getElementByID(
+      ConnectAccountModalSelectorsIDs.CANCEL_BUTTON,
+    );
+  }
+
+  async tapCancelButton() {
+    await Gestures.waitAndTap(this.connectButton);
+  }
+
   async tapConnectButton() {
     await Gestures.waitAndTap(this.connectButton);
   }

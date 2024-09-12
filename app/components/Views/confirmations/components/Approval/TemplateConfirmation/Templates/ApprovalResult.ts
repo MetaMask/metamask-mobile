@@ -14,6 +14,8 @@ const isApprovalResultTypeSuccess = (type: string): boolean =>
   ApprovalTypes.RESULT_SUCCESS === type;
 
 function getValues(
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   pendingApproval: ApprovalRequest<any>,
   strings: (key: string) => string,
   actions: Actions,

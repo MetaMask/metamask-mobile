@@ -36,6 +36,11 @@ export const createStyles = (theme: Theme) =>
       width: '90%',
       marginVertical: 5,
     },
+    revealButton: {
+      alignSelf: 'center',
+      width: '100%',
+      marginVertical: 5,
+    },
     rowWrapper: {
       padding: 20,
     },
@@ -101,7 +106,7 @@ export const createStyles = (theme: Theme) =>
       alignSelf: 'center',
       justifyContent: 'center',
       padding: 8,
-      backgroundColor: theme.brandColors.white000,
+      backgroundColor: theme.brandColors.white,
     },
     tabUnderlineStyle: {
       height: 2,

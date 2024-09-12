@@ -36,6 +36,8 @@ const Root = ({
   const { colors } = useTheme();
   const [showExpandedMessage, setShowExpandedMessage] = useState(false);
   const visibility = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (reduxState: any) => reduxState.modals.signMessageModalVisible,
   );
 

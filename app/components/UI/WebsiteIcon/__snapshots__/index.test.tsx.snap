@@ -5,7 +5,7 @@ exports[`WebsiteIcon should render correctly 1`] = `
   <View
     placeholderStyle={
       {
-        "backgroundColor": "#F2F4F6",
+        "backgroundColor": "#f2f4f6",
       }
     }
     useNativeDriver={true}
@@ -40,7 +40,7 @@ exports[`WebsiteIcon should render correctly 1`] = `
               "backgroundColor": "#eee",
             },
             {
-              "backgroundColor": "#F2F4F6",
+              "backgroundColor": "#f2f4f6",
             },
           ]
         }

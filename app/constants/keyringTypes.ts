@@ -6,3 +6,8 @@ enum ExtendedKeyringTypes {
 }
 
 export default ExtendedKeyringTypes;
+
+export enum HardwareDeviceTypes {
+  LEDGER = 'Ledger',
+  QR = 'QR Hardware',
+}

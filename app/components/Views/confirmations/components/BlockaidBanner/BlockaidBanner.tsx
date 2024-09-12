@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
-import { useSelector } from 'react-redux';
 import { View } from 'react-native-animatable';
 import { captureException } from '@sentry/react-native';
 import { deflate } from 'react-native-gzip';
@@ -19,10 +18,6 @@ import Icon from '../../../../../component-library/components/Icons/Icon/Icon';
 import Text from '../../../../../component-library/components/Texts/Text/Text';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import {
-  isBlockaidFeatureEnabled,
-  isBlockaidSupportedOnCurrentChain,
-} from '../../../../../util/blockaid';
-import {
   FALSE_POSITIVE_REPOST_LINE_TEST_ID,
   REASON_DESCRIPTION_I18N_KEY_MAP,
   REASON_TITLE_I18N_KEY_MAP,
@@ -39,7 +34,6 @@ import {
   UTM_SOURCE,
 } from '../../../../../constants/urls';
 import { BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../../util/networks';
-import { selectIsSecurityAlertsEnabled } from '../../../../../selectors/preferencesController';
 import BlockaidVersionInfo from '../../../../../lib/ppom/blockaid-version';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -74,7 +68,6 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   const { styles, theme } = useStyles(styleSheet, { style });
   const [displayPositiveResponse, setDisplayPositiveResponse] = useState(false);
   const [reportUrl, setReportUrl] = useState<string>('');
-  const isSecurityAlertsEnabled = useSelector(selectIsSecurityAlertsEnabled);
 
   useEffect(() => {
     if (securityAlertResponse?.reason === Reason.requestInProgress) {
@@ -115,12 +108,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
     })();
   }, [securityAlertResponse]);
 
-  if (
-    !securityAlertResponse ||
-    !isBlockaidFeatureEnabled() ||
-    !isBlockaidSupportedOnCurrentChain() ||
-    !isSecurityAlertsEnabled
-  ) {
+  if (!securityAlertResponse) {
     return null;
   }
 

@@ -1,7 +1,7 @@
 'use strict';
 import TestHelpers from '../../helpers';
 import { Regression } from '../../tags';
-import WalletView from '../../pages/WalletView';
+import WalletView from '../../pages/wallet/WalletView';
 import ImportAccountView from '../../pages/ImportAccountView';
 import TabBarComponent from '../../pages/TabBarComponent';
 
@@ -44,6 +44,7 @@ describe(
 
     it('should trigger connect modal in the test dapp', async () => {
       await TestHelpers.delay(3000);
+      //TODO: Create goToTestDappAndTapConnectButton method.
       await TestDApp.goToTestDappAndTapConnectButton();
     });
 
@@ -88,7 +89,7 @@ describe(
     it('should navigate to wallet view', async () => {
       await TestHelpers.delay(1500);
       await TabBarComponent.tapWallet();
-      await WalletView.isVisible();
+      await Assertions.checkIfVisible(WalletView.container);
     });
 
     it('should remove imported account', async () => {

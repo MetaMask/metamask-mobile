@@ -3,8 +3,10 @@ import { shallow } from 'enzyme';
 import CollectibleContracts from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../util/test/initial-root-state';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../util/test/renderWithProvider';
 import { act } from '@testing-library/react-hooks';
 
 // eslint-disable-next-line import/no-namespace
@@ -13,6 +15,8 @@ import { cleanup, waitFor } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 
 import TestHelpers from '../../../../e2e/helpers';
+import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
+import { RootState } from '../../../reducers';
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -44,15 +48,21 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 const mockStore = configureMockStore();
+
 const initialState = {
   collectibles: {
     favorites: {},
   },
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 const store = mockStore(initialState);
+
+const MOCK_ADDRESS = '0xd018538C87232FF95acbCe4870629b75640a78E7';
+const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
+  MOCK_ADDRESS,
+]);
 
 describe('CollectibleContracts', () => {
   afterEach(cleanup);
@@ -66,16 +76,14 @@ describe('CollectibleContracts', () => {
   });
 
   it('should only get owned collectibles', () => {
-    const CURRENT_ACCOUNT = '0x1a';
-    const mockState = {
+    const mockState: DeepPartial<RootState> = {
       collectibles: {
         favorites: {},
       },
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           NetworkController: {
-            network: '1',
             providerConfig: {
               ticker: 'ETH',
               type: 'mainnet',
@@ -83,20 +91,12 @@ describe('CollectibleContracts', () => {
             },
           },
           AccountTrackerController: {
-            accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
+            accounts: { [MOCK_ADDRESS]: { balance: '0' } },
           },
-          PreferencesController: {
-            selectedAddress: CURRENT_ACCOUNT,
-            identities: {
-              [CURRENT_ACCOUNT]: {
-                address: CURRENT_ACCOUNT,
-                name: 'Account 1',
-              },
-            },
-          },
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           NftController: {
             allNfts: {
-              [CURRENT_ACCOUNT]: {
+              [MOCK_ADDRESS]: {
                 '0x1': [
                   {
                     address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
@@ -128,7 +128,7 @@ describe('CollectibleContracts', () => {
               },
             },
             allNftContracts: {
-              [CURRENT_ACCOUNT]: {
+              [MOCK_ADDRESS]: {
                 '0x1': [
                   {
                     address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
@@ -154,7 +154,6 @@ describe('CollectibleContracts', () => {
   });
 
   it('UI refresh changes NFT image when metadata image changes - detection disabled', async () => {
-    const CURRENT_ACCOUNT = '0x1a';
     const collectibleData = [
       {
         address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
@@ -193,45 +192,36 @@ describe('CollectibleContracts', () => {
         tokenURI: 'https://api.pudgypenguins.io/lil/113',
       },
     ];
-    const mockState = {
+    const mockState: DeepPartial<RootState> = {
       collectibles: {
         favorites: {},
       },
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           NetworkController: {
-            network: '1',
             providerConfig: {
               ticker: 'ETH',
               type: 'mainnet',
-              chainId: '1',
+              chainId: '0x1',
             },
           },
           AccountTrackerController: {
-            accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
+            accounts: { [MOCK_ADDRESS]: { balance: '0' } },
           },
           PreferencesController: {
             displayNftMedia: true,
-            selectedAddress: CURRENT_ACCOUNT,
-            identities: {
-              [CURRENT_ACCOUNT]: {
-                address: CURRENT_ACCOUNT,
-                name: 'Account 1',
-              },
-            },
           },
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           NftController: {
-            addNft: jest.fn(),
-            updateNftMetadata: jest.fn(),
             allNfts: {
-              [CURRENT_ACCOUNT]: {
-                '1': [],
+              [MOCK_ADDRESS]: {
+                '0x1': [],
               },
             },
             allNftContracts: {
-              [CURRENT_ACCOUNT]: {
-                '1': [],
+              [MOCK_ADDRESS]: {
+                '0x1': [],
               },
             },
           },
@@ -274,7 +264,6 @@ describe('CollectibleContracts', () => {
   });
 
   it('UI refresh changes NFT image when metadata image changes - detection enabled', async () => {
-    const CURRENT_ACCOUNT = '0x1a';
     const collectibleData = [
       {
         address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
@@ -313,51 +302,39 @@ describe('CollectibleContracts', () => {
         tokenURI: 'https://api.pudgypenguins.io/lil/113',
       },
     ];
-    const mockState = {
+    const mockState: DeepPartial<RootState> = {
       collectibles: {
         favorites: {},
       },
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           NetworkController: {
-            network: '1',
             providerConfig: {
               ticker: 'ETH',
               type: 'mainnet',
-              chainId: '1',
+              chainId: '0x1',
             },
           },
           AccountTrackerController: {
-            accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
+            accounts: { [MOCK_ADDRESS]: { balance: '0' } },
           },
           PreferencesController: {
             useNftDetection: true,
             displayNftMedia: true,
-            selectedAddress: CURRENT_ACCOUNT,
-            identities: {
-              [CURRENT_ACCOUNT]: {
-                address: CURRENT_ACCOUNT,
-                name: 'Account 1',
-              },
-            },
           },
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           NftController: {
-            addNft: jest.fn(),
-            updateNftMetadata: jest.fn(),
             allNfts: {
-              [CURRENT_ACCOUNT]: {
-                '1': [],
+              [MOCK_ADDRESS]: {
+                '0x1': [],
               },
             },
             allNftContracts: {
-              [CURRENT_ACCOUNT]: {
-                '1': [],
+              [MOCK_ADDRESS]: {
+                '0x1': [],
               },
             },
-          },
-          NftDetectionController: {
-            detectNfts: jest.fn(),
           },
         },
       },
@@ -398,7 +375,6 @@ describe('CollectibleContracts', () => {
   });
 
   it('UI pull down experience should call detectNfts when detection is enabled', async () => {
-    const CURRENT_ACCOUNT = '0x1a';
     const collectibleData = [
       {
         address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
@@ -437,51 +413,38 @@ describe('CollectibleContracts', () => {
         tokenURI: 'https://api.pudgypenguins.io/lil/113',
       },
     ];
-    const mockState = {
+    const mockState: DeepPartial<RootState> = {
       collectibles: {
         favorites: {},
       },
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           NetworkController: {
-            network: '1',
             providerConfig: {
               ticker: 'ETH',
               type: 'mainnet',
-              chainId: '1',
+              chainId: '0x1',
             },
           },
           AccountTrackerController: {
-            accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
+            accounts: { [MOCK_ADDRESS]: { balance: '0' } },
           },
           PreferencesController: {
             useNftDetection: true,
             displayNftMedia: true,
-            selectedAddress: CURRENT_ACCOUNT,
-            identities: {
-              [CURRENT_ACCOUNT]: {
-                address: CURRENT_ACCOUNT,
-                name: 'Account 1',
-              },
-            },
           },
           NftController: {
-            addNft: jest.fn(),
-            updateNftMetadata: jest.fn(),
             allNfts: {
-              [CURRENT_ACCOUNT]: {
-                '1': [],
+              [MOCK_ADDRESS]: {
+                '0x1': [],
               },
             },
             allNftContracts: {
-              [CURRENT_ACCOUNT]: {
-                '1': [],
+              [MOCK_ADDRESS]: {
+                '0x1': [],
               },
             },
-          },
-          NftDetectionController: {
-            detectNfts: jest.fn(),
           },
         },
       },
@@ -518,5 +481,113 @@ describe('CollectibleContracts', () => {
 
     expect(spyOnUpdateNftMetadata).toHaveBeenCalledTimes(0);
     expect(spyOnDetectNfts).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows spinner if nfts are still being fetched', async () => {
+    const CURRENT_ACCOUNT = '0x1a';
+    const mockState: DeepPartial<RootState> = {
+      collectibles: {
+        favorites: {},
+        isNftFetchingProgress: true,
+      },
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          NetworkController: {
+            providerConfig: {
+              ticker: 'ETH',
+              type: 'mainnet',
+              chainId: '0x1',
+            },
+          },
+          AccountTrackerController: {
+            accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
+          },
+          PreferencesController: {
+            useNftDetection: true,
+            displayNftMedia: true,
+            selectedAddress: CURRENT_ACCOUNT,
+            identities: {
+              [CURRENT_ACCOUNT]: {
+                address: CURRENT_ACCOUNT,
+                name: 'Account 1',
+              },
+            },
+          },
+          NftController: {
+            allNfts: {
+              [CURRENT_ACCOUNT]: {
+                '0x1': [],
+              },
+            },
+            allNftContracts: {
+              [CURRENT_ACCOUNT]: {
+                '0x1': [],
+              },
+            },
+          },
+        },
+      },
+    };
+    const { queryByTestId } = renderWithProvider(<CollectibleContracts />, {
+      state: mockState,
+    });
+
+    const spinner = queryByTestId('spinner');
+    expect(spinner).not.toBeNull();
+  });
+
+  it('Does not show spinner if nfts are not still being fetched', async () => {
+    const CURRENT_ACCOUNT = '0x1a';
+    const mockState: DeepPartial<RootState> = {
+      collectibles: {
+        favorites: {},
+      },
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          NetworkController: {
+            providerConfig: {
+              ticker: 'ETH',
+              type: 'mainnet',
+              chainId: '0x1',
+            },
+          },
+          AccountTrackerController: {
+            accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
+          },
+          PreferencesController: {
+            useNftDetection: true,
+            displayNftMedia: true,
+            selectedAddress: CURRENT_ACCOUNT,
+            identities: {
+              [CURRENT_ACCOUNT]: {
+                address: CURRENT_ACCOUNT,
+                name: 'Account 1',
+              },
+            },
+          },
+          NftController: {
+            allNfts: {
+              [CURRENT_ACCOUNT]: {
+                '0x1': [],
+              },
+            },
+            allNftContracts: {
+              [CURRENT_ACCOUNT]: {
+                '0x1': [],
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const { queryByTestId } = renderWithProvider(<CollectibleContracts />, {
+      state: mockState,
+    });
+
+    const spinner = queryByTestId('spinner');
+    expect(spinner).toBeNull();
   });
 });

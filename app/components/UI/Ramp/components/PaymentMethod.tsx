@@ -12,6 +12,8 @@ import PaymentMethodBadges from './PaymentMethodBadges';
 import { Payment } from '@consensys/on-ramp-sdk';
 import PaymentMethodIcon from './PaymentMethodIcon';
 // TODO: Convert into typescript and correctly type optionals
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ListItem = BaseListItem as any;
 
 interface Props {

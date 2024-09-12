@@ -48,7 +48,7 @@ import {
 } from '../../../../../../selectors/currencyRateController';
 import { selectAccounts } from '../../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../../selectors/tokenBalancesController';
-import { selectSelectedAddress } from '../../../../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../../../../selectors/accountsController';
 import { selectGasFeeEstimates } from '../../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../../selectors/gasFeeController';
 
@@ -268,7 +268,6 @@ class TransactionEditor extends PureComponent {
         });
       }
 
-      await this.validate(undefined, LegacyGasData);
       // eslint-disable-next-line react/no-did-update-set-state
       this.setState(
         {
@@ -286,6 +285,8 @@ class TransactionEditor extends PureComponent {
           this.setState({ animateOnChange: false });
         },
       );
+
+      await this.validate(undefined, LegacyGasData);
     }
   };
 
@@ -397,7 +398,8 @@ class TransactionEditor extends PureComponent {
         this.props.gasFeeEstimates &&
         transaction.gas &&
         (!shallowEqual(prevProps.gasFeeEstimates, this.props.gasFeeEstimates) ||
-          !transaction.gas.eq(prevProps?.transaction?.gas))
+          !transaction.gas.eq(prevProps?.transaction?.gas) ||
+          !this.state.ready)
       ) {
         this.computeGasEstimates(gasEstimateTypeChanged);
       }
@@ -967,7 +969,7 @@ const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
   contractBalances: selectContractBalances(state),
   networkType: selectProviderType(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   ticker: selectTicker(state),
   transaction: getNormalizedTxState(state),
   activeTabUrl: getActiveTabUrl(state),

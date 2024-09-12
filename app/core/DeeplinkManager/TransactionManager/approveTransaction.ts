@@ -1,5 +1,5 @@
 import { getNetworkTypeById } from '../../../util/networks';
-import { generateApproveData } from '../../../util/transactions';
+import { generateApprovalData } from '../../../util/transactions';
 import { ParseOutput } from 'eth-url-parser';
 import { strings } from '../../../../locales/i18n';
 import { getAddress } from '../../../util/address';
@@ -8,6 +8,7 @@ import DeeplinkManager from '../DeeplinkManager';
 import Engine from '../../Engine';
 import NotificationManager from '../../NotificationManager';
 import { WalletDevice } from '@metamask/transaction-controller';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 async function approveTransaction({
   deeplinkManager,
@@ -19,7 +20,7 @@ async function approveTransaction({
   origin: string;
 }) {
   const { parameters, target_address, chain_id } = ethUrl;
-  const { PreferencesController, NetworkController } = Engine.context;
+  const { AccountsController, NetworkController } = Engine.context;
 
   if (chain_id) {
     const newNetworkType = getNetworkTypeById(chain_id);
@@ -50,11 +51,13 @@ async function approveTransaction({
     deeplinkManager.navigation.navigate('WalletView');
   }
 
+  const selectedAccount = AccountsController.getSelectedAccount();
+
   const txParams = {
     to: target_address.toString(),
-    from: PreferencesController.state.selectedAddress.toString(),
+    from: toChecksumHexAddress(selectedAccount.address),
     value: '0x0',
-    data: generateApproveData({ spender: spenderAddress, value }),
+    data: generateApprovalData({ spender: spenderAddress, value }),
   };
 
   addTransaction(txParams, {

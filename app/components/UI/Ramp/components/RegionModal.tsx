@@ -26,6 +26,8 @@ import useAnalytics from '../hooks/useAnalytics';
 import createModalStyles from './modals/Modal.styles';
 
 // TODO: Convert into typescript and correctly type
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ListItem = BaseListItem as any;
 
 const MAX_REGION_RESULTS = 20;
@@ -72,9 +74,13 @@ interface Props {
   isVisible?: boolean;
   title?: string;
   description?: string;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dismiss?: () => any;
   data?: Region[] | null;
   selectedRegion?: Region | null;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onRegionPress: (region: Region) => any;
   location?: ScreenLocation;
   rampType?: RampType;

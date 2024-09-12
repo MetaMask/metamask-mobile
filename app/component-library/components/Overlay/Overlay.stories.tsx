@@ -22,6 +22,8 @@ const OverlayMeta = {
 export default OverlayMeta;
 
 export const Overlay = {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   render: (args: any) => (
     <OverlayComponent {...args} onPress={() => console.log("I'm clicked!")} />
   ),

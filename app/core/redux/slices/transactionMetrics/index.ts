@@ -3,7 +3,11 @@ import { RootState } from '../../../../reducers';
 import { merge } from 'lodash';
 
 interface TransactionMetrics {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   properties: Record<string, any>;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   sensitiveProperties: Record<string, any>;
 }
 

@@ -20,6 +20,10 @@ import Networks, {
   getAllNetworks,
 } from '../../util/networks';
 import { polyfillGasPrice } from './utils';
+import {
+  processOriginThrottlingRejection,
+  validateOriginThrottling,
+} from './spam';
 import ImportedEngine from '../Engine';
 import { strings } from '../../../locales/i18n';
 import { resemblesAddress, safeToChecksumAddress } from '../../util/address';
@@ -41,6 +45,8 @@ import Logger from '../../../app/util/Logger';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { addTransaction } from '../../util/transaction-controller';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Engine = ImportedEngine as any;
 
 let appVersion = '';
@@ -60,7 +66,7 @@ export enum ApprovalTypes {
   RESULT_ERROR = 'result_error',
   RESULT_SUCCESS = 'result_success',
   SMART_TRANSACTION_STATUS = 'smart_transaction_status',
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   INSTALL_SNAP = 'wallet_installSnap',
   UPDATE_SNAP = 'wallet_updateSnap',
   ///: END:ONLY_INCLUDE_IF
@@ -69,7 +75,11 @@ export enum ApprovalTypes {
 export interface RPCMethodsMiddleParameters {
   hostname: string;
   channelId?: string; // Used for remote connections
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getProviderState: () => any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   url: { current: string };
   title: { current: string };
@@ -87,7 +97,11 @@ export interface RPCMethodsMiddleParameters {
   isWalletConnect: boolean;
   // For MM SDK
   isMMSDK: boolean;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getApprovedHosts: any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setApprovedHosts: (approvedHosts: any) => void;
   approveHost: (fullHostname: string) => void;
   injectHomePageScripts: (bookmarks?: []) => void;
@@ -120,7 +134,11 @@ export const checkActiveAccountAndChainId = async ({
     });
 
     const permissionsController = (
-      Engine.context as { PermissionController: PermissionController<any, any> }
+      Engine.context as {
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        PermissionController: PermissionController<any, any>;
+      }
     ).PermissionController;
     DevLogger.log(
       `checkActiveAccountAndChainId channelId=${channelId} isWalletConnect=${isWalletConnect} hostname=${hostname}`,
@@ -133,6 +151,7 @@ export const checkActiveAccountAndChainId = async ({
     const normalizedAccounts = accounts.map(safeToChecksumAddress);
 
     if (!normalizedAccounts.includes(formattedAddress)) {
+      DevLogger.log(`invalid accounts ${formattedAddress}`, normalizedAccounts);
       isInvalidAccount = true;
       if (accounts.length > 0) {
         // Permissions issue --- requesting incorrect address
@@ -202,6 +221,8 @@ const generateRawSignature = async ({
   checkTabActive,
 }: {
   version: string;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   req: any;
   hostname: string;
   url: { current: string };
@@ -213,6 +234,8 @@ const generateRawSignature = async ({
   channelId?: string;
   getSource: () => string;
   isWalletConnect: boolean;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   checkTabActive: any;
 }) => {
   const { SignatureController } = Engine.context;
@@ -222,6 +245,7 @@ const generateRawSignature = async ({
       url: url.current,
       title: title.current,
       icon: icon.current,
+      channelId,
       analytics: {
         request_source: getSource(),
         request_platform: analytics?.platform,
@@ -243,6 +267,7 @@ const generateRawSignature = async ({
       data: req.params[1],
       from: req.params[0],
       ...pageMeta,
+      channelId,
       origin: hostname,
       securityAlertResponse: req.securityAlertResponse,
     },
@@ -291,6 +316,8 @@ export const getRpcMethodMiddleware = ({
     `getRpcMethodMiddleware hostname=${hostname} channelId=${channelId}`,
   );
   // all user facing RPC calls not implemented by the provider
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return createAsyncMiddleware(async (req: any, res: any, next: any) => {
     // Used by eth_accounts and eth_coinbase RPCs.
     const getEthAccounts = async () => {
@@ -346,6 +373,7 @@ export const getRpcMethodMiddleware = ({
             url: url.current,
             title: title.current,
             icon: icon.current,
+            channelId,
             analytics: {
               request_source: getSource(),
               request_platform: analytics?.platform,
@@ -360,8 +388,12 @@ export const getRpcMethodMiddleware = ({
     const [requestPermissionsHandler, getPermissionsHandler] =
       permissionRpcMethods.handlers;
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rpcMethods: any = {
       wallet_getPermissions: async () =>
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         new Promise<any>((resolve) => {
           const handle = getPermissionsHandler.implementation(
             req,
@@ -383,6 +415,8 @@ export const getRpcMethodMiddleware = ({
           });
         }),
       wallet_requestPermissions: async () =>
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         new Promise<any>((resolve, reject) => {
           requestPermissionsHandler
             .implementation(
@@ -456,6 +490,8 @@ export const getRpcMethodMiddleware = ({
         const isInitialNetwork =
           networkType && getAllNetworks().includes(networkType);
         if (isInitialNetwork) {
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           res.result = (Networks as any)[networkType].networkId;
         } else {
           return next();
@@ -532,6 +568,7 @@ export const getRpcMethodMiddleware = ({
             url: url.current,
             title: title.current,
             icon: icon.current,
+            channelId,
             analytics: {
               request_source: getSource(),
               request_platform: analytics?.platform,
@@ -580,6 +617,7 @@ export const getRpcMethodMiddleware = ({
         const pageMeta = {
           meta: {
             url: url.current,
+            channelId,
             title: title.current,
             icon: icon.current,
             analytics: {
@@ -631,6 +669,7 @@ export const getRpcMethodMiddleware = ({
             url: url.current,
             title: title.current,
             icon: icon.current,
+            channelId,
             analytics: {
               request_source: getSource(),
               request_platform: analytics?.platform,
@@ -718,6 +757,8 @@ export const getRpcMethodMiddleware = ({
         new Promise<void>((resolve, reject) => {
           checkTabActive();
           navigation.navigate('QRScanner', {
+            // TODO: Replace "any" with type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             onScanSuccess: (data: any) => {
               if (!regex.exec(req.params[0], data)) {
                 reject({ message: 'NO_REGEX_MATCH', data });
@@ -736,6 +777,8 @@ export const getRpcMethodMiddleware = ({
               res.result = result;
               resolve();
             },
+            // TODO: Replace "any" with type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             onScanError: (e: { toString: () => any }) => {
               throw rpcErrors.internal(e.toString());
             },
@@ -747,45 +790,50 @@ export const getRpcMethodMiddleware = ({
 
       metamask_removeFavorite: async () => {
         checkTabActive();
+
         if (!isHomepage()) {
           throw providerErrors.unauthorized('Forbidden.');
         }
 
         const { bookmarks } = store.getState();
 
-        Alert.alert(
-          strings('browser.remove_bookmark_title'),
-          strings('browser.remove_bookmark_msg'),
-          [
-            {
-              text: strings('browser.cancel'),
-              onPress: () => {
-                res.result = {
-                  favorites: bookmarks,
-                };
+        return new Promise<void>((resolve) => {
+          Alert.alert(
+            strings('browser.remove_bookmark_title'),
+            strings('browser.remove_bookmark_msg'),
+            [
+              {
+                text: strings('browser.cancel'),
+                onPress: () => {
+                  res.result = {
+                    favorites: bookmarks,
+                  };
+                  resolve();
+                },
+                style: 'cancel',
               },
-              style: 'cancel',
-            },
-            {
-              text: strings('browser.yes'),
-              onPress: () => {
-                const bookmark = { url: req.params[0] };
+              {
+                text: strings('browser.yes'),
+                onPress: () => {
+                  const bookmark = { url: req.params[0] };
 
-                store.dispatch(removeBookmark(bookmark));
+                  store.dispatch(removeBookmark(bookmark));
 
-                const { bookmarks: updatedBookmarks } = store.getState();
+                  const { bookmarks: updatedBookmarks } = store.getState();
 
-                if (isHomepage()) {
-                  injectHomePageScripts(updatedBookmarks);
-                }
+                  if (isHomepage()) {
+                    injectHomePageScripts(updatedBookmarks);
+                  }
 
-                res.result = {
-                  favorites: bookmarks,
-                };
+                  res.result = {
+                    favorites: bookmarks,
+                  };
+                  resolve();
+                },
               },
-            },
-          ],
-        );
+            ],
+          );
+        });
       },
 
       metamask_showTutorial: async () => {
@@ -825,7 +873,7 @@ export const getRpcMethodMiddleware = ({
       },
 
       /**
-       * This method is used by the inpage provider to get its state on
+       * This method is used by the inpage provider or sdk to get its state on
        * initialization.
        */
       metamask_getProviderState: async () => {
@@ -888,6 +936,8 @@ export const getRpcMethodMiddleware = ({
       return next();
     }
 
+    validateOriginThrottling({ req, store });
+
     const isWhiteListedMethod = isWhitelistedRPC(req.method);
 
     try {
@@ -897,9 +947,19 @@ export const getRpcMethodMiddleware = ({
 
       isWhiteListedMethod &&
         store.dispatch(setEventStage(req.method, RPCStageTypes.COMPLETE));
-    } catch (e) {
-      isWhiteListedMethod && store.dispatch(setEventStageError(req.method, e));
-      throw e;
+    } catch (error: unknown) {
+      processOriginThrottlingRejection({
+        req,
+        error: error as {
+          message: string;
+          code?: number;
+        },
+        store,
+        navigation,
+      });
+      isWhiteListedMethod &&
+        store.dispatch(setEventStageError(req.method, error));
+      throw error;
     }
   });
 };

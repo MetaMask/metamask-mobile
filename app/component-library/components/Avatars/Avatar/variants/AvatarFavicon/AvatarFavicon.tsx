@@ -28,6 +28,8 @@ const AvatarFavicon = ({
   style,
   ...props
 }: AvatarFaviconProps) => {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [error, setError] = useState<any>(undefined);
   const [svgSource, setSvgSource] = useState<string>('');
   const { styles } = useStyles(stylesheet, { style });
@@ -38,6 +40,8 @@ const AvatarFavicon = ({
     [setError],
   );
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onSvgError = useCallback((e: any) => setError(e), [setError]);
 
   // TODO add the fallback with uppercase letter initial
@@ -55,6 +59,8 @@ const AvatarFavicon = ({
         const response = await fetch(uri, { method: 'HEAD' });
         const contentType = response.headers.get('Content-Type');
         return contentType?.includes('image/svg+xml');
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         return false;
       }
@@ -80,6 +86,8 @@ const AvatarFavicon = ({
         height="100%"
         uri={svgSource}
         style={styles.image}
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError={(e: any) => onSvgError(e)}
       />
     ) : null;

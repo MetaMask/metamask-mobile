@@ -54,6 +54,8 @@ interface Props {
   description: string; // The error description (Required)
   title?: string; //  The error title, default will be "Error" if not provided (Optional)
   ctaLabel?: string; // The CTA button label, default will be "Try again" (Optional)
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ctaOnPress?: () => any; // The optional callback to be invoked when pressing the CTA button (Optional)
   icon?: IconType;
   asScreen?: boolean; // Whether this component should be rendered as a screen or not (Optional)

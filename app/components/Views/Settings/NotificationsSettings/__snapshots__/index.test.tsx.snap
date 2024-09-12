@@ -4,7 +4,7 @@ exports[`NotificationsSettings should render correctly 1`] = `
 <RCTScrollView
   style={
     {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "flex": 1,
       "padding": 24,
       "paddingBottom": 48,
@@ -56,8 +56,8 @@ exports[`NotificationsSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#24272A",
-            "fontFamily": "Euclid Circular B",
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -69,11 +69,10 @@ exports[`NotificationsSettings should render correctly 1`] = `
       </Text>
       <RCTSwitch
         accessibilityRole="switch"
-        disabled={true}
         onChange={[Function]}
         onResponderTerminationRequest={[Function]}
         onStartShouldSetResponder={[Function]}
-        onTintColor="#0376C9"
+        onTintColor="#0376c9"
         style={
           [
             {
@@ -85,14 +84,14 @@ exports[`NotificationsSettings should render correctly 1`] = `
                 "alignSelf": "flex-end",
               },
               {
-                "backgroundColor": "#D6D9DC",
+                "backgroundColor": "#bbc0c566",
                 "borderRadius": 16,
               },
             ],
           ]
         }
         thumbTintColor="#ffffff"
-        tintColor="#D6D9DC"
+        tintColor="#bbc0c566"
         value={false}
       />
     </View>
@@ -107,8 +106,8 @@ exports[`NotificationsSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#535A61",
-            "fontFamily": "Euclid Circular B",
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -116,9 +115,55 @@ exports[`NotificationsSettings should render correctly 1`] = `
           }
         }
       >
-        Stay in the loop on what’s happening in your wallet with notifications. To use notifications, we use a profile to sync some settings across your devices. Learn how we protect your privacy while using this feature.
+        Stay in the loop on what’s happening in your wallet with notifications. To use notifications, we use a profile to sync some settings across your devices.
+         
+        <Text
+          accessibilityRole="text"
+          onPress={[Function]}
+          style={
+            {
+              "color": "#0376c9",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Learn how we protect your privacy while using this feature.
+        </Text>
       </Text>
     </View>
+    <Modal
+      animationType="none"
+      deviceHeight={null}
+      deviceWidth={null}
+      hardwareAccelerated={false}
+      hideModalContentWhileAnimating={false}
+      onBackdropPress={[Function]}
+      onModalHide={[Function]}
+      onModalWillHide={[Function]}
+      onModalWillShow={[Function]}
+      onRequestClose={[Function]}
+      onSwipeComplete={[Function]}
+      panResponderThreshold={4}
+      scrollHorizontal={false}
+      scrollOffset={0}
+      scrollOffsetMax={0}
+      scrollTo={null}
+      statusBarTranslucent={false}
+      supportedOrientations={
+        [
+          "portrait",
+          "landscape",
+        ]
+      }
+      swipeDirection="down"
+      swipeThreshold={100}
+      transparent={true}
+      visible={false}
+    />
   </View>
 </RCTScrollView>
 `;

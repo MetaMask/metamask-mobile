@@ -5,7 +5,7 @@ exports[`FadeOutOverlay should render correctly 1`] = `
   collapsable={false}
   style={
     {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "bottom": 0,
       "left": 0,
       "opacity": 1,

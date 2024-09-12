@@ -1,32 +1,95 @@
+import { isObject, hasProperty } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
-import { isObject } from '@metamask/utils';
-import { ensureValidState } from './util';
+import { ValidState, ensureValidState } from './util';
+import {
+  AccountsControllerState,
+  getUUIDFromAddressOfNormalAccount,
+} from '@metamask/accounts-controller';
+import { InternalAccount } from '@metamask/keyring-api';
+import { isDefaultAccountName } from '../../util/ENSUtils';
+import { ETH_EOA_METHODS } from '../../constants/eth-methods';
 
-/**
- * Migration to update state of GasFeeController
- *
- * @param state Persisted Redux state
- * @returns
- */
 export default function migrate(state: unknown) {
   if (!ensureValidState(state, 42)) {
     return state;
   }
 
-  const gasFeeControllerState = state.engine.backgroundState.GasFeeController;
-
-  if (!isObject(gasFeeControllerState)) {
+  if (!isObject(state.engine.backgroundState.AccountsController)) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 42: Invalid GasFeeController state error: '${JSON.stringify(
-          gasFeeControllerState,
-        )}'`,
+        `Migration 42: Invalid AccountsController state: '${typeof state.engine
+          .backgroundState.AccountsController}'`,
       ),
     );
     return state;
   }
 
-  gasFeeControllerState.nonRPCGasFeeApisDisabled = false;
-
+  if (
+    !hasProperty(
+      state.engine.backgroundState.AccountsController,
+      'internalAccounts',
+    )
+  ) {
+    captureException(
+      new Error(
+        `Migration 42: Missing internalAccounts property from AccountsController: '${typeof state
+          .engine.backgroundState.AccountsController}'`,
+      ),
+    );
+    return state;
+  }
+  mergeInternalAccounts(state);
   return state;
+}
+
+function deriveAccountName(existingName: string, currentName: string): string {
+  const isExistingNameDefault = isDefaultAccountName(existingName);
+  const isCurrentNameDefault = isDefaultAccountName(currentName);
+
+  return isExistingNameDefault && !isCurrentNameDefault
+    ? currentName
+    : existingName;
+}
+
+function mergeInternalAccounts(state: ValidState) {
+  const accountsController: AccountsControllerState = state.engine
+    .backgroundState.AccountsController as AccountsControllerState;
+  const internalAccounts = accountsController.internalAccounts.accounts;
+  const selectedAccountId = accountsController.internalAccounts.selectedAccount;
+
+  const selectedAddress =
+    internalAccounts[selectedAccountId]?.address.toLowerCase();
+
+  const mergedAccounts: Record<string, InternalAccount> = {};
+  const addressMap: Record<string, string> = {};
+
+  for (const [, account] of Object.entries(internalAccounts)) {
+    const lowerCaseAddress = account.address.toLowerCase();
+    const accountID = addressMap[lowerCaseAddress];
+    if (accountID) {
+      const existingAccount = mergedAccounts[accountID];
+      existingAccount.metadata = {
+        ...existingAccount.metadata,
+        ...account.metadata,
+        name: deriveAccountName(
+          existingAccount.metadata.name,
+          account.metadata.name,
+        ),
+      };
+      existingAccount.methods = ETH_EOA_METHODS;
+    } else {
+      const newId = getUUIDFromAddressOfNormalAccount(lowerCaseAddress);
+      addressMap[lowerCaseAddress] = newId;
+      mergedAccounts[newId] = {
+        ...account,
+        address: lowerCaseAddress,
+        id: newId,
+      };
+    }
+  }
+
+  const newSelectedAccountId =
+    addressMap[selectedAddress] || Object.keys(mergedAccounts)[0]; // Default to the first account in the list
+  accountsController.internalAccounts.accounts = mergedAccounts;
+  accountsController.internalAccounts.selectedAccount = newSelectedAccountId;
 }

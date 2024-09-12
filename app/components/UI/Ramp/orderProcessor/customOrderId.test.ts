@@ -85,6 +85,8 @@ describe('CustomOrderId processor', () => {
             status: OrderStatusEnum.Precreated,
             lastTimeFetched: 1000 + 1,
           }),
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
     );
 
@@ -121,6 +123,8 @@ describe('CustomOrderId processor', () => {
           getOrder: jest.fn().mockResolvedValue({
             status: OrderStatusEnum.Precreated,
           }),
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
     );
 
@@ -137,6 +141,8 @@ describe('CustomOrderId processor', () => {
           getOrder: jest
             .fn()
             .mockResolvedValue({ status: OrderStatusEnum.Pending }),
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
     );
 
@@ -165,6 +171,8 @@ describe('CustomOrderId processor', () => {
           getOrder: jest
             .fn()
             .mockResolvedValue({ status: OrderStatusEnum.Precreated }),
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
     );
 
@@ -193,6 +201,8 @@ describe('CustomOrderId processor', () => {
           getOrder: jest.fn().mockImplementation(() => {
             throw new Error('Request error');
           }),
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
     );
 
@@ -221,6 +231,8 @@ describe('CustomOrderId processor', () => {
           getOrder: jest.fn().mockResolvedValue({
             status: OrderStatusEnum.Precreated,
           }),
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
     );
 
@@ -254,6 +266,8 @@ describe('CustomOrderId processor', () => {
           getSellOrder: jest.fn().mockResolvedValue({
             status: OrderStatusEnum.Precreated,
           }),
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
     );
 
@@ -287,6 +301,8 @@ describe('CustomOrderId processor', () => {
           getOrder: jest.fn().mockResolvedValue({
             status: OrderStatusEnum.Unknown,
           }),
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
     );
 
@@ -322,6 +338,8 @@ describe('CustomOrderId processor', () => {
           getSellOrder: jest.fn().mockResolvedValue({
             status: OrderStatusEnum.Unknown,
           }),
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
     );
 
@@ -357,6 +375,8 @@ describe('CustomOrderId processor', () => {
           getOrder: jest.fn().mockResolvedValue({
             status: OrderStatusEnum.IdExpired,
           }),
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
     );
 
@@ -390,6 +410,8 @@ describe('CustomOrderId processor', () => {
           getSellOrder: jest.fn().mockResolvedValue({
             status: OrderStatusEnum.IdExpired,
           }),
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
     );
 
@@ -423,6 +445,8 @@ describe('CustomOrderId processor', () => {
           getOrder: jest.fn().mockResolvedValue({
             status: OrderStatusEnum.Unknown,
           }),
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
     );
 
@@ -457,6 +481,8 @@ describe('CustomOrderId processor', () => {
           getSellOrder: jest.fn().mockResolvedValue({
             status: OrderStatusEnum.Unknown,
           }),
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
     );
 

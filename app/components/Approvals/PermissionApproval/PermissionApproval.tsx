@@ -9,6 +9,8 @@ import { selectAccountsLength } from '../../../selectors/accountTrackerControlle
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
 export interface PermissionApprovalProps {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
 }
 

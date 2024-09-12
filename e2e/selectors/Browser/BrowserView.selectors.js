@@ -17,6 +17,9 @@ export const BrowserViewSelectorsIDs = {
   TABS_BUTTON: 'show-tabs-button',
   CANCEL_BUTTON_ON_BROWSER_ID: 'cancel-url-button',
   URL_CLEAR_ICON: 'url-clear-icon',
+  ADD_NEW_TAB: 'tabs_add',
+  CLOSE_ALL_TABS: 'tabs_close_all',
+  NO_TABS_MESSAGE: 'no-tabs-message',
 };
 
 export const BrowserViewSelectorsText = {
@@ -28,6 +31,6 @@ export const BrowserViewSelectorsText = {
 };
 export const BrowserViewSelectorsXPaths = {
   FAVORITE_TAB: `//div[@id='root']/div[@class='App']//ol//li[contains(text(), 'Favorites')]`,
-  TEST_DAPP_TEXT: `//div[@id='root']/div[@class='App']//p[contains(text(), 'metamask.github.io/test-dapp/')]`,
+  TEST_DAPP_TEXT: '//a[@href="https://metamask.github.io/test-dapp/"]',
   TEST_DAPP_LINK: `//a[contains(@href, '${ExternalSites.TEST_DAPP}')]`,
 };

@@ -18,6 +18,8 @@ const PickerNetworkMeta = {
 export default PickerNetworkMeta;
 
 export const PickerNetwork = {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   render: (args: any) => (
     <PickerNetworkComponent
       {...args}

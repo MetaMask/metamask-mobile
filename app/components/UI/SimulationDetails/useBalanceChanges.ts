@@ -184,7 +184,11 @@ export default function useBalanceChanges(
     simulationData ?? {};
 
   const erc20TokenAddresses = tokenBalanceChanges
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .filter((tbc: any) => tbc.standard === SimulationTokenStandard.erc20)
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .map((tbc: any) => tbc.address);
 
   const erc20Decimals = useAsyncResultOrThrow(

@@ -54,6 +54,10 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 20,
       paddingHorizontal: 16,
     },
+    tokenDetailsWrapper: {
+      marginBottom: 20,
+      paddingHorizontal: 16,
+    },
   });
 };
 

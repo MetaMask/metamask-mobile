@@ -5,7 +5,7 @@ import Button, {
 import { zeroAddress } from 'ethereumjs-util';
 import React, { useCallback, useEffect } from 'react';
 import { Platform, TouchableOpacity, View } from 'react-native';
-import { RootStateOrAny, useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import {
   TOKEN_ASSET_OVERVIEW,
@@ -28,7 +28,7 @@ import {
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import Logger from '../../../util/Logger';
 import { safeToChecksumAddress } from '../../../util/address';
 import {
@@ -51,9 +51,13 @@ import ChartNavigationButton from './ChartNavigationButton';
 import Price from './Price';
 import styleSheet from './AssetOverview.styles';
 import { useStyles } from '../../../component-library/hooks';
+import TokenDetails from './TokenDetails';
+import { RootState } from '../../../reducers';
 
 interface AssetOverviewProps {
   navigation: {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     navigate: (route: string, props?: any) => void;
   };
   asset: Asset;
@@ -68,17 +72,19 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const conversionRate = useSelector(selectConversionRate);
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const primaryCurrency = useSelector(
-    (state: RootStateOrAny) => state.settings.primaryCurrency,
+    (state: RootState) => state.settings.primaryCurrency,
   );
-  const selectedAddress = useSelector(selectSelectedAddress);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountChecksummedAddress,
+  );
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const tokenBalances = useSelector(selectContractBalances);
-  const chainId = useSelector((state: RootStateOrAny) => selectChainId(state));
-  const ticker = useSelector((state: RootStateOrAny) => selectTicker(state));
+  const chainId = useSelector((state: RootState) => selectChainId(state));
+  const ticker = useSelector((state: RootState) => selectTicker(state));
 
   const { data: prices = [], isLoading } = useTokenHistoricalPrices({
     address: asset.isETH ? zeroAddress() : asset.address,
-    chainId: chainId as string,
+    chainId,
     timePeriod,
     vsCurrency: currentCurrency,
   });
@@ -87,10 +93,14 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const dispatch = useDispatch();
 
   useEffect(() => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { SwapsController } = Engine.context as { SwapsController: any };
     const fetchTokenWithCache = async () => {
       try {
         await SwapsController.fetchTokenWithCache();
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         Logger.error(
           error,
@@ -159,18 +169,19 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   );
 
   const itemAddress = safeToChecksumAddress(asset.address);
-  const exchangeRate =
-    itemAddress && itemAddress in tokenExchangeRates
-      ? tokenExchangeRates[itemAddress]
-      : undefined;
+  const exchangeRate = itemAddress
+    ? tokenExchangeRates?.[itemAddress]?.price
+    : undefined;
 
   let balance, balanceFiat;
   if (asset.isETH) {
     balance = renderFromWei(
+      //@ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
       accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
     );
     balanceFiat = weiToFiat(
       hexToBN(
+        //@ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
         accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
       ),
       conversionRate,
@@ -178,7 +189,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     );
   } else {
     balance =
-      itemAddress && itemAddress in tokenBalances
+      itemAddress && tokenBalances?.[itemAddress]
         ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], asset.decimals)
         : 0;
     balanceFiat = balanceToFiat(
@@ -245,7 +256,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
                 size={ButtonSize.Lg}
                 label={strings('asset_overview.receive_button')}
                 onPress={onReceive}
-                testID={TOKEN_OVERVIEW_RECEIVE_BUTTON}
+                {...generateTestId(Platform, TOKEN_OVERVIEW_RECEIVE_BUTTON)}
               />
               <Button
                 style={{ ...styles.footerButton, ...styles.sendButton }}
@@ -256,6 +267,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
                 {...generateTestId(Platform, TOKEN_OVERVIEW_SEND_BUTTON)}
               />
             </View>
+          </View>
+          <View style={styles.tokenDetailsWrapper}>
+            <TokenDetails asset={asset} />
           </View>
           {/*  Commented out since we are going to re enable it after curating content */}
           {/* <View style={styles.aboutWrapper}>

@@ -6,6 +6,7 @@ import {
   Text,
   View,
   ActivityIndicator,
+  DimensionValue,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import StyledButton from '../../UI/StyledButton';
@@ -26,7 +27,7 @@ import { ImportAccountFromPrivateKeySelectorsIDs } from '../../../../e2e/selecto
 const ImportPrivateKey = () => {
   const [privateKey, setPrivateKey] = useState('');
   const [loading, setLoading] = useState(false);
-  const [inputWidth, setInputWidth] = useState(
+  const [inputWidth, setInputWidth] = useState<DimensionValue | undefined>(
     Device.isAndroid() ? '99%' : undefined,
   );
   const navigation = useNavigation();
@@ -53,7 +54,7 @@ const ImportPrivateKey = () => {
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://metamask.zendesk.com/hc/en-us/articles/360015289932-What-are-imported-accounts-',
+        url: 'https://support.metamask.io/managing-my-wallet/accounts-and-addresses/what-are-imported-accounts-/',
         title: strings('drawer.metamask_support'),
       },
     });

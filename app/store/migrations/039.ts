@@ -28,6 +28,8 @@ export default function migrate(state: unknown) {
     );
     return state;
   }
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transactionControllerState.transactions.forEach((transaction: any) => {
     if (transaction.rawTransaction) {
       transaction.rawTx = transaction.rawTransaction;

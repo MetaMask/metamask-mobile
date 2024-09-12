@@ -1,7 +1,6 @@
 import { KeyringController } from '@metamask/keyring-controller';
 import { NetworkController } from '@metamask/network-controller';
 import { PermissionController } from '@metamask/permission-controller';
-import { PreferencesController } from '@metamask/preferences-controller';
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { Linking } from 'react-native';
 import { PROTOCOLS } from '../../../constants/deeplinks';
@@ -23,6 +22,8 @@ import handleBatchRpcResponse from '../handlers/handleBatchRpcResponse';
 import handleCustomRpcCalls from '../handlers/handleCustomRpcCalls';
 import DevLogger from '../utils/DevLogger';
 import { wait, waitForKeychainUnlocked } from '../utils/wait.util';
+import { AccountsController } from '@metamask/accounts-controller';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 export default class DeeplinkProtocolService {
   public connections: DappConnections = {};
@@ -98,25 +99,27 @@ export default class DeeplinkProtocolService {
       isMMSDK: true,
       url: PROTOCOLS.METAMASK + '://' + AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
       isRemoteConn: true,
-      sendMessage: (msg: any) => {
-        const response = {
-          ...msg,
-          data: {
-            ...msg.data,
-            chainId: this.getChainId(),
-            accounts: this.getSelectedAccounts(),
-          },
-        };
-
-        return this.sendMessage(response);
-      },
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      sendMessage: (msg: any) => this.sendMessage(msg),
       ...defaultBridgeParams,
     });
 
     this.bridgeByClientId[clientInfo.clientId] = bridge;
   }
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async sendMessage(message: any, forceRedirect?: boolean) {
+    const messageWithMetadata = {
+      ...message,
+      data: {
+        ...message.data,
+        chainId: this.getChainId(),
+        accounts: this.getSelectedAccounts(),
+      },
+    };
+
     const id = message?.data?.id;
 
     DevLogger.log(`DeeplinkProtocolService::sendMessage id=${id}`);
@@ -125,14 +128,14 @@ export default class DeeplinkProtocolService {
 
     DevLogger.log(
       `DeeplinkProtocolService::sendMessage method=${rpcMethod}`,
-      message,
+      messageWithMetadata,
     );
     // handle multichain rpc call responses separately
     const chainRPCs = this.batchRPCManager.getById(id);
     if (chainRPCs) {
       const isLastRpcOrError = await handleBatchRpcResponse({
         chainRpcs: chainRPCs,
-        msg: message,
+        msg: messageWithMetadata,
         backgroundBridge: this.bridgeByClientId[this.currentClientId ?? ''],
         batchRPCManager: this.batchRPCManager,
         sendMessage: ({ msg }) => this.sendMessage(msg),
@@ -151,7 +154,7 @@ export default class DeeplinkProtocolService {
 
         if (hasError) {
           this.openDeeplink({
-            message,
+            message: messageWithMetadata,
             clientId: this.currentClientId ?? '',
           });
           return;
@@ -197,12 +200,24 @@ export default class DeeplinkProtocolService {
 
       DevLogger.log(
         `DeeplinkProtocolService::sendMessage sending deeplink message=${JSON.stringify(
-          message,
+          messageWithMetadata,
         )}`,
       );
 
+      const origRpcId = messageWithMetadata?.data?.id;
+
+      const isPartOfBatchRequest = origRpcId?.includes('_');
+
+      if (isPartOfBatchRequest) {
+        DevLogger.log(
+          `DeeplinkProtocolService::sendMessage skip openDeeplink for origRpcId=${origRpcId}`,
+        );
+
+        return;
+      }
+
       this.openDeeplink({
-        message,
+        message: messageWithMetadata,
         clientId: this.currentClientId ?? '',
       });
     } catch (error) {
@@ -218,6 +233,8 @@ export default class DeeplinkProtocolService {
     clientId,
     scheme,
   }: {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     message: any;
     clientId: string;
     scheme?: string;
@@ -255,13 +272,127 @@ export default class DeeplinkProtocolService {
     channelId: string;
   }): Promise<unknown> {
     const permissionsController = (
-      Engine.context as { PermissionController: PermissionController<any, any> }
+      Engine.context as {
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        PermissionController: PermissionController<any, any>;
+      }
     ).PermissionController;
 
     return permissionsController.requestPermissions(
       { origin: channelId },
       { eth_accounts: {} },
     );
+  }
+
+  public async handleConnectionEventAsync({
+    clientInfo,
+    params,
+  }: {
+    clientInfo: DappClient;
+    params: {
+      dappPublicKey: string;
+      url: string;
+      scheme: string;
+      channelId: string;
+      originatorInfo?: string;
+      request?: string;
+    };
+  }) {
+    const keyringController = (
+      Engine.context as { KeyringController: KeyringController }
+    ).KeyringController;
+
+    await waitForKeychainUnlocked({
+      keyringController,
+      context: 'DeeplinkProtocolService::setupOnClientsConnectedListener',
+    });
+
+    try {
+      if (!this.connections?.[clientInfo.clientId]) {
+        DevLogger.log(
+          `DeeplinkProtocolService::clients_connected - new client ${clientInfo.clientId}}`,
+          this.connections,
+        );
+
+        await this.checkPermission({
+          channelId: clientInfo.clientId,
+          originatorInfo: clientInfo.originatorInfo,
+        });
+
+        this.setupBridge(clientInfo);
+
+        this.connections[clientInfo.clientId] = {
+          clientId: clientInfo.clientId,
+          connected: true,
+          validUntil: clientInfo.validUntil,
+          scheme: clientInfo.scheme,
+          originatorInfo: clientInfo.originatorInfo,
+        };
+
+        await SDKConnect.getInstance().addDappConnection({
+          id: clientInfo.clientId,
+          origin: AppConstants.MM_SDK.IOS_SDK,
+          lastAuthorized: Date.now(),
+          otherPublicKey: this.dappPublicKeyByClientId[clientInfo.clientId],
+          originatorInfo: clientInfo.originatorInfo,
+          scheme: clientInfo.scheme,
+          validUntil: Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
+        });
+      }
+
+      if (params.request) {
+        await this.processDappRpcRequest(params);
+
+        return;
+      }
+
+      this.sendMessage(
+        {
+          data: {},
+        },
+        true,
+      ).catch((err) => {
+        Logger.log(
+          err,
+          `DeeplinkProtocolService::clients_connected error sending READY message to client`,
+        );
+      });
+    } catch (error) {
+      Logger.log(
+        error,
+        `DeeplinkProtocolService::clients_connected sending jsonrpc error to client - connection rejected`,
+      );
+
+      this.sendMessage({
+        data: {
+          error,
+          jsonrpc: '2.0',
+        },
+        name: 'metamask-provider',
+      }).catch((err) => {
+        Logger.log(
+          err,
+          `DeeplinkProtocolService::clients_connected error failed sending jsonrpc error to client`,
+        );
+      });
+
+      const message = {
+        data: {
+          error,
+          jsonrpc: '2.0',
+        },
+        name: 'metamask-provider',
+      };
+
+      this.openDeeplink({
+        message,
+        clientId: this.currentClientId ?? '',
+        scheme: clientInfo.scheme,
+      });
+
+      return;
+    }
   }
 
   public async handleConnection(params: {
@@ -318,10 +449,7 @@ export default class DeeplinkProtocolService {
       } else {
         this.sendMessage(
           {
-            data: {
-              chainId: this.getChainId(),
-              accounts: this.getSelectedAccounts(),
-            },
+            data: {},
           },
           true,
         ).catch((err) => {
@@ -345,108 +473,10 @@ export default class DeeplinkProtocolService {
       scheme: clientInfo.scheme,
     });
 
-    const handleEventAsync = async () => {
-      const keyringController = (
-        Engine.context as { KeyringController: KeyringController }
-      ).KeyringController;
-
-      await waitForKeychainUnlocked({
-        keyringController,
-        context: 'DeeplinkProtocolService::setupOnClientsConnectedListener',
-      });
-
-      try {
-        if (!this.connections?.[clientInfo.clientId]) {
-          DevLogger.log(
-            `DeeplinkProtocolService::clients_connected - new client ${clientInfo.clientId}}`,
-            this.connections,
-          );
-          // Ask for account permissions
-          await this.checkPermission({
-            originatorInfo: clientInfo.originatorInfo,
-            channelId: clientInfo.clientId,
-          });
-
-          this.setupBridge(clientInfo);
-          // Save session to SDKConnect
-          // Save to local connections
-          this.connections[clientInfo.clientId] = {
-            connected: true,
-            clientId: clientInfo.clientId,
-            originatorInfo: clientInfo.originatorInfo,
-            validUntil: clientInfo.validUntil,
-            scheme: clientInfo.scheme,
-          };
-
-          await SDKConnect.getInstance().addDappConnection({
-            id: clientInfo.clientId,
-            lastAuthorized: Date.now(),
-            origin: AppConstants.MM_SDK.IOS_SDK,
-            originatorInfo: clientInfo.originatorInfo,
-            otherPublicKey: this.dappPublicKeyByClientId[clientInfo.clientId],
-            validUntil: Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
-            scheme: clientInfo.scheme,
-          });
-        }
-
-        if (params.request) {
-          await this.processDappRpcRequest(params);
-
-          return;
-        }
-
-        this.sendMessage(
-          {
-            data: {
-              chainId: this.getChainId(),
-              accounts: this.getSelectedAccounts(),
-            },
-          },
-          true,
-        ).catch((err) => {
-          Logger.log(
-            err,
-            `DeeplinkProtocolService::clients_connected error sending READY message to client`,
-          );
-        });
-      } catch (error) {
-        Logger.log(
-          error,
-          `DeeplinkProtocolService::clients_connected sending jsonrpc error to client - connection rejected`,
-        );
-
-        this.sendMessage({
-          data: {
-            error,
-            jsonrpc: '2.0',
-          },
-          name: 'metamask-provider',
-        }).catch((err) => {
-          Logger.log(
-            err,
-            `DeeplinkProtocolService::clients_connected error failed sending jsonrpc error to client`,
-          );
-        });
-
-        const message = {
-          data: {
-            error,
-            jsonrpc: '2.0',
-          },
-          name: 'metamask-provider',
-        };
-
-        this.openDeeplink({
-          message,
-          clientId: this.currentClientId ?? '',
-          scheme: clientInfo.scheme,
-        });
-
-        return;
-      }
-    };
-
-    handleEventAsync().catch((err) => {
+    this.handleConnectionEventAsync({
+      clientInfo,
+      params,
+    }).catch((err) => {
       Logger.log(
         err,
         `DeeplinkProtocolService::clients_connected error handling event`,
@@ -468,6 +498,8 @@ export default class DeeplinkProtocolService {
     const requestObject = JSON.parse(params.request!) as {
       id: string;
       method: string;
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       params: any;
     };
 
@@ -516,6 +548,8 @@ export default class DeeplinkProtocolService {
   public getSelectedAccounts() {
     const permissionController = (
       Engine.context as {
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         PermissionController: PermissionController<any, any>;
       }
     ).PermissionController;
@@ -524,11 +558,15 @@ export default class DeeplinkProtocolService {
       this.currentClientId ?? '',
     );
 
-    const preferencesController = (
-      Engine.context as { PreferencesController: PreferencesController }
-    ).PreferencesController;
+    const accountsController = (
+      Engine.context as {
+        AccountsController: AccountsController;
+      }
+    ).AccountsController;
 
-    const selectedAddress = preferencesController.state.selectedAddress;
+    const selectedInternalAccountChecksummedAddress = toChecksumHexAddress(
+      accountsController.getSelectedAccount().address,
+    );
 
     let connectedAddresses = permissions?.eth_accounts?.caveats?.[0]
       ?.value as string[];
@@ -547,15 +585,17 @@ export default class DeeplinkProtocolService {
     );
 
     const isPartOfConnectedAddresses = lowerCaseConnectedAddresses.includes(
-      selectedAddress.toLowerCase(),
+      selectedInternalAccountChecksummedAddress.toLowerCase(),
     );
 
     if (isPartOfConnectedAddresses) {
       // Create a new array with selectedAddress at the first position
       connectedAddresses = [
-        selectedAddress,
+        selectedInternalAccountChecksummedAddress,
         ...connectedAddresses.filter(
-          (address) => address.toLowerCase() !== selectedAddress.toLowerCase(),
+          (address) =>
+            address.toLowerCase() !==
+            selectedInternalAccountChecksummedAddress.toLowerCase(),
         ),
       ];
     }
@@ -564,20 +604,22 @@ export default class DeeplinkProtocolService {
   }
 
   public getSelectedAddress() {
-    const preferencesController = (
+    const accountsController = (
       Engine.context as {
-        PreferencesController: PreferencesController;
+        AccountsController: AccountsController;
       }
-    ).PreferencesController;
+    ).AccountsController;
 
-    const selectedAddress = preferencesController.state.selectedAddress;
+    const selectedInternalAccountChecksummedAddress = toChecksumHexAddress(
+      accountsController.getSelectedAccount().address,
+    );
 
     DevLogger.log(
       `DeeplinkProtocolService::clients_connected selectedAddress`,
-      selectedAddress,
+      selectedInternalAccountChecksummedAddress,
     );
 
-    return selectedAddress;
+    return selectedInternalAccountChecksummedAddress;
   }
 
   public handleMessage(params: {
@@ -622,6 +664,8 @@ export default class DeeplinkProtocolService {
       let data: {
         id: string;
         method: string;
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         params?: any;
       };
 
@@ -650,17 +694,45 @@ export default class DeeplinkProtocolService {
         const isAccountChanged = dappAccountAddress !== walletSelectedAddress;
         const isChainChanged = dappAccountChainId !== walletSelectedChainId;
 
-        if (isAccountChanged || isChainChanged) {
+        const rpcMethod = data.method;
+
+        const RPC_METHODS_TO_SKIP = [
+          RPC_METHODS.WALLET_ADDETHEREUMCHAIN,
+          RPC_METHODS.WALLET_SWITCHETHEREUMCHAIN,
+        ];
+
+        const checkForRpcMethodToSkip = () => {
+          const isBatchRequest = rpcMethod === RPC_METHODS.METAMASK_BATCH;
+
+          if (isBatchRequest) {
+            const batchRpcMethods: string[] = data.params.map(
+              (rpc: { method: string }) => rpc.method,
+            );
+
+            const shouldSkip = batchRpcMethods.some((r) =>
+              RPC_METHODS_TO_SKIP.includes(r),
+            );
+
+            return shouldSkip;
+          }
+
+          return RPC_METHODS_TO_SKIP.includes(rpcMethod);
+        };
+
+        const isRpcMethodToSkip = checkForRpcMethodToSkip();
+
+        if (isAccountChanged || (!isRpcMethodToSkip && isChainChanged)) {
+          const dynamicErrorMessage = `The selected ${
+            isAccountChanged ? 'account' : 'chain'
+          } has changed. Please try again.`;
+
           this.sendMessage(
             {
               data: {
                 id: data.id,
-                accounts: this.getSelectedAccounts(),
-                chainId: this.getChainId(),
                 error: {
                   code: -32602,
-                  message:
-                    'The selected account or chain has changed. Please try again.',
+                  message: dynamicErrorMessage,
                 },
                 jsonrpc: '2.0',
               },

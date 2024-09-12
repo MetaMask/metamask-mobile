@@ -76,6 +76,8 @@ const RenderBalance = (asset: {
 
 const ConfirmAddAsset = () => {
   const { selectedAsset, networkName, chainId, ticker, addTokenList } =
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     useParams<any>();
   const { colors } = useTheme();
   const styles = createStyles(colors);

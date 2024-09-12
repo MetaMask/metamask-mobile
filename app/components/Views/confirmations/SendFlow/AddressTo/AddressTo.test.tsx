@@ -5,7 +5,7 @@ import configureMockStore from 'redux-mock-store';
 import { render } from '@testing-library/react-native';
 
 import SendFlowAddressTo from '.';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -17,7 +17,7 @@ jest.mock('@react-navigation/native', () => ({
 const mockInitialState = {
   settings: {},
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 

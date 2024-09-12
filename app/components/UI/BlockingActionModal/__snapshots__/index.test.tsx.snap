@@ -16,7 +16,7 @@ exports[`BlockingActionModal should render correctly 1`] = `
   deviceHeight={null}
   deviceWidth={null}
   hasBackdrop={true}
-  hideModalContentWhileAnimating={false}
+  hideModalContentWhileAnimating={true}
   isVisible={true}
   onBackButtonPress={[Function]}
   onBackdropPress={[Function]}
@@ -51,7 +51,7 @@ exports[`BlockingActionModal should render correctly 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "center",
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#ffffff",
         "borderRadius": 6,
         "justifyContent": "center",
         "minHeight": 200,

@@ -60,7 +60,7 @@ import { selectContractExchangeRates } from '../../../../../../selectors/tokenRa
 import { createBrowserNavDetails } from '../../../../Browser';
 import { isNetworkRampNativeTokenSupported } from '../../../../../../components/UI/Ramp/utils';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
-import Routes from '../../../../../../constants/navigation/Routes';
+import { createBuyNavigationDetails } from '../../../../../UI/Ramp/routes/utils';
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
 
@@ -303,7 +303,7 @@ class TransactionReviewInformation extends PureComponent {
     /* this is kinda weird, we have to reject the transaction to collapse the modal */
     this.onCancelPress();
     try {
-      navigation.navigate(Routes.RAMP.BUY);
+      navigation.navigate(...createBuyNavigationDetails());
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }

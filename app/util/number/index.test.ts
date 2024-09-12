@@ -23,9 +23,11 @@ import {
   isNumberScientificNotationWhenString,
   isZeroValue,
   limitToMaximumDecimalPlaces,
+  localizeLargeNumber,
   renderFiat,
   renderFromTokenMinimalUnit,
   renderFromWei,
+  safeBNToHex,
   safeNumberToBN,
   toBN,
   toHexadecimal,
@@ -190,6 +192,8 @@ describe('Number utils :: fromTokenMinimalUnit', () => {
 
 describe('Number utils :: fromTokenMinimalUnitString', () => {
   it('fromTokenMinimalUnit using number', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const wrongTypeInput = 1337 as any;
     expect(() => fromTokenMinimalUnitString(wrongTypeInput, 6)).toThrow();
     expect(() => fromTokenMinimalUnitString(wrongTypeInput, 0)).toThrow();
@@ -412,6 +416,66 @@ describe('Number utils :: renderFromWei', () => {
   });
 });
 
+describe('Number utils :: localizeLargeNumber', () => {
+  let i18n: { t: unknown };
+
+  beforeEach(() => {
+    i18n = {
+      t: jest.fn((key: string) => {
+        const translations: Record<string, string> = {
+          'token.trillion_abbreviation': 'T',
+          'token.billion_abbreviation': 'B',
+          'token.million_abbreviation': 'M',
+        };
+        return translations[key];
+      }),
+    };
+  });
+
+  it('should localize numbers in the trillions correctly', () => {
+    const number = 1500000000000;
+    const result = localizeLargeNumber(i18n, number);
+    expect(result).toBe('1.50T');
+    expect(i18n.t).toHaveBeenCalledWith('token.trillion_abbreviation');
+  });
+
+  it('should localize numbers in the billions correctly', () => {
+    const number = 1500000000;
+    const result = localizeLargeNumber(i18n, number);
+    expect(result).toBe('1.50B');
+    expect(i18n.t).toHaveBeenCalledWith('token.billion_abbreviation');
+  });
+
+  it('should localize numbers in the millions correctly', () => {
+    const number = 1500000;
+    const result = localizeLargeNumber(i18n, number);
+    expect(result).toBe('1.50M');
+    expect(i18n.t).toHaveBeenCalledWith('token.million_abbreviation');
+  });
+
+  it('should format numbers below one million correctly', () => {
+    const number = 123456.789;
+    const result = localizeLargeNumber(i18n, number);
+    expect(result).toBe('123456.79');
+    expect(i18n.t).not.toHaveBeenCalled();
+  });
+
+  it('should handle exact boundary conditions correctly', () => {
+    const trillion = 1000000000000;
+    const billion = 1000000000;
+    const million = 1000000;
+
+    expect(localizeLargeNumber(i18n, trillion)).toBe('1.00T');
+    expect(i18n.t).toHaveBeenCalledWith('token.trillion_abbreviation');
+
+    expect(localizeLargeNumber(i18n, billion)).toBe('1.00B');
+    expect(i18n.t).toHaveBeenCalledWith('token.billion_abbreviation');
+
+    expect(localizeLargeNumber(i18n, million)).toBe('1.00M');
+    expect(i18n.t).toHaveBeenCalledWith('token.million_abbreviation');
+  });
+});
+
 describe('Number utils :: calcTokenValueToSend', () => {
   it('calcTokenValueToSend', () => {
     expect(calcTokenValueToSend(new BN(1337), 0)).toEqual('539');
@@ -628,7 +692,11 @@ describe('Number utils :: fastSplit', () => {
 
 describe('Number utils :: safeNumberToBN', () => {
   it('should safe convert a string type positive decimal number to BN', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = safeNumberToBN('1650000007.7');
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const expected: any = new BN('1650000007');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
@@ -637,7 +705,11 @@ describe('Number utils :: safeNumberToBN', () => {
   });
 
   it('should safe convert a number type positive decimal number to BN', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = safeNumberToBN(1650000007.7);
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const expected: any = new BN('1650000007');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
@@ -646,7 +718,11 @@ describe('Number utils :: safeNumberToBN', () => {
   });
 
   it('should safe convert a string type positive integer to BN', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = safeNumberToBN('16500');
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const expected: any = new BN('16500');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
@@ -655,7 +731,11 @@ describe('Number utils :: safeNumberToBN', () => {
   });
 
   it('should safe convert a number type positive integer to BN', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = safeNumberToBN(16500);
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const expected: any = new BN('16500');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
@@ -664,7 +744,11 @@ describe('Number utils :: safeNumberToBN', () => {
   });
 
   it('should safe convert a string type negative decimal number to BN', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = safeNumberToBN('-1650000007.7');
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const expected: any = new BN('-1650000007');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
@@ -673,7 +757,11 @@ describe('Number utils :: safeNumberToBN', () => {
   });
 
   it('should safe convert a number type negative decimal number to BN', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = safeNumberToBN(-1650000007.7);
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const expected: any = new BN('-1650000007');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
@@ -682,7 +770,11 @@ describe('Number utils :: safeNumberToBN', () => {
   });
 
   it('should safe convert a string type negative integer to BN', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = safeNumberToBN('-16500');
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const expected: any = new BN('-16500');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
@@ -691,7 +783,11 @@ describe('Number utils :: safeNumberToBN', () => {
   });
 
   it('should safe convert a number type negative integer to BN', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = safeNumberToBN(-16500);
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const expected: any = new BN('-16500');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
@@ -700,7 +796,11 @@ describe('Number utils :: safeNumberToBN', () => {
   });
 
   it('should safe convert a positive hex to BN', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = safeNumberToBN('75BCD15');
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const expected: any = new BN('123456789');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
@@ -709,7 +809,11 @@ describe('Number utils :: safeNumberToBN', () => {
   });
 
   it('should safe convert a positive hex with 0x prefix to BN', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = safeNumberToBN('0x75BCD15');
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const expected: any = new BN('123456789');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
@@ -718,7 +822,11 @@ describe('Number utils :: safeNumberToBN', () => {
   });
 
   it('should safe convert a negative hex to BN', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = safeNumberToBN('-75BCD15');
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const expected: any = new BN('-123456789');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
@@ -727,7 +835,11 @@ describe('Number utils :: safeNumberToBN', () => {
   });
 
   it('should safe convert a negative hex with 0x prefix to BN', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = safeNumberToBN('-0x75BCD15');
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const expected: any = new BN('-123456789');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
@@ -736,7 +848,11 @@ describe('Number utils :: safeNumberToBN', () => {
   });
 
   it('should safe convert a decimal zero to BN', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = safeNumberToBN('0');
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const expected: any = new BN('0');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
@@ -745,7 +861,11 @@ describe('Number utils :: safeNumberToBN', () => {
   });
 
   it('should safe convert a hex zero to BN', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = safeNumberToBN('0x0');
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const expected: any = new BN('0');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
@@ -754,7 +874,11 @@ describe('Number utils :: safeNumberToBN', () => {
   });
 
   it('should safe convert an invalid hex string to zero', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = safeNumberToBN('0xNaN');
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const expected: any = new BN('0');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
@@ -763,7 +887,11 @@ describe('Number utils :: safeNumberToBN', () => {
   });
 
   it('should safe convert a NaN object', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = safeNumberToBN(NaN);
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const expected: any = new BN('0');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
@@ -827,15 +955,23 @@ describe('Number utils :: isNumberScientificNotationWhenString', () => {
   });
 
   it('isNumberScientificNotationWhenString should be false when non number is passed', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(isNumberScientificNotationWhenString('1.337e-6' as any)).toEqual(
       false,
     );
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(isNumberScientificNotationWhenString('1.337e-7' as any)).toEqual(
       false,
     );
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(isNumberScientificNotationWhenString('1.337e20' as any)).toEqual(
       false,
     );
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(isNumberScientificNotationWhenString('1.337e21' as any)).toEqual(
       false,
     );
@@ -913,4 +1049,17 @@ describe('Number utils :: formatValueToMatchTokenDecimals', () => {
   it('should return a formatted value if the value decimal is greater than the submitted decimal', () => {
     expect(formatValueToMatchTokenDecimals('1.234567', 4)).toBe('1.2346');
   });
+});
+
+describe('Number utils :: safeBNToHex', () => {
+  it('returns hex string', () => {
+    expect(safeBNToHex(new BN('255'))).toBe('0xff');
+  });
+
+  it.each([undefined, null])(
+    'returns original value if input is %s',
+    (value) => {
+      expect(safeBNToHex(value)).toBe(value);
+    },
+  );
 });

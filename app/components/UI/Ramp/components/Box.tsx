@@ -35,6 +35,8 @@ interface Props {
   style?: StyleProp<ViewStyle>;
   thin?: boolean;
   activeOpacity?: number;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onPress?: () => any;
   accessible?: boolean;
   accessibilityLabel?: string;

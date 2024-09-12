@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { TouchableOpacity, StyleSheet, Platform, View } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -12,15 +12,20 @@ import {
   TOKEN_BALANCE_LOADING,
   TOKEN_RATE_UNDEFINED,
 } from '../Tokens/constants';
+import { Colors } from '../../../util/theme/models';
+import { fontStyles } from '../../../styles/common';
+import { useTheme } from '../../../util/theme';
+
 interface AssetElementProps {
   children?: React.ReactNode;
   asset: TokenI;
   onPress?: (asset: TokenI) => void;
   onLongPress?: ((asset: TokenI) => void) | null;
   balance?: string;
+  mainBalance?: string | null;
 }
 
-const createStyles = () =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     itemWrapper: {
       flex: 1,
@@ -32,12 +37,19 @@ const createStyles = () =>
     arrow: {
       flex: 1,
       alignSelf: 'flex-end',
+      alignItems: 'flex-end',
     },
     arrowIcon: {
       marginTop: 16,
     },
     skeleton: {
       width: 50,
+    },
+    balanceFiat: {
+      color: colors.text.alternative,
+      paddingHorizontal: 0,
+      ...fontStyles.normal,
+      textTransform: 'uppercase',
     },
   });
 
@@ -48,10 +60,12 @@ const AssetElement: React.FC<AssetElementProps> = ({
   children,
   balance,
   asset,
+  mainBalance = null,
   onPress,
   onLongPress,
 }) => {
-  const styles = createStyles();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   const handleOnPress = () => {
     onPress?.(asset);
@@ -70,21 +84,32 @@ const AssetElement: React.FC<AssetElementProps> = ({
     >
       {children}
 
-      {balance && (
-        <Text
-          variant={
-            asset?.balanceError || asset.balanceFiat === TOKEN_RATE_UNDEFINED
-              ? TextVariant.BodySM
-              : TextVariant.BodyLGMedium
-          }
-        >
-          {balance === TOKEN_BALANCE_LOADING ? (
-            <SkeletonText thin style={styles.skeleton} />
-          ) : (
-            balance
-          )}
-        </Text>
-      )}
+      <View style={styles.arrow}>
+        {balance && (
+          <Text
+            variant={
+              asset?.balanceError || asset.balanceFiat === TOKEN_RATE_UNDEFINED
+                ? TextVariant.BodySM
+                : TextVariant.BodyLGMedium
+            }
+          >
+            {balance === TOKEN_BALANCE_LOADING ? (
+              <SkeletonText thin style={styles.skeleton} />
+            ) : (
+              balance
+            )}
+          </Text>
+        )}
+        {mainBalance ? (
+          <Text variant={TextVariant.BodyMD} style={styles.balanceFiat}>
+            {mainBalance === TOKEN_BALANCE_LOADING ? (
+              <SkeletonText thin style={styles.skeleton} />
+            ) : (
+              mainBalance
+            )}
+          </Text>
+        ) : null}
+      </View>
     </TouchableOpacity>
   );
 };

@@ -50,7 +50,11 @@ export const checkPermissions = async ({
     }
 
     const permissionsController = (
-      engine.context as { PermissionController: PermissionController<any, any> }
+      engine.context as {
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        PermissionController: PermissionController<any, any>;
+      }
     ).PermissionController;
 
     // only ask approval if needed
@@ -146,7 +150,8 @@ export const checkPermissions = async ({
       );
     }
 
-    await connection.approvalPromise;
+    const res = await connection.approvalPromise;
+    DevLogger.log(`checkPermissions approvalPromise completed`, res);
     // Clear previous permissions if already approved.
     connection.revalidate({ channelId: connection.channelId });
     return true;

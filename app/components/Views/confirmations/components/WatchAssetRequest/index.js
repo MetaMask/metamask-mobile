@@ -18,7 +18,7 @@ import { selectChainId } from '../../../../../selectors/networkController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import { getActiveTabUrl } from '../../../../../util/transactions';
 import { isEqual } from 'lodash';
-import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals/SigningModal.selectors';
+import { AssetWatcherSelectorsIDs } from '../../../../../../e2e/selectors/Modals/AssetWatcher.selectors';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 
@@ -169,8 +169,8 @@ const WatchAssetRequest = ({
         </Text>
       </View>
       <ActionView
-        cancelTestID={SigningModalSelectorsIDs.CANCEL_BUTTON}
-        confirmTestID={SigningModalSelectorsIDs.SIGN_BUTTON}
+        cancelTestID={AssetWatcherSelectorsIDs.CANCEL_BUTTON}
+        confirmTestID={AssetWatcherSelectorsIDs.CONFIRM_BUTTON}
         cancelText={strings('watch_asset_request.cancel')}
         confirmText={strings('watch_asset_request.add')}
         onCancelPress={onCancel}

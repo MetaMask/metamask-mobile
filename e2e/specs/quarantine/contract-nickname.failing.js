@@ -6,7 +6,7 @@ import OnboardingCarouselView from '../../pages/Onboarding/OnboardingCarouselVie
 import ContractNickNameView from '../../pages/ContractNickNameView';
 import SendView from '../../pages/Send/SendView';
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
-import WalletView from '../../pages/WalletView';
+import WalletView from '../../pages/wallet/WalletView';
 import EnableAutomaticSecurityChecksView from '../../pages/EnableAutomaticSecurityChecksView';
 import LoginView from '../../pages/LoginView';
 
@@ -16,7 +16,6 @@ import SettingsView from '../../pages/Settings/SettingsView';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import OnboardingWizardModal from '../../pages/modals/OnboardingWizardModal';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
-import WhatsNewModal from '../../pages/modals/WhatsNewModal';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 
 import TestHelpers from '../../helpers';
@@ -27,12 +26,12 @@ import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import ContractApprovalModal from '../../pages/modals/ContractApprovalModal';
 import CommonView from '../../pages/CommonView';
 import Assertions from '../../utils/Assertions';
+import { CustomNetworks } from '../../resources/networks.e2e';
 
 describe('Adding Contract Nickname', () => {
   const APPROVAL_DEEPLINK_URL =
     'https://metamask.app.link/send/0x326C977E6efc84E512bB9C30f76E30c160eD06FB@5/approve?address=0x178e3e6c9f547A00E33150F7104427ea02cfc747&uint256=5e8';
   const CONTRACT_NICK_NAME_TEXT = 'Ace RoMaIn';
-  const SEPOLIA = 'Sepolia';
 
   //FIXME Deep linking to a contract address does not work on a sim.
 
@@ -64,7 +63,7 @@ describe('Adding Contract Nickname', () => {
     await ImportWalletView.enterSecretRecoveryPhrase(validAccount.seedPhrase);
     await ImportWalletView.enterPassword(validAccount.password);
     await ImportWalletView.reEnterPassword(validAccount.password);
-    await WalletView.isVisible();
+    await Assertions.checkIfVisible(WalletView.container);
   });
 
   it('Should dismiss Automatic Security checks screen', async () => {
@@ -87,22 +86,15 @@ describe('Adding Contract Nickname', () => {
     }
   });
 
-  it('should tap on "Got it" Button in the whats new modal', async () => {
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(2500);
-    try {
-      await WhatsNewModal.isVisible();
-      await WhatsNewModal.tapCloseButton();
-    } catch {
-      //
-    }
-  });
-
   it('should switch to SEPOLIA', async () => {
     await WalletView.tapNetworksButtonOnNavBar();
-    await NetworkListModal.changeNetwork(SEPOLIA);
-
-    await WalletView.isNetworkNameVisible(SEPOLIA);
+    await NetworkListModal.changeNetworkTo(
+      CustomNetworks.Sepolia.providerConfig.nickname,
+    );
+    await Assertions.checkIfElementToHaveText(
+      WalletView.navbarNetworkText,
+      CustomNetworks.Sepolia.providerConfig.nickname,
+    );
     await TestHelpers.delay(1500);
   });
 
@@ -134,7 +126,7 @@ describe('Adding Contract Nickname', () => {
     await LoginView.toggleRememberMe();
 
     await LoginView.enterPassword(validAccount.password);
-    await WalletView.isVisible();
+    await Assertions.checkIfVisible(WalletView.container);
   });
 
   it('should deep link to the approval modal', async () => {
@@ -170,7 +162,7 @@ describe('Adding Contract Nickname', () => {
 
   it('should verify contract does not appear in contacts view', async () => {
     // Check that we are on the wallet screen
-    await WalletView.isVisible();
+    await Assertions.checkIfVisible(WalletView.container);
     await TabBarComponent.tapSettings();
     await SettingsView.tapContacts();
 
@@ -185,7 +177,7 @@ describe('Adding Contract Nickname', () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
     // Make sure view with my accounts visible
-    await Assertions.checkIfVisible(await SendView.CurrentAccountElement);
+    await Assertions.checkIfVisible(SendView.CurrentAccountElement);
   });
 
   it('should verify the contract nickname does not appear in send flow', async () => {
@@ -205,7 +197,8 @@ describe('Adding Contract Nickname', () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
     // Make sure view with my accounts visible
-    await SendView.isMyAccountsVisible();
+    //TODO: Update SendView.isMyAccountsVisible, this method does not exist
+    //await SendView.isMyAccountsVisible();
   });
 
   it('should verify the contract nickname does not appear in recents', async () => {

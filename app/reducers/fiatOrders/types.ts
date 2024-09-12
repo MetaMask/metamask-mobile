@@ -67,6 +67,8 @@ export interface CustomIdData {
   errorCount: number;
   orderType: OrderOrderTypeEnum;
   expired?: boolean;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   order?: Record<string, any>;
 }
 
