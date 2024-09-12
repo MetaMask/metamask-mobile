@@ -20,4 +20,8 @@ export const SecurityPrivacyViewSelectorsText = {
   BACK_UP_NOW: enContent.app_settings.back_up_now,
   PRIVACY_HEADING: enContent.app_settings.privacy_heading,
   CLEAR_BROWSER_COOKIES: enContent.app_settings.clear_browser_cookies_desc,
+  AUTO_LOCK_30_SECONDS: enContent.app_settings.autolock_after.replace(
+    '{{time}}',
+    '30',
+  ),
 };

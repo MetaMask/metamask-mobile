@@ -49,8 +49,9 @@ class SecurityAndPrivacy {
   }
 
   get autoLockDefault30Seconds() {
-    const AUTO_LOCK_DEFAULT = 'After 30 seconds';
-    return Matchers.getElementByText(AUTO_LOCK_DEFAULT);
+    return Matchers.getElementByText(
+      SecurityPrivacyViewSelectorsText.AUTO_LOCK_30_SECONDS,
+    );
   }
 
   get rememberMeToggle() {
