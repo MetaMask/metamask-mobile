@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/display-name */
-import React, { FC, useEffect, useMemo, useCallback } from 'react';
+import React, { useEffect, useMemo, useCallback } from 'react';
 import { Pressable, ScrollView, Switch, View, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
@@ -221,7 +221,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           />
         )
       );}),
-    [ accountSettingsProps.initialLoading, accountsNotificationState],
+    [accountAvatarType, accounts, accountsNotificationState, refetchAccountSettings],
   );
 
   return (

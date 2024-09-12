@@ -90,37 +90,173 @@ Ensure that these devices are set up. You can change the default devices at any 
     yarn test:e2e:android:debug:run --testNamePattern="Smoke"
     ```
 
-### Appium Tests
-
+### Appium
 **Platform**: Android  
 **Test Location**: `wdio`
 
-#### Setup and Execution
+We currently utilize [Appium](https://appium.io/), [Webdriver.io](http://webdriver.io/), and [Cucumber](https://cucumber.io/) to test the application launch times and the upgrade between different versions. As a brief explanation, webdriver.io is the test framework that uses Appium Server as a service. This is responsible for communicating between our tests and devices, and cucumber as the test framework. 
 
-- **Default Emulator**:
-  - **Name**: Android 11 - Pixel 4a API 31
-  - **API Level**: 30 (Android 11)
-- **Configuring Emulator**: Update `deviceName` and `platformVersion` in `wdio/config/android.config.debug.js` to match your emulator configuration.
+## Configuration for Testing
 
-#### Commands
+We have two separate configurations for testing the different variants of our applications:
 
-1. **Create a Test Build**:
+- **QA Variant (local)**: Runs in debug mode on your local machine.
+- **QA Variant (production)**: Runs in production mode on BrowserStack.
 
-    ```bash
-    yarn start:android:qa
-    ```
+We use the QA variant for Appium tests because of our screen-blocking mechanism, which would otherwise prevent tests from getting past the wallet setup screen.
 
-2. **Run All Tests**:
+### Capabilities Setup
 
-    ```bash
-    yarn test:wdio:android
-    ```
+We require two sets of capabilities to handle app upgrade tests, leading to the creation of two configurations: `defaultCapabilities` and `upgradeCapabilities`.
 
-3. **Run Specific Tests**:
+#### Default Capabilities
 
-    ```bash
-    yarn test:wdio:android --spec ./wdio/features/Onboarding/CreateNewWallet.feature
-    ```
+```javascript
+const defaultCapabilities = [
+  {
+    platformName: 'Android',
+    noReset: false,
+    fullReset: false,
+    maxInstances: 1,
+    build: 'Android App Launch Times Tests',
+    device: process.env.BROWSERSTACK_DEVICE || 'Google Pixel 6',
+    os_version: process.env.BROWSERSTACK_OS_VERSION || '12.0',
+    app: process.env.BROWSERSTACK_APP_URL,
+    'browserstack.debug': true,
+    'browserstack.local': true,
+  }
+];
+```
+
+This configuration is our standard, as it only requires one app per install.
+
+#### Upgrade Capabilities
+
+```javascript
+const upgradeCapabilities = [
+  {
+    platformName: 'Android',
+    noReset: false,
+    fullReset: false,
+    maxInstances: 1,
+    build: 'Android App Upgrade Tests',
+    device: process.env.BROWSERSTACK_DEVICE || 'Google Pixel 6',
+    os_version: process.env.BROWSERSTACK_OS_VERSION || '12.0',
+    app: process.env.PRODUCTION_APP_URL || process.env.BROWSERSTACK_APP_URL,
+    'browserstack.debug': true,
+    'browserstack.local': true,
+    'browserstack.midSessionInstallApps': [process.env.BROWSERSTACK_APP_URL],
+  }
+];
+```
+
+This configuration requires two applications: the current production app and the app built from the branch.
+
+**Note**: You can, if you choose to, run the tests against any one of the devices and operating systems mentioned in the browserstack device [list](https://www.browserstack.com/list-of-browsers-and-platforms/app_automate). 
+
+### Flag-Based Capability Selection
+
+We use flags like `--performance` and `--upgrade` to determine which capabilities to use for specific tests.
+
+```javascript
+const { selectedCapabilities, defaultTagExpression } = (() => {
+  if (isAppUpgrade) {
+    return {
+      selectedCapabilities: upgradeCapabilities,
+      defaultTagExpression: '@upgrade and @androidApp',
+    };
+  } else if (isPerformance) {
+    return {
+      selectedCapabilities: defaultCapabilities,
+      defaultTagExpression: '@performance and @androidApp',
+    };
+  } else {
+    return {
+      selectedCapabilities: defaultCapabilities,
+      defaultTagExpression: '@smoke and @androidApp',
+    };
+  }
+})();
+```
+
+## Initial Setup
+
+Before running tests, you need to perform an initial setup:
+
+```bash
+yarn setup
+```
+
+## Running Tests Locally Against QA Build
+
+You can run your E2E tests on local simulators either in development mode (with automatic code refresh) or without it. 
+
+### iOS
+
+To start an iOS QA build:
+
+```bash
+yarn start:ios:qa
+```
+
+### Android
+
+To start an Android QA build:
+
+```bash
+yarn start:android:qa
+```
+
+Ensure that the bundler compiles all files before running the tests to avoid build breaks. Use:
+
+```bash
+yarn watch:clean
+```
+
+Then, run the tests on the simulator:
+
+### iOS
+
+```bash
+yarn test:wdio:ios
+```
+
+### Android
+
+```bash
+yarn test:wdio:android
+```
+
+To run specific tests, use the `--spec` option:
+
+```bash
+yarn test:wdio:android --spec ./wdio/features/performance/ColdStartLaunchTimes.feature
+```
+
+**Note**: Ensure that your installed simulator names match the configurations in `wdio/config/android.config.debug.js` and `wdio/config/ios.config.debug.js`.
+
+## Running Tests on BrowserStack
+
+To trigger tests locally on BrowserStack:
+
+1. Retrieve your BrowserStack username and access key from the App Automate section.
+2. Update `config.user` and `config.key` in `android.config.browserstack` with your BrowserStack credentials.
+3. Upload your app to BrowserStack via the `create_qa_builds_pipeline`. Grab the `app_url` from `browserstack_uploaded_apps.json`.
+4. Update `process.env.BROWSERSTACK_APP_URL` with the correct `app_url`.
+5. Run your tests using the appropriate flag (e.g., for performance tests):
+
+```bash
+yarn test:wdio:android:browserstack --performance
+```
+
+## Running Appium Tests on CI (Bitrise)
+
+You can also run Appium tests on CI using Bitrise pipelines:
+
+- `app_launch_times_pipeline`
+- `app_upgrade_pipeline`
+
+For more details on our CI pipelines, see the [Bitrise Pipelines Overview](#bitrise-pipelines-overview).
 
 ### API Spec Tests
 
