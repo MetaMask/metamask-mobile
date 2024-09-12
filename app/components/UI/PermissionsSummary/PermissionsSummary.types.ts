@@ -7,6 +7,7 @@ export interface PermissionsSummaryProps {
     url: string;
   };
   onEdit?: () => void;
+  onEditNetworks?: () => void;
   onBack?: () => void;
   onUserAction?: React.Dispatch<React.SetStateAction<USER_INTENT>>;
   showHeader?: boolean;

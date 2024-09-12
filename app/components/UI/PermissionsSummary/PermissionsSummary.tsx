@@ -39,6 +39,7 @@ import ButtonIcon, {
 const PermissionsSummary = ({
   currentPageInformation,
   onEdit,
+  onEditNetworks,
   onBack,
   onUserAction,
   showHeader = true, // TODO: if this is used only with the top margin, can a common one be found for bottomSheet and fullscreen mode now that we have safe area view?
@@ -59,8 +60,12 @@ const PermissionsSummary = ({
     onUserAction?.(USER_INTENT.Cancel);
   };
 
-  const handleEditButtonPress = () => {
+  const handleEditAccountsButtonPress = () => {
     onEdit?.();
+  };
+
+  const handleEditNetworksButtonPress = () => {
+    onEditNetworks?.();
   };
 
   const renderTopIcon = () => {
@@ -143,12 +148,12 @@ const PermissionsSummary = ({
             <ButtonIcon
               size={ButtonIconSizes.Md}
               iconName={IconName.ArrowRight}
-              onPress={handleEditButtonPress}
+              onPress={handleEditAccountsButtonPress}
               testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
             />
           ) : (
             <Button
-              onPress={handleEditButtonPress}
+              onPress={handleEditAccountsButtonPress}
               variant={ButtonVariants.Link}
               width={ButtonWidthTypes.Full}
               label={strings('permissions.edit')}
@@ -197,12 +202,12 @@ const PermissionsSummary = ({
             <ButtonIcon
               size={ButtonIconSizes.Md}
               iconName={IconName.ArrowRight}
-              onPress={handleEditButtonPress}
+              onPress={handleEditNetworksButtonPress}
               testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
             />
           ) : (
             <Button
-              onPress={handleEditButtonPress}
+              onPress={handleEditNetworksButtonPress}
               variant={ButtonVariants.Link}
               width={ButtonWidthTypes.Full}
               label={strings('permissions.edit')}

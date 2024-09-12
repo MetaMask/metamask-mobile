@@ -21,6 +21,7 @@ import {
   getPermittedAccountsByHostname,
 } from '../../../core/Permissions';
 import AccountConnectMultiSelector from '../AccountConnect/AccountConnectMultiSelector';
+import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
 import Logger from '../../../util/Logger';
 import {
   ToastContext,
@@ -382,6 +383,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       },
       onEdit: () =>
         setPermissionsScreen(AccountPermissionsScreens.EditAccountsPermissions),
+      onEditNetworks: () =>
+        setPermissionsScreen(AccountPermissionsScreens.ConnectMoreNetworks),
       onUserAction: setUserIntent,
       showActionButtons: false,
       onBack: () =>
@@ -457,6 +460,22 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     ],
   );
 
+  const renderConnectNetworksScreen = useCallback(
+    () => (
+      <NetworkConnectMultiSelector
+        onSelectNetworkIds={setSelectedAddresses}
+        isLoading={isLoading}
+        onUserAction={setUserIntent}
+        urlWithProtocol={urlWithProtocol}
+        hostname={hostname}
+        onBack={() =>
+          setPermissionsScreen(AccountPermissionsScreens.PermissionsSummary)
+        }
+      />
+    ),
+    [isLoading, setUserIntent, urlWithProtocol, hostname],
+  );
+
   const renderRevokeScreen = useCallback(
     () => (
       <AccountPermissionsRevoke
@@ -493,6 +512,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         return renderConnectMoreAccountsScreen();
       case AccountPermissionsScreens.EditAccountsPermissions:
         return renderEditAccountsPermissionsScreen();
+      case AccountPermissionsScreens.ConnectMoreNetworks:
+        return renderConnectNetworksScreen();
       case AccountPermissionsScreens.Revoke:
         return renderRevokeScreen();
       case AccountPermissionsScreens.PermissionsSummary:
@@ -503,6 +524,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     renderConnectedScreen,
     renderConnectMoreAccountsScreen,
     renderEditAccountsPermissionsScreen,
+    renderConnectNetworksScreen,
     renderRevokeScreen,
     renderPermissionsSummaryScreen,
   ]);

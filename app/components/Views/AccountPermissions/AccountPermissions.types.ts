@@ -5,6 +5,7 @@ export enum AccountPermissionsScreens {
   Connected = 'Connected',
   ConnectMoreAccounts = 'ConnectMoreAccounts',
   EditAccountsPermissions = 'EditAccountsPermissions',
+  ConnectMoreNetworks = 'ConnectMoreNetworks',
   Revoke = 'Revoke',
   PermissionsSummary = 'PermissionsSummary',
 }
