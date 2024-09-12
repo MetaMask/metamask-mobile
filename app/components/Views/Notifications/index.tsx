@@ -7,6 +7,7 @@ import styles from './styles';
 import Notifications from '../../UI/Notification/List';
 import { TRIGGER_TYPES, sortNotifications } from '../../../util/notifications';
 import Icon, {
+  IconColor,
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
@@ -127,16 +128,16 @@ NotificationsView.navigationOptions = ({
     <TouchableOpacity
       onPress={() => navigation.navigate(Routes.SETTINGS.NOTIFICATIONS)}
     >
-      <Icon name={IconName.Setting} size={IconSize.Lg} style={styles.icon} />
+      <Icon name={IconName.Setting} color={IconColor.Default} size={IconSize.Lg} style={styles.icon} />
     </TouchableOpacity>
   ),
   headerLeft: () => (
     <TouchableOpacity onPress={() => navigation.navigate(Routes.WALLET.HOME)}>
-      <Icon name={IconName.Close} size={IconSize.Md} style={styles.icon} />
+      <Icon name={IconName.Close} color={IconColor.Default} size={IconSize.Md} style={styles.icon} />
     </TouchableOpacity>
   ),
   headerTitle: () => (
-    <Text variant={TextVariant.HeadingMD}>
+    <Text variant={TextVariant.HeadingMD} style={styles.title}>
       {strings('app_settings.notifications_title')}
     </Text>
   ),
