@@ -63,7 +63,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     hostInfo: {
       metadata: { origin: hostname },
     },
+    isRenderedAsBottomSheet: isRenderedAsBottomSheet,
+    initialScreen: initialScreen = AccountPermissionsScreens.Connected,
   } = props.route.params;
+
   const accountAvatarType = useSelector((state: RootState) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -101,7 +104,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>([]);
   const sheetRef = useRef<BottomSheetRef>(null);
   const [permissionsScreen, setPermissionsScreen] =
-    useState<AccountPermissionsScreens>(AccountPermissionsScreens.Connected);
+    useState<AccountPermissionsScreens>(initialScreen);
   const { accounts, ensByAccountAddress } = useAccounts({
     isLoading,
   });
@@ -381,7 +384,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         setPermissionsScreen(AccountPermissionsScreens.EditAccountsPermissions),
       onUserAction: setUserIntent,
       showActionButtons: false,
-      onBack: () => setPermissionsScreen(AccountPermissionsScreens.Connected),
+      onBack: () =>
+        isRenderedAsBottomSheet
+          ? setPermissionsScreen(AccountPermissionsScreens.Connected)
+          : navigation.navigate('PermissionsManager'),
       isInitialDappConnection: false,
     };
     return <PermissionsSummary {...permissionsSummaryProps} />;
@@ -479,7 +485,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       accountAvatarType,
     ],
   );
-
   const renderPermissionsScreens = useCallback(() => {
     switch (permissionsScreen) {
       case AccountPermissionsScreens.Connected:
@@ -502,7 +507,11 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     renderPermissionsSummaryScreen,
   ]);
 
-  return <BottomSheet ref={sheetRef}>{renderPermissionsScreens()}</BottomSheet>;
+  return isRenderedAsBottomSheet ? (
+    <BottomSheet ref={sheetRef}>{renderPermissionsScreens()}</BottomSheet>
+  ) : (
+    renderPermissionsScreens()
+  );
 };
 
 export default AccountPermissions;

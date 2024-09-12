@@ -21,6 +21,8 @@ export interface AccountPermissionsProps {
       hostInfo: {
         metadata: { origin: string };
       };
+      isRenderedAsBottomSheet?: boolean;
+      initialScreen?: AccountPermissionsScreens;
     };
   };
 }
