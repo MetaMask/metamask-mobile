@@ -5,8 +5,9 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { typography, colors } = theme;
   return StyleSheet.create({
-    wrapper: {
-      marginTop: 20,
+    tokenDetailsContainer: {
+      marginTop: 24,
+      gap: 24,
     },
     contentWrapper: {
       paddingVertical: 4,
