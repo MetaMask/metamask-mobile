@@ -24,7 +24,7 @@ import { useStyles } from '../../../../component-library/hooks';
 import NotificationOptionToggle from './NotificationOptionToggle';
 import CustomNotificationsRow from './CustomNotificationsRow';
 import { NotificationsToggleTypes } from './NotificationsSettings.constants';
-import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
+import { selectIsFeatureAnnouncementsEnabled, selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 
 import {
   requestPushNotificationsPermission,
@@ -102,6 +102,9 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     () => accounts.map((a) => a.address),
     [accounts],
   );
+  const isFeatureAnnouncementsEnabled = useSelector(
+    selectIsFeatureAnnouncementsEnabled
+  );
   const accountSettingsProps = useAccountSettingsProps(accountAddresses);
   const {
     enableNotifications,
@@ -124,7 +127,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     (state: RootState) => state.settings.basicFunctionalityEnabled,
   );
   const [uiNotificationStatus, setUiNotificationStatus] = React.useState(false);
-  const [platformAnnouncementsState, setPlatformAnnouncementsState] = React.useState(false);
+  const [platformAnnouncementsState, setPlatformAnnouncementsState] = React.useState(isFeatureAnnouncementsEnabled);
 
   const loading = enableLoading || disableLoading;
   const errorText = enablingError || disablingError;
@@ -184,7 +187,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
 
   const toggleCustomNotificationsEnabled = useCallback(async() => {
     setPlatformAnnouncementsState(!platformAnnouncementsState);
-    await switchFeatureAnnouncements(!platformAnnouncementsState);
+    switchFeatureAnnouncements(!platformAnnouncementsState);
   },[platformAnnouncementsState, switchFeatureAnnouncements]);
 
   const goToLearnMore = () => {
