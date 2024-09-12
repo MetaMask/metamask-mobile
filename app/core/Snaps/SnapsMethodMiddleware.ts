@@ -5,10 +5,16 @@ import {
   RequestedPermissions,
   SubjectType,
 } from '@metamask/permission-controller';
-import { HandlerType } from '@metamask/snaps-utils';
+import { SnapRpcHookArgs } from '@metamask/snaps-utils';
 import { RestrictedMethods } from '../Permissions/constants';
 import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermissions';
+import { SnapId } from '@metamask/snaps-sdk';
 
+export function getSnapIdFromRequest(request: any): string | null {
+  return request.snapId ?? null;
+}
+
+type HandleSnapRequestArgs = SnapRpcHookArgs & { snapId: SnapId };
 /**
  * Passes a JSON-RPC request object to the SnapController for execution.
  *
@@ -22,25 +28,19 @@ import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermis
 async function handleSnapRequest(
   controllerMessenger: any,
   subjectType: SubjectType,
-  snapId: string,
-  origin: string,
-  handler: any, //HandlerType.OnKeyringRequest,
-  request: any,
+  args: HandleSnapRequestArgs,
 ) {
   // eslint-disable-next-line no-console
   console.log(
     'Accounts/ handleSnapRequest called with args',
     subjectType,
-    snapId,
-    origin,
-    handler,
-    request,
+    args,
   );
   return await controllerMessenger.call('SnapController:handleRequest', {
-    snapId,
-    origin,
-    handler,
-    request,
+    snapId: args.snapId,
+    origin: args.origin,
+    handler: args.handler,
+    request: args.request,
   });
 }
 // Snaps middleware
@@ -97,22 +97,28 @@ const snapMethodMiddlewareBuilder = (
       controllerMessenger,
       'SnapController:get',
     ),
-    handleSnapRpcRequest: () =>
-      handleSnapRequest(
-        controllerMessenger,
+    handleSnapRpcRequest: async (request: any) => {
+      // eslint-disable-next-line no-console
+      console.log(
+        'Accounts/ SnapsMethodMiddleware handleSnapRpcRequest called with request: ',
+        request,
+        'from source',
         subjectType,
-        'npm:@metamask/snap-simple-keyring-snap',
         origin,
-        HandlerType.OnKeyringRequest,
-        {
-          jsonrpc: '2.0',
-          id: 1,
-          method: 'keyring_createAccount',
-          params: {
-            options: {},
-          },
-        },
-      ),
+      );
+      const snapId = getSnapIdFromRequest(request);
+
+      if (!snapId) {
+        throw new Error('Invalid snap request: snapId not found');
+      }
+
+      return await handleSnapRequest(controllerMessenger, subjectType, {
+        snapId: snapId as SnapId,
+        origin,
+        handler: request.handler,
+        request: request.request,
+      });
+    },
   });
 
 export default snapMethodMiddlewareBuilder;

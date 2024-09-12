@@ -126,7 +126,7 @@ import {
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
 } from '@metamask/snaps-rpc-methods';
-import type { EnumToUnion, DialogType } from '@metamask/snaps-sdk';
+import type { EnumToUnion, DialogType, SnapId } from '@metamask/snaps-sdk';
 // eslint-disable-next-line import/no-nodejs-modules
 import { Duplex } from 'stream';
 ///: END:ONLY_INCLUDE_IF
@@ -229,6 +229,7 @@ import DomainProxyMap from '../lib/DomainProxyMap/DomainProxyMap';
 import { snapKeyringBuilder } from './SnapKeyring';
 import { removeAccountsFromPermissions } from './Permissions';
 import { keyringSnapPermissionsBuilder } from './SnapKeyring/keyringSnapsPermissions';
+import { SnapRpcHookArgs } from '@metamask/snaps-utils';
 ///: END:ONLY_INCLUDE_IF
 
 const NON_EMPTY = 'NON_EMPTY';
@@ -825,6 +826,30 @@ class Engine {
       return state === 'active';
     };
 
+    type HandleSnapRequestArgs = SnapRpcHookArgs & { snapId: SnapId };
+
+    /**
+     * Passes a JSON-RPC request object to the SnapController for execution.
+     *
+     * @param {object} args - A bag of options.
+     * @param {string} args.snapId - The ID of the recipient snap.
+     * @param {string} args.origin - The origin of the RPC request.
+     * @param {string} args.handler - The handler to trigger on the snap for the request.
+     * @param {object} args.request - The JSON-RPC request object.
+     * @returns The result of the JSON-RPC request.
+     */
+    const handleSnapRequest = async (args: HandleSnapRequestArgs) => {
+      // eslint-disable-next-line no-console
+      console.log(
+        'Accounts/ Engine handleSnapRequest called with args: ',
+        args,
+      );
+      return await this.controllerMessenger.call(
+        'SnapController:handleRequest',
+        args,
+      );
+    };
+
     const getSnapPermissionSpecifications = () => ({
       ...buildSnapEndowmentSpecifications(Object.keys(ExcludedSnapEndowments)),
       ...buildSnapRestrictedMethodSpecifications(
@@ -844,10 +869,7 @@ class Engine {
           ),
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
-          handleSnapRpcRequest: this.controllerMessenger.call.bind(
-            this.controllerMessenger,
-            'SnapController:handleRequest',
-          ),
+          handleSnapRpcRequest: async (args) => await handleSnapRequest(args),
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           getSnapState: this.controllerMessenger.call.bind(
@@ -1244,7 +1266,7 @@ class Engine {
           },
         },
       });
-    ///: END:ONLY_INCLUDE_IF
+      ///: END:ONLY_INCLUDE_IF
 
     this.transactionController = new TransactionController({
       // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
