@@ -32,7 +32,7 @@ export function updateSwapsTransaction(
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (TransactionController as any).update((state: SwapsTransaction) => {
-    const existingData = state.swapsTransactions[transactionId];
+    const existingData = state.swapsTransactions?.[transactionId];
 
     if (!existingData) {
       throw new Error(`Swaps transaction not found - ${transactionId}`);
