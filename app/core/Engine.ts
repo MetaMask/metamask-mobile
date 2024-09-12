@@ -71,7 +71,7 @@ import {
   TransactionControllerEvents,
   TransactionControllerState,
 } from '@metamask/transaction-controller';
-// TODO: Remove subpath import once it is exported at the package level by `@metamask/transaction-controller`
+// TODO: Remove subpath import once `@metamask/transaction-controller` is upgraded to `36.1.0`
 import { TransactionControllerOptions } from '@metamask/transaction-controller/dist/types/TransactionController';
 import {
   GasFeeController,
