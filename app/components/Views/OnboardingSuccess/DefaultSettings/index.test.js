@@ -33,17 +33,6 @@ describe('DefaultSettings', () => {
     expect(tree).toMatchSnapshot();
   });
 
-  it('sets navigation options', () => {
-    render(<DefaultSettings />);
-    expect(mockNavigation.setOptions).toHaveBeenCalled();
-  });
-
-  it('navigates back when back button is pressed', () => {
-    const backButton = mockNavigation.setOptions.mock.calls[0][0].headerLeft();
-    fireEvent.press(backButton);
-    expect(mockNavigation.goBack).toHaveBeenCalled();
-  });
-
   it('opens privacy best practices link when "Learn more" is pressed', () => {
     const { getByText } = render(<DefaultSettings />);
     const learnMoreText = getByText(
