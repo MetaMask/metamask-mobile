@@ -31,9 +31,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 10,
       paddingVertical: 20,
     },
-    balanceWrapper: {
-      paddingHorizontal: 1,
-    },
     balanceButtons: {
       flexDirection: 'row',
       justifyContent: 'center',
