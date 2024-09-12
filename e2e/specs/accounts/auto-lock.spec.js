@@ -55,6 +55,6 @@ describe(Regression('Auto-Lock'), () => {
     await device.sendToHome();
     await device.launchApp();
     await Assertions.checkIfNotVisible(WalletView.container);
-    await LoginView.isVisible();
+    await Assertions.checkIfVisible(LoginView.getContainer());
   });
 });
