@@ -300,7 +300,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
         ...otherOptions,
       });
 
-      expect(Engine.context.ApprovalController.clear).toBeCalledTimes(2);
+      expect(Engine.context.ApprovalController.clear).toBeCalledTimes(1);
     });
   });
 });
