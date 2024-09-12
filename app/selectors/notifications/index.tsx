@@ -51,7 +51,7 @@ export const selectSessionData = createSelector(
 export const selectIsMetamaskNotificationsEnabled = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
-    notificationServicesControllerState.isNotificationServicesEnabled,
+    notificationServicesControllerState?.isNotificationServicesEnabled,
 );
 export const selectIsMetamaskNotificationsFeatureSeen = createSelector(
   selectNotificationServicesControllerState,
