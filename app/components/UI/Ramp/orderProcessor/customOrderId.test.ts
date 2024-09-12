@@ -6,23 +6,6 @@ import processCustomOrderId, {
   MAX_ERROR_COUNT,
   POLLING_FRECUENCY_IN_SECONDS,
 } from './customOrderId';
-import mockedEngine from '../../../../core/__mocks__/MockedEngine';
-
-jest.mock('../../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-  context: {
-    NetworkController: {
-      getNetworkClientById: () => ({
-        configuration: {
-          chainId: '0x1',
-          rpcUrl: 'https://mainnet.infura.io/v3',
-          ticker: 'ETH',
-          type: 'custom',
-        },
-      }),
-    },
-  },
-}));
 
 describe('createCustomOrderIdData', () => {
   it('should return a custom order id data object', () => {

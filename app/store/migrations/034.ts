@@ -1,6 +1,18 @@
 import { captureException } from '@sentry/react-native';
 import { isObject, hasProperty } from '@metamask/utils';
 
+interface NetworkState {
+  providerConfig: {
+    chainId: string;
+    ticker: string;
+    type: string;
+    rpcPrefs: {
+      blockExplorerUrl: string;
+    };
+  };
+  selectedNetworkClientId: string;
+}
+
 /**
  * This migration addresses the ticker be required
  * if it is not defined for the current network it will add the value ETH
@@ -37,9 +49,8 @@ export default async function migrate(stateAsync: unknown) {
   }
 
   const networkControllerState = state.engine.backgroundState.NetworkController;
-  const newNetworkControllerState =
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    state.engine.backgroundState.NetworkController as any;
+  const newNetworkControllerState = state.engine.backgroundState
+    .NetworkController as NetworkState;
 
   if (!isObject(networkControllerState)) {
     captureException(

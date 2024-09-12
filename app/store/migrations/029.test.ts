@@ -4,7 +4,6 @@ import initialRootState, {
   backgroundState,
 } from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
-import mockedEngine from '../../core/__mocks__/MockedEngine';
 
 const oldState = {
   engine: {
@@ -206,36 +205,6 @@ jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
 
-jest.mock('../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-  // context: {
-  //   NetworkController: {
-  //     state: {
-  //       providerConfig: {
-  //         chainId: '1',
-  //         rpcTarget: 'https://api.avax.network/ext/bc/C/rpc',
-  //       },
-  //       networkDetails: {
-  //         isEIP1559Compatible: true,
-  //       },
-  //       networkConfigurations: {
-  //         network1: {
-  //           chainId: '1',
-  //         },
-  //       },
-  //     },
-  //     // getNetworkClientById: () => ({
-  //     //   configuration: {
-  //     //     chainId: '0x1',
-  //     //     rpcUrl: 'https://mainnet.infura.io/v3',
-  //     //     ticker: 'ETH',
-  //     //     type: 'custom',
-  //     //   },
-  //     // }),
-  //   },
-  // },
-}));
-
 const mockedCaptureException = jest.mocked(captureException);
 
 describe('Migration #29', () => {
@@ -300,10 +269,7 @@ describe('Migration #29', () => {
       state: merge({}, initialRootState, {
         engine: {
           backgroundState: {
-            NetworkController: {
-              networkDetails: null,
-              providerConfig: { chainId: '0x1' },
-            },
+            NetworkController: { networkDetails: null },
           },
         },
       }),
@@ -321,7 +287,6 @@ describe('Migration #29', () => {
                 isEIP1559Compatible: true,
               },
               networkConfigurations: null,
-              providerConfig: { chainId: '0x1' },
             },
           },
         },
@@ -341,7 +306,6 @@ describe('Migration #29', () => {
                 isEIP1559Compatible: true,
               },
               networkConfigurations: {},
-              providerConfig: { chainId: '0x1' },
             },
             AddressBookController: null,
           },
@@ -361,7 +325,6 @@ describe('Migration #29', () => {
                 isEIP1559Compatible: true,
               },
               networkConfigurations: {},
-              providerConfig: { chainId: '0x1' },
             },
             SwapsController: null,
           },
@@ -381,7 +344,6 @@ describe('Migration #29', () => {
                 isEIP1559Compatible: true,
               },
               networkConfigurations: {},
-              providerConfig: { chainId: '0x1' },
             },
             NftController: null,
           },
@@ -401,7 +363,6 @@ describe('Migration #29', () => {
                 isEIP1559Compatible: true,
               },
               networkConfigurations: {},
-              providerConfig: { chainId: '0x1' },
             },
             TransactionController: null,
           },
@@ -421,7 +382,6 @@ describe('Migration #29', () => {
                 isEIP1559Compatible: true,
               },
               networkConfigurations: {},
-              providerConfig: { chainId: '0x1' },
             },
             TokensController: null,
           },
@@ -441,7 +401,6 @@ describe('Migration #29', () => {
                 isEIP1559Compatible: true,
               },
               networkConfigurations: {},
-              providerConfig: { chainId: '0x1' },
             },
             TokenRatesController: null,
           },
@@ -461,7 +420,6 @@ describe('Migration #29', () => {
                 isEIP1559Compatible: true,
               },
               networkConfigurations: {},
-              providerConfig: { chainId: '0x1' },
             },
             TokenListController: null,
           },

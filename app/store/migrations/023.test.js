@@ -5,14 +5,9 @@ import initialRootState, {
 } from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
 import { userInitialState } from '../../reducers/user';
-import mockedEngine from '../../core/__mocks__/MockedEngine';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
-}));
-
-jest.mock('../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
 }));
 
 const mockedCaptureException = jest.mocked(captureException);

@@ -4,7 +4,6 @@ import Amount from '.';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import Engine from '../../../../../core/Engine';
 import TransactionTypes from '../../../../../core/TransactionTypes';
 
 import { AmountViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
@@ -12,22 +11,10 @@ import { AmountViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 
-const mockEngine = Engine;
 const mockTransactionTypes = TransactionTypes;
 
 jest.mock('../../../../../core/Engine', () => ({
-  init: () => mockEngine.init({}),
   context: {
-    NetworkController: {
-      getNetworkClientById: () => ({
-        configuration: {
-          chainId: '0x1',
-          rpcUrl: 'https://mainnet.infura.io/v3',
-          ticker: 'ETH',
-          type: 'custom',
-        },
-      }),
-    },
     GasFeeController: {
       fetchGasFeeEstimates: jest.fn(() =>
         Promise.resolve({

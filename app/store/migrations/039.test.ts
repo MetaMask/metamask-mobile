@@ -2,7 +2,6 @@ import migrate from './039';
 import { merge } from 'lodash';
 import { captureException } from '@sentry/react-native';
 import initialRootState from '../../util/test/initial-root-state';
-import mockedEngine from '../../core/__mocks__/MockedEngine';
 
 const expectedState = {
   engine: {
@@ -54,10 +53,6 @@ jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
 const mockedCaptureException = jest.mocked(captureException);
-
-jest.mock('../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
 
 describe('Migration #39', () => {
   beforeEach(() => {

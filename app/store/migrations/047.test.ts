@@ -11,7 +11,6 @@ import {
 import { RootState } from '../../reducers';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { Identity } from './036';
-import mockedEngine from '../../core/__mocks__/MockedEngine';
 
 const mockChecksummedInternalAcc1 = toChecksumHexAddress(
   internalAccount1.address,
@@ -60,10 +59,6 @@ const oldState = {
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
-}));
-
-jest.mock('../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
 }));
 
 const mockedCaptureException = jest.mocked(captureException);

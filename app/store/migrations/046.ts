@@ -6,6 +6,18 @@ import { LINEA_SEPOLIA_BLOCK_EXPLORER } from '../../../app/constants/urls';
 import { ensureValidState } from './util';
 import { CHAINLIST_CURRENCY_SYMBOLS_MAP } from '../../constants/network';
 
+interface NetworkState {
+  providerConfig: {
+    chainId: string;
+    ticker: string;
+    type: string;
+    rpcPrefs: {
+      blockExplorerUrl: string;
+    };
+  };
+  selectedNetworkClientId: string;
+}
+
 export default function migrate(state: unknown) {
   if (!ensureValidState(state, 46)) {
     return state;
@@ -30,17 +42,7 @@ export default function migrate(state: unknown) {
     return state;
   }
   const networkControllerState = state.engine.backgroundState
-    .NetworkController as {
-    providerConfig: {
-      chainId: string;
-      ticker: string;
-      type: string;
-      rpcPrefs: {
-        blockExplorerUrl: string;
-      };
-    };
-    selectedNetworkClientId: string;
-  };
+    .NetworkController as NetworkState;
   if (!isObject(networkControllerState)) {
     captureException(
       new Error(

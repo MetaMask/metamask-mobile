@@ -15,7 +15,6 @@ import { setLockTime } from '../../../../actions/settings';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import Logger from '../../../../util/Logger';
 import initialRootState from '../../../../util/test/initial-root-state';
-import mockedEngine from '../../../../core/__mocks__/MockedEngine';
 
 type DeepPartial<BaseType> = {
   [key in keyof BaseType]?: DeepPartial<BaseType[key]>;
@@ -26,22 +25,6 @@ jest.mocked(InAppBrowser.isAvailable).mockResolvedValue(true);
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(),
-}));
-
-jest.mock('../../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-  context: {
-    NetworkController: {
-      getNetworkClientById: () => ({
-        configuration: {
-          chainId: '0x1',
-          rpcUrl: 'https://mainnet.infura.io/v3',
-          ticker: 'ETH',
-          type: 'custom',
-        },
-      }),
-    },
-  },
 }));
 
 const mockDispatch = jest.fn();

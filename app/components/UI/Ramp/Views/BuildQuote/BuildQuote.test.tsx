@@ -25,7 +25,6 @@ import { toTokenMinimalUnit } from '../../../../../util/number';
 import { RampType } from '../../../../../reducers/fiatOrders/types';
 import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
-import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 
 const getByRoleButton = (name?: string | RegExp) =>
   screen.getByRole('button', { name });
@@ -91,22 +90,6 @@ let mockUseRegionsValues: Partial<ReturnType<typeof useRegions>> = {
   ...mockUseRegionsInitialValues,
 };
 jest.mock('../../hooks/useRegions', () => jest.fn(() => mockUseRegionsValues));
-
-jest.mock('../../../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-  context: {
-    NetworkController: {
-      getNetworkClientById: () => ({
-        configuration: {
-          chainId: '0x1',
-          rpcUrl: 'https://mainnet.infura.io/v3',
-          ticker: 'ETH',
-          type: 'custom',
-        },
-      }),
-    },
-  },
-}));
 
 const mockGetCryptoCurrencies = jest.fn();
 

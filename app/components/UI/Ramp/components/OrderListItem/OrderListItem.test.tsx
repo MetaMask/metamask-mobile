@@ -8,11 +8,6 @@ import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../../../../constants/on-ramp';
-import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
-
-jest.mock('../../../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
 
 const testOrders: DeepPartial<FiatOrder>[] = [
   {

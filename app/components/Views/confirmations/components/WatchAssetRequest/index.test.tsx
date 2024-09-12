@@ -4,11 +4,6 @@ import WatchAssetRequest from '.';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
-
-jest.mock('../../../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
 
 const mockStore = configureMockStore();
 const initialState = {

@@ -6,7 +6,6 @@ import renderWithProvider, {
 } from '../../../../../util/test/renderWithProvider';
 import EditGasFeeLegacyUpdate from '.';
 import { RootState } from '../../../../../reducers';
-import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 
 const mockInitialState: (
   txnType?: 'none' | 'eth_gasPrice' | 'fee-market' | 'legacy' | undefined,
@@ -55,10 +54,6 @@ const editGasFeeLegacyForLegacy = {
   ...sharedProps,
   selectedGasObject: selectedGasObjectForLegacy,
 };
-
-jest.mock('../../../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
 
 describe('EditGasFeeLegacyUpdate', () => {
   it('should match snapshot', async () => {
