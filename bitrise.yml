@@ -1539,5 +1539,5 @@ trigger_map:
     pipeline: app_launch_times_pipeline
   - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
-  - tag: 'dev-e2e-*'
+  - push_branch: 'ci/prevent-detox-lock-failure'
     pipeline: pr_smoke_e2e_pipeline
