@@ -1,4 +1,4 @@
-import migrate from './052';
+import migrate from './053';
 import { merge } from 'lodash';
 import { captureException } from '@sentry/react-native';
 import initialRootState from '../../util/test/initial-root-state';
@@ -13,7 +13,7 @@ jest.mock('../../core/Engine', () => ({
   init: () => mockedEngine.init(),
 }));
 
-describe('Migration #52 - Delete providerConfig', () => {
+describe('Migration #53 - Delete providerConfig', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     jest.resetAllMocks();
@@ -22,7 +22,7 @@ describe('Migration #52 - Delete providerConfig', () => {
   const invalidStates = [
     {
       state: null,
-      errorMessage: "FATAL ERROR: Migration 52: Invalid state error: 'object'",
+      errorMessage: "FATAL ERROR: Migration 53: Invalid state error: 'object'",
       scenario: 'state is invalid',
     },
     {
@@ -30,7 +30,7 @@ describe('Migration #52 - Delete providerConfig', () => {
         engine: null,
       }),
       errorMessage:
-        "FATAL ERROR: Migration 52: Invalid engine state error: 'object'",
+        "FATAL ERROR: Migration 53: Invalid engine state error: 'object'",
       scenario: 'engine state is invalid',
     },
     {
@@ -40,7 +40,7 @@ describe('Migration #52 - Delete providerConfig', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 52: Invalid engine backgroundState error: 'object'",
+        "FATAL ERROR: Migration 53: Invalid engine backgroundState error: 'object'",
       scenario: 'backgroundState is invalid',
     },
     {
@@ -50,7 +50,7 @@ describe('Migration #52 - Delete providerConfig', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 52: Invalid NetworkController state error: 'object'",
+        "FATAL ERROR: Migration 53: Invalid NetworkController state error: 'object'",
       scenario: 'NetworkController is invalid',
     },
   ];

@@ -3,7 +3,7 @@ import { isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
 
 export default function migrate(state: unknown) {
-  if (!ensureValidState(state, 52)) {
+  if (!ensureValidState(state, 53)) {
     // Increment the migration number as appropriate
     return state;
   }
@@ -11,7 +11,7 @@ export default function migrate(state: unknown) {
   if (!isObject(state.engine)) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 52: Invalid engine state error: '${typeof state.engine}'`,
+        `FATAL ERROR: Migration 53: Invalid engine state error: '${typeof state.engine}'`,
       ),
     );
     return state;
@@ -20,7 +20,7 @@ export default function migrate(state: unknown) {
   if (!isObject(state.engine.backgroundState)) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 52: Invalid engine backgroundState error: '${typeof state
+        `FATAL ERROR: Migration 53: Invalid engine backgroundState error: '${typeof state
           .engine.backgroundState}'`,
       ),
     );
@@ -31,7 +31,7 @@ export default function migrate(state: unknown) {
   if (!isObject(networkControllerState)) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 52: Invalid NetworkController state error: '${typeof networkControllerState}'`,
+        `FATAL ERROR: Migration 53: Invalid NetworkController state error: '${typeof networkControllerState}'`,
       ),
     );
     return state;
