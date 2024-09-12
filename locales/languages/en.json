@@ -1491,7 +1491,8 @@
     "hex_data_copied": "Hex data copied to clipboard",
     "invalid_recipient": "Invalid recipient",
     "invalid_recipient_description": "Check the address and make sure it's valid",
-    "swap_tokens": "Swap tokens"
+    "swap_tokens": "Swap tokens",
+    "fromWithColon": "From:"
   },
   "custom_gas": {
     "total": "Total",
@@ -2950,7 +2951,7 @@
   },
   "transaction_review_eip1559": {
     "estimated_gas_fee": "Estimated gas fee",
-    "suggested_gas_fee": "%{origin} suggested gas fee",
+    "network_fee": "Network fee",
     "max_fee": "Max fee",
     "total": "Total",
     "max_amount": "Max amount",
@@ -3332,5 +3333,20 @@
     "please_wait": "Please wait",
     "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
     "disconnect": "Disconnect"
+  },
+  "staking": {
+    "your_earnings": "Your earnings",
+    "annual_rate": "Annual rate",
+    "lifetime_rewards": "Lifetime rewards",
+    "estimated_annual_earnings": "Est. annual earnings",
+    "accessibility_labels": {
+      "stake_annual_rate_tooltip": "Annual rate tooltip"
+    }
+  },
+  "tooltip_modal": {
+    "reward_rate": {
+      "title": "Reward rate",
+      "tooltip": "Expected yearly increase in the value of your stake, based on the reward rate over the past week."
+    }
   }
 }
