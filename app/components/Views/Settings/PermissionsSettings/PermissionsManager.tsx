@@ -95,7 +95,7 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
         </ScrollView>
       </>
     ),
-    [],
+    [goToPermissionsDetails],
   );
 
   const renderEmptyResult = () => (

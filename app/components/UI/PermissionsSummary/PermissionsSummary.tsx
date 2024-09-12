@@ -2,7 +2,6 @@ import React from 'react';
 import StyledButton from '../StyledButton';
 import { SafeAreaView, View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
-import Text from '../../Base/Text';
 import { useTheme } from '../../../util/theme';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 import Avatar, {
