@@ -1,4 +1,5 @@
 import { hexToBN } from '@metamask/controller-utils';
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
 import { selectAccountsByChainId } from '../../../../selectors/accountTrackerController';
@@ -27,22 +28,31 @@ export default function useBalance() {
   const selectedAddress = useSelector(
     selectSelectedInternalAccountChecksummedAddress,
   );
-  const conversionRate = useSelector(selectConversionRate) || 1;
+  const conversionRate = useSelector(selectConversionRate) ?? 1;
   const currentCurrency = useSelector(selectCurrentCurrency);
 
   if (!selectedAddress) {
     return defaultReturn;
   }
 
-  const balance = renderFromWei(
-    accountsByChainId[toHexadecimal(chainId)][selectedAddress].balance,
-  );
+  const rawAccountBalance =
+    accountsByChainId[toHexadecimal(chainId)][selectedAddress].balance;
 
-  const balanceBN = hexToBN(
-    accountsByChainId[toHexadecimal(chainId)][selectedAddress].balance,
-  );
-  const balanceFiat = weiToFiat(balanceBN, conversionRate, currentCurrency);
-  const balanceFiatNumber = weiToFiatNumber(balanceBN, conversionRate, 2);
+  const balance = useMemo(() => {
+    return renderFromWei(rawAccountBalance);
+  }, [rawAccountBalance]);
+
+  const balanceBN = useMemo(() => {
+    return hexToBN(rawAccountBalance);
+  }, [rawAccountBalance]);
+
+  const balanceFiat = useMemo(() => {
+    return weiToFiat(balanceBN, conversionRate, currentCurrency);
+  }, [balanceBN, conversionRate, currentCurrency]);
+
+  const balanceFiatNumber = useMemo(() => {
+    return weiToFiatNumber(balanceBN, conversionRate, 2);
+  }, [balanceBN, conversionRate]);
 
   return { balance, balanceFiat, balanceBN, balanceFiatNumber };
 }
