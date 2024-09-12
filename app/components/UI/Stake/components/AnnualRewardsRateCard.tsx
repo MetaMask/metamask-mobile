@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { strings } from '../../../../../locales/i18n';
 import Icon, {
   IconColor,
   IconName,
@@ -40,12 +41,12 @@ const createStyles = (colors: Colors) =>
   });
 
 interface AnnualRewardRateCardProps {
-  annualRewardRate: string;
+  estimatedAnnualRewardRate: string;
   onIconPress: () => void;
 }
 
 const AnnualRewardRateCard = ({
-  annualRewardRate,
+  estimatedAnnualRewardRate,
   onIconPress,
 }: AnnualRewardRateCardProps) => {
   const { colors } = useTheme();
@@ -55,20 +56,22 @@ const AnnualRewardRateCard = ({
     <View style={styles.rewardCard}>
       <View style={styles.rewardRow}>
         <View style={styles.labelWithIcon}>
-          <Text variant={TextVariant.BodyMDMedium}>MetaMask Pool</Text>
+          <Text variant={TextVariant.BodyMDMedium}>
+            {strings('stake.metamask_pool')}
+          </Text>
           <TouchableOpacity onPress={onIconPress}>
             <Icon name={IconName.Question} color={IconColor.Alternative} />
           </TouchableOpacity>
         </View>
         <View style={styles.rewardRateContainer}>
           <Text color={TextColor.Success} variant={TextVariant.BodyMDMedium}>
-            {annualRewardRate}
+            {estimatedAnnualRewardRate}
           </Text>
           <Text
             variant={TextVariant.BodySMMedium}
             color={TextColor.Alternative}
           >
-            Est. annual rewards
+            {strings('stake.estimated_annual_rewards')}
           </Text>
         </View>
       </View>
