@@ -30,7 +30,6 @@ describe(SmokeCore('Request Token Flow with Unprotected Wallet'), () => {
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await device.launchApp({
-      permissions: { notifications: 'YES' },
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
   });
