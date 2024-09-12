@@ -52,10 +52,10 @@ describe(SmokeCore('Mock suggestedGasApi fallback to legacy gas endpoint  when E
         await ImportAccountView.tapCloseButtonOnImportSuccess();
         if (device.getPlatform() === 'ios') {
           await AccountListView.swipeToDismissAccountsModal();
+          await Assertions.checkIfNotVisible(AccountListView.title);
         } else {
           await WalletView.tapIdenticon();
         }
-        await AccountListView.swipeToDismissAccountsModal();
         await TabBarComponent.tapActions();
         await WalletActionsModal.tapSendButton();
         await SendView.inputAddress(RECIPIENT);
