@@ -160,7 +160,6 @@ const Wallet = ({
    * Object containing the balance of the current selected account
    */
   const accountBalanceByChainId = useSelector(selectAccountBalanceByChainId);
-
   /**
    * ETH to current currency conversion rate
    */
@@ -396,13 +395,13 @@ const Wallet = ({
     [navigation, providerConfig.chainId],
   );
 
-    // Effect - fetch notifications when component/view is visible.
-    useEffect(() => {
-      async function updateNotifications() {
-        await listNotifications();
-      }
-      updateNotifications();
-    }, [listNotifications]);
+  // Effect - fetch notifications when component/view is visible.
+  useEffect(() => {
+    async function updateNotifications() {
+      await listNotifications();
+    }
+    updateNotifications();
+  }, [listNotifications]);
 
   useEffect(() => {
     navigation.setOptions(
