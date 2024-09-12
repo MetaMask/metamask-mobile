@@ -1,4 +1,8 @@
-import NotificationManager from './NotificationManager';
+import { NotificationTransactionTypes } from '../util/notifications';
+import NotificationManager, {
+  constructTitleAndMessage,
+} from './NotificationManager';
+import { strings } from '../../locales/i18n';
 
 interface NavigationMock {
   navigate: jest.Mock;
@@ -63,5 +67,25 @@ describe('NotificationManager', () => {
   it('calling NotificationManager.getTransactionToView should be truthy if setTransactionToView was called before', () => {
     NotificationManager.setTransactionToView(1);
     expect(NotificationManager.getTransactionToView()).toBeTruthy();
+  });
+
+  const selectedNotificationTypes: (keyof typeof NotificationTransactionTypes)[] = [
+    'pending',
+    'pending_deposit',
+    'pending_withdrawal',
+    'success_withdrawal',
+    'success_deposit',
+    'error',
+    'cancelled',
+  ];
+  selectedNotificationTypes.forEach((type) => {
+    it(`should construct title and message for ${type}`, () => {
+      const { title, message } = constructTitleAndMessage({
+        type: NotificationTransactionTypes[type],
+      });
+
+      expect(title).toBe(strings(`notifications.${type}_title`));
+      expect(message).toBe(strings(`notifications.${type}_message`));
+    });
   });
 });

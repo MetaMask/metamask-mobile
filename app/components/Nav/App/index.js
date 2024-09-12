@@ -121,6 +121,7 @@ import NftOptions from '../../../components/Views/NftOptions';
 import ShowTokenIdSheet from '../../../components/Views/ShowTokenIdSheet';
 import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
+import TooltipModal from '../../../components/Views/TooltipModal';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
@@ -741,6 +742,10 @@ const App = ({ userLoggedIn, basicFunctionalityEnabled }) => {
       <Stack.Screen
         name={Routes.SHEET.ORIGIN_SPAM_MODAL}
         component={OriginSpamModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.TOOLTIP_MODAL}
+        component={TooltipModal}
       />
     </Stack.Navigator>
   );
