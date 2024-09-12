@@ -1,8 +1,9 @@
 import { useNavigation } from '@react-navigation/native';
 import { BN } from 'ethereumjs-util';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -42,46 +43,62 @@ const StakeInputView = () => {
   const [amountBN, setAmountBN] = useState<BN>(new BN(0));
   const { balance, balanceBN, balanceFiatNumber } = useBalance();
 
-  const isNonZeroAmount: boolean = amountBN.gt(new BN(0));
-  const additionalFundsRequired = amountBN.sub(balanceBN || new BN(0));
-  const isOverMaximum: boolean =
-    isNonZeroAmount && additionalFundsRequired.gt(new BN(0));
+  const isNonZeroAmount = useMemo(() => amountBN.gt(new BN(0)), [amountBN]);
+  const isOverMaximum = useMemo(() => {
+    const additionalFundsRequired = amountBN.sub(balanceBN || new BN(0));
+    return isNonZeroAmount && additionalFundsRequired.gt(new BN(0));
+  }, [amountBN, balanceBN, isNonZeroAmount]);
 
   const [fiatAmount, setFiatAmount] = useState('0');
   const [isEth, setIsEth] = useState<boolean>(true);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate) || 1;
 
+  const balanceText = isEth
+    ? `${balance} ETH`
+    : `${balanceFiatNumber?.toString()} ${currentCurrency.toUpperCase()}`;
+
+  const displayAmount = isEth
+    ? `${amount} ETH`
+    : `${fiatAmount} ${currentCurrency.toUpperCase()}`;
+
+  const currencyToggleValue = isEth
+    ? `${fiatAmount} ${currentCurrency.toUpperCase()}`
+    : `${amount} ETH`;
+
   useEffect(() => {
     navigation.setOptions(getStakeInputNavbar(navigation, theme.colors));
   }, [navigation, theme.colors]);
 
-  /* Keypad Handlers */
+  const handleEthInput = (value: string) => {
+    setAmount(value);
+    setAmountBN(toWei(value, 'ether'));
+    const fiatValue = weiToFiatNumber(
+      toWei(value, 'ether'),
+      conversionRate,
+      2,
+    ).toString();
+    setFiatAmount(fiatValue);
+  };
 
+  const handleFiatInput = (value: string) => {
+    setFiatAmount(value);
+    const ethValue = renderFromTokenMinimalUnit(
+      fiatNumberToWei(value, conversionRate).toString(),
+      18,
+      5,
+    );
+
+    setAmount(ethValue);
+    setAmountBN(toWei(ethValue, 'ether'));
+  };
+
+  /* Keypad Handlers */
   const handleKeypadChange = useCallback(
     ({ value }) => {
-      if (isEth) {
-        setAmount(value);
-        setAmountBN(toWei(value, 'ether'));
-        const fiatValue = weiToFiatNumber(
-          toWei(value, 'ether'),
-          conversionRate,
-          2,
-        ).toString();
-        setFiatAmount(fiatValue);
-      } else {
-        setFiatAmount(value);
-        const ethValue = renderFromTokenMinimalUnit(
-          fiatNumberToWei(value, conversionRate).toString(),
-          18,
-          5,
-        );
-
-        setAmount(ethValue);
-        setAmountBN(toWei(ethValue, 'ether'));
-      }
+      isEth ? handleEthInput(value) : handleFiatInput(value);
     },
-    [isEth, conversionRate],
+    [isEth],
   );
 
   const handleCurrencySwitch = useCallback(() => {
@@ -156,40 +173,35 @@ const StakeInputView = () => {
         <View>
           {isOverMaximum ? (
             <Text variant={TextVariant.BodySM} color={TextColor.Error}>
-              Not enough ETH
+              {strings('stake.not_enough_eth')}
             </Text>
           ) : (
             <Text variant={TextVariant.BodySM}>
-              {'Balance : '}
-              {isEth
-                ? `${balance} ETH`
-                : `${balanceFiatNumber?.toString()} ${currentCurrency.toUpperCase()}`}
+              {strings('stake.balance')}
+              {': '}
+              {balanceText}
             </Text>
           )}
         </View>
         <View style={styles.amountRow}>
           <Text variant={TextVariant.DisplayMD} color={TextColor.Muted}>
-            {isEth
-              ? `${amount} ETH`
-              : `${fiatAmount} ${currentCurrency.toUpperCase()}`}
+            {displayAmount}
           </Text>
         </View>
         <View>
           <CurrencyToggle
             onPress={handleCurrencySwitch}
-            value={
-              isEth
-                ? `${fiatAmount} ${currentCurrency.toUpperCase()}`
-                : `${amount} ETH`
-            }
+            value={currencyToggleValue}
           />
         </View>
       </View>
       <View style={styles.rewardsRateContainer}>
-        <AnnualRewardsRateCard annualRewardRate="2.6%" onIconPress={() => {}} />
+        <AnnualRewardsRateCard
+          estimatedAnnualRewardRate="2.6%"
+          onIconPress={() => {}}
+        />
       </View>
       <QuickAmounts
-        disabled={false}
         amounts={percentageOptions}
         onAmountPress={handleAmountPress}
       />
@@ -204,10 +216,10 @@ const StakeInputView = () => {
         <Button
           label={
             !isNonZeroAmount
-              ? 'Enter amount'
+              ? strings('stake.enter_amount')
               : isOverMaximum
-              ? 'Not enough ETH'
-              : 'Review'
+              ? strings('stake.not_enough_eth')
+              : strings('stake.review')
           }
           size={ButtonSize.Lg}
           labelTextVariant={TextVariant.BodyMDMedium}
