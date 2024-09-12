@@ -1317,6 +1317,12 @@ class Engine {
       // @ts-expect-error TODO: resolve types
       supportedChainIds: getAllowedSmartTransactionsChainIds(),
       state: initialState.SmartTransactionsController,
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'SmartTransactionsController',
+        allowedActions: ['NetworkController:getNetworkClientById'],
+        allowedEvents: ['NetworkController:stateChange'],
+      }),
     });
 
     const controllers: Controllers[keyof Controllers][] = [
