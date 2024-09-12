@@ -19,7 +19,11 @@ describe('PermissionsSummary', () => {
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(
       <PermissionsSummary
-        currentPageInformation={{ currentEnsName: '', icon: '', url: '' }}
+        currentPageInformation={{
+          currentEnsName: '',
+          icon: '',
+          url: 'https://app.uniswap.org/',
+        }}
       />,
       { state: mockInitialState },
     );

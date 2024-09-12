@@ -72,7 +72,7 @@ const PermissionsSummary = ({
   };
 
   const handleEditButtonPress = () => {
-    onEdit();
+    onEdit?.();
   };
 
   function renderAccountPermissionsRequestInfoCard() {
