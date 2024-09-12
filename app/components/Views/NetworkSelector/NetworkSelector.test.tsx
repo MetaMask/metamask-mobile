@@ -34,6 +34,7 @@ jest.mock('../../../core/Engine', () => ({
     NetworkController: {
       setActiveNetwork: jest.fn(),
       setProviderType: jest.fn(),
+      getNetworkClientById: jest.fn().mockReturnValue({ chainId: '0x1' }),
     },
     PreferencesController: {
       setShowTestNetworks: jest.fn(),
