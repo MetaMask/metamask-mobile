@@ -628,6 +628,8 @@ class Engine {
           'PreferencesController:stateChange',
           'NetworkController:networkDidChange',
           'TokenListController:stateChange',
+          'AccountsController:accountAdded',
+          'AccountsController:accountRenamed',
         ],
       }),
     });
@@ -1093,7 +1095,12 @@ class Engine {
           'NotificationServicesController:disableNotificationServices',
           'NotificationServicesController:selectIsNotificationServicesEnabled',
         ],
-        allowedEvents: ['KeyringController:unlock', 'KeyringController:lock'],
+        allowedEvents: [
+          'KeyringController:unlock',
+          'KeyringController:lock',
+          'AccountsController:accountAdded',
+          'AccountsController:accountRenamed',
+        ],
       }),
       nativeScryptCrypto: scrypt,
     });
