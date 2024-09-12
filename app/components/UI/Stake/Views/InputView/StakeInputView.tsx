@@ -60,10 +60,6 @@ const StakeInputView = () => {
     ? `${balance} ETH`
     : `${balanceFiatNumber?.toString()} ${currentCurrency.toUpperCase()}`;
 
-  const displayAmount = isEth
-    ? `${amount} ETH`
-    : `${fiatAmount} ${currentCurrency.toUpperCase()}`;
-
   const currencyToggleValue = isEth
     ? `${fiatAmount} ${currentCurrency.toUpperCase()}`
     : `${amount} ETH`;
@@ -130,25 +126,15 @@ const StakeInputView = () => {
   );
 
   const handleCurrencySwitch = useCallback(() => {
-    setIsEth((prev) => {
-      // When switching currencies, recalculate the values to update the input box properly
-      if (prev) {
-        const ethValue = fromTokenMinimalUnitString(
-          fiatNumberToWei(fiatAmount || '0', conversionRate).toString(),
-          18,
-        );
-        setAmount(limitToMaximumDecimalPlaces(Number(ethValue), 5));
+    setIsEth((isCurrentlyEth) => {
+      if (isCurrentlyEth) {
+        setFiatAmount(fiatAmount);
       } else {
-        const fiatValue = weiToFiatNumber(
-          toWei(amount || '0', 'ether'),
-          conversionRate,
-          2,
-        ).toString();
-        setFiatAmount(fiatValue);
+        setAmount(amount);
       }
-      return !prev;
+      return !isCurrentlyEth;
     });
-  }, [amount, fiatAmount, conversionRate]);
+  }, [amount, fiatAmount]);
 
   const handleStakePress = useCallback(() => {
     // Add your logic here
@@ -172,19 +158,17 @@ const StakeInputView = () => {
         return;
       }
 
-      const amountToSet = amountPercentage;
-
       const newAmountString = fromTokenMinimalUnitString(
-        amountToSet.toString(10),
+        amountPercentage.toString(10),
         18,
       );
-
       const newEthAmount = limitToMaximumDecimalPlaces(
         Number(newAmountString),
         5,
       );
       setAmount(newEthAmount);
-      // Calculate and set the fiat amount
+      setAmountBN(amountPercentage);
+
       const newFiatAmount = weiToFiatNumber(
         toWei(newEthAmount.toString(), 'ether'),
         conversionRate,
@@ -212,8 +196,14 @@ const StakeInputView = () => {
           )}
         </View>
         <View style={styles.amountRow}>
-          <Text variant={TextVariant.DisplayMD} color={TextColor.Muted}>
-            {displayAmount}
+          <Text
+            color={isNonZeroAmount ? TextColor.Default : TextColor.Muted}
+            variant={TextVariant.DisplayMD}
+          >
+            {isEth ? amount : fiatAmount}
+          </Text>
+          <Text color={TextColor.Muted} variant={TextVariant.DisplayMD}>
+            {isEth ? 'ETH' : currentCurrency.toUpperCase()}
           </Text>
         </View>
         <View>
