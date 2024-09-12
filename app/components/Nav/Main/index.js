@@ -283,7 +283,7 @@ const Main = (props) => {
     }
   }, [props.navigation]);
 
-  useNotificationHandler(bootstrapAndroidInitialNotification, props.navigation);
+  bootstrapAndroidInitialNotification();
 
   // Remove all notifications that aren't visible
   useEffect(() => {

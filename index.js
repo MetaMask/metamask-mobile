@@ -93,6 +93,7 @@ isNotificationsFeatureEnabled() &&
       await notifee.decrementBadgeCount(1);
       await notifee.cancelNotification(notification.id);
     } else {
+      await notifee.incrementBadgeCount(1);
       await NotificationManager.onMessageReceived(notification);
     }
   });
