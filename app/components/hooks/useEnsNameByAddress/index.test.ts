@@ -2,7 +2,6 @@ import { renderHook } from '@testing-library/react-hooks';
 import useEnsNameByAddress from '.';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { mockNetworkStateOld } from '../../../util/test/network';
-import mockedEngine from '../../../core/__mocks__/MockedEngine';
 
 const MOCK_CHAIN_ID = '0x1';
 
@@ -24,10 +23,6 @@ const MOCK_STORE_STATE = {
     },
   },
 };
-
-jest.mock('../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
 
 jest.mock('../../../util/ENSUtils', () => ({
   ...jest.requireActual('../../../util/ENSUtils'),

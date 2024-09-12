@@ -3,7 +3,6 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import Tabs from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
-import mockedEngine from '../../../core/__mocks__/MockedEngine';
 
 const mockInitialState = {
   wizard: {
@@ -25,10 +24,6 @@ jest.mock('react-native-safe-area-context', () => {
     },
   };
 });
-
-jest.mock('../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
 
 describe('Tabs', () => {
   it('should render correctly', () => {

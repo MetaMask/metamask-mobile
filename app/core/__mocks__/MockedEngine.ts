@@ -1,11 +1,11 @@
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { mockNetworkStateOld } from '../../util/test/network';
-
-const engineModule = jest.requireActual('../../core/Engine');
+import { NetworkClientId } from '@metamask/network-controller';
+import Engine from '../../core/Engine';
 
 export const mockedEngine = {
-  init: () => engineModule.default.init({}),
+  init: () => Engine.init({}),
   context: {
     KeyringController: {
       keyring: {
@@ -34,14 +34,27 @@ export const mockedEngine = {
       },
     },
     NetworkController: {
-      // getNetworkClientById: (args) => {
-      //   console.log('ARGS --------', args);
-      //   return {
-      //     configuration: {
-      //       chainId: '0x1',
-      //     },
-      //   };
-      // },
+      getNetworkClientById: (networkClientId: NetworkClientId) => {
+        if (networkClientId === 'linea_goerli') {
+          return {
+            configuration: {
+              chainId: '0xe704',
+              rpcUrl: 'https://linea-goerli.infura.io/v3',
+              ticker: 'LINEA',
+              type: 'custom',
+            },
+          };
+        }
+
+        return {
+          configuration: {
+            chainId: '0x1',
+            rpcUrl: 'https://mainnet.infura.io/v3',
+            ticker: 'ETH',
+            type: 'custom',
+          },
+        };
+      },
       state: {
         ...mockNetworkStateOld({
           chainId: CHAIN_IDS.MAINNET,

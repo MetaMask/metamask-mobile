@@ -1,10 +1,8 @@
 import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import GasEducationCarousel from '.';
-import mockedEngine from '../../../core/__mocks__/MockedEngine';
 
 jest.mock('../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
   context: {
     GasFeeController: jest.fn(),
   },

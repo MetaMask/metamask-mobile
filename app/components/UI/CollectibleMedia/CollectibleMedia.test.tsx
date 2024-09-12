@@ -6,7 +6,6 @@ import CollectibleMedia from './CollectibleMedia';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { mockNetworkStateOld } from '../../../util/test/network';
-import mockedEngine from '../../../core/__mocks__/MockedEngine';
 
 const mockInitialState = {
   engine: {
@@ -39,10 +38,6 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
-
-jest.mock('../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
 
 describe('CollectibleMedia', () => {
   it('should render correctly', () => {

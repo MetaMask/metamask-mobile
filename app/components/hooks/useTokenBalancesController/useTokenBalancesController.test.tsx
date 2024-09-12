@@ -7,7 +7,6 @@ import useTokenBalancesController from './useTokenBalancesController';
 import { BN } from 'ethereumjs-util';
 import { cloneDeep } from 'lodash';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import mockedEngine from '../../../core/__mocks__/MockedEngine';
 
 // initial state for the test store
 const mockInitialState = {
@@ -62,10 +61,6 @@ const DummyTestComponent = () => {
   // render the balances as a string to be able to compare the snapshots
   return <Text>{JSON.stringify(balances)}</Text>;
 };
-
-jest.mock('../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
 
 describe('useTokenBalancesController()', () => {
   // TODO: Replace "any" with type

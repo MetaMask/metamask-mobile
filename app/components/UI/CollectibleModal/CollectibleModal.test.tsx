@@ -13,7 +13,6 @@ import {
 import { useSelector } from 'react-redux';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { mockNetworkStateOld } from '../../../util/test/network';
-import mockedEngine from '../../../core/__mocks__/MockedEngine';
 
 const mockInitialState = {
   engine: {
@@ -63,10 +62,6 @@ jest.mock('@react-navigation/native', () => {
     useRoute: jest.fn(() => ({ params: navigation.params })),
   };
 });
-
-jest.mock('../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
 
 describe('CollectibleModal', () => {
   afterEach(() => {

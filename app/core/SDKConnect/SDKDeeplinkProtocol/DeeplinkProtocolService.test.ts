@@ -14,7 +14,6 @@ import { createMockInternalAccount } from '../../../util/test/accountsController
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 jest.mock('../SDKConnect');
-jest.mock('../../../core/Engine');
 jest.mock('react-native');
 jest.mock('../../BackgroundBridge/BackgroundBridge');
 jest.mock('../utils/DevLogger');

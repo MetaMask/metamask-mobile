@@ -44,15 +44,15 @@ const mockInitialState: DeepPartial<RootState> = {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       NetworkController: {
-        selectedNetworkClientId: 'mainnet',
+        selectedNetworkClientId: 'sepolia',
         networksMetadata: {},
         networkConfigurations: {
-          mainnet: {
-            id: 'mainnet',
+          sepolia: {
+            id: 'sepolia',
             rpcUrl: 'http://localhost/v3/',
             chainId: MOCK_CHAIN_ID,
             ticker: 'ETH',
-            nickname: 'Ethereum Mainnet',
+            nickname: 'Sepolia',
             rpcPrefs: {
               blockExplorerUrl: 'https://etherscan.com',
             },
@@ -62,30 +62,6 @@ const mockInitialState: DeepPartial<RootState> = {
     },
   },
 };
-
-jest.mock('../../../core/Engine', () => ({
-  context: {
-    NetworkController: {
-      getNetworkClientById: () => ({
-        configuration: {
-          chainId: '0x1',
-          rpcUrl: 'https://mainnet.infura.io/v3',
-          ticker: 'ETH',
-          type: 'custom',
-        },
-      }),
-    },
-    KeyringController: {
-      state: {
-        keyrings: [
-          {
-            accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
-          },
-        ],
-      },
-    },
-  },
-}));
 
 jest.mock('../../../core/ClipboardManager');
 

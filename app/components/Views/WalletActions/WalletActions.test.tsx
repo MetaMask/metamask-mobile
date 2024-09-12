@@ -7,11 +7,8 @@ import renderWithProvider, {
 
 import WalletActions from './WalletActions';
 import { WalletActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/WalletActionsModal.selectors';
-import Engine from '../../../core/Engine';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
-
-const mockEngine = Engine;
 
 const mockInitialState: DeepPartial<RootState> = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
@@ -47,22 +44,6 @@ const mockInitialState: DeepPartial<RootState> = {
     },
   },
 };
-
-jest.mock('../../../core/Engine', () => ({
-  init: () => mockEngine.init({}),
-  context: {
-    NetworkController: {
-      getNetworkClientById: () => ({
-        configuration: {
-          chainId: '0x1',
-          rpcUrl: 'https://mainnet.infura.io/v3',
-          ticker: 'ETH',
-          type: 'custom',
-        },
-      }),
-    },
-  },
-}));
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();

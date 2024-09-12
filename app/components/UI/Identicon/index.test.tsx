@@ -5,13 +5,8 @@ import Identicon from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import useTokenList from '../../../components/hooks/DisplayName/useTokenList';
-import mockedEngine from '../../../core/__mocks__/MockedEngine';
 
 jest.mock('../../../components/hooks/DisplayName/useTokenList');
-
-jest.mock('../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
 
 describe('Identicon', () => {
   const mockStore = configureMockStore();

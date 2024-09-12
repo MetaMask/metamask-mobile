@@ -6,7 +6,6 @@ import { Provider } from 'react-redux';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { mockNetworkStateOld } from '../../../util/test/network';
-import mockedEngine from '../../../core/__mocks__/MockedEngine';
 
 const mockStore = configureMockStore();
 
@@ -26,10 +25,6 @@ const initialState = {
   },
 };
 const store = mockStore(initialState);
-
-jest.mock('../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
 
 describe('CollectibleContractOverview', () => {
   it('should render correctly', () => {

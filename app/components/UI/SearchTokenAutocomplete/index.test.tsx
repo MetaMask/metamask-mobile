@@ -2,11 +2,6 @@ import { renderScreen } from '../../../util/test/renderWithProvider';
 import SearchTokenAutocomplete from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { FunctionComponent } from 'react';
-import mockedEngine from '../../../core/__mocks__/MockedEngine';
-
-jest.mock('../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
 
 const mockInitialState = {
   settings: {},

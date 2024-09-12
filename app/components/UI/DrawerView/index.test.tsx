@@ -3,10 +3,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import DrawerView from './';
 
 import { backgroundState } from '../../../util/test/initial-root-state';
-import Engine from '../../../core/Engine';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
-
-const mockedEngine = Engine;
 
 const mockInitialState = {
   engine: {
@@ -18,32 +15,8 @@ const mockInitialState = {
 };
 
 jest.mock('../../../core/Engine', () => ({
-  init: () => mockedEngine.init({}),
   getTotalFiatAccountBalance: () => ({ ethFiat: 0, tokenFiat: 0 }),
   context: {
-    NetworkController: {
-      getNetworkClientById: () => ({
-        configuration: {
-          chainId: '0x1',
-        },
-      }),
-      state: {
-        networkConfigurations: {
-          mainnet: {
-            id: 'mainnet',
-            rpcUrl: 'https://mainnet.infura.io/v3',
-            chainId: '0x1',
-            ticker: 'ETH',
-            nickname: 'Ethereum mainnet',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://etherscan.com',
-            },
-          },
-        },
-        selectedNetworkClientId: 'mainnet',
-        networkMetadata: {},
-      },
-    },
     KeyringController: {
       state: {
         keyrings: [],

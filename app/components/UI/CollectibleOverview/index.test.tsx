@@ -4,7 +4,6 @@ import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import mockedEngine from '../../../core/__mocks__/MockedEngine';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -16,10 +15,6 @@ const initialState = {
   },
 };
 const store = mockStore(initialState);
-
-jest.mock('../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
 
 describe('CollectibleOverview', () => {
   it('should render correctly', () => {

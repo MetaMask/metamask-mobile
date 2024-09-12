@@ -6,7 +6,6 @@ import { render } from '@testing-library/react-native';
 
 import NetworkMainAssetLogo from '.';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import mockedEngine from '../../../core/__mocks__/MockedEngine';
 
 jest.mock('../Swaps/components/TokenIcon', () => {
   const originalModule = jest.requireActual('../Swaps/components/TokenIcon');
@@ -28,10 +27,6 @@ const mockInitialState = {
     },
   },
 };
-
-jest.mock('../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
 
 describe('NetworkMainAssetLogo', () => {
   const mockStore = configureMockStore();

@@ -9,7 +9,6 @@ import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-obje
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { regex } from '../../../../app/util/regex';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
-import mockedEngine from '../../../core/__mocks__/MockedEngine';
 
 const BUSINESS_ACCOUNT = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const PERSONAL_ACCOUNT = '0xd018538C87232FF95acbCe4870629b75640a78E7';
@@ -26,22 +25,6 @@ jest.mock('../../../util/address', () => {
     getLabelTextByAddress: jest.fn(),
   };
 });
-
-jest.mock('../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-  context: {
-    NetworkController: {
-      getNetworkClientById: () => ({
-        configuration: {
-          chainId: '0x1',
-          rpcUrl: 'https://mainnet.infura.io/v3',
-          ticker: 'ETH',
-          type: 'custom',
-        },
-      }),
-    },
-  },
-}));
 
 const initialState = {
   engine: {

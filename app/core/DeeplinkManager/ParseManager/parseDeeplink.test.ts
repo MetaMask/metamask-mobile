@@ -5,7 +5,6 @@ import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 import handleUniversalLink from './handleUniversalLink';
 import connectWithWC from './connectWithWC';
 import parseDeeplink from './parseDeeplink';
-import mockedEngine from '../../../core/__mocks__/MockedEngine';
 
 jest.mock('../../../constants/deeplinks');
 jest.mock('../../../util/Logger');
@@ -17,9 +16,6 @@ jest.mock('./handleUniversalLink');
 jest.mock('./connectWithWC');
 jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
-}));
-jest.mock('../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
 }));
 
 const invalidUrls = [

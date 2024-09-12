@@ -22,7 +22,6 @@ import {
   useSimulationMetrics,
 } from './useSimulationMetrics';
 import useLoadingTime from './useLoadingTime';
-import mockedEngine from '../../../core/__mocks__/MockedEngine';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -39,22 +38,6 @@ jest.mock('./useLoadingTime');
 jest.mock('../../hooks/DisplayName/useDisplayName');
 jest.mock('../../../core/redux/slices/transactionMetrics');
 jest.mock('../../../components/hooks/useMetrics');
-
-jest.mock('../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-  context: {
-    NetworkController: {
-      getNetworkClientById: () => ({
-        configuration: {
-          chainId: '0x1',
-          rpcUrl: 'https://mainnet.infura.io/v3',
-          ticker: 'ETH',
-          type: 'custom',
-        },
-      }),
-    },
-  },
-}));
 
 const TRANSACTION_ID_MOCK = 'testTransactionId';
 const LOADING_TIME_MOCK = 0.123;

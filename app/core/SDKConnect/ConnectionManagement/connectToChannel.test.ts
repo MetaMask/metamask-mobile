@@ -2,7 +2,6 @@ import { Connection, ConnectionProps } from '../Connection';
 import { DEFAULT_SESSION_TIMEOUT_MS } from '../SDKConnectConstants';
 import { SDKConnect } from './../SDKConnect';
 import connectToChannel from './connectToChannel';
-import mockedEngine from '../../../core/__mocks__/MockedEngine';
 
 jest.mock('../../../store/storage-wrapper', () => ({
   setItem: jest.fn().mockResolvedValue(''),
@@ -14,9 +13,6 @@ jest.mock('./../SDKConnect');
 jest.mock('../utils/DevLogger');
 jest.mock('../SDKConnectConstants');
 jest.mock('../handlers/checkPermissions', () => jest.fn());
-jest.mock('../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
 
 // Import the mocked checkPermissions
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';

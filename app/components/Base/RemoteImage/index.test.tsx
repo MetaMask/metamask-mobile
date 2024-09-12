@@ -1,7 +1,6 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 import RemoteImage from './';
-import mockedEngine from '../../../core/__mocks__/MockedEngine';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -11,8 +10,6 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../../components/hooks/useIpfsGateway', () => jest.fn());
-
-jest.mock('../../../core/Engine', () => ({ init: () => mockedEngine.init() }));
 
 describe('RemoteImage', () => {
   it('should render svg correctly', () => {
