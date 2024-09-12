@@ -22,7 +22,7 @@ const defaultReturn = {
   balanceFiatNumber: null,
 };
 
-export default function useBalance() {
+const useBalance = () => {
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const chainId = useSelector(selectChainId);
   const selectedAddress = useSelector(
@@ -31,12 +31,9 @@ export default function useBalance() {
   const conversionRate = useSelector(selectConversionRate) ?? 1;
   const currentCurrency = useSelector(selectCurrentCurrency);
 
-  if (!selectedAddress) {
-    return defaultReturn;
-  }
-
-  const rawAccountBalance =
-    accountsByChainId[toHexadecimal(chainId)][selectedAddress].balance;
+  const rawAccountBalance = selectedAddress
+    ? accountsByChainId[toHexadecimal(chainId)]?.[selectedAddress]?.balance
+    : '0';
 
   const balance = useMemo(() => {
     return renderFromWei(rawAccountBalance);
@@ -55,4 +52,6 @@ export default function useBalance() {
   }, [balanceBN, conversionRate]);
 
   return { balance, balanceFiat, balanceBN, balanceFiatNumber };
-}
+};
+
+export default useBalance;
