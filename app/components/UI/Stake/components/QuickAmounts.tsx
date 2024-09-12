@@ -67,26 +67,16 @@ const Amount = ({ amount, onPress }: AmountProps) => {
 
 interface QuickAmountsProps {
   amounts: QuickAmount[];
-  disabled?: boolean;
   onAmountPress: (amount: QuickAmount) => void;
 }
 
-const QuickAmounts = ({
-  amounts,
-  onAmountPress,
-  disabled,
-}: QuickAmountsProps) => {
+const QuickAmounts = ({ amounts, onAmountPress }: QuickAmountsProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
     <View style={styles.content}>
       {amounts.map((amount, index: number) => (
-        <Amount
-          amount={amount}
-          onPress={onAmountPress}
-          key={index}
-          disabled={disabled}
-        />
+        <Amount amount={amount} onPress={onAmountPress} key={index} />
       ))}
     </View>
   );
