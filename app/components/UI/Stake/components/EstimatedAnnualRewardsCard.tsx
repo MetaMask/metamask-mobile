@@ -40,15 +40,15 @@ const createStyles = (colors: Colors) =>
     },
   });
 
-interface AnnualRewardRateCardProps {
-  estimatedAnnualRewardRate: string;
+interface EstimatedAnnualRewardsCardProps {
+  estimatedAnnualRewards: string;
   onIconPress: () => void;
 }
 
-const AnnualRewardRateCard = ({
-  estimatedAnnualRewardRate,
+const EstimatedAnnualRewardsCard = ({
+  estimatedAnnualRewards,
   onIconPress,
-}: AnnualRewardRateCardProps) => {
+}: EstimatedAnnualRewardsCardProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -65,7 +65,7 @@ const AnnualRewardRateCard = ({
         </View>
         <View style={styles.rewardRateContainer}>
           <Text color={TextColor.Success} variant={TextVariant.BodyMDMedium}>
-            {estimatedAnnualRewardRate}
+            {estimatedAnnualRewards}
           </Text>
           <Text
             variant={TextVariant.BodySMMedium}
@@ -79,4 +79,4 @@ const AnnualRewardRateCard = ({
   );
 };
 
-export default AnnualRewardRateCard;
+export default EstimatedAnnualRewardsCard;

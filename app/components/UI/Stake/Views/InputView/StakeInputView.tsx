@@ -21,6 +21,7 @@ import {
   fiatNumberToWei,
   fromTokenMinimalUnitString,
   limitToMaximumDecimalPlaces,
+  renderFiat,
   renderFromTokenMinimalUnit,
   toWei,
   weiToFiatNumber,
@@ -29,11 +30,11 @@ import Keypad from '../../../../Base/Keypad';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakeInputNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/components/ScreenLayout';
-import AnnualRewardsRateCard from '../../components/AnnualRewardsRateCard';
 import CurrencyToggle from '../../components/CurrencySwitch';
 import QuickAmounts from '../../components/QuickAmounts';
 import useBalance from '../../hooks/useBalance';
 import styleSheet from './StakeInputView.styles';
+import EstimatedAnnualRewardsCard from '../../components/EstimatedAnnualRewardsCard';
 
 const StakeInputView = () => {
   const navigation = useNavigation();
@@ -42,6 +43,7 @@ const StakeInputView = () => {
   const [amount, setAmount] = useState('0');
   const [amountBN, setAmountBN] = useState<BN>(new BN(0));
   const { balance, balanceBN, balanceFiatNumber } = useBalance();
+  const [estimatedAnnualRewards, setEstimatedAnnualRewards] = useState('-');
 
   const isNonZeroAmount = useMemo(() => amountBN.gt(new BN(0)), [amountBN]);
   const isOverMaximum = useMemo(() => {
@@ -66,9 +68,35 @@ const StakeInputView = () => {
     ? `${fiatAmount} ${currentCurrency.toUpperCase()}`
     : `${amount} ETH`;
 
+  const annualRewardRate = '0.026'; //TODO: Replace with actual value: STAKE-806
+  const calculateEstimatedAnnualRewards = useCallback(() => {
+    if (isNonZeroAmount) {
+      const ethRewards = limitToMaximumDecimalPlaces(
+        parseFloat(amount) * parseFloat(annualRewardRate),
+        5,
+      );
+      if (isEth) {
+        setEstimatedAnnualRewards(`${ethRewards} ETH`);
+      } else {
+        const fiatRewards = renderFiat(
+          parseFloat(fiatAmount) * parseFloat(annualRewardRate),
+          currentCurrency,
+          2,
+        );
+        setEstimatedAnnualRewards(`${fiatRewards}`);
+      }
+    } else {
+      setEstimatedAnnualRewards(`${Number(annualRewardRate) * 100}%`);
+    }
+  }, [amount, amountBN, isEth, conversionRate]);
+
   useEffect(() => {
     navigation.setOptions(getStakeInputNavbar(navigation, theme.colors));
   }, [navigation, theme.colors]);
+
+  useEffect(() => {
+    calculateEstimatedAnnualRewards();
+  }, [amount, amountBN, isEth, conversionRate]);
 
   const handleEthInput = (value: string) => {
     setAmount(value);
@@ -196,8 +224,8 @@ const StakeInputView = () => {
         </View>
       </View>
       <View style={styles.rewardsRateContainer}>
-        <AnnualRewardsRateCard
-          estimatedAnnualRewardRate="2.6%"
+        <EstimatedAnnualRewardsCard
+          estimatedAnnualRewards={estimatedAnnualRewards}
           onIconPress={() => {}}
         />
       </View>
