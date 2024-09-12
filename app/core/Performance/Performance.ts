@@ -1,11 +1,18 @@
 /* eslint-disable no-console */
 import performance, { PerformanceObserver } from 'react-native-performance';
-import { store } from '../../store';
-import { setPerformanceMetrics } from '../redux/slices/performanceMetrics';
+import { MMKV } from 'react-native-mmkv';
+import StorageWrapper from '../../store/storage-wrapper';
 
 /**
  * Service for measuring app performance
  */
+
+async function setPerformanceValues(nativeLaunchDuration: any, jsBundleDuration: any, appStartTime: any) {
+  await StorageWrapper.setItem('nativeLaunchDuration', nativeLaunchDuration.toString());
+  await StorageWrapper.setItem('jsBundleDuration', jsBundleDuration.toString());
+  await StorageWrapper.setItem('appStartTime', appStartTime.toString());
+}
+
 class Performance {
   /**
    * Measures app start and JS bundle loading times
@@ -53,15 +60,9 @@ class Performance {
         );
         console.info(`-------------------------------------------------------`);
         console.info(`-------------------------------------------------------`);
-
-        // store values in performanceMetrics slice
-        store.dispatch(
-          setPerformanceMetrics({
-            nativeLaunchDuration,
-            jsBundleDuration,
-            appStartTime,
-          }),
-        );
+        
+        setPerformanceValues(nativeLaunchDuration, jsBundleDuration, appStartTime);
+    
       }
     }).observe({ type: 'react-native-mark', buffered: true });
   };

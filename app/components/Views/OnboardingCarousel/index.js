@@ -26,11 +26,7 @@ import { OnboardingCarouselSelectorIDs } from '../../../../e2e/selectors/Onboard
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { isE2E } from '../../../util/test/utils';
-import {
-  useNativeLaunchDuration,
-  useJsBundleDuration,
-  useAppStartTime,
-} from '../../../core/redux/slices/performanceMetrics';
+import StorageWrapper from '../../../store/storage-wrapper';
 
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;
@@ -116,6 +112,22 @@ const createStyles = (colors) =>
     tab: {
       marginHorizontal: 30,
     },
+    metricsWrapper: {
+      // flexDirection: 'column',
+      // alignItems: 'center',
+      // justifyContent: 'center',
+      flex: 1,
+      marginTop: 12,
+      marginBottom: 25,
+    },
+    metricsData: {
+      fontSize: 10,
+      // lineHeight: 19,
+      color: colors.text.alternative,
+      justifyContent: 'center',
+      textAlign: 'center',
+      // ...fontStyles.normal,
+    },
   });
 
 const onboarding_carousel_1 = require('../../../images/onboarding-carousel-1.png'); // eslint-disable-line
@@ -145,6 +157,9 @@ class OnboardingCarousel extends PureComponent {
 
   state = {
     currentTab: 1,
+    nativeLaunchDuration: undefined,
+    jsBundleDuration: undefined,
+    appStartTime: undefined,
   };
 
   track = (event, properties) => {
@@ -174,24 +189,34 @@ class OnboardingCarousel extends PureComponent {
     );
   };
 
-  componentDidMount = () => {
+  componentDidMount = async () => {
     this.updateNavBar();
     this.track(MetaMetricsEvents.ONBOARDING_WELCOME_MESSAGE_VIEWED);
+    const nativeLaunchDuration = await StorageWrapper.getItem(
+      'nativeLaunchDuration',
+    );
+    const jsBundleDuration = await StorageWrapper.getItem('jsBundleDuration');
+    const appStartTime = await StorageWrapper.getItem('appStartTime');
+    this.setState({ nativeLaunchDuration, jsBundleDuration, appStartTime });
   };
 
   componentDidUpdate = () => {
     this.updateNavBar();
   };
 
+  getJsBundleDuration = async () => {
+    return await StorageWrapper.getItem('jsBundleDuration');
+  };
+
+  getAppStartTime = async () => {
+    return await StorageWrapper.getItem('appStartTime');
+  };
+
   render() {
-    const { currentTab } = this.state;
+    const { currentTab, nativeLaunchDuration, jsBundleDuration, appStartTime } =
+      this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-    const nativeLaunchDuration = useNativeLaunchDuration();
-    const jsBundleDuration = useJsBundleDuration();
-    const appStartTime = useAppStartTime();
-    // eslint-disable-next-line no-console
-    console.log('VALUE =============', nativeLaunchDuration);
 
     return (
       <View
@@ -228,10 +253,16 @@ class OnboardingCarousel extends PureComponent {
                           {strings(`onboarding_carousel.title${key}`)}
                         </Text>
                         {isE2E && (
-                          <Text style={styles.title}>
-                            <Text>{nativeLaunchDuration}</Text>
-                            <Text>{jsBundleDuration}</Text>
-                            <Text>{appStartTime}</Text>
+                          <Text style={styles.metricsWrapper}>
+                            <Text style={styles.metricsData}>
+                              Native Launch Duration: {nativeLaunchDuration}
+                            </Text>
+                            <Text style={styles.metricsData}>
+                              Js Bundle Duration: {jsBundleDuration}
+                            </Text>
+                            <Text style={styles.metricsData}>
+                              App Start Time: {appStartTime}
+                            </Text>
                           </Text>
                         )}
                         <Text style={styles.subtitle}>
