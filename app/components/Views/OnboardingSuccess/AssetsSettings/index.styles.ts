@@ -56,6 +56,9 @@ const createStyles = (colors: Colors) =>
     cellBorder: {
       borderWidth: 0,
     },
+    contentContainerStyle: {
+      paddingBottom: 75,
+    },
   });
 
 export default createStyles;

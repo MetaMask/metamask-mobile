@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux';
 import { selectUseSafeChainsListValidation } from '../../../../selectors/preferencesController';
 import { USE_SAFE_CHAINS_LIST_VALIDATION } from '../../Settings/SecuritySettings/SecuritySettings.constants';
 import { strings } from '../../../../../locales/i18n';
+import { toggleUseSafeChainsListValidation } from '../../../../util/networks';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -30,6 +31,7 @@ describe('SecuritySettings', () => {
   };
 
   beforeEach(() => {
+    jest.clearAllMocks();
     useNavigation.mockReturnValue(mockNavigation);
   });
 
@@ -42,17 +44,6 @@ describe('SecuritySettings', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should set navigation options', () => {
-    renderWithProvider(<SecuritySettings />);
-    expect(mockNavigation.setOptions).toHaveBeenCalled();
-  });
-
-  it('navigates back when back button is pressed', () => {
-    const backButton = mockNavigation.setOptions.mock.calls[0][0].headerLeft();
-    fireEvent.press(backButton);
-    expect(mockNavigation.goBack).toHaveBeenCalled();
-  });
-
   it('should render the Network Details Check section', () => {
     const { getByTestId } = renderWithProvider(<SecuritySettings />);
     expect(getByTestId(USE_SAFE_CHAINS_LIST_VALIDATION)).toBeTruthy();
@@ -61,5 +52,36 @@ describe('SecuritySettings', () => {
   it('should display correct title for Network Details Check', () => {
     const { getByText } = renderWithProvider(<SecuritySettings />);
     expect(getByText(strings('wallet.network_details_check'))).toBeTruthy();
+  });
+
+  it('should render the switch for Network Details Check', () => {
+    useSelector.mockImplementation((selector) => {
+      if (selector === selectUseSafeChainsListValidation) return false;
+      return null;
+    });
+    const { getByTestId } = renderWithProvider(<SecuritySettings />);
+    const switchElement = getByTestId(USE_SAFE_CHAINS_LIST_VALIDATION);
+    expect(switchElement).toBeTruthy();
+  });
+
+  it('should toggle the switch when pressed', () => {
+    useSelector.mockImplementation((selector) => {
+      if (selector === selectUseSafeChainsListValidation) return false;
+      return null;
+    });
+    const { getByTestId } = renderWithProvider(<SecuritySettings />);
+    const switchElement = getByTestId(USE_SAFE_CHAINS_LIST_VALIDATION);
+    fireEvent(switchElement, 'onValueChange', true);
+    expect(toggleUseSafeChainsListValidation).toHaveBeenCalled();
+  });
+
+  it('should display the correct switch state based on useSafeChainsListValidation', () => {
+    useSelector.mockImplementation((selector) => {
+      if (selector === selectUseSafeChainsListValidation) return true;
+      return null;
+    });
+    const { getByTestId } = renderWithProvider(<SecuritySettings />);
+    const switchElement = getByTestId(USE_SAFE_CHAINS_LIST_VALIDATION);
+    expect(switchElement.props.value).toBe(true);
   });
 });

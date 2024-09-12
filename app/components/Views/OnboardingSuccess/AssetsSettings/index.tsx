@@ -2,6 +2,7 @@
 import React, {
   useCallback,
   useLayoutEffect,
+  useRef,
   useState,
   useEffect,
 } from 'react';
@@ -14,20 +15,13 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import images from 'images/image-icons';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
-import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller';
-import { EtherscanSupportedHexChainId } from '@metamask/preferences-controller';
+import images from 'images/image-icons';
 
 // internal dependencies
+import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller';
+import { EtherscanSupportedHexChainId } from '@metamask/preferences-controller';
 import Engine from '../../../../core/Engine';
-import SelectComponent from '../../../UI/SelectComponent';
-import Cell from '../../../..//component-library/components/Cells/Cell/Cell';
-import { CellVariant } from '../../../../component-library/components/Cells/Cell';
-import { AvatarVariant } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
-import ipfsGateways from '../../../../util/ipfs-gateways.json';
-import { timeoutFetch } from '../../../../util/general';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import Text, {
   TextVariant,
   TextColor,
@@ -39,8 +33,8 @@ import Icon, {
 import { strings } from '../../../../../locales/i18n';
 import createStyles from './index.styles';
 import { useTheme } from '../../../../util/theme';
-import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import {
+  selectUseTokenDetection,
   selectDisplayNftMedia,
   selectUseNftDetection,
   selectIsIpfsGatewayEnabled,
@@ -48,28 +42,48 @@ import {
   selectShowIncomingTransactionNetworks,
   selectShowTestNetworks,
   selectIsMultiAccountBalancesEnabled,
-  selectUseTokenDetection,
 } from '../../../../selectors/preferencesController';
 import {
-  selectNetworkConfigurations,
   selectChainId,
+  selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
+import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import {
+  NFT_AUTO_DETECT_TOGGLE,
+  NFT_DISPLAY_MEDIA_MODE_TOGGLE,
+  NFT_AUTO_DETECT_TOGGLE_LABEL,
+  IPFS_GATEWAY_TOGGLE,
+  IPFS_GATEWAY_SELECTED,
+  INCOMING_MAINNET_TOGGLE,
+  INCOMING_LINEA_MAINNET_TOGGLE,
+  INCOMING_RPC_TOGGLE,
+  INCOMING_OTHER_NETWORK_TOGGLE,
+  SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
+} from './AssetSettings.constants';
+import SelectComponent from '../../../UI/SelectComponent';
+import ipfsGateways from '../../../../util/ipfs-gateways.json';
+import {
+  HASH_TO_TEST,
+  HASH_STRING,
+} from '../../Settings/SecuritySettings/SecuritySettings.constants';
 import {
   Gateway,
   NetworksI,
 } from '../../Settings/SecuritySettings/SecuritySettings.types';
-import {
-  HASH_STRING,
-  HASH_TO_TEST,
-  BATCH_BALANCE_REQUESTS_SECTION,
-} from '../../Settings/SecuritySettings/SecuritySettings.constants';
+import { timeoutFetch } from '../../../../util/general';
 import Networks, {
   getAllNetworks,
   getNetworkImageSource,
 } from '../../../../util/networks';
+import Cell from '../../../..//component-library/components/Cells/Cell/Cell';
+import { CellVariant } from '../../../../component-library/components/Cells/Cell';
+import { AvatarVariant } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
 
 const AssetSettings = () => {
+  const detectNftComponentRef = useRef<View>(null);
   const { trackEvent, addTraitsToUser } = useMetrics();
+
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
@@ -84,10 +98,10 @@ const AssetSettings = () => {
   const useNftDetection = useSelector(selectUseNftDetection);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
   const ipfsGateway = useSelector(selectIpfsGateway);
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const showIncomingTransactionsNetworks = useSelector(
     selectShowIncomingTransactionNetworks,
   );
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const showTestNetworks = useSelector(selectShowTestNetworks);
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,
@@ -106,6 +120,7 @@ const AssetSettings = () => {
     ),
     [navigation, styles.backButton],
   );
+
   const renderTitle = useCallback(
     () => (
       <Text variant={TextVariant.HeadingMD}>
@@ -114,31 +129,25 @@ const AssetSettings = () => {
     ),
     [],
   );
-  // TODO: Fix type
-  const toggleTokenDetection = (detectionStatus: boolean) => {
-    const { PreferencesController } = Engine.context;
-    PreferencesController.setUseTokenDetection(detectionStatus);
-  };
+
+  const toggleTokenDetection = useCallback((value: boolean) => {
+    Engine.context.PreferencesController.setUseTokenDetection(value);
+  }, []);
 
   const renderTokenDetectionSection = () => {
-    // TODO: Remember to ask why we needed mock styles
-    // in "AdvancedSettings" component
-    // const { styles, colors } = this.getStyles();
-    // const theme = this.context || mockTheme;
     if (!isTokenDetectionSupportedForNetwork(chainId)) {
       return null;
     }
     return (
-      <View
-        style={styles.setting}
-        // testID={AdvancedViewSelectorsIDs.TOKEN_DETECTION_TOGGLE}
-      >
+      <View style={styles.setting}>
         <View style={styles.titleContainer}>
           <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
             {strings('app_settings.token_detection_title')}
           </Text>
           <View style={styles.toggle}>
             <Switch
+              accessibilityRole="switch"
+              accessibilityLabel={strings('app_settings.token_detection_title')}
               value={isTokenDetectionEnabled}
               onValueChange={toggleTokenDetection}
               trackColor={{
@@ -148,6 +157,7 @@ const AssetSettings = () => {
               thumbColor={theme.brandColors.white}
               ios_backgroundColor={colors.border.muted}
               style={styles.switch}
+              testID={NFT_AUTO_DETECT_TOGGLE_LABEL}
             />
           </View>
         </View>
@@ -170,10 +180,7 @@ const AssetSettings = () => {
 
   const renderDisplayNftMedia = useCallback(
     () => (
-      <View
-        style={styles.halfSetting}
-        // testID={NFT_DISPLAY_MEDIA_MODE_SECTION}
-      >
+      <View style={styles.halfSetting}>
         <View style={styles.titleContainer}>
           <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
             {strings('app_settings.display_nft_media')}
@@ -189,7 +196,7 @@ const AssetSettings = () => {
               thumbColor={theme.brandColors.white}
               style={styles.switch}
               ios_backgroundColor={colors.border.muted}
-              testID="display-nft-toggle"
+              testID={NFT_DISPLAY_MEDIA_MODE_TOGGLE}
             />
           </View>
         </View>
@@ -228,18 +235,14 @@ const AssetSettings = () => {
 
   const renderAutoDetectNft = useCallback(
     () => (
-      <View
-        style={styles.setting}
-        // TODO: Why do we need ref
-        // ref={detectNftComponentRef}
-        // testID={NFT_AUTO_DETECT_MODE_SECTION}
-      >
+      <View ref={detectNftComponentRef} style={styles.setting}>
         <View style={styles.titleContainer}>
           <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
             {strings('app_settings.nft_autodetect_mode')}
           </Text>
           <View style={styles.switchElement}>
             <Switch
+              testID={NFT_AUTO_DETECT_TOGGLE}
               value={useNftDetection}
               onValueChange={toggleNftAutodetect}
               trackColor={{
@@ -264,6 +267,34 @@ const AssetSettings = () => {
     [colors, styles, useNftDetection, theme, toggleNftAutodetect],
   );
 
+  const handleAvailableIpfsGateways = useCallback(async () => {
+    if (!isIpfsGatewayEnabled) return;
+    const ipfsGatewaysPromises = ipfsGateways.map(async (gateway: Gateway) => {
+      const testUrl =
+        gateway.value + HASH_TO_TEST + '#x-ipfs-companion-no-redirect';
+      try {
+        const res = await timeoutFetch(testUrl, 1200);
+        const text = await res.text();
+        const available = text.trim() === HASH_STRING.trim();
+        return { ...gateway, available };
+      } catch (e) {
+        const available = false;
+        return { ...gateway, available };
+      }
+    });
+    const ipfsGatewaysAvailability = await Promise.all(ipfsGatewaysPromises);
+    const onlineGateways = ipfsGatewaysAvailability.filter(
+      (gateway) => gateway.available,
+    );
+
+    const sortedOnlineIpfsGateways = [...onlineGateways].sort(
+      (a, b) => a.key - b.key,
+    );
+
+    setGotAvailableGateways(true);
+    setOnlineIpfsGateways(sortedOnlineIpfsGateways);
+  }, [isIpfsGatewayEnabled]);
+
   const setIsIpfsGatewayEnabled = (isIpfsGatewatEnabled: boolean) => {
     const { PreferencesController } = Engine.context;
     PreferencesController.setIsIpfsGatewayEnabled(isIpfsGatewatEnabled);
@@ -275,16 +306,14 @@ const AssetSettings = () => {
   };
 
   const renderIpfsGateway = () => (
-    <View
-      style={styles.setting}
-      // testID={IPFS_GATEWAY_SECTION}
-    >
+    <View style={styles.setting}>
       <View style={styles.titleContainer}>
         <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
           {strings('app_settings.ipfs_gateway')}
         </Text>
         <View style={styles.switchElement}>
           <Switch
+            testID={IPFS_GATEWAY_TOGGLE}
             value={isIpfsGatewayEnabled}
             onValueChange={setIsIpfsGatewayEnabled}
             trackColor={{
@@ -316,6 +345,7 @@ const AssetSettings = () => {
           <View style={styles.picker}>
             {gotAvailableGateways ? (
               <SelectComponent
+                testID={IPFS_GATEWAY_SELECTED}
                 selectedValue={ipfsGateway}
                 defaultValue={strings('app_settings.ipfs_gateway_down')}
                 onValueChange={setIpfsGateway}
@@ -333,34 +363,6 @@ const AssetSettings = () => {
     </View>
   );
 
-  const handleAvailableIpfsGateways = useCallback(async () => {
-    if (!isIpfsGatewayEnabled) return;
-    const ipfsGatewaysPromises = ipfsGateways.map(async (gateway: Gateway) => {
-      const testUrl =
-        gateway.value + HASH_TO_TEST + '#x-ipfs-companion-no-redirect';
-      try {
-        const res = await timeoutFetch(testUrl, 1200);
-        const text = await res.text();
-        const available = text.trim() === HASH_STRING.trim();
-        return { ...gateway, available };
-      } catch (e) {
-        const available = false;
-        return { ...gateway, available };
-      }
-    });
-    const ipfsGatewaysAvailability = await Promise.all(ipfsGatewaysPromises);
-    const onlineGateways = ipfsGatewaysAvailability.filter(
-      (gateway) => gateway.available,
-    );
-
-    const sortedOnlineIpfsGateways = [...onlineGateways].sort(
-      (a, b) => a.key - b.key,
-    );
-
-    setGotAvailableGateways(true);
-    setOnlineIpfsGateways(sortedOnlineIpfsGateways);
-  }, [isIpfsGatewayEnabled]);
-
   const toggleEnableIncomingTransactions = (
     hexChainId: EtherscanSupportedHexChainId,
     value: boolean,
@@ -374,7 +376,7 @@ const AssetSettings = () => {
 
   const renderShowIncomingTransactions = () => {
     const renderMainnet = () => {
-      const { name: mainnetName, chainId } = Networks.mainnet;
+      const { name: mainnetName, chainId: mainnetChainId } = Networks.mainnet;
       return (
         <Cell
           variant={CellVariant.Display}
@@ -388,10 +390,11 @@ const AssetSettings = () => {
           style={styles.cellBorder}
         >
           <Switch
-            value={showIncomingTransactionsNetworks[chainId]}
+            testID={INCOMING_MAINNET_TOGGLE}
+            value={showIncomingTransactionsNetworks[mainnetChainId]}
             onValueChange={(value) =>
               toggleEnableIncomingTransactions(
-                chainId as EtherscanSupportedHexChainId,
+                mainnetChainId as EtherscanSupportedHexChainId,
                 value,
               )
             }
@@ -408,7 +411,8 @@ const AssetSettings = () => {
     };
 
     const renderLineaMainnet = () => {
-      const { name: lineaMainnetName, chainId } = Networks['linea-mainnet'];
+      const { name: lineaMainnetName, chainId: lineaMainnetChainId } =
+        Networks['linea-mainnet'];
 
       return (
         <Cell
@@ -423,10 +427,11 @@ const AssetSettings = () => {
           style={styles.cellBorder}
         >
           <Switch
-            value={showIncomingTransactionsNetworks[chainId]}
+            testID={INCOMING_LINEA_MAINNET_TOGGLE}
+            value={showIncomingTransactionsNetworks[lineaMainnetChainId]}
             onValueChange={(value) =>
               toggleEnableIncomingTransactions(
-                chainId as EtherscanSupportedHexChainId,
+                lineaMainnetChainId as EtherscanSupportedHexChainId,
                 value,
               )
             }
@@ -444,7 +449,7 @@ const AssetSettings = () => {
 
     const renderRpcNetworks = () =>
       Object.values(networkConfigurations).map(
-        ({ nickname, rpcUrl, chainId }) => {
+        ({ nickname, rpcUrl, chainId: rpcChainId }) => {
           if (!chainId) return null;
 
           if (!Object.keys(myNetworks).includes(chainId)) return null;
@@ -455,11 +460,11 @@ const AssetSettings = () => {
 
           return (
             <Cell
-              key={chainId}
+              key={rpcChainId}
               variant={CellVariant.Display}
               title={name}
               secondaryText={
-                myNetworks[chainId as keyof typeof myNetworks].domain
+                myNetworks[rpcChainId as keyof typeof myNetworks].domain
               }
               avatarProps={{
                 variant: AvatarVariant.Network,
@@ -469,10 +474,11 @@ const AssetSettings = () => {
               style={styles.cellBorder}
             >
               <Switch
-                value={showIncomingTransactionsNetworks[chainId]}
+                testID={INCOMING_RPC_TOGGLE}
+                value={showIncomingTransactionsNetworks[rpcChainId]}
                 onValueChange={(value) =>
                   toggleEnableIncomingTransactions(
-                    chainId as EtherscanSupportedHexChainId,
+                    rpcChainId as EtherscanSupportedHexChainId,
                     value,
                   )
                 }
@@ -493,15 +499,19 @@ const AssetSettings = () => {
       const NetworksTyped = Networks as NetworksI;
       const getOtherNetworks = () => getAllNetworks().slice(2);
       return getOtherNetworks().map((networkType) => {
-        const { name, imageSource, chainId } = NetworksTyped[networkType];
-        if (!chainId) return null;
+        const {
+          name,
+          imageSource,
+          chainId: otherChainId,
+        } = NetworksTyped[networkType];
+        if (!otherChainId) return null;
         return (
           <Cell
-            key={chainId}
+            key={otherChainId}
             variant={CellVariant.Display}
             title={name}
             secondaryText={
-              myNetworks[chainId as keyof typeof myNetworks].domain
+              myNetworks[otherChainId as keyof typeof myNetworks].domain
             }
             avatarProps={{
               variant: AvatarVariant.Network,
@@ -511,11 +521,12 @@ const AssetSettings = () => {
             style={styles.cellBorder}
           >
             <Switch
-              value={showIncomingTransactionsNetworks[chainId]}
+              testID={INCOMING_OTHER_NETWORK_TOGGLE}
+              value={showIncomingTransactionsNetworks[otherChainId]}
               onValueChange={(value) => {
-                chainId &&
+                otherChainId &&
                   toggleEnableIncomingTransactions(
-                    chainId as keyof typeof myNetworks,
+                    otherChainId as keyof typeof myNetworks,
                     value,
                   );
               }}
@@ -533,10 +544,7 @@ const AssetSettings = () => {
     };
 
     return (
-      <View
-        style={styles.setting}
-        // testID={SecurityPrivacyViewSelectorsIDs.INCOMING_TRANSACTIONS}
-      >
+      <View style={styles.setting}>
         <Text variant={TextVariant.BodyLGMedium}>
           {strings('app_settings.incoming_transactions_title')}
         </Text>
@@ -567,7 +575,7 @@ const AssetSettings = () => {
   };
 
   const renderMultiAccountBalancesSection = () => (
-    <View style={styles.halfSetting} testID={BATCH_BALANCE_REQUESTS_SECTION}>
+    <View style={styles.halfSetting}>
       <View style={styles.titleContainer}>
         <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
           {strings('app_settings.batch_balance_requests_title')}
@@ -583,10 +591,7 @@ const AssetSettings = () => {
             thumbColor={theme.brandColors.white}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
-            // {...generateTestId(
-            //   Platform,
-            //   SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
-            // )}
+            testID={SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID}
           />
         </View>
       </View>
@@ -613,9 +618,7 @@ const AssetSettings = () => {
 
   return (
     <ScrollView
-      contentContainerStyle={{
-        paddingBottom: 75,
-      }}
+      contentContainerStyle={styles.contentContainerStyle}
       style={styles.root}
     >
       {renderTokenDetectionSection()}

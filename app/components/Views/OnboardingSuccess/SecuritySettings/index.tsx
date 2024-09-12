@@ -19,6 +19,7 @@ import styles from './index.styles';
 import { useTheme } from '../../../../util/theme';
 import { toggleUseSafeChainsListValidation } from '../../../../util/networks';
 import { USE_SAFE_CHAINS_LIST_VALIDATION } from '../../Settings/SecuritySettings/SecuritySettings.constants';
+
 const SecuritySettings = () => {
   const navigation = useNavigation();
   const theme = useTheme();
@@ -57,13 +58,14 @@ const SecuritySettings = () => {
 
   const renderNetworkDetailsCheck = useCallback(
     () => (
-      <View style={styles.halfSetting} testID={USE_SAFE_CHAINS_LIST_VALIDATION}>
+      <View style={styles.halfSetting}>
         <View style={styles.titleContainer}>
           <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
             {strings('wallet.network_details_check')}
           </Text>
           <View style={styles.switchElement}>
             <Switch
+              testID={USE_SAFE_CHAINS_LIST_VALIDATION}
               value={useSafeChainsListValidation}
               onValueChange={toggleUseSafeChainsListValidation}
               trackColor={{
