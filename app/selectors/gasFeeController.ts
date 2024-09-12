@@ -8,7 +8,7 @@ export const selectGasFeeControllerState = (state: RootState) =>
 
 const selectGasFeeControllerEstimatesStrict = createSelector(
   selectGasFeeControllerState,
-  (gasFeeControllerState: GasFeeState) => gasFeeControllerState.gasFeeEstimates,
+  (gasFeeControllerState: GasFeeState) => gasFeeControllerState?.gasFeeEstimates,
 );
 
 export const selectGasFeeControllerEstimates = createDeepEqualSelector(
@@ -18,5 +18,5 @@ export const selectGasFeeControllerEstimates = createDeepEqualSelector(
 
 export const selectGasFeeControllerEstimateType = createSelector(
   selectGasFeeControllerState,
-  (gasFeeControllerState: GasFeeState) => gasFeeControllerState.gasEstimateType,
+  (gasFeeControllerState: GasFeeState) => gasFeeControllerState?.gasEstimateType,
 );
