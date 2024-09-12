@@ -4,11 +4,6 @@ import TemplateConfirmation, {
   TemplateConfirmationProps,
 } from '../TemplateConfirmation';
 import { ApprovalTypes } from '../../../../../../../core/RPCMethods/RPCMethodMiddleware';
-import mockedEngine from '../../../../../../../core/__mocks__/MockedEngine';
-
-jest.mock('../../../../../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
 
 describe('ApprovalResult', () => {
   const mockProps: TemplateConfirmationProps = {

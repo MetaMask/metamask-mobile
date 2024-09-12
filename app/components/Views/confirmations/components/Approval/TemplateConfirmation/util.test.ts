@@ -1,6 +1,5 @@
 import { ResultComponent } from '@metamask/approval-controller';
 import { processError, processHeader, processString } from './util';
-import mockedEngine from '../../../../../../core/__mocks__/MockedEngine';
 
 const FALLBACK_MESSAGE = 'Fallback Message';
 const mockResultComponent: ResultComponent = {
@@ -19,10 +18,6 @@ const expectedTemplateRendererComponent = {
   children: 'Mock child',
   element: 'Text',
 };
-
-jest.mock('../../../../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
 
 describe('processHeader', () => {
   it('returns TemplateRendererComponent[] with Text component when input is an array of strings', () => {

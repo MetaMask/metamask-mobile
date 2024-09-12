@@ -5,7 +5,6 @@ import TemplateConfirmation, {
 } from './TemplateConfirmation';
 import { ApprovalTypes } from '../../../../../../core/RPCMethods/RPCMethodMiddleware';
 import { getTemplateValues } from './Templates';
-import mockedEngine from '../../../../../../core/__mocks__/MockedEngine';
 
 jest.mock('./Templates', () => ({
   getTemplateValues: jest.fn(),
@@ -14,10 +13,6 @@ jest.mock('./Templates', () => ({
 const CONTENT_MOCK = 'CONTENT_MOCK';
 const CANCEL_TEXT_MOCK = 'CANCEL_TEXT_MOCK';
 const CONFIRM_TEXT_MOCK = 'CONFIRM_TEXT_MOCK';
-
-jest.mock('../../../../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
 
 describe('TemplateConfirmation', () => {
   const mockProps: TemplateConfirmationProps = {

@@ -2,7 +2,6 @@ import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import VerifyContractDetails from './VerifyContractDetails';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
-import mockedEngine from '../../../../../../core/__mocks__/MockedEngine';
 
 const initialState = {
   engine: {
@@ -12,10 +11,6 @@ const initialState = {
     primaryCurrency: 'ETH',
   },
 };
-
-jest.mock('../../../../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
 
 describe('VerifyContractDetails', () => {
   it('should show the token symbol', () => {

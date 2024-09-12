@@ -50,7 +50,6 @@ const expectedState = {
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
-
 const mockedCaptureException = jest.mocked(captureException);
 
 describe('Migration #35', () => {
