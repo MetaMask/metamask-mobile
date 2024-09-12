@@ -3,13 +3,17 @@ import Logger from '../Logger';
 
 const LOG_PREFIX = 'Swaps Transactions';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type SwapsTransaction = Record<string, any>;
+
 export function addSwapsTransaction(
   transactionId: string,
-  data: Record<string, any>,
+  data: SwapsTransaction,
 ) {
   const { TransactionController } = Engine.context;
 
-  (TransactionController as any).update((state: any) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (TransactionController as any).update((state: SwapsTransaction) => {
     if (!state.swapsTransactions) {
       state.swapsTransactions = {};
     }
@@ -22,11 +26,12 @@ export function addSwapsTransaction(
 
 export function updateSwapsTransaction(
   transactionId: string,
-  callback: (transaction: Record<string, any>) => void,
+  callback: (transaction: SwapsTransaction) => void,
 ) {
   const { TransactionController } = Engine.context;
 
-  (TransactionController as any).update((state: any) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (TransactionController as any).update((state: SwapsTransaction) => {
     const existingData = state.swapsTransactions[transactionId];
 
     if (!existingData) {
