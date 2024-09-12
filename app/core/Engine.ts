@@ -594,6 +594,8 @@ class Engine {
           'KeyringController:getAccounts',
           'KeyringController:getKeyringsByType',
           'KeyringController:getKeyringForAccount',
+          'AccountsController:accountAdded',
+          'AccountsController:accountRenamed',
         ],
       });
 
@@ -1093,7 +1095,14 @@ class Engine {
           'NotificationServicesController:disableNotificationServices',
           'NotificationServicesController:selectIsNotificationServicesEnabled',
         ],
-        allowedEvents: ['KeyringController:unlock', 'KeyringController:lock'],
+        allowedEvents: [
+          'KeyringController:unlock',
+          'KeyringController:lock',
+          'AccountsController:accountAdded',
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore TODO: Resolve/patch mismatch between allowedEvents
+          'AccountsController:accountRenamed',
+        ],
       }),
       nativeScryptCrypto: scrypt,
     });
