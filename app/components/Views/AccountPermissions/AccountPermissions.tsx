@@ -64,7 +64,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     hostInfo: {
       metadata: { origin: hostname },
     },
-    isRenderedAsBottomSheet: isRenderedAsBottomSheet,
+    isRenderedAsBottomSheet: isRenderedAsBottomSheet = true,
     initialScreen: initialScreen = AccountPermissionsScreens.Connected,
   } = props.route.params;
 
