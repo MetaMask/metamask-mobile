@@ -32,7 +32,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           "width": "100%",
         }
       }
-      testID="TOKEN_OVERVIEW_BUY_BUTTON"
+      testID="token-buy-button"
     >
       <View
         style={
@@ -91,9 +91,11 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       </View>
     </TouchableOpacity>
     <Text
+      accessibilityRole="text"
       style={
         {
-          "fontFamily": "Euclid Circular B",
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -125,7 +127,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           "width": "100%",
         }
       }
-      testID="TOKEN_OVERVIEW_SWAP_BUTTON"
+      testID="token-swap-button"
     >
       <View
         style={
@@ -184,9 +186,11 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       </View>
     </TouchableOpacity>
     <Text
+      accessibilityRole="text"
       style={
         {
-          "fontFamily": "Euclid Circular B",
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -218,7 +222,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           "width": "100%",
         }
       }
-      testID="TOKEN_OVERVIEW_BRIDGE_BUTTON"
+      testID="token-bridge-button"
     >
       <View
         style={
@@ -277,9 +281,11 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       </View>
     </TouchableOpacity>
     <Text
+      accessibilityRole="text"
       style={
         {
-          "fontFamily": "Euclid Circular B",
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -311,7 +317,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           "width": "100%",
         }
       }
-      testID="TOKEN_OVERVIEW_SEND_BUTTON"
+      testID="token-send-button"
     >
       <View
         style={
@@ -370,9 +376,11 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       </View>
     </TouchableOpacity>
     <Text
+      accessibilityRole="text"
       style={
         {
-          "fontFamily": "Euclid Circular B",
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -404,7 +412,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           "width": "100%",
         }
       }
-      testID="TOKEN_OVERVIEW_RECEIVE_BUTTON"
+      testID="token-receive-button"
     >
       <View
         style={
@@ -463,9 +471,11 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       </View>
     </TouchableOpacity>
     <Text
+      accessibilityRole="text"
       style={
         {
-          "fontFamily": "Euclid Circular B",
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,

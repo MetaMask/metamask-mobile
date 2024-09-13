@@ -10,6 +10,13 @@ import { AvatarSize } from '../../../../component-library/components/Avatars/Ava
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import {
+  TOKEN_OVERVIEW_BRIDGE_BUTTON,
+  TOKEN_OVERVIEW_BUY_BUTTON,
+  TOKEN_OVERVIEW_RECEIVE_BUTTON,
+  TOKEN_OVERVIEW_SEND_BUTTON,
+  TOKEN_OVERVIEW_SWAP_BUTTON,
+} from '../../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 
 export interface AssetDetailsActionsProps {
   displayBuyButton: boolean | undefined;
@@ -42,7 +49,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
             onPress={onBuy}
             iconStyle={styles.icon}
             containerStyle={styles.containerStyle}
-            {...generateTestId(Platform, 'TOKEN_OVERVIEW_BUY_BUTTON')}
+            {...generateTestId(Platform, TOKEN_OVERVIEW_BUY_BUTTON)}
           />
           <Text variant={TextVariant.BodyMD}>
             {strings('asset_overview.buy_button')}
@@ -58,7 +65,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
             onPress={goToSwaps}
             iconStyle={styles.icon}
             containerStyle={styles.containerStyle}
-            {...generateTestId(Platform, 'TOKEN_OVERVIEW_SWAP_BUTTON')}
+            {...generateTestId(Platform, TOKEN_OVERVIEW_SWAP_BUTTON)}
           />
           <Text variant={TextVariant.BodyMD}>
             {strings('asset_overview.swap')}
@@ -73,7 +80,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           onPress={goToBridge}
           iconStyle={styles.icon}
           containerStyle={styles.containerStyle}
-          {...generateTestId(Platform, 'TOKEN_OVERVIEW_BRIDGE_BUTTON')}
+          {...generateTestId(Platform, TOKEN_OVERVIEW_BRIDGE_BUTTON)}
         />
         <Text variant={TextVariant.BodyMD}>
           {strings('asset_overview.bridge')}
@@ -86,7 +93,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           onPress={onSend}
           iconStyle={styles.icon}
           containerStyle={styles.containerStyle}
-          {...generateTestId(Platform, 'TOKEN_OVERVIEW_SEND_BUTTON')}
+          {...generateTestId(Platform, TOKEN_OVERVIEW_SEND_BUTTON)}
         />
         <Text variant={TextVariant.BodyMD}>
           {strings('asset_overview.send_button')}
@@ -99,7 +106,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           onPress={onReceive}
           iconStyle={styles.icon}
           containerStyle={styles.containerStyle}
-          {...generateTestId(Platform, 'TOKEN_OVERVIEW_RECEIVE_BUTTON')}
+          {...generateTestId(Platform, TOKEN_OVERVIEW_RECEIVE_BUTTON)}
         />
         <Text variant={TextVariant.BodyMD}>
           {strings('asset_overview.receive_button')}

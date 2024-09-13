@@ -501,46 +501,16 @@ exports[`AssetOverview should render correctly 1`] = `
           </View>
         </TouchableOpacity>
         <Text
+          accessibilityRole="text"
           style={
-            [
-              {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 30,
-                "fontWeight": "400",
-                "marginVertical": 2,
-              },
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              {
-                "fontSize": 12,
-                "fontStyle": "normal",
-                "fontWeight": "400",
-                "letterSpacing": 0.25,
-                "lineHeight": 20,
-              },
-            ]
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
           }
         >
           Buy
@@ -626,46 +596,16 @@ exports[`AssetOverview should render correctly 1`] = `
           </View>
         </TouchableOpacity>
         <Text
+          accessibilityRole="text"
           style={
-            [
-              {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 30,
-                "fontWeight": "400",
-                "marginVertical": 2,
-              },
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              {
-                "fontSize": 12,
-                "fontStyle": "normal",
-                "fontWeight": "400",
-                "letterSpacing": 0.25,
-                "lineHeight": 20,
-              },
-            ]
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
           }
         >
           Swap
@@ -751,46 +691,16 @@ exports[`AssetOverview should render correctly 1`] = `
           </View>
         </TouchableOpacity>
         <Text
+          accessibilityRole="text"
           style={
-            [
-              {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 30,
-                "fontWeight": "400",
-                "marginVertical": 2,
-              },
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              {
-                "fontSize": 12,
-                "fontStyle": "normal",
-                "fontWeight": "400",
-                "letterSpacing": 0.25,
-                "lineHeight": 20,
-              },
-            ]
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
           }
         >
           Bridge
@@ -876,46 +786,16 @@ exports[`AssetOverview should render correctly 1`] = `
           </View>
         </TouchableOpacity>
         <Text
+          accessibilityRole="text"
           style={
-            [
-              {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 30,
-                "fontWeight": "400",
-                "marginVertical": 2,
-              },
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              {
-                "fontSize": 12,
-                "fontStyle": "normal",
-                "fontWeight": "400",
-                "letterSpacing": 0.25,
-                "lineHeight": 20,
-              },
-            ]
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
           }
         >
           Send
@@ -1001,46 +881,16 @@ exports[`AssetOverview should render correctly 1`] = `
           </View>
         </TouchableOpacity>
         <Text
+          accessibilityRole="text"
           style={
-            [
-              {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 30,
-                "fontWeight": "400",
-                "marginVertical": 2,
-              },
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              {
-                "fontSize": 12,
-                "fontStyle": "normal",
-                "fontWeight": "400",
-                "letterSpacing": 0.25,
-                "lineHeight": 20,
-              },
-            ]
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
           }
         >
           Receive

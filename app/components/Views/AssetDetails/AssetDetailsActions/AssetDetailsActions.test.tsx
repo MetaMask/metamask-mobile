@@ -2,6 +2,13 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import AssetDetailsActions from './AssetDetailsActions';
 import { strings } from '../../../../../locales/i18n';
+import {
+  TOKEN_OVERVIEW_BRIDGE_BUTTON,
+  TOKEN_OVERVIEW_BUY_BUTTON,
+  TOKEN_OVERVIEW_RECEIVE_BUTTON,
+  TOKEN_OVERVIEW_SEND_BUTTON,
+  TOKEN_OVERVIEW_SWAP_BUTTON,
+} from '../../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 
 describe('AssetDetailsActions', () => {
   const mockOnBuy = jest.fn();
@@ -42,35 +49,35 @@ describe('AssetDetailsActions', () => {
   it('calls onBuy when the buy button is pressed', () => {
     const { getByTestId } = render(<AssetDetailsActions {...defaultProps} />);
 
-    fireEvent.press(getByTestId('TOKEN_OVERVIEW_BUY_BUTTON'));
+    fireEvent.press(getByTestId(TOKEN_OVERVIEW_BUY_BUTTON));
     expect(mockOnBuy).toHaveBeenCalled();
   });
 
   it('calls goToSwaps when the swap button is pressed', () => {
     const { getByTestId } = render(<AssetDetailsActions {...defaultProps} />);
 
-    fireEvent.press(getByTestId('TOKEN_OVERVIEW_SWAP_BUTTON'));
+    fireEvent.press(getByTestId(TOKEN_OVERVIEW_SWAP_BUTTON));
     expect(mockGoToSwaps).toHaveBeenCalled();
   });
 
   it('calls goToBridge when the bridge button is pressed', () => {
     const { getByTestId } = render(<AssetDetailsActions {...defaultProps} />);
 
-    fireEvent.press(getByTestId('TOKEN_OVERVIEW_BRIDGE_BUTTON'));
+    fireEvent.press(getByTestId(TOKEN_OVERVIEW_BRIDGE_BUTTON));
     expect(mockGoToBridge).toHaveBeenCalled();
   });
 
   it('calls onSend when the send button is pressed', () => {
     const { getByTestId } = render(<AssetDetailsActions {...defaultProps} />);
 
-    fireEvent.press(getByTestId('TOKEN_OVERVIEW_SEND_BUTTON'));
+    fireEvent.press(getByTestId(TOKEN_OVERVIEW_SEND_BUTTON));
     expect(mockOnSend).toHaveBeenCalled();
   });
 
   it('calls onReceive when the receive button is pressed', () => {
     const { getByTestId } = render(<AssetDetailsActions {...defaultProps} />);
 
-    fireEvent.press(getByTestId('TOKEN_OVERVIEW_RECEIVE_BUTTON'));
+    fireEvent.press(getByTestId(TOKEN_OVERVIEW_RECEIVE_BUTTON));
     expect(mockOnReceive).toHaveBeenCalled();
   });
 
