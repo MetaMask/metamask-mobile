@@ -19,6 +19,7 @@ export const getAccountsBySnapId = async (engine: any, snapId: SnapId) => {
 
 /**
  * Constructs a SnapKeyring builder with specified handlers for managing snap accounts.
+ * - Here is the equivalent function on the extension: https://github.com/MetaMask/metamask-extension/blob/develop/app/scripts/lib/snap-keyring/snap-keyring.ts#L111
  *
  * @param controllerMessenger - The controller messenger instance.
  * @param getSnapController - A function that retrieves the Snap Controller instance.
