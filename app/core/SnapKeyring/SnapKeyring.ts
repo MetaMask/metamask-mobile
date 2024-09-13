@@ -76,6 +76,30 @@ export const snapKeyringBuilder = (
         // approve everything for now
         await handleUserInput(true);
         await persistKeyringHelper();
+        const account = controllerMessenger.call(
+          'AccountsController:getAccountByAddress',
+          address,
+        );
+        if (!account) {
+          throw new Error(
+            `Internal account not found for address: ${address}`,
+          );
+        }
+
+        // Set the selected account to the new account
+        controllerMessenger.call(
+          'AccountsController:setSelectedAccount',
+          account.id,
+        );
+
+        // Set the account name if the snap provided one
+        if (accountNameSuggestion !== '') {
+          controllerMessenger.call(
+            'AccountsController:setAccountName',
+            account.id,
+            accountNameSuggestion,
+          );
+        }
       },
 
       removeAccount: async (
