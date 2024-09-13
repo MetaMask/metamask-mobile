@@ -15,13 +15,6 @@ import {
   weiToFiatNumber,
 } from '../../../../util/number';
 
-const defaultReturn = {
-  balance: null,
-  balanceFiat: null,
-  balanceBN: null,
-  balanceFiatNumber: null,
-};
-
 const useBalance = () => {
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const chainId = useSelector(selectChainId);
@@ -35,21 +28,25 @@ const useBalance = () => {
     ? accountsByChainId[toHexadecimal(chainId)]?.[selectedAddress]?.balance
     : '0';
 
-  const balance = useMemo(() => {
-    return renderFromWei(rawAccountBalance);
-  }, [rawAccountBalance]);
+  const balance = useMemo(
+    () => renderFromWei(rawAccountBalance),
+    [rawAccountBalance],
+  );
 
-  const balanceBN = useMemo(() => {
-    return hexToBN(rawAccountBalance);
-  }, [rawAccountBalance]);
+  const balanceBN = useMemo(
+    () => hexToBN(rawAccountBalance),
+    [rawAccountBalance],
+  );
 
-  const balanceFiat = useMemo(() => {
-    return weiToFiat(balanceBN, conversionRate, currentCurrency);
-  }, [balanceBN, conversionRate, currentCurrency]);
+  const balanceFiat = useMemo(
+    () => weiToFiat(balanceBN, conversionRate, currentCurrency),
+    [balanceBN, conversionRate, currentCurrency],
+  );
 
-  const balanceFiatNumber = useMemo(() => {
-    return weiToFiatNumber(balanceBN, conversionRate, 2);
-  }, [balanceBN, conversionRate]);
+  const balanceFiatNumber = useMemo(
+    () => weiToFiatNumber(balanceBN, conversionRate, 2),
+    [balanceBN, conversionRate],
+  );
 
   return { balance, balanceFiat, balanceBN, balanceFiatNumber };
 };
