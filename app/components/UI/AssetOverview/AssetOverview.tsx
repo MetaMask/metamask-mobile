@@ -143,9 +143,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     });
   };
   const onBuy = () => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    navigation.navigate(...createBuyNavigationDetails());
+    const [route, params] = createBuyNavigationDetails();
+    navigation.navigate(route, params || {});
     trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
       text: 'Buy',
       location: 'TokenDetails',
