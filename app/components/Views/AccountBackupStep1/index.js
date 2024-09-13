@@ -137,7 +137,7 @@ const AccountBackupStep1 = (props) => {
       ...getOnboardingNavbarOptions(
         route,
         // eslint-disable-next-line react/display-name
-        { headerLeft: () => <View /> },
+        { headerLeft: () => null },
         colors,
       ),
       gesturesEnabled: false,

@@ -1,5 +1,5 @@
 // Third party depencies
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Pressable } from 'react-native';
 
 // External dependencies.
@@ -39,10 +39,13 @@ const ContractBoxBase = ({
     theme: { colors },
   } = useStyles(styleSheet, {});
 
-  const IconView = ({ onPress, name, size, testID }: IconViewProps) => (
-    <Pressable style={styles.icon} onPress={onPress} testID={testID}>
-      <Icon color={colors.icon.alternative} name={name} size={size} />
-    </Pressable>
+  const IconView = useCallback(
+    ({ onPress, name, size, testID }: IconViewProps) => (
+      <Pressable style={styles.icon} onPress={onPress} testID={testID}>
+        <Icon color={colors.icon.alternative} name={name} size={size} />
+      </Pressable>
+    ),
+    [styles, colors],
   );
 
   return (

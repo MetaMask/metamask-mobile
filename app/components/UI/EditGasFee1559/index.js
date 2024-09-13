@@ -347,6 +347,15 @@ const EditGasFee1559 = ({
     [ignoreOptions],
   );
 
+  const renderLabel = useCallback(
+    (selected, disabled, label) => (
+      <Text bold primary={selected && !disabled}>
+        {label}
+      </Text>
+    ),
+    [],
+  );
+
   const renderOptions = useMemo(
     () =>
       [
@@ -366,16 +375,16 @@ const EditGasFee1559 = ({
         .filter(({ name }) => !shouldIgnore(name))
         .map(({ name, label, ...option }) => ({
           name,
-          label: (selected, disabled) => (
-            <Text bold primary={selected && !disabled}>
-              {label}
-            </Text>
+          label: renderLabel(
+            selectedOption === name,
+            shouldIgnore(name),
+            label,
           ),
           topLabel: recommended?.name === name && recommended.render,
           ...option,
           ...extendOptions[name],
         })),
-    [recommended, extendOptions, shouldIgnore],
+    [recommended, extendOptions, shouldIgnore, renderLabel, selectedOption],
   );
 
   const isMainnet = isMainnetByChainId(chainId);

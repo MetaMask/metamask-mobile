@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
   StyleSheet,
   View,
@@ -142,16 +142,16 @@ const SmartTransactionsOptInModal = () => {
 
   const hasOptedIn = useRef<boolean | null>(null);
 
-  const dismissModal = async () => {
+  const dismissModal = useCallback(() => {
     modalRef.current?.dismissModal();
-  };
+  }, [modalRef]);
 
-  const markOptInModalAsSeen = async () => {
+  const markOptInModalAsSeen = useCallback(async () => {
     const version = await StorageWrapper.getItem(CURRENT_APP_VERSION);
     dispatch(updateOptInModalAppVersionSeen(version));
-  };
+  }, [dispatch]);
 
-  const optIn = async () => {
+  const optIn = useCallback(async () => {
     Engine.context.PreferencesController.setSmartTransactionsOptInStatus(true);
     trackEvent(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN, {
       stx_opt_in: true,
@@ -160,9 +160,9 @@ const SmartTransactionsOptInModal = () => {
     hasOptedIn.current = true;
     await markOptInModalAsSeen();
     dismissModal();
-  };
+  }, [dismissModal, markOptInModalAsSeen, trackEvent]);
 
-  const optOut = async () => {
+  const optOut = useCallback(async () => {
     Engine.context.PreferencesController.setSmartTransactionsOptInStatus(false);
     trackEvent(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN, {
       stx_opt_in: false,
@@ -171,7 +171,7 @@ const SmartTransactionsOptInModal = () => {
     hasOptedIn.current = false;
     await markOptInModalAsSeen();
     dismissModal();
-  };
+  }, [dismissModal, markOptInModalAsSeen, trackEvent]);
 
   const handleDismiss = async () => {
     // Opt out of STX if no prior decision made.
@@ -180,81 +180,96 @@ const SmartTransactionsOptInModal = () => {
     }
   };
 
-  const Header = () => (
-    <View style={styles.header}>
-      <Text color={TextColor.Default} variant={TextVariant.HeadingSM}>
-        {strings('whats_new.stx.header')}
-      </Text>
-    </View>
-  );
-
-  const Benefits = () => (
-    <View style={styles.benefits}>
-      <Benefit
-        iconName={IconName.Confirmation}
-        text={[
-          strings('whats_new.stx.benefit_1_1'),
-          strings('whats_new.stx.benefit_1_2'),
-        ]}
-      />
-      <Benefit
-        iconName={IconName.Coin}
-        text={[
-          strings('whats_new.stx.benefit_2_1'),
-          strings('whats_new.stx.benefit_2_2'),
-        ]}
-      />
-      <Benefit
-        iconName={IconName.Clock}
-        text={[
-          strings('whats_new.stx.benefit_3_1'),
-          strings('whats_new.stx.benefit_3_2'),
-        ]}
-      />
-    </View>
-  );
-
-  const Descriptions = () => (
-    <View style={styles.descriptions}>
-      <Text>{strings('whats_new.stx.description_1')}</Text>
-      <Text>
-        {strings('whats_new.stx.description_2')}{' '}
-        <Text
-          color={TextColor.Primary}
-          onPress={() => {
-            Linking.openURL(AppConstants.URLS.SMART_TXS);
-          }}
-        >
-          {strings('whats_new.stx.learn_more')}
+  const Header = useCallback(
+    () => (
+      <View style={styles.header}>
+        <Text color={TextColor.Default} variant={TextVariant.HeadingSM}>
+          {strings('whats_new.stx.header')}
         </Text>
-      </Text>
-    </View>
+      </View>
+    ),
+    [styles.header],
   );
 
-  const PrimaryButton = () => (
-    <Button
-      style={styles.button}
-      variant={ButtonVariants.Primary}
-      onPress={optIn}
-      label={strings('whats_new.stx.primary_button')}
-    >
-      {strings('whats_new.stx.primary_button')}
-    </Button>
+  const Benefits = useCallback(
+    () => (
+      <View style={styles.benefits}>
+        <Benefit
+          iconName={IconName.Confirmation}
+          text={[
+            strings('whats_new.stx.benefit_1_1'),
+            strings('whats_new.stx.benefit_1_2'),
+          ]}
+        />
+        <Benefit
+          iconName={IconName.Coin}
+          text={[
+            strings('whats_new.stx.benefit_2_1'),
+            strings('whats_new.stx.benefit_2_2'),
+          ]}
+        />
+        <Benefit
+          iconName={IconName.Clock}
+          text={[
+            strings('whats_new.stx.benefit_3_1'),
+            strings('whats_new.stx.benefit_3_2'),
+          ]}
+        />
+      </View>
+    ),
+    [styles.benefits],
   );
 
-  const SecondaryButton = () => (
-    <Button
-      style={styles.button}
-      variant={ButtonVariants.Link}
-      onPress={optOut}
-      label={
-        <Text style={styles.secondaryButtonText}>
-          {strings('whats_new.stx.no_thanks')}
+  const Descriptions = useCallback(
+    () => (
+      <View style={styles.descriptions}>
+        <Text>{strings('whats_new.stx.description_1')}</Text>
+        <Text>
+          {strings('whats_new.stx.description_2')}{' '}
+          <Text
+            color={TextColor.Primary}
+            onPress={() => {
+              Linking.openURL(AppConstants.URLS.SMART_TXS);
+            }}
+          >
+            {strings('whats_new.stx.learn_more')}
+          </Text>
         </Text>
-      }
-    >
-      {strings('whats_new.stx.no_thanks')}
-    </Button>
+      </View>
+    ),
+    [styles.descriptions],
+  );
+
+  const PrimaryButton = useCallback(
+    () => (
+      <Button
+        style={styles.button}
+        variant={ButtonVariants.Primary}
+        onPress={optIn}
+        label={strings('whats_new.stx.primary_button')}
+      >
+        {strings('whats_new.stx.primary_button')}
+      </Button>
+    ),
+    [optIn, styles.button],
+  );
+
+  const SecondaryButton = useCallback(
+    () => (
+      <Button
+        style={styles.button}
+        variant={ButtonVariants.Link}
+        onPress={optOut}
+        label={
+          <Text style={styles.secondaryButtonText}>
+            {strings('whats_new.stx.no_thanks')}
+          </Text>
+        }
+      >
+        {strings('whats_new.stx.no_thanks')}
+      </Button>
+    ),
+    [styles.button, styles.secondaryButtonText, optOut],
   );
 
   return (

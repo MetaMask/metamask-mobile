@@ -65,7 +65,7 @@ exports[`Component ContractBoxBase should render correctly 1`] = `
       }
     }
   >
-    <IconView
+    <Component
       name="Copy"
       onPress={[Function]}
       size="24"

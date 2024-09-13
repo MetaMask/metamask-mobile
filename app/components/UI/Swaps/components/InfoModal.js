@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, TouchableOpacity, SafeAreaView } from 'react-native';
 import Modal from 'react-native-modal';
@@ -65,16 +65,19 @@ function InfoModal({
   const { colors, shadows } = useTheme();
   const styles = createStyles(colors, shadows);
 
-  const CloseButton = () => (
-    <TouchableOpacity
-      onPress={toggleModal}
-      hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
-    >
-      <IonicIcon name="ios-close" style={styles.closeIcon} size={30} />
-    </TouchableOpacity>
+  const CloseButton = useCallback(
+    () => (
+      <TouchableOpacity
+        onPress={toggleModal}
+        hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
+      >
+        <IonicIcon name="ios-close" style={styles.closeIcon} size={30} />
+      </TouchableOpacity>
+    ),
+    [toggleModal, styles.closeIcon],
   );
 
-  const InfoView = () => {
+  const InfoView = useCallback(() => {
     if (!message) {
       return <CloseButton />;
     }
@@ -92,7 +95,7 @@ function InfoModal({
         <CloseButton />
       </View>
     );
-  };
+  }, [message, urlText, url, styles.infoContainer, styles.messageLimit]);
 
   return (
     <Modal

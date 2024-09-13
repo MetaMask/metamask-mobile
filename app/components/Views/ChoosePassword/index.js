@@ -309,7 +309,7 @@ class ChoosePassword extends PureComponent {
     if (!prevLoading && loading) {
       // update navigationOptions
       navigation.setParams({
-        headerLeft: () => <View />,
+        headerLeft: () => null,
       });
     }
   }

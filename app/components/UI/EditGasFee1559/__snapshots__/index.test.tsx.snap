@@ -136,17 +136,32 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                 options={
                   [
                     {
-                      "label": [Function],
+                      "label": <Text
+                        bold={true}
+                        primary={false}
+                      >
+                        Low
+                      </Text>,
                       "name": "low",
                       "topLabel": false,
                     },
                     {
-                      "label": [Function],
+                      "label": <Text
+                        bold={true}
+                        primary={false}
+                      >
+                        Market
+                      </Text>,
                       "name": "medium",
                       "topLabel": false,
                     },
                     {
-                      "label": [Function],
+                      "label": <Text
+                        bold={true}
+                        primary={false}
+                      >
+                        Aggressive
+                      </Text>,
                       "name": "high",
                       "topLabel": false,
                     },

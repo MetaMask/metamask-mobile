@@ -1,5 +1,11 @@
 import { TokenPrice } from 'app/components/hooks/useTokenHistoricalPrices';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import {
   Dimensions,
   GestureResponderEvent,
@@ -144,36 +150,42 @@ const PriceChart = ({
     }),
   );
 
-  const Line = (props: Partial<LineProps>) => {
-    const { line, chartHasData } = props as LineProps;
-    return (
-      <Path
-        key="line"
-        d={line}
-        stroke={chartHasData ? chartColor : theme.colors.text.alternative}
-        strokeWidth={apx(4)}
-        fill="none"
-        opacity={chartHasData ? 1 : 0.85}
-      />
-    );
-  };
-
-  const DataGradient = () => (
-    <Defs key="dataGradient">
-      <LinearGradient
-        id="dataGradient"
-        x1="0"
-        y1="0%"
-        x2="0%"
-        y2={`${CHART_HEIGHT}px`}
-      >
-        <Stop offset="0%" stopColor={chartColor} stopOpacity={0.25} />
-        <Stop offset="90%" stopColor={chartColor} stopOpacity={0} />
-      </LinearGradient>
-    </Defs>
+  const Line = useCallback(
+    (props: Partial<LineProps>) => {
+      const { line, chartHasData } = props as LineProps;
+      return (
+        <Path
+          key="line"
+          d={line}
+          stroke={chartHasData ? chartColor : theme.colors.text.alternative}
+          strokeWidth={apx(4)}
+          fill="none"
+          opacity={chartHasData ? 1 : 0.85}
+        />
+      );
+    },
+    [chartColor, theme.colors.text.alternative],
   );
 
-  const NoDataGradient = () => {
+  const DataGradient = useCallback(
+    () => (
+      <Defs key="dataGradient">
+        <LinearGradient
+          id="dataGradient"
+          x1="0"
+          y1="0%"
+          x2="0%"
+          y2={`${CHART_HEIGHT}px`}
+        >
+          <Stop offset="0%" stopColor={chartColor} stopOpacity={0.25} />
+          <Stop offset="90%" stopColor={chartColor} stopOpacity={0} />
+        </LinearGradient>
+      </Defs>
+    ),
+    [chartColor],
+  );
+
+  const NoDataGradient = useCallback(() => {
     // gradient with transparent center and grey edges
     const gradient = (
       <Defs key="gradient">
@@ -209,50 +221,59 @@ const PriceChart = ({
         />
       </G>
     );
-  };
+  }, [theme.colors.background.default]);
 
-  const NoDataOverlay = () => (
-    <View style={styles.noDataOverlay}>
-      <Text>
-        <Icon
-          name={IconName.Warning}
-          color={IconColor.Muted}
-          size={IconSize.Xl}
-        />
-      </Text>
-      <Title style={styles.noDataOverlayTitle}>
-        {strings('asset_overview.no_chart_data.title')}
-      </Title>
-      <Text variant={TextVariant.BodyLGMedium} style={styles.noDataOverlayText}>
-        {strings('asset_overview.no_chart_data.description')}
-      </Text>
-    </View>
+  const NoDataOverlay = useCallback(
+    () => (
+      <View style={styles.noDataOverlay}>
+        <Text>
+          <Icon
+            name={IconName.Warning}
+            color={IconColor.Muted}
+            size={IconSize.Xl}
+          />
+        </Text>
+        <Title style={styles.noDataOverlayTitle}>
+          {strings('asset_overview.no_chart_data.title')}
+        </Title>
+        <Text
+          variant={TextVariant.BodyLGMedium}
+          style={styles.noDataOverlayText}
+        >
+          {strings('asset_overview.no_chart_data.description')}
+        </Text>
+      </View>
+    ),
+    [styles.noDataOverlay, styles.noDataOverlayText, styles.noDataOverlayTitle],
   );
 
-  const Tooltip = ({ x, y }: Partial<TooltipProps>) => {
-    if (positionX < 0) {
-      return null;
-    }
-    return (
-      <G x={x?.(positionX)} key="tooltip">
-        <G>
-          <SvgLine
-            y1={1}
-            y2={CHART_HEIGHT}
-            stroke={styles.tooltipLine.color}
-            strokeWidth={1}
-          />
-          <Circle
-            cy={y?.(priceList[positionX])}
-            r={apx(20 / 2)}
-            stroke={styles.tooltipLine.color}
-            strokeWidth={apx(1)}
-            fill={chartColor}
-          />
+  const Tooltip = useCallback(
+    ({ x, y }: Partial<TooltipProps>) => {
+      if (positionX < 0) {
+        return null;
+      }
+      return (
+        <G x={x?.(positionX)} key="tooltip">
+          <G>
+            <SvgLine
+              y1={1}
+              y2={CHART_HEIGHT}
+              stroke={styles.tooltipLine.color}
+              strokeWidth={1}
+            />
+            <Circle
+              cy={y?.(priceList[positionX])}
+              r={apx(20 / 2)}
+              stroke={styles.tooltipLine.color}
+              strokeWidth={apx(1)}
+              fill={chartColor}
+            />
+          </G>
         </G>
-      </G>
-    );
-  };
+      );
+    },
+    [positionX, priceList, styles.tooltipLine.color, chartColor],
+  );
 
   if (isLoading) {
     return (

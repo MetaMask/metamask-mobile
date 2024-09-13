@@ -693,19 +693,21 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         })
       : tokens;
 
+    const renderFlatListFooter = (): JSX.Element => (
+      <>
+        {renderTokensDetectedSection()}
+        {renderBuyButton()}
+        {renderFooter()}
+      </>
+    );
+
     return (
       <FlatList
         ListHeaderComponent={renderNetworth()}
         data={tokensToDisplay}
         renderItem={({ item }) => renderItem(item)}
         keyExtractor={(_, index) => index.toString()}
-        ListFooterComponent={() => (
-          <>
-            {renderTokensDetectedSection()}
-            {renderBuyButton()}
-            {renderFooter()}
-          </>
-        )}
+        ListFooterComponent={renderFlatListFooter}
         refreshControl={
           <RefreshControl
             colors={[colors.primary.default]}

@@ -298,6 +298,23 @@ const EditGasFee1559Update = ({
     [ignoreOptions],
   );
 
+  const renderLabel = useCallback(
+    ({
+      label,
+      selected,
+      disabled,
+    }: {
+      label: string;
+      selected: boolean;
+      disabled: boolean;
+    }) => (
+      <Text bold primary={selected && !disabled}>
+        {label}
+      </Text>
+    ),
+    [],
+  );
+
   const renderOptions = useMemo(
     () =>
       [
@@ -317,83 +334,77 @@ const EditGasFee1559Update = ({
         .filter(({ name }) => !shouldIgnore(name))
         .map(({ name, label, ...option }) => ({
           name,
-          // TODO: Replace "any" with type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          label: function LabelComponent(selected: any, disabled: any) {
-            return (
-              <Text bold primary={selected && !disabled}>
-                {label}
-              </Text>
-            );
-          },
+          label: renderLabel({ label, selected: false, disabled: false }),
           topLabel: recommended?.name === name && recommended.render,
           ...option,
           ...extendOptions[name],
         })),
-    [recommended, extendOptions, shouldIgnore],
+    [recommended, extendOptions, shouldIgnore, renderLabel],
   );
 
   const isMainnet = isMainnetByChainId(chainId);
   const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
 
-  const switchNativeCurrencyDisplayOptions = (
-    nativeValue: string,
-    fiatValue: string,
-  ) => {
-    if (nativeCurrencySelected) return nativeValue;
-    return fiatValue;
-  };
+  const switchNativeCurrencyDisplayOptions = useCallback(
+    (nativeValue: string, fiatValue: string) => {
+      if (nativeCurrencySelected) return nativeValue;
+      return fiatValue;
+    },
+    [nativeCurrencySelected],
+  );
 
   const valueToWatch = `${renderableGasFeeMinNative}${renderableGasFeeMaxNative}`;
 
-  const LeftLabelComponent = ({
-    value,
-    infoValue,
-  }: {
-    value: string;
-    infoValue: string;
-  }) => (
-    <View style={styles.labelTextContainer}>
-      <Text black bold noMargin>
-        {strings(value)}
-      </Text>
-      <TouchableOpacity
-        hitSlop={styles.hitSlop}
-        onPress={() => toggleInfoModal(infoValue)}
-      >
-        <MaterialCommunityIcon
-          name="information"
-          size={14}
-          style={styles.labelInfo}
-        />
-      </TouchableOpacity>
-    </View>
+  const LeftLabelComponent = useCallback(
+    ({ value, infoValue }: { value: string; infoValue: string }) => (
+      <View style={styles.labelTextContainer}>
+        <Text black bold noMargin>
+          {strings(value)}
+        </Text>
+        <TouchableOpacity
+          hitSlop={styles.hitSlop}
+          onPress={() => toggleInfoModal(infoValue)}
+        >
+          <MaterialCommunityIcon
+            name="information"
+            size={14}
+            style={styles.labelInfo}
+          />
+        </TouchableOpacity>
+      </View>
+    ),
+    [
+      styles.labelTextContainer,
+      toggleInfoModal,
+      styles.hitSlop,
+      styles.labelInfo,
+    ],
   );
 
-  const RightLabelComponent = ({ value }: { value: string }) => (
-    <Text noMargin small grey>
-      <Text bold reset>
-        {strings(value)}:
-      </Text>{' '}
-      {gasOptions?.[suggestedEstimateOption]?.suggestedMaxFeePerGas} GWEI
-    </Text>
+  const RightLabelComponent = useCallback(
+    ({ value }: { value: string }) => (
+      <Text noMargin small grey>
+        <Text bold reset>
+          {strings(value)}:
+        </Text>{' '}
+        {gasOptions?.[suggestedEstimateOption]?.suggestedMaxFeePerGas} GWEI
+      </Text>
+    ),
+    [gasOptions, suggestedEstimateOption],
   );
 
-  const TextComponent = ({
-    title,
-    value,
-  }: {
-    title: string;
-    value: string;
-  }) => (
-    <>
-      <Text noMargin primary infoModal bold style={styles.learnMoreLabels}>
-        {strings(title)}
-      </Text>
-      <Text noMargin grey infoModal>
-        {strings(value)}
-      </Text>
-    </>
+  const TextComponent = useCallback(
+    ({ title, value }: { title: string; value: string }) => (
+      <>
+        <Text noMargin primary infoModal bold style={styles.learnMoreLabels}>
+          {strings(title)}
+        </Text>
+        <Text noMargin grey infoModal>
+          {strings(value)}
+        </Text>
+      </>
+    ),
+    [styles.learnMoreLabels],
   );
 
   const renderInputs = (option: RenderInputProps) => (
