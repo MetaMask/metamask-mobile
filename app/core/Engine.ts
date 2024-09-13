@@ -1592,6 +1592,7 @@ class Engine {
           'UserStorageController:stateChange',
           /**
            * V1 controllers that should be excluded from the datamodel's events allowlist for now.
+           * For each of the following, an error will be logged to the console - "Error: Event missing from allow list: ExampleController:stateChange"
            * TODO: Each of these events should be added to the allowlist once its controller is migrated to V2.
            */
           // TODO: uncomment once `AccountTrackerController` is migrated to V2 and the `stateChange` event is added to its `messagingSystem`.
