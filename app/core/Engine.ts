@@ -183,7 +183,7 @@ import {
   AuthenticationController,
   UserStorageController,
 } from '@metamask/profile-sync-controller';
-import { NotificationServicesController } from '@metamask/notification-services-controller';
+import { NotificationServicesController, NotificationServicesPushController } from '@metamask/notification-services-controller';
 ///: END:ONLY_INCLUDE_IF
 import {
   getCaveatSpecifications,
@@ -252,10 +252,6 @@ interface TestOrigin {
 }
 
 type PhishingControllerActions = MaybeUpdateState | TestOrigin;
-type AuthenticationControllerActions = AuthenticationController.AllowedActions;
-type UserStorageControllerActions = UserStorageController.AllowedActions;
-type NotificationsServicesControllerActions =
-  NotificationServicesController.AllowedActions;
 
 type SnapsGlobalActions =
   | SnapControllerActions
@@ -282,9 +278,10 @@ type GlobalActions =
   | LoggingControllerActions
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalActions
-  | AuthenticationControllerActions
-  | UserStorageControllerActions
-  | NotificationsServicesControllerActions
+  | AuthenticationController.Actions
+  | UserStorageController.Actions
+  | NotificationServicesController.Actions
+  | NotificationServicesPushController.Actions
   ///: END:ONLY_INCLUDE_IF
   | KeyringControllerActions
   | AccountsControllerActions
@@ -304,6 +301,10 @@ type GlobalEvents =
   | PermissionControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalEvents
+  | AuthenticationController.Events
+  | UserStorageController.Events
+  | NotificationServicesController.Events
+  | NotificationServicesPushController.Events
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | KeyringControllerEvents
