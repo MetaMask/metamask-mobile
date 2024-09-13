@@ -57,7 +57,7 @@ const CaveatFactories = Object.freeze({
  *
  * @param {{
  * getInternalAccounts: () => import('@metamask/keyring-api').InternalAccount[],
- * findNetworkClientIdByChainId: () => import('@metamask/network-controller').NetworkClient,
+ * findNetworkClientIdByChainId: (chainId: `0x${string}`) => string,
  * }} options - Options bag.
  */
 export const getCaveatSpecifications = ({
