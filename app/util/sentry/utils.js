@@ -5,7 +5,7 @@ import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
 import StorageWrapper from '../../store/storage-wrapper';
 import { regex } from '../regex';
 import { AGREED, METRICS_OPT_IN } from '../../constants/storage';
-import { isTest } from '../test/utils';
+import { isE2E } from '../test/utils';
 import { store } from '../../store';
 import { cleanupTraces, TRACES_CLEANUP_INTERVAL } from '../trace';
 
@@ -473,17 +473,14 @@ export function deriveSentryEnvironment(
 
 // Setup sentry remote error reporting
 export function setupSentry() {
-  const MM_SENTRY_DSN_DEV = process.env.MM_SENTRY_DSN_DEV;
-  const MM_SENTRY_DSN = process.env.MM_SENTRY_DSN;
+  const dsn = process.env.MM_SENTRY_DSN;
 
-  // Disable Sentry for E2E tests
-  if (isTest && !MM_SENTRY_DSN_DEV) {
+  // Disable Sentry for E2E tests or when DSN is not provided
+  if (isE2E || !dsn) {
     return;
   }
 
   const init = async () => {
-    const dsn = __DEV__ ? MM_SENTRY_DSN_DEV : MM_SENTRY_DSN;
-
     const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
 
     const integrations = [new Dedupe(), new ExtraErrorData()];
