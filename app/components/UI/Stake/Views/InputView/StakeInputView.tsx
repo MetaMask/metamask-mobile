@@ -84,7 +84,7 @@ const StakeInputView = () => {
     } else {
       setEstimatedAnnualRewards(`${Number(annualRewardRate) * 100}%`);
     }
-  }, [amount, amountBN, isEth, conversionRate]);
+  }, [isNonZeroAmount, amount, isEth, fiatAmount, currentCurrency]);
 
   useEffect(() => {
     navigation.setOptions(getStakeInputNavbar(navigation, theme.colors));
@@ -92,37 +92,49 @@ const StakeInputView = () => {
 
   useEffect(() => {
     calculateEstimatedAnnualRewards();
-  }, [amount, amountBN, isEth, conversionRate]);
+  }, [
+    amount,
+    amountBN,
+    isEth,
+    conversionRate,
+    calculateEstimatedAnnualRewards,
+  ]);
 
-  const handleEthInput = (value: string) => {
-    setAmount(value);
-    setAmountBN(toWei(value, 'ether'));
-    const fiatValue = weiToFiatNumber(
-      toWei(value, 'ether'),
-      conversionRate,
-      2,
-    ).toString();
-    setFiatAmount(fiatValue);
-  };
+  const handleEthInput = useCallback(
+    (value: string) => {
+      setAmount(value);
+      setAmountBN(toWei(value, 'ether'));
+      const fiatValue = weiToFiatNumber(
+        toWei(value, 'ether'),
+        conversionRate,
+        2,
+      ).toString();
+      setFiatAmount(fiatValue);
+    },
+    [conversionRate],
+  );
 
-  const handleFiatInput = (value: string) => {
-    setFiatAmount(value);
-    const ethValue = renderFromTokenMinimalUnit(
-      fiatNumberToWei(value, conversionRate).toString(),
-      18,
-      5,
-    );
+  const handleFiatInput = useCallback(
+    (value: string) => {
+      setFiatAmount(value);
+      const ethValue = renderFromTokenMinimalUnit(
+        fiatNumberToWei(value, conversionRate).toString(),
+        18,
+        5,
+      );
 
-    setAmount(ethValue);
-    setAmountBN(toWei(ethValue, 'ether'));
-  };
+      setAmount(ethValue);
+      setAmountBN(toWei(ethValue, 'ether'));
+    },
+    [conversionRate],
+  );
 
   /* Keypad Handlers */
   const handleKeypadChange = useCallback(
     ({ value }) => {
       isEth ? handleEthInput(value) : handleFiatInput(value);
     },
-    [isEth],
+    [handleEthInput, handleFiatInput, isEth],
   );
 
   const handleCurrencySwitch = useCallback(() => {
@@ -216,7 +228,9 @@ const StakeInputView = () => {
       <View style={styles.rewardsRateContainer}>
         <EstimatedAnnualRewardsCard
           estimatedAnnualRewards={estimatedAnnualRewards}
-          onIconPress={() => {}}
+          onIconPress={() => {
+            // TODO: Add tooltip modal
+          }}
         />
       </View>
       <QuickAmounts
