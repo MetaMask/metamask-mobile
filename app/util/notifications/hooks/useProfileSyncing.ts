@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { ProfileSyncingReturn } from './types';
 import { getErrorMessage } from '../../../util/errorHandling';
 import {
