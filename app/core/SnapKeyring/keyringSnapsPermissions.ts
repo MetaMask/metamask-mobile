@@ -52,7 +52,7 @@ const WEBSITE_ALLOWED_METHODS: string[] = [
 const PORTFOLIO_ALLOWED_METHODS: string[] = [
   KeyringRpcMethod.ListAccounts,
   KeyringRpcMethod.GetAccount,
-  //   KeyringRpcMethod.GetAccountBalances,
+  KeyringRpcMethod.GetAccountBalances,
   KeyringRpcMethod.SubmitRequest,
 ];
 
