@@ -8,28 +8,21 @@ import {
   startFixtureServer,
   stopFixtureServer,
 } from '../../fixtures/fixture-helper';
-import { CustomNetworks } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { SmokeRamps } from '../../tags';
-import Assertions from '../../utils/Assertions';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import SelectRegionView from '../../pages/Ramps/SelectRegionView';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
-import { setEmitFlags } from 'typescript';
-import { SelectPaymentMethodSelectors } from '../../selectors/Ramps/SelectPaymentMethod.selectors';
-import { BuildQuoteSelectors } from '../../selectors/Ramps/BuildQuote.selectors';
 
 const fixtureServer = new FixtureServer();
 
 describe(SmokeRamps('OnRamp'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
-    const fixture = new FixtureBuilder()
-      .withNetworkController(CustomNetworks.Tenderly)
-      .build();
+    const fixture = new FixtureBuilder().build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await device.launchApp({
