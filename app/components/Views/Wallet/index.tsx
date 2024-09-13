@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback, useContext } from 'react';
+import React, { useEffect, useRef, useCallback, useContext, useLayoutEffect } from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -6,6 +6,8 @@ import {
   TextStyle,
   InteractionManager,
   Linking,
+  AppState,
+  AppStateStatus,
 } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import { connect, useDispatch, useSelector } from 'react-redux';
@@ -85,7 +87,6 @@ import {
 } from '../../../selectors/notifications';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
-
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
     base: {
@@ -147,6 +148,7 @@ const Wallet = ({
   showNftFetchingLoadingIndicator,
   hideNftFetchingLoadingIndicator,
 }: WalletProps) => {
+  const appState = useRef(AppState.currentState);
   const { navigate } = useNavigation();
   const { listNotifications } = useListNotifications();
   const walletRef = useRef(null);
@@ -396,13 +398,27 @@ const Wallet = ({
     [navigation, providerConfig.chainId],
   );
 
-    // Effect - fetch notifications when component/view is visible.
-    useEffect(() => {
-      async function updateNotifications() {
-        await listNotifications();
+  useLayoutEffect(() => {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        listNotifications();
       }
-      updateNotifications();
-    }, [listNotifications]);
+
+      appState.current = nextAppState;
+    };
+
+    const subscription = AppState.addEventListener(
+      'change',
+      handleAppStateChange,
+    );
+    listNotifications();
+    return () => {
+      subscription.remove();
+    };
+  }, [listNotifications]);
 
   useEffect(() => {
     navigation.setOptions(

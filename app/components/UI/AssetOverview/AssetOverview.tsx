@@ -45,7 +45,6 @@ import { createWebviewNavDetails } from '../../Views/SimpleWebview';
 import useTokenHistoricalPrices, {
   TimePeriod,
 } from '../../hooks/useTokenHistoricalPrices';
-import { Asset } from './AssetOverview.types';
 import Balance from './Balance';
 import ChartNavigationButton from './ChartNavigationButton';
 import Price from './Price';
@@ -53,14 +52,13 @@ import styleSheet from './AssetOverview.styles';
 import { useStyles } from '../../../component-library/hooks';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
+import { TokenI } from '../Tokens/types';
 
 interface AssetOverviewProps {
   navigation: {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    navigate: (route: string, props?: any) => void;
+    navigate: (route: string, params: Record<string, unknown>) => void;
   };
-  asset: Asset;
+  asset: TokenI;
 }
 
 const AssetOverview: React.FC<AssetOverviewProps> = ({
@@ -121,15 +119,16 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     } else {
       dispatch(newAssetTransaction(asset));
     }
-    navigation.navigate('SendFlowView');
+    navigation.navigate('SendFlowView', {});
   };
 
   const goToBrowserUrl = (url: string) => {
-    navigation.navigate(
-      ...createWebviewNavDetails({
-        url,
-      }),
-    );
+    const [screen, params] = createWebviewNavDetails({
+      url,
+    });
+
+    // TODO: params should not have to be cast here
+    navigation.navigate(screen, params as Record<string, unknown>);
   };
 
   const renderWarning = () => (
@@ -138,7 +137,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         onPress={() => goToBrowserUrl(AppConstants.URLS.TOKEN_BALANCE)}
       >
         <Text style={styles.warning}>
-          {strings('asset_overview.were_unable')} {(asset as Asset).symbol}{' '}
+          {strings('asset_overview.were_unable')} {(asset as TokenI).symbol}{' '}
           {strings('asset_overview.balance')}{' '}
           <Text style={styles.warningLinks}>
             {strings('asset_overview.troubleshooting_missing')}
@@ -247,8 +246,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           <View style={styles.chartNavigationWrapper}>
             {renderChartNavigationButton()}
           </View>
-          <View style={styles.balanceWrapper}>
-            <Balance balance={mainBalance} fiatBalance={secondaryBalance} />
+          <View>
+            <Balance
+              asset={asset}
+              mainBalance={mainBalance}
+              secondaryBalance={secondaryBalance}
+            />
             <View style={styles.balanceButtons}>
               <Button
                 style={{ ...styles.footerButton, ...styles.receiveButton }}
