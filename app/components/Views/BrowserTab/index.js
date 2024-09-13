@@ -1,4 +1,10 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from 'react';
 import {
   Text,
   StyleSheet,
@@ -105,6 +111,7 @@ import { selectPermissionControllerState } from '../../../selectors/snaps/permis
 import { useIsFocused } from '@react-navigation/native';
 import handleWebViewFocus from '../../../util/browser/webViewFocus';
 import { isTest } from '../../../util/test/utils.js';
+import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -1504,6 +1511,11 @@ export const BrowserTab = (props) => {
     </View>
   );
 
+  const isExternalLink = useMemo(
+    () => props.linkType === EXTERNAL_LINK_TYPE,
+    [props.linkType],
+  );
+
   /**
    * Main render
    */
@@ -1525,13 +1537,18 @@ export const BrowserTab = (props) => {
                   'wc://',
                   'ethereum://',
                   'file://',
+                  // Needed for Recaptcha
+                  'about:srcdoc',
                 ]}
                 decelerationRate={'normal'}
                 ref={webviewRef}
                 renderError={() => (
                   <WebviewError error={error} returnHome={returnHome} />
                 )}
-                source={{ uri: initialUrl }}
+                source={{
+                  uri: initialUrl,
+                  ...(isExternalLink ? { headers: { Cookie: '' } } : null),
+                }}
                 injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
                 style={styles.webview}
                 onLoadStart={onLoadStart}
@@ -1576,6 +1593,10 @@ BrowserTab.propTypes = {
    * InitialUrl
    */
   initialUrl: PropTypes.string,
+  /**
+   * linkType - type of link to open
+   */
+  linkType: PropTypes.string,
   /**
    * Protocol string to append to URLs that have none
    */

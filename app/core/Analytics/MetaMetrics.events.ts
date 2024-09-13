@@ -159,10 +159,13 @@ enum EVENT_NAME {
 
   // Security & Privacy Settings
   VIEW_SECURITY_SETTINGS = 'Views Security & Privacy',
+  BASIC_FUNCTIONALITY_ENABLED = 'Basic Functionality Enabled',
+  BASIC_FUNCTIONALITY_DISABLED = 'Basic Functionality Disabled',
 
   // Settings
   SETTINGS_VIEWED = 'Settings Viewed',
   SETTINGS_UPDATED = 'Settings Updated',
+  CURRENCY_CHANGED = 'Selected Currency Changed',
 
   // Reveal SRP
   REVEAL_SRP_CTA = 'Clicks Reveal Secret Recovery Phrase',
@@ -377,6 +380,7 @@ enum EVENT_NAME {
   // NFT auto detection events
   NFT_AUTO_DETECTION_ENABLED = 'nft_autodetection_enabled',
   PRIMARY_CURRENCY_TOGGLE = 'primary_currency_toggle',
+  LOGIN_DOWNLOAD_LOGS = 'Download State Logs Button Clicked',
 }
 
 enum ACTIONS {
@@ -469,6 +473,7 @@ const events = {
     EVENT_NAME.COLLECTIBLE_DETAILS_OPENED,
   ),
   COLLECTIBLE_REMOVED: generateOpt(EVENT_NAME.COLLECTIBLE_REMOVED),
+  CURRENCY_CHANGED: generateOpt(EVENT_NAME.CURRENCY_CHANGED),
   NETWORK_SWITCHED: generateOpt(EVENT_NAME.NETWORK_SWITCHED),
   NETWORK_ADDED: generateOpt(EVENT_NAME.NETWORK_ADDED),
   NETWORK_REQUESTED: generateOpt(EVENT_NAME.NETWORK_REQUESTED),
@@ -575,6 +580,12 @@ const events = {
   DAPP_VIEWED: generateOpt(EVENT_NAME.DAPP_VIEWED),
   // Security & Privacy Settings
   VIEW_SECURITY_SETTINGS: generateOpt(EVENT_NAME.VIEW_SECURITY_SETTINGS),
+  BASIC_FUNCTIONALITY_ENABLED: generateOpt(
+    EVENT_NAME.BASIC_FUNCTIONALITY_ENABLED,
+  ),
+  BASIC_FUNCTIONALITY_DISABLED: generateOpt(
+    EVENT_NAME.BASIC_FUNCTIONALITY_DISABLED,
+  ),
   // Reveal SRP
   REVEAL_SRP_CTA: generateOpt(EVENT_NAME.REVEAL_SRP_CTA),
   REVEAL_SRP_SCREEN: generateOpt(EVENT_NAME.REVEAL_SRP_SCREEN),
@@ -893,6 +904,7 @@ const events = {
     EVENT_NAME.NFT_AUTO_DETECTION_ENABLED,
   ),
   PRIMARY_CURRENCY_TOGGLE: generateOpt(EVENT_NAME.PRIMARY_CURRENCY_TOGGLE),
+  LOGIN_DOWNLOAD_LOGS: generateOpt(EVENT_NAME.LOGIN_DOWNLOAD_LOGS),
 };
 
 /**
