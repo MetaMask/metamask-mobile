@@ -7,7 +7,7 @@ const styleSheet = (params: { theme: Theme }) => {
     activitiesButton: {
       display: 'flex',
       flexDirection: 'row',
-      justifyContent: 'space-between',
+      justifyContent: 'space-evenly',
       padding: 16,
     },
     buttonWrapper: {
