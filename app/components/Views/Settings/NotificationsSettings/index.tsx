@@ -22,16 +22,16 @@ import { Props } from './NotificationsSettings.types';
 import { useStyles } from '../../../../component-library/hooks';
 
 import NotificationOptionToggle from './NotificationOptionToggle';
+import CustomNotificationsRow from './CustomNotificationsRow';
 import { NotificationsToggleTypes } from './NotificationsSettings.constants';
-
-import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
+import { selectIsFeatureAnnouncementsEnabled, selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 
 import {
   requestPushNotificationsPermission,
   asyncAlert,
 } from '../../../../util/notifications';
 import Routes from '../../../../constants/navigation/Routes';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
+
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../component-library/components/Buttons/ButtonIcon';
@@ -40,10 +40,12 @@ import {
   useDisableNotifications,
   useEnableNotifications,
 } from '../../../../util/notifications/hooks/useNotifications';
-import { useAccountSettingsProps } from '../../../../util/notifications/hooks/useSwitchNotifications';
+import { useAccountSettingsProps, useSwitchNotifications } from '../../../../util/notifications/hooks/useSwitchNotifications';
 import styleSheet from './NotificationsSettings.styles';
 import AppConstants from '../../../../core/AppConstants';
 import { store } from '../../../../store';
+import notificationsRows from './notificationsRows';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
 
 
 interface MainNotificationSettingsProps extends Props {
@@ -93,11 +95,15 @@ const MainNotificationSettings = ({ styles, toggleNotificationsEnabled, isMetama
 );};
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const { accounts } = useAccounts();
+  const { switchFeatureAnnouncements } = useSwitchNotifications();
   const accountsNotificationState = store.getState().notifications;
   const theme = useTheme();
   const accountAddresses = useMemo(
     () => accounts.map((a) => a.address),
     [accounts],
+  );
+  const isFeatureAnnouncementsEnabled = useSelector(
+    selectIsFeatureAnnouncementsEnabled
   );
   const accountSettingsProps = useAccountSettingsProps(accountAddresses);
   const {
@@ -121,6 +127,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     (state: RootState) => state.settings.basicFunctionalityEnabled,
   );
   const [uiNotificationStatus, setUiNotificationStatus] = React.useState(false);
+  const [platformAnnouncementsState, setPlatformAnnouncementsState] = React.useState(isFeatureAnnouncementsEnabled);
 
   const loading = enableLoading || disableLoading;
   const errorText = enablingError || disablingError;
@@ -177,6 +184,12 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     navigation,
   ]);
 
+
+  const toggleCustomNotificationsEnabled = useCallback(async() => {
+    setPlatformAnnouncementsState(!platformAnnouncementsState);
+    switchFeatureAnnouncements(!platformAnnouncementsState);
+  },[platformAnnouncementsState, switchFeatureAnnouncements]);
+
   const goToLearnMore = () => {
     Linking.openURL(AppConstants.URLS.PROFILE_SYNC);
   };
@@ -197,8 +210,6 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     );
     reFetchingAccountSettings();
   }, [colors, isFullScreenModal, navigation, reFetchingAccountSettings]);
-
-
 
   const refetchAccountSettings = useCallback(async () => {
     await accountSettingsProps.update(accountAddresses);
@@ -237,6 +248,21 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
 
       {isMetamaskNotificationsEnabled && (
         <>
+        <SessionHeader
+            title={strings(
+              'app_settings.notifications_opts.customize_session_title',
+            )}
+            description={strings(
+              'app_settings.notifications_opts.customize_session_desc',
+            )}
+            styles={styles}
+          />
+          <CustomNotificationsRow
+            title={notificationsRows[4].title}
+            icon={notificationsRows[4].icon}
+            isEnabled={platformAnnouncementsState}
+            onChange={toggleCustomNotificationsEnabled}
+            />
           <SessionHeader
             title={strings(
               'app_settings.notifications_opts.account_session_title',
@@ -246,6 +272,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
             )}
             styles={styles}
           />
+
           {renderAccounts()}
         </>
       )}
