@@ -1,3 +1,6 @@
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import localeData from 'dayjs/plugin/localeData';
 import { Web3Provider } from '@ethersproject/providers';
 import { toHex } from '@metamask/controller-utils';
 import { format, isSameDay, isSameYear, subDays } from 'date-fns';
@@ -13,6 +16,10 @@ import images from '../../../images/image-icons';
 import CHAIN_SCANS_URLS from '../constants/urls';
 import I18n, { strings } from '../../../../locales/i18n';
 
+// Extend dayjs with the plugins
+dayjs.extend(relativeTime);
+dayjs.extend(localeData);
+
 const { UI } = NotificationServicesController;
 
 export function formatRelative(
@@ -20,27 +27,8 @@ export function formatRelative(
   currentDate: Date,
   locale: string = 'en',
 ): string {
-  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
-
-  const diffInSeconds = (date.getTime() - currentDate.getTime()) / 1000;
-  const diffInMinutes = diffInSeconds / 60;
-  const diffInHours = diffInMinutes / 60;
-  const diffInDays = diffInHours / 24;
-  const diffInMonths = diffInDays / 30;
-  const diffInYears = diffInMonths / 12;
-
-  if (Math.abs(diffInYears) >= 1) {
-    return rtf.format(Math.round(diffInYears), 'year');
-  } else if (Math.abs(diffInMonths) >= 1) {
-    return rtf.format(Math.round(diffInMonths), 'month');
-  } else if (Math.abs(diffInDays) >= 1) {
-    return rtf.format(Math.round(diffInDays), 'day');
-  } else if (Math.abs(diffInHours) >= 1) {
-    return rtf.format(Math.round(diffInHours), 'hour');
-  } else if (Math.abs(diffInMinutes) >= 1) {
-    return rtf.format(Math.round(diffInMinutes), 'minute');
-  }
-  return rtf.format(Math.round(diffInSeconds), 'second');
+  dayjs.locale(locale);
+  return dayjs(date).from(currentDate);
 }
 
 /**

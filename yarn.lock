@@ -2724,30 +2724,6 @@
   resolved "https://registry.yarnpkg.com/@floating-ui/utils/-/utils-0.2.1.tgz#16308cea045f0fc777b6ff20a9f25474dd8293d2"
   integrity sha512-9TANp6GPoMtYzQdt54kfAyMmz1+osLlXdg2ENroU7zzrtflTLrrC/lgrIfaSe+Wu0b89GKccT7vxXA0MoAIO+Q==
 
-"@formatjs/ecma402-abstract@2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@formatjs/ecma402-abstract/-/ecma402-abstract-2.0.0.tgz#39197ab90b1c78b7342b129a56a7acdb8f512e17"
-  integrity sha512-rRqXOqdFmk7RYvj4khklyqzcfQl9vEL/usogncBHRZfZBDOwMGuSRNFl02fu5KGHXdbinju+YXyuR+Nk8xlr/g==
-  dependencies:
-    "@formatjs/intl-localematcher" "0.5.4"
-    tslib "^2.4.0"
-
-"@formatjs/intl-localematcher@0.5.4":
-  version "0.5.4"
-  resolved "https://registry.yarnpkg.com/@formatjs/intl-localematcher/-/intl-localematcher-0.5.4.tgz#caa71f2e40d93e37d58be35cfffe57865f2b366f"
-  integrity sha512-zTwEpWOzZ2CiKcB93BLngUX59hQkuZjT2+SAQEscSm52peDW/getsawMcWF1rGRpMCX6D7nSJA3CzJ8gn13N/g==
-  dependencies:
-    tslib "^2.4.0"
-
-"@formatjs/intl-relativetimeformat@^11.2.14":
-  version "11.2.14"
-  resolved "https://registry.yarnpkg.com/@formatjs/intl-relativetimeformat/-/intl-relativetimeformat-11.2.14.tgz#acc2aa3d59cc9a414d285d1159ae87ed286287da"
-  integrity sha512-g1tor23+Z8DUzT9VAlMHzdeNxyhnD6sgaFRFxti6+4cODdaG4mudo77Th8ONg8Z3El2Ienf+CXcCNzJpOG1E7A==
-  dependencies:
-    "@formatjs/ecma402-abstract" "2.0.0"
-    "@formatjs/intl-localematcher" "0.5.4"
-    tslib "^2.4.0"
-
 "@grpc/grpc-js@~1.9.0":
   version "1.9.15"
   resolved "https://registry.yarnpkg.com/@grpc/grpc-js/-/grpc-js-1.9.15.tgz#433d7ac19b1754af690ea650ab72190bd700739b"
@@ -15083,7 +15059,7 @@ date-format@4.0.3:
   resolved "https://registry.yarnpkg.com/date-format/-/date-format-4.0.3.tgz#f63de5dc08dc02efd8ef32bf2a6918e486f35873"
   integrity sha512-7P3FyqDcfeznLZp2b+OMitV9Sz2lUnsT87WaTat9nVwqsBkTzPG3lPLNwW3en6F4pHUiWzr6vb8CLhjdK9bcxQ==
 
-dayjs@^1.10.5, dayjs@^1.8.15, dayjs@^1.8.29:
+dayjs@^1.10.5, dayjs@^1.11.13, dayjs@^1.8.15, dayjs@^1.8.29:
   version "1.11.13"
   resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.11.13.tgz#92430b0139055c3ebb60150aa13e860a4b5a366c"
   integrity sha512-oaMBel6gjolK862uaPQOVTA7q3TZhuSvuMQAAglQDOWYO9A91IrAOUJEyKVlqJlHE0vq5p5UXxzdPfMH/x6xNg==
