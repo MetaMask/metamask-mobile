@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useCallback, useContext } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useCallback,
+  useContext,
+  useLayoutEffect,
+} from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -6,6 +12,8 @@ import {
   TextStyle,
   InteractionManager,
   Linking,
+  AppState,
+  AppStateStatus,
 } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import { connect, useDispatch, useSelector } from 'react-redux';
@@ -148,6 +156,7 @@ const Wallet = ({
   showNftFetchingLoadingIndicator,
   hideNftFetchingLoadingIndicator,
 }: WalletProps) => {
+  const appState = useRef(AppState.currentState);
   const { navigate } = useNavigation();
   const { listNotifications } = useListNotifications();
   const { dispatchAccountSyncing } = useAccountSyncing();
@@ -406,13 +415,35 @@ const Wallet = ({
     updateNotifications();
   }, [listNotifications]);
 
-  // Effect - dispatch account syncing
-  useEffect(() => {
-    if (currentRouteName !== 'Wallet') {
-      return;
-    }
+  // Layout effect when component/view is visible
+  // - fetches notifications
+  // - dispatches account syncing
+  useLayoutEffect(() => {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        listNotifications();
+        dispatchAccountSyncing();
+      }
+
+      appState.current = nextAppState;
+    };
+
+    const subscription = AppState.addEventListener(
+      'change',
+      handleAppStateChange,
+    );
+
+    listNotifications();
     dispatchAccountSyncing();
-  }, [dispatchAccountSyncing, currentRouteName]);
+
+    return () => {
+      subscription.remove();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     navigation.setOptions(
