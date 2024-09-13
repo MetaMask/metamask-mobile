@@ -688,9 +688,9 @@
     "suggest_transactions": "Merekomendasikan transaksi untuk disetujui",
     "disconnect": "Memutus koneksi",
     "disconnect_all": "Putuskan semua koneksi",
-    "reconnect_notice": "Jika Anda memutus koneksi akun dari {{dappUrl}}, Anda harus menghubungkannya kembali agar dapat menggunakannya lagi.",
+    "reconnect_notice": "If you disconnect your accounts from {{dappUrl}}, you’ll need to reconnect to use them again.",
     "disconnect_all_accounts": "Memutus koneksi semua akun",
-    "disconnect_you_from": "Ini akan memutus koneksi dari {{dappUrl}}",
+    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
     "deceptive_site_ahead": "Situs yang menipu terdeteksi",
     "deceptive_site_desc": "Situs yang akan Anda kunjungi tidak aman. Penyerang dapat mengelabui Anda untuk melakukan sesuatu yang berbahaya.",
     "learn_more": "Selengkapnya",
@@ -2819,12 +2819,12 @@
   },
   "switch_custom_network": {
     "title_existing_network": "Situs ini ingin beralih jaringan",
-    "title_enabled_network": "Situs ini ingin:",
+    "title_enabled_network": "This site wants to:",
     "title_new_network": "Jaringan baru ditambahkan",
     "switch_warning": "Ini akan mengalihkan jaringan yang dipilih dalam MetaMask ke jaringan yang ditambahkan sebelumnya:",
-    "use_enabled_networks": "Menggunakan jaringan aktif",
-    "wants_to_see_your_accounts": "Melihat akun Anda dan menyarangkan transaksi",
-    "requesting_for": "Meminta untuk ",
+    "use_enabled_networks": "Use your enabled networks",
+    "wants_to_see_your_accounts": "See your accounts and suggest transactions",
+    "requesting_for": "Requesting for ",
     "edit": "Edit",
     "add_network_and_give_dapp_permission_warning": "Anda menambahkan jaringan ini ke MetaMask dan memberikan {{dapp_origin}} izin untuk menggunakannya.",
     "available": "kini tersedia di pemilih jaringan.",
@@ -3187,7 +3187,7 @@
     "how_to_install_eth_webview_title": "Cara menginstal Aplikasi Ethereum",
     "nonce_too_low": "Nonce terlalu rendah",
     "nonce_too_low_error": "Nonce yang ditetapkan terlalu rendah",
-    "select_accounts": "Pilih Akun"
+    "select_accounts": "Select an Account"
   },
   "account_actions": {
     "edit_name": "Edit nama akun",
