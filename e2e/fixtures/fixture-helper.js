@@ -161,7 +161,6 @@ export async function withFixtures(options, testSuite) {
     if (restartDevice) {
       await device.launchApp({
         delete: true,
-        permissions: { notifications: 'YES' },
         launchArgs: {
           fixtureServerPort: `${getFixturesServerPort()}`,
           detoxURLBlacklistRegex: Utilities.BlacklistURLs,
