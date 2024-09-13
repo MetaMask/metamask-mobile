@@ -5,6 +5,7 @@ import {
 } from '@metamask/transaction-controller';
 import { rpcErrors } from '@metamask/rpc-errors';
 import ppomUtil, { PPOMRequest } from '../../lib/ppom/ppom-util';
+import { endTrace, trace, TraceName } from '../../util/trace';
 
 /**
  * A JavaScript object that is not `null`, a function, or an array.
@@ -66,7 +67,10 @@ async function eth_sendTransaction({
   validateAccountAndChainId,
 }: {
   hostname: string;
-  req: JsonRpcRequest<unknown> & { method: 'eth_sendTransaction' };
+  req: JsonRpcRequest<unknown> & {
+    method: 'eth_sendTransaction';
+    traceContext?: unknown;
+  };
   res: PendingJsonRpcResponse<unknown>;
   sendTransaction: TransactionController['addTransaction'];
   validateAccountAndChainId: (args: {
@@ -74,6 +78,8 @@ async function eth_sendTransaction({
     chainId?: number;
   }) => Promise<void>;
 }) {
+  const traceContext = req.traceContext;
+  const actionId = req?.id as string;
   if (
     !Array.isArray(req.params) &&
     !(isObject(req.params) && hasProperty(req.params, 0))
@@ -93,14 +99,22 @@ async function eth_sendTransaction({
     chainId: req.params[0].chainId,
   });
 
+  endTrace({ name: TraceName.Middleware, id: actionId });
+
   const { result, transactionMeta } = await sendTransaction(req.params[0], {
+    actionId: req.id as string,
     deviceConfirmedOn: WalletDevice.MM_MOBILE,
     origin: hostname,
+    traceContext,
   });
 
-  ppomUtil.validateRequest(req as PPOMRequest, transactionMeta?.id);
+  trace({ name: TraceName.PPOMValidation, parentContext: traceContext }, () =>
+    ppomUtil.validateRequest(req as PPOMRequest, transactionMeta?.id),
+  );
 
   res.result = await result;
+
+  endTrace({ name: TraceName.Transaction, id: actionId });
 }
 
 export default eth_sendTransaction;

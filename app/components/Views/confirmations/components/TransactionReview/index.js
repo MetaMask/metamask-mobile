@@ -64,6 +64,7 @@ import TransactionReviewData from './TransactionReviewData';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import { endTrace, TraceName } from '../../../../../util/trace';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -361,6 +362,8 @@ class TransactionReview extends PureComponent {
         POLLING_INTERVAL_ESTIMATED_L1_FEE,
       );
     }
+
+    endTrace({ name: TraceName.NotificationDisplay, id: transaction.id });
   };
 
   onContactUsClicked = () => {

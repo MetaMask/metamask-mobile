@@ -16,6 +16,9 @@ export enum TraceName {
   Middleware = 'Middleware',
   NestedTest1 = 'Nested Test 1',
   NestedTest2 = 'Nested Test 2',
+  NotificationDisplay = 'Notification Display',
+  PPOMValidation = 'PPOM Validation',
+  Transaction = 'Transaction',
 }
 
 const ID_DEFAULT = 'default';
@@ -152,7 +155,7 @@ function startSpan<T>(
     op: OP_DEFAULT,
     // This needs to be parentSpan once we have the withIsolatedScope implementation in place in the Sentry SDK for React Native
     // Reference PR that updates @sentry/react-native: https://github.com/getsentry/sentry-react-native/pull/3895
-    parentSpanId: parentSpan?.spanId,
+    parentSpanId: parentSpan?.spanContext?.().spanId,
     startTime,
   };
 
