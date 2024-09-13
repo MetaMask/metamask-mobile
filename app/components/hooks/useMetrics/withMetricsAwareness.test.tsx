@@ -3,11 +3,11 @@ import { render } from '@testing-library/react-native';
 import withMetricsAwareness from './withMetricsAwareness';
 import useMetrics from './useMetrics';
 import { View } from 'react-native';
-import { IWithMetricsAwarenessProps } from './withMetricsAwareness.types';
+import { IUseMetricsHook } from './useMetrics.types';
 
 jest.mock('./useMetrics');
 
-class MockComponent extends Component<IWithMetricsAwarenessProps> {
+class MockComponent extends Component<{ metrics: IUseMetricsHook }> {
   render() {
     return <View />;
   }
