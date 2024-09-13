@@ -16,6 +16,7 @@ import Accounts from '../../../wdio/helpers/Accounts.js';
 import { withFixtures } from '../../fixtures/fixture-helper.js';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
 import TestHelpers from '../../helpers.js';
+import { mockUrlCollection } from '../../mockserver/mockUrlCollection.js';
 
 describe(SmokeCore('Mock suggestedGasApi fallback to legacy gas endpoint  when EIP1559 endpoint is down'), () => {
   let mockServer;
@@ -24,10 +25,22 @@ describe(SmokeCore('Mock suggestedGasApi fallback to legacy gas endpoint  when E
     await TestHelpers.reverseServerPort();
 
     mockServer = await startMockServer({ // Configure mock server
-      mockUrl: 'https://gas.api.cx.metamask.io/networks/1/suggestedGasFees',
+      mockUrl: mockUrlCollection.SUGGESTED_GAS_API_MAINNET_URL,
       responseCode: 500,
       responseBody: { error: 'Internal server error' },
     });
+  });
+
+  // Because we stop the server within the test, a try catch block here would stop the server if the test fails midway
+  afterAll(async () => {
+    if (mockServer) {
+      try {
+        await stopMockServer();  // Stop the mock server if it's running
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.log('Mock server already stopped or encountered an error:', error);
+      }
+    }
   });
 
   const RECIPIENT = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
@@ -73,16 +86,5 @@ describe(SmokeCore('Mock suggestedGasApi fallback to legacy gas endpoint  when E
         );
       },
     );
-  });
-// Because we stop the server within the test, a try catch block here would stop the server if the test fails midway
-  afterAll(async () => {
-    if (mockServer) {
-      try {
-        await stopMockServer();  // Stop the mock server if it's running
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.log('Mock server already stopped or encountered an error:', error);
-      }
-    }
   });
 });
