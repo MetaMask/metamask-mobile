@@ -120,7 +120,7 @@ import {
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
 } from '@metamask/snaps-rpc-methods';
-import type { EnumToUnion, DialogType, SnapId } from '@metamask/snaps-sdk';
+import type { EnumToUnion, DialogType } from '@metamask/snaps-sdk';
 // eslint-disable-next-line import/no-nodejs-modules
 import { Duplex } from 'stream';
 ///: END:ONLY_INCLUDE_IF
@@ -222,7 +222,8 @@ import { TransactionControllerOptions } from '@metamask/transaction-controller/d
 import { snapKeyringBuilder } from './SnapKeyring';
 import { removeAccountsFromPermissions } from './Permissions';
 import { keyringSnapPermissionsBuilder } from './SnapKeyring/keyringSnapsPermissions';
-import { SnapRpcHookArgs } from '@metamask/snaps-utils';
+import { HandleSnapRequestArgs } from './Snaps/types';
+import { handleSnapRequest } from './Snaps/utils';
 ///: END:ONLY_INCLUDE_IF
 
 const NON_EMPTY = 'NON_EMPTY';
@@ -396,6 +397,20 @@ type RequiredControllers = Omit<Controllers, 'PPOMController'>;
 type OptionalControllers = Pick<Controllers, 'PPOMController'>;
 
 /**
+ * Combines required and optional controllers for the Engine context type.
+ */
+export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
+
+/**
+ * Type definition for the controller messenger used in the Engine.
+ * It extends the base ControllerMessenger with global actions and events.
+ */
+export type ControllerMessenger = ExtendedControllerMessenger<
+  GlobalActions,
+  GlobalEvents
+>;
+
+/**
  * Core controller responsible for composing other metamask controllers together
  * and exposing convenience methods for common wallet operations.
  */
@@ -407,11 +422,11 @@ class Engine {
   /**
    * A collection of all controller instances
    */
-  context: RequiredControllers & Partial<OptionalControllers>;
+  context: EngineContext;
   /**
    * The global controller messenger.
    */
-  controllerMessenger: ExtendedControllerMessenger<GlobalActions, GlobalEvents>;
+  controllerMessenger: ControllerMessenger;
   /**
    * ComposableController reference containing all child controllers
    */
@@ -815,30 +830,6 @@ class Engine {
       return state === 'active';
     };
 
-    type HandleSnapRequestArgs = SnapRpcHookArgs & { snapId: SnapId };
-
-    /**
-     * Passes a JSON-RPC request object to the SnapController for execution.
-     *
-     * @param {object} args - A bag of options.
-     * @param {string} args.snapId - The ID of the recipient snap.
-     * @param {string} args.origin - The origin of the RPC request.
-     * @param {string} args.handler - The handler to trigger on the snap for the request.
-     * @param {object} args.request - The JSON-RPC request object.
-     * @returns The result of the JSON-RPC request.
-     */
-    const handleSnapRequest = async (args: HandleSnapRequestArgs) => {
-      // eslint-disable-next-line no-console
-      console.log(
-        'Accounts/ Engine handleSnapRequest called with args: ',
-        args,
-      );
-      return await this.controllerMessenger.call(
-        'SnapController:handleRequest',
-        args,
-      );
-    };
-
     const getSnapPermissionSpecifications = () => ({
       ...buildSnapEndowmentSpecifications(Object.keys(ExcludedSnapEndowments)),
       ...buildSnapRestrictedMethodSpecifications(
@@ -856,9 +847,8 @@ class Engine {
             this.controllerMessenger,
             'SnapController:get',
           ),
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          handleSnapRpcRequest: async (args) => await handleSnapRequest(args),
+          handleSnapRpcRequest: async (args: HandleSnapRequestArgs) =>
+            await handleSnapRequest(this.controllerMessenger, args),
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           getSnapState: this.controllerMessenger.call.bind(
@@ -918,7 +908,7 @@ class Engine {
               origin,
               target,
             ),
-          // TODO: Code fence this
+          // TODO: Code fence this block
           getSnapKeyring: this.getSnapKeyring.bind(this),
         },
       ),
@@ -1231,7 +1221,7 @@ class Engine {
           },
         },
       });
-      ///: END:ONLY_INCLUDE_IF
+    ///: END:ONLY_INCLUDE_IF
 
     this.transactionController = new TransactionController({
       // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`

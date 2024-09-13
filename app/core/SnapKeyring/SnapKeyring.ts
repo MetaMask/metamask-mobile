@@ -1,8 +1,8 @@
-/* eslint-disable no-console */
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import type { SnapController } from '@metamask/snaps-controllers';
 import { SnapKeyringBuilderMessenger } from './types';
 import type { SnapId } from '@metamask/snaps-sdk';
+import Logger from '../../util/Logger';
 
 /**
  * Get the addresses of the accounts managed by a given Snap.
@@ -45,7 +45,7 @@ export const snapKeyringBuilder = (
         ).includes(address.toLowerCase()),
 
       redirectUser: async (snapId: string, url: string, message: string) => {
-        console.log(
+        Logger.log(
           `SnapKeyring: redirectUser called with \n
           - snapId: ${snapId} \n
           - url: ${url} \n
@@ -64,7 +64,7 @@ export const snapKeyringBuilder = (
         accountNameSuggestion = '',
         displayConfirmation = false,
       ) => {
-        console.log(
+        Logger.log(
           `SnapKeyring: addAccount called with \n
           - address: ${address} \n
           - handleUserInput: ${handleUserInput} \n
@@ -83,7 +83,7 @@ export const snapKeyringBuilder = (
         snapId: string,
         handleUserInput: (accepted: boolean) => Promise<void>,
       ) => {
-        console.log(
+        Logger.log(
           `SnapKeyring: removeAccount called with \n
           - address: ${address} \n
           - handleUserInput: ${handleUserInput} \n
