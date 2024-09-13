@@ -5,8 +5,6 @@
     "deceptive_request_title": "This is a deceptive request",
     "failed_title": "Request may not be safe",
     "failed_description": "Because of an error, this request was not verified by the security provider. Proceed with caution.",
-    "loading_title": "Checking for security alerts...",
-    "loading_complete_title": "No alerts received. Always do your own due diligence before approving requests.",
     "malicious_domain_description": "You're interacting with a malicious domain. If you approve this request, you might lose your assets.",
     "other_description": "If you approve this request, you might lose your assets.",
     "raw_signature_farming_description": "If you approve this request, you might lose your assets.",
@@ -1486,7 +1484,8 @@
     "hex_data_copied": "Hex data copied to clipboard",
     "invalid_recipient": "Invalid recipient",
     "invalid_recipient_description": "Check the address and make sure it's valid",
-    "swap_tokens": "Swap tokens"
+    "swap_tokens": "Swap tokens",
+    "fromWithColon": "From:"
   },
   "custom_gas": {
     "total": "Total",
@@ -1806,6 +1805,17 @@
     "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask.",
     "edit_networks_title": "Edit networks"
   },
+  "permissions": {
+    "title_this_site_wants_to": "This site wants to:",
+    "title_dapp_url_wants_to": "{{dappUrl}} wants to:",
+    "title_dapp_url_has_approval_to": "{{dappUrl}} has approval to:",
+    "use_enabled_networks": "Use your enabled networks",
+    "wants_to_see_your_accounts": "See your accounts and suggest transactions",
+    "requesting_for": "Requesting for ",
+    "manage_permissions": "Manage Permissions",
+    "edit": "Edit",
+    "cancel": "Cancel"
+  },
   "select": {
     "cancel": "Cancel",
     "done": "Done"
@@ -2069,6 +2079,8 @@
     "back_to_safety": "Back to safety"
   },
   "notifications": {
+    "no_date": "Unknown",
+    "yesterday": "Yesterday",
     "staked": "Staked",
     "received": "Received",
     "unstaked": "Unstaked",
@@ -2144,6 +2156,8 @@
     "success_withdrawal_title": "Withdrawal Complete!",
     "error_title": "Oops, something went wrong :/",
     "received_title": "You received {{amount}} {{assetType}}",
+    "default_message_title": "New transaction notification",
+    "default_message_description": "Tap to view this transaction",
     "received_payment_title": "Instant payment received",
     "pending_message": "Waiting for confirmation",
     "pending_deposit_message": "Waiting for deposit to complete",
@@ -2845,13 +2859,8 @@
   },
   "switch_custom_network": {
     "title_existing_network": "This site would like to switch the network",
-    "title_enabled_network": "This site wants to:",
     "title_new_network": "New network added",
     "switch_warning": "This will switch the selected network within MetaMask to a previously added network:",
-    "use_enabled_networks": "Use your enabled networks",
-    "wants_to_see_your_accounts": "See your accounts and suggest transactions",
-    "requesting_for": "Requesting for ",
-    "edit": "Edit",
     "add_network_and_give_dapp_permission_warning": "You're adding this network to MetaMask and giving {{dapp_origin}} permission to use it.",
     "available": "is now available in the network selector.",
     "cancel": "Cancel",
@@ -2943,7 +2952,7 @@
   },
   "transaction_review_eip1559": {
     "estimated_gas_fee": "Estimated gas fee",
-    "suggested_gas_fee": "%{origin} suggested gas fee",
+    "network_fee": "Network fee",
     "max_fee": "Max fee",
     "total": "Total",
     "max_amount": "Max amount",
@@ -3325,5 +3334,20 @@
     "please_wait": "Please wait",
     "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
     "disconnect": "Disconnect"
+  },
+  "staking": {
+    "your_earnings": "Your earnings",
+    "annual_rate": "Annual rate",
+    "lifetime_rewards": "Lifetime rewards",
+    "estimated_annual_earnings": "Est. annual earnings",
+    "accessibility_labels": {
+      "stake_annual_rate_tooltip": "Annual rate tooltip"
+    }
+  },
+  "tooltip_modal": {
+    "reward_rate": {
+      "title": "Reward rate",
+      "tooltip": "Expected yearly increase in the value of your stake, based on the reward rate over the past week."
+    }
   }
 }

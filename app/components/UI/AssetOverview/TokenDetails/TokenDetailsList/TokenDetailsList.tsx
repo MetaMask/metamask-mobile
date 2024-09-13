@@ -48,7 +48,7 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
   };
 
   return (
-    <View style={styles.wrapper}>
+    <View>
       <Title style={styles.title}>{strings('token.token_details')}</Title>
       <View style={styles.listWrapper}>
         {tokenDetails.contractAddress && (

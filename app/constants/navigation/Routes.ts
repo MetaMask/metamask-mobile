@@ -105,6 +105,7 @@ const Routes = {
     SHOW_NFT_DISPLAY_MEDIA: 'ShowNftDisplayMedia',
     SHOW_TOKEN_ID: 'ShowTokenId',
     ORIGIN_SPAM_MODAL: 'OriginSpamModal',
+    TOOLTIP_MODAL: 'tooltipModal',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',
