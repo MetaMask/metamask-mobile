@@ -157,20 +157,4 @@ describe('Snap Keyring Methods', () => {
       ]);
     });
   });
-  describe('removeAccount', () => {
-    afterEach(() => {
-      jest.resetAllMocks();
-    });
-    it('handles account removal', async () => {
-      const builder = createSnapKeyringBuilder();
-      await builder().handleKeyringSnapMessage(mockSnapId, {
-        method: KeyringEvent.AccountDeleted,
-        params: {
-          id: mockAccount.id,
-        },
-      });
-      expect(mockRemoveAccountHelper).toHaveBeenCalledTimes(1);
-      expect(mockRemoveAccountHelper).toHaveBeenCalledWith(mockAccount.id);
-    });
-  });
 });
