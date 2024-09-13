@@ -1,5 +1,3 @@
-import '@formatjs/intl-relativetimeformat/polyfill';
-
 import { Web3Provider } from '@ethersproject/providers';
 import { toHex } from '@metamask/controller-utils';
 import { format, isSameDay, isSameYear, subDays } from 'date-fns';
