@@ -84,6 +84,7 @@ import {
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
+import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -147,6 +148,7 @@ const Wallet = ({
   hideNftFetchingLoadingIndicator,
 }: WalletProps) => {
   const { navigate } = useNavigation();
+  const { listNotifications } = useListNotifications();
   const walletRef = useRef(null);
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
@@ -393,6 +395,14 @@ const Wallet = ({
     /* eslint-disable-next-line */
     [navigation, providerConfig.chainId],
   );
+
+  // Effect - fetch notifications when component/view is visible.
+  useEffect(() => {
+    async function updateNotifications() {
+      await listNotifications();
+    }
+    updateNotifications();
+  }, [listNotifications]);
 
   useEffect(() => {
     navigation.setOptions(

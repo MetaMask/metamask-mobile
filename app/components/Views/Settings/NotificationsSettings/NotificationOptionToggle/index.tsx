@@ -32,7 +32,7 @@ interface NotificationOptionsToggleProps {
   testId?: string;
 
   isEnabled: boolean;
-  refetchAccountSettings: () => Promise<void>;
+  refetchAccountSettings?: () => Promise<void>;
 }
 
 function useUpdateAccountSetting(address: string) {
@@ -118,7 +118,7 @@ const NotificationOptionToggle = ({
         )}
       </View>
       <View style={styles.switchElement}>
-      {isEnabled === undefined ? (
+        {isEnabled === undefined ? (
           <ActivityIndicator />
         ) : (
           <Switch

@@ -222,6 +222,8 @@ import { TransactionControllerOptions } from '@metamask/transaction-controller/d
 import { snapKeyringBuilder } from './SnapKeyring';
 import { removeAccountsFromPermissions } from './Permissions';
 import { keyringSnapPermissionsBuilder } from './SnapKeyring/keyringSnapsPermissions';
+import { HandleSnapRequestArgs } from './Snaps/types';
+import { handleSnapRequest } from './Snaps/utils';
 ///: END:ONLY_INCLUDE_IF
 
 const NON_EMPTY = 'NON_EMPTY';
@@ -395,6 +397,20 @@ type RequiredControllers = Omit<Controllers, 'PPOMController'>;
 type OptionalControllers = Pick<Controllers, 'PPOMController'>;
 
 /**
+ * Combines required and optional controllers for the Engine context type.
+ */
+export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
+
+/**
+ * Type definition for the controller messenger used in the Engine.
+ * It extends the base ControllerMessenger with global actions and events.
+ */
+export type ControllerMessenger = ExtendedControllerMessenger<
+  GlobalActions,
+  GlobalEvents
+>;
+
+/**
  * Core controller responsible for composing other metamask controllers together
  * and exposing convenience methods for common wallet operations.
  */
@@ -406,11 +422,11 @@ class Engine {
   /**
    * A collection of all controller instances
    */
-  context: RequiredControllers & Partial<OptionalControllers>;
+  context: EngineContext;
   /**
    * The global controller messenger.
    */
-  controllerMessenger: ExtendedControllerMessenger<GlobalActions, GlobalEvents>;
+  controllerMessenger: ControllerMessenger;
   /**
    * ComposableController reference containing all child controllers
    */
@@ -590,7 +606,6 @@ class Engine {
       }),
       state: initialState.LoggingController,
     });
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     const accountsControllerMessenger: AccountsControllerMessenger =
       this.controllerMessenger.getRestricted({
         name: 'AccountsController',
@@ -790,6 +805,7 @@ class Engine {
         allowedEvents: [],
       }),
       state: initialKeyringState || initialState.KeyringController,
+      // @ts-expect-error To Do: Update the type of QRHardwareKeyring to Keyring<Json>
       keyringBuilders: additionalKeyrings,
     });
 
@@ -832,12 +848,8 @@ class Engine {
             this.controllerMessenger,
             'SnapController:get',
           ),
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          handleSnapRpcRequest: this.controllerMessenger.call.bind(
-            this.controllerMessenger,
-            'SnapController:handleRequest',
-          ),
+          handleSnapRpcRequest: async (args: HandleSnapRequestArgs) =>
+            await handleSnapRequest(this.controllerMessenger, args),
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           getSnapState: this.controllerMessenger.call.bind(
@@ -897,7 +909,7 @@ class Engine {
               origin,
               target,
             ),
-          // TODO: Code fence this
+          // TODO: Code fence this block
           getSnapKeyring: this.getSnapKeyring.bind(this),
         },
       ),

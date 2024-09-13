@@ -34,7 +34,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
       backgroundColor: colors.info.default,
       position: 'absolute',
       marginTop: 16,
-      marginLeft: -6,
+      marginLeft: 8,
     },
     readDot: {
       width: 4,
@@ -42,7 +42,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
       borderRadius: 2,
       position: 'absolute',
       marginTop: 16,
-      marginLeft: -6,
+      marginLeft: 8,
     },
     wrapper: {
       flex: 1,
