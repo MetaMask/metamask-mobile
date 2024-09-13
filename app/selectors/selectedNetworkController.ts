@@ -51,13 +51,16 @@ const selectProviderNetworkName = createSelector(
         providerConfig.nickname
       );
     }
-    let name = strings('network_information.unknown_network');
+    let name;
     if (providerConfig.nickname) {
       name = providerConfig.nickname;
     } else {
       const networkType = providerConfig.type;
-      // @ts-expect-error The utils/network file is still JS
-      name = NetworkList?.[networkType]?.name || NetworkList.rpc.name;
+      name =
+        // @ts-expect-error The utils/network file is still JS
+        NetworkList?.[networkType]?.name ||
+        NetworkList.rpc.name ||
+        strings('network_information.unknown_network');
     }
     return name;
   },
