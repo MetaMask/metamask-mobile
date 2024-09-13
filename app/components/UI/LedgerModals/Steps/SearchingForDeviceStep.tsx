@@ -122,6 +122,9 @@ const SearchingForDeviceStep = () => {
         <Text style={styles.ledgerInstructionText}>
           {strings('ledger.ledger_reminder_message_step_five')}
         </Text>
+        <Text style={styles.ledgerInstructionText}>
+          {strings('ledger.blind_signing_message')}
+        </Text>
       </View>
       <TouchableOpacity onPress={handleOpenInstallEthAppInstructions}>
         <Text style={styles.howToInstallEthAppText} bold link numberOfLines={2}>

@@ -141,6 +141,12 @@ const LedgerConfirmationModal = ({
             subtitle: strings('ledger.unlock_ledger_message'),
           });
           break;
+        case LedgerCommunicationErrors.BlindSignError:
+          setErrorDetails({
+            title: strings('ledger.blind_sign_error'),
+            subtitle: strings('ledger.blind_sign_error_message'),
+          });
+          break;
         case LedgerCommunicationErrors.UserRefusedConfirmation:
           onReject();
           break;
