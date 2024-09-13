@@ -1,24 +1,19 @@
-import {
-  addDays,
-  addMonths,
-  addYears,
-  subDays,
-  subMonths,
-  subYears,
-} from 'date-fns';
-import { formatRelative } from './common';
+import dayjs from 'dayjs';
+import { formatMenuItemDate } from './common';
+import { strings } from '../../../../locales/i18n';
 
-describe('formatRelative', () => {
-  it('should return the correct relative time based on the difference', () => {
-    const today = new Date();
-    const yesterday = subDays(today, 1);
-    const tomorrow = addDays(today, 1);
+describe('formatMenuItemDate', () => {
+  it('returns "No date" if date is not provided', () => {
+    expect(formatMenuItemDate()).toBe(strings('notifications.no_date'));
+  });
 
-    expect(formatRelative(yesterday, today)).toBe('a day ago');
-    expect(formatRelative(tomorrow, today)).toBe('in a day');
-    expect(formatRelative(subMonths(today, 1), today)).toBe('a month ago');
-    expect(formatRelative(addMonths(today, 1), today)).toBe('in a month');
-    expect(formatRelative(subYears(today, 1), today)).toBe('a year ago');
-    expect(formatRelative(addYears(today, 1), today)).toBe('in a year');
+  it('formats date to "HH:mm" if it is a current day', () => {
+    const date = dayjs().toDate();
+    expect(formatMenuItemDate(date)).toBe(dayjs().format('HH:mm'));
+  });
+
+  it('formats date to "Yesterday" if it is yesterday', () => {
+    const date = dayjs().subtract(1, 'day').toDate();
+    expect(formatMenuItemDate(date)).toBe(strings('notifications.yesterday'));
   });
 });
