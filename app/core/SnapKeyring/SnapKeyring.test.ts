@@ -1,5 +1,9 @@
 import { ControllerMessenger } from '@metamask/base-controller';
-import { EthAccountType, InternalAccount, KeyringEvent } from '@metamask/keyring-api';
+import {
+  EthAccountType,
+  InternalAccount,
+  KeyringEvent,
+} from '@metamask/keyring-api';
 import { snapKeyringBuilder } from './SnapKeyring';
 import {
   SnapKeyringBuilderAllowActions,
@@ -96,7 +100,8 @@ const createControllerMessenger = ({
   return messenger;
 };
 
-const createSnapKeyringBuilder = () => snapKeyringBuilder(
+const createSnapKeyringBuilder = () =>
+  snapKeyringBuilder(
     createControllerMessenger(),
     mockSnapController,
     mockPersisKeyringHelper,
@@ -154,8 +159,8 @@ describe('Snap Keyring Methods', () => {
   });
   describe('removeAccount', () => {
     afterEach(() => {
-        jest.resetAllMocks();
-      });
+      jest.resetAllMocks();
+    });
     it('handles account removal', async () => {
       const builder = createSnapKeyringBuilder();
       await builder().handleKeyringSnapMessage(mockSnapId, {
