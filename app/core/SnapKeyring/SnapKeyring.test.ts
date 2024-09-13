@@ -1,13 +1,14 @@
 import { ControllerMessenger } from '@metamask/base-controller';
-import { EthAccountType, InternalAccount } from '@metamask/keyring-api';
+import { EthAccountType, InternalAccount, KeyringEvent } from '@metamask/keyring-api';
 import { snapKeyringBuilder } from './SnapKeyring';
 import {
   SnapKeyringBuilderAllowActions,
   SnapKeyringBuilderMessenger,
 } from './types';
+import { SnapId } from '@metamask/snaps-sdk';
 
 const mockGetAccounts = jest.fn();
-const mockSnapId = 'snapId';
+const mockSnapId: SnapId = 'snapId' as SnapId;
 const mockSnapName = 'mock-snap';
 const mockSnapController = jest.fn();
 const mockPersisKeyringHelper = jest.fn();
@@ -115,7 +116,7 @@ describe('Snap Keyring Methods', () => {
     it('handles account creation with without a user defined name', async () => {
       const builder = createSnapKeyringBuilder();
       await builder().handleKeyringSnapMessage(mockSnapId, {
-        method: 'notify:accountCreated',
+        method: KeyringEvent.AccountCreated,
         params: {
           account: mockAccount,
           displayConfirmation: true,
@@ -133,7 +134,7 @@ describe('Snap Keyring Methods', () => {
       const mockNameSuggestion = 'new name';
       const builder = createSnapKeyringBuilder();
       await builder().handleKeyringSnapMessage(mockSnapId, {
-        method: 'notify:accountCreated',
+        method: KeyringEvent.AccountCreated,
         params: {
           account: mockAccount,
           displayConfirmation: true,
@@ -149,6 +150,22 @@ describe('Snap Keyring Methods', () => {
         mockAccount.id,
         mockNameSuggestion,
       ]);
+    });
+  });
+  describe('removeAccount', () => {
+    afterEach(() => {
+        jest.resetAllMocks();
+      });
+    it('handles account removal', async () => {
+      const builder = createSnapKeyringBuilder();
+      await builder().handleKeyringSnapMessage(mockSnapId, {
+        method: KeyringEvent.AccountDeleted,
+        params: {
+          id: mockAccount.id,
+        },
+      });
+      expect(mockRemoveAccountHelper).toHaveBeenCalledTimes(1);
+      expect(mockRemoveAccountHelper).toHaveBeenCalledWith(mockAccount.id);
     });
   });
 });
