@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { createSnapsMethodMiddleware } from '@metamask/snaps-rpc-methods';
 import {
@@ -9,48 +8,21 @@ import { SnapRpcHookArgs } from '@metamask/snaps-utils';
 import { RestrictedMethods } from '../Permissions/constants';
 import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermissions';
 import { SnapId } from '@metamask/snaps-sdk';
+import { EngineContext } from '../Engine';
+import { handleSnapRequest } from './utils';
 
-export function getSnapIdFromRequest(request: any): string | null {
-  return request.snapId ?? null;
-}
-
-type HandleSnapRequestArgs = SnapRpcHookArgs & { snapId: SnapId };
-/**
- * Passes a JSON-RPC request object to the SnapController for execution.
- *
- * @param {object} args - A bag of options.
- * @param {string} args.snapId - The ID of the recipient snap.
- * @param {string} args.origin - The origin of the RPC request.
- * @param {string} args.handler - The handler to trigger on the snap for the request.
- * @param {object} args.request - The JSON-RPC request object.
- * @returns The result of the JSON-RPC request.
- */
-async function handleSnapRequest(
-  controllerMessenger: any,
-  subjectType: SubjectType,
-  args: HandleSnapRequestArgs,
-) {
-  // eslint-disable-next-line no-console
-  console.log(
-    'Accounts/ handleSnapRequest called with args',
-    subjectType,
-    args,
-  );
-  return await controllerMessenger.call('SnapController:handleRequest', {
-    snapId: args.snapId,
-    origin: args.origin,
-    handler: args.handler,
-    request: args.request,
-  });
+export function getSnapIdFromRequest(
+  request: Record<string, unknown>,
+): string | null {
+  const snapId = request.snapId;
+  return typeof snapId === 'string' ? snapId : null;
 }
 // Snaps middleware
 /*
     from extension https://github.dev/MetaMask/metamask-extension/blob/1d5e8a78400d7aaaf2b3cbdb30cff9399061df34/app/scripts/metamask-controller.js#L3830-L3861
     */
 const snapMethodMiddlewareBuilder = (
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  engineContext: any,
+  engineContext: EngineContext,
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   controllerMessenger: any,
@@ -97,22 +69,16 @@ const snapMethodMiddlewareBuilder = (
       controllerMessenger,
       'SnapController:get',
     ),
-    handleSnapRpcRequest: async (request: any) => {
-      // eslint-disable-next-line no-console
-      console.log(
-        'Accounts/ SnapsMethodMiddleware handleSnapRpcRequest called with request: ',
-        request,
-        'from source',
-        subjectType,
-        origin,
-      );
+    handleSnapRpcRequest: async (request: Omit<SnapRpcHookArgs, 'origin'>) => {
       const snapId = getSnapIdFromRequest(request);
 
       if (!snapId) {
-        throw new Error('Invalid snap request: snapId not found');
+        throw new Error(
+          'snapMethodMiddlewareBuilder handleSnapRpcRequest: Invalid snap request: snapId not found',
+        );
       }
 
-      return await handleSnapRequest(controllerMessenger, subjectType, {
+      return await handleSnapRequest(controllerMessenger, {
         snapId: snapId as SnapId,
         origin,
         handler: request.handler,
