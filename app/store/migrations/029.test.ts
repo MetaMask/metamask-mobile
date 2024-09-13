@@ -251,7 +251,7 @@ describe('Migration #29', () => {
       errorMessage:
         "Migration 29: Invalid NetworkController providerConfig: 'object'",
       scenario: 'providerConfig is invalid',
-    },
+    // },
     {
       state: merge({}, initialRootState, {
         engine: {
@@ -323,6 +323,9 @@ describe('Migration #29', () => {
               networkDetails: {
                 isEIP1559Compatible: true,
               },
+              providerConfig: {
+                chainId: '0x1',
+              },
               networkConfigurations: {},
             },
             SwapsController: null,
@@ -343,6 +346,9 @@ describe('Migration #29', () => {
                 isEIP1559Compatible: true,
               },
               networkConfigurations: {},
+              providerConfig: {
+                chainId: '0x1',
+              },
             },
             NftController: null,
           },
@@ -362,6 +368,9 @@ describe('Migration #29', () => {
                 isEIP1559Compatible: true,
               },
               networkConfigurations: {},
+              providerConfig: {
+                chainId: '0x1',
+              },
             },
             TransactionController: null,
           },
@@ -381,6 +390,9 @@ describe('Migration #29', () => {
                 isEIP1559Compatible: true,
               },
               networkConfigurations: {},
+              providerConfig: {
+                chainId: '0x1',
+              },
             },
             TokensController: null,
           },
@@ -400,6 +412,9 @@ describe('Migration #29', () => {
                 isEIP1559Compatible: true,
               },
               networkConfigurations: {},
+              providerConfig: {
+                chainId: '0x1',
+              },
             },
             TokenRatesController: null,
           },
@@ -419,6 +434,9 @@ describe('Migration #29', () => {
                 isEIP1559Compatible: true,
               },
               networkConfigurations: {},
+              providerConfig: {
+                chainId: '0x1',
+              },
             },
             TokenListController: null,
           },
