@@ -1,12 +1,8 @@
+import '@formatjs/intl-relativetimeformat/polyfill';
+
 import { Web3Provider } from '@ethersproject/providers';
 import { toHex } from '@metamask/controller-utils';
-import {
-  format,
-  isSameDay,
-  isSameYear,
-  subDays,
-  formatRelative,
-} from 'date-fns';
+import { format, isSameDay, isSameYear, subDays } from 'date-fns';
 import BigNumber from 'bignumber.js';
 import { NotificationServicesController } from '@metamask/notification-services-controller';
 import Engine from '../../../core/Engine';
@@ -20,6 +16,34 @@ import CHAIN_SCANS_URLS from '../constants/urls';
 import I18n, { strings } from '../../../../locales/i18n';
 
 const { UI } = NotificationServicesController;
+
+function formatRelative(
+  date: Date,
+  currentDate: Date,
+  locale: string = 'en',
+): string {
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+
+  const diffInSeconds = (date.getTime() - currentDate.getTime()) / 1000;
+  const diffInMinutes = diffInSeconds / 60;
+  const diffInHours = diffInMinutes / 60;
+  const diffInDays = diffInHours / 24;
+  const diffInMonths = diffInDays / 30;
+  const diffInYears = diffInMonths / 12;
+
+  if (Math.abs(diffInYears) >= 1) {
+    return rtf.format(Math.round(diffInYears), 'year');
+  } else if (Math.abs(diffInMonths) >= 1) {
+    return rtf.format(Math.round(diffInMonths), 'month');
+  } else if (Math.abs(diffInDays) >= 1) {
+    return rtf.format(Math.round(diffInDays), 'day');
+  } else if (Math.abs(diffInHours) >= 1) {
+    return rtf.format(Math.round(diffInHours), 'hour');
+  } else if (Math.abs(diffInMinutes) >= 1) {
+    return rtf.format(Math.round(diffInMinutes), 'minute');
+  }
+  return rtf.format(Math.round(diffInSeconds), 'second');
+}
 
 /**
  * Checks if a date is "yesterday" from the current date
@@ -53,7 +77,7 @@ export function formatMenuItemDate(date?: Date): string {
 
   // E.g. Yesterday
   if (isYesterday(currentDate, date)) {
-    return formatRelative(date, currentDate, { locale: I18n.locale });
+    return formatRelative(date, currentDate, I18n.locale);
   }
 
   // E.g. 21 Oct
