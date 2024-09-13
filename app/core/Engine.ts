@@ -213,6 +213,8 @@ import {
   networkIdWillUpdate,
 } from '../core/redux/slices/inpageProvider';
 import SmartTransactionsController, {
+  type SmartTransactionsControllerActions,
+  type SmartTransactionsControllerEvents,
   type SmartTransactionsControllerState,
 } from '@metamask/smart-transactions-controller';
 import { getAllowedSmartTransactionsChainIds } from '../../app/constants/smartTransactions';
@@ -295,7 +297,8 @@ type GlobalActions =
   | PreferencesControllerActions
   | TokensControllerActions
   | TokenListControllerActions
-  | SelectedNetworkControllerActions;
+  | SelectedNetworkControllerActions
+  | SmartTransactionsControllerActions;
 
 type GlobalEvents =
   | ApprovalControllerEvents
@@ -316,7 +319,8 @@ type GlobalEvents =
   | TokensControllerEvents
   | TokenListControllerEvents
   | TransactionControllerEvents
-  | SelectedNetworkControllerEvents;
+  | SelectedNetworkControllerEvents
+  | SmartTransactionsControllerEvents;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
