@@ -138,15 +138,8 @@ const StakeInputView = () => {
   );
 
   const handleCurrencySwitch = useCallback(() => {
-    setIsEth((isCurrentlyEth) => {
-      if (isCurrentlyEth) {
-        setFiatAmount(fiatAmount);
-      } else {
-        setAmount(amount);
-      }
-      return !isCurrentlyEth;
-    });
-  }, [amount, fiatAmount]);
+    setIsEth(!isEth);
+  }, [isEth]);
 
   const handleStakePress = useCallback(() => {
     // Add your logic here
