@@ -816,6 +816,7 @@ class Engine {
         allowedEvents: [],
       }),
       state: initialKeyringState || initialState.KeyringController,
+      // @ts-expect-error Keyring type mismatch
       keyringBuilders: additionalKeyrings,
     });
 
