@@ -36,6 +36,7 @@ import {
   AddressBookController,
   AddressBookControllerActions,
   AddressBookControllerEvents,
+  AddressBookControllerMessenger,
   AddressBookControllerState,
 } from '@metamask/address-book-controller';
 import { BaseState } from '@metamask/base-controller';
@@ -1332,6 +1333,7 @@ class Engine {
       keyringController,
       accountTrackerController,
       new AddressBookController({
+        // @ts-expect-error TODO: Resolve error "Property '#private' in type 'RestrictedControllerMessenger' refers to a different member that cannot be accessed from within type 'RestrictedControllerMessenger'.ts(2322)"
         messenger: this.controllerMessenger.getRestricted({
           name: 'AddressBookController',
           allowedActions: [],
