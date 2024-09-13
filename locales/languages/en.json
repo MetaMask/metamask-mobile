@@ -3231,7 +3231,7 @@
     "ledger_bip44_path": "BIP44(e.g. MetaMask, Trezor)",
     "ledger_legacy_label": " (legacy)",
     "blind_sign_error": "Blind signing error",
-    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings.",
+    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings."
 
   },
   "account_actions": {
