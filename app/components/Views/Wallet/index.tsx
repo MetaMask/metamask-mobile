@@ -442,8 +442,7 @@ const Wallet = ({
     return () => {
       subscription.remove();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [listNotifications, dispatchAccountSyncing]);
 
   useEffect(() => {
     navigation.setOptions(
