@@ -129,9 +129,7 @@ class NavbarTitle extends PureComponent {
       this.props;
     let name = null;
     const color =
-      (Networks[providerConfig?.type] &&
-        Networks[providerConfig?.type].color) ||
-      null;
+      Networks[providerConfig?.type]?.color ?? null;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 

@@ -112,9 +112,9 @@ const storeMock = configureStore({
 });
 
 const preloadedPolygonState = cloneDeep(preloadedEngineState);
-preloadedPolygonState.engine.backgroundState.NetworkController.providerConfig?.chainId =
+preloadedPolygonState.engine.backgroundState.NetworkController.providerConfig.chainId =
   CHAIN_IDS.POLYGON;
-preloadedPolygonState.engine.backgroundState.NetworkController.providerConfig?.ticker =
+preloadedPolygonState.engine.backgroundState.NetworkController.providerConfig.ticker =
   'MATIC';
 
 const storeMockPolygon = configureStore({
@@ -123,9 +123,9 @@ const storeMockPolygon = configureStore({
 });
 
 const preloadedArbitrumState = cloneDeep(preloadedEngineState);
-preloadedArbitrumState.engine.backgroundState.NetworkController.providerConfig?.chainId =
+preloadedArbitrumState.engine.backgroundState.NetworkController.providerConfig.chainId =
   CHAIN_IDS.ARBITRUM;
-preloadedArbitrumState.engine.backgroundState.NetworkController.providerConfig?.ticker =
+preloadedArbitrumState.engine.backgroundState.NetworkController.providerConfig.ticker =
   'ETH';
 const storeMockArbitrum = configureStore({
   reducer: (state) => state,
