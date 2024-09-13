@@ -407,14 +407,6 @@ const Wallet = ({
     [navigation, providerConfig.chainId],
   );
 
-  // Effect - fetch notifications when component/view is visible.
-  useEffect(() => {
-    async function updateNotifications() {
-      await listNotifications();
-    }
-    updateNotifications();
-  }, [listNotifications]);
-
   // Layout effect when component/view is visible
   // - fetches notifications
   // - dispatches account syncing
