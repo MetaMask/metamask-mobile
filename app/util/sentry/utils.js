@@ -228,7 +228,9 @@ const ERROR_URL_ALLOWLIST = [
  * Required instrumentation for Sentry Performance to work with React Navigation
  */
 export const routingInstrumentation =
-  new Sentry.ReactNavigationV5Instrumentation();
+  new Sentry.ReactNavigationV5Instrumentation({
+    enableTimeToInitialDisplay: true,
+  });
 
 /**
  * Capture Sentry user feedback and associate ID of captured exception
