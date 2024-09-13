@@ -3,14 +3,7 @@ import React, { useCallback, useEffect } from 'react';
 import { Platform, TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
-import {
-  TOKEN_ASSET_OVERVIEW,
-  TOKEN_OVERVIEW_SEND_BUTTON,
-  TOKEN_OVERVIEW_RECEIVE_BUTTON,
-  TOKEN_OVERVIEW_BRIDGE_BUTTON,
-  TOKEN_OVERVIEW_SWAP_BUTTON,
-  TOKEN_OVERVIEW_BUY_BUTTON,
-} from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+import { TOKEN_ASSET_OVERVIEW } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -51,9 +44,6 @@ import styleSheet from './AssetOverview.styles';
 import { useStyles } from '../../../component-library/hooks';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
-import { IconName } from '../../../component-library/components/Icons/Icon';
-import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
-import WalletAction from '../WalletAction';
 import useGoToBridge from '../Bridge/utils/useGoToBridge';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -61,6 +51,7 @@ import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import { TokenI } from '../Tokens/types';
+import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
 
 interface AssetOverviewProps {
   navigation: {
@@ -286,80 +277,15 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           <View style={styles.chartNavigationWrapper}>
             {renderChartNavigationButton()}
           </View>
-
-          <View style={styles.activitiesButton}>
-            {displayBuyButton ? (
-              <View style={styles.buttonWrapper}>
-                <WalletAction
-                  iconName={IconName.Add}
-                  iconSize={AvatarSize.Lg}
-                  onPress={onBuy}
-                  iconStyle={styles.icon}
-                  containerStyle={styles.containerStyle}
-                  {...generateTestId(Platform, TOKEN_OVERVIEW_BUY_BUTTON)}
-                />
-                <Text style={styles.buttonText}>
-                  {strings('asset_overview.buy_button')}
-                </Text>
-              </View>
-            ) : null}
-
-            {displaySwapsButton ? (
-              <View style={styles.buttonWrapper}>
-                <WalletAction
-                  iconName={IconName.SwapHorizontal}
-                  iconSize={AvatarSize.Lg}
-                  onPress={goToSwaps}
-                  iconStyle={styles.icon}
-                  containerStyle={styles.containerStyle}
-                  {...generateTestId(Platform, TOKEN_OVERVIEW_SWAP_BUTTON)}
-                />
-                <Text style={styles.buttonText}>
-                  {strings('asset_overview.swap')}
-                </Text>
-              </View>
-            ) : null}
-
-            <View style={styles.buttonWrapper}>
-              <WalletAction
-                iconName={IconName.Bridge}
-                iconSize={AvatarSize.Lg}
-                onPress={goToBridge}
-                iconStyle={styles.icon}
-                containerStyle={styles.containerStyle}
-                {...generateTestId(Platform, TOKEN_OVERVIEW_BRIDGE_BUTTON)}
-              />
-              <Text style={styles.buttonText}>
-                {strings('asset_overview.bridge')}
-              </Text>
-            </View>
-            <View style={styles.buttonWrapper}>
-              <WalletAction
-                iconName={IconName.Arrow2Upright}
-                iconSize={AvatarSize.Lg}
-                onPress={onSend}
-                iconStyle={styles.icon}
-                containerStyle={styles.containerStyle}
-                {...generateTestId(Platform, TOKEN_OVERVIEW_SEND_BUTTON)}
-              />
-              <Text style={styles.buttonText}>
-                {strings('asset_overview.send_button')}
-              </Text>
-            </View>
-            <View style={styles.buttonWrapper}>
-              <WalletAction
-                iconName={IconName.QrCode}
-                iconSize={AvatarSize.Lg}
-                onPress={onReceive}
-                iconStyle={styles.icon}
-                containerStyle={styles.containerStyle}
-                {...generateTestId(Platform, TOKEN_OVERVIEW_RECEIVE_BUTTON)}
-              />
-              <Text style={styles.buttonText}>
-                {strings('asset_overview.receive_button')}
-              </Text>
-            </View>
-          </View>
+          <AssetDetailsActions
+            displayBuyButton={displayBuyButton}
+            displaySwapsButton={displaySwapsButton}
+            goToBridge={goToBridge}
+            goToSwaps={goToSwaps}
+            onBuy={onBuy}
+            onReceive={onReceive}
+            onSend={onSend}
+          />
           <Balance
             asset={asset}
             mainBalance={mainBalance}
