@@ -1,8 +1,14 @@
 import { Web3Provider } from '@ethersproject/providers';
 import { toHex } from '@metamask/controller-utils';
+import {
+  format,
+  isSameDay,
+  isSameYear,
+  subDays,
+  formatRelative,
+} from 'date-fns';
 import BigNumber from 'bignumber.js';
 import { NotificationServicesController } from '@metamask/notification-services-controller';
-
 import Engine from '../../../core/Engine';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { hexWEIToDecETH, hexWEIToDecGWEI } from '../../conversions';
@@ -11,20 +17,9 @@ import { Notification } from '../types';
 import { calcTokenAmount } from '../../transactions';
 import images from '../../../images/image-icons';
 import CHAIN_SCANS_URLS from '../constants/urls';
-import { strings } from '../../../../locales/i18n';
+import I18n, { strings } from '../../../../locales/i18n';
 
 const { UI } = NotificationServicesController;
-/**
- * Checks if 2 date objects are on the same day
- *
- * @param currentDate
- * @param dateToCheck
- * @returns boolean if dates are same day.
- */
-const isSameDay = (currentDate: Date, dateToCheck: Date) =>
-  currentDate.getFullYear() === dateToCheck.getFullYear() &&
-  currentDate.getMonth() === dateToCheck.getMonth() &&
-  currentDate.getDate() === dateToCheck.getDate();
 
 /**
  * Checks if a date is "yesterday" from the current date
@@ -34,20 +29,9 @@ const isSameDay = (currentDate: Date, dateToCheck: Date) =>
  * @returns boolean if dates were "yesterday"
  */
 const isYesterday = (currentDate: Date, dateToCheck: Date) => {
-  const yesterday = new Date(currentDate);
-  yesterday.setDate(currentDate.getDate() - 1);
+  const yesterday = subDays(currentDate, 1);
   return isSameDay(yesterday, dateToCheck);
 };
-
-/**
- * Checks if 2 date objects are in the same year.
- *
- * @param currentDate
- * @param dateToCheck
- * @returns boolean if dates were in same year
- */
-const isSameYear = (currentDate: Date, dateToCheck: Date) =>
-  currentDate.getFullYear() === dateToCheck.getFullYear();
 
 /**
  * Formats a given date into different formats based on how much time has elapsed since that date.
@@ -55,43 +39,30 @@ const isSameYear = (currentDate: Date, dateToCheck: Date) =>
  * @param date - The date to be formatted.
  * @returns The formatted date.
  */
-export function formatMenuItemDate(date?: Date) {
+export function formatMenuItemDate(date?: Date): string {
   if (!date) {
     return strings('notifications.no_date');
   }
+
   const currentDate = new Date();
 
   // E.g. 12:21
   if (isSameDay(currentDate, date)) {
-    return new Intl.DateTimeFormat('en', {
-      hour: 'numeric',
-      minute: 'numeric',
-      hour12: false,
-    }).format(date);
+    return format(date, 'HH:mm');
   }
 
   // E.g. Yesterday
   if (isYesterday(currentDate, date)) {
-    return new Intl.RelativeTimeFormat('en', { numeric: 'auto' }).format(
-      -1,
-      'day',
-    );
+    return formatRelative(date, currentDate, { locale: I18n.locale });
   }
 
   // E.g. 21 Oct
   if (isSameYear(currentDate, date)) {
-    return new Intl.DateTimeFormat('en', {
-      month: 'short',
-      day: 'numeric',
-    }).format(date);
+    return format(date, 'd MMM');
   }
 
   // E.g. 21 Oct 2022
-  return new Intl.DateTimeFormat('en', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  }).format(date);
+  return format(date, 'd MMM yyyy');
 }
 /**
  * Generates a unique key based on the provided text, index, and a random string.
@@ -261,6 +232,7 @@ export const getNetworkFees = async (
       baseFee,
       priorityFee,
       maxFeePerGas,
+      chainId,
     };
   } catch (error) {
     throw new Error(

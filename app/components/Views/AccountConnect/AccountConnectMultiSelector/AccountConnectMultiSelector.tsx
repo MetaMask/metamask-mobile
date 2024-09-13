@@ -51,6 +51,7 @@ const AccountConnectMultiSelector = ({
   hostname,
   connection,
   onBack,
+  screenTitle,
 }: AccountConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
@@ -229,7 +230,7 @@ const AccountConnectMultiSelector = ({
           <View style={styles.disconnectAllContainer}>
             <View style={styles.helpTextContainer}>
               <HelpText severity={HelpTextSeverity.Error}>
-                {strings('accounts.disconnect_you_from', {
+                {strings('common.disconnect_you_from', {
                   dappUrl: hostname,
                 })}
               </HelpText>
@@ -267,7 +268,7 @@ const AccountConnectMultiSelector = ({
         <SheetHeader
           title={
             isMutichainVersion1Enabled
-              ? strings('accounts.edit_accounts_title')
+              ? screenTitle
               : strings('accounts.connect_accounts_title')
           }
           onBack={onBack}
@@ -347,6 +348,7 @@ const AccountConnectMultiSelector = ({
       styles.sdkInfoDivier,
       onBack,
       renderSelectAllCheckbox,
+      screenTitle,
     ],
   );
 

@@ -54,10 +54,10 @@ const main = async () => {
   );
 
   assetFileList.forEach((fileName) => {
-    const iconName = getIconNameInTitleCase(fileName);
+    const iconName = getIconNameInTitleCase(fileName).toLowerCase();
     fs.appendFileSync(
       assetsModulePath,
-      `\nimport ${iconName} from './assets/${fileName}';`,
+      `\nimport ${iconName}SVG from './assets/${fileName}';`,
     );
   });
 
@@ -75,7 +75,7 @@ const main = async () => {
     const iconName = getIconNameInTitleCase(fileName);
     fs.appendFileSync(
       assetsModulePath,
-      `\n  [IconName.${iconName}]: ${iconName},`,
+      `\n  [IconName.${iconName}]: ${iconName.toLowerCase()}SVG,`,
     );
   });
 
