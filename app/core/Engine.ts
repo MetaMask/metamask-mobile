@@ -1826,7 +1826,7 @@ class Engine {
       transactions: [],
       lastFetchedBlockNumbers: {},
       submitHistory: [],
-      swapsTransactions: {}
+      swapsTransactions: {},
     }));
 
     LoggingController.clear();
