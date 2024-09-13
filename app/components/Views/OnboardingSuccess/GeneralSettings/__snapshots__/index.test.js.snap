@@ -128,7 +128,7 @@ exports[`GeneralSettings should render correctly 1`] = `
             }
           }
         >
-          Manage networks
+          Choose your network
         </Text>
       </View>
       <Text

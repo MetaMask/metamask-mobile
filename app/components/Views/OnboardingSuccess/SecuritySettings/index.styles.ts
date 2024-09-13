@@ -9,25 +9,6 @@ const styles = StyleSheet.create({
   backButton: {
     padding: 10,
   },
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  title: {
-    flex: 1,
-  },
-  switchElement: {
-    marginLeft: 16,
-  },
-  switch: {
-    alignSelf: 'flex-start',
-  },
-  halfSetting: {
-    marginTop: 16,
-  },
-  desc: {
-    marginTop: 8,
-  },
 });
 
 export default styles;

@@ -46,7 +46,7 @@ exports[`AssetSettings should render correctly 1`] = `
             }
           }
         >
-          Enhanced Token Detection
+          Autodetect tokens
         </Text>
         <View
           style={
@@ -58,7 +58,7 @@ exports[`AssetSettings should render correctly 1`] = `
           }
         >
           <RCTSwitch
-            accessibilityLabel="Enhanced Token Detection"
+            accessibilityLabel="Autodetect tokens"
             accessibilityRole="switch"
             onChange={[Function]}
             onResponderTerminationRequest={[Function]}

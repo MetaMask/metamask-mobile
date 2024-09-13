@@ -585,7 +585,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 }
               }
             >
-              Enhanced Token Detection
+              Autodetect tokens
             </Text>
             <View
               style={
