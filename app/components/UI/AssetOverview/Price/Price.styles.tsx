@@ -23,6 +23,7 @@ const styleSheet = (params: {
       ...typography.lHeadingLG,
     } as TextStyle,
     priceDiff: {
+      ...typography.lBodyMDMedium,
       color:
         priceDiff > 0
           ? colors.success.default
@@ -34,6 +35,9 @@ const styleSheet = (params: {
     priceDiffIcon: {
       marginTop: 10,
     },
+    priceDiffDateText: {
+      ...typography.lBodyMDMedium,
+    } as TextStyle,
     loadingPrice: {
       paddingTop: 8,
     },
