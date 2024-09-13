@@ -179,6 +179,7 @@ class NotificationManager {
       } else {
         pushData.userInfo = extraData; // check if is still needed
       }
+      isNotificationsFeatureEnabled() && notifee.displayNotification(pushData);
     } else {
       this._showTransactionNotification({
         autodismiss: data.duration,
