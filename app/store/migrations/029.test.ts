@@ -251,7 +251,7 @@ describe('Migration #29', () => {
       errorMessage:
         "Migration 29: Invalid NetworkController providerConfig: 'object'",
       scenario: 'providerConfig is invalid',
-    // },
+    },
     {
       state: merge({}, initialRootState, {
         engine: {
@@ -268,7 +268,10 @@ describe('Migration #29', () => {
       state: merge({}, initialRootState, {
         engine: {
           backgroundState: {
-            NetworkController: { networkDetails: null },
+            NetworkController: {
+              networkDetails: null,
+              providerConfig: { chainId: '0x1' },
+            },
           },
         },
       }),
@@ -285,6 +288,7 @@ describe('Migration #29', () => {
               networkDetails: {
                 isEIP1559Compatible: true,
               },
+              providerConfig: { chainId: '0x1' },
               networkConfigurations: null,
             },
           },
@@ -305,6 +309,7 @@ describe('Migration #29', () => {
                 isEIP1559Compatible: true,
               },
               networkConfigurations: {},
+              providerConfig: { chainId: '0x1' },
             },
             AddressBookController: null,
           },
