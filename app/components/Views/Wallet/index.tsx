@@ -85,6 +85,7 @@ import {
 } from '../../../selectors/notifications';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
+import { useAccountSyncingEffect } from 'app/util/notifications/hooks/useProfileSyncing';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -396,13 +397,16 @@ const Wallet = ({
     [navigation, providerConfig.chainId],
   );
 
-    // Effect - fetch notifications when component/view is visible.
-    useEffect(() => {
-      async function updateNotifications() {
-        await listNotifications();
-      }
-      updateNotifications();
-    }, [listNotifications]);
+  // Effect - fetch notifications when component/view is visible.
+  useEffect(() => {
+    async function updateNotifications() {
+      await listNotifications();
+    }
+    updateNotifications();
+  }, [listNotifications]);
+
+  // Effect - dispatch account syncing
+  useAccountSyncingEffect();
 
   useEffect(() => {
     navigation.setOptions(

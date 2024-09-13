@@ -150,3 +150,11 @@ export const markMetamaskNotificationsAsRead = async (
     return getErrorMessage(error);
   }
 };
+
+export const syncInternalAccountsWithUserStorage = async () => {
+  try {
+    await Engine.context.UserStorageController.syncInternalAccountsWithUserStorage();
+  } catch (error) {
+    return getErrorMessage(error);
+  }
+};

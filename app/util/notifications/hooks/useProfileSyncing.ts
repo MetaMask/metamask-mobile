@@ -1,10 +1,11 @@
 /* eslint-disable import/prefer-default-export */
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { ProfileSyncingReturn } from './types';
 import { getErrorMessage } from '../../../util/errorHandling';
 import {
   disableProfileSyncing as disableProfileSyncingAction,
   enableProfileSyncing as enableProfileSyncingAction,
+  syncInternalAccountsWithUserStorage as syncInternalAccountsWithUserStorageAction,
 } from '../../../actions/notification/helpers';
 
 /**
@@ -56,3 +57,45 @@ export function useProfileSyncing(): ProfileSyncingReturn {
 
   return { enableProfileSyncing, disableProfileSyncing, loading, error };
 }
+
+/**
+ * Custom hook to dispatch account syncing.
+ *
+ * @returns An object containing the `dispatchAccountSyncing` function, loading state, and error state.
+ */
+export const useAccountSyncing = () => {
+  const [isLoading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>();
+
+  const dispatchAccountSyncing = useCallback(async () => {
+    setLoading(true);
+    setError(undefined);
+    try {
+      const errorMessage = await syncInternalAccountsWithUserStorageAction();
+      if (errorMessage) {
+        setError(getErrorMessage(errorMessage));
+        return errorMessage;
+      }
+    } catch (e) {
+      const errorMessage = getErrorMessage(e);
+      setError(errorMessage);
+      return errorMessage;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return {
+    dispatchAccountSyncing,
+    error,
+    isLoading,
+  };
+};
+
+export const useAccountSyncingEffect = () => {
+  const { dispatchAccountSyncing } = useAccountSyncing();
+
+  useEffect(() => {
+    dispatchAccountSyncing();
+  }, [dispatchAccountSyncing]);
+};

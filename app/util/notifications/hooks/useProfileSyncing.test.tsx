@@ -9,7 +9,7 @@ import { Provider } from 'react-redux';
 import createMockStore from 'redux-mock-store';
 import * as Actions from '../../../actions/notification/helpers';
 import initialRootState from '../../../util/test/initial-root-state';
-import { useProfileSyncing } from './useProfileSyncing';
+import { useAccountSyncing, useProfileSyncing } from './useProfileSyncing';
 
 function arrangeStore() {
   const store = createMockStore()(initialRootState);
@@ -169,6 +169,83 @@ describe('useDisableProfileSyncing', () => {
     expect(result.current.error).toBeDefined();
     expect(result.current.error).toEqual(
       'MOCK - failed to disable profile syncing',
+    );
+  });
+});
+
+describe('useAccountSyncing', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  function arrangeHook() {
+    const store = arrangeStore();
+    const hook = renderHook(() => useAccountSyncing(), {
+      wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
+    });
+
+    return hook;
+  }
+
+  function arrangeActions() {
+    const syncInternalAccountsWithUserStorageAction = jest
+      .spyOn(Actions, 'syncInternalAccountsWithUserStorage')
+      .mockResolvedValue(undefined);
+
+    return {
+      syncInternalAccountsWithUserStorageAction,
+    };
+  }
+
+  it('dispatches account syncing and return loading as false and error as undefined', async () => {
+    const mockActions = arrangeActions();
+
+    const { result } = arrangeHook();
+    await act(async () => {
+      await result.current.dispatchAccountSyncing();
+    });
+
+    expect(
+      mockActions.syncInternalAccountsWithUserStorageAction,
+    ).toHaveBeenCalledTimes(1);
+    expect(result.current.error).toBeUndefined();
+  });
+
+  it('sets error message when syncInternalAccountsWithUserStorageAction returns an error', async () => {
+    const mockActions = arrangeActions();
+    mockActions.syncInternalAccountsWithUserStorageAction.mockRejectedValueOnce(
+      new Error('MOCK - failed to sync internal account with user storage'),
+    );
+
+    const { result } = arrangeHook();
+    await act(async () => {
+      await result.current.dispatchAccountSyncing();
+    });
+
+    expect(
+      mockActions.syncInternalAccountsWithUserStorageAction,
+    ).toHaveBeenCalledTimes(1);
+    expect(result.current.error).toBeDefined();
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toEqual(
+      'MOCK - failed to sync internal account with user storage',
+    );
+  });
+
+  it('sets error message when an error occurs during dispatchAccountSyncing', async () => {
+    const mockActions = arrangeActions();
+    mockActions.syncInternalAccountsWithUserStorageAction.mockRejectedValueOnce(
+      new Error('MOCK - failed to sync internal account with user storage'),
+    );
+
+    const { result } = arrangeHook();
+    await act(async () => {
+      await result.current.dispatchAccountSyncing();
+    });
+
+    expect(result.current.error).toBeDefined();
+    expect(result.current.error).toEqual(
+      'MOCK - failed to sync internal account with user storage',
     );
   });
 });

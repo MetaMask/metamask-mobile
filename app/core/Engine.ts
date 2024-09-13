@@ -1076,6 +1076,9 @@ class Engine {
 
     const userStorageController = new UserStorageController.Controller({
       getMetaMetricsState: () => MetaMetrics.getInstance().isEnabled(),
+      env: {
+        isAccountSyncingEnabled: true,
+      },
       state: initialState.UserStorageController,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore TODO: Resolve/patch mismatch between messenger types
@@ -1084,6 +1087,7 @@ class Engine {
         allowedActions: [
           'SnapController:handleRequest',
           'KeyringController:getState',
+          'KeyringController:addNewAccount',
           'AuthenticationController:getBearerToken',
           'AuthenticationController:getSessionProfile',
           'AuthenticationController:isSignedIn',
@@ -1091,8 +1095,15 @@ class Engine {
           'AuthenticationController:performSignIn',
           'NotificationServicesController:disableNotificationServices',
           'NotificationServicesController:selectIsNotificationServicesEnabled',
+          'AccountsController:listAccounts',
+          'AccountsController:updateAccountMetadata',
         ],
-        allowedEvents: ['KeyringController:unlock', 'KeyringController:lock'],
+        allowedEvents: [
+          'KeyringController:unlock',
+          'KeyringController:lock',
+          'AccountsController:accountAdded',
+          'AccountsController:accountRenamed',
+        ],
       }),
     });
 
