@@ -704,6 +704,47 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                   >
                                     5. Do not disturb must be turned off
                                   </Text>
+                                  <Text
+                                    style={
+                                      [
+                                        {
+                                          "color": "#141618",
+                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontSize": 30,
+                                          "fontWeight": "400",
+                                          "marginVertical": 2,
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        {
+                                          "paddingLeft": 7,
+                                        },
+                                      ]
+                                    }
+                                  >
+                                    6. Enable "blind signing" on your Ledger device.
+                                  </Text>
                                 </View>
                                 <TouchableOpacity
                                   onPress={[Function]}
