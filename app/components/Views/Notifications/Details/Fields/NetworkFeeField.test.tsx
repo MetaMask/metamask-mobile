@@ -46,9 +46,9 @@ describe('NetworkFeeField', () => {
           Promise.resolve({
             gasUsed: 0,
             gasLimit: 0,
-            baseFee: 0,
-            priorityFee: 0,
-            maxFeePerGas: 0,
+            baseFee: '0x0',
+            priorityFee: '0x0',
+            maxFeePerGas: '0x0',
             effectiveGasPrice: 0,
             transactionFeeInEth: '0',
             transactionFeeInUsd: '0',

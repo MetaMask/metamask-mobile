@@ -208,7 +208,7 @@ export function toTokenMinimalUnit(tokenValue, decimals) {
 /**
  * Converts some token minimal unit to render format string, showing 5 decimals
  *
- * @param {Number|String|BN} tokenValue - Token value to convert
+ * @param {Number|String|BN|BigNumber} tokenValue - Token value to convert
  * @param {Number} decimals - Token decimals to convert
  * @param {Number} decimalsToShow - Decimals to 5
  * @returns {String} - Number of token minimal unit, in render format
@@ -304,7 +304,7 @@ export function fiatNumberToTokenMinimalUnit(
 /**
  * Converts wei to render format string, showing 5 decimals
  *
- * @param {Number|String|BN} value - Wei to convert
+ * @param {Number|String|BN|BigNumber} value - Wei to convert
  * @param {Number} decimalsToShow - Decimals to 5
  * @returns {String} - Number of token minimal unit, in render format
  * If value is less than 5 precision decimals will show '< 0.00001'
@@ -408,7 +408,7 @@ export const isNumberScientificNotationWhenString = (value) => {
 /**
  * Converts some unit to wei
  *
- * @param {number|string|BN} value - Value to convert
+ * @param {number|string|BN|BigNumber} value - Value to convert
  * @param {string} unit - Unit to convert from, ether by default
  * @returns {BN} - BN instance containing the new number
  */
@@ -583,7 +583,7 @@ export function fiatNumberToWei(fiat, conversionRate) {
  * Wraps 'numberToBN' method to avoid potential undefined and decimal values
  *
  * @param {number|string} value -  number
- * @returns {Object} - The converted value as BN instance
+ * @returns {BN} - The converted value as BN instance
  */
 export function safeNumberToBN(value) {
   try {
@@ -816,6 +816,14 @@ export const toHexadecimal = (decimal) => {
   return toBigNumber.dec(decimal).toString(16);
 };
 
+/**
+ * Calculates the ETH fee for a multi-layer approval
+ *
+ * @param {object} args - Object containing the multi-layer L1 fee total and the ETH fee
+ * @param {string|number|undefined} args.multiLayerL1FeeTotal - The multi-layer L1 fee total
+ * @param {string|number} args.ethFee - The ETH fee
+ * @returns {string} - The ETH fee for the multi-layer approval
+ */
 export const calculateEthFeeForMultiLayer = ({
   multiLayerL1FeeTotal,
   ethFee = 0,

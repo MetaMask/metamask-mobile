@@ -10,7 +10,7 @@ import { selectContractBalances } from '../../selectors/tokenBalancesController'
 import { getChainFeatureFlags, getSwapsLiveness } from './utils';
 import { allowedTestnetChainIds } from '../../components/UI/Swaps/utils';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
-
+import { RootState } from '../types';
 // If we are in dev and on a testnet, just use mainnet feature flags,
 // since we don't have feature flags for testnets in the API
 export const getFeatureFlagChainId = (chainId) =>
@@ -35,6 +35,12 @@ export const setSwapsHasOnboarded = (hasOnboarded) => ({
 
 // * Functions
 
+/**
+ * Adds metadata to the tokens
+ * @param {number} chainId
+ * @param {SwapsToken[]} tokens
+ * @returns {SwapsToken[]}
+ */
 function addMetadata(chainId, tokens) {
   if (!isMainnetByChainId(chainId)) {
     return tokens;
@@ -55,6 +61,11 @@ function addMetadata(chainId, tokens) {
 // * Selectors
 
 const chainIdSelector = selectChainId;
+
+/**
+ * @param {RootState} state
+ */
+
 const swapsStateSelector = (state) => state.swaps;
 /**
  * Returns the swaps liveness state
@@ -102,11 +113,14 @@ export const swapsHasOnboardedSelector = createSelector(
   (swapsState) => swapsState.hasOnboarded,
 );
 
+/**
+ * @param {RootState} state
+ */
 const selectSwapsControllerState = (state) =>
   state.engine.backgroundState.SwapsController;
 
 /**
- * Returns the swaps tokens from the state
+ * @param {RootState} state
  */
 export const swapsControllerTokens = (state) =>
   state.engine.backgroundState.SwapsController.tokens;
@@ -196,6 +210,10 @@ export const swapsTokensSelector = createSelector(
     return addMetadata(chainId, tokens);
   },
 );
+
+/**
+ * @param {RootState} state
+ */
 
 const topAssets = (state) =>
   state.engine.backgroundState.SwapsController.topAssets;

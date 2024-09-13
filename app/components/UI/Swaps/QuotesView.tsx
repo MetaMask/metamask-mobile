@@ -1,14 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import PropTypes from 'prop-types';
-import Eth from 'ethjs-query';
 import {
   View,
   StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
   Linking,
+  StyleProp,
+  TextStyle,
 } from 'react-native';
-import { connect } from 'react-redux';
+import { connect, ConnectedProps } from 'react-redux';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import BigNumber from 'bignumber.js';
@@ -19,7 +19,13 @@ import {
   TransactionStatus,
 } from '@metamask/transaction-controller';
 import { query, toHex } from '@metamask/controller-utils';
-import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
+import {
+  EthGasPriceEstimate,
+  GAS_ESTIMATE_TYPES,
+  LegacyGasPriceEstimate,
+} from '@metamask/gas-fee-controller';
+// @ts-expect-error no types for this guy
+import Eth from 'ethjs-query';
 
 import {
   addHexPrefix,
@@ -104,15 +110,22 @@ import {
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
-import { resetTransaction, setRecipient } from '../../../actions/transaction';
+import {
+  resetTransaction as resetTransactionAction,
+  setRecipient as setRecipientAction,
+} from '../../../actions/transaction';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import { SwapsViewSelectors } from '../../../../e2e/selectors/swaps/SwapsView.selectors';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useMetrics } from '../../hooks/useMetrics';
 import { addTransaction } from '../../../util/transaction-controller';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeController';
+import { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootState } from 'app/reducers';
+import { Dispatch } from 'redux';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -123,7 +136,7 @@ const SLIPPAGE_BUCKETS = {
 const DEFAULT_GAS_FEE_OPTION_LEGACY = AppConstants.GAS_OPTIONS.MEDIUM;
 const DEFAULT_GAS_FEE_OPTION_FEE_MARKET = AppConstants.GAS_OPTIONS.HIGH;
 
-const createStyles = (colors) =>
+const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     screen: {
       flexGrow: 1,
@@ -298,6 +311,12 @@ async function resetAndStartPolling({
   destinationToken,
   sourceAmount,
   walletAddress,
+}: {
+  slippage: number;
+  sourceToken: $FIXME;
+  destinationToken: $FIXME;
+  sourceAmount: string;
+  walletAddress: string;
 }) {
   if (!sourceToken || !destinationToken) {
     return;
@@ -313,22 +332,21 @@ async function resetAndStartPolling({
   });
   await SwapsController.stopPollingAndResetState();
   await SwapsController.startFetchAndSetQuotes(
+    // @ts-expect-error APIFetchQuotesParams is incorrectly typed; amount should be string but it types it as number
     fetchParams,
     fetchParams.metaData,
   );
 }
 
-/**
- * Multiplies gasLimit by multiplier if both defined
- * @param {string} gasLimit
- * @param {number} multiplier
- */
-const gasLimitWithMultiplier = (gasLimit, multiplier) => {
+const gasLimitWithMultiplier = (gasLimit: string, multiplier: number) => {
   if (!gasLimit || !multiplier) return;
   return new BigNumber(gasLimit).times(multiplier).integerValue();
 };
 
-function getTransactionPropertiesFromGasEstimates(gasEstimateType, estimates) {
+function getTransactionPropertiesFromGasEstimates(
+  gasEstimateType: string,
+  estimates: $FIXME,
+) {
   if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
     return {
       maxFeePerGas: addHexPrefix(
@@ -362,11 +380,12 @@ function getTransactionPropertiesFromGasEstimates(gasEstimateType, estimates) {
   };
 }
 
-async function addTokenToAssetsController(newToken) {
+async function addTokenToAssetsController(newToken: $FIXME) {
   const { TokensController } = Engine.context;
   if (
     !isSwapsNativeAsset(newToken) &&
-    !TokensController.state.tokens.includes((token) =>
+    // @ts-expect-error includes only works on elements, not functions. Bug introduced 3 years ago in https://github.com/MetaMask/metamask-mobile/pull/2795/files
+    !TokensController.state.tokens.includes((token: $FIXME) =>
       toLowerCaseEquals(token.address, newToken.address),
     )
   ) {
@@ -402,8 +421,10 @@ function SwapsQuotesView({
   setRecipient,
   resetTransaction,
   shouldUseSmartTransaction,
-}) {
-  const navigation = useNavigation();
+}: SwapsQuotesViewProps) {
+  // eslint-disable-next-line
+  console.log(arguments);
+  const navigation = useNavigation<StackNavigationProp<$FIXME>>();
   /* Get params from navigation */
   const route = useRoute();
   const { trackEvent } = useMetrics();
@@ -420,12 +441,16 @@ function SwapsQuotesView({
   } = useMemo(() => getQuotesNavigationsParams(route), [route]);
 
   /* Get tokens from the tokens list */
+
+  // TODO if sourceToken or destinationToken are not found, the app will likely crash!
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const sourceToken = [...swapsTokens, ...tokens].find((token) =>
     toLowerCaseEquals(token.address, sourceTokenAddress),
-  );
+  )!;
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const destinationToken = [...swapsTokens, ...tokens].find((token) =>
     toLowerCaseEquals(token.address, destinationTokenAddress),
-  );
+  )!;
 
   /* State */
   const isMainnet = isMainnetByChainId(chainId);
@@ -435,27 +460,30 @@ function SwapsQuotesView({
   const [shouldFinishFirstLoad, setShouldFinishFirstLoad] = useState(false);
   const [remainingTime, setRemainingTime] = useState(POLLING_INTERVAL);
 
-  const [allQuotesFetchTime, setAllQuotesFetchTime] = useState(null);
+  const [allQuotesFetchTime, setAllQuotesFetchTime] = useState<number | null>(
+    null,
+  );
   const [trackedRequestedQuotes, setTrackedRequestedQuotes] = useState(false);
   const [trackedReceivedQuotes, setTrackedReceivedQuotes] = useState(false);
   const [trackedError, setTrackedError] = useState(false);
   const [animateOnGasChange, setAnimateOnGasChange] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [multiLayerL1ApprovalFeeTotal, setMultiLayerL1ApprovalFeeTotal] =
-    useState(null);
+    useState<string | null>(null);
 
   /* Selected quote, initially topAggId (see effects) */
-  const [selectedQuoteId, setSelectedQuoteId] = useState(null);
+  const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
 
   /* Slippage alert dismissed, values: false, 'high', medium, 'low' */
-  const [hasDismissedSlippageAlert, setHasDismissedSlippageAlert] =
-    useState(false);
+  const [hasDismissedSlippageAlert, setHasDismissedSlippageAlert] = useState<
+    boolean | string
+  >(false);
 
   const [editQuoteTransactionsVisible, setEditQuoteTransactionsVisible] =
     useState(false);
 
-  const [customGasEstimate, setCustomGasEstimate] = useState(null);
-  const [customGasLimit, setCustomGasLimit] = useState(null);
+  const [customGasEstimate, setCustomGasEstimate] = useState<$FIXME>(null);
+  const [customGasLimit, setCustomGasLimit] = useState<string | null>(null);
 
   const [isSwiping, setIsSwiping] = useState(false);
 
@@ -477,7 +505,7 @@ function SwapsQuotesView({
   );
 
   /* Get quotes as an array sorted by overallValue */
-  const allQuotes = useMemo(() => {
+  const allQuotes: $FIXME[] = useMemo(() => {
     if (
       !quotes ||
       !quoteValues ||
@@ -518,26 +546,31 @@ function SwapsQuotesView({
     [allQuotes, selectedQuoteId],
   );
   const selectedQuoteValue = useMemo(() => {
-    if (!quoteValues[selectedQuoteId] || !multiLayerL1ApprovalFeeTotal) {
-      return quoteValues[selectedQuoteId];
+    if (
+      // NOTE: selectedQuoteId may be null! then we are accessing quoteValues['null'] which is dangerous
+      // TODO (js->ts follow-up): check if selectedQuoteId is null and return undefined
+      !quoteValues[selectedQuoteId as string] ||
+      !multiLayerL1ApprovalFeeTotal
+    ) {
+      return quoteValues[selectedQuoteId as string];
     }
     const fees = {
       ethFee: calculateEthFeeForMultiLayer({
         multiLayerL1FeeTotal: multiLayerL1ApprovalFeeTotal,
-        ethFee: quoteValues[selectedQuoteId].ethFee,
+        ethFee: quoteValues[selectedQuoteId as string].ethFee,
       }),
       maxEthFee: calculateEthFeeForMultiLayer({
         multiLayerL1FeeTotal: multiLayerL1ApprovalFeeTotal,
-        ethFee: quoteValues[selectedQuoteId].maxEthFee,
+        ethFee: quoteValues[selectedQuoteId as string].maxEthFee,
       }),
     };
     return {
-      ...quoteValues[selectedQuoteId],
+      ...quoteValues[selectedQuoteId as string],
       ...fees,
     };
   }, [
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    quoteValues[selectedQuoteId],
+    quoteValues[selectedQuoteId as string],
     multiLayerL1ApprovalFeeTotal,
     quoteValues,
     selectedQuoteId,
@@ -578,17 +611,16 @@ function SwapsQuotesView({
     [accounts, selectedAddress, sourceAmount, sourceToken],
   );
 
+  // TODO if useBalance returns null, that likely means something went wrong in constructing the url params or loading tokens, in this case, this component will likely throw an error
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const balance = useBalance(accounts, balances, selectedAddress, sourceToken, {
     asUnits: true,
-  });
-  const [
-    hasEnoughTokenBalance,
-    missingTokenBalance,
-    hasEnoughEthBalance,
-    missingEthBalance,
-  ] = useMemo(() => {
+  })!;
+  const tokenBalanceCheckRes = useMemo(() => {
     // Token
     const sourceBN = new BigNumber(sourceAmount);
+    // @ts-expect-error (js->ts follow-up) balance should always be a string already, so toString() is not necessary
+    // TODO simply do `new BigNumber(balance)`
     const tokenBalanceBN = new BigNumber(balance.toString(10));
     const hasEnoughTokenBalance = tokenBalanceBN.gte(sourceBN);
     const missingTokenBalance = hasEnoughTokenBalance
@@ -600,17 +632,19 @@ function SwapsQuotesView({
       : new BigNumber(0);
     const ethBalanceBN = new BigNumber(accounts[selectedAddress].balance);
     const gasBN = toWei(selectedQuoteValue?.maxEthFee || '0');
+    // @ts-expect-error we are mixing bignumber & bn here, but apparently bignumber is permissive
     const hasEnoughEthBalance = ethBalanceBN.gte(ethAmountBN.plus(gasBN));
     const missingEthBalance = hasEnoughEthBalance
       ? null
-      : ethAmountBN.plus(gasBN).minus(ethBalanceBN);
+      : // @ts-expect-error we are mixing bignumber & bn here, but apparently bignumber is permissive
+        ethAmountBN.plus(gasBN).minus(ethBalanceBN);
 
     return [
       hasEnoughTokenBalance,
       missingTokenBalance,
       hasEnoughEthBalance,
       missingEthBalance,
-    ];
+    ] as const;
   }, [
     accounts,
     balance,
@@ -619,6 +653,12 @@ function SwapsQuotesView({
     sourceAmount,
     sourceToken,
   ]);
+  const [
+    hasEnoughTokenBalance,
+    missingTokenBalance,
+    hasEnoughEthBalance,
+    missingEthBalance,
+  ] = tokenBalanceCheckRes;
 
   /* Selected quote slippage */
   const shouldDisplaySlippage = useMemo(
@@ -638,6 +678,8 @@ function SwapsQuotesView({
           .minus(1, 10)
           .times(100, 10)
           .toFixed(2),
+        // @ts-expect-error (js->ts follow-up) this is not a valid parameter to pass into parseFloat
+        // originally introduced here: https://github.com/MetaMask/metamask-mobile/pull/2157/files#diff-025ac7b6441b0f42a655967d0c0d48698910f51d40ebd8cdf41aa964ae73753dR396
         10,
       ),
     [selectedQuote],
@@ -719,10 +761,12 @@ function SwapsQuotesView({
         speed_set: changedGasEstimate?.selected,
         gas_mode: changedGasEstimate?.selected ? 'Basic' : 'Advanced',
         // TODO: how should we track EIP1559 values?
-        gas_fees: [
-          GAS_ESTIMATE_TYPES.LEGACY,
-          GAS_ESTIMATE_TYPES.ETH_GASPRICE,
-        ].includes(gasEstimateType)
+        gas_fees: (
+          [
+            GAS_ESTIMATE_TYPES.LEGACY,
+            GAS_ESTIMATE_TYPES.ETH_GASPRICE,
+          ] as string[]
+        ).includes(gasEstimateType)
           ? weiToFiat(
               toWei(
                 swapsUtils.calcTokenAmount(
@@ -842,6 +886,8 @@ function SwapsQuotesView({
             currentCurrency,
           ),
           network_fees_ETH: renderFromWei(toWei(selectedQuoteValue?.ethFee)),
+          // @ts-expect-error (js->ts follow-up) this code is both wrong (selectedQuoteId is a string, allQuotes in an array) and never read in this repo [perhaps sent to analytics?]
+          // TODO: delete all references to other_quote_selected since it's dead code
           other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote,
           chain_id: getDecimalChainId(chainId),
         },
@@ -852,7 +898,10 @@ function SwapsQuotesView({
           approvalTransactionMetaId,
         },
       };
+      // TODO fix
+      // @ts-expect-error (js->ts follow-up) this is doing something dangerousm with protected methods
       TransactionController.update((state) => {
+        // @ts-expect-error (js->ts follow-up) this is doing something dangerous
         state.swapsTransactions = newSwapsTransactions;
       });
     },
@@ -875,9 +924,9 @@ function SwapsQuotesView({
   );
 
   const startSwapAnalytics = useCallback(
-    (selectedQuote, selectedAddress) => {
+    (_selectedQuote, _selectedAddress) => {
       const parameters = {
-        account_type: getAddressAccountType(selectedAddress),
+        account_type: getAddressAccountType(_selectedAddress),
         token_from: sourceToken.symbol,
         token_from_amount: fromTokenMinimalUnitString(
           sourceAmount,
@@ -885,15 +934,17 @@ function SwapsQuotesView({
         ),
         token_to: destinationToken.symbol,
         token_to_amount: fromTokenMinimalUnitString(
-          selectedQuote.destinationAmount,
+          _selectedQuote.destinationAmount,
           destinationToken.decimals,
         ),
         request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
         slippage,
         custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
-        best_quote_source: selectedQuote.aggregator,
+        best_quote_source: _selectedQuote.aggregator,
         available_quotes: allQuotes,
-        other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote,
+        // @ts-expect-error (js->ts follow-up) this code is both wrong (selectedQuoteId is a string, allQuotes in an array) and never read in this repo [perhaps sent to analytics?]
+        // TODO: delete all references to other_quote_selected since it's dead code
+        other_quote_selected: allQuotes[selectedQuoteId] === _selectedQuote,
         network_fees_USD: weiToFiat(
           toWei(selectedQuoteValue?.ethFee),
           conversionRate,
@@ -983,6 +1034,7 @@ function SwapsQuotesView({
       try {
         resetTransaction();
         const { transactionMeta, result } = await addTransaction(
+          // @ts-expect-error (js->ts follow-up) some fields, like `from`, are nullable but expected to be non-null
           {
             ...approvalTransaction,
             ...getTransactionPropertiesFromGasEstimates(
@@ -1008,7 +1060,9 @@ function SwapsQuotesView({
           },
           destinationToken: { swaps: 'swaps' },
           upTo: new BigNumber(
-            decodeApproveData(approvalTransaction.data).encodedAmount,
+            // TODO assert that approvalTransaction is not null whenever handleApprovaltransaction is called
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            decodeApproveData(approvalTransaction!.data).encodedAmount,
             16,
           ).toString(10),
         };
@@ -1017,17 +1071,18 @@ function SwapsQuotesView({
 
           Engine.controllerMessenger.subscribeOnceIf(
             'TransactionController:transactionConfirmed',
-            (transactionMeta) => {
-              if (transactionMeta.status === TransactionStatus.confirmed) {
+            (_transactionMeta) => {
+              if (_transactionMeta.status === TransactionStatus.confirmed) {
                 handleSwapTransaction(
                   TransactionController,
                   newSwapsTransactions,
+                  // @ts-expect-error (js->ts follow-up) this function only takes 2 arguments but is called with 4
                   approvalTransactionMetaId,
                   isHardwareAddress,
                 );
               }
             },
-            (transactionMeta) => transactionMeta.id === transactionId,
+            (_transactionMeta) => _transactionMeta.id === transactionId,
           );
         }
       } catch (e) {
@@ -1060,6 +1115,7 @@ function SwapsQuotesView({
     const { TransactionController } = Engine.context;
 
     const newSwapsTransactions =
+      // @ts-expect-error (js->ts follow-up) `swapsTransactions` is not typed, but probably exists sometimes
       TransactionController.state.swapsTransactions || {};
     let approvalTransactionMetaId;
     if (approvalTransaction) {
@@ -1071,6 +1127,7 @@ function SwapsQuotesView({
       );
 
       if (isHardwareAddress) {
+        // @ts-expect-error (js->ts follow-up) pop is not defined
         navigation.dangerouslyGetParent()?.pop();
         return;
       }
@@ -1083,11 +1140,13 @@ function SwapsQuotesView({
       await handleSwapTransaction(
         TransactionController,
         newSwapsTransactions,
+        // @ts-expect-error (js->ts follow-up) this function only takes 2 arguments but is called with 4
         approvalTransactionMetaId,
         isHardwareAddress,
       );
     }
 
+    // @ts-expect-error (js->ts follow-up) pop is not defined
     navigation.dangerouslyGetParent()?.pop();
   }, [
     selectedQuote,
@@ -1141,6 +1200,8 @@ function SwapsQuotesView({
       custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
       available_quotes: allQuotes.length,
       best_quote_source: selectedQuote.aggregator,
+      // @ts-expect-error (js->ts follow-up) this code is both wrong (selectedQuoteId is a string, allQuotes in an array) and never read in this repo [perhaps sent to analytics?]
+      // TODO: delete all references to other_quote_selected since it's dead code
       other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote,
       gas_fees: weiToFiat(
         toWei(selectedQuoteValue?.ethFee),
@@ -1266,7 +1327,7 @@ function SwapsQuotesView({
   ]);
 
   const handleQuotesErrorMetric = useCallback(
-    (error) => {
+    (_error: SwapsQuotesViewProps['error']) => {
       const data = {
         token_from: sourceToken.symbol,
         token_from_amount: fromTokenMinimalUnitString(
@@ -1279,7 +1340,7 @@ function SwapsQuotesView({
         custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
         chain_id: getDecimalChainId(chainId),
       };
-      if (error?.key === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
+      if (_error?.key === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
         const parameters = {
           ...data,
           gas_fees: '',
@@ -1289,14 +1350,16 @@ function SwapsQuotesView({
           sensitiveProperties: { ...parameters },
         });
       } else if (
-        error?.key === swapsUtils.SwapsError.QUOTES_NOT_AVAILABLE_ERROR
+        _error?.key === swapsUtils.SwapsError.QUOTES_NOT_AVAILABLE_ERROR
       ) {
         const parameters = { ...data };
         trackEvent(MetaMetricsEvents.NO_QUOTES_AVAILABLE, {
           sensitiveProperties: { ...parameters },
         });
       } else {
-        trackErrorAsAnalytics(`Swaps: ${error?.key}`, error?.description);
+        // @ts-expect-error (js->ts follow-up) description may be null but expected to be string
+        // TODO replace with _error?.description ?? ''
+        trackErrorAsAnalytics(`Swaps: ${_error?.key}`, _error?.description);
       }
     },
     [
@@ -1320,8 +1383,9 @@ function SwapsQuotesView({
   const buyEth = useCallback(() => {
     try {
       navigation.navigate(...createBuyNavigationDetails());
-    } catch (error) {
-      Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
+    } catch (_error) {
+      // @ts-expect-error (js->ts follow-up) check if _error is an Error before logging it as one
+      Logger.error(_error, 'Navigation: Error when navigating to buy ETH.');
     }
 
     trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
@@ -1410,7 +1474,9 @@ function SwapsQuotesView({
   useEffect(() => {
     const tick = setInterval(() => {
       const newRemainingTime =
-        quotesLastFetched + quoteRefreshSeconds * 1000 - Date.now() + 1000;
+        // TODO quoteRefreshSeconds may actually be null sometimes, in which case the math here may be incorrect
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        quotesLastFetched + quoteRefreshSeconds! * 1000 - Date.now() + 1000;
       // If newRemainingTime > remainingTime means that a new set of quotes were fetched
       if (newRemainingTime > remainingTime) {
         hideFeeModal();
@@ -1470,19 +1536,23 @@ function SwapsQuotesView({
 
   /** Gas Effects */
 
-  const [pollToken, setPollToken] = useState(null);
+  const [pollToken, setPollToken] = useState<string | null>(null);
 
   useEffect(() => {
     const { GasFeeController } = Engine.context;
     async function polling() {
       const newPollToken =
-        await GasFeeController.getGasFeeEstimatesAndStartPolling(pollToken);
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        await GasFeeController.getGasFeeEstimatesAndStartPolling(pollToken!);
       setPollToken(newPollToken);
     }
     if (isInPolling) {
       polling();
       return () => {
-        GasFeeController.stopPolling(pollToken);
+        // TODO  (js->ts follow-up) this should just be GasFeeController.stopPolling()
+        // @ts-expect-error stopPolling doesn't take arguments
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        GasFeeController.stopPolling(pollToken!);
         setPollToken(null);
       };
     }
@@ -1496,13 +1566,13 @@ function SwapsQuotesView({
         let gasEstimate = null;
         let customGasAreIncompatible = false;
         if (gasEstimateType === GAS_ESTIMATE_TYPES.ETH_GASPRICE) {
-          // Added a selected property because for ETH_GASPRICE any user change will lead
+          // Added a selected property because for ETH_GASPRICE $FIXME user change will lead
           // to stop updating the estimates, unless there is an option selected.
           customGasAreIncompatible =
             Boolean(customGasEstimate) &&
             'estimatedBaseFee' in customGasEstimate;
           gasEstimate = {
-            gasPrice: gasFeeEstimates.gasPrice,
+            gasPrice: (gasFeeEstimates as EthGasPriceEstimate).gasPrice,
             selected: DEFAULT_GAS_FEE_OPTION_LEGACY,
           };
         } else if (gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY) {
@@ -1511,16 +1581,24 @@ function SwapsQuotesView({
             'estimatedBaseFee' in customGasEstimate;
           const selected =
             customGasEstimate?.selected || DEFAULT_GAS_FEE_OPTION_LEGACY;
-          gasEstimate = { gasPrice: gasFeeEstimates[selected], selected };
+          gasEstimate = {
+            gasPrice: (gasFeeEstimates as LegacyGasPriceEstimate)[
+              selected as keyof LegacyGasPriceEstimate // high, medium, low
+            ],
+            selected,
+          };
         } else if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
           customGasAreIncompatible =
             Boolean(customGasEstimate) && 'gasPrice' in customGasEstimate;
           const selected =
             customGasEstimate?.selected || DEFAULT_GAS_FEE_OPTION_FEE_MARKET;
           gasEstimate = {
+            // @ts-expect-error (js->ts follow-up) unclear what type gasFeeEstimates should be
             maxFeePerGas: gasFeeEstimates[selected].suggestedMaxFeePerGas,
             maxPriorityFeePerGas:
+              // @ts-expect-error (js->ts follow-up) unclear what type gasFeeEstimates should be
               gasFeeEstimates[selected].suggestedMaxPriorityFeePerGas,
+            // @ts-expect-error (js->ts follow-up) unclear what type gasFeeEstimates should be
             estimatedBaseFee: gasFeeEstimates.estimatedBaseFee,
             selected,
           };
@@ -1632,6 +1710,7 @@ function SwapsQuotesView({
           setMultiLayerL1ApprovalFeeTotal(l1ApprovalFeeTotal);
         }
       } catch (e) {
+        // @ts-expect-error (js->ts follow-up) TODO check if e is actually an instanceof Error
         Logger.error(e, 'fetchEstimatedMultiLayerL1Fee call failed');
         setMultiLayerL1ApprovalFeeTotal(null);
       }
@@ -1718,13 +1797,17 @@ function SwapsQuotesView({
               <Text reset bold>
                 {!hasEnoughTokenBalance && !isSwapsNativeAsset(sourceToken)
                   ? `${renderFromTokenMinimalUnit(
-                      missingTokenBalance,
+                      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                      missingTokenBalance!,
                       sourceToken.decimals,
                     )} ${
                       sourceToken.symbol
                       // eslint-disable-next-line no-mixed-spaces-and-tabs
                     } `
-                  : `${renderFromWei(missingEthBalance)} ${getTicker(ticker)} `}
+                  : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    `${renderFromWei(missingEthBalance!)} ${getTicker(
+                      ticker,
+                    )} `}
               </Text>
               {!hasEnoughTokenBalance
                 ? `${strings('swaps.more_to_complete')} `
@@ -1761,7 +1844,7 @@ function SwapsQuotesView({
                     : togglePriceDifferenceModal
                 }
               >
-                {(textStyle) =>
+                {(textStyle: StyleProp<TextStyle>) =>
                   selectedQuote.priceSlippage?.calculationError?.length > 0 ? (
                     <>
                       <Text style={textStyle} bold centered>
@@ -1935,12 +2018,14 @@ function SwapsQuotesView({
                   onPress={handleOpenQuotesModal}
                   disabled={isInFetch}
                 >
+                  {/* @ts-expect-error style is actually optional but the types are wrong */}
                   <QuotesSummary.HeaderText small>
                     {strings('swaps.view_details')} →
                   </QuotesSummary.HeaderText>
                 </TouchableOpacity>
               )}
             </QuotesSummary.Header>
+            {/* @ts-expect-error style is actually optional but the types are wrong */}
             <QuotesSummary.Body>
               <View
                 style={styles.quotesRow}
@@ -1966,7 +2051,7 @@ function SwapsQuotesView({
                   </View>
                 </View>
 
-                {usedGasEstimate.gasPrice ? (
+                {(usedGasEstimate as $FIXME).gasPrice ? (
                   <View style={styles.quotesFiatColumn}>
                     <Text primary bold>
                       {renderFromWei(toWei(selectedQuoteValue?.ethFee))}{' '}
@@ -2055,7 +2140,7 @@ function SwapsQuotesView({
               </View>
 
               <View style={styles.quotesRow}>
-                {usedGasEstimate.gasPrice ? (
+                {(usedGasEstimate as $FIXME).gasPrice ? (
                   <>
                     <View style={styles.quotesDescription}>
                       <View style={styles.quotesLegend}>
@@ -2290,77 +2375,27 @@ function SwapsQuotesView({
   );
 }
 
-SwapsQuotesView.propTypes = {
-  swapsTokens: PropTypes.arrayOf(PropTypes.object),
-  /**
-   * Map of accounts to information objects including balances
-   */
-  accounts: PropTypes.object,
-  /**
-   * An object containing token balances for current account and network in the format address => balance
-   */
-  balances: PropTypes.object,
-  /**
-   * ETH to current currency conversion rate
-   */
-  conversionRate: PropTypes.number,
-  /**
-   * Currency code of the currently-active currency
-   */
-  currentCurrency: PropTypes.string,
-  /**
-   * A string that represents the selected address
-   */
-  selectedAddress: PropTypes.string,
-  /**
-   * Chain Id
-   */
-  chainId: PropTypes.string,
-  /**
-   * Native asset ticker
-   */
-  ticker: PropTypes.string,
-  /**
-   * Primary currency, either ETH or Fiat
-   */
-  primaryCurrency: PropTypes.string,
-  isInPolling: PropTypes.bool,
-  quotesLastFetched: PropTypes.number,
-  topAggId: PropTypes.string,
-  /**
-   * Aggregator metada from Swaps controller API
-   */
-  aggregatorMetadata: PropTypes.object,
-  pollingCyclesLeft: PropTypes.number,
-  quotes: PropTypes.object,
-  quoteValues: PropTypes.object,
-  approvalTransaction: PropTypes.object,
-  error: PropTypes.object,
-  quoteRefreshSeconds: PropTypes.number,
-  gasEstimateType: PropTypes.string,
-  gasFeeEstimates: PropTypes.object,
-  usedGasEstimate: PropTypes.object,
-  usedCustomGas: PropTypes.object,
-  setRecipient: PropTypes.func,
-  resetTransaction: PropTypes.func,
-  shouldUseSmartTransaction: PropTypes.bool,
-};
-
-const mapStateToProps = (state) => ({
+const mapStateToProps = (state: RootState) => ({
   accounts: selectAccounts(state),
   chainId: selectChainId(state),
   ticker: selectTicker(state),
   balances: selectContractBalances(state),
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  // in practice, selectedAddress is almost never null -- defaults to ''
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state)!,
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   isInPolling: selectSwapsIsInPolling(state),
-  quotesLastFetched: selectSwapsQuotesLastFetched(state),
+  // in practice, quotesLastFetched is almost never null
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  quotesLastFetched: selectSwapsQuotesLastFetched(state)!,
   pollingCyclesLeft: selectSwapsPollingCyclesLeft(state),
   topAggId: selectSwapsTopAggId(state),
   aggregatorMetadata: selectSwapsAggregatorMetadata(state),
   quotes: selectSwapsQuotes(state),
-  quoteValues: selectSwapsQuoteValues(state),
+  // in practice, quoteValues is almost never null -- defaults to {}
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  quoteValues: selectSwapsQuoteValues(state)!,
   approvalTransaction: selectSwapsApprovalTransaction(state),
   error: selectSwapsError(state),
   quoteRefreshSeconds: selectSwapsQuoteRefreshSeconds(state),
@@ -2373,9 +2408,14 @@ const mapStateToProps = (state) => ({
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
 });
 
-const mapDispatchToProps = (dispatch) => ({
-  setRecipient: (from) => dispatch(setRecipient(from, '', '', '', '')),
-  resetTransaction: () => dispatch(resetTransaction()),
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  setRecipient: (from: string) =>
+    dispatch(setRecipientAction(from, '', '', '', '')),
+  resetTransaction: () => dispatch(resetTransactionAction()),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(SwapsQuotesView);
+const connector = connect(mapStateToProps, mapDispatchToProps);
+
+interface SwapsQuotesViewProps extends ConnectedProps<typeof connector> {}
+
+export default connector(SwapsQuotesView);

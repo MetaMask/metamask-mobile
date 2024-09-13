@@ -7,6 +7,7 @@ import reducer, {
   SWAPS_SET_HAS_ONBOARDED,
   swapsSmartTxFlagEnabled,
 } from './index';
+import { RootState } from '..';
 
 const emptyAction = { type: null };
 
@@ -180,7 +181,7 @@ describe('swaps reducer', () => {
           },
         },
         swaps: cloneDeep(initialState),
-      };
+      } as unknown as RootState;
 
       rootState.swaps = {
         // @ts-ignore
@@ -213,7 +214,7 @@ describe('swaps reducer', () => {
     });
 
     it('should return false if smart transactions flags are disabled', () => {
-      const rootState = {
+      const rootState: RootState = {
         engine: {
           backgroundState: {
             NetworkController: {
@@ -222,7 +223,7 @@ describe('swaps reducer', () => {
           },
         },
         swaps: cloneDeep(initialState),
-      };
+      } as unknown as RootState;
 
       rootState.swaps = {
         // @ts-ignore
@@ -255,7 +256,7 @@ describe('swaps reducer', () => {
     });
 
     it('should return false if smart transactions flags are undefined', () => {
-      const rootState = {
+      const rootState: RootState = {
         engine: {
           backgroundState: {
             NetworkController: {
@@ -264,7 +265,7 @@ describe('swaps reducer', () => {
           },
         },
         swaps: initialState,
-      };
+      } as unknown as RootState;
 
       const enabled = swapsSmartTxFlagEnabled(rootState);
       expect(enabled).toEqual(false);

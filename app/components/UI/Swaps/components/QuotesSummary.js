@@ -84,6 +84,7 @@ const Body = ({ style, ...props }) => {
   const styles = createStyles(colors);
   return <View style={[styles.body, style]} {...props} />;
 };
+
 const HeaderText = ({ style, ...props }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);

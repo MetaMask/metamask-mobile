@@ -138,9 +138,25 @@ const converter = ({
   if (toNumericBase) {
     convertedValue = baseChange[toNumericBase](convertedValue);
   }
+  // returns a string if toNumericBase is provided
   return convertedValue;
 };
 
+/**
+ * Utility function for currency conversion
+ * @param {string|number|BigNumber} value - The value to convert
+ * @param {Object} options - Conversion options
+ * @param {string} [options.fromCurrency=null] - The currency to convert from
+ * @param {string} [options.toCurrency=fromCurrency] - The currency to convert to
+ * @param {string} [options.fromNumericBase] - The numeric base of the input value
+ * @param {string} [options.toNumericBase] - The numeric base for the output
+ * @param {string} [options.fromDenomination] - The denomination to convert from
+ * @param {string} [options.toDenomination] - The denomination to convert to
+ * @param {number} [options.numberOfDecimals] - Number of decimals for the output
+ * @param {number} [options.conversionRate] - The rate for currency conversion
+ * @param {boolean} [options.invertConversionRate] - Whether to invert the conversion rate
+ * @returns {string|number|BigNumber} The converted value
+ */
 const conversionUtil = (
   value,
   {

@@ -7,9 +7,19 @@ import {
 } from '../../../../util/networks';
 import { strings } from '../../../../../locales/i18n';
 import { getEtherscanBaseUrl } from '../../../../util/etherscan';
+import { NetworkState, ProviderConfig } from '@metamask/network-controller';
 
-function useBlockExplorer(providerConfig, networkConfigurations) {
-  const [explorer, setExplorer] = useState({
+function useBlockExplorer(
+  providerConfig: ProviderConfig,
+  networkConfigurations: NetworkState['networkConfigurations'],
+) {
+  const [explorer, setExplorer] = useState<
+    {
+      name: string;
+      isRPC: boolean;
+      baseUrl: string;
+    } & ({ value: null; isValid: false } | { value: string; isValid: true })
+  >({
     name: '',
     value: null,
     isValid: false,

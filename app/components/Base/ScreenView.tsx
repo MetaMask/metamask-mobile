@@ -11,7 +11,9 @@ const createStyles = (colors: ThemeColors) =>
     },
   });
 
-const ScreenView: React.FC = (props) => {
+const ScreenView: React.FC<React.ComponentProps<typeof ScrollView>> = (
+  props,
+) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 

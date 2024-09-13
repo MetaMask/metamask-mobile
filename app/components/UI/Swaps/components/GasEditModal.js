@@ -550,4 +550,12 @@ const mapStateToProps = (state) => ({
   primaryCurrency: state.settings.primaryCurrency,
 });
 
-export default connect(mapStateToProps)(GasEditModal);
+/**
+ * GasEditModalConnected component
+ *
+ * For some reason, if we don't annotate this type explicitly, the props become "never"
+ * @type {React.ComponentType<any>}
+ */
+const GasEditModalConnected = connect(mapStateToProps)(GasEditModal);
+
+export default GasEditModalConnected;

@@ -1,23 +1,36 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import axios, { CancelTokenSource } from 'axios';
 import { swapsUtils } from '@metamask/swaps-controller';
+import { Hex } from '@metamask/utils';
 
-const defaultTokenMetadata = {
+interface TokenMetadata {
+  valid: boolean | null;
+  error: boolean;
+  // TODO: once we have info about how metadata is used, or how it's prepared upstream (network request), add better types
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  metadata: unknown | null;
+}
+
+const defaultTokenMetadata: TokenMetadata = {
   valid: null,
   error: false,
   metadata: null,
 };
 
-function useFetchTokenMetadata(address, chainId) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [tokenMetadata, setTokenMetadata] = useState(defaultTokenMetadata);
+function useFetchTokenMetadata(
+  address: string,
+  chainId: Hex,
+): [boolean, TokenMetadata] {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [tokenMetadata, setTokenMetadata] =
+    useState<TokenMetadata>(defaultTokenMetadata);
 
   useEffect(() => {
     if (!address) {
       return;
     }
 
-    let cancelTokenSource;
+    let cancelTokenSource: CancelTokenSource | undefined;
     async function fetchTokenMetadata() {
       try {
         cancelTokenSource = axios.CancelToken.source();
@@ -31,8 +44,10 @@ function useFetchTokenMetadata(address, chainId) {
           cancelToken: cancelTokenSource.token,
         });
         setTokenMetadata({ error: false, valid: true, metadata: data });
-      } catch (error) {
+      } catch (error: unknown) {
         // Address is not an ERC20
+        // TODO: suggested replacement if (axios.isAxiosError(error) && error.response?.status === 422) {
+        // @ts-expect-error js-ts migration follow-up
         if (error?.response?.status === 422) {
           setTokenMetadata({ error: false, valid: false, metadata: null });
         } else {
