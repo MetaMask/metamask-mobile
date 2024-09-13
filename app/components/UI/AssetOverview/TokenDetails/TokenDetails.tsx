@@ -20,7 +20,7 @@ import { formatCurrency } from '../../../../util/confirm-tx';
 import Logger from '../../../../util/Logger';
 import TokenDetailsList from './TokenDetailsList';
 import MarketDetailsList from './MarketDetailsList';
-import { Asset } from '../AssetOverview.types';
+import { TokenI } from '../../Tokens/types';
 import StakingEarnings from '../StakingEarnings';
 import { isPooledStakingFeatureEnabled } from '../../Stake/constants';
 
@@ -41,7 +41,7 @@ export interface MarketDetails {
 }
 
 interface TokenDetailsProps {
-  asset: Asset;
+  asset: TokenI;
 }
 
 const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
