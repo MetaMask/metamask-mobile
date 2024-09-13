@@ -14,11 +14,11 @@ describe('formatRelative', () => {
     const yesterday = subDays(today, 1);
     const tomorrow = addDays(today, 1);
 
-    expect(formatRelative(yesterday, today)).toBe('yesterday');
-    expect(formatRelative(tomorrow, today)).toBe('tomorrow');
-    expect(formatRelative(subMonths(today, 1), today)).toBe('last month');
-    expect(formatRelative(addMonths(today, 1), today)).toBe('next month');
-    expect(formatRelative(subYears(today, 1), today)).toBe('last year');
-    expect(formatRelative(addYears(today, 1), today)).toBe('next year');
+    expect(formatRelative(yesterday, today)).toBe('a day ago');
+    expect(formatRelative(tomorrow, today)).toBe('in a day');
+    expect(formatRelative(subMonths(today, 1), today)).toBe('a month ago');
+    expect(formatRelative(addMonths(today, 1), today)).toBe('in a month');
+    expect(formatRelative(subYears(today, 1), today)).toBe('a year ago');
+    expect(formatRelative(addYears(today, 1), today)).toBe('in a year');
   });
 });
