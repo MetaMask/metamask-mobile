@@ -20,7 +20,7 @@ jest.mock('@sentry/react-native', () => ({
 const NAME_MOCK = TraceName.Middleware;
 const ID_MOCK = 'testId';
 const PARENT_CONTEXT_MOCK = {
-  spanId: 'parentSpanId',
+  spanContext: () => 'parentSpanId',
 } as Span;
 
 const TAGS_MOCK = {

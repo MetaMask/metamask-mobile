@@ -218,6 +218,7 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
 import EthQuery from '@metamask/eth-query';
 import { TransactionControllerOptions } from '@metamask/transaction-controller/dist/types/TransactionController';
+import { trace } from '../util/trace';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1211,6 +1212,8 @@ class Engine {
         keyringController,
       ) as unknown as TransactionControllerOptions['sign'],
       state: initialState.TransactionController,
+      // @ts-expect-error - This will be removed once the Trace types are exported from @metamask/controller-utils
+      trace,
     });
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
