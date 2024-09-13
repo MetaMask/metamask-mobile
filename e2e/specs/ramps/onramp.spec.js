@@ -15,6 +15,12 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 import { SmokeRamps } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
+import SelectRegionView from '../../pages/Ramps/SelectRegionView';
+import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
+import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
+import { setEmitFlags } from 'typescript';
+import { SelectPaymentMethodSelectors } from '../../selectors/Ramps/SelectPaymentMethod.selectors';
+import { BuildQuoteSelectors } from '../../selectors/Ramps/BuildQuote.selectors';
 
 const fixtureServer = new FixtureServer();
 
@@ -46,6 +52,16 @@ describe(SmokeRamps('OnRamp'), () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapBuyButton();
     await BuyGetStartedView.tapGetStartedButton();
+    await SelectRegionView.tapSelectRegionDropdown();
+    await SelectRegionView.tapRegionOption('United States of America');
+    await SelectRegionView.tapRegionOption('California');
+    await SelectRegionView.tapContinueButton();
+    await SelectPaymentMethodView.tapPaymentMethodOption('Debit or Credit');
+    await SelectPaymentMethodView.tapContinueButton();
+
+    await BuildQuoteView.tapAmountTextField();
+    await BuildQuoteView.tapFiatAmount('$50');
+    await BuildQuoteView.tapDoneButton();
   });
 
 });
