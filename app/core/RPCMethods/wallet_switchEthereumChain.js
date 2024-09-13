@@ -69,10 +69,16 @@ const wallet_switchEthereumChain = async ({
   );
 
   if (existingEntry || existingNetworkDefault) {
-    const currentDomainSelectedChainId =
+    const currentDomainSelectedNetworkClientId =
       Engine.context.SelectedNetworkController.getNetworkClientIdForDomain(
         origin,
       );
+
+    const {
+      configuration: { chainId: currentDomainSelectedChainId },
+    } = Engine.context.NetworkController.getNetworkClientById(
+      currentDomainSelectedNetworkClientId,
+    ) || { configuration: {} };
 
     if (currentDomainSelectedChainId === _chainId) {
       res.result = null;
@@ -118,26 +124,24 @@ const wallet_switchEthereumChain = async ({
       requestData: { ...requestData, type: 'switch' },
     });
 
-    if (!process.env.MULTICHAIN_V1) {
-      if (networkConfiguration) {
-        CurrencyRateController.updateExchangeRate(networkConfiguration.ticker);
-        NetworkController.setActiveNetwork(networkConfigurationId);
-      } else {
-        CurrencyRateController.updateExchangeRate(NetworksTicker.mainnet);
-        NetworkController.setActiveNetwork(existingNetworkDefault.networkType);
-      }
-    }
-
     const originHasAccountsPermission = PermissionController.hasPermission(
       origin,
       RestrictedMethods.eth_accounts,
     );
 
-    if (originHasAccountsPermission) {
+    if (process.env.MULTICHAIN_V1 && originHasAccountsPermission) {
       SelectedNetworkController.setNetworkClientIdForDomain(
         origin,
         networkConfigurationId || existingNetworkDefault.networkType,
       );
+    } else if (networkConfiguration) {
+      CurrencyRateController.updateExchangeRate(networkConfiguration.ticker);
+      NetworkController.setActiveNetwork(networkConfigurationId);
+    } else {
+      // TODO we will need to update this so that each network in the NetworksList has its own ticker
+      // if we ever add networks that don't have ETH as their base currency
+      CurrencyRateController.updateExchangeRate(NetworksTicker.mainnet);
+      NetworkController.setActiveNetwork(existingNetworkDefault.networkType);
     }
 
     MetaMetrics.getInstance().trackEvent(

@@ -137,7 +137,7 @@ const NetworkSelector = () => {
     useRoute<RouteProp<Record<string, NetworkSelectorRouteParams>, string>>();
 
   // origin is defined if network selector is opened from a dapp
-  const origin = route.params?.hostInfo?.metadata?.origin;
+  const origin = route.params?.hostInfo?.metadata?.origin || '';
 
   const {
     chainId: selectedChainId,
@@ -198,7 +198,7 @@ const NetworkSelector = () => {
       SelectedNetworkController,
     } = Engine.context;
 
-    if (domainIsConnectedDapp && origin && process.env.MULTICHAIN_V1) {
+    if (domainIsConnectedDapp && process.env.MULTICHAIN_V1) {
       SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
     } else {
       let ticker = type;
@@ -242,7 +242,7 @@ const NetworkSelector = () => {
       const [networkConfigurationId, networkConfiguration] = entry;
       const { ticker, nickname } = networkConfiguration;
 
-      if (domainIsConnectedDapp && origin && process.env.MULTICHAIN_V1) {
+      if (domainIsConnectedDapp && process.env.MULTICHAIN_V1) {
         SelectedNetworkController.setNetworkClientIdForDomain(
           origin,
           networkConfigurationId,

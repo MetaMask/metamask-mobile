@@ -167,7 +167,7 @@ export class BackgroundBridge extends EventEmitter {
       DevLogger.log(`Error in BackgroundBridge: ${err}`);
     }
 
-    this.on('update', async () => await this.onStateUpdate());
+    this.on('update', () => this.onStateUpdate());
 
     if (this.isRemoteConn) {
       const memState = this.getState();
