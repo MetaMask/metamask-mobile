@@ -8,7 +8,7 @@ import { initialState as transactionMetrics } from '../../core/redux/slices/tran
 import { initialState as originThrottling } from '../../core/redux/slices/originThrottling';
 import initialBackgroundState from './initial-background-state.json';
 import { userInitialState } from '../../reducers/user';
-
+import { initialState as initialAlertState } from '../../reducers/alert';
 // A cast is needed here because we use enums in some controllers, and TypeScript doesn't consider
 // the string value of an enum as satisfying an enum type.
 export const backgroundState: EngineState =
@@ -23,7 +23,7 @@ const initialRootState: RootState = {
   browser: undefined,
   modals: undefined,
   settings: undefined,
-  alert: undefined,
+  alert: initialAlertState,
   transaction: undefined,
   smartTransactions: initialSmartTransactions,
   user: userInitialState,
