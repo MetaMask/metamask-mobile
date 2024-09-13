@@ -17,7 +17,7 @@ import I18n, { strings } from '../../../../locales/i18n';
 
 const { UI } = NotificationServicesController;
 
-function formatRelative(
+export function formatRelative(
   date: Date,
   currentDate: Date,
   locale: string = 'en',
