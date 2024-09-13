@@ -88,15 +88,6 @@ export const snapKeyringBuilder = (
         'AccountsController:setSelectedAccount',
         account.id,
       );
-
-      // Set the account name if the snap provided one
-      if (accountNameSuggestion !== '') {
-        controllerMessenger.call(
-          'AccountsController:setAccountName',
-          account.id,
-          accountNameSuggestion,
-        );
-      }
     },
 
     removeAccount: async (

@@ -17,7 +17,6 @@ const mockSnapName = 'mock-snap';
 const mockSnapController = jest.fn();
 const mockPersisKeyringHelper = jest.fn();
 const mockSetSelectedAccount = jest.fn();
-const mockSetAccountName = jest.fn();
 const mockRemoveAccountHelper = jest.fn();
 const mockGetAccountByAddress = jest.fn();
 
@@ -87,9 +86,6 @@ const createControllerMessenger = ({
       case 'AccountsController:setSelectedAccount':
         return mockSetSelectedAccount(params);
 
-      case 'AccountsController:setAccountName':
-        return mockSetAccountName.mockReturnValue(null)(params);
-
       default:
         throw new Error(
           `MOCK_FAIL - unsupported messenger call: ${actionType}`,
@@ -131,29 +127,6 @@ describe('Snap Keyring Methods', () => {
       expect(mockGetAccountByAddress).toHaveBeenCalledTimes(1);
       expect(mockGetAccountByAddress).toHaveBeenCalledWith([
         mockAccount.address.toLowerCase(),
-      ]);
-      expect(mockSetAccountName).not.toHaveBeenCalled();
-    });
-
-    it('handles account creation with a user defined name', async () => {
-      const mockNameSuggestion = 'new name';
-      const builder = createSnapKeyringBuilder();
-      await builder().handleKeyringSnapMessage(mockSnapId, {
-        method: KeyringEvent.AccountCreated,
-        params: {
-          account: mockAccount,
-          displayConfirmation: true,
-          accountNameSuggestion: mockNameSuggestion,
-        },
-      });
-      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(2);
-      expect(mockGetAccountByAddress).toHaveBeenCalledTimes(1);
-      expect(mockGetAccountByAddress).toHaveBeenCalledWith([
-        mockAccount.address.toLowerCase(),
-      ]);
-      expect(mockSetAccountName).toHaveBeenCalledWith([
-        mockAccount.id,
-        mockNameSuggestion,
       ]);
     });
   });
