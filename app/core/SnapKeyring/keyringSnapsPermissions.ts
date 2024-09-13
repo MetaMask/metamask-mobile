@@ -61,9 +61,6 @@ const PORTFOLIO_ALLOWED_METHODS: string[] = [
  */
 const ALLOWED_PROTOCOLS: string[] = [
   'https:',
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  'http:',
-  ///: END:ONLY_INCLUDE_IF
 ];
 
 /**

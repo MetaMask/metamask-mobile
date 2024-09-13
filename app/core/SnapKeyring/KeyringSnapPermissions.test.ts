@@ -132,7 +132,7 @@ describe('keyringSnapPermissionsBuilder', () => {
 
 describe('isProtocolAllowed', () => {
   it.each([
-    ['http://some-dapp.com', true],
+    ['http://some-dapp.com', false],
     ['https://some-dapp.com', true],
     ['sftp://some-dapp.com', false],
     ['', false],
