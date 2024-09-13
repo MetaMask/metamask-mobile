@@ -19,7 +19,7 @@ import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 
 const fixtureServer = new FixtureServer();
 
-describe(SmokeRamps('OnRamp'), () => {
+describe(SmokeRamps('Buy Crypto'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().build();
@@ -40,7 +40,7 @@ describe(SmokeRamps('OnRamp'), () => {
     jest.setTimeout(150000);
   });
 
-  it('should tap the Buy button', async () => {
+  it('should select Region and Payment Method to see the Build Quote screen', async () => {
     await TabBarComponent.tapWallet();
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapBuyButton();
