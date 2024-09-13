@@ -1,13 +1,25 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 
 export interface FeatureFlagsState {
-  featureFlags: object;
+  featureFlags: {
+    mobileMinimumVersions: {
+      appMinimumBuild: number;
+      appleMinimumOS: number;
+      androidMinimumAPIVersion: number;
+    };
+  };
   loading: boolean;
   error: string | null;
 }
 
 export const initialState: FeatureFlagsState = {
-  featureFlags: {},
+  featureFlags: {
+    mobileMinimumVersions: {
+      appMinimumBuild: 1243,
+      appleMinimumOS: 6,
+      androidMinimumAPIVersion: 21,
+    },
+  },
   loading: false,
   error: null,
 };
@@ -33,7 +45,7 @@ const slice = createSlice({
      */
     getFeatureFlagsSuccess: (
       state: FeatureFlagsState,
-      action: PayloadAction<object>,
+      action: PayloadAction<FeatureFlagsState['featureFlags']>,
     ) => {
       state.featureFlags = action.payload;
       state.loading = false;

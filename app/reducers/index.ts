@@ -57,9 +57,12 @@ export interface RootState {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   collectibles: any;
   engine: { backgroundState: EngineState };
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  featureFlags: any;
+  featureFlags: {
+    mobileMinimumVersions: {
+      appMinimumBuild: number;
+      appleMinimumOS: number;
+      androidMinimumAPIVersion: number;
+  };
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   privacy: any;
