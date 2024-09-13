@@ -389,9 +389,7 @@ class TransactionReview extends PureComponent {
     } = this.props;
     const values = {
       ETH: () => {
-        console.log('ticker', ticker);
         const assetAmount = `${renderFromWei(value)} ${getTicker(ticker)}`;
-        console.log('assetAmount', assetAmount);
         const conversionRate = this.props.conversionRate;
         const fiatValue = weiToFiat(value, conversionRate, currentCurrency);
         return [assetAmount, conversionRate, fiatValue];
