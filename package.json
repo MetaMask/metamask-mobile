@@ -242,7 +242,7 @@
     "contentful": "^10.8.7",
     "crypto-js": "^4.2.0",
     "d3-shape": "^3.2.0",
-    "date-fns": "^3.6.0",
+    "dayjs": "^1.11.13",
     "dnode": "1.2.2",
     "eciesjs": "^0.3.15",
     "eth-block-tracker": "^7.0.1",

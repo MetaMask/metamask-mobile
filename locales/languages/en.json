@@ -2079,6 +2079,8 @@
     "back_to_safety": "Back to safety"
   },
   "notifications": {
+    "no_date": "Unknown",
+    "yesterday": "Yesterday",
     "staked": "Staked",
     "received": "Received",
     "unstaked": "Unstaked",
