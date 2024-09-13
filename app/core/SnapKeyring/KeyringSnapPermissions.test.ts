@@ -92,7 +92,19 @@ describe('keyringSnapPermissionsBuilder', () => {
     const permissions = keyringSnapPermissionsBuilder(
       'https://some-other-dapp.com',
     );
-    expect(permissions()).toStrictEqual([]);
+    expect(permissions()).toStrictEqual([
+      KeyringRpcMethod.ListAccounts,
+      KeyringRpcMethod.GetAccount,
+      KeyringRpcMethod.CreateAccount,
+      KeyringRpcMethod.FilterAccountChains,
+      KeyringRpcMethod.UpdateAccount,
+      KeyringRpcMethod.DeleteAccount,
+      KeyringRpcMethod.ExportAccount,
+      KeyringRpcMethod.ListRequests,
+      KeyringRpcMethod.GetRequest,
+      KeyringRpcMethod.ApproveRequest,
+      KeyringRpcMethod.RejectRequest,
+    ]);
   });
 
   it.each([
