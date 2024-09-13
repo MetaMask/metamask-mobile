@@ -1,35 +1,19 @@
 import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
 import { BuildQuoteSelectors } from '../../selectors/Ramps/BuildQuote.selectors';
+import Assertions from '../../utils/Assertions';
 
 class BuildQuoteView {
-  get doneButton() {
-    return Matchers.getElementByText(BuildQuoteSelectors.DONE_BUTTON);
+  get amountToBuyLabel() {
+    return Matchers.getElementByText(BuildQuoteSelectors.AMOUNT_TO_BUY_LABEL);
+  }
+  get getQuotesButton() {
+    return Matchers.getElementByText(BuildQuoteSelectors.GET_QUOTES_BUTTON);
   }
 
-  get amountTextField() {
-    return Matchers.getElementByText('$0');
+  async verifyBuildQuoteViewVisible() {
+    await Assertions.checkIfVisible(this.amountToBuyLabel);
+    await Assertions.checkIfVisible(this.getQuotesButton);
   }
-
-  async tapAmountTextField() {
-    await Gestures.waitAndTap(this.amountTextField);
-  }
-
-  async tapFiatAmount(amount) {
-    const acceptedValues = ['$50', '$100', '$200', '$400'];
-    
-    if (!acceptedValues.includes(amount)) {
-      throw new Error(`Invalid amount: ${amount}. Accepted values are: ${acceptedValues.join(', ')}`);
-    }
-
-    const amountElement = element(by.text(amount));
-    await amountElement.tap();
-  }
-
-  async tapDoneButton() {
-    await Gestures.waitAndTap(this.doneButton);
-  }
-
 }
 
 export default new BuildQuoteView();

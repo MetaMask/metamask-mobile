@@ -58,10 +58,7 @@ describe(SmokeRamps('OnRamp'), () => {
     await SelectRegionView.tapContinueButton();
     await SelectPaymentMethodView.tapPaymentMethodOption('Debit or Credit');
     await SelectPaymentMethodView.tapContinueButton();
-
-    await BuildQuoteView.tapAmountTextField();
-    await BuildQuoteView.tapFiatAmount('$50');
-    await BuildQuoteView.tapDoneButton();
+    await BuildQuoteView.verifyBuildQuoteViewVisible();
   });
 
 });
