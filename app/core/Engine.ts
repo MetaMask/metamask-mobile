@@ -106,6 +106,7 @@ import {
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import {
   PPOMController,
+  PPOMControllerActions,
   PPOMControllerEvents,
   PPOMState,
 } from '@metamask/ppom-validator';
@@ -295,6 +296,7 @@ type GlobalActions =
   | KeyringControllerActions
   | AccountsControllerActions
   | PreferencesControllerActions
+  | PPOMControllerActions
   | TokensControllerActions
   | TokenListControllerActions
   | SelectedNetworkControllerActions;
