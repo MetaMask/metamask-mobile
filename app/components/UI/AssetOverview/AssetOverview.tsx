@@ -44,7 +44,6 @@ import { createWebviewNavDetails } from '../../Views/SimpleWebview';
 import useTokenHistoricalPrices, {
   TimePeriod,
 } from '../../hooks/useTokenHistoricalPrices';
-import { Asset } from './AssetOverview.types';
 import Balance from './Balance';
 import ChartNavigationButton from './ChartNavigationButton';
 import Price from './Price';
@@ -61,14 +60,13 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
+import { TokenI } from '../Tokens/types';
 
 interface AssetOverviewProps {
   navigation: {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    navigate: (route: string, props?: any) => void;
+    navigate: (route: string, params: Record<string, unknown>) => void;
   };
-  asset: Asset;
+  asset: TokenI;
   displayBuyButton?: boolean;
   displaySwapsButton?: boolean;
 }
@@ -135,7 +133,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     } else {
       dispatch(newAssetTransaction(asset));
     }
-    navigation.navigate('SendFlowView');
+    navigation.navigate('SendFlowView', {});
   };
 
   const goToSwaps = () => {
@@ -165,11 +163,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   };
 
   const goToBrowserUrl = (url: string) => {
-    navigation.navigate(
-      ...createWebviewNavDetails({
-        url,
-      }),
-    );
+    const [screen, params] = createWebviewNavDetails({
+      url,
+    });
+
+    // TODO: params should not have to be cast here
+    navigation.navigate(screen, params as Record<string, unknown>);
   };
 
   const renderWarning = () => (
@@ -178,7 +177,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         onPress={() => goToBrowserUrl(AppConstants.URLS.TOKEN_BALANCE)}
       >
         <Text style={styles.warning}>
-          {strings('asset_overview.were_unable')} {(asset as Asset).symbol}{' '}
+          {strings('asset_overview.were_unable')} {(asset as TokenI).symbol}{' '}
           {strings('asset_overview.balance')}{' '}
           <Text style={styles.warningLinks}>
             {strings('asset_overview.troubleshooting_missing')}
@@ -287,81 +286,85 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           <View style={styles.chartNavigationWrapper}>
             {renderChartNavigationButton()}
           </View>
-          <View style={styles.balanceWrapper}>
-            <Balance balance={mainBalance} fiatBalance={secondaryBalance} />
-            <View style={styles.activitiesButton}>
-              {displayBuyButton ? (
-                <View style={styles.buttonWrapper}>
-                  <WalletAction
-                    iconName={IconName.Add}
-                    iconSize={AvatarSize.Md}
-                    onPress={onBuy}
-                    iconStyle={styles.icon}
-                    containerStyle={styles.containerStyle}
-                    {...generateTestId(Platform, TOKEN_OVERVIEW_BUY_BUTTON)}
-                  />
-                  <Text style={styles.buttonText}>
-                    {strings('asset_overview.buy_button')}
-                  </Text>
-                </View>
-              ) : null}
 
-              {displaySwapsButton ? (
-                <View style={styles.buttonWrapper}>
-                  <WalletAction
-                    iconName={IconName.SwapHorizontal}
-                    iconSize={AvatarSize.Md}
-                    onPress={goToSwaps}
-                    iconStyle={styles.icon}
-                    containerStyle={styles.containerStyle}
-                    {...generateTestId(Platform, TOKEN_OVERVIEW_SWAP_BUTTON)}
-                  />
-                  <Text style={styles.buttonText}>
-                    {strings('asset_overview.swap')}
-                  </Text>
-                </View>
-              ) : null}
+          <View style={styles.activitiesButton}>
+            {displayBuyButton ? (
               <View style={styles.buttonWrapper}>
                 <WalletAction
-                  iconName={IconName.Bridge}
-                  iconSize={AvatarSize.Md}
-                  onPress={goToBridge}
+                  iconName={IconName.Add}
+                  iconSize={AvatarSize.Lg}
+                  onPress={onBuy}
                   iconStyle={styles.icon}
                   containerStyle={styles.containerStyle}
-                  {...generateTestId(Platform, TOKEN_OVERVIEW_BRIDGE_BUTTON)}
+                  {...generateTestId(Platform, TOKEN_OVERVIEW_BUY_BUTTON)}
                 />
                 <Text style={styles.buttonText}>
-                  {strings('asset_overview.bridge')}
+                  {strings('asset_overview.buy_button')}
                 </Text>
               </View>
+            ) : null}
+
+            {displaySwapsButton ? (
               <View style={styles.buttonWrapper}>
                 <WalletAction
-                  iconName={IconName.Arrow2Upright}
-                  iconSize={AvatarSize.Md}
-                  onPress={onSend}
+                  iconName={IconName.SwapHorizontal}
+                  iconSize={AvatarSize.Lg}
+                  onPress={goToSwaps}
                   iconStyle={styles.icon}
                   containerStyle={styles.containerStyle}
-                  {...generateTestId(Platform, TOKEN_OVERVIEW_SEND_BUTTON)}
+                  {...generateTestId(Platform, TOKEN_OVERVIEW_SWAP_BUTTON)}
                 />
                 <Text style={styles.buttonText}>
-                  {strings('asset_overview.send_button')}
+                  {strings('asset_overview.swap')}
                 </Text>
               </View>
-              <View style={styles.buttonWrapper}>
-                <WalletAction
-                  iconName={IconName.QrCode}
-                  iconSize={AvatarSize.Md}
-                  onPress={onReceive}
-                  iconStyle={styles.icon}
-                  containerStyle={styles.containerStyle}
-                  {...generateTestId(Platform, TOKEN_OVERVIEW_RECEIVE_BUTTON)}
-                />
-                <Text style={styles.buttonText}>
-                  {strings('asset_overview.receive_button')}
-                </Text>
-              </View>
+            ) : null}
+
+            <View style={styles.buttonWrapper}>
+              <WalletAction
+                iconName={IconName.Bridge}
+                iconSize={AvatarSize.Lg}
+                onPress={goToBridge}
+                iconStyle={styles.icon}
+                containerStyle={styles.containerStyle}
+                {...generateTestId(Platform, TOKEN_OVERVIEW_BRIDGE_BUTTON)}
+              />
+              <Text style={styles.buttonText}>
+                {strings('asset_overview.bridge')}
+              </Text>
+            </View>
+            <View style={styles.buttonWrapper}>
+              <WalletAction
+                iconName={IconName.Arrow2Upright}
+                iconSize={AvatarSize.Lg}
+                onPress={onSend}
+                iconStyle={styles.icon}
+                containerStyle={styles.containerStyle}
+                {...generateTestId(Platform, TOKEN_OVERVIEW_SEND_BUTTON)}
+              />
+              <Text style={styles.buttonText}>
+                {strings('asset_overview.send_button')}
+              </Text>
+            </View>
+            <View style={styles.buttonWrapper}>
+              <WalletAction
+                iconName={IconName.QrCode}
+                iconSize={AvatarSize.Lg}
+                onPress={onReceive}
+                iconStyle={styles.icon}
+                containerStyle={styles.containerStyle}
+                {...generateTestId(Platform, TOKEN_OVERVIEW_RECEIVE_BUTTON)}
+              />
+              <Text style={styles.buttonText}>
+                {strings('asset_overview.receive_button')}
+              </Text>
             </View>
           </View>
+          <Balance
+            asset={asset}
+            mainBalance={mainBalance}
+            secondaryBalance={secondaryBalance}
+          />
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={asset} />
           </View>

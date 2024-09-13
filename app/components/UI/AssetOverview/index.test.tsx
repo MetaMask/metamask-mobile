@@ -74,15 +74,17 @@ const navigation = {
   navigate: jest.fn(),
 };
 const asset = {
-  balance: 4,
-  balanceFiat: 1500,
+  balance: '400',
+  balanceFiat: '1500',
   logo: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg',
   symbol: 'ETH',
   name: 'Ethereum',
-  isETH: true,
-  balanceError: false,
+  isETH: undefined,
+  balanceError: null,
   decimals: 18,
-  address: zeroAddress(),
+  address: '0x123',
+  aggregators: [],
+  image: '',
 };
 
 describe('AssetOverview', () => {
@@ -113,7 +115,7 @@ describe('AssetOverview', () => {
     const sendButton = getByTestId('token-send-button');
     fireEvent.press(sendButton);
 
-    expect(navigation.navigate).toHaveBeenCalledWith('SendFlowView');
+    expect(navigation.navigate).toHaveBeenCalledWith('SendFlowView', {});
   });
 
   it('should handle swap button press', async () => {

@@ -29,20 +29,19 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       justifyContent: 'space-around',
       paddingHorizontal: 10,
-      paddingVertical: 20,
-    },
-    balanceWrapper: {
-      paddingHorizontal: 16,
+      paddingTop: 20,
     },
     balanceButtons: {
       flexDirection: 'row',
       justifyContent: 'center',
       paddingTop: 20,
+      paddingHorizontal: 16,
     },
     activitiesButton: {
       display: 'flex',
       flexDirection: 'row',
-      justifyContent: 'center',
+      justifyContent: 'space-evenly',
+      padding: 16,
     },
     buttonWrapper: {
       display: 'flex',
