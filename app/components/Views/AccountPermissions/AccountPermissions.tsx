@@ -64,8 +64,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     hostInfo: {
       metadata: { origin: hostname },
     },
-    isRenderedAsBottomSheet: isRenderedAsBottomSheet = true,
-    initialScreen: initialScreen = AccountPermissionsScreens.Connected,
+    isRenderedAsBottomSheet = true,
+    initialScreen = AccountPermissionsScreens.Connected,
   } = props.route.params;
 
   const accountAvatarType = useSelector((state: RootState) =>
@@ -164,6 +164,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     toastRef,
     hostname,
     faviconSource,
+    isRenderedAsBottomSheet,
   ]);
 
   // Refreshes selected addresses based on the addition and removal of accounts.
@@ -395,7 +396,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       isInitialDappConnection: false,
     };
     return <PermissionsSummary {...permissionsSummaryProps} />;
-  }, [faviconSource, urlWithProtocol]);
+  }, [faviconSource, urlWithProtocol, isRenderedAsBottomSheet, navigation]);
 
   const renderEditAccountsPermissionsScreen = useCallback(
     () => (

@@ -65,9 +65,7 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
     );
   }, [navigation, colors]);
 
-  const goToPermissionsDetails = () => {
-    // navigation.navigate('PermissionsSourceDetails' /*, { mode: ADD }*/);
-
+  const goToPermissionsDetails = useCallback(() => {
     navigation.navigate('AccountPermissionsAsFullScreen', {
       hostInfo: {
         metadata: {
@@ -76,7 +74,8 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
       },
       isRenderedAsBottomSheet: false,
     });
-  };
+  }, [navigation]);
+
   const renderPermissions = useCallback(
     () => (
       <>
