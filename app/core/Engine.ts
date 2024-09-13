@@ -805,7 +805,7 @@ class Engine {
         allowedEvents: [],
       }),
       state: initialKeyringState || initialState.KeyringController,
-      // @ts-expect-error Keyring type mismatch
+      // @ts-expect-error To Do: Update the type of QRHardwareKeyring to Keyring<Json>
       keyringBuilders: additionalKeyrings,
     });
 
