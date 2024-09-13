@@ -2,7 +2,8 @@ name: ci
 on:
   push:
     branches: main
-  pull_request:
+  pull_request_target:
+    types: [opened, edited]
 jobs:
   setup:
     runs-on: ubuntu-20.04
