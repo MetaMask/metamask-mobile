@@ -896,6 +896,7 @@ export const getRpcMethodMiddleware = ({
       metamask_logWeb3ShimUsage: () => (res.result = null),
       wallet_addEthereumChain: () => {
         checkTabActive();
+        console.warn('kylan RPCMethodMiddleWare calling RPCMethods.wallet_addEthereumChain');
         return RPCMethods.wallet_addEthereumChain({
           req,
           res,

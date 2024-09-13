@@ -33,6 +33,7 @@ const wallet_addEthereumChain = async ({
   startApprovalFlow,
   endApprovalFlow,
 }) => {
+  console.warn('kylan wallet_addEthereumChain executing')
   const { CurrencyRateController, NetworkController, ApprovalController } =
     Engine.context;
 
@@ -119,9 +120,11 @@ const wallet_addEthereumChain = async ({
   }
 
   const networkConfigurations = selectNetworkConfigurations(store.getState());
-  const existingEntry = Object.entries(networkConfigurations).find(
-    ([, networkConfiguration]) => networkConfiguration.chainId === _chainId,
-  );
+  console.log('kylan wallet_addEthereumChain req', req)
+  console.log('kylan wallet_addEthereumChain networkConfigurations', networkConfigurations)
+  const networkConfigValues = Object.values(networkConfigurations);
+  const existingEntry = networkConfigValues.find(({ chainId }) => chainId === _chainId);
+  console.log('kylan wallet_addEthereumChain existingEntry', existingEntry)
 
   if (existingEntry) {
     const [networkConfigurationId, networkConfiguration] = existingEntry;

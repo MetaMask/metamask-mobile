@@ -12,6 +12,7 @@ type ApprovalRequestType = ApprovalRequest<any>;
 
 const useApprovalRequest = () => {
   const pendingApprovals = useSelector(selectPendingApprovals, isEqual);
+  console.log('kylan pendingApprovals', pendingApprovals);
   const pendingApprovalList = Object.values(pendingApprovals ?? {});
 
   const firstPendingApproval = pendingApprovalList[0] as
