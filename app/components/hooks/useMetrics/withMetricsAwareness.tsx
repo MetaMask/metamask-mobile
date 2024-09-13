@@ -1,11 +1,10 @@
 import React, { ComponentType } from 'react';
 import useMetrics from './useMetrics';
-import { IWithMetricsAwarenessProps } from './withMetricsAwareness.types';
+import { IUseMetricsHook } from './useMetrics.types';
 
 const withMetricsAwareness =
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (Children: ComponentType<IWithMetricsAwarenessProps>) => (props: any) =>
-    <Children {...props} metrics={useMetrics()} />;
+  <P extends { metrics: IUseMetricsHook }>(Children: ComponentType<P>) =>
+  (props: Omit<P, 'metrics'>) =>
+    <Children {...(props as P)} metrics={useMetrics()} />;
 
 export default withMetricsAwareness;

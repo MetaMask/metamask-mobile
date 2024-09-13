@@ -1,5 +1,5 @@
-import PropTypes from 'prop-types';
-import React, { PureComponent } from 'react';
+// this whole file is unused; https://github.com/metaMask/metamask-mobile/pull/6085
+import React, { PureComponent, RefObject } from 'react';
 import {
   InteractionManager,
   ScrollView,
@@ -7,8 +7,10 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ViewStyle,
+  TextStyle,
 } from 'react-native';
-import { connect } from 'react-redux';
+import { connect, ConnectedProps } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { showAlert } from '../../../actions/alert';
@@ -43,12 +45,36 @@ import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
+import { IUseMetricsHook, withMetricsAwareness } from '../../hooks/useMetrics';
 import { isPortfolioUrl } from '../../../util/url';
 import { toLowerCaseEquals } from '../../../util/general';
+import { Dispatch } from 'redux';
+import { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
+import { RootState } from 'app/reducers';
 
-const createStyles = (colors) =>
-  StyleSheet.create({
+interface StylesType {
+  scrollView: ViewStyle;
+  wrapper: ViewStyle;
+  info: ViewStyle;
+  data: ViewStyle;
+  label: TextStyle;
+  labelInput: ViewStyle;
+  labelWrapper: ViewStyle;
+  tag: ViewStyle;
+  tagText: TextStyle;
+  addressWrapper: ViewStyle;
+  address: TextStyle;
+  amountFiat: TextStyle;
+  identiconBorder: ViewStyle;
+  onboardingWizardLabel: ViewStyle;
+  actions: ViewStyle;
+  netWorthContainer: ViewStyle;
+  portfolioLink: ViewStyle;
+  portfolioIcon: TextStyle;
+}
+
+const createStyles = (colors: ThemeColors): StylesType =>
+  StyleSheet.create<StylesType>({
     scrollView: {
       backgroundColor: colors.background.default,
     },
@@ -135,6 +161,7 @@ const createStyles = (colors) =>
       flexDirection: 'row',
     },
     netWorthContainer: {
+      // @ts-expect-error TODO (js-ts migration followups): delete this line since it's not a real css property (should be justifyContent)
       justifyItems: 'center',
       alignItems: 'center',
       flexDirection: 'row',
@@ -142,70 +169,31 @@ const createStyles = (colors) =>
     portfolioLink: { marginLeft: 5 },
     portfolioIcon: { color: colors.primary.default },
   });
+interface State {
+  accountLabelEditable: boolean;
+  accountLabel: string;
+  originalAccountLabel: string;
+  ens: string | undefined;
+}
 
 /**
  * View that's part of the <Wallet /> component
  * which shows information about the selected account
  */
-class AccountOverview extends PureComponent {
-  static propTypes = {
-    /**
-     * String that represents the selected address
-     */
-    selectedAddress: PropTypes.string,
-    /**
-    /* InternalAccounts object required to get account name
-    */
-    internalAccounts: PropTypes.object,
-    /**
-     * Object that represents the selected account
-     */
-    account: PropTypes.object,
-    /**
-    /* Triggers global alert
-    */
-    showAlert: PropTypes.func,
-    /**
-     * whether component is being rendered from onboarding wizard
-     */
-    onboardingWizard: PropTypes.bool,
-    /**
-     * Used to get child ref
-     */
-    onRef: PropTypes.func,
-    /**
-     * Prompts protect wallet modal
-     */
-    protectWalletModalVisible: PropTypes.func,
-    /**
-    /* navigation object required to access the props
-    /* passed by the parent component
-    */
-    navigation: PropTypes.object,
-    /**
-     * The chain ID for the current selected network
-     */
-    chainId: PropTypes.string,
-    /**
-     * Current opens tabs in browser
-     */
-    browserTabs: PropTypes.array,
-    /**
-     * Metrics injected by withMetricsAwareness HOC
-     */
-    metrics: PropTypes.object,
-  };
+class AccountOverview extends PureComponent<Props, State> {
+  static contextType = ThemeContext;
 
-  state = {
+  state: State = {
     accountLabelEditable: false,
     accountLabel: '',
     originalAccountLabel: '',
     ens: undefined,
   };
 
-  editableLabelRef = React.createRef();
-  scrollViewContainer = React.createRef();
-  mainView = React.createRef();
+  editableLabelRef: RefObject<View> = React.createRef();
+  scrollViewContainer: RefObject<View> = React.createRef();
+  mainView: RefObject<View> = React.createRef();
+  input: RefObject<TextInput> = React.createRef();
 
   openAccountSelector = () => {
     const { onboardingWizard, navigation } = this.props;
@@ -213,14 +201,14 @@ class AccountOverview extends PureComponent {
       navigation.navigate(...createAccountSelectorNavDetails({}));
   };
 
-  isAccountLabelDefined = (accountLabel) =>
+  isAccountLabelDefined = (accountLabel: string): boolean =>
     !!accountLabel && !!accountLabel.trim().length;
-
-  input = React.createRef();
 
   componentDidMount = () => {
     const { internalAccounts, selectedAddress, onRef } = this.props;
-    const accountLabel = renderAccountName(selectedAddress, internalAccounts);
+    // TODO (js-ts migration followups): properly guard the case where selectedAddress is undefined
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const accountLabel = renderAccountName(selectedAddress!, internalAccounts);
     this.setState({ accountLabel });
     onRef && onRef(this);
     InteractionManager.runAfterInteractions(() => {
@@ -228,11 +216,12 @@ class AccountOverview extends PureComponent {
     });
 
     if (!this.isAccountLabelDefined(accountLabel)) {
-      Engine.setAccountLabel(selectedAddress, 'Account');
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      Engine.setAccountLabel(selectedAddress!, 'Account');
     }
   };
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: Props) {
     if (
       prevProps.account.address !== this.props.account.address ||
       prevProps.chainId !== this.props.chainId
@@ -252,30 +241,38 @@ class AccountOverview extends PureComponent {
     );
 
     Engine.setAccountLabel(
-      selectedAddress,
+      // TODO (js-ts migration followups): properly guard the case where selectedAddress is undefined
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      selectedAddress!,
       this.isAccountLabelDefined(accountLabel)
         ? accountLabel
-        : accountWithMatchingToAddress.metadata.name,
+        : // TODO (js-ts migration followups): properly guard the case where accountWithMatchingToAddress is undefined
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          accountWithMatchingToAddress!.metadata.name,
     );
     this.setState({ accountLabelEditable: false });
   };
 
-  onAccountLabelChange = (accountLabel) => {
+  onAccountLabelChange = (accountLabel: string) => {
     this.setState({ accountLabel });
   };
 
   setAccountLabelEditable = () => {
     const { internalAccounts, selectedAddress } = this.props;
-    const accountLabel = renderAccountName(selectedAddress, internalAccounts);
+    // TODO (js-ts migration followups): properly guard the case where selectedAddress is undefined
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const accountLabel = renderAccountName(selectedAddress!, internalAccounts);
     this.setState({ accountLabelEditable: true, accountLabel });
     setTimeout(() => {
-      this.input && this.input.current && this.input.current.focus();
+      this.input.current?.focus();
     }, 100);
   };
 
   cancelAccountLabelEdition = () => {
     const { internalAccounts, selectedAddress } = this.props;
-    const accountLabel = renderAccountName(selectedAddress, internalAccounts);
+    // TODO (js-ts migration followups): properly guard the case where selectedAddress is undefined
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const accountLabel = renderAccountName(selectedAddress!, internalAccounts);
     this.setState({ accountLabelEditable: false, accountLabel });
   };
 
@@ -304,7 +301,7 @@ class AccountOverview extends PureComponent {
 
   onOpenPortfolio = () => {
     const { navigation, browserTabs } = this.props;
-    const existingPortfolioTab = browserTabs.find((tab) =>
+    const existingPortfolioTab = browserTabs.find((tab: $FIXME) =>
       isPortfolioUrl(tab.url),
     );
     let existingTabId;
@@ -443,7 +440,7 @@ class AccountOverview extends PureComponent {
   }
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = (state: RootState) => ({
   selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   internalAccounts: selectInternalAccounts(state),
   currentCurrency: selectCurrentCurrency(state),
@@ -451,17 +448,27 @@ const mapStateToProps = (state) => ({
   browserTabs: state.browser.tabs,
 });
 
-const mapDispatchToProps = (dispatch) => ({
-  showAlert: (config) => dispatch(showAlert(config)),
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  showAlert: ((config) => dispatch(showAlert(config))) as typeof showAlert,
   protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
-  newAssetTransaction: (selectedAsset) =>
-    dispatch(newAssetTransaction(selectedAsset)),
-  toggleReceiveModal: (asset) => dispatch(toggleReceiveModal(asset)),
+  newAssetTransaction: (
+    selectedAsset: $FIXME, // unused prop
+  ) => dispatch(newAssetTransaction(selectedAsset)),
+  toggleReceiveModal: (asset: $FIXME) => dispatch(toggleReceiveModal(asset)),
 });
 
 AccountOverview.contextType = ThemeContext;
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(withMetricsAwareness(AccountOverview));
+const connector = connect(mapStateToProps, mapDispatchToProps);
+
+interface Props extends ConnectedProps<typeof connector> {
+  account: {
+    address: string;
+    name: string;
+  };
+  onboardingWizard?: boolean;
+  onRef?: (ref: AccountOverview) => void;
+  navigation?: $FIXME;
+  metrics: IUseMetricsHook;
+}
+export default connector(withMetricsAwareness(AccountOverview));

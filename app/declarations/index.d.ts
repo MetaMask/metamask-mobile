@@ -291,3 +291,5 @@ declare module '@metamask/react-native-actionsheet' {
   const ActionSheet;
   export default ActionSheet;
 }
+
+type $FIXME = any; // eslint-disable-line @typescript-eslint/no-explicit-any

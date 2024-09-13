@@ -48,6 +48,7 @@ describe('AccountOverview', () => {
       address: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
       balanceFiat: 1604.2,
       label: 'Account 1',
+      name: '',
     };
     const { toJSON } = renderWithProvider(
       <AccountOverview account={account} />,
