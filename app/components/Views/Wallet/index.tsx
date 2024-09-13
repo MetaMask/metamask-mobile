@@ -85,7 +85,7 @@ import {
 } from '../../../selectors/notifications';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
-import { useAccountSyncingEffect } from '../../../util/notifications/hooks/useProfileSyncing';
+import { useAccountSyncing } from '../../../util/notifications/hooks/useProfileSyncing';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -150,6 +150,7 @@ const Wallet = ({
 }: WalletProps) => {
   const { navigate } = useNavigation();
   const { listNotifications } = useListNotifications();
+  const { dispatchAccountSyncing } = useAccountSyncing();
   const walletRef = useRef(null);
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
@@ -406,7 +407,12 @@ const Wallet = ({
   }, [listNotifications]);
 
   // Effect - dispatch account syncing
-  useAccountSyncingEffect();
+  useEffect(() => {
+    if (currentRouteName !== 'Wallet') {
+      return;
+    }
+    dispatchAccountSyncing();
+  }, [dispatchAccountSyncing, currentRouteName]);
 
   useEffect(() => {
     navigation.setOptions(

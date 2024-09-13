@@ -197,7 +197,7 @@ describe('useAccountSyncing', () => {
     };
   }
 
-  it('dispatches account syncing and return loading as false and error as undefined', async () => {
+  it('dispatches account syncing and error as undefined', async () => {
     const mockActions = arrangeActions();
 
     const { result } = arrangeHook();
@@ -226,7 +226,6 @@ describe('useAccountSyncing', () => {
       mockActions.syncInternalAccountsWithUserStorageAction,
     ).toHaveBeenCalledTimes(1);
     expect(result.current.error).toBeDefined();
-    expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toEqual(
       'MOCK - failed to sync internal account with user storage',
     );
