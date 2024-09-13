@@ -36,7 +36,7 @@ import {
   AddressBookController,
   AddressBookState,
 } from '@metamask/address-book-controller';
-import { BaseState } from '@metamask/base-controller';
+import { BaseState, Listener } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
@@ -212,19 +212,28 @@ import {
   networkIdUpdated,
   networkIdWillUpdate,
 } from '../core/redux/slices/inpageProvider';
-import SmartTransactionsController from '@metamask/smart-transactions-controller';
+import SmartTransactionsController, {
+  type SmartTransactionsControllerState,
+} from '@metamask/smart-transactions-controller';
 import { getAllowedSmartTransactionsChainIds } from '../../app/constants/smartTransactions';
 import { selectShouldUseSmartTransaction } from '../selectors/smartTransactionsController';
 import { selectSwapsChainFeatureFlags } from '../reducers/swaps';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { submitSmartTransactionHook } from '../util/smart-transactions/smart-publish-hook';
-import { SmartTransactionsControllerState } from '@metamask/smart-transactions-controller/dist/SmartTransactionsController';
 import { zeroAddress } from 'ethereumjs-util';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
 import EthQuery from '@metamask/eth-query';
 import { TransactionControllerOptions } from '@metamask/transaction-controller/dist/types/TransactionController';
 import DomainProxyMap from '../lib/DomainProxyMap/DomainProxyMap';
+import {
+  MetaMetricsEventCategory,
+  MetaMetricsEventName,
+} from '@metamask/smart-transactions-controller/dist/constants';
+import {
+  getSmartTransactionMetricsProperties,
+  getSmartTransactionMetricsSensitiveProperties,
+} from '@metamask/smart-transactions-controller/dist/utils';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1250,13 +1259,20 @@ class Engine {
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
 
-    const smartTransactionsControllerTrackMetaMetricsEvent = (params: {
-      event: string;
-      category: string;
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      sensitiveProperties: any;
-    }) => {
+    const smartTransactionsControllerTrackMetaMetricsEvent = (
+      params: {
+        event: MetaMetricsEventName;
+        category: MetaMetricsEventCategory;
+        properties?: ReturnType<typeof getSmartTransactionMetricsProperties>;
+        sensitiveProperties?: ReturnType<
+          typeof getSmartTransactionMetricsSensitiveProperties
+        >;
+      },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      options?: {
+        metaMetricsId?: string;
+      },
+    ) => {
       const { event, category, ...restParams } = params;
 
       MetaMetrics.getInstance().trackEvent(
@@ -1269,40 +1285,35 @@ class Engine {
         restParams,
       );
     };
-    this.smartTransactionsController = new SmartTransactionsController(
-      {
-        confirmExternalTransaction:
-          this.transactionController.confirmExternalTransaction.bind(
-            this.transactionController,
-          ),
-        getNetworkClientById:
-          networkController.getNetworkClientById.bind(networkController),
-        getNonceLock: this.transactionController.getNonceLock.bind(
+    this.smartTransactionsController = new SmartTransactionsController({
+      confirmExternalTransaction:
+        this.transactionController.confirmExternalTransaction.bind(
           this.transactionController,
         ),
-        getTransactions: this.transactionController.getTransactions.bind(
-          this.transactionController,
+      getNetworkClientById:
+        networkController.getNetworkClientById.bind(networkController),
+      getNonceLock: this.transactionController.getNonceLock.bind(
+        this.transactionController,
+      ),
+      getTransactions: this.transactionController.getTransactions.bind(
+        this.transactionController,
+      ),
+      onNetworkStateChange: (listener: Listener<NetworkState>) =>
+        this.controllerMessenger.subscribe(
+          AppConstants.NETWORK_STATE_CHANGE_EVENT,
+          listener,
         ),
-        onNetworkStateChange: (listener) =>
-          this.controllerMessenger.subscribe(
-            AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            listener,
-          ),
+      // TODO: Replace "any" with type
+      provider:
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        networkController.getProviderAndBlockTracker().provider as any,
 
-        // TODO: Replace "any" with type
-        provider:
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          networkController.getProviderAndBlockTracker().provider as any,
-
-        trackMetaMetricsEvent: smartTransactionsControllerTrackMetaMetricsEvent,
-        getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
-      },
-      {
-        // @ts-expect-error TODO: resolve types
-        supportedChainIds: getAllowedSmartTransactionsChainIds(),
-      },
-      initialState.SmartTransactionsController,
-    );
+      trackMetaMetricsEvent: smartTransactionsControllerTrackMetaMetricsEvent,
+      getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
+      // @ts-expect-error TODO: resolve types
+      supportedChainIds: getAllowedSmartTransactionsChainIds(),
+      state: initialState.SmartTransactionsController,
+    });
 
     const controllers: Controllers[keyof Controllers][] = [
       keyringController,
