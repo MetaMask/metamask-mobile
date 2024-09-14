@@ -348,6 +348,15 @@ Given(/^I close all the onboarding modals$/, async () => {
   } catch {
     console.log('The marketing consent modal is not visible');
   }
+  try {
+    await OnboardingWizardModal.isVisible();
+    await OnboardingWizardModal.tapNoThanksButton();
+    await OnboardingWizardModal.isNotVisible();
+  } catch {
+    /* eslint-disable no-console */
+
+    console.log('The onboarding modal is not visible');
+  }
 });
 Then(/^I use the back button on Android$/, async () => {
   await driver.back();
