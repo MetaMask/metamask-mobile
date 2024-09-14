@@ -30,7 +30,7 @@ Files to refactor:
 [x] app/components/Base/Keypad/createKeypadRule.test.js
 [x] app/actions/infuraAvailability/index.js
 [x] app/lib/ens-ipfs/contracts/registry.js
-[ ] app/lib/ens-ipfs/contracts/resolver.js
+[x] app/lib/ens-ipfs/contracts/resolver.js
 [ ] app/store/migrations/024.test.js
 [ ] app/store/migrations/025.test.js
 [ ] app/store/migrations/027.test.js
