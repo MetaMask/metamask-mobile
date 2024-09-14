@@ -14,7 +14,7 @@ Files to refactor:
 [x] app/util/gasUtils.js
 [x] app/util/dapp-url-list.js
 [x] app/images/image-icons.js
-[ ] app/constants/onboarding.js
+[x] app/constants/onboarding.js
 [ ] app/constants/navigation.js
 [ ] app/constants/network.js
 [ ] app/components/UI/StyledButton/StyledButton.stories.js
