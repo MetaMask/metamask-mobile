@@ -19,7 +19,7 @@ Files to refactor:
 [x] app/constants/network.js
 [x] app/components/UI/StyledButton/StyledButton.stories.js
 [x] app/components/UI/TransactionElement/utils.test.js
-[ ] app/components/UI/Swaps/components/LoadingAnimation/backgroundShapes.js
+[x] app/components/UI/Swaps/components/LoadingAnimation/backgroundShapes.js
 [ ] app/components/UI/Swaps/components/TokenIcon.test.js
 [ ] app/components/UI/Swaps/components/TokenSelectButton.test.js
 [ ] app/components/UI/Screen/index.js
