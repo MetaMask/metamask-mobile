@@ -3,7 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 
 import Engine from '../../../../core/Engine';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import AssetSettings from './';
+import AssetSettings from '.';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { TOKEN_DETECTION_TOGGLE } from './AutoDetectTokensSettings.constants';
 
