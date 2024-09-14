@@ -9,7 +9,7 @@ Files to refactor:
 [x] app/core/PreventScreenshot.js
 [x] app/core/TransactionTypes.js
 [x] app/util/test/smart-contracts.js
-[ ] app/util/walletconnect.js
+[x] app/util/walletconnect.js
 [ ] app/util/device/index.js
 [ ] app/util/gasUtils.js
 [ ] app/util/dapp-url-list.js
