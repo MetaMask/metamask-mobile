@@ -8,7 +8,7 @@ Files to refactor:
 [x] app/__mocks__/react-native-view-shot.js
 [x] app/core/PreventScreenshot.js
 [x] app/core/TransactionTypes.js
-[ ] app/util/test/smart-contracts.js
+[x] app/util/test/smart-contracts.js
 [ ] app/util/walletconnect.js
 [ ] app/util/device/index.js
 [ ] app/util/gasUtils.js
