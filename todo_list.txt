@@ -23,7 +23,7 @@ Files to refactor:
 [x] app/components/UI/Swaps/components/TokenIcon.test.js
 [x] app/components/UI/Swaps/components/TokenSelectButton.test.js
 [x] app/components/UI/Screen/index.js
-[ ] app/components/UI/UrlAutocomplete/index.test.js
+[x] app/components/UI/UrlAutocomplete/index.test.js
 [ ] app/components/Views/Asset/index.test.js
 [ ] app/components/Views/confirmations/components/TransactionReview/TransactionReviewDetailsCard/index.test.js
 [ ] app/components/Base/Title.stories.js
