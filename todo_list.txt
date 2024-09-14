@@ -6,7 +6,7 @@ Files to refactor:
 [x] app/__mocks__/svgMock.js
 [x] app/__mocks__/react-native-device-info.js
 [x] app/__mocks__/react-native-view-shot.js
-[ ] app/core/PreventScreenshot.js
+[x] app/core/PreventScreenshot.js
 [ ] app/core/TransactionTypes.js
 [ ] app/util/test/smart-contracts.js
 [ ] app/util/walletconnect.js
