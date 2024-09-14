@@ -36,6 +36,6 @@ Files to refactor:
 [x] app/store/migrations/027.test.js
 [x] app/store/migrations/026.test.js
 [x] app/store/migrations/019.test.js
-[ ] app/store/migrations/023.test.js
+[x] app/store/migrations/023.test.js
 [ ] app/store/migrations/022.test.js
 [ ] app/store/migrations/028.test.js
