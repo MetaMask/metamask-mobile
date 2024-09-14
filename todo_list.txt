@@ -4,7 +4,7 @@ Files to refactor:
 [x] app/__mocks__/react-native-splash-screen.js
 [x] app/__mocks__/rn-fetch-blob.js
 [x] app/__mocks__/svgMock.js
-[ ] app/__mocks__/react-native-device-info.js
+[x] app/__mocks__/react-native-device-info.js
 [ ] app/__mocks__/react-native-view-shot.js
 [ ] app/core/PreventScreenshot.js
 [ ] app/core/TransactionTypes.js
