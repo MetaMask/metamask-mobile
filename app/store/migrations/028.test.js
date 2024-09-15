@@ -1,156 +1,117 @@
-import { hasProperty, isObject } from '@metamask/utils';
-import { captureException } from '@sentry/react-native';
-import { deepJSONParse } from '../../util/general';
-import FilesystemStorage from 'redux-persist-filesystem-storage';
-import Device from '../../util/device';
+import migrate, { controllerList } from './028';
 
-export const controllerList = [
-  { name: 'AccountTrackerController' },
-  { name: 'AddressBookController' },
-  { name: 'AssetsContractController' },
-  { name: 'NftController' },
-  { name: 'TokensController' },
-  { name: 'TokenDetectionController' },
-  { name: 'NftDetectionController' },
-  {
-    name: 'KeyringController',
-  },
-  { name: 'AccountTrackerController' },
-  {
-    name: 'NetworkController',
-  },
-  { name: 'PhishingController' },
-  { name: 'PreferencesController' },
-  { name: 'TokenBalancesController' },
-  { name: 'TokenRatesController' },
-  { name: 'TransactionController' },
-  { name: 'SwapsController' },
-  {
-    name: 'TokenListController',
-  },
-  {
-    name: 'CurrencyRateController',
-  },
-  {
-    name: 'GasFeeController',
-  },
-  {
-    name: 'ApprovalController',
-  },
-  {
-    name: 'SnapController',
-  },
-  {
-    name: 'subjectMetadataController',
-  },
-  {
-    name: 'PermissionController',
-  },
-  {
-    name: 'LoggingController',
-  },
-  {
-    name: 'PPOMController',
-  },
-];
+jest.mock('@metamask/utils', () => ({
+  hasProperty: jest.fn(),
+  isObject: jest.fn(),
+}));
 
-/**
- * Migrate back to use the old root architecture (Single root object)
- *
- * @param {unknown} state - Redux state
- * @returns
- */
-export default async function migrate(state: unknown) {
-  if (!isObject(state)) {
-    captureException(
-      new Error(
-        `Migration 28: Invalid root state: root state is not an object`,
-      ),
-    );
-    return state;
-  }
-  // Engine already exists. No need to migrate.
-  if (state.engine) {
-    return state;
-  }
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
+}));
 
-  const newEngineState = { backgroundState: {} } as Record<
-    string,
-    Record<string, unknown>
-  >;
-  // Populate root object with controller data
-  const controllerMergeMigration = controllerList.map(
-    async ({ name: controllerName }) => {
-      const persistedControllerKey = `persist:${controllerName}`;
-      try {
-        // Read from persisted controller file and populate root
-        const persistedControllerData = await FilesystemStorage.getItem(
-          persistedControllerKey,
-        );
+jest.mock('../../util/general', () => ({
+  deepJSONParse: jest.fn(),
+}));
 
-        if (persistedControllerData) {
-          const persistedControllerJSON = deepJSONParse({
-            jsonString: persistedControllerData,
-          });
+jest.mock('redux-persist-filesystem-storage', () => ({
+  setItem: jest.fn(),
+  getItem: jest.fn(),
+  removeItem: jest.fn(),
+  getAllKeys: jest.fn(),
+  clear: jest.fn(),
+}));
 
-          if (hasProperty(persistedControllerJSON, '_persist')) {
-            const { _persist, ...controllerJSON } = persistedControllerJSON;
-            newEngineState.backgroundState[controllerName] = controllerJSON;
-          } else {
-            newEngineState.backgroundState[controllerName] =
-              persistedControllerJSON;
-          }
-        }
-      } catch (e) {
-        captureException(
-          new Error(
-            `Migration 28: Failed to populate root object with persisted controller data for key ${persistedControllerKey}: ${String(
-              e,
-            )}`,
-          ),
-        );
-      }
-    },
-  );
+describe('Migration #28', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-  // Execute controller merge migration in parallel
-  await Promise.all(controllerMergeMigration);
+  jest.mock('@sentry/react-native', () => ({
+    captureException: jest.fn(),
+  }));
 
-  // Set engine on root object
-  state.engine = newEngineState;
+  it('should return state unchanged if it is not an object', async () => {
+    const state = 'invalid_state';
+    const result = await migrate(state);
 
-  try {
-    const rootKey = `persist:root`;
-    // Manually update the persisted root file
-    await FilesystemStorage.setItem(
-      rootKey,
-      JSON.stringify(state),
-      Device.isIos(),
-    );
-    // Root file successfully populated with controller data - Can safely delete persisted controller files
-    const controllerDeleteMigration = controllerList.map(async ({ name }) => {
-      const persistedControllerKey = `persist:${name}`;
-      try {
-        // Remove persisted controller file
-        await FilesystemStorage.removeItem(persistedControllerKey);
-      } catch (e) {
-        captureException(
-          new Error(
-            `Migration 28: Failed to remove key ${persistedControllerKey}: ${String(
-              e,
-            )}`,
-          ),
-        );
-      }
-    });
+    expect(result).toEqual(state);
+    expect(
+      require('@sentry/react-native').captureException,
+    ).toHaveBeenCalledWith(expect.any(Error));
+    expect(
+      require('@sentry/react-native').captureException,
+    ).toHaveBeenCalledTimes(1);
+    expect(require('@metamask/utils').isObject).toHaveBeenCalledTimes(1);
+  });
 
-    // Execute deleting persisted controller files in parallel
-    await Promise.all(controllerDeleteMigration);
-  } catch (e) {
-    captureException(
-      new Error(`Migration 28: Failed to get root data: ${String(e)}`),
-    );
-  }
+  it('should return state unchanged if engine already exists in state', async () => {
+    const state = { engine: {} };
+    const result = await migrate(state);
 
-  return state;
-}
+    expect(result).toEqual(state);
+    expect(
+      require('redux-persist-filesystem-storage').getItem,
+    ).not.toHaveBeenCalled();
+    expect(require('@metamask/utils').isObject).toHaveBeenCalledTimes(1);
+  });
+
+  it('should properly migrate state', async () => {
+    const persistedData = { someData: 'example' };
+    const getItemMock = jest
+      .fn()
+      .mockResolvedValue(JSON.stringify(persistedData));
+    const setItemMock = jest.fn().mockResolvedValue(undefined);
+    const removeItemMock = jest.fn().mockResolvedValue(undefined);
+    const deepJSONParseMock = jest.fn().mockReturnValue(persistedData);
+    const hasPropertyMock = jest.fn().mockReturnValue(false);
+
+    require('@metamask/utils').isObject.mockReturnValue(true);
+    require('../../util/general').deepJSONParse = deepJSONParseMock;
+    require('redux-persist-filesystem-storage').getItem = getItemMock;
+    require('redux-persist-filesystem-storage').setItem = setItemMock;
+    require('redux-persist-filesystem-storage').removeItem = removeItemMock;
+    require('@metamask/utils').hasProperty = hasPropertyMock;
+
+    const state = {};
+    const result = await migrate(state);
+    // eslint-disable-next-line
+    const mockValue = `{\"engine\":{\"backgroundState\":{\"AccountTrackerController\":{\"someData\":\"example\"},\"AddressBookController\":{\"someData\":\"example\"},\"AssetsContractController\":{\"someData\":\"example\"},\"NftController\":{\"someData\":\"example\"},\"TokensController\":{\"someData\":\"example\"},\"TokenDetectionController\":{\"someData\":\"example\"},\"NftDetectionController\":{\"someData\":\"example\"},\"KeyringController\":{\"someData\":\"example\"},\"NetworkController\":{\"someData\":\"example\"},\"PhishingController\":{\"someData\":\"example\"},\"PreferencesController\":{\"someData\":\"example\"},\"TokenBalancesController\":{\"someData\":\"example\"},\"TokenRatesController\":{\"someData\":\"example\"},\"TransactionController\":{\"someData\":\"example\"},\"SwapsController\":{\"someData\":\"example\"},\"TokenListController\":{\"someData\":\"example\"},\"CurrencyRateController\":{\"someData\":\"example\"},\"GasFeeController\":{\"someData\":\"example\"},\"ApprovalController\":{\"someData\":\"example\"},\"SnapController\":{\"someData\":\"example\"},\"subjectMetadataController\":{\"someData\":\"example\"},\"PermissionController\":{\"someData\":\"example\"},\"LoggingController\":{\"someData\":\"example\"},\"PPOMController\":{\"someData\":\"example\"}}}}`;
+
+    const mockEngine = {
+      AccountTrackerController: { someData: 'example' },
+      AddressBookController: { someData: 'example' },
+      AssetsContractController: { someData: 'example' },
+      NftController: { someData: 'example' },
+      TokensController: { someData: 'example' },
+      TokenDetectionController: { someData: 'example' },
+      NftDetectionController: { someData: 'example' },
+      KeyringController: { someData: 'example' },
+      NetworkController: { someData: 'example' },
+      PhishingController: { someData: 'example' },
+      PreferencesController: { someData: 'example' },
+      TokenBalancesController: { someData: 'example' },
+      TokenRatesController: { someData: 'example' },
+      TransactionController: { someData: 'example' },
+      SwapsController: { someData: 'example' },
+      TokenListController: { someData: 'example' },
+      CurrencyRateController: { someData: 'example' },
+      GasFeeController: { someData: 'example' },
+      ApprovalController: { someData: 'example' },
+      SnapController: { someData: 'example' },
+      subjectMetadataController: { someData: 'example' },
+      PermissionController: { someData: 'example' },
+      LoggingController: { someData: 'example' },
+      PPOMController: { someData: 'example' },
+    };
+
+    expect(deepJSONParseMock).toHaveBeenCalledTimes(controllerList.length);
+    expect(hasPropertyMock).toHaveBeenCalledTimes(controllerList.length);
+    expect(getItemMock).toHaveBeenCalledTimes(controllerList.length);
+    expect(setItemMock).toHaveBeenCalledWith('persist:root', mockValue, true);
+    expect(removeItemMock).toHaveBeenCalledTimes(controllerList.length);
+    expect(result).toEqual({ engine: { backgroundState: mockEngine } });
+    expect(
+      require('@sentry/react-native').captureException,
+    ).not.toHaveBeenCalled();
+  });
+});
