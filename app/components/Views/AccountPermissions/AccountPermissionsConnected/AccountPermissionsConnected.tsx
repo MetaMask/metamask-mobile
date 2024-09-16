@@ -26,10 +26,7 @@ import getAccountNameWithENS from '../../../../util/accounts';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectProviderConfig } from '../../../../selectors/networkController';
-import {
-  selectNetworkName,
-  selectNetworkImageSource,
-} from '../../../../selectors/networkInfos';
+import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectedAccountModal.selectors';
 
 // Internal dependencies.
@@ -67,8 +64,8 @@ const AccountPermissionsConnected = ({
   const { trackEvent } = useMetrics();
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
-  const networkName = useSelector(selectNetworkName);
-  const networkImageSource = useSelector(selectNetworkImageSource);
+
+  const { networkName, networkImageSource } = useNetworkInfo(hostname);
 
   const activeAddress = selectedAddresses[0];
   const { toastRef } = useContext(ToastContext);
