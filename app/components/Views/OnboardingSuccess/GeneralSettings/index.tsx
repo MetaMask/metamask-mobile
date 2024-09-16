@@ -16,6 +16,7 @@ import styles from './index.styles';
 import ProfileSyncingComponent from '../../../../components/UI/ProfileSyncing/ProfileSyncing';
 import { useSelector } from 'react-redux';
 import { selectIsProfileSyncingEnabled } from '../../../../selectors/notifications';
+import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
 import { enableProfileSyncing } from '../../../../actions/notification/helpers';
 import { RootState } from '../../../../reducers';
 
@@ -71,11 +72,13 @@ const GeneralSettings = () => {
   return (
     <ScrollView style={styles.root}>
       <BasicFunctionalityComponent handleSwitchToggle={handleSwitchToggle} />
-      <ProfileSyncingComponent
-        handleSwitchToggle={toggleProfileSyncing}
-        isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
-        isProfileSyncingEnabled={isProfileSyncingEnabled}
-      />
+      {isNotificationsFeatureEnabled() && (
+        <ProfileSyncingComponent
+          handleSwitchToggle={toggleProfileSyncing}
+          isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
+          isProfileSyncingEnabled={isProfileSyncingEnabled}
+        />
+      )}
       <ManageNetworksComponent />
     </ScrollView>
   );

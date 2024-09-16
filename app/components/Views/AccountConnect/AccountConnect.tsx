@@ -560,6 +560,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         setScreen(AccountConnectScreens.MultiConnectSelector);
       },
       onUserAction: setUserIntent,
+      isAlreadyConnected: false,
     };
     return <PermissionsSummary {...permissionsSummaryProps} />;
   }, [faviconSource, urlWithProtocol]);

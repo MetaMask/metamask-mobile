@@ -94,6 +94,7 @@ import AutoDetectNFTSettings from '../../Settings/AutoDetectNFTSettings';
 import IPFSGatewaySettings from '../../Settings/IPFSGatewaySettings';
 import IncomingTransactionsSettings from '../../Settings/IncomingTransactionsSettings';
 import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSettings';
+import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -574,11 +575,13 @@ const Settings: React.FC = () => {
             handleSwitchToggle={toggleBasicFunctionality}
           />
         </View>
-        <ProfileSyncingComponent
-          handleSwitchToggle={toggleProfileSyncing}
-          isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
-          isProfileSyncingEnabled={isProfileSyncingEnabled}
-        />
+        {isNotificationsFeatureEnabled() && (
+          <ProfileSyncingComponent
+            handleSwitchToggle={toggleProfileSyncing}
+            isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
+            isProfileSyncingEnabled={isProfileSyncingEnabled}
+          />
+        )}
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}
