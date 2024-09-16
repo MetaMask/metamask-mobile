@@ -8,9 +8,6 @@ on:
       - closed
   merge_group:
     types: [checks_requested]
-    types: [checks_requested]
-    types: [checks_requested]
-    types: [checks_requested]
 
 jobs:
   add-release-label:
