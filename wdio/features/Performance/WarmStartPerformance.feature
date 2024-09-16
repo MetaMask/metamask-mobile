@@ -17,7 +17,7 @@ Feature: App Warm Start Launch Times with an imported wallet
     When I background the app for 30 seconds
     And the app is move to the foreground
     And the timer starts running
-    Then The Login screen should be visible in "4" seconds
+    Then The Login screen should be visible in "2" seconds
     And I fill my password in the Login screen
     And The timer starts running after I tap the login button
     Then The wallet view appears in "6" seconds
