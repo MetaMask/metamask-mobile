@@ -469,7 +469,7 @@ const NetworkSelector = () => {
                 size: AvatarSize.Sm,
               }}
               isSelected={Boolean(
-                chainId === providerConfig.chainId && providerConfig.rpcUrl,
+                rpcUrl === providerConfig.rpcUrl,
               )}
               onPress={() => onSetRpcTarget(rpcUrl)}
               style={styles.networkCell}
@@ -502,7 +502,7 @@ const NetworkSelector = () => {
               size: avatarSize,
             }}
             isSelected={Boolean(
-              chainId === providerConfig.chainId && providerConfig.rpcUrl,
+              rpcUrl === providerConfig.rpcUrl,
             )}
             onPress={() => onSetRpcTarget(rpcUrl)}
             style={styles.networkCell}
