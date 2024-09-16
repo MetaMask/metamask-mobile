@@ -195,17 +195,15 @@ export async function switchToNetwork({
     SelectedNetworkController,
   } = controllers;
 
-  let networkConfigurationId, networkConfiguration;
-  if (Array.isArray(network)) {
-    [networkConfigurationId, networkConfiguration] = network;
-  } else {
-    networkConfiguration = network;
-  }
+  const [networkConfigurationId, networkConfiguration] = network;
 
   const requestData = {
     rpcUrl: networkConfiguration.rpcUrl,
     chainId,
-    chainName: networkConfiguration.nickname || networkConfiguration.shortName,
+    chainName:
+      networkConfiguration.chainName ||
+      networkConfiguration.nickname ||
+      networkConfiguration.shortName,
     ticker: networkConfiguration.ticker || 'ETH',
   };
 

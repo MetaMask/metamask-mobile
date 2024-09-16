@@ -59,10 +59,10 @@ const wallet_addEthereumChain = async ({
   const existingNetwork = findExistingNetwork(chainId, networkConfigurations);
 
   if (existingNetwork) {
-    const analyticsParams = await switchToNetwork(
-      existingNetwork,
+    const analyticsParams = await switchToNetwork({
+      network: existingNetwork,
       chainId,
-      {
+      controllers: {
         CurrencyRateController,
         NetworkController,
         PermissionController,
@@ -71,7 +71,7 @@ const wallet_addEthereumChain = async ({
       requestUserApproval,
       analytics,
       origin,
-    );
+    });
 
     MetaMetrics.getInstance().trackEvent(
       MetaMetricsEvents.NETWORK_SWITCHED,
