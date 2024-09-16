@@ -10,7 +10,6 @@ export interface PermissionsSummaryProps {
   onEditNetworks?: () => void;
   onBack?: () => void;
   onUserAction?: React.Dispatch<React.SetStateAction<USER_INTENT>>;
-  showHeader?: boolean;
   showActionButtons?: boolean;
   isInitialDappConnection?: boolean;
   isAlreadyConnected?: boolean;

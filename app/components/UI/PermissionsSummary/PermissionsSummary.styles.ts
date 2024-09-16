@@ -2,15 +2,12 @@ import { StyleSheet } from 'react-native';
 import Device from '../../../util/device';
 import { Theme } from '../../../util/theme/models';
 
-const createStyles = (params: {
-  vars: { showHeader: boolean };
-  theme: Theme;
-}) => {
-  const { vars, theme } = params;
+const createStyles = (params: { theme: Theme }) => {
+  const { theme } = params;
   return StyleSheet.create({
     mainContainer: {
       backgroundColor: theme.colors.background.default,
-      paddingTop: vars.showHeader ? 24 : 0,
+      paddingTop: 24,
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
       minHeight: 200,

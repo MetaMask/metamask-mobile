@@ -41,13 +41,12 @@ const PermissionsSummary = ({
   onEditNetworks,
   onBack,
   onUserAction,
-  showHeader = true, // TODO: if this is used only with the top margin, can a common one be found for bottomSheet and fullscreen mode now that we have safe area view?
   showActionButtons = true,
   isInitialDappConnection = true,
   isAlreadyConnected = true,
 }: PermissionsSummaryProps) => {
   const { colors } = useTheme();
-  const { styles } = useStyles(styleSheet, { showHeader });
+  const { styles } = useStyles(styleSheet, {});
   const selectedAccount = useSelectedAccount();
   const networkName = useSelector(selectNetworkName);
 
@@ -221,7 +220,7 @@ const PermissionsSummary = ({
   return (
     <SafeAreaView>
       <View style={styles.mainContainer}>
-        {showHeader && renderHeader()}
+        {renderHeader()}
         <View style={styles.title}>
           <TextComponent variant={TextVariant.HeadingSM}>
             {isInitialDappConnection
