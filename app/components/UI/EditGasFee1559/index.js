@@ -143,6 +143,9 @@ const createStyles = (colors) =>
       marginLeft: 2,
       color: colors.error.default,
     },
+    infoIcon: {
+      marginLeft: 2,
+    },
   });
 
 /**
@@ -202,6 +205,19 @@ const EditGasFee1559 = ({
   const { trackEvent } = useMetrics();
 
   const styles = createStyles(colors);
+
+  const RenderInfoIcon = useCallback(
+    (onPress, style = {}) => (
+      <TouchableOpacity hitSlop={styles.hitSlop} onPress={onPress}>
+        <MaterialCommunityIcon
+          name="information"
+          size={14}
+          style={[styles.labelInfo, style]}
+        />
+      </TouchableOpacity>
+    ),
+    [styles],
+  );
 
   const getAnalyticsParams = useCallback(() => {
     try {
@@ -449,16 +465,9 @@ const EditGasFee1559 = ({
                         {strings('edit_gas_fee_eip1559.gas_limit')}{' '}
                       </Text>
 
-                      <TouchableOpacity
-                        hitSlop={styles.hitSlop}
+                      <RenderInfoIcon
                         onPress={() => setShowInfoModal('gas_limit')}
-                      >
-                        <MaterialCommunityIcon
-                          name="information"
-                          size={14}
-                          style={styles.labelInfo}
-                        />
-                      </TouchableOpacity>
+                      />
                     </View>
                   }
                   min={GAS_LIMIT_MIN}
@@ -476,16 +485,9 @@ const EditGasFee1559 = ({
                         {strings('edit_gas_fee_eip1559.max_priority_fee')}{' '}
                       </Text>
 
-                      <TouchableOpacity
-                        hitSlop={styles.hitSlop}
+                      <RenderInfoIcon
                         onPress={() => setShowInfoModal('max_priority_fee')}
-                      >
-                        <MaterialCommunityIcon
-                          name="information"
-                          size={14}
-                          style={styles.labelInfo}
-                        />
-                      </TouchableOpacity>
+                      />
                     </View>
                   }
                   rightLabelComponent={
@@ -526,16 +528,9 @@ const EditGasFee1559 = ({
                         {strings('edit_gas_fee_eip1559.max_fee')}{' '}
                       </Text>
 
-                      <TouchableOpacity
-                        hitSlop={styles.hitSlop}
+                      <RenderInfoIcon
                         onPress={() => setShowInfoModal('max_fee')}
-                      >
-                        <MaterialCommunityIcon
-                          name="information"
-                          size={14}
-                          style={styles.labelInfo}
-                        />
-                      </TouchableOpacity>
+                      />
                     </View>
                   }
                   rightLabelComponent={
@@ -683,16 +678,9 @@ const EditGasFee1559 = ({
                     {strings('edit_gas_fee_eip1559.new_gas_fee')}{' '}
                   </Text>
 
-                  <TouchableOpacity
-                    hitSlop={styles.hitSlop}
+                  <RenderInfoIcon
                     onPress={() => setShowInfoModal('new_gas_fee')}
-                  >
-                    <MaterialCommunityIcon
-                      name="information"
-                      size={14}
-                      style={styles.labelInfo}
-                    />
-                  </TouchableOpacity>
+                  />
                 </View>
               )}
             </View>
@@ -733,16 +721,7 @@ const EditGasFee1559 = ({
                 </Text>
                 {(timeEstimateId === AppConstants.GAS_TIMES.MAYBE ||
                   timeEstimateId === AppConstants.GAS_TIMES.UNKNOWN) && (
-                  <TouchableOpacity
-                    hitSlop={styles.hitSlop}
-                    onPress={showTimeEstimateInfoModal}
-                  >
-                    <MaterialCommunityIcon
-                      name="information"
-                      size={14}
-                      style={styles.redInfo}
-                    />
-                  </TouchableOpacity>
+                  <RenderInfoIcon onPress={showTimeEstimateInfoModal} />
                 )}
               </View>
             </FadeAnimationView>

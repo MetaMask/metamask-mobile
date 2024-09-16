@@ -245,28 +245,9 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           Gas limit
                            
                         </Text>
-                        <TouchableOpacity
-                          hitSlop={
-                            {
-                              "bottom": 10,
-                              "left": 10,
-                              "right": 10,
-                              "top": 10,
-                            }
-                          }
+                        <Unknown
                           onPress={[Function]}
-                        >
-                          <Icon
-                            allowFontScaling={false}
-                            name="information"
-                            size={14}
-                            style={
-                              {
-                                "color": "#9fa6ae",
-                              }
-                            }
-                          />
-                        </TouchableOpacity>
+                        />
                       </View>
                     }
                     min={"21000"}
@@ -301,28 +282,9 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           Max priority fee
                            
                         </Text>
-                        <TouchableOpacity
-                          hitSlop={
-                            {
-                              "bottom": 10,
-                              "left": 10,
-                              "right": 10,
-                              "top": 10,
-                            }
-                          }
+                        <Unknown
                           onPress={[Function]}
-                        >
-                          <Icon
-                            allowFontScaling={false}
-                            name="information"
-                            size={14}
-                            style={
-                              {
-                                "color": "#9fa6ae",
-                              }
-                            }
-                          />
-                        </TouchableOpacity>
+                        />
                       </View>
                     }
                     min={"0"}
@@ -378,28 +340,9 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           Max fee
                            
                         </Text>
-                        <TouchableOpacity
-                          hitSlop={
-                            {
-                              "bottom": 10,
-                              "left": 10,
-                              "right": 10,
-                              "top": 10,
-                            }
-                          }
+                        <Unknown
                           onPress={[Function]}
-                        >
-                          <Icon
-                            allowFontScaling={false}
-                            name="information"
-                            size={14}
-                            style={
-                              {
-                                "color": "#9fa6ae",
-                              }
-                            }
-                          />
-                        </TouchableOpacity>
+                        />
                       </View>
                     }
                     min={"0"}
