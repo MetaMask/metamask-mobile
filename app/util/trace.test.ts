@@ -2,11 +2,8 @@ import { startSpan, startSpanManual, withScope } from '@sentry/react-native';
 
 import { Span } from '@sentry/types';
 import {
-  cleanupTraces,
   endTrace,
-  PendingTrace,
   trace,
-  tracesByKey,
   TraceName,
   TRACES_CLEANUP_INTERVAL,
 } from './trace';
@@ -241,44 +238,62 @@ describe('Trace', () => {
 
       expect(spanEndMock).toHaveBeenCalledTimes(0);
     });
+
+    it('clears timeout when trace ends', () => {
+      const spanEndMock = jest.fn();
+      const spanMock = { end: spanEndMock } as unknown as Span;
+      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+
+      startSpanManualMock.mockImplementationOnce((_, fn) =>
+        fn(spanMock, () => {
+          // Intentionally empty
+        }),
+      );
+
+      trace({
+        name: NAME_MOCK,
+        id: ID_MOCK,
+        tags: TAGS_MOCK,
+        data: DATA_MOCK,
+        parentContext: PARENT_CONTEXT_MOCK,
+      });
+
+      endTrace({ name: NAME_MOCK, id: ID_MOCK });
+
+      expect(clearTimeoutSpy).toHaveBeenCalledTimes(1);
+    });
   });
 
-  describe('cleanupTraces', () => {
+  describe('trace timeout cleanup', () => {
     beforeEach(() => {
-      tracesByKey.clear();
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
       jest.useRealTimers();
-      Date.now = jest.fn(() => 123456789);
     });
 
-    it('removes traces older than the cleanup interval', () => {
-      const now = Date.now();
-      const oldTrace = {
-        startTime: now - TRACES_CLEANUP_INTERVAL - 10000,
-      } as PendingTrace;
-      const newTrace = { startTime: now - 1000 } as PendingTrace;
-      tracesByKey.set('old-key', oldTrace);
-      tracesByKey.set('new-key', newTrace);
+    it('removes trace after timeout period', () => {
+      const spanEndMock = jest.fn();
+      const spanMock = { end: spanEndMock } as unknown as Span;
 
-      cleanupTraces();
+      startSpanManualMock.mockImplementationOnce((_, fn) =>
+        fn(spanMock, () => {
+          // Intentionally empty
+        }),
+      );
 
-      expect(tracesByKey.size).toBe(1);
-      expect(tracesByKey.has('new-key')).toBe(true);
-      expect(tracesByKey.has('old-key')).toBe(false);
-    });
+      trace({
+        name: NAME_MOCK,
+        id: ID_MOCK,
+        tags: TAGS_MOCK,
+        data: DATA_MOCK,
+        parentContext: PARENT_CONTEXT_MOCK,
+      });
 
-    it('does not remove traces newer than the cleanup interval', () => {
-      const now = Date.now();
-      const newTrace = { startTime: now - 1000 } as PendingTrace;
-      tracesByKey.set('new-key', newTrace);
+      jest.advanceTimersByTime(TRACES_CLEANUP_INTERVAL + 1000);
 
-      cleanupTraces();
-
-      expect(tracesByKey.size).toBe(1);
-      expect(tracesByKey.has('new-key')).toBe(true);
-    });
-
-    it('does not throw an error if the tracesByKey map is empty', () => {
-      expect(() => cleanupTraces()).not.toThrow();
+      expect(spanEndMock).toHaveBeenCalledTimes(1);
     });
   });
 });

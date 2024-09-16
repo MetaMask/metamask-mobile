@@ -28,6 +28,7 @@ export interface PendingTrace {
   end: (timestamp?: number) => void;
   request: TraceRequest;
   startTime: number;
+  timeoutId: NodeJS.Timeout;
 }
 
 export type TraceContext = unknown;
@@ -77,6 +78,7 @@ export function endTrace(request: EndTraceRequest) {
 
   pendingTrace.end(timestamp);
 
+  clearTimeout(pendingTrace.timeoutId);
   tracesByKey.delete(key);
 
   const { request: pendingRequest, startTime } = pendingTrace;
@@ -125,7 +127,13 @@ function startTrace(request: TraceRequest): TraceContext {
       span?.end(timestamp);
     };
 
-    const pendingTrace = { end, request, startTime };
+    const timeoutId = setTimeout(() => {
+      log('Trace cleanup due to timeout', name, id);
+      end();
+      tracesByKey.delete(getTraceKey(request));
+    }, TRACES_CLEANUP_INTERVAL);
+
+    const pendingTrace = { end, request, startTime, timeoutId };
     const key = getTraceKey(request);
     tracesByKey.set(key, pendingTrace);
 
@@ -205,13 +213,4 @@ function tryCatchMaybePromise<T>(
   }
 
   return undefined;
-}
-
-export function cleanupTraces() {
-  const now = Date.now();
-  for (const [key, traceValue ] of tracesByKey.entries()) {
-    if (now - traceValue.startTime > TRACES_CLEANUP_INTERVAL) {
-      tracesByKey.delete(key);
-    }
-  }
 }
