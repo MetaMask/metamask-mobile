@@ -17,6 +17,10 @@ class Browser {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.SEARCH_BUTTON);
   }
 
+  get container() {
+    return Matchers.getElementByID('id-2');
+  }
+
   get optionsButton() {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.OPTIONS_BUTTON);
   }
