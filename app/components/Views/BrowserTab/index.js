@@ -1142,7 +1142,6 @@ export const BrowserTab = (props) => {
                     origin: url.current && new URL(url.current).hostname,
                   },
                 },
-                isRenderedAsBottomSheet: true, // TODO: needs to be feature flagged
               },
             });
           },
