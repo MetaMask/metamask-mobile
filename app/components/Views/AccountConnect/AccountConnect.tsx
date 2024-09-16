@@ -632,17 +632,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
       />
     ),
-    [
-      accounts,
-      ensByAccountAddress,
-      selectedAddresses,
-      isLoading,
-      faviconSource,
-      secureIcon,
-      urlWithProtocol,
-      sdkConnection,
-      hostname,
-    ],
+    [isLoading, urlWithProtocol, hostname],
   );
 
   const renderPhishingModal = useCallback(
@@ -700,6 +690,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     renderPermissionsSummaryScreen,
     renderSingleConnectSelectorScreen,
     renderMultiConnectSelectorScreen,
+    renderMultiConnectNetworkSelectorScreen,
   ]);
 
   return (

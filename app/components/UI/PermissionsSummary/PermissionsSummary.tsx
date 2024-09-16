@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import StyledButton from '../StyledButton';
 import { SafeAreaView, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
@@ -31,6 +32,7 @@ import { PermissionsSummaryProps } from './PermissionsSummary.types';
 import { useSelector } from 'react-redux';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import { USER_INTENT } from '../../../constants/permissions';
+import Routes from '../../../constants/navigation/Routes';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
@@ -47,6 +49,7 @@ const PermissionsSummary = ({
 }: PermissionsSummaryProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
+  const { navigate } = useNavigation();
   const selectedAccount = useSelectedAccount();
   const networkName = useSelector(selectNetworkName);
 
@@ -101,6 +104,21 @@ const PermissionsSummary = ({
       </View>
     );
   }
+
+  const toggleRevokeAllAccountPermissionsModal = useCallback(() => {
+    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
+      params: {
+        hostInfo: {
+          metadata: {
+            origin:
+              currentPageInformation?.url &&
+              new URL(currentPageInformation?.url).hostname,
+          },
+        },
+      },
+    });
+  }, [navigate, currentPageInformation?.url]);
 
   function renderAccountPermissionsRequestInfoCard() {
     return (
@@ -236,6 +254,21 @@ const PermissionsSummary = ({
         </View>
         {renderAccountPermissionsRequestInfoCard()}
         {renderNetworkPermissionsRequestInfoCard()}
+        {isAlreadyConnected && (
+          <View style={styles.disconnectAllContainer}>
+            <Button
+              variant={ButtonVariants.Secondary}
+              label={strings('accounts.disconnect_all')}
+              onPress={toggleRevokeAllAccountPermissionsModal}
+              startIconName={IconName.Logout}
+              isDanger
+              size={ButtonSize.Lg}
+              style={{
+                ...styles.disconnectButton,
+              }}
+            />
+          </View>
+        )}
         {showActionButtons && (
           <View style={styles.actionButtonsContainer}>
             <StyledButton
