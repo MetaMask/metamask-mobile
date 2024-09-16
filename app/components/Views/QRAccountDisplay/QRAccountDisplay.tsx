@@ -63,30 +63,24 @@ const QRAccountDisplay = (props: { accountAddress: string }) => {
       <Text variant={TextVariant.BodyLGMedium} style={styles.accountLabel}>
         {accountLabel}
       </Text>
-
-      <>
-        <Text variant={TextVariant.BodyMD} style={styles.addressContainer}>
-          {addressStart}
-          <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
-            {addressMiddle}
-          </Text>
-          {addressEnd}
+      <Text variant={TextVariant.BodyMD} style={styles.addressContainer}>
+        {addressStart}
+        <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
+          {addressMiddle}
         </Text>
-      </>
-
-      <>
-        <Button
-          variant={ButtonVariants.Link}
-          startIconName={IconName.Copy}
-          size={ButtonSize.Lg}
-          testID="qr-account-display-copy-button"
-          label={strings('receive_request.copy_address')}
-          onPress={handleCopyButton}
-          style={styles.copyButton}
-        >
-          {strings('receive_request.copy_address')}
-        </Button>
-      </>
+        {addressEnd}
+      </Text>
+      <Button
+        variant={ButtonVariants.Link}
+        startIconName={IconName.Copy}
+        size={ButtonSize.Lg}
+        testID="qr-account-display-copy-button"
+        label={strings('receive_request.copy_address')}
+        onPress={handleCopyButton}
+        style={styles.copyButton}
+      >
+        {strings('receive_request.copy_address')}
+      </Button>
     </SafeAreaView>
   );
 };

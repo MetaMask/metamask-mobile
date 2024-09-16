@@ -38,6 +38,8 @@ export interface StartScan {
   walletConnectURI?: string;
 }
 
+const USER_CANCELLED = 'USER_CANCELLED';
+
 export interface QRTabSwitcherParams {
   onScanSuccess: (data: ScanSuccess, content?: string) => void;
   onStartScan?: (data: StartScan) => Promise<void>;
@@ -86,7 +88,7 @@ const QRTabSwitcher = () => {
   const goBack = () => {
     navigation.goBack();
     try {
-      onScanError?.('USER_CANCELLED');
+      onScanError?.(USER_CANCELLED);
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.warn(`Error setting onScanError: ${error.message}`);

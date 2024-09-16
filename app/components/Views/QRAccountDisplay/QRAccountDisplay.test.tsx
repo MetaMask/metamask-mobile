@@ -13,6 +13,8 @@ const initialState = {
   },
 };
 
+const ACCOUNT = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
+
 jest.mock('../../../core/ClipboardManager', () => {
   let clipboardContent = '';
 
@@ -24,11 +26,7 @@ jest.mock('../../../core/ClipboardManager', () => {
   };
 });
 
-const TestWrapper = () => (
-  <QRAccountDisplay
-    accountAddress={'0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'}
-  />
-);
+const TestWrapper = () => <QRAccountDisplay accountAddress={ACCOUNT} />;
 
 describe('QRAccountDisplay', () => {
   beforeEach(() => {
@@ -56,12 +54,8 @@ describe('QRAccountDisplay', () => {
     const copyButton = getByTestId('qr-account-display-copy-button');
     fireEvent.press(copyButton);
 
-    expect(ClipboardManager.setString).toHaveBeenCalledWith(
-      '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
-    );
-    expect(ClipboardManager.getString()).toBe(
-      '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
-    );
+    expect(ClipboardManager.setString).toHaveBeenCalledWith(ACCOUNT);
+    expect(ClipboardManager.getString()).toBe(ACCOUNT);
     expect(copyButton).toBeTruthy();
   });
 });
