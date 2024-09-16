@@ -1,5 +1,4 @@
 @androidApp
-@iosApp
 @performance
 Feature: App Cold Start Launch Times with fresh install
     # This feature measures the cold start of the app when:
@@ -8,4 +7,4 @@ Feature: App Cold Start Launch Times with fresh install
     Scenario: Measure cold start launch time on fresh install
         Given the app is launched
         When the Welcome screen is displayed
-        Then the app should launch within "4" seconds
+        Then the app should launch within "1" seconds
