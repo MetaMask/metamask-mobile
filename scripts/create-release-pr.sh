@@ -6,7 +6,9 @@ set -o pipefail
 
 PREVIOUS_VERSION="${1}"
 NEW_VERSION="${2}"
+VERSION_NUMBER="${3}"
 RELEASE_BRANCH_PREFIX="release/"
+SEMVER_VERSION = NEW_VERSION
 
 if [[ -z $NEW_VERSION ]]; then
   echo "Error: No new version specified."
@@ -22,25 +24,10 @@ git config user.email metamaskbot@users.noreply.github.com
 
 git checkout "${RELEASE_BRANCH_NAME}"
 
-# if ! (git add . && git commit -m "${NEW_VERSION}");
-# then
-#     echo "Error: No changes detected."
-#     exit 1
-# fi
-
-# git push --set-upstream origin "${RELEASE_BRANCH_NAME}"
-
-# gh pr create \
-#   --draft \
-#   --title "feat: ${NEW_VERSION}" \
-#   --body "${RELEASE_BODY}" \
-#   --head "${RELEASE_BRANCH_NAME}";
-
-
 git checkout -b "${CHANGELOG_BRANCH_NAME}"
 
-
 #Generate changelog and test plan csv
+yarn set-version
 node ./scripts/generate-rc-commits.mjs "${PREVIOUS_VERSION}" "${RELEASE_BRANCH_NAME}" 
 ./scripts/changelog-csv.sh  "${RELEASE_BRANCH_NAME}" 
 
