@@ -28,10 +28,6 @@ import {
   selectProviderConfig,
   ProviderConfig,
 } from '../../../../selectors/networkController';
-import {
-  selectNetworkName,
-  selectNetworkImageSource,
-} from '../../../../selectors/networkInfos';
 import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectedAccountModal.selectors';
 
