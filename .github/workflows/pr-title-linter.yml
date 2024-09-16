@@ -5,7 +5,7 @@ on:
       - main
     types: [opened,edited]
   merge_group:
-
+    types: [checks_requested]
 jobs:
   pr-title-linter:
     runs-on: ubuntu-latest

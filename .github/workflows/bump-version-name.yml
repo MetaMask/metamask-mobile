@@ -6,6 +6,8 @@ on:
       - main
     types: [opened]
   merge_group:
+    types: [checks_requested]
+
 
 jobs:
   bump-version-name:
