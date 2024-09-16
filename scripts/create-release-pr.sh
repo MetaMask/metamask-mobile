@@ -8,7 +8,7 @@ PREVIOUS_VERSION="${1}"
 NEW_VERSION="${2}"
 VERSION_NUMBER="${3}"
 RELEASE_BRANCH_PREFIX="release/"
-SEMVER_VERSION="${NEW_VERSION}"
+SEMVER_VERSION = NEW_VERSION
 
 if [[ -z $NEW_VERSION ]]; then
   echo "Error: No new version specified."
@@ -17,6 +17,7 @@ fi
 
 RELEASE_BRANCH_NAME="${RELEASE_BRANCH_PREFIX}${NEW_VERSION}"
 CHANGELOG_BRANCH_NAME="chore/${NEW_VERSION}-Changelog"
+# RELEASE_BODY="This is the release candidate for version ${NEW_VERSION}. The changelog will be found in another PR ${CHANGELOG_BRANCH_NAME}."
 
 git config user.name metamaskbot
 git config user.email metamaskbot@users.noreply.github.com
@@ -25,7 +26,7 @@ git checkout "${RELEASE_BRANCH_NAME}"
 
 git checkout -b "${CHANGELOG_BRANCH_NAME}"
 
-#Generate version bump, changelog and test plan csv
+#Generate changelog and test plan csv
 yarn set-version
 node ./scripts/generate-rc-commits.mjs "${PREVIOUS_VERSION}" "${RELEASE_BRANCH_NAME}" 
 ./scripts/changelog-csv.sh  "${RELEASE_BRANCH_NAME}" 
