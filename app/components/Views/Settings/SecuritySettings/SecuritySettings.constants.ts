@@ -12,5 +12,4 @@ export const META_METRICS_DATA_MARKETING_SECTION =
 export const DELETE_METRICS_BUTTON = 'delete-metrics-button';
 export const SECURITY_SETTINGS_DELETE_WALLET_BUTTON =
   'security-settings-delete-wallet-buttons';
-export const BATCH_BALANCE_REQUESTS_SECTION = 'batch-balance-requests-section';
 export const THIRD_PARTY_SECTION = 'third-party-section';

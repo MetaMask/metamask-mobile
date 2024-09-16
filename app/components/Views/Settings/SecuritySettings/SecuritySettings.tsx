@@ -7,7 +7,6 @@ import {
   View,
   ActivityIndicator,
   Keyboard,
-  Platform,
   Linking,
 } from 'react-native';
 import StorageWrapper from '../../../../store/storage-wrapper';
@@ -49,46 +48,23 @@ import {
   ClearPrivacy,
   BlockaidSettings,
 } from './Sections';
-import {
-  selectProviderType,
-  selectNetworkConfigurations,
-} from '../../../../selectors/networkController';
-import {
-  selectIsMultiAccountBalancesEnabled,
-  selectShowIncomingTransactionNetworks,
-  selectShowTestNetworks,
-  selectUseTransactionSimulations,
-} from '../../../../selectors/preferencesController';
-import {
-  SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
-  SECURITY_PRIVACY_VIEW_ID,
-} from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { selectProviderType } from '../../../../selectors/networkController';
+import { selectUseTransactionSimulations } from '../../../../selectors/preferencesController';
+import { SECURITY_PRIVACY_VIEW_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
 import createStyles from './SecuritySettings.styles';
 import {
   HeadingProps,
-  NetworksI,
+  // NetworksI,
   SecuritySettingsParams,
 } from './SecuritySettings.types';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../../util/navigation/navUtils';
 import {
-  BATCH_BALANCE_REQUESTS_SECTION,
   BIOMETRY_CHOICE_STRING,
   CLEAR_BROWSER_HISTORY_SECTION,
   PASSCODE_CHOICE_STRING,
   SDK_SECTION,
 } from './SecuritySettings.constants';
-import Cell from '../../../..//component-library/components/Cells/Cell/Cell';
-import { CellVariant } from '../../../../component-library/components/Cells/Cell';
-import { AvatarVariant } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
-import Networks, {
-  getAllNetworks,
-  getNetworkImageSource,
-} from '../../../../util/networks';
-import images from 'images/image-icons';
-import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller';
-import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 import Text, {
   TextVariant,
   TextColor,
@@ -111,12 +87,13 @@ import {
 import { useProfileSyncing } from '../../../../util/notifications/hooks/useProfileSyncing';
 import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
 import { RootState } from '../../../../reducers';
-import { EtherscanSupportedHexChainId } from '@metamask/preferences-controller';
 import { useDisableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 import NetworkDetailsCheckSettings from '../../Settings/NetworkDetailsCheckSettings';
 import DisplayNFTMediaSettings from '../../Settings/DisplayNFTMediaSettings';
 import AutoDetectNFTSettings from '../../Settings/AutoDetectNFTSettings';
 import IPFSGatewaySettings from '../../Settings/IPFSGatewaySettings';
+import IncomingTransactionsSettings from '../../Settings/IncomingTransactionsSettings';
+import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSettings';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -169,11 +146,6 @@ const Settings: React.FC = () => {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const lockTime = useSelector((state: any) => state.settings.lockTime);
-  const showTestNetworks = useSelector(selectShowTestNetworks);
-  const showIncomingTransactionsNetworks = useSelector(
-    selectShowIncomingTransactionNetworks,
-  );
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const useTransactionSimulations = useSelector(
     selectUseTransactionSimulations,
   );
@@ -188,10 +160,6 @@ const Settings: React.FC = () => {
     (state: any) => state.user.seedphraseBackedUp,
   );
   const type = useSelector(selectProviderType);
-  const isMultiAccountBalancesEnabled = useSelector(
-    selectIsMultiAccountBalancesEnabled,
-  );
-  const myNetworks = ETHERSCAN_SUPPORTED_NETWORKS;
   const isMainnet = type === MAINNET;
 
   const updateNavBar = useCallback(() => {
@@ -446,59 +414,6 @@ const Settings: React.FC = () => {
     </View>
   );
 
-  const toggleIsMultiAccountBalancesEnabled = (
-    multiAccountBalancesEnabled: boolean,
-  ) => {
-    const { PreferencesController } = Engine.context;
-    PreferencesController.setIsMultiAccountBalancesEnabled(
-      multiAccountBalancesEnabled,
-    );
-  };
-
-  const renderMultiAccountBalancesSection = () => (
-    <View style={styles.halfSetting} testID={BATCH_BALANCE_REQUESTS_SECTION}>
-      <View style={styles.titleContainer}>
-        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-          {strings('app_settings.batch_balance_requests_title')}
-        </Text>
-        <View style={styles.switchElement}>
-          <Switch
-            value={isMultiAccountBalancesEnabled}
-            onValueChange={toggleIsMultiAccountBalancesEnabled}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={theme.brandColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-            {...generateTestId(
-              Platform,
-              SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
-            )}
-          />
-        </View>
-      </View>
-      <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
-        style={styles.desc}
-      >
-        {strings('app_settings.batch_balance_requests_description')}
-      </Text>
-    </View>
-  );
-  const toggleEnableIncomingTransactions = (
-    hexChainId: EtherscanSupportedHexChainId,
-    value: boolean,
-  ) => {
-    const { PreferencesController } = Engine.context;
-    PreferencesController.setEnableNetworkIncomingTransactions(
-      hexChainId,
-      value,
-    );
-  };
-
   const clearBrowserHistory = () => {
     dispatch(clearHistory());
     toggleClearBrowserHistoryModal();
@@ -590,191 +505,6 @@ const Settings: React.FC = () => {
       onChangeText={handleChangeText}
     />
   );
-
-  const renderShowIncomingTransactions = () => {
-    const renderMainnet = () => {
-      const { name: mainnetName, chainId } = Networks.mainnet;
-      return (
-        <Cell
-          variant={CellVariant.Display}
-          title={mainnetName}
-          avatarProps={{
-            variant: AvatarVariant.Network,
-            name: mainnetName,
-            imageSource: images.ETHEREUM,
-          }}
-          secondaryText="etherscan.io"
-          style={styles.cellBorder}
-        >
-          <Switch
-            value={showIncomingTransactionsNetworks[chainId]}
-            onValueChange={(value) =>
-              toggleEnableIncomingTransactions(
-                chainId as EtherscanSupportedHexChainId,
-                value,
-              )
-            }
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={theme.brandColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-          />
-        </Cell>
-      );
-    };
-
-    const renderLineaMainnet = () => {
-      const { name: lineaMainnetName, chainId } = Networks['linea-mainnet'];
-
-      return (
-        <Cell
-          variant={CellVariant.Display}
-          title={lineaMainnetName}
-          avatarProps={{
-            variant: AvatarVariant.Network,
-            name: lineaMainnetName,
-            imageSource: images['LINEA-MAINNET'],
-          }}
-          secondaryText="lineascan.build"
-          style={styles.cellBorder}
-        >
-          <Switch
-            value={showIncomingTransactionsNetworks[chainId]}
-            onValueChange={(value) =>
-              toggleEnableIncomingTransactions(
-                chainId as EtherscanSupportedHexChainId,
-                value,
-              )
-            }
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={theme.brandColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-          />
-        </Cell>
-      );
-    };
-
-    const renderRpcNetworks = () =>
-      Object.values(networkConfigurations).map(
-        ({ nickname, rpcUrl, chainId }) => {
-          if (!chainId) return null;
-
-          if (!Object.keys(myNetworks).includes(chainId)) return null;
-
-          const { name } = { name: nickname || rpcUrl };
-          //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-          const image = getNetworkImageSource({ chainId: chainId?.toString() });
-
-          return (
-            <Cell
-              key={chainId}
-              variant={CellVariant.Display}
-              title={name}
-              secondaryText={
-                myNetworks[chainId as keyof typeof myNetworks].domain
-              }
-              avatarProps={{
-                variant: AvatarVariant.Network,
-                name,
-                imageSource: image,
-              }}
-              style={styles.cellBorder}
-            >
-              <Switch
-                value={showIncomingTransactionsNetworks[chainId]}
-                onValueChange={(value) =>
-                  toggleEnableIncomingTransactions(
-                    chainId as EtherscanSupportedHexChainId,
-                    value,
-                  )
-                }
-                trackColor={{
-                  true: colors.primary.default,
-                  false: colors.border.muted,
-                }}
-                thumbColor={theme.brandColors.white}
-                style={styles.switch}
-                ios_backgroundColor={colors.border.muted}
-              />
-            </Cell>
-          );
-        },
-      );
-
-    const renderOtherNetworks = () => {
-      const NetworksTyped = Networks as NetworksI;
-      const getOtherNetworks = () => getAllNetworks().slice(2);
-      return getOtherNetworks().map((networkType) => {
-        const { name, imageSource, chainId } = NetworksTyped[networkType];
-        if (!chainId) return null;
-        return (
-          <Cell
-            key={chainId}
-            variant={CellVariant.Display}
-            title={name}
-            secondaryText={
-              myNetworks[chainId as keyof typeof myNetworks].domain
-            }
-            avatarProps={{
-              variant: AvatarVariant.Network,
-              name,
-              imageSource,
-            }}
-            style={styles.cellBorder}
-          >
-            <Switch
-              value={showIncomingTransactionsNetworks[chainId]}
-              onValueChange={(value) => {
-                chainId &&
-                  toggleEnableIncomingTransactions(
-                    chainId as keyof typeof myNetworks,
-                    value,
-                  );
-              }}
-              trackColor={{
-                true: colors.primary.default,
-                false: colors.border.muted,
-              }}
-              thumbColor={theme.brandColors.white}
-              style={styles.switch}
-              ios_backgroundColor={colors.border.muted}
-            />
-          </Cell>
-        );
-      });
-    };
-
-    return (
-      <View
-        style={styles.setting}
-        testID={SecurityPrivacyViewSelectorsIDs.INCOMING_TRANSACTIONS}
-      >
-        <Text variant={TextVariant.BodyLGMedium}>
-          {strings('app_settings.incoming_transactions_title')}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
-          style={styles.desc}
-        >
-          {strings('app_settings.incoming_transactions_content')}
-        </Text>
-        <View style={styles.transactionsContainer}>
-          {renderMainnet()}
-          {renderLineaMainnet()}
-          {renderRpcNetworks()}
-          {showTestNetworks && renderOtherNetworks()}
-        </View>
-      </View>
-    );
-  };
 
   const toggleProfileSyncing = async () => {
     if (isProfileSyncingEnabled) {
@@ -876,8 +606,8 @@ const Settings: React.FC = () => {
         >
           {strings('app_settings.transactions_subheading')}
         </Text>
-        {renderMultiAccountBalancesSection()}
-        {renderShowIncomingTransactions()}
+        <BatchAccountBalanceSettings />
+        <IncomingTransactionsSettings />
         {renderHistoryModal()}
         {renderUseTransactionSimulations()}
         <Text
