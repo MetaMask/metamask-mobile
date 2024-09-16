@@ -227,6 +227,9 @@
   "PermissionController": {
     "subjects": {}
   },
+  "SelectedNetworkController": {
+    "domains": {}
+  },
   "SignatureController": {
     "unapprovedMsgs": {},
     "unapprovedPersonalMsgs": {},

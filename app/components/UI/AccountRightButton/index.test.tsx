@@ -22,6 +22,9 @@ const mockInitialState: DeepPartial<RootState> = {
           chainId: CHAIN_IDS.MAINNET,
         }),
       },
+      SelectedNetworkController: {
+        domains: {},
+      },
     },
   },
 };

@@ -18,6 +18,12 @@ export interface ProviderConfig {
 const selectNetworkControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.NetworkController;
 
+export const selectSelectedNetworkClientId = createSelector(
+  selectNetworkControllerState,
+  (networkControllerState: NetworkState) =>
+    networkControllerState.selectedNetworkClientId,
+);
+
 export const selectProviderConfig = createDeepEqualSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) => {

@@ -84,6 +84,12 @@ import {
   ApprovalControllerState,
 } from '@metamask/approval-controller';
 import {
+  SelectedNetworkController,
+  SelectedNetworkControllerState,
+  SelectedNetworkControllerEvents,
+  SelectedNetworkControllerActions,
+} from '@metamask/selected-network-controller';
+import {
   PermissionController,
   PermissionControllerActions,
   PermissionControllerEvents,
@@ -219,6 +225,7 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
 import EthQuery from '@metamask/eth-query';
 import { TransactionControllerOptions } from '@metamask/transaction-controller/dist/types/TransactionController';
+import DomainProxyMap from '../lib/DomainProxyMap/DomainProxyMap';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -279,7 +286,8 @@ type GlobalActions =
   | AccountsControllerActions
   | PreferencesControllerActions
   | TokensControllerActions
-  | TokenListControllerActions;
+  | TokenListControllerActions
+  | SelectedNetworkControllerActions;
 
 type GlobalEvents =
   | ApprovalControllerEvents
@@ -299,7 +307,8 @@ type GlobalEvents =
   | PreferencesControllerEvents
   | TokensControllerEvents
   | TokenListControllerEvents
-  | TransactionControllerEvents;
+  | TransactionControllerEvents
+  | SelectedNetworkControllerEvents;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
@@ -337,6 +346,7 @@ export interface EngineState {
   LoggingController: LoggingControllerState;
   PPOMController: PPOMState;
   AccountsController: AccountsControllerState;
+  SelectedNetworkController: SelectedNetworkControllerState;
 }
 
 /**
@@ -359,6 +369,7 @@ interface Controllers {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   PermissionController: PermissionController<any, any>;
+  SelectedNetworkController: SelectedNetworkController;
   PhishingController: PhishingController;
   PreferencesController: PreferencesController;
   PPOMController: PPOMController;
@@ -917,6 +928,30 @@ class Engine {
       unrestrictedMethods,
     });
 
+    const selectedNetworkController = new SelectedNetworkController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'SelectedNetworkController',
+        allowedActions: [
+          'NetworkController:getNetworkClientById',
+          'NetworkController:getState',
+          'NetworkController:getSelectedNetworkClient',
+          'PermissionController:hasPermissions',
+          'PermissionController:getSubjectNames',
+        ],
+        allowedEvents: [
+          'NetworkController:stateChange',
+          'PermissionController:stateChange',
+        ],
+      }),
+      state: initialState.SelectedNetworkController || { domains: {} },
+      useRequestQueuePreference: !!process.env.MULTICHAIN_V1,
+      // TODO we need to modify core PreferencesController for better cross client support
+      onPreferencesStateChange: (
+        listener: ({ useRequestQueue }: { useRequestQueue: boolean }) => void,
+      ) => listener({ useRequestQueue: !!process.env.MULTICHAIN_V1 }),
+      domainProxyMap: new DomainProxyMap(),
+    });
+
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     const subjectMetadataController = new SubjectMetadataController({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -1436,6 +1471,7 @@ class Engine {
       gasFeeController,
       approvalController,
       permissionController,
+      selectedNetworkController,
       new SignatureController({
         // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
@@ -1838,6 +1874,7 @@ class Engine {
       TokenBalancesController,
       TokenRatesController,
       PermissionController,
+      // SelectedNetworkController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController,
       ///: END:ONLY_INCLUDE_IF
@@ -1850,6 +1887,9 @@ class Engine {
     SnapController.clearState();
     ///: END:ONLY_INCLUDE_IF
 
+    // Clear selected network
+    // TODO implement this method on SelectedNetworkController
+    // SelectedNetworkController.unsetAllDomains()
     //Clear assets info
     TokensController.update({
       allTokens: {},
@@ -1872,6 +1912,7 @@ class Engine {
       transactions: [],
       lastFetchedBlockNumbers: {},
       submitHistory: [],
+      swapsTransactions: {}
     }));
 
     LoggingController.clear();
@@ -2038,6 +2079,7 @@ export default {
       NotificationServicesController,
       ///: END:ONLY_INCLUDE_IF
       PermissionController,
+      SelectedNetworkController,
       ApprovalController,
       LoggingController,
       AccountsController,
@@ -2082,6 +2124,7 @@ export default {
       NotificationServicesController,
       ///: END:ONLY_INCLUDE_IF
       PermissionController,
+      SelectedNetworkController,
       ApprovalController,
       LoggingController,
       AccountsController,
