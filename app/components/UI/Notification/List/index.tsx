@@ -17,7 +17,10 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { Notification } from '../../../../util/notifications';
-import { useMarkNotificationAsRead } from '../../../../util/notifications/hooks/useNotifications';
+import {
+  useListNotifications,
+  useMarkNotificationAsRead,
+} from '../../../../util/notifications/hooks/useNotifications';
 import { useMetrics } from '../../../hooks/useMetrics';
 import Empty from '../Empty';
 import { NotificationMenuItem } from '../NotificationMenuItem';
@@ -113,7 +116,7 @@ function useNotificationListProps(props: {
   navigation: NavigationProp<ParamListBase>;
 }) {
   const { styles } = useStyles();
-
+  const { listNotifications, isLoading } = useListNotifications();
   const getListProps = useCallback(
     (data: Notification[], tabLabel?: string) => {
       const listProps: FlatListProps<Notification> = {
@@ -132,6 +135,8 @@ function useNotificationListProps(props: {
             navigation={props.navigation}
           />
         ),
+        onRefresh: async () => await listNotifications(),
+        refreshing: isLoading,
         initialNumToRender: 10,
         maxToRenderPerBatch: 2,
         onEndReachedThreshold: 0.5,
@@ -139,7 +144,7 @@ function useNotificationListProps(props: {
 
       return { ...listProps, tabLabel: tabLabel ?? '' };
     },
-    [props.navigation, styles.list],
+    [isLoading, listNotifications, props.navigation, styles.list],
   );
 
   return getListProps;
