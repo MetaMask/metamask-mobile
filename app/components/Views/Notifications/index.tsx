@@ -128,7 +128,7 @@ NotificationsView.navigationOptions = ({
     size={ButtonIconSizes.Md}
     iconName={IconName.Setting}
     onPress={() => navigation.navigate(Routes.SETTINGS.NOTIFICATIONS)}
-    style={{ marginHorizontal: 16 }}
+    style={styles.icon}
   />
   ),
   headerLeft: () => (
@@ -136,7 +136,7 @@ NotificationsView.navigationOptions = ({
     size={ButtonIconSizes.Md}
     iconName={IconName.Close}
     onPress={() => navigation.navigate(Routes.WALLET.HOME)}
-    style={{ marginHorizontal: 16 }}
+    style={styles.icon}
   />
   ),
   headerTitle: () => (
