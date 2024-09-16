@@ -21,7 +21,7 @@ import { CaveatTypes, RestrictedMethods } from './constants';
  * The "keys" of all of permissions recognized by the PermissionController.
  * Permission keys and names have distinct meanings in the permission system.
  */
-const PermissionKeys = Object.freeze({
+export const PermissionKeys = Object.freeze({
   ...RestrictedMethods,
   permittedChains: 'permittedChains',
 });
@@ -30,7 +30,7 @@ const PermissionKeys = Object.freeze({
  * Factory functions for all caveat types recognized by the
  * PermissionController.
  */
-const CaveatFactories = Object.freeze({
+export const CaveatFactories = Object.freeze({
   [CaveatTypes.restrictReturnedAccounts]: (accounts) => ({
     type: CaveatTypes.restrictReturnedAccounts,
     value: accounts,
