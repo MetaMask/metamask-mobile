@@ -87,6 +87,8 @@ import { selectPermissionControllerState } from '../../../selectors/snaps/permis
 
 import NftDetails from '../../Views/NftDetails';
 import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
+import AccountPermissions from '../../../components/Views/AccountPermissions';
+import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -321,6 +323,14 @@ const SettingsFlow = () => (
       name="ContactForm"
       component={ContactForm}
       options={ContactForm.navigationOptions}
+    />
+    <Stack.Screen
+      name="AccountPermissionsAsFullScreen"
+      component={AccountPermissions}
+      options={{ headerShown: false }}
+      initialParams={{
+        initialScreen: AccountPermissionsScreens.PermissionsSummary,
+      }}
     />
     <Stack.Screen
       name="RevealPrivateCredentialView"
