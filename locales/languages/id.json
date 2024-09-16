@@ -686,9 +686,8 @@
     "suggest_transactions": "Merekomendasikan transaksi untuk disetujui",
     "disconnect": "Memutus koneksi",
     "disconnect_all": "Putuskan semua koneksi",
-    "reconnect_notice": "Jika Anda memutus koneksi akun dari {{dappUrl}}, Anda harus menghubungkannya kembali agar dapat menggunakannya lagi.",
+    "reconnect_notice": "If you disconnect from {{dappUrl}}, you’ll need to reconnect your accounts and networks to use this site again.",
     "disconnect_all_accounts": "Memutus koneksi semua akun",
-    "disconnect_you_from": "Ini akan memutus koneksi dari {{dappUrl}}",
     "deceptive_site_ahead": "Situs yang menipu terdeteksi",
     "deceptive_site_desc": "Situs yang akan Anda kunjungi tidak aman. Penyerang dapat mengelabui Anda untuk melakukan sesuatu yang berbahaya.",
     "learn_more": "Selengkapnya",
@@ -1462,7 +1461,8 @@
     "hex_data_copied": "Data hex disalin ke papan klip",
     "invalid_recipient": "Penerima tidak valid",
     "invalid_recipient_description": "Periksa alamatnya dan pastikan sudah valid",
-    "swap_tokens": "Tukar token"
+    "swap_tokens": "Tukar token",
+    "fromWithColon": "From:"
   },
   "custom_gas": {
     "total": "Total",
@@ -1749,6 +1749,7 @@
     "continue": "Lanjutkan",
     "cancel": "Batal",
     "approve": "Setujui",
+    "update": "Update",
     "edit_network_details": "Edit detail jaringan",
     "malicious_network_warning": "Penyedia jaringan jahat dapat berbohong tentang status blockchain dan merekam aktivitas jaringan Anda. Hanya tambahkan jaringan kustom yang Anda percayai.",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
@@ -1756,10 +1757,12 @@
     "additional_network_information_title": "Informasi Jaringan Tambahan",
     "network_warning_desc": "Koneksi jaringan ini mengandalkan pihak ketiga. Koneksi ini mungkin kurang bisa diandalkan atau memungkinkan pihak ketiga melacak aktivitas.",
     "additonial_network_information_desc": "Beberapa jaringan ini mengandalkan pihak ketiga. Koneksi ini kurang dapat diandalkan atau memungkinkan pihak ketiga melacak aktivitas.",
+    "connect_more_networks": "Connect more networks",
     "learn_more": "Pelajari selengkapnya",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "Beralih ke jaringan",
     "switch": "Alihkan",
+    "select_all": "Select all",
     "new_network": "Jaringan baru ditambahkan",
     "network_name": "Jaringan {{networkName}}",
     "network_added": " kini tersedia di pemilih jaringan.",
@@ -1776,7 +1779,19 @@
     "show_test_networks": "Tampilkan jaringan pengujian",
     "deprecated_goerli": "Sehubungan dengan perubahan protokol Ethereum: Jaringan uji Goerli mungkin tidak dapat beroperasi dengan baik dan akan segera dihentikan.",
     "network_deprecated_title": "Jaringan ini tidak digunakan lagi",
-    "network_deprecated_description": "Jaringan yang Anda coba hubungkan tidak lagi didukung di Metamask."
+    "network_deprecated_description": "Jaringan yang Anda coba hubungkan tidak lagi didukung di Metamask.",
+    "edit_networks_title": "Edit networks"
+  },
+  "permissions": {
+    "title_this_site_wants_to": "This site wants to:",
+    "title_dapp_url_wants_to": "{{dappUrl}} wants to:",
+    "title_dapp_url_has_approval_to": "{{dappUrl}} has approval to:",
+    "use_enabled_networks": "Use your enabled networks",
+    "wants_to_see_your_accounts": "See your accounts and suggest transactions",
+    "requesting_for": "Requesting for ",
+    "manage_permissions": "Manage Permissions",
+    "edit": "Edit",
+    "cancel": "Cancel"
   },
   "select": {
     "cancel": "Batal",
@@ -2041,6 +2056,8 @@
     "back_to_safety": "Kembali ke keamanan"
   },
   "notifications": {
+    "no_date": "Unknown",
+    "yesterday": "Yesterday",
     "staked": "Di-stake",
     "received": "Diterima",
     "unstaked": "Stake dibatalkan",
@@ -2116,6 +2133,8 @@
     "success_withdrawal_title": "Penarikan Selesai!",
     "error_title": "Ups! Terjadi kesalahan :/",
     "received_title": "Anda menerima {{amount}} {{assetType}}",
+    "default_message_title": "New transaction notification",
+    "default_message_description": "Tap to view this transaction",
     "received_payment_title": "Pembayaran instan diterima",
     "pending_message": "Menunggu konfirmasi",
     "pending_deposit_message": "Menunggu deposit selesai",
@@ -2817,13 +2836,8 @@
   },
   "switch_custom_network": {
     "title_existing_network": "Situs ini ingin beralih jaringan",
-    "title_enabled_network": "Situs ini ingin:",
     "title_new_network": "Jaringan baru ditambahkan",
     "switch_warning": "Ini akan mengalihkan jaringan yang dipilih dalam MetaMask ke jaringan yang ditambahkan sebelumnya:",
-    "use_enabled_networks": "Menggunakan jaringan aktif",
-    "wants_to_see_your_accounts": "Melihat akun Anda dan menyarangkan transaksi",
-    "requesting_for": "Meminta untuk ",
-    "edit": "Edit",
     "add_network_and_give_dapp_permission_warning": "Anda menambahkan jaringan ini ke MetaMask dan memberikan {{dapp_origin}} izin untuk menggunakannya.",
     "available": "kini tersedia di pemilih jaringan.",
     "cancel": "Batal",
@@ -2915,7 +2929,7 @@
   },
   "transaction_review_eip1559": {
     "estimated_gas_fee": "Estimasi biaya gas",
-    "suggested_gas_fee": "%{origin} biaya gas yang disarankan",
+    "network_fee": "Network fee",
     "max_fee": "Biaya maks",
     "total": "Total",
     "max_amount": "Jumlah maks",
@@ -3185,7 +3199,13 @@
     "how_to_install_eth_webview_title": "Cara menginstal Aplikasi Ethereum",
     "nonce_too_low": "Nonce terlalu rendah",
     "nonce_too_low_error": "Nonce yang ditetapkan terlalu rendah",
-    "select_accounts": "Pilih Akun"
+    "select_accounts": "Select an account",
+    "select_hd_path": "Select HD Path",
+    "select_hd_path_description": "If you don't see the accounts you expect, try switching the HD path or current selected network.",
+    "ledger_live_path": "Ledger Live",
+    "ledger_legacy_path": "Legacy(MEW/MyCrypto)",
+    "ledger_bip44_path": "BIP44(e.g. MetaMask, Trezor)",
+    "ledger_legacy_label": " (legacy)"
   },
   "account_actions": {
     "edit_name": "Edit nama akun",
@@ -3288,6 +3308,23 @@
     "title": "Kami telah melihat banyak permintaan"
   },
   "common": {
-    "please_wait": "Mohon tunggu"
+    "please_wait": "Mohon tunggu",
+    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
+    "disconnect": "Disconnect"
+  },
+  "staking": {
+    "your_earnings": "Your earnings",
+    "annual_rate": "Annual rate",
+    "lifetime_rewards": "Lifetime rewards",
+    "estimated_annual_earnings": "Est. annual earnings",
+    "accessibility_labels": {
+      "stake_annual_rate_tooltip": "Annual rate tooltip"
+    }
+  },
+  "tooltip_modal": {
+    "reward_rate": {
+      "title": "Reward rate",
+      "tooltip": "Expected yearly increase in the value of your stake, based on the reward rate over the past week."
+    }
   }
 }
