@@ -1825,7 +1825,7 @@ export function getStakeInputNavbar(navigation, themeColors) {
       elevation: 0,
     },
   });
-  const title = 'Stake ETH';
+  const title = strings('stake.stake_eth');
   return {
     headerTitle: () => (
       <NavbarTitle title={title} disableNetwork translate={false} />

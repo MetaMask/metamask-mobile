@@ -3294,6 +3294,7 @@
   },
   "stake": {
     "stake": "Stake",
+    "stake_eth": "Stake ETH",
     "your_earnings": "Your earnings",
     "annual_rate": "Annual rate",
     "lifetime_rewards": "Lifetime rewards",
