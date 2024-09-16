@@ -22,7 +22,7 @@ const ID_DEFAULT = 'default';
 const OP_DEFAULT = 'custom';
 export const TRACES_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
-export const tracesByKey: Map<string, PendingTrace> = new Map();
+const tracesByKey: Map<string, PendingTrace> = new Map();
 
 export interface PendingTrace {
   end: (timestamp?: number) => void;
