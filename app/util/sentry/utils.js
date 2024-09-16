@@ -229,7 +229,9 @@ const ERROR_URL_ALLOWLIST = [
  * Required instrumentation for Sentry Performance to work with React Navigation
  */
 export const routingInstrumentation =
-  new Sentry.ReactNavigationV5Instrumentation();
+  new Sentry.ReactNavigationV5Instrumentation({
+    enableTimeToInitialDisplay: true,
+  });
 
 /**
  * Capture Sentry user feedback and associate ID of captured exception
@@ -506,7 +508,7 @@ export function setupSentry() {
             ]
           : integrations,
       // Set tracesSampleRate to 1.0, as that ensures that every transaction will be sent to Sentry for development builds.
-      tracesSampleRate: __DEV__ ? 1.0 : 0.04,
+      tracesSampleRate: __DEV__ ? 1.0 : 0.08,
       beforeSend: (report) => rewriteReport(report),
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
       beforeSendTransaction: (event) => excludeEvents(event),
