@@ -14,10 +14,12 @@ class StorageWrapper {
      * Use `ReadOnlyNetworkStore` in test mode otherwise use `AsyncStorage`.
      */
     this.storage = isE2E ? ReadOnlyNetworkStore : new MMKV();
+    console.log('*****kylan***** storage constructor');
   }
 
   async getItem(key) {
     try {
+      console.log('*****kylan***** storage getItem');
       // asyncStorage returns null for no value
       // mmkv returns undefined for no value
       // therefore must return null if no value is found
@@ -34,6 +36,7 @@ class StorageWrapper {
   }
 
   async setItem(key, value) {
+    console.log('*****kylan***** storage setItem');
     try {
       if (typeof value !== 'string')
         throw new Error(
@@ -50,6 +53,7 @@ class StorageWrapper {
   }
 
   async removeItem(key) {
+    console.log('*****kylan***** storage removeItem');
     try {
       return await this.storage.delete(key);
     } catch (error) {
@@ -62,6 +66,7 @@ class StorageWrapper {
   }
 
   async clearAll() {
+    console.log('*****kylan***** storage clearAll');
     await this.storage.clearAll();
   }
 }

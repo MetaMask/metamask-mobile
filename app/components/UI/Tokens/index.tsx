@@ -511,7 +511,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     //   chain_id_destination: getDecimalChainId(chainId),
     // });
     const result = await InAppBrowser.open(
-      'https://metamask.github.io/test-dapp/'
+      'https://metamask.io'
     )
     console.log('inappbrowser result: ', result)
   };
