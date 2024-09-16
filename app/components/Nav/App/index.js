@@ -61,6 +61,7 @@ import Toast, {
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AccountConnect from '../../../components/Views/AccountConnect';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
+import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import AccountPermissionsConfirmRevokeAll from '../../../components/Views/AccountPermissions/AccountPermissionsConfirmRevokeAll';
 import { SRPQuiz } from '../../Views/Quiz';
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
@@ -120,9 +121,11 @@ import NftOptions from '../../../components/Views/NftOptions';
 import ShowTokenIdSheet from '../../../components/Views/ShowTokenIdSheet';
 import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
+import TooltipModal from '../../../components/Views/TooltipModal';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
+import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -653,6 +656,7 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.ACCOUNT_PERMISSIONS}
         component={AccountPermissions}
+        initialParams={{ initialScreen: AccountPermissionsScreens.Connected }}
       />
       <Stack.Screen
         name={Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS}
@@ -730,6 +734,10 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.ORIGIN_SPAM_MODAL}
         component={OriginSpamModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.TOOLTIP_MODAL}
+        component={TooltipModal}
       />
     </Stack.Navigator>
   );
@@ -917,6 +925,10 @@ const App = ({ userLoggedIn }) => {
               }}
               name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
               component={LedgerMessageSignModal}
+            />
+            <Stack.Screen
+              name={Routes.OPTIONS_SHEET}
+              component={OptionsSheet}
             />
             <Stack.Screen
               name="EditAccountName"

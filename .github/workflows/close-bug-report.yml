@@ -6,7 +6,9 @@ on:
       - main
     types:
       - closed
-
+  merge_group:
+    types: [checks_requested]
+    
 jobs:
   close-bug-report:
     runs-on: ubuntu-latest

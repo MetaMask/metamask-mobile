@@ -69,6 +69,9 @@ import {
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
+import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
+import PermissionsSummary from '../../../components/UI/PermissionsSummary';
+import { isMutichainVersion1Enabled } from '../../../util/networks';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -546,6 +549,22 @@ const AccountConnect = (props: AccountConnectProps) => {
     setUserIntent,
   ]);
 
+  const renderPermissionsSummaryScreen = useCallback(() => {
+    const permissionsSummaryProps: PermissionsSummaryProps = {
+      currentPageInformation: {
+        currentEnsName: '',
+        icon: faviconSource as string,
+        url: urlWithProtocol,
+      },
+      onEdit: () => {
+        setScreen(AccountConnectScreens.MultiConnectSelector);
+      },
+      onUserAction: setUserIntent,
+      isAlreadyConnected: false,
+    };
+    return <PermissionsSummary {...permissionsSummaryProps} />;
+  }, [faviconSource, urlWithProtocol]);
+
   const renderSingleConnectSelectorScreen = useCallback(
     () => (
       <AccountConnectSingleSelector
@@ -638,7 +657,9 @@ const AccountConnect = (props: AccountConnectProps) => {
   const renderConnectScreens = useCallback(() => {
     switch (screen) {
       case AccountConnectScreens.SingleConnect:
-        return renderSingleConnectScreen();
+        return isMutichainVersion1Enabled
+          ? renderPermissionsSummaryScreen()
+          : renderSingleConnectScreen();
       case AccountConnectScreens.SingleConnectSelector:
         return renderSingleConnectSelectorScreen();
       case AccountConnectScreens.MultiConnectSelector:
@@ -647,6 +668,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   }, [
     screen,
     renderSingleConnectScreen,
+    renderPermissionsSummaryScreen,
     renderSingleConnectSelectorScreen,
     renderMultiConnectSelectorScreen,
   ]);

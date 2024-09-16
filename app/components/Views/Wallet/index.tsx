@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback, useContext } from 'react';
+import React, { useEffect, useRef, useCallback, useContext, useLayoutEffect } from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -6,6 +6,8 @@ import {
   TextStyle,
   InteractionManager,
   Linking,
+  AppState,
+  AppStateStatus,
 } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import { connect, useDispatch, useSelector } from 'react-redux';
@@ -84,7 +86,7 @@ import {
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
-
+import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
     base: {
@@ -146,7 +148,9 @@ const Wallet = ({
   showNftFetchingLoadingIndicator,
   hideNftFetchingLoadingIndicator,
 }: WalletProps) => {
+  const appState = useRef(AppState.currentState);
   const { navigate } = useNavigation();
+  const { listNotifications } = useListNotifications();
   const walletRef = useRef(null);
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
@@ -394,6 +398,28 @@ const Wallet = ({
     [navigation, providerConfig.chainId],
   );
 
+  useLayoutEffect(() => {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        listNotifications();
+      }
+
+      appState.current = nextAppState;
+    };
+
+    const subscription = AppState.addEventListener(
+      'change',
+      handleAppStateChange,
+    );
+    listNotifications();
+    return () => {
+      subscription.remove();
+    };
+  }, [listNotifications]);
+
   useEffect(() => {
     navigation.setOptions(
       getWalletNavbarOptions(
@@ -403,6 +429,7 @@ const Wallet = ({
         navigation,
         colors,
         isNotificationEnabled,
+        unreadNotificationCount,
       ),
     );
     /* eslint-disable-next-line */

@@ -1,6 +1,7 @@
 import Engine from './Engine';
 import { backgroundState } from '../util/test/initial-root-state';
 import { zeroAddress } from 'ethereumjs-util';
+import { createMockAccountsControllerState } from '../util/test/accountsControllerTestUtils';
 
 jest.unmock('./Engine');
 jest.mock('../store', () => ({ store: { getState: jest.fn(() => ({})) } }));
@@ -30,6 +31,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('AuthenticationController');
     expect(engine.context).toHaveProperty('UserStorageController');
     expect(engine.context).toHaveProperty('NotificationServicesController');
+    expect(engine.context).toHaveProperty('SelectedNetworkController');
   });
 
   it('calling Engine.init twice returns the same instance', () => {
@@ -104,12 +106,10 @@ describe('Engine', () => {
     const ethConversionRate = 4000; // $4,000 / ETH
 
     const state = {
-      AccountsController: {
-        internalAccounts: {
-          selectedAccount: selectedAddress,
-          accounts: { [selectedAddress]: { address: selectedAddress } },
-        },
-      },
+      AccountsController: createMockAccountsControllerState(
+        [selectedAddress],
+        selectedAddress,
+      ),
       NetworkController: {
         state: { providerConfig: { chainId, ticker } },
       },

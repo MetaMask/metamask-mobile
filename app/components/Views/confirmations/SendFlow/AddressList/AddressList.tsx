@@ -69,9 +69,7 @@ const AddressList: React.FC<AddressListProps> = ({
       const contacts = networkAddressBookList.map((contact: Contact) => {
         const isAmbiguousAddress =
           chainId &&
-          ambiguousAddressEntries && // these are possibly undefined
-          ambiguousAddressEntries[chainId] &&
-          ambiguousAddressEntries[chainId].includes(contact.address);
+          ambiguousAddressEntries?.[chainId]?.includes(contact.address);
         return {
           ...contact,
           ...(isAmbiguousAddress && { isAmbiguousAddress }),
