@@ -119,11 +119,11 @@ const wallet_addEthereumChain = async ({
   }
 
   const networkConfigurations = selectNetworkConfigurations(store.getState());
-  const existingEntry = Object.entries(networkConfigurations).find(
-    ([, networkConfiguration]) =>{
-      let isArray=Array.isArray(networkConfiguration.rpcUrls);
-      if (!isArray) return false;
-      return networkConfiguration.rpcUrls.includes(firstValidRPCUrl);
+  const networkConfigValues = Object.values(networkConfigurations);
+  const existingEntry = networkConfigValues.find(
+    ({ rpcUrls }) => {
+      if (!Array.isArray(rpcUrls)) return false;
+      return rpcUrls.includes(firstValidRPCUrl);
     }
   );
 
