@@ -459,7 +459,7 @@ const NetworkSelector = () => {
         if (isNetworkUiRedesignEnabled()) {
           return (
             <Cell
-              key={chainId}
+              key={rpcUrl}
               variant={CellVariant.SelectWithMenu}
               title={name}
               avatarProps={{
@@ -469,7 +469,7 @@ const NetworkSelector = () => {
                 size: AvatarSize.Sm,
               }}
               isSelected={Boolean(
-                chainId === providerConfig.chainId && providerConfig.rpcUrl,
+                (chainId === providerConfig.chainId) && (rpcUrl === providerConfig.rpcUrl),
               )}
               onPress={() => onSetRpcTarget(rpcUrl)}
               style={styles.networkCell}
@@ -492,7 +492,7 @@ const NetworkSelector = () => {
 
         return (
           <Cell
-            key={chainId}
+            key={rpcUrl}
             variant={CellVariant.Select}
             title={name}
             avatarProps={{
@@ -502,7 +502,7 @@ const NetworkSelector = () => {
               size: avatarSize,
             }}
             isSelected={Boolean(
-              chainId === providerConfig.chainId && providerConfig.rpcUrl,
+              (chainId === providerConfig.chainId) && (rpcUrl === providerConfig.rpcUrl),
             )}
             onPress={() => onSetRpcTarget(rpcUrl)}
             style={styles.networkCell}
