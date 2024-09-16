@@ -1,16 +1,11 @@
 @androidApp
 @iosApp
 @performance
-Feature: App Cold Start Launch Times with fresh install
+Feature: App Cold Start Launch Times with an imported wallet
   # This feature measures the cold start of the app when:
-  # The user installs the app for the very first time
   # The user imports a wallet and the time it takes to get from launching app to login view
   # The time it takes to get from login view to wallet view.
 
-  # Scenario: Measure cold start launch time on fresh install
-  #   Given the app is launched
-  #   When the Welcome screen is displayed
-  #   Then the app should launch within "4" seconds
 
   Scenario: Measure cold start launch time after importing a wallet
     Given the splash animation disappears

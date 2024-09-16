@@ -1,4 +1,5 @@
 @androidApp
+@performance
 Feature: Measure the app launch times for warm starts
 
   Scenario: Measure warm start launch time after importing a wallet
