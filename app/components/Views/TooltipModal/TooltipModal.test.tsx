@@ -1,11 +1,10 @@
 import React from 'react';
-
+import TooltipModal from './';
+import { TooltipModalProps } from './ToolTipModal.types';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import QrScanner from './';
-import { backgroundState } from '../../../util/test/initial-root-state';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 const mockNavigate = jest.fn();
-const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -13,26 +12,25 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       navigate: mockNavigate,
-      goBack: mockGoBack,
     }),
   };
 });
 
-const initialState = {
-  engine: {
-    backgroundState,
+const MOCK_ROUTE_DATA: TooltipModalProps = {
+  route: {
+    params: {
+      title: 'Test Tooltip',
+      tooltip: 'This is a test tooltip',
+    },
   },
 };
 
-describe('QrScanner', () => {
-  it('render matches snapshot', () => {
+describe('Tooltip Modal', () => {
+  it('should render correctly', () => {
     const { toJSON } = renderWithProvider(
-      <QrScanner
-        onScanSuccess={() => {
-          //unused
-        }}
-      />,
-      { state: initialState },
+      <SafeAreaProvider>
+        <TooltipModal {...MOCK_ROUTE_DATA} />
+      </SafeAreaProvider>,
     );
     expect(toJSON()).toMatchSnapshot();
   });
