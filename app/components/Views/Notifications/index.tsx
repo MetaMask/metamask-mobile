@@ -1,15 +1,13 @@
 import React, { useCallback, useMemo } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import notifee from '@notifee/react-native';
 import { NotificationsViewSelectorsIDs } from '../../../../e2e/selectors/NotificationsView.selectors';
 import styles from './styles';
 import Notifications from '../../UI/Notification/List';
 import { TRIGGER_TYPES, sortNotifications } from '../../../util/notifications';
-import Icon, {
-  IconColor,
+import  {
   IconName,
-  IconSize,
 } from '../../../component-library/components/Icons/Icon';
 
 import Button, {
