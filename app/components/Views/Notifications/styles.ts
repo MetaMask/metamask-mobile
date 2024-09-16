@@ -11,7 +11,6 @@ const styles = StyleSheet.create({
     bottom: 40,
     position: 'absolute',
   },
-  icon: { marginHorizontal: 20 },
 });
 
 export default styles;
