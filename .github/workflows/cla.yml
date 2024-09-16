@@ -6,6 +6,7 @@ on:
     types: [opened,closed,synchronize]
   merge_group:
     types: [checks_requested]
+    
 jobs:
   CLABot:
     if: github.event_name == 'pull_request_target' || contains(github.event.comment.html_url, '/pull/')
