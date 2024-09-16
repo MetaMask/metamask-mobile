@@ -81,6 +81,7 @@ function loadStories() {
   require('../app/component-library/components-temp/TagColored/TagColored.stories');
   require('../app/component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentage.stories');
   require('../app/component-library/components-temp/Price/PercentageChange/PercentageChange.stories');
+  require('../app/components/Views/AssetDetails/AssetDetailsActions/AssetDetailsActions.stories.tsx');
 }
 
 const stories = [
@@ -161,6 +162,7 @@ const stories = [
   '../app/component-library/components-temp/TagColored/TagColored.stories',
   '../app/component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentage.stories.tsx',
   '../app/component-library/components-temp/Price/PercentageChange/PercentageChange.stories.tsx',
+  '../app/components/Views/AssetDetails/AssetDetailsActions/AssetDetailsActions.stories.tsx',
 ];
 
 module.exports = {
