@@ -25,7 +25,7 @@ const initialState = {
 };
 
 describe('QrScanner', () => {
-  it('should render correctly', () => {
+  it('render matches snapshot', () => {
     const { toJSON } = renderWithProvider(
       <QrScanner
         onScanSuccess={() => {
