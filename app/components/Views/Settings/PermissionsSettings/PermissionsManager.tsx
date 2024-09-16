@@ -69,7 +69,7 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
     navigation.navigate('AccountPermissionsAsFullScreen', {
       hostInfo: {
         metadata: {
-          origin: 'https://app.uniswap.org/', // TODO: this needs to come from the permission list item
+          origin: 'https://app.uniswap.org/',
         },
       },
       isRenderedAsBottomSheet: false,
