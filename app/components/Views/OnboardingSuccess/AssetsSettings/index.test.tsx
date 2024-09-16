@@ -18,7 +18,7 @@ describe('AssetSettings', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    useNavigation.mockReturnValue(mockNavigation);
+    (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
   });
 
   const initialState = {
