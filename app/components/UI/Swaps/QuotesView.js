@@ -113,7 +113,9 @@ import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAs
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeController';
+import { addSwapsTransaction } from '../../../util/swaps/swaps-transactions';
 
+const LOG_PREFIX = 'Swaps';
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
   MEDIUM: AppConstants.GAS_OPTIONS.MEDIUM,
@@ -795,16 +797,15 @@ function SwapsQuotesView({
     async (
       transactionMeta,
       approvalTransactionMetaId,
-      newSwapsTransactions,
     ) => {
-      const { TransactionController } = Engine.context;
       const ethQuery = Engine.getGlobalEthQuery();
       const blockNumber = await query(ethQuery, 'blockNumber', []);
       const currentBlock = await query(ethQuery, 'getBlockByNumber', [
         blockNumber,
         false,
       ]);
-      newSwapsTransactions[transactionMeta.id] = {
+
+      addSwapsTransaction(transactionMeta.id, {
         action: 'swap',
         sourceToken: {
           address: sourceToken.address,
@@ -851,9 +852,6 @@ function SwapsQuotesView({
           ethAccountBalance: accounts[selectedAddress].balance,
           approvalTransactionMetaId,
         },
-      };
-      TransactionController.update((state) => {
-        state.swapsTransactions = newSwapsTransactions;
       });
     },
     [
@@ -922,7 +920,7 @@ function SwapsQuotesView({
   );
 
   const handleSwapTransaction = useCallback(
-    async (newSwapsTransactions, approvalTransactionMetaId) => {
+    async (approvalTransactionMetaId) => {
       if (!selectedQuote) {
         return;
       }
@@ -944,19 +942,22 @@ function SwapsQuotesView({
           },
         );
 
+        Logger.log(LOG_PREFIX, 'Added trade transaction', transactionMeta.id);
+
         await result;
+
+        Logger.log(LOG_PREFIX, 'Submitted trade transaction', transactionMeta.id);
 
         updateSwapsTransactions(
           transactionMeta,
-          approvalTransactionMetaId,
-          newSwapsTransactions,
+          approvalTransactionMetaId
         );
 
         setRecipient(selectedAddress);
         await addTokenToAssetsController(destinationToken);
         await addTokenToAssetsController(sourceToken);
       } catch (e) {
-        // send analytics
+        Logger.log(LOG_PREFIX, 'Failed to submit trade transaction', e);
       }
     },
     [
@@ -973,11 +974,8 @@ function SwapsQuotesView({
     ],
   );
 
-  const handleApprovaltransaction = useCallback(
+  const handleApprovalTransaction = useCallback(
     async (
-      TransactionController,
-      newSwapsTransactions,
-      approvalTransactionMetaId,
       isHardwareAddress,
     ) => {
       try {
@@ -996,11 +994,17 @@ function SwapsQuotesView({
           },
         );
 
+        Logger.log(LOG_PREFIX, 'Added approval transaction', transactionMeta.id);
+
         await result;
+
+        Logger.log(LOG_PREFIX, 'Submitted approval transaction', transactionMeta.id);
+
         setRecipient(selectedAddress);
 
-        approvalTransactionMetaId = transactionMeta.id;
-        newSwapsTransactions[transactionMeta.id] = {
+        const approvalTransactionMetaId = transactionMeta.id;
+
+        addSwapsTransaction(transactionMeta.id, {
           action: 'approval',
           sourceToken: {
             address: sourceToken.address,
@@ -1011,7 +1015,8 @@ function SwapsQuotesView({
             decodeApproveData(approvalTransaction.data).encodedAmount,
             16,
           ).toString(10),
-        };
+        });
+
         if (isHardwareAddress || shouldUseSmartTransaction) {
           const { id: transactionId } = transactionMeta;
 
@@ -1020,18 +1025,17 @@ function SwapsQuotesView({
             (transactionMeta) => {
               if (transactionMeta.status === TransactionStatus.confirmed) {
                 handleSwapTransaction(
-                  TransactionController,
-                  newSwapsTransactions,
-                  approvalTransactionMetaId,
-                  isHardwareAddress,
+                  approvalTransactionMetaId
                 );
               }
             },
             (transactionMeta) => transactionMeta.id === transactionId,
           );
         }
+
+        return approvalTransactionMetaId;
       } catch (e) {
-        // send analytics
+        Logger.log(LOG_PREFIX, 'Failed to submit approval transaction', e);
       }
     },
     [
@@ -1044,7 +1048,7 @@ function SwapsQuotesView({
       selectedAddress,
       setRecipient,
       resetTransaction,
-      shouldUseSmartTransaction,
+      shouldUseSmartTransaction
     ],
   );
 
@@ -1057,16 +1061,10 @@ function SwapsQuotesView({
 
     startSwapAnalytics(selectedQuote, selectedAddress);
 
-    const { TransactionController } = Engine.context;
-
-    const newSwapsTransactions =
-      TransactionController.state.swapsTransactions || {};
     let approvalTransactionMetaId;
+
     if (approvalTransaction) {
-      await handleApprovaltransaction(
-        TransactionController,
-        newSwapsTransactions,
-        approvalTransactionMetaId,
+      approvalTransactionMetaId = await handleApprovalTransaction(
         isHardwareAddress,
       );
 
@@ -1081,10 +1079,7 @@ function SwapsQuotesView({
       (shouldUseSmartTransaction && !approvalTransaction)
     ) {
       await handleSwapTransaction(
-        TransactionController,
-        newSwapsTransactions,
-        approvalTransactionMetaId,
-        isHardwareAddress,
+        approvalTransactionMetaId
       );
     }
 
@@ -1094,7 +1089,7 @@ function SwapsQuotesView({
     selectedAddress,
     approvalTransaction,
     startSwapAnalytics,
-    handleApprovaltransaction,
+    handleApprovalTransaction,
     handleSwapTransaction,
     navigation,
     shouldUseSmartTransaction,
