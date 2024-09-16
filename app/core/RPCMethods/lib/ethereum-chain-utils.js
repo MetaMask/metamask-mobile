@@ -7,6 +7,12 @@ import {
   isPrefixedFormattedHexString,
   getDefaultNetworkByChainId,
 } from '../../../util/networks';
+import {
+  CaveatFactories,
+  PermissionKeys,
+} from '../../../core/Permissions/specifications';
+import { CaveatTypes } from '../../../core/Permissions/constants';
+import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 
 const EVM_NATIVE_TOKEN_DECIMALS = 18;
 
@@ -195,6 +201,21 @@ export async function switchToNetwork({
     SelectedNetworkController,
   } = controllers;
 
+  const getCaveat = ({ target, caveatType }) => {
+    try {
+      return PermissionController.getCaveat(origin, target, caveatType);
+    } catch (e) {
+      if (e instanceof PermissionDoesNotExistError) {
+        // suppress expected error in case that the origin
+        // does not have the target permission yet
+      } else {
+        throw e;
+      }
+    }
+
+    return undefined;
+  };
+
   const [networkConfigurationId, networkConfiguration] = network;
 
   const requestData = {
@@ -214,12 +235,52 @@ export async function switchToNetwork({
     ...analytics,
   };
 
-  const requestModalType = isAddNetworkFlow ? 'new' : 'switch';
+  if (process.env.MULTICHAIN_V1) {
+    const { value: permissionedChainIds } =
+      getCaveat({
+        target: PermissionKeys.permittedChains,
+        caveatType: CaveatTypes.restrictNetworkSwitching,
+      }) ?? {};
+    if (
+      permissionedChainIds === undefined ||
+      !permissionedChainIds.includes(chainId)
+    ) {
+      if (isAddNetworkFlow) {
+        await PermissionController.grantPermissionsIncremental({
+          subject: { origin },
+          approvedPermissions: {
+            [PermissionKeys.permittedChains]: {
+              caveats: [
+                CaveatFactories[CaveatTypes.restrictNetworkSwitching]([
+                  chainId,
+                ]),
+              ],
+            },
+          },
+        });
+      } else {
+        await PermissionController.requestPermissionsIncremental({
+          subject: { origin },
+          requestedPermissions: {
+            [PermissionKeys.permittedChains]: {
+              caveats: [
+                CaveatFactories[CaveatTypes.restrictNetworkSwitching]([
+                  chainId,
+                ]),
+              ],
+            },
+          },
+        });
+      }
+    }
+  } else {
+    const requestModalType = isAddNetworkFlow ? 'new' : 'switch';
 
-  await requestUserApproval({
-    type: 'SWITCH_ETHEREUM_CHAIN',
-    requestData: { ...requestData, type: requestModalType },
-  });
+    await requestUserApproval({
+      type: 'SWITCH_ETHEREUM_CHAIN',
+      requestData: { ...requestData, type: requestModalType },
+    });
+  }
 
   const originHasAccountsPermission = PermissionController.hasPermission(
     origin,
