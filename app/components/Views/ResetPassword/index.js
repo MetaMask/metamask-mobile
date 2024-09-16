@@ -340,19 +340,20 @@ class ResetPassword extends PureComponent {
       });
     }, 100);
   }
-
   componentDidUpdate(prevProps, prevState) {
     this.updateNavBar();
-    const prevLoading = prevState.loading;
     const { loading } = this.state;
     const { navigation } = this.props;
-    if (!prevLoading && loading) {
-      // update navigationOptions
-      navigation.setParams({
-        headerLeft: () => null,
-      });
+    if (!prevState.loading && loading) {
+      this.updateHeaderLeft(navigation);
     }
   }
+
+  updateHeaderLeft = (navigation) => {
+    navigation.setParams({
+      headerLeft: () => null,
+    });
+  };
 
   componentWillUnmount() {
     this.mounted = false;
