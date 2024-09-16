@@ -10,13 +10,13 @@ import { strings } from '../../../../../locales/i18n';
 import {
   USE_SAFE_CHAINS_LIST_VALIDATION,
   DISPLAY_SAFE_CHAINS_LIST_VALIDATION,
-} from './NetworkDetailsCheckSettings.constants';
+} from './index.constants';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { toggleUseSafeChainsListValidation } from '../../../../util/networks';
-import createStyles from './NetworkDetailsCheckSettings.styles';
+import createStyles from './index.styles';
 
 const NetworkDetailsCheckSettings = () => {
   const theme = useTheme();

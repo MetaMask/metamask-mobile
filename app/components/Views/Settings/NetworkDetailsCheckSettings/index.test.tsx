@@ -8,7 +8,7 @@ import { selectUseSafeChainsListValidation } from '../../../../selectors/prefere
 import {
   USE_SAFE_CHAINS_LIST_VALIDATION,
   DISPLAY_SAFE_CHAINS_LIST_VALIDATION,
-} from './NetworkDetailsCheckSettings.constants';
+} from './index.constants';
 import { strings } from '../../../../../locales/i18n';
 import { toggleUseSafeChainsListValidation } from '../../../../util/networks';
 
@@ -35,11 +35,11 @@ describe('NetworkDetailsCheckSettings', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    useNavigation.mockReturnValue(mockNavigation);
+    (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
   });
 
   it('should render correctly', () => {
-    useSelector.mockImplementation((selector) => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectUseSafeChainsListValidation) return false;
       return null;
     });
@@ -58,7 +58,7 @@ describe('NetworkDetailsCheckSettings', () => {
   });
 
   it('should render the switch for Network Details Check', () => {
-    useSelector.mockImplementation((selector) => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectUseSafeChainsListValidation) return false;
       return null;
     });
@@ -68,7 +68,7 @@ describe('NetworkDetailsCheckSettings', () => {
   });
 
   it('should toggle the switch when pressed', () => {
-    useSelector.mockImplementation((selector) => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectUseSafeChainsListValidation) return false;
       return null;
     });
@@ -79,7 +79,7 @@ describe('NetworkDetailsCheckSettings', () => {
   });
 
   it('should display the correct switch state based on useSafeChainsListValidation', () => {
-    useSelector.mockImplementation((selector) => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectUseSafeChainsListValidation) return true;
       return null;
     });

@@ -5,10 +5,10 @@ import Engine from '../../../../core/Engine';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import DisplayNFTMediaSettings from '.';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import { NFT_DISPLAY_MEDIA_MODE_SECTION } from './DisplayNFTMediaSettings.constants';
+import { NFT_DISPLAY_MEDIA_MODE_SECTION } from './index.constants';
 
-let mockSetDisplayNftMedia;
-let mockSetUseNftDetection;
+let mockSetDisplayNftMedia: jest.Mock;
+let mockSetUseNftDetection: jest.Mock;
 
 beforeEach(() => {
   mockSetDisplayNftMedia.mockClear();
@@ -32,11 +32,6 @@ jest.mock('../../../../core/Engine', () => {
 });
 
 describe('DisplayNFTMediaSettings', () => {
-  const mockNavigation = {
-    goBack: jest.fn(),
-    setOptions: jest.fn(),
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
   });

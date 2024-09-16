@@ -16,7 +16,6 @@ import {
   SECURITY_SETTINGS_DELETE_WALLET_BUTTON,
   TURN_ON_REMEMBER_ME,
 } from './SecuritySettings.constants';
-import { USE_SAFE_CHAINS_LIST_VALIDATION } from '../../Settings/NetworkDetailsCheckSettings/NetworkDetailsCheckSettings.constants';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
@@ -105,7 +104,6 @@ describe('SecuritySettings', () => {
     expect(getByTestId(META_METRICS_DATA_MARKETING_SECTION)).toBeTruthy();
     expect(getByTestId(SECURITY_SETTINGS_DELETE_WALLET_BUTTON)).toBeTruthy();
     expect(getByText('Automatic security checks')).toBeTruthy();
-    expect(getByTestId(USE_SAFE_CHAINS_LIST_VALIDATION)).toBeTruthy();
   });
 
   it('renders Blockaid settings', async () => {

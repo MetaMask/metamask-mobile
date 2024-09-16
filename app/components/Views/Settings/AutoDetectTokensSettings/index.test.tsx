@@ -5,9 +5,9 @@ import Engine from '../../../../core/Engine';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import AssetSettings from '.';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import { TOKEN_DETECTION_TOGGLE } from './AutoDetectTokensSettings.constants';
+import { TOKEN_DETECTION_TOGGLE } from './index.constants';
 
-let mockSetUseTokenDetection;
+let mockSetUseTokenDetection: jest.Mock;
 
 beforeEach(() => {
   mockSetUseTokenDetection.mockClear();

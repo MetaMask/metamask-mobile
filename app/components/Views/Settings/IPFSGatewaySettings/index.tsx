@@ -15,15 +15,15 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import createStyles from './IPFSGatewaySettings.styles';
+import createStyles from './index.styles';
 import {
   IPFS_GATEWAY_SECTION,
   HASH_TO_TEST,
   HASH_STRING,
   IPFS_GATEWAY_SELECTED,
-} from './IPFSGatewaySettings.constants';
+} from './index.constants';
 import ipfsGateways from '../../../../util/ipfs-gateways.json';
-import { Gateway } from './IPFSGatewaySettings.types';
+import { Gateway } from './index.types';
 import { timeoutFetch } from '../../../../util/general';
 import SelectComponent from '../../../UI/SelectComponent';
 

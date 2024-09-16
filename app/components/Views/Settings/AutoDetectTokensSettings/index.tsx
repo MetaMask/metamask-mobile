@@ -12,8 +12,8 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import createStyles from './AutoDetectTokensSettings.styles';
-import { TOKEN_DETECTION_TOGGLE } from './AutoDetectTokensSettings.constants';
+import createStyles from './index.styles';
+import { TOKEN_DETECTION_TOGGLE } from './index.constants';
 
 const AutoDetectTokensSettings = () => {
   const theme = useTheme();

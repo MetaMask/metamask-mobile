@@ -4,14 +4,14 @@ import { fireEvent } from '@testing-library/react-native';
 
 import Engine from '../../../../core/Engine';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import AutoDetectNFTSettings from './';
+import AutoDetectNFTSettings from './index';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import { NFT_AUTO_DETECT_MODE_SECTION } from './AutoDetectNFTSettings.constants';
+import { NFT_AUTO_DETECT_MODE_SECTION } from './index.constants';
 
-let mockSetDisplayNftMedia;
-let mockSetUseNftDetection;
-let mockAddTraitsToUser;
-let mockTrackEvent;
+let mockSetDisplayNftMedia: jest.Mock;
+let mockSetUseNftDetection: jest.Mock;
+let mockAddTraitsToUser: jest.Mock;
+let mockTrackEvent: jest.Mock;
 
 beforeEach(() => {
   mockSetDisplayNftMedia.mockClear();
@@ -38,9 +38,14 @@ jest.mock('../../../../core/Engine', () => {
   };
 });
 
+const mockNavigation = {
+  goBack: jest.fn(),
+  setOptions: jest.fn(),
+};
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: jest.fn(),
+  useNavigation: jest.fn(() => mockNavigation),
 }));
 
 jest.mock('../../../hooks/useMetrics', () => ({
@@ -58,14 +63,9 @@ jest.mock('../../../../util/general', () => ({
 }));
 
 describe('AutoDetectNFTSettings', () => {
-  const mockNavigation = {
-    goBack: jest.fn(),
-    setOptions: jest.fn(),
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
-    useNavigation.mockReturnValue(mockNavigation);
+    (useNavigation as jest.Mock).mockImplementation(() => mockNavigation);
   });
 
   const initialState = {

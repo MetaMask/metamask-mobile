@@ -13,8 +13,8 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import createStyles from './AutoDetectNFTSettings.styles';
-import { NFT_AUTO_DETECT_MODE_SECTION } from './AutoDetectNFTSettings.constants';
+import createStyles from './index.styles';
+import { NFT_AUTO_DETECT_MODE_SECTION } from './index.constants';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 const AutoDetectNFTSettings = () => {

@@ -6,7 +6,7 @@ import Engine from '../../../../core/Engine';
 import { selectIsMultiAccountBalancesEnabled } from '../../../../selectors/preferencesController';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
-import createStyles from './BatchAccountBalanceSettings.styles';
+import createStyles from './index.styles';
 import Text, {
   TextVariant,
   TextColor,
@@ -14,7 +14,7 @@ import Text, {
 import {
   BATCH_BALANCE_REQUESTS_SECTION,
   SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
-} from './BatchAccountBalanceSettings.constants';
+} from './index.constants';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const BatchAccountBalanceSettings = () => {

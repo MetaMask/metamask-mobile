@@ -4,7 +4,6 @@ import React from 'react';
 // internal dependencies
 import GeneralSettings from '.';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
 
@@ -33,12 +32,10 @@ const mockNetworkName = 'Ethereum Main Network';
 
 describe('GeneralSettings', () => {
   it('should render correctly', () => {
-    useSelector.mockImplementation((selector) => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectNetworkName) return mockNetworkName;
     });
-    const { toJSON } = renderWithProvider(
-      <GeneralSettings navigation={useNavigation()} />,
-    );
+    const { toJSON } = renderWithProvider(<GeneralSettings />);
     expect(toJSON()).toMatchSnapshot();
   });
 });

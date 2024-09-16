@@ -28,11 +28,11 @@ describe('SecuritySettings', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    useNavigation.mockReturnValue(mockNavigation);
+    (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
   });
 
   it('should render correctly', () => {
-    useSelector.mockImplementation((selector) => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectUseSafeChainsListValidation) return false;
       return null;
     });

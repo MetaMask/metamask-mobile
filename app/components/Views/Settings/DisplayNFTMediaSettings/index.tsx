@@ -12,8 +12,8 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import createStyles from './DisplayNFTMediaSettings.styles';
-import { NFT_DISPLAY_MEDIA_MODE_SECTION } from './DisplayNFTMediaSettings.constants';
+import createStyles from './index.styles';
+import { NFT_DISPLAY_MEDIA_MODE_SECTION } from './index.constants';
 
 const DisplayNFTMediaSettings = () => {
   const theme = useTheme();

@@ -8,10 +8,10 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import {
   INCOMING_MAINNET_TOGGLE,
   INCOMING_LINEA_MAINNET_TOGGLE,
-} from './IncomingTransactionsSettings.constants';
+} from './index.constants';
 import Networks from '../../../../util/networks';
 
-let mockSetEnableNetworkIncomingTransactions;
+let mockSetEnableNetworkIncomingTransactions: jest.Mock;
 
 beforeEach(() => {
   mockSetEnableNetworkIncomingTransactions.mockClear();

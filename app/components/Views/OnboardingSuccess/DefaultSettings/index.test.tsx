@@ -7,12 +7,10 @@ import Routes from '../../../../constants/navigation/Routes';
 import { Linking } from 'react-native';
 import AppConstants from '../../../../core/AppConstants';
 
-// Mock the react-navigation hook
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
-// Mock the Linking API
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(),
 }));
@@ -23,9 +21,8 @@ describe('DefaultSettings', () => {
     setOptions: jest.fn(),
     navigate: jest.fn(),
   };
-
   beforeEach(() => {
-    useNavigation.mockReturnValue(mockNavigation);
+    (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
   });
 
   it('should render correctly', () => {

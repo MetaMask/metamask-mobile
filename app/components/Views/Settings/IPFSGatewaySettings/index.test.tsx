@@ -5,13 +5,9 @@ import Engine from '../../../../core/Engine';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import IPFSGatewaySettings from './';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import {
-  IPFS_GATEWAY_SECTION,
-  IPFS_GATEWAY_SELECTED,
-} from './IPFSGatewaySettings.constants';
-
-let mockSetIsIpfsGatewayEnabled;
-let mockSetIpfsGateway;
+import { IPFS_GATEWAY_SECTION, IPFS_GATEWAY_SELECTED } from './index.constants';
+let mockSetIsIpfsGatewayEnabled: jest.Mock;
+let mockSetIpfsGateway: jest.Mock;
 
 beforeEach(() => {
   mockSetIsIpfsGatewayEnabled.mockClear();
@@ -92,25 +88,21 @@ describe('IPFSGatewaySettings', () => {
     });
 
     it('should render IPFS gateway selector when enabled', async () => {
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <IPFSGatewaySettings />,
-        {
-          state: {
-            ...initialState,
-            engine: {
-              backgroundState: {
-                ...initialState.engine.backgroundState,
-                PreferencesController: {
-                  ...initialState.engine.backgroundState.PreferencesController,
-                  isIpfsGatewayEnabled: true,
-                },
+      const { queryByTestId } = renderWithProvider(<IPFSGatewaySettings />, {
+        state: {
+          ...initialState,
+          engine: {
+            backgroundState: {
+              ...initialState.engine.backgroundState,
+              PreferencesController: {
+                ...initialState.engine.backgroundState.PreferencesController,
+                isIpfsGatewayEnabled: true,
               },
             },
           },
         },
-      );
+      });
 
-      // Wait for the component to finish rendering
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       const ipfsGatewaySelector = queryByTestId(IPFS_GATEWAY_SELECTED);

@@ -5,9 +5,9 @@ import Engine from '../../../../core/Engine';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import BatchAccountBalanceSettings from './';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import { SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID } from './BatchAccountBalanceSettings.constants';
+import { SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID } from './index.constants';
 
-let mockSetIsMultiAccountBalancesEnabled;
+let mockSetIsMultiAccountBalancesEnabled: jest.Mock;
 
 beforeEach(() => {
   mockSetIsMultiAccountBalancesEnabled.mockClear();
@@ -108,19 +108,14 @@ describe('BatchAccountBalanceSettings', () => {
       SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
     );
 
-    // Check initial state (false)
     expect(multiAccountBalancesToggle.props.value).toBe(false);
 
-    // Simulate toggle press to true
     fireEvent(multiAccountBalancesToggle, 'onValueChange', true);
 
-    // Check if setIsMultiAccountBalancesEnabled was called with true
     expect(mockSetIsMultiAccountBalancesEnabled).toHaveBeenCalledWith(true);
 
-    // Simulate toggle press to false
     fireEvent(multiAccountBalancesToggle, 'onValueChange', false);
 
-    // Check if setIsMultiAccountBalancesEnabled was called with false
     expect(mockSetIsMultiAccountBalancesEnabled).toHaveBeenCalledWith(false);
   });
 });
