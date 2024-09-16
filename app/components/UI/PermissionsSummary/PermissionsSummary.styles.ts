@@ -1,5 +1,4 @@
 import { StyleSheet } from 'react-native';
-import Device from '../../../util/device';
 import { Theme } from '../../../util/theme/models';
 
 const createStyles = (params: { theme: Theme }) => {
@@ -7,23 +6,22 @@ const createStyles = (params: { theme: Theme }) => {
   return StyleSheet.create({
     mainContainer: {
       backgroundColor: theme.colors.background.default,
-      paddingTop: 24,
+      paddingTop: 8,
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
       minHeight: 200,
-      paddingBottom: Device.isIphoneX() ? 20 : 0,
     },
     title: {
       alignSelf: 'center',
+      marginTop: 8,
       marginBottom: 16,
-      marginTop: 16,
       marginRight: 24,
       marginLeft: 24,
     },
     actionButtonsContainer: {
       flex: 0,
       flexDirection: 'row',
-      padding: 24,
+      paddingHorizontal: 24,
     },
     buttonPositioning: {
       flex: 1,
@@ -37,7 +35,7 @@ const createStyles = (params: { theme: Theme }) => {
     networkPermissionRequestInfoCard: {
       marginHorizontal: 24,
       marginTop: 8,
-      marginBottom: 12,
+      marginBottom: 16,
       alignItems: 'center',
       flexDirection: 'row',
     },
@@ -101,6 +99,8 @@ const createStyles = (params: { theme: Theme }) => {
     editArrow: {
       marginHorizontal: 16,
     },
+    walletIcon: { alignSelf: 'flex-start' },
+    dataIcon: { alignSelf: 'flex-start' },
   });
 };
 

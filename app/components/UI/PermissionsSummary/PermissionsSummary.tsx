@@ -107,6 +107,7 @@ const PermissionsSummary = ({
       <View style={styles.accountPermissionRequestInfoCard}>
         <Avatar
           variant={AvatarVariant.Icon}
+          style={styles.walletIcon}
           name={IconName.Wallet}
           size={AvatarSize.Md}
           backgroundColor={colors.shadow.default}
@@ -167,6 +168,7 @@ const PermissionsSummary = ({
     return (
       <View style={styles.networkPermissionRequestInfoCard}>
         <Avatar
+          style={styles.dataIcon}
           variant={AvatarVariant.Icon}
           name={IconName.Data}
           size={AvatarSize.Md}
