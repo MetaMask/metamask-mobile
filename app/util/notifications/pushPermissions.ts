@@ -3,9 +3,8 @@ import notifee, {
   NotificationSettings,
 } from '@notifee/react-native';
 import { Alert as NativeAlert } from 'react-native';
-
+import NotificationSetting from 'react-native-open-notification';
 import { strings } from '../../../locales/i18n';
-import Device from '../device';
 import { mmStorage } from './settings';
 import { STORAGE_IDS } from './settings/storage/constants';
 import Logger from '../Logger';
@@ -36,13 +35,7 @@ const defaultButtons = (resolve: (value: boolean) => void): AlertButton[] => [
   {
     text: strings('notifications.prompt_ok'),
     onPress: async () => {
-      if (Device.isIos()) {
-        await notifee.requestPermission({
-          provisional: true,
-        });
-      } else {
-        await notifee.requestPermission();
-      }
+      NotificationSetting.open();
       resolve(true);
     },
   },
