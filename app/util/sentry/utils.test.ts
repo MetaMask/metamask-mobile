@@ -234,11 +234,6 @@ describe('captureSentryFeedback', () => {
                 status: NetworkStatus.Available,
               },
             },
-            providerConfig: {
-              chainId: '0x1',
-              ticker: 'ETH',
-              type: 'mainnet',
-            },
             selectedNetworkClientId: 'mainnet',
           },
           NftController: {

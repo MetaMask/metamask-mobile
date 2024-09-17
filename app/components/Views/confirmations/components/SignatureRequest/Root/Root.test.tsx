@@ -83,11 +83,6 @@ const initialState = {
           },
         },
       },
-      NetworkController: {
-        providerConfig: {
-          chainId: '0x1',
-        },
-      },
     },
   },
 };
