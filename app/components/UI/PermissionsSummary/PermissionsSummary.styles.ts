@@ -107,6 +107,10 @@ const createStyles = (params: { theme: Theme }) => {
       flexDirection: 'row',
     },
     disconnectButton: { flex: 1 },
+    editTextContainer: {
+      width: 56,
+      alignItems: 'center',
+    },
   });
 };
 
