@@ -8,6 +8,7 @@ import React, {
 import notifee, {
   EventType,
 } from '@notifee/react-native';
+
 import {
   ActivityIndicator,
   AppState,
@@ -29,7 +30,6 @@ import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
 import RampOrders from '../../UI/Ramp';
 import Routes from '../../../constants/navigation/Routes';
-
 import {
   showTransactionNotification,
   hideCurrentNotification,
@@ -37,6 +37,7 @@ import {
   removeNotificationById,
   removeNotVisibleNotifications,
 } from '../../../actions/notification';
+import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
@@ -269,21 +270,35 @@ const Main = (props) => {
       initForceReload();
       return;
     }
+
   });
 
-  useEffect(() => notifee.onBackgroundEvent(async ({ type, detail }) => {
-    const { notification, pressAction } = detail;
-    if (type === EventType.ACTION_PRESS && pressAction.id === 'mark-as-read') {
-      notifee.decrementBadgeCount(1).then(async () => {
-        await notifee.cancelNotification(notification.id);
-      });
-    } else {
-      notifee.incrementBadgeCount(1).then(() => {
-        props.navigation.navigate(Routes.NOTIFICATIONS.VIEW);
-      });
+  useEffect(() => {
+
+    if (!isNotificationsFeatureEnabled()) {
+      return;
     }
+
+
+    return notifee.onBackgroundEvent(async ({ type, detail }) => {
+      const { notification, pressAction } = detail;
+      // eslint-disable-next-line no-console
+      console.log(
+        `[onBackgroundEvent] notification id: ${notification !== undefined ? notification.id : 'undefined'
+        },  event type: ${EventType[type]}, press action: ${pressAction?.id}`,
+      );
+      if (type === EventType.ACTION_PRESS && pressAction.id === 'mark-as-read') {
+        notifee.decrementBadgeCount(1).then(async () => {
+          await notifee.cancelNotification(notification.id);
+        });
+      } else {
+        notifee.incrementBadgeCount(1).then(() => {
+          props.navigation.navigate(Routes.NOTIFICATIONS.VIEW);
+        });
+      }
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), []);
+  });
 
 
 
