@@ -1,41 +1,30 @@
-// Internal dependencies.
-import { default as CellMultiSelectComponent } from './CellMultiSelect';
+// Third party dependencies
+import React from 'react';
+import { Meta, Story } from '@storybook/react-native';
+
+// Internal dependencies
+import CellMultiSelect from './CellMultiSelect';
+import { CellMultiSelectProps } from './CellMultiSelect.types';
 import { SAMPLE_CELLMULTISELECT_PROPS } from './CellMultiSelect.constants';
 
-const CellMultiSelectMeta = {
-  title: 'Component Library / Cells',
-  component: CellMultiSelectComponent,
+export default {
+  title: 'Component Library / Cells / CellMultiSelect',
+  component: CellMultiSelect,
   argTypes: {
-    title: {
-      control: { type: 'text' },
-      defaultValue: SAMPLE_CELLMULTISELECT_PROPS.title,
-    },
-    secondaryText: {
-      control: { type: 'text' },
-      defaultValue: SAMPLE_CELLMULTISELECT_PROPS.secondaryText,
-    },
-    tertiaryText: {
-      control: { type: 'text' },
-      defaultValue: SAMPLE_CELLMULTISELECT_PROPS.tertiaryText,
-    },
-    tagLabel: {
-      control: { type: 'text' },
-      defaultValue: SAMPLE_CELLMULTISELECT_PROPS.tagLabel,
-    },
-    isSelected: {
-      control: { type: 'boolean' },
-      defaultValue: SAMPLE_CELLMULTISELECT_PROPS.isSelected,
-    },
-    isDisabled: {
-      control: { type: 'boolean' },
-      defaultValue: SAMPLE_CELLMULTISELECT_PROPS.isDisabled,
-    },
+    title: { control: 'text' },
+    secondaryText: { control: 'text' },
+    tertiaryText: { control: 'text' },
+    tagLabel: { control: 'text' },
+    isSelected: { control: 'boolean' },
+    isDisabled: { control: 'boolean' },
   },
-};
-export default CellMultiSelectMeta;
+} as Meta;
 
-export const CellMultiSelect = {
-  args: {
-    avatarProps: SAMPLE_CELLMULTISELECT_PROPS.avatarProps,
-  },
+const Template: Story<CellMultiSelectProps> = (args) => (
+  <CellMultiSelect {...args} />
+);
+
+export const Default = Template.bind({});
+Default.args = {
+  ...SAMPLE_CELLMULTISELECT_PROPS,
 };

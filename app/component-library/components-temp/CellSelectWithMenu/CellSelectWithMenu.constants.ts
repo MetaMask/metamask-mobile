@@ -3,11 +3,20 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 import {
   AvatarVariant,
   AvatarAccountType,
+  AvatarSize,
 } from '../../../component-library/components/Avatars/Avatar';
 import { AvatarProps } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
+import { TextVariant } from '../../../component-library/components/Texts/Text';
 
 // Internal dependencies.
 import { CellSelectWithMenuProps } from './CellSelectWithMenu.types';
+
+// Defaults
+export const DEFAULT_CELLSELECT_WITH_BUTTON_SECONDARYTEXT_TEXTVARIANT =
+  TextVariant.BodyMD;
+export const DEFAULT_CELLSELECT_WITH_BUTTON_AVATAR_SIZE = AvatarSize.Md;
+export const DEFAULT_CELLSELECT_WITH_BUTTON_TITLE_TEXTVARIANT =
+  TextVariant.HeadingSMRegular;
 
 // Sample consts
 const SAMPLE_CELLSELECT_WITH_BUTTON_TITLE = 'Orangefox.eth';

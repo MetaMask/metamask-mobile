@@ -39,7 +39,6 @@ const CellSelect = ({
         secondaryText={secondaryText}
         tertiaryText={tertiaryText}
         tagLabel={tagLabel}
-        style={style}
       >
         {children}
       </CellBase>

@@ -17,7 +17,10 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { Notification } from '../../../../util/notifications';
-import { useListNotifications, useMarkNotificationAsRead } from '../../../../util/notifications/hooks/useNotifications';
+import {
+  useListNotifications,
+  useMarkNotificationAsRead,
+} from '../../../../util/notifications/hooks/useNotifications';
 import { useMetrics } from '../../../hooks/useMetrics';
 import Empty from '../Empty';
 import { NotificationMenuItem } from '../NotificationMenuItem';

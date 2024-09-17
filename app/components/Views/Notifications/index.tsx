@@ -81,7 +81,6 @@ const NotificationsView = ({
     [allNotifications],
   );
 
-
   return (
     <View
       style={styles.wrapper}

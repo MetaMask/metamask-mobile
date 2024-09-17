@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useCallback, useContext, useLayoutEffect } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useCallback,
+  useContext,
+  useLayoutEffect,
+} from 'react';
 import {
   ActivityIndicator,
   StyleSheet,

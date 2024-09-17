@@ -75,8 +75,12 @@ export const constructTitleAndMessage = (notification) => {
       });
       break;
     default:
-      title = notification.data.title || strings('notifications.default_message_title');
-      message = notification.data.shortDescription || strings('notifications.default_message_description');
+      title =
+        notification.data.title ||
+        strings('notifications.default_message_title');
+      message =
+        notification.data.shortDescription ||
+        strings('notifications.default_message_description');
       break;
   }
   return { title, message };
@@ -433,9 +437,9 @@ class NotificationManager {
         .filter(
           (tx) =>
             safeToChecksumAddress(tx.txParams?.to) ===
-            selectedInternalAccountChecksummedAddress &&
+              selectedInternalAccountChecksummedAddress &&
             safeToChecksumAddress(tx.txParams?.from) !==
-            selectedInternalAccountChecksummedAddress &&
+              selectedInternalAccountChecksummedAddress &&
             tx.chainId === chainId &&
             tx.status === 'confirmed' &&
             lastBlock <= parseInt(tx.blockNumber, 10) &&

@@ -10,9 +10,9 @@ This component extends React Native's [ViewProps](https://reactnative.dev/docs/v
 
 Props for the [Avatar](../../../../Avatars/Avatar.tsx) component (with the exception of size). Avatar size is restricted to size Md(32x32) for Cells
 
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| [AvatarProps](../../../../Avatars/Avatar.types.ts#L19)                                              | Yes                                                     |
+| <span style="color:gray;font-size:14px">TYPE</span>    | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :----------------------------------------------------- | :------------------------------------------------------ |
+| [AvatarProps](../../../../Avatars/Avatar.types.ts#L19) | Yes                                                     |
 
 ### `title`
 
@@ -20,7 +20,7 @@ Title of the Cell, 1 line truncation.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| string                                              | Yes                                                     |
+| string or ReactNode                                 | Yes                                                     |
 
 ### `secondaryText`
 
@@ -28,7 +28,7 @@ Optional secondary text below the title, 1 line truncation.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| string                                              | No                                                      |
+| string or ReactNode                                 | No                                                      |
 
 ### `tertiaryText`
 
@@ -36,7 +36,7 @@ Optional tertiary text below the secondaryText, 1 line truncation.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| string                                              | No                                                      |
+| string or ReactNode                                 | No                                                      |
 
 ### `tagLabel`
 
@@ -57,14 +57,49 @@ Optional accessory that can be inserted on the right of Cell.
 ## Usage
 
 ```javascript
-// Change import path to relative path.
-import CellBase from 'app/component-library/components/Cells/foundation/CellBase/CellBase';
+// Default
+<CellBase avatarProps={avatarProps} title={'Sample Title'} />;
 
+// Passing Component to title
+<CellBase avatarProps={avatarProps} title={SampleTitleComponent} />;
+
+// Passing string to secondaryText
 <CellBase
-  avatarProps={AVATAR_PROPS}
-  title={TITLE}
-  secondaryText={SECONDARY_TEXT}
-  tertiaryText={TERTIARY_TEXT}
-  tagLabel={TAG_LABEL}
+  avatarProps={avatarProps}
+  title={'Sample Title'}
+  secondaryText={'Sample secondaryText'}
 />;
+
+// Passing Component to secondaryText
+<CellBase
+  avatarProps={avatarProps}
+  title={'Sample Title'}
+  secondaryText={SampleSecondaryTextComponent}
+/>;
+
+// Passing string to tertiaryText
+<CellBase
+  avatarProps={avatarProps}
+  title={'Sample Title'}
+  tertiaryText={'Sample tertiaryText'}
+/>;
+
+// Passing Component to tertiaryText
+<CellBase
+  avatarProps={avatarProps}
+  title={'Sample Title'}
+  tertiaryText={SampleTertiaryTextComponent}
+/>;
+
+// Adding tagLabel
+<CellBase
+  avatarProps={avatarProps}
+  title={'Sample Title'}
+  tagLabel={'Tag Label'}
+/>;
+
+// Adding accessory to the right of the info section (children)
+<CellBase avatarProps={avatarProps} title={'Sample Title'}>
+  {SampleEndAccessoryComponent}
+</CellBase>;
 ```

@@ -5,7 +5,11 @@ import { createStyles } from '../NotificationOptionToggle/styles';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import Icon, { IconColor, IconName, IconSize } from '../../../../../component-library/components/Icons/Icon';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 
 interface CustomNotificationsRowProps {
   title: string;
@@ -29,36 +33,34 @@ const CustomNotificationsRow = ({
   return (
     <View style={styles.container}>
       <Icon
-      name={icon}
-      style={styles.icon}
-      color={IconColor.Default}
-      size={IconSize.Lg}
+        name={icon}
+        style={styles.icon}
+        color={IconColor.Default}
+        size={IconSize.Lg}
       />
       <View style={styles.titleContainer}>
         <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-        {title}
+          {title}
         </Text>
-        {
-        description &&
-        (<Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-          {description}
-        </Text>)
-        }
+        {description && (
+          <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+            {description}
+          </Text>
+        )}
       </View>
       <Switch
-      value={isEnabled}
-      onChange={onChange}
-      trackColor={{
-        true: colors.primary.default,
-        false: colors.border.muted,
-      }}
-      thumbColor={theme.brandColors.white}
-      style={styles.switch}
-      ios_backgroundColor={colors.border.muted}
+        value={isEnabled}
+        onChange={onChange}
+        trackColor={{
+          true: colors.primary.default,
+          false: colors.border.muted,
+        }}
+        thumbColor={theme.brandColors.white}
+        style={styles.switch}
+        ios_backgroundColor={colors.border.muted}
       />
-      </View>
+    </View>
   );
 };
 
-
-  export default React.memo(CustomNotificationsRow);
+export default React.memo(CustomNotificationsRow);

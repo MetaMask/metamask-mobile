@@ -1101,12 +1101,13 @@ const Settings: React.FC = () => {
             handleSwitchToggle={toggleBasicFunctionality}
           />
         </View>
-        {isNotificationsFeatureEnabled() &&
-        (<ProfileSyncingComponent
-          handleSwitchToggle={toggleProfileSyncing}
-          isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
-          isProfileSyncingEnabled={isProfileSyncingEnabled}
-        />)}
+        {isNotificationsFeatureEnabled() && (
+          <ProfileSyncingComponent
+            handleSwitchToggle={toggleProfileSyncing}
+            isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
+            isProfileSyncingEnabled={isProfileSyncingEnabled}
+          />
+        )}
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}

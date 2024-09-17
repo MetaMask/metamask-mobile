@@ -89,7 +89,7 @@ export class SnapsExecutionWebView extends Component {
             ref={
               this.setWebViewRef as unknown as React.RefObject<WebView> | null
             }
-            source={{ uri: SNAPS_EE_URL}}
+            source={{ uri: SNAPS_EE_URL }}
             onMessage={this.onWebViewMessage}
             onError={this.onWebViewError}
             onLoadEnd={this.onWebViewLoad}

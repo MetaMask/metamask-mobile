@@ -118,7 +118,7 @@ const NotificationOptionToggle = ({
         )}
       </View>
       <View style={styles.switchElement}>
-      {isEnabled === undefined ? (
+        {isEnabled === undefined ? (
           <ActivityIndicator />
         ) : (
           <Switch

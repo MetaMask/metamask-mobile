@@ -85,11 +85,13 @@ const DefaultSettings = () => {
         </Text>
       </Text>
       <BasicFunctionalityComponent handleSwitchToggle={handleSwitchToggle} />
-      {isNotificationsFeatureEnabled() && <ProfileSyncingComponent
-        handleSwitchToggle={toggleProfileSyncing}
-        isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
-        isProfileSyncingEnabled={isProfileSyncingEnabled}
-      />}
+      {isNotificationsFeatureEnabled() && (
+        <ProfileSyncingComponent
+          handleSwitchToggle={toggleProfileSyncing}
+          isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
+          isProfileSyncingEnabled={isProfileSyncingEnabled}
+        />
+      )}
       <ManageNetworksComponent />
     </ScrollView>
   );
