@@ -82,6 +82,12 @@ const DefaultSettings = () => {
     } else {
       await enableProfileSyncing();
     }
+    trackEvent(MetaMetricsEvents.SETTINGS_UPDATED, {
+      settings_group: 'onboarding_advanced_configuration',
+      settings_type: 'profile_syncing',
+      old_value: isProfileSyncingEnabled,
+      new_value: !isProfileSyncingEnabled,
+    });
   };
 
   return (
