@@ -22,6 +22,7 @@ import {
 import {
   getFeatureFlagsSuccess,
   getFeatureFlagsError,
+  FeatureFlagsState,
 } from '../../../app/core/redux/slices/featureFlags';
 
 import launchDarklyURL from '../../../app/util/featureFlags';
@@ -131,11 +132,11 @@ export function* basicFunctionalityToggle() {
   }
 }
 
-function arrayToObject(data: []): object {
+function arrayToObject(data: []): FeatureFlagsState['featureFlags'] {
   return data.reduce((obj, current) => {
     Object.assign(obj, current);
     return obj;
-  }, {});
+  }, {} as FeatureFlagsState['featureFlags']);
 }
 
 function* fetchFeatureFlags(): Generator {

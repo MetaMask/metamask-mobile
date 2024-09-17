@@ -20,7 +20,13 @@ describe('featureFlags slice', () => {
   });
 
   it('should handle getFeatureFlagsSuccess', () => {
-    const featureFlags = [{ id: 1, name: 'feature1' }];
+    const featureFlags = {
+      mobileMinimumVersions: {
+        appMinimumBuild: 1243,
+        appleMinimumOS: 6,
+        androidMinimumAPIVersion: 21,
+      },
+    };
     const nextState = reducer(
       initialState,
       getFeatureFlagsSuccess(featureFlags),
