@@ -6,13 +6,13 @@ import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_2,
 } from '../../../../util/test/accountsControllerTestUtils';
-import { mockNetworkStateOld } from '../../../../util/test/network';
+import { mockNetworkState } from '../../../../util/test/network';
 import {
   DeepPartial,
   renderScreen,
 } from '../../../../util/test/renderWithProvider';
 
-const mockedNetworkControllerState = mockNetworkStateOld({
+const mockedNetworkControllerState = mockNetworkState({
   chainId: CHAIN_IDS.MAINNET,
   id: 'mainnet',
   nickname: 'Ethereum Mainnet',

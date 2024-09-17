@@ -1,4 +1,4 @@
-import { toHex } from '@metamask/controller-utils';
+import { NetworkType, toHex } from '@metamask/controller-utils';
 
 export const MAINNET = 'mainnet';
 export const HOMESTEAD = 'homestead';
@@ -7,7 +7,7 @@ export const SEPOLIA = 'sepolia';
 export const LINEA_GOERLI = 'linea-goerli';
 export const LINEA_SEPOLIA = 'linea-sepolia';
 export const LINEA_MAINNET = 'linea-mainnet';
-export const RPC = 'rpc';
+export const RPC = NetworkType.rpc;
 export const NO_RPC_BLOCK_EXPLORER = 'NO_BLOCK_EXPLORER';
 export const PRIVATENETWORK = 'PRIVATENETWORK';
 export const DEFAULT_MAINNET_CUSTOM_NAME = 'Ethereum Main Custom';

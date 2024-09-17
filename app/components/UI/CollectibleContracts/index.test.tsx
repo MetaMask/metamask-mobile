@@ -17,7 +17,7 @@ import Engine from '../../../core/Engine';
 import TestHelpers from '../../../../e2e/helpers';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../reducers';
-import { mockNetworkStateOld } from '../../../util/test/network';
+import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.mock('@react-navigation/native', () => {
@@ -86,7 +86,7 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            ...mockNetworkStateOld({
+            ...mockNetworkState({
               chainId: CHAIN_IDS.MAINNET,
               id: 'mainnet',
               nickname: 'Ethereum Mainnet',
@@ -203,7 +203,7 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            ...mockNetworkStateOld({
+            ...mockNetworkState({
               chainId: CHAIN_IDS.MAINNET,
               id: 'mainnet',
               nickname: 'Ethereum Mainnet',
@@ -314,7 +314,7 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            ...mockNetworkStateOld({
+            ...mockNetworkState({
               chainId: CHAIN_IDS.MAINNET,
               id: 'mainnet',
               nickname: 'Ethereum Mainnet',
@@ -426,7 +426,7 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            ...mockNetworkStateOld({
+            ...mockNetworkState({
               chainId: CHAIN_IDS.MAINNET,
               id: 'mainnet',
               nickname: 'Ethereum Mainnet',
@@ -500,7 +500,7 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            ...mockNetworkStateOld({
+            ...mockNetworkState({
               chainId: CHAIN_IDS.MAINNET,
               id: 'mainnet',
               nickname: 'Ethereum Mainnet',
@@ -554,7 +554,7 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            ...mockNetworkStateOld({
+            ...mockNetworkState({
               chainId: CHAIN_IDS.MAINNET,
               id: 'mainnet',
               nickname: 'Ethereum Mainnet',

@@ -9,7 +9,7 @@ import WalletActions from './WalletActions';
 import { WalletActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/WalletActionsModal.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
-import { mockNetworkStateOld } from '../../../util/test/network';
+import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const mockInitialState: DeepPartial<RootState> = {
@@ -28,7 +28,7 @@ const mockInitialState: DeepPartial<RootState> = {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
-        ...mockNetworkStateOld({
+        ...mockNetworkState({
           chainId: CHAIN_IDS.MAINNET,
           id: 'mainnet',
           nickname: 'Ethereum Mainnet',
@@ -115,7 +115,7 @@ describe('WalletActions', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            ...mockNetworkStateOld({
+            ...mockNetworkState({
               chainId: CHAIN_IDS.SEPOLIA,
               id: 'sepolia',
               nickname: 'Sepolia',

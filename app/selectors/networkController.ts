@@ -28,15 +28,14 @@ export const selectProviderConfig = createDeepEqualSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) => {
     const { NetworkController } = Engine?.context || {};
-
     const builtInNetwork =
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      NetworkList[networkControllerState?.selectedNetworkClientId];
+      NetworkList[
+        networkControllerState?.selectedNetworkClientId as keyof typeof NetworkList
+      ];
 
     const networkConfiguration = NetworkController?.getNetworkClientById(
       networkControllerState?.selectedNetworkClientId,
-    ).configuration;
+    )?.configuration;
 
     return builtInNetwork
       ? {

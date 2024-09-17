@@ -9,7 +9,7 @@ import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-obje
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { regex } from '../../../../app/util/regex';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
-import { mockNetworkStateOld } from '../../../util/test/network';
+import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const BUSINESS_ACCOUNT = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
@@ -33,7 +33,7 @@ const initialState = {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
-        ...mockNetworkStateOld({
+        ...mockNetworkState({
           id: 'mainnet',
           nickname: 'Ethereum Mainnet',
           ticker: 'ETH',

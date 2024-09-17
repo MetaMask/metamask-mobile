@@ -4,7 +4,7 @@ import {
 } from '../util/test/accountsControllerTestUtils';
 import { RootState } from '../reducers';
 import { selectAccountBalanceByChainId } from './accountTrackerController';
-import { mockNetworkStateOld } from '../util/test/network';
+import { mockNetworkState } from '../util/test/network';
 import mockedEngine from '../core/__mocks__/MockedEngine';
 
 const MOCK_CHAIN_ID = '0x1';
@@ -23,7 +23,7 @@ describe('selectAccountBalanceByChainId', () => {
       engine: {
         backgroundState: {
           NetworkController: {
-            ...mockNetworkStateOld({
+            ...mockNetworkState({
               chainId: MOCK_CHAIN_ID,
               id: 'mainnet',
               nickname: 'Ethereum Mainnet',

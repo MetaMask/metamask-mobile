@@ -9,7 +9,7 @@ import { toTokenMinimalUnit } from '../../../util/number';
 import { fireEvent } from '@testing-library/react-native';
 import { BN } from 'ethereumjs-util';
 import { RootState } from '../../../reducers';
-import { mockNetworkStateOld } from '../../../util/test/network';
+import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const mockSetOptions = jest.fn();
@@ -75,7 +75,7 @@ const mockInitialState: DeepPartial<RootState> = {
         },
       },
       NetworkController: {
-        ...mockNetworkStateOld({
+        ...mockNetworkState({
           chainId: CHAIN_IDS.SEPOLIA,
           id: 'sepolia',
           nickname: 'Sepolia',

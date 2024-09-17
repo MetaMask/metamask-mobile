@@ -5,7 +5,7 @@ import { Meta, StoryObj } from '@storybook/react-native';
 import { configureStore } from '@reduxjs/toolkit';
 import { default as NameComponent } from './Name';
 import { NameProperties, NameType } from './Name.types';
-import { mockNetworkStateOld } from '../../../util/test/network';
+import { mockNetworkState } from '../../../util/test/network';
 
 const backdropStyle = { backgroundColor: 'white', padding: 50 };
 const UNKNOWN_ADDRESS = '0x2990079bcdEe240329a520d2444386FC119da21a';
@@ -24,7 +24,7 @@ const storeMock = configureStore({
     engine: {
       backgroundState: {
         NetworkController: {
-          ...mockNetworkStateOld({
+          ...mockNetworkState({
             chainId: SELECTED_CHAIN_ID,
             id: 'sepolia',
             nickname: 'Sepolia',

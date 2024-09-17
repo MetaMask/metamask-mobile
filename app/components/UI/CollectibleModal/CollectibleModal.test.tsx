@@ -12,7 +12,7 @@ import {
 } from '../../../selectors/preferencesController';
 import { useSelector } from 'react-redux';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
-import { mockNetworkStateOld } from '../../../util/test/network';
+import { mockNetworkState } from '../../../util/test/network';
 
 const mockInitialState = {
   engine: {
@@ -20,7 +20,7 @@ const mockInitialState = {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       NetworkController: {
-        ...mockNetworkStateOld({
+        ...mockNetworkState({
           chainId: CHAIN_IDS.MAINNET,
           id: 'mainnet',
           nickname: 'Ethereum Mainnet',

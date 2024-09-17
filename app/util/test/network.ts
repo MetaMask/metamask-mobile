@@ -4,9 +4,7 @@ import { NetworkMetadata, NetworkStatus } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
 
-// removed if the e2e tests bump `FIXTURE_STATE_METADATA_VERSION` to latest
-// eslint-disable-next-line import/prefer-default-export
-export const mockNetworkStateOld = (
+export const mockNetworkState = (
   ...networks: {
     id?: string;
     type?: string;
