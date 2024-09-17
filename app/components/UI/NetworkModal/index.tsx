@@ -199,27 +199,41 @@ const NetworkModals = (props: NetworkProps) => {
     const existingNetwork = networkConfigurationByChainId[chainId];
 
     if (existingNetwork) {
-      // todo: fix later
-      console.log('IM HERE EXISTING');
-      onClose();
-      return null;
+      const updatedNetwork = await NetworkController.updateNetwork(
+        existingNetwork.chainId,
+        existingNetwork,
+        existingNetwork.chainId === chainId
+          ? {
+              replacementSelectedRpcEndpointIndex:
+                existingNetwork.defaultRpcEndpointIndex,
+            }
+          : undefined,
+      );
+      await NetworkController.setActiveNetwork(
+        updatedNetwork.rpcEndpoints[updatedNetwork.defaultRpcEndpointIndex]
+          .networkClientId,
+      );
+    } else {
+      const addedNetwork = await NetworkController.addNetwork({
+        chainId,
+        blockExplorerUrls: [blockExplorerUrl],
+        defaultRpcEndpointIndex: 0,
+        defaultBlockExplorerUrlIndex: 0,
+        name: nickname,
+        nativeCurrency: ticker,
+        rpcEndpoints: [
+          {
+            url: rpcUrl,
+            name: nickname,
+            type: RpcEndpointType.Custom,
+          },
+        ],
+      });
+      await NetworkController.setActiveNetwork(
+        addedNetwork.rpcEndpoints[addedNetwork.defaultRpcEndpointIndex]
+          .networkClientId,
+      );
     }
-
-    await NetworkController.addNetwork({
-      chainId,
-      blockExplorerUrls: [blockExplorerUrl],
-      defaultRpcEndpointIndex: 0,
-      defaultBlockExplorerUrlIndex: 0,
-      name: nickname,
-      nativeCurrency: ticker,
-      rpcEndpoints: [
-        {
-          url: rpcUrl,
-          name: nickname,
-          type: RpcEndpointType.Custom,
-        },
-      ],
-    });
     onClose();
   };
 
@@ -229,16 +243,11 @@ const NetworkModals = (props: NetworkProps) => {
     CurrencyRateController.updateExchangeRate(ticker);
     const existingNetwork = networkConfigurationByChainId[chainId];
 
-    console.log(
-      'networkConfigurationByChainId *******',
-      networkConfigurationByChainId,
-    );
-    console.log('existingNetwork *******', existingNetwork);
+    !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
 
     if (existingNetwork) {
       // todo: fix later here
-
-      await NetworkController.updateNetwork(
+      const updatedNetwork = await NetworkController.updateNetwork(
         existingNetwork.chainId,
         existingNetwork,
         existingNetwork.chainId === chainId
@@ -249,32 +258,33 @@ const NetworkModals = (props: NetworkProps) => {
           : undefined,
       );
 
-      closeModal();
-      return;
+      await NetworkController.setActiveNetwork(
+        updatedNetwork.rpcEndpoints[updatedNetwork.defaultRpcEndpointIndex]
+          .networkClientId,
+      );
+    } else {
+      const addedNetwork = await NetworkController.addNetwork({
+        chainId,
+        blockExplorerUrls: [blockExplorerUrl],
+        defaultRpcEndpointIndex: 0,
+        defaultBlockExplorerUrlIndex: 0,
+        name: nickname,
+        nativeCurrency: ticker,
+        rpcEndpoints: [
+          {
+            url: rpcUrl,
+            name: nickname,
+            type: RpcEndpointType.Custom,
+          },
+        ],
+      });
+      await NetworkController.setActiveNetwork(
+        addedNetwork.rpcEndpoints[addedNetwork.defaultRpcEndpointIndex]
+          .networkClientId,
+      );
     }
 
-    !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
-
-    const addedNetwork = await NetworkController.addNetwork({
-      chainId,
-      blockExplorerUrls: [blockExplorerUrl],
-      defaultRpcEndpointIndex: 0,
-      defaultBlockExplorerUrlIndex: 0,
-      name: nickname,
-      nativeCurrency: ticker,
-      rpcEndpoints: [
-        {
-          url: rpcUrl,
-          name: nickname,
-          type: RpcEndpointType.Custom,
-        },
-      ],
-    });
     closeModal();
-    await NetworkController.setActiveNetwork(
-      addedNetwork.rpcEndpoints[addedNetwork.defaultRpcEndpointIndex]
-        .networkClientId,
-    );
 
     if (onNetworkSwitch) {
       onNetworkSwitch();

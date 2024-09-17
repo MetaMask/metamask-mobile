@@ -82,6 +82,19 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import { isNetworkUiRedesignEnabled } from '../../../../../util/networks/isNetworkUiRedesignEnabled';
+import Cell, {
+  CellVariant,
+} from '../../../../../component-library/components/Cells/Cell';
+import { MAINNET_DEFAULT_RPC_URL } from '../../../../../constants/urls';
+import {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../../../component-library/components/Avatars/Avatar';
+import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import { TextVariant } from '../../../../../component-library/components/Texts/Text';
+import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
+import hideProtocolFromUrl from '../../../../../util/hideProtocolFromUrl';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -114,6 +127,11 @@ const createStyles = (colors) =>
       borderWidth: 2,
       padding: 10,
       color: colors.text.default,
+    },
+    rpcUrlInput: {
+      borderColor: colors.border.default,
+      borderRadius: 5,
+      borderWidth: 2,
     },
     inputWithError: {
       ...typography.sBodyMD,
@@ -320,6 +338,7 @@ export class NetworkSettings extends PureComponent {
 
   state = {
     rpcUrl: undefined,
+    rpcUrls: [],
     blockExplorerUrl: undefined,
     nickname: undefined,
     chainId: undefined,
@@ -344,12 +363,16 @@ export class NetworkSettings extends PureComponent {
     isRpcUrlFieldFocused: false,
     isChainIdFieldFocused: false,
     networkList: [],
+    showMultiRpcAddtModal: {
+      isVisible: false,
+    },
   };
 
   inputRpcURL = React.createRef();
   inputChainId = React.createRef();
   inputSymbol = React.createRef();
   inputBlockExplorerURL = React.createRef();
+  rpcMenuSheetRef = React.createRef();
 
   getOtherNetworks = () => allNetworks.slice(1);
 
@@ -390,13 +413,12 @@ export class NetworkSettings extends PureComponent {
     const networkTypeOrRpcUrl = route.params?.network;
 
     // if network is main, don't show popular network
-    let blockExplorerUrl, chainId, nickname, ticker, editable, rpcUrl;
+    let blockExplorerUrl, chainId, nickname, ticker, editable, rpcUrl, rpcUrls;
     // If no navigation param, user clicked on add network
     if (networkTypeOrRpcUrl) {
       if (allNetworks.find((net) => networkTypeOrRpcUrl === net)) {
         blockExplorerUrl = getEtherscanBaseUrl(networkTypeOrRpcUrl);
         const networkInformation = Networks[networkTypeOrRpcUrl];
-        console.log('HERE 444444 ---------', networkInformation);
         nickname = networkInformation.name;
         chainId = networkInformation.chainId.toString();
         editable = false;
@@ -426,11 +448,19 @@ export class NetworkSettings extends PureComponent {
         ticker = networkConfiguration.nativeCurrency;
         editable = true;
         rpcUrl = networkTypeOrRpcUrl;
+        rpcUrls = networkConfiguration.rpcEndpoints;
       }
       const initialState =
-        rpcUrl + blockExplorerUrl + nickname + chainId + ticker + editable;
+        rpcUrl +
+        blockExplorerUrl +
+        nickname +
+        chainId +
+        ticker +
+        editable +
+        rpcUrls;
       this.setState({
         rpcUrl,
+        rpcUrls,
         blockExplorerUrl,
         nickname,
         chainId,
@@ -656,12 +686,15 @@ export class NetworkSettings extends PureComponent {
       return;
     }
 
+    console.log('TODO HERE :::: handle add case and edit case');
     if (this.validateRpcUrl() && isNetworkExists.length === 0) {
       const url = new URL(rpcUrl);
 
       !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
       CurrencyRateController.updateExchangeRate(ticker);
       // Remove trailing slashes
+
+      // TODO: call addNetwork method here ...
       NetworkController.upsertNetworkConfiguration(
         {
           rpcUrl: url.href,
@@ -931,10 +964,18 @@ export class NetworkSettings extends PureComponent {
       chainId,
       ticker,
       editable,
+      rpcUrls,
       initialState,
     } = this.state;
     const actualState =
-      rpcUrl + blockExplorerUrl + nickname + chainId + ticker + editable;
+      rpcUrl +
+      blockExplorerUrl +
+      nickname +
+      chainId +
+      ticker +
+      editable +
+      rpcUrls;
+
     let enableAction;
     // If concstenation of parameters changed, user changed something so we are going to enable the action button
     if (actualState !== initialState) {
@@ -994,6 +1035,20 @@ export class NetworkSettings extends PureComponent {
       warningSymbol: undefined,
       warningName: undefined,
     });
+
+    this.validateName();
+    this.validateChainId();
+    this.validateSymbol();
+    this.getCurrentState();
+  };
+
+  onRpcUrlDelete = async (url) => {
+    await this.setState((prevState) => ({
+      rpcUrls: prevState.rpcUrls.filter((rpcUrl) => rpcUrl.url !== url),
+    }));
+    this.validateName();
+    this.validateChainId();
+    this.validateSymbol();
     this.getCurrentState();
   };
 
@@ -1082,6 +1137,16 @@ export class NetworkSettings extends PureComponent {
     current && current.focus();
   };
 
+  closeRpcModal = () => {
+    this.setState({ showMultiRpcAddtModal: { isVisible: false } });
+    this.rpcMenuSheetRef.current?.onCloseBottomSheet();
+  };
+
+  openRpcModal = () => {
+    this.setState({ showMultiRpcAddtModal: { isVisible: true } });
+    this.rpcMenuSheetRef.current?.onOpenBottomSheet();
+  };
+
   switchToMainnet = () => {
     const { NetworkController, CurrencyRateController } = Engine.context;
 
@@ -1091,6 +1156,42 @@ export class NetworkSettings extends PureComponent {
     setTimeout(async () => {
       await updateIncomingTransactions();
     }, 1000);
+  };
+
+  renderRpcUrlInput = () => {
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
+
+    return (
+      <View style={styles.rpcUrlInput}>
+        <Cell
+          key={'test'}
+          variant={CellVariant.SelectWithMenu}
+          title={'title'}
+          secondaryText={hideKeyFromUrl(rpcUrl)}
+          avatarProps={{
+            variant: AvatarVariant.Network,
+            name: 'test',
+            imageSource: null,
+            size: AvatarSize.Sm,
+          }}
+          isSelected={false}
+          onPress={() => console.log('IM HERE ....')}
+          buttonIcon={IconName.ArrowDown}
+          // onButtonClick={() => {
+          //   openModal(chainId, false, MAINNET, true);
+          // }}
+          // TODO: Substitute with the new network controller's RPC array.
+          // onTextClick={() =>
+          //   openRpcModal({
+          //     rpcUrls: [hideKeyFromUrl(MAINNET_DEFAULT_RPC_URL)],
+          //     chainId,
+          //     networkName: mainnetName,
+          //   })
+          // }
+        />
+      </View>
+    );
   };
 
   removeRpcUrl = () => {
@@ -1145,6 +1246,7 @@ export class NetworkSettings extends PureComponent {
   customNetwork = (networkTypeOrRpcUrl) => {
     const {
       rpcUrl,
+      rpcUrls,
       blockExplorerUrl,
       nickname,
       chainId,
@@ -1161,8 +1263,9 @@ export class NetworkSettings extends PureComponent {
       isSymbolFieldFocused,
       isRpcUrlFieldFocused,
       isChainIdFieldFocused,
+      showMultiRpcAddtModal,
     } = this.state;
-    const { route } = this.props;
+    const { route, networkConfigurations } = this.props;
     const isCustomMainnet = route.params?.isCustomMainnet;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance =
@@ -1229,7 +1332,7 @@ export class NetworkSettings extends PureComponent {
     const isRPCEditable = isCustomMainnet || editable;
     const isActionDisabled =
       !enableAction ||
-      this.disabledByRpcUrl() ||
+      // this.disabledByRpcUrl() ||
       this.disabledByChainId() ||
       this.disabledBySymbol();
 
@@ -1467,25 +1570,48 @@ export class NetworkSettings extends PureComponent {
             <Text style={styles.label}>
               {strings('app_settings.network_rpc_url_label')}
             </Text>
-            <TextInput
-              ref={this.inputRpcURL}
-              style={inputErrorRpcStyle}
-              autoCapitalize={'none'}
-              autoCorrect={false}
-              value={formatNetworkRpcUrl(rpcUrl, chainId) || rpcUrl}
-              editable={isRPCEditable}
-              onChangeText={this.onRpcUrlChange}
-              onBlur={() => {
-                this.validateRpcUrl();
-                this.onRpcUrlBlur();
-              }}
-              onFocus={this.onRpcUrlFocused}
-              placeholder={strings('app_settings.network_rpc_placeholder')}
-              placeholderTextColor={colors.text.muted}
-              onSubmitEditing={this.jumpToChainId}
-              testID={NetworksViewSelectorsIDs.RPC_URL_INPUT}
-              keyboardAppearance={themeAppearance}
-            />
+            {/* // TODO HERE ---------------------- */}
+
+            {isNetworkUiRedesignEnabled() ? (
+              <View style={styles.rpcUrlInput}>
+                <Cell
+                  key={rpcUrl}
+                  variant={CellVariant.SelectWithMenu}
+                  title={
+                    networkConfigurations?.[chainId]?.rpcEndpoints?.[
+                      networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
+                    ]?.name ?? nickname
+                  }
+                  secondaryText={hideKeyFromUrl(rpcUrl)}
+                  isSelected={false}
+                  withAvatar={false}
+                  onPress={this.openRpcModal}
+                  buttonIcon={IconName.ArrowDown}
+                  onButtonClick={() => this.openRpcModal()}
+                />
+              </View>
+            ) : (
+              <TextInput
+                ref={this.inputRpcURL}
+                style={inputErrorRpcStyle}
+                autoCapitalize={'none'}
+                autoCorrect={false}
+                value={formatNetworkRpcUrl(rpcUrl, chainId) || rpcUrl}
+                editable={isRPCEditable}
+                onChangeText={this.onRpcUrlChange}
+                onBlur={() => {
+                  this.validateRpcUrl();
+                  this.onRpcUrlBlur();
+                }}
+                onFocus={this.onRpcUrlFocused}
+                placeholder={strings('app_settings.network_rpc_placeholder')}
+                placeholderTextColor={colors.text.muted}
+                onSubmitEditing={this.jumpToChainId}
+                testID={NetworksViewSelectorsIDs.RPC_URL_INPUT}
+                keyboardAppearance={themeAppearance}
+              />
+            )}
+
             {warningRpcUrl && (
               <View
                 style={
@@ -1585,6 +1711,52 @@ export class NetworkSettings extends PureComponent {
             )}
           </View>
         </KeyboardAwareScrollView>
+        {console.log(
+          'networkConfigurations -----',
+          networkConfigurations?.[chainId]?.rpcEndpoints?.[
+            networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
+          ],
+        )}
+        {showMultiRpcAddtModal.isVisible ? (
+          <BottomSheet
+            ref={this.rpcMenuSheetRef}
+            onClose={this.closeRpcModal}
+            shouldNavigateBack={false}
+          >
+            {/* <BottomSheetHeader style={styles.baseHeader}>
+              <Text variant={TextVariant.HeadingMD}>
+                {strings('app_settings.select_rpc_url')}{' '}
+              </Text>
+            </BottomSheetHeader> */}
+            <View style={styles.rpcMenu}>
+              {rpcUrls.map(({ url, name }) => (
+                <Cell
+                  key={`${url}-${name}`}
+                  variant={CellVariant.SelectWithMenu}
+                  title={name ?? url}
+                  secondaryText={hideKeyFromUrl(url)}
+                  withAvatar={false}
+                  isSelected={rpcUrl === url}
+                  onPress={async () => {
+                    console.log('SELECTED CLICKED -----', url);
+                    await this.onRpcUrlChange(url);
+                    this.closeRpcModal();
+                  }}
+                  showButtonIcon={rpcUrl !== url}
+                  buttonIcon={IconName.Trash}
+                  onButtonClick={async () => {
+                    await this.onRpcUrlDelete(url);
+                  }}
+                  onTextClick={async () => {
+                    console.log('SELECTED CLICKED -----');
+                    await this.onRpcUrlChange(url);
+                    this.closeRpcModal();
+                  }}
+                />
+              ))}
+            </View>
+          </BottomSheet>
+        ) : null}
       </SafeAreaView>
     );
   };

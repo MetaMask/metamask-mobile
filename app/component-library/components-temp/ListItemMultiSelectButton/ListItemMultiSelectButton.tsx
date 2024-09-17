@@ -27,6 +27,7 @@ const ListItemMultiSelectButton: React.FC<ListItemMultiSelectButtonProps> = ({
   isDisabled = false,
   children,
   gap = DEFAULT_LISTITEMMULTISELECT_GAP,
+  showButtonIcon = true,
   buttonIcon = IconName.MoreVertical,
   ...props
 }) => {
@@ -55,15 +56,17 @@ const ListItemMultiSelectButton: React.FC<ListItemMultiSelectButtonProps> = ({
           </View>
         )}
       </TouchableOpacity>
-      <View>
-        <ButtonIcon
-          iconName={buttonIcon}
-          iconColor={IconColor.Default}
-          testID={BUTTON_TEST_ID}
-          onPress={props.onButtonClick}
-          accessibilityRole="button"
-        />
-      </View>
+      {showButtonIcon ? (
+        <View>
+          <ButtonIcon
+            iconName={buttonIcon}
+            iconColor={IconColor.Default}
+            testID={BUTTON_TEST_ID}
+            onPress={props.onButtonClick}
+            accessibilityRole="button"
+          />
+        </View>
+      ) : null}
     </View>
   );
 };

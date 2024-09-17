@@ -33,6 +33,7 @@ const CellSelectWithMenu = ({
   tagLabel,
   isSelected = false,
   children,
+  withAvatar = true,
   ...props
 }: CellSelectWithMenuProps) => {
   const { styles } = useStyles(styleSheet, { style });
@@ -46,12 +47,15 @@ const CellSelectWithMenu = ({
     >
       <View style={styles.cellBase}>
         {/* DEV Note: Account Avatar should be replaced with Avatar with Badge whenever available */}
-        <Avatar
-          style={styles.avatar}
-          testID={CellModalSelectorsIDs.BASE_AVATAR}
-          size={DEFAULT_CELLBASE_AVATAR_SIZE}
-          {...avatarProps}
-        />
+        {withAvatar ? (
+          <Avatar
+            style={styles.avatar}
+            testID={CellModalSelectorsIDs.BASE_AVATAR}
+            size={DEFAULT_CELLBASE_AVATAR_SIZE}
+            {...avatarProps}
+          />
+        ) : null}
+
         <View style={styles.cellBaseInfo}>
           <Text
             numberOfLines={1}

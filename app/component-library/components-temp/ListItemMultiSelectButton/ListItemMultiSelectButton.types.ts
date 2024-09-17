@@ -35,6 +35,16 @@ export interface ListItemMultiSelectButtonProps
    * Optional button onClick rpc modal function
    */
   onTextClick?: (() => void) | undefined;
+
+  /**
+   * Optional property to add avatar
+   */
+  withAvatar?: boolean;
+
+  /**
+   * Optional property to show icon
+   */
+  showButtonIcon?: boolean;
 }
 
 /**
