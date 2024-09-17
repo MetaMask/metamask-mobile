@@ -39,7 +39,14 @@ import {
   getEtherscanBaseUrl,
   getEtherscanTransactionUrl,
 } from '../etherscan';
-import { LINEA_FAUCET, SEPOLIA_FAUCET } from '../../constants/urls';
+import {
+  LINEA_FAUCET,
+  LINEA_MAINNET_BLOCK_EXPLORER,
+  LINEA_SEPOLIA_BLOCK_EXPLORER,
+  MAINNET_BLOCK_EXPLORER,
+  SEPOLIA_BLOCK_EXPLORER,
+  SEPOLIA_FAUCET,
+} from '../../constants/urls';
 import { getNonceLock } from '../../util/transaction-controller';
 
 /**
@@ -55,44 +62,52 @@ export const NetworkList = {
     shortName: 'Ethereum',
     networkId: 1,
     chainId: toHex('1'),
+    ticker: 'ETH',
     // Third party color
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#3cc29e',
     networkType: 'mainnet',
     imageSource: ethLogo,
+    blockExplorerUrl: MAINNET_BLOCK_EXPLORER,
   },
   [LINEA_MAINNET]: {
     name: 'Linea Main Network',
     shortName: 'Linea',
     networkId: 59144,
     chainId: toHex('59144'),
+    ticker: 'ETH',
     // Third party color
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#121212',
     networkType: 'linea-mainnet',
     imageSource: lineaMainnetLogo,
+    blockExplorerUrl: LINEA_MAINNET_BLOCK_EXPLORER,
   },
   [SEPOLIA]: {
     name: 'Sepolia',
     shortName: 'Sepolia',
     networkId: 11155111,
     chainId: toHex('11155111'),
+    ticker: 'SepoliaETH',
     // Third party color
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#cfb5f0',
     networkType: 'sepolia',
     imageSource: sepoliaLogo,
+    blockExplorerUrl: SEPOLIA_BLOCK_EXPLORER,
   },
   [LINEA_SEPOLIA]: {
     name: 'Linea Sepolia',
     shortName: 'Linea Sepolia',
     networkId: 59141,
     chainId: toHex('59141'),
+    ticker: 'LineaETH',
     // Third party color
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#61dfff',
     networkType: 'linea-sepolia',
     imageSource: lineaTestnetLogo,
+    blockExplorerUrl: LINEA_SEPOLIA_BLOCK_EXPLORER,
   },
   [RPC]: {
     name: 'Private Network',
@@ -392,7 +407,7 @@ export const getNetworkNameFromProviderConfig = (providerConfig) => {
     name = providerConfig.nickname;
   } else {
     const networkType = providerConfig.type;
-    name = NetworkList?.[networkType]?.name || NetworkList.rpc.name;
+    name = NetworkList?.[networkType]?.name || NetworkList[RPC].name;
   }
   return name;
 };

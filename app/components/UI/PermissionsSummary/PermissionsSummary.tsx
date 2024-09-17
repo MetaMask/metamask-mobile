@@ -1,8 +1,7 @@
 import React from 'react';
 import StyledButton from '../StyledButton';
-import { View } from 'react-native';
+import { SafeAreaView, View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
-import Text from '../../Base/Text';
 import { useTheme } from '../../../util/theme';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 import Avatar, {
@@ -32,15 +31,19 @@ import { PermissionsSummaryProps } from './PermissionsSummary.types';
 import { useSelector } from 'react-redux';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import { USER_INTENT } from '../../../constants/permissions';
-import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../component-library/components/Buttons/ButtonIcon';
 
 const PermissionsSummary = ({
   currentPageInformation,
   onEdit,
+  onEditNetworks,
   onBack,
   onUserAction,
   showActionButtons = true,
   isInitialDappConnection = true,
+  isAlreadyConnected = true,
 }: PermissionsSummaryProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
@@ -53,6 +56,14 @@ const PermissionsSummary = ({
 
   const cancel = () => {
     onUserAction?.(USER_INTENT.Cancel);
+  };
+
+  const handleEditAccountsButtonPress = () => {
+    onEdit?.();
+  };
+
+  const handleEditNetworksButtonPress = () => {
+    onEditNetworks?.();
   };
 
   const renderTopIcon = () => {
@@ -71,9 +82,25 @@ const PermissionsSummary = ({
     );
   };
 
-  const handleEditButtonPress = () => {
-    onEdit?.();
-  };
+  function renderHeader() {
+    return (
+      <View style={styles.header}>
+        <View style={styles.startAccessory}>
+          {onBack && (
+            <ButtonIcon
+              size={ButtonIconSizes.Sm}
+              iconColor={IconColor.Default}
+              onPress={onBack}
+              iconName={IconName.ArrowLeft}
+            />
+          )}
+        </View>
+
+        <View style={styles.logoContainer}>{renderTopIcon()}</View>
+        <View style={styles.endAccessory}></View>
+      </View>
+    );
+  }
 
   function renderAccountPermissionsRequestInfoCard() {
     return (
@@ -115,13 +142,22 @@ const PermissionsSummary = ({
           </View>
         </View>
         <View>
-          <Button
-            onPress={handleEditButtonPress}
-            variant={ButtonVariants.Link}
-            width={ButtonWidthTypes.Full}
-            label={strings('permissions.edit')}
-            size={ButtonSize.Lg}
-          />
+          {isAlreadyConnected ? (
+            <ButtonIcon
+              size={ButtonIconSizes.Md}
+              iconName={IconName.ArrowRight}
+              onPress={handleEditAccountsButtonPress}
+              testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
+            />
+          ) : (
+            <Button
+              onPress={handleEditAccountsButtonPress}
+              variant={ButtonVariants.Link}
+              width={ButtonWidthTypes.Full}
+              label={strings('permissions.edit')}
+              size={ButtonSize.Lg}
+            />
+          )}
         </View>
       </View>
     );
@@ -160,72 +196,66 @@ const PermissionsSummary = ({
           </View>
         </View>
         <View>
-          <Button
-            onPress={handleEditButtonPress}
-            variant={ButtonVariants.Link}
-            width={ButtonWidthTypes.Full}
-            label={strings('permissions.edit')}
-            size={ButtonSize.Lg}
-          />
-        </View>
-      </View>
-    );
-  }
-
-  function renderHeader() {
-    return (
-      <View style={styles.header}>
-        <View style={styles.startAccessory}>
-          {onBack && (
+          {isAlreadyConnected ? (
             <ButtonIcon
-              iconColor={IconColor.Default}
-              onPress={onBack}
-              iconName={IconName.ArrowLeft}
+              size={ButtonIconSizes.Md}
+              iconName={IconName.ArrowRight}
+              onPress={handleEditNetworksButtonPress}
+              testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
+            />
+          ) : (
+            <Button
+              onPress={handleEditNetworksButtonPress}
+              variant={ButtonVariants.Link}
+              width={ButtonWidthTypes.Full}
+              label={strings('permissions.edit')}
+              size={ButtonSize.Lg}
             />
           )}
         </View>
-
-        <View style={styles.logoContainer}>{renderTopIcon()}</View>
-        <View style={styles.endAccessory}></View>
       </View>
     );
   }
 
   return (
-    <View style={styles.mainContainer}>
-      {renderHeader()}
-      <Text bold centered primary noMargin style={styles.title}>
-        {isInitialDappConnection
-          ? strings('permissions.title_dapp_url_wants_to', {
-              dappUrl: new URL(currentPageInformation.url).hostname,
-            })
-          : strings('permissions.title_dapp_url_has_approval_to', {
-              dappUrl: new URL(currentPageInformation.url).hostname,
-            })}
-      </Text>
-      {renderAccountPermissionsRequestInfoCard()}
-      {renderNetworkPermissionsRequestInfoCard()}
-      {showActionButtons && (
-        <View style={styles.actionButtonsContainer}>
-          <StyledButton
-            type={'cancel'}
-            onPress={cancel}
-            containerStyle={[styles.buttonPositioning, styles.cancelButton]}
-            testID={CommonSelectorsIDs.CANCEL_BUTTON}
-          >
-            {strings('permissions.cancel')}
-          </StyledButton>
-          <StyledButton
-            type={'confirm'}
-            onPress={confirm}
-            containerStyle={[styles.buttonPositioning, styles.confirmButton]}
-            testID={CommonSelectorsIDs.CONNECT_BUTTON}
-          >
-            {strings('confirmation_modal.confirm_cta')}
-          </StyledButton>
+    <SafeAreaView>
+      <View style={styles.mainContainer}>
+        {renderHeader()}
+        <View style={styles.title}>
+          <TextComponent variant={TextVariant.HeadingSM}>
+            {isInitialDappConnection
+              ? strings('permissions.title_dapp_url_wants_to', {
+                  dappUrl: new URL(currentPageInformation.url).hostname,
+                })
+              : strings('permissions.title_dapp_url_has_approval_to', {
+                  dappUrl: new URL(currentPageInformation.url).hostname,
+                })}
+          </TextComponent>
         </View>
-      )}
-    </View>
+        {renderAccountPermissionsRequestInfoCard()}
+        {renderNetworkPermissionsRequestInfoCard()}
+        {showActionButtons && (
+          <View style={styles.actionButtonsContainer}>
+            <StyledButton
+              type={'cancel'}
+              onPress={cancel}
+              containerStyle={[styles.buttonPositioning, styles.cancelButton]}
+              testID={CommonSelectorsIDs.CANCEL_BUTTON}
+            >
+              {strings('permissions.cancel')}
+            </StyledButton>
+            <StyledButton
+              type={'confirm'}
+              onPress={confirm}
+              containerStyle={[styles.buttonPositioning, styles.confirmButton]}
+              testID={CommonSelectorsIDs.CONNECT_BUTTON}
+            >
+              {strings('confirmation_modal.confirm_cta')}
+            </StyledButton>
+          </View>
+        )}
+      </View>
+    </SafeAreaView>
   );
 };
 
