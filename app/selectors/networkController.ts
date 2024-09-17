@@ -17,16 +17,8 @@ export const selectProviderConfig = createDeepEqualSelector(
   (networkControllerState: NetworkState) => {
     const selectedNetworkClientId =
       networkControllerState?.selectedNetworkClientId;
-
-    console.log('selectedNetworkClientId ---', selectedNetworkClientId);
-
     const networkConfigurationsByChainId =
       networkControllerState?.networkConfigurationsByChainId;
-
-    console.log(
-      'networkConfigurationsByChainId ---',
-      networkConfigurationsByChainId,
-    );
 
     for (const network of Object.values(networkConfigurationsByChainId)) {
       for (const rpcEndpoint of network.rpcEndpoints) {
@@ -61,10 +53,7 @@ export const selectTicker = createSelector(
 
 export const selectChainId = createSelector(
   selectProviderConfig,
-  (providerConfig) => {
-    console.log('providerConfig?.chainId ---', providerConfig);
-    return providerConfig?.chainId;
-  },
+  (providerConfig) => providerConfig?.chainId,
 );
 export const selectProviderType = createSelector(
   selectProviderConfig,

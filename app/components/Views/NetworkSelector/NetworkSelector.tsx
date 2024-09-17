@@ -473,9 +473,8 @@ const NetworkSelector = () => {
     );
   };
 
-  const renderRpcNetworks = () => {
-    console.log('networkConfigurations -----', networkConfigurations);
-    return Object.values(networkConfigurations).map(
+  const renderRpcNetworks = () =>
+    Object.values(networkConfigurations).map(
       ({ name: nickname, rpcEndpoints, chainId, defaultRpcEndpointIndex }) => {
         if (
           !chainId ||
@@ -499,8 +498,6 @@ const NetworkSelector = () => {
 
         //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
         const image = getNetworkImageSource({ chainId: chainId?.toString() });
-
-        console.log('image -----', image);
 
         if (isNetworkUiRedesignEnabled()) {
           return (
@@ -554,7 +551,6 @@ const NetworkSelector = () => {
         );
       },
     );
-  };
 
   const renderOtherNetworks = () => {
     const getAllNetworksTyped =

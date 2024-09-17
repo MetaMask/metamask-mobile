@@ -200,6 +200,7 @@ const NetworkModals = (props: NetworkProps) => {
 
     if (existingNetwork) {
       // todo: fix later
+      console.log('IM HERE EXISTING');
       onClose();
       return null;
     }
@@ -227,6 +228,8 @@ const NetworkModals = (props: NetworkProps) => {
     const url = new URLPARSE(rpcUrl);
     CurrencyRateController.updateExchangeRate(ticker);
     const existingNetwork = networkConfigurationByChainId[chainId];
+
+    console.log('existingNetwork *******', existingNetwork);
 
     if (existingNetwork) {
       // todo: fix later here

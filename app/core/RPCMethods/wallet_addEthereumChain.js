@@ -34,7 +34,6 @@ const wallet_addEthereumChain = async ({
   startApprovalFlow,
   endApprovalFlow,
 }) => {
-  console.log('wallet_addEthereumChain .....');
   const { CurrencyRateController, NetworkController, ApprovalController } =
     Engine.context;
 
@@ -114,6 +113,15 @@ const wallet_addEthereumChain = async ({
     );
   }
 
+  if (typeof rawChainName !== 'string' || !rawChainName) {
+    throw rpcErrors.invalidParams({
+      message: `Expected non-empty string 'chainName'. Received:\n${rawChainName}`,
+    });
+  }
+
+  const chainName =
+    rawChainName.length > 100 ? rawChainName.substring(0, 100) : rawChainName;
+
   //TODO: Remove aurora from default chains in @metamask/controller-utils
   const actualChains = { ...ChainId, aurora: undefined };
   if (Object.values(actualChains).find((value) => value === _chainId)) {
@@ -126,12 +134,61 @@ const wallet_addEthereumChain = async ({
   );
 
   if (existingEntry) {
-    const [networkConfigurationId, networkConfiguration] = existingEntry;
+    const [chainId, networkConfiguration] = existingEntry;
     const currentChainId = selectChainId(store.getState());
-    if (currentChainId === _chainId) {
-      res.result = null;
-      return;
+
+    // A network for this chain id already exists.
+    // Update it with any new information.
+    const clonedNetwork = { ...networkConfiguration };
+
+    // Check if the rpc url already exists
+    let rpcIndex = clonedNetwork.rpcEndpoints.findIndex(
+      ({ url }) => url === firstValidRPCUrl,
+    );
+
+    // If it doesn't exist, add a new one
+    if (rpcIndex === -1) {
+      clonedNetwork.rpcEndpoints = [
+        ...clonedNetwork.rpcEndpoints,
+        {
+          url: firstValidRPCUrl,
+          type: RpcEndpointType.Custom,
+          name: chainName,
+        },
+      ];
+      rpcIndex = clonedNetwork.rpcEndpoints.length - 1;
     }
+
+    // The provided rpc endpoint becomes the default
+    clonedNetwork.defaultRpcEndpointIndex = rpcIndex;
+
+    // Check if the block explorer already exists
+    let blockExplorerIndex = clonedNetwork.blockExplorerUrls.findIndex(
+      (url) => url === firstValidBlockExplorerUrl,
+    );
+
+    // If it doesn't exist, add a new one
+    if (blockExplorerIndex === -1) {
+      clonedNetwork.blockExplorerUrls = [
+        ...clonedNetwork.blockExplorerUrls,
+        firstValidBlockExplorerUrl,
+      ];
+      blockExplorerIndex = clonedNetwork.blockExplorerUrls.length - 1;
+    }
+
+    // The provided block explorer becomes the default
+    clonedNetwork.defaultBlockExplorerUrlIndex = blockExplorerIndex;
+
+    await NetworkController.updateNetwork(
+      clonedNetwork.chainId,
+      clonedNetwork,
+      currentChainId === chainId
+        ? {
+            replacementSelectedRpcEndpointIndex:
+              clonedNetwork.defaultRpcEndpointIndex,
+          }
+        : undefined,
+    );
 
     const analyticsParams = {
       chain_id: getDecimalChainId(_chainId),
@@ -146,8 +203,8 @@ const wallet_addEthereumChain = async ({
         requestData: {
           rpcUrl: networkConfiguration.rpcUrl,
           chainId: _chainId,
-          chainName: networkConfiguration.nickname,
-          ticker: networkConfiguration.ticker,
+          chainName: networkConfiguration.name,
+          ticker: networkConfiguration.nativeCurrency,
           type: 'switch',
         },
       });
@@ -160,7 +217,11 @@ const wallet_addEthereumChain = async ({
     }
 
     CurrencyRateController.updateExchangeRate(networkConfiguration.ticker);
-    NetworkController.setActiveNetwork(networkConfigurationId);
+    NetworkController.setActiveNetwork(
+      networkConfiguration.rpcEndpoints[
+        networkConfiguration.defaultRpcEndpointIndex
+      ].networkClientId,
+    );
 
     MetaMetrics.getInstance().trackEvent(
       MetaMetricsEvents.NETWORK_SWITCHED,
@@ -188,14 +249,6 @@ const wallet_addEthereumChain = async ({
       data: { chainId: endpointChainId },
     });
   }
-
-  if (typeof rawChainName !== 'string' || !rawChainName) {
-    throw rpcErrors.invalidParams({
-      message: `Expected non-empty string 'chainName'. Received:\n${rawChainName}`,
-    });
-  }
-  const chainName =
-    rawChainName.length > 100 ? rawChainName.substring(0, 100) : rawChainName;
 
   if (nativeCurrency !== null) {
     if (typeof nativeCurrency !== 'object' || Array.isArray(nativeCurrency)) {
