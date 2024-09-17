@@ -229,12 +229,28 @@ const NetworkModals = (props: NetworkProps) => {
     CurrencyRateController.updateExchangeRate(ticker);
     const existingNetwork = networkConfigurationByChainId[chainId];
 
+    console.log(
+      'networkConfigurationByChainId *******',
+      networkConfigurationByChainId,
+    );
     console.log('existingNetwork *******', existingNetwork);
 
     if (existingNetwork) {
       // todo: fix later here
-      onClose();
-      return null;
+
+      await NetworkController.updateNetwork(
+        existingNetwork.chainId,
+        existingNetwork,
+        existingNetwork.chainId === chainId
+          ? {
+              replacementSelectedRpcEndpointIndex:
+                existingNetwork.defaultRpcEndpointIndex,
+            }
+          : undefined,
+      );
+
+      closeModal();
+      return;
     }
 
     !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
