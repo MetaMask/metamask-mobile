@@ -1,9 +1,9 @@
 'use strict';
 
-import notifee from '@notifee/react-native';
 import Engine from './Engine';
 import { hexToBN, renderFromWei } from '../util/number';
 import Device from '../util/device';
+import notifee from '@notifee/react-native';
 import { STORAGE_IDS } from '../util/notifications/settings/storage/constants';
 import { strings } from '../../locales/i18n';
 import { AppState } from 'react-native';
@@ -179,8 +179,6 @@ class NotificationManager {
       } else {
         pushData.userInfo = extraData; // check if is still needed
       }
-
-      isNotificationsFeatureEnabled() && notifee.displayNotification(pushData);
     } else {
       this._showTransactionNotification({
         autodismiss: data.duration,
@@ -188,6 +186,7 @@ class NotificationManager {
         status: data.type,
       });
     }
+
   }
 
   _failedCallback = (transactionMeta) => {
