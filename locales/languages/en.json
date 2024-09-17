@@ -3180,6 +3180,7 @@
     "ledger_reminder_message_step_four": "4. Location is enabled with use precise location on",
     "ledger_reminder_message_step_four_Androidv12plus": "4. Nearby devices is enabled",
     "ledger_reminder_message_step_five": "5. Do not disturb must be turned off",
+    "blind_signing_message": "6. Enable \"blind signing\" on your Ledger device.",
     "available_devices": "Available devices",
     "retry": "Retry",
     "continue": "Continue",
@@ -3216,7 +3217,10 @@
     "ledger_live_path": "Ledger Live",
     "ledger_legacy_path": "Legacy(MEW/MyCrypto)",
     "ledger_bip44_path": "BIP44(e.g. MetaMask, Trezor)",
-    "ledger_legacy_label": " (legacy)"
+    "ledger_legacy_label": " (legacy)",
+    "blind_sign_error": "Blind signing error",
+    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings."
+
   },
   "account_actions": {
     "edit_name": "Edit account name",
