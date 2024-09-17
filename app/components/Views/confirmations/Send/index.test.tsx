@@ -1,3 +1,4 @@
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import Send from '.';
 import { RootState } from '../../../../reducers';
 import { MOCK_KEYRING_CONTROLLER } from '../../../../selectors/keyringController/testUtils';
@@ -5,10 +6,18 @@ import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_2,
 } from '../../../../util/test/accountsControllerTestUtils';
+import { mockNetworkState } from '../../../../util/test/network';
 import {
   DeepPartial,
   renderScreen,
 } from '../../../../util/test/renderWithProvider';
+
+const mockedNetworkControllerState = mockNetworkState({
+  chainId: CHAIN_IDS.MAINNET,
+  id: 'mainnet',
+  nickname: 'Ethereum Mainnet',
+  ticker: 'ETH',
+});
 
 const initialState: DeepPartial<RootState> = {
   transaction: {
@@ -92,11 +101,7 @@ const initialState: DeepPartial<RootState> = {
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       KeyringController: MOCK_KEYRING_CONTROLLER,
       NetworkController: {
-        providerConfig: {
-          ticker: 'ETH',
-          type: 'mainnet',
-          chainId: '0x1',
-        },
+        ...mockedNetworkControllerState,
       },
       NftController: {
         allNftContracts: {},
@@ -168,13 +173,16 @@ jest.mock('../../../../core/Engine', () => ({
           sendAsync: () => null,
         },
       })),
-      state: {
-        network: '1',
-        providerConfig: {
-          ticker: 'ETH',
-          type: 'mainnet',
+      getNetworkClientById: () => ({
+        configuration: {
           chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
         },
+      }),
+      state: {
+        ...mockedNetworkControllerState,
       },
     },
   },

@@ -29,7 +29,6 @@ jest.mock('react-native-gzip', () => ({
 const mockState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
-      NetworkController: { providerConfig: { chainId: '0x1' } },
       PreferencesController: { securityAlertsEnabled: true },
     },
   },

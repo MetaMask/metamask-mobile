@@ -17,6 +17,8 @@ import Engine from '../../../core/Engine';
 import TestHelpers from '../../../../e2e/helpers';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../reducers';
+import { mockNetworkState } from '../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -84,11 +86,12 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            providerConfig: {
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
               ticker: 'ETH',
-              type: 'mainnet',
-              chainId: '0x1',
-            },
+            }),
           },
           AccountTrackerController: {
             accounts: { [MOCK_ADDRESS]: { balance: '0' } },
@@ -200,11 +203,12 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            providerConfig: {
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
               ticker: 'ETH',
-              type: 'mainnet',
-              chainId: '0x1',
-            },
+            }),
           },
           AccountTrackerController: {
             accounts: { [MOCK_ADDRESS]: { balance: '0' } },
@@ -310,11 +314,12 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            providerConfig: {
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
               ticker: 'ETH',
-              type: 'mainnet',
-              chainId: '0x1',
-            },
+            }),
           },
           AccountTrackerController: {
             accounts: { [MOCK_ADDRESS]: { balance: '0' } },
@@ -421,11 +426,12 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            providerConfig: {
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
               ticker: 'ETH',
-              type: 'mainnet',
-              chainId: '0x1',
-            },
+            }),
           },
           AccountTrackerController: {
             accounts: { [MOCK_ADDRESS]: { balance: '0' } },
@@ -494,11 +500,12 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            providerConfig: {
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
               ticker: 'ETH',
-              type: 'mainnet',
-              chainId: '0x1',
-            },
+            }),
           },
           AccountTrackerController: {
             accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
@@ -547,11 +554,12 @@ describe('CollectibleContracts', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            providerConfig: {
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
               ticker: 'ETH',
-              type: 'mainnet',
-              chainId: '0x1',
-            },
+            }),
           },
           AccountTrackerController: {
             accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
