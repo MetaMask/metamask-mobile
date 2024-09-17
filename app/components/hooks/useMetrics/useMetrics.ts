@@ -3,6 +3,7 @@ import { IMetaMetricsEvent, MetaMetrics } from '../../../core/Analytics';
 import { IUseMetricsHook } from './useMetrics.types';
 import { useCallback } from 'react';
 import { CombinedProperties } from '../../../core/Analytics/MetaMetrics.types';
+import MetricsEventBuilder from '../../../core/Analytics/MetricsEventBuilder';
 
 /**
  * Hook to use MetaMetrics
@@ -120,6 +121,7 @@ const useMetrics = (): IUseMetricsHook => {
     isDataRecorded: MetaMetrics.getInstance().isDataRecorded,
     isEnabled: MetaMetrics.getInstance().isEnabled,
     getMetaMetricsId: MetaMetrics.getInstance().getMetaMetricsId,
+    createEventBuilder: MetricsEventBuilder.createEventBuilder,
   };
 };
 

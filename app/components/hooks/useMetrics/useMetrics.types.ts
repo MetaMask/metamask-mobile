@@ -6,6 +6,7 @@ import {
   IDeleteRegulationStatus,
   IMetaMetricsEvent,
 } from '../../../core/Analytics/MetaMetrics.types';
+import MetricsEventBuilder from '../../../core/Analytics/MetricsEventBuilder';
 
 export const SourceType = {
   SDK: 'sdk',
@@ -19,6 +20,10 @@ export interface IUseMetricsHook {
   isEnabled(): boolean;
   enable(enable?: boolean): Promise<void>;
   addTraitsToUser(userTraits: UserTraits): Promise<void>;
+
+  /**
+   * @deprecated use {@link MetricsEventBuilder} instead
+   */
   trackEvent(
     event: IMetaMetricsEvent,
     properties?: CombinedProperties,
@@ -30,4 +35,5 @@ export interface IUseMetricsHook {
   getDeleteRegulationId(): string | undefined;
   isDataRecorded(): boolean;
   getMetaMetricsId(): Promise<string | undefined>;
+  createEventBuilder(event: IMetaMetricsEvent): MetricsEventBuilder;
 }

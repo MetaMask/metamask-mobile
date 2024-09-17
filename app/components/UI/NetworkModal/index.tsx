@@ -77,7 +77,7 @@ const NetworkModals = (props: NetworkProps) => {
     onNetworkSwitch,
     safeChains,
   } = props;
-  const { trackEvent } = useMetrics();
+  const { createEventBuilder } = useMetrics();
   const [showDetails, setShowDetails] = React.useState(false);
   const [networkAdded, setNetworkAdded] = React.useState(false);
   const [showCheckNetwork, setShowCheckNetwork] = React.useState(false);
@@ -106,26 +106,30 @@ const NetworkModals = (props: NetworkProps) => {
   const addNetwork = async () => {
     const isValidUrl = validateRpcUrl(rpcUrl);
     if (showPopularNetworkModal) {
-      // emit popular network
-      trackEvent(MetaMetricsEvents.NETWORK_ADDED, {
-        chain_id: toHex(chainId),
-        source: 'Popular network list',
-        symbol: ticker,
-      });
+      // track popular network
+      createEventBuilder(MetaMetricsEvents.NETWORK_ADDED)
+        .addProperties({
+          chain_id: toHex(chainId),
+          source: 'Popular network list',
+          symbol: ticker,
+        })
+        .build()
+        .track();
     } else if (safeChains) {
       const { safeChain, safeRPCUrl } = rpcIdentifierUtility(
         rpcUrl,
         safeChains,
       );
-      // emit custom network, this shouldn't be in popular networks modal
-      trackEvent(MetaMetricsEvents.NETWORK_ADDED, {
-        chain_id: toHex(safeChain.chainId),
-        source: 'Custom Network Added',
-        symbol: safeChain.nativeCurrency.symbol,
-        sensitiveProperties: {
-          rpcUrl: safeRPCUrl,
-        },
-      });
+      // track custom network, this shouldn't be in popular networks modal
+      createEventBuilder(MetaMetricsEvents.NETWORK_ADDED)
+        .addProperties({
+          chain_id: toHex(safeChain.chainId),
+          source: { anonymous: true, value: 'Custom Network Added' },
+          symbol: safeChain.nativeCurrency.symbol,
+        })
+        .addSensitiveProperties({ rpcUrl: safeRPCUrl })
+        .build()
+        .track();
     } else {
       Logger.log('MetaMetrics - Unable to capture custom network');
     }
