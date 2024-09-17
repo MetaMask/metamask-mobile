@@ -47,6 +47,8 @@ const LedgerConfirmationModal = ({
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { trackEvent } = useMetrics();
+  const [delayClose, setDelayClose] = useState(false);
+  const [completeClose, setCompleteClose] = useState(false);
   const [permissionErrorShown, setPermissionErrorShown] = useState(false);
   const {
     isSendingLedgerCommands,
@@ -113,6 +115,17 @@ const LedgerConfirmationModal = ({
       connectLedger();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasBluetoothPermissions, bluetoothOn]);
+
+  useEffect(() => {
+    if (isSendingLedgerCommands && !delayClose && !completeClose) {
+
+      setDelayClose(true);
+      setTimeout(() => {
+        setDelayClose(false);
+        setCompleteClose(true);
+      }, 2000);
+    }
+  }, [completeClose, delayClose, isSendingLedgerCommands]);
 
   useEffect(() => {
     if (ledgerError) {
@@ -271,7 +284,7 @@ const LedgerConfirmationModal = ({
     );
   }
 
-  if (!isSendingLedgerCommands) {
+  if (!isSendingLedgerCommands || !completeClose) {
     return (
       <SafeAreaView style={styles.wrapper}>
         <View style={styles.contentWrapper}>
