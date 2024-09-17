@@ -9,8 +9,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
         "borderTopLeftRadius": 20,
         "borderTopRightRadius": 20,
         "minHeight": 200,
-        "paddingBottom": 20,
-        "paddingTop": 24,
+        "paddingTop": 8,
       }
     }
   >
@@ -104,7 +103,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
           "marginBottom": 16,
           "marginLeft": 24,
           "marginRight": 24,
-          "marginTop": 16,
+          "marginTop": 8,
         }
       }
     >
@@ -139,6 +138,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
         style={
           {
             "alignItems": "center",
+            "alignSelf": "flex-start",
             "backgroundColor": "#0000001a",
             "borderRadius": 16,
             "height": 32,
@@ -439,7 +439,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
         {
           "alignItems": "center",
           "flexDirection": "row",
-          "marginBottom": 12,
+          "marginBottom": 16,
           "marginHorizontal": 24,
           "marginTop": 8,
         }
@@ -449,6 +449,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
         style={
           {
             "alignItems": "center",
+            "alignSelf": "flex-start",
             "backgroundColor": "#0000001a",
             "borderRadius": 16,
             "height": 32,
@@ -904,9 +905,71 @@ exports[`PermissionsSummary should render correctly 1`] = `
     <View
       style={
         {
+          "flexDirection": "row",
+          "marginHorizontal": 24,
+          "marginTop": 16,
+        }
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "transparent",
+            "borderColor": "#d73847",
+            "borderRadius": 24,
+            "borderWidth": 1,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <SvgMock
+          color="#d73847"
+          height={16}
+          name="Logout"
+          style={
+            {
+              "height": 16,
+              "marginRight": 8,
+              "width": 16,
+            }
+          }
+          width={16}
+        />
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#d73847",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Disconnect all
+        </Text>
+      </TouchableOpacity>
+    </View>
+    <View
+      style={
+        {
           "flex": 0,
           "flexDirection": "row",
-          "padding": 24,
+          "paddingHorizontal": 24,
         }
       }
     >
