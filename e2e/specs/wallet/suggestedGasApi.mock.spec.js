@@ -80,9 +80,8 @@ describe(SmokeCore('Mock suggestedGasApi fallback to legacy gas endpoint  when E
           TransactionConfirmView.editPriorityModal,
         );
         await stopMockServer(); //stop mock server to reinstate suggested gas api service
-        await TestHelpers.delay(20000);
         await Assertions.checkIfVisible(
-          TransactionConfirmView.editPriorityFeeSheetContainer,
+          TransactionConfirmView.editPriorityFeeSheetContainer, 30000
         );
       },
     );
