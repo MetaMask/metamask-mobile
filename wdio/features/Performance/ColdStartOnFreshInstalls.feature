@@ -1,6 +1,6 @@
 @androidApp
 @performance
-Feature: App Cold Start Launch Times with fresh install
+Feature: Wallet Time To Interact Cold Start On Fresh Install
     # This feature measures the cold start of the app when:
     # The user installs the app for the very first time
 

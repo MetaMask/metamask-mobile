@@ -1,7 +1,7 @@
 @androidApp
 @iosApp
 @performance
-Feature: App Cold Start Launch Times with an imported wallet
+Feature: Wallet Time To Interact Cold Start with an Imported Wallet
   # This feature measures the cold start of the app when:
   # The user imports a wallet and the time it takes to get from launching app to login view
   # The time it takes to get from login view to wallet view.
