@@ -28,10 +28,9 @@ export const selectProviderConfig = createDeepEqualSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) => {
     const { NetworkController } = Engine?.context || {};
-    const builtInNetwork =
-      NetworkList[
-        networkControllerState?.selectedNetworkClientId as keyof typeof NetworkList
-      ];
+    const builtInNetwork = NetworkList[
+      networkControllerState?.selectedNetworkClientId as keyof typeof NetworkList
+    ] as unknown as ProviderConfig;
 
     const networkConfiguration = NetworkController?.getNetworkClientById(
       networkControllerState?.selectedNetworkClientId,
