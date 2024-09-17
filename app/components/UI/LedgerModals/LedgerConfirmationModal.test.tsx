@@ -146,6 +146,8 @@ describe('LedgerConfirmationModal', () => {
   });
 
   it('renders OpenETHAppStep when app launch confirmation is needed', () => {
+
+    jest.useFakeTimers();
     (useLedgerBluetooth as jest.Mock).mockReturnValue({
       isSendingLedgerCommands: true,
       isAppLaunchConfirmationNeeded: true,
@@ -160,6 +162,11 @@ describe('LedgerConfirmationModal', () => {
         deviceId={'test'}
       />,
     );
+
+    act(() => {
+      jest.runAllTimers();
+    });
+
     expect(getByTestId(OPEN_ETH_APP_STEP)).toBeTruthy();
   });
 
