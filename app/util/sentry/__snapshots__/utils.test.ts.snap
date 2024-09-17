@@ -80,11 +80,6 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
             "status": "available",
           },
         },
-        "providerConfig": {
-          "chainId": "0x1",
-          "ticker": "ETH",
-          "type": "mainnet",
-        },
         "selectedNetworkClientId": "string",
       },
       "NftController": {
