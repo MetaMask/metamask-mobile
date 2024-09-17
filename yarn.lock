@@ -4053,6 +4053,14 @@
     "@metamask/utils" "^9.1.0"
     immer "^9.0.6"
 
+"@metamask/base-controller@^7.0.1":
+  version "7.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-7.0.1.tgz#78eef77c2cd980e1f86bd5077c229bbaa5fd2b9d"
+  integrity sha512-U1strOKT4v/kSJ2h4tgn9iUVVuv5Ja64J+OR145ITHd4574FaUYVJR80/imn6WmCbo8B6AYwHwEovdZ5qLGSKw==
+  dependencies:
+    "@metamask/utils" "^9.1.0"
+    immer "^9.0.6"
+
 "@metamask/browser-passworder@^4.3.0":
   version "4.3.0"
   resolved "https://registry.yarnpkg.com/@metamask/browser-passworder/-/browser-passworder-4.3.0.tgz#62c200750efcea864bd31d685120331859e1ab1e"
