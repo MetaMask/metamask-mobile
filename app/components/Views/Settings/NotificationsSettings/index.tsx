@@ -47,52 +47,56 @@ import { store } from '../../../../store';
 import notificationsRows from './notificationsRows';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 
-
 interface MainNotificationSettingsProps extends Props {
   toggleNotificationsEnabled: () => void;
   isMetamaskNotificationsEnabled: boolean;
   goToLearnMore: () => void;
   styles: ReturnType<typeof styleSheet>;
-
 }
-const MainNotificationSettings = ({ styles, toggleNotificationsEnabled, isMetamaskNotificationsEnabled, goToLearnMore }: MainNotificationSettingsProps) => {
+const MainNotificationSettings = ({
+  styles,
+  toggleNotificationsEnabled,
+  isMetamaskNotificationsEnabled,
+  goToLearnMore,
+}: MainNotificationSettingsProps) => {
   const { colors, brandColors } = useTheme();
 
   return (
-  <>
-    <Pressable
-      style={styles.switchElement}
-      onPressOut={toggleNotificationsEnabled}
-    >
-      <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
-        {strings('app_settings.allow_notifications')}
-      </Text>
-      <Switch
-        value={isMetamaskNotificationsEnabled}
-        onChange={toggleNotificationsEnabled}
-        trackColor={{
-          true: colors.primary.default,
-          false: colors.border.muted,
-        }}
-        thumbColor={brandColors.white}
-        style={styles.switch}
-        ios_backgroundColor={colors.border.muted}
-      />
-    </Pressable>
-    <View style={styles.setting}>
-      <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-        {strings('app_settings.allow_notifications_desc')}{' '}
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Info}
-          onPress={goToLearnMore}
-        >
-          {strings('notifications.activation_card.learn_more')}
+    <>
+      <Pressable
+        style={styles.switchElement}
+        onPressOut={toggleNotificationsEnabled}
+      >
+        <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
+          {strings('app_settings.allow_notifications')}
         </Text>
-      </Text>
-    </View>
-  </>
-);};
+        <Switch
+          value={isMetamaskNotificationsEnabled}
+          onChange={toggleNotificationsEnabled}
+          trackColor={{
+            true: colors.primary.default,
+            false: colors.border.muted,
+          }}
+          thumbColor={brandColors.white}
+          style={styles.switch}
+          ios_backgroundColor={colors.border.muted}
+        />
+      </Pressable>
+      <View style={styles.setting}>
+        <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+          {strings('app_settings.allow_notifications_desc')}{' '}
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Info}
+            onPress={goToLearnMore}
+          >
+            {strings('notifications.activation_card.learn_more')}
+          </Text>
+        </Text>
+      </View>
+    </>
+  );
+};
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const { accounts } = useAccounts();
   const { switchFeatureAnnouncements } = useSwitchNotifications();
@@ -218,9 +222,9 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   const renderAccounts = useCallback(
     () =>
       accounts.map((account) => {
-        const isEnabled = accountsNotificationState[account.address.toLowerCase()];
+        const isEnabled =
+          accountsNotificationState[account.address.toLowerCase()];
         return (
-        (
           <NotificationOptionToggle
             type={NotificationsToggleTypes.ACCOUNT}
             icon={accountAvatarType}
@@ -230,21 +234,26 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
             isEnabled={isEnabled}
             refetchAccountSettings={refetchAccountSettings}
           />
-        )
-      );}),
-    [accountAvatarType, accounts, accountsNotificationState, refetchAccountSettings],
+        );
+      }),
+    [
+      accountAvatarType,
+      accounts,
+      accountsNotificationState,
+      refetchAccountSettings,
+    ],
   );
 
   return (
     <ScrollView style={styles.wrapper}>
-       <MainNotificationSettings
+      <MainNotificationSettings
         styles={styles}
         toggleNotificationsEnabled={toggleNotificationsEnabled}
         isMetamaskNotificationsEnabled={isMetamaskNotificationsEnabled}
         goToLearnMore={goToLearnMore}
         navigation={navigation}
         route={route}
-        />
+      />
 
       {isMetamaskNotificationsEnabled && (
         <>

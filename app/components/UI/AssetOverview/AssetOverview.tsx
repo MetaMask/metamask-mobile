@@ -1,17 +1,9 @@
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
 import { zeroAddress } from 'ethereumjs-util';
 import React, { useCallback, useEffect } from 'react';
 import { Platform, TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
-import {
-  TOKEN_ASSET_OVERVIEW,
-  TOKEN_OVERVIEW_SEND_BUTTON,
-  TOKEN_OVERVIEW_RECEIVE_BUTTON,
-} from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+import { TOKEN_ASSET_OVERVIEW } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -52,18 +44,29 @@ import styleSheet from './AssetOverview.styles';
 import { useStyles } from '../../../component-library/hooks';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
+import useGoToBridge from '../Bridge/utils/useGoToBridge';
+import { swapsUtils } from '@metamask/swaps-controller';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { getDecimalChainId } from '../../../util/networks';
+import { useMetrics } from '../../../components/hooks/useMetrics';
+import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import { TokenI } from '../Tokens/types';
+import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
 
 interface AssetOverviewProps {
   navigation: {
     navigate: (route: string, params: Record<string, unknown>) => void;
   };
   asset: TokenI;
+  displayBuyButton?: boolean;
+  displaySwapsButton?: boolean;
 }
 
 const AssetOverview: React.FC<AssetOverviewProps> = ({
   navigation,
   asset,
+  displayBuyButton,
+  displaySwapsButton,
 }: AssetOverviewProps) => {
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -72,9 +75,11 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const primaryCurrency = useSelector(
     (state: RootState) => state.settings.primaryCurrency,
   );
+  const goToBridge = useGoToBridge('TokenDetails');
   const selectedAddress = useSelector(
     selectSelectedInternalAccountChecksummedAddress,
   );
+  const { trackEvent } = useMetrics();
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const tokenBalances = useSelector(selectContractBalances);
   const chainId = useSelector((state: RootState) => selectChainId(state));
@@ -120,6 +125,31 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       dispatch(newAssetTransaction(asset));
     }
     navigation.navigate('SendFlowView', {});
+  };
+
+  const goToSwaps = () => {
+    navigation.navigate('Swaps', {
+      screen: 'SwapsAmountView',
+      params: {
+        sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+        sourcePage: 'MainView',
+      },
+    });
+    trackEvent(MetaMetricsEvents.SWAP_BUTTON_CLICKED, {
+      text: 'Swap',
+      tokenSymbol: '',
+      location: 'TokenDetails',
+      chain_id: getDecimalChainId(chainId),
+    });
+  };
+  const onBuy = () => {
+    const [route, params] = createBuyNavigationDetails();
+    navigation.navigate(route, params || {});
+    trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+      text: 'Buy',
+      location: 'TokenDetails',
+      chain_id_destination: getDecimalChainId(chainId),
+    });
   };
 
   const goToBrowserUrl = (url: string) => {
@@ -246,31 +276,20 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           <View style={styles.chartNavigationWrapper}>
             {renderChartNavigationButton()}
           </View>
-          <View>
-            <Balance
-              asset={asset}
-              mainBalance={mainBalance}
-              secondaryBalance={secondaryBalance}
-            />
-            <View style={styles.balanceButtons}>
-              <Button
-                style={{ ...styles.footerButton, ...styles.receiveButton }}
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Lg}
-                label={strings('asset_overview.receive_button')}
-                onPress={onReceive}
-                {...generateTestId(Platform, TOKEN_OVERVIEW_RECEIVE_BUTTON)}
-              />
-              <Button
-                style={{ ...styles.footerButton, ...styles.sendButton }}
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Lg}
-                label={strings('asset_overview.send_button')}
-                onPress={onSend}
-                {...generateTestId(Platform, TOKEN_OVERVIEW_SEND_BUTTON)}
-              />
-            </View>
-          </View>
+          <AssetDetailsActions
+            displayBuyButton={displayBuyButton}
+            displaySwapsButton={displaySwapsButton}
+            goToBridge={goToBridge}
+            goToSwaps={goToSwaps}
+            onBuy={onBuy}
+            onReceive={onReceive}
+            onSend={onSend}
+          />
+          <Balance
+            asset={asset}
+            mainBalance={mainBalance}
+            secondaryBalance={secondaryBalance}
+          />
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={asset} />
           </View>
