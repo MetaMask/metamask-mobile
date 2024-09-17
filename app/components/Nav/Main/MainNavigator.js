@@ -84,9 +84,11 @@ import ConfirmAddAsset from '../../UI/ConfirmAddAsset';
 import { AesCryptoTestForm } from '../../Views/AesCryptoTestForm';
 import { isTest } from '../../../util/test/utils';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
-
 import NftDetails from '../../Views/NftDetails';
 import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
+import AccountPermissions from '../../../components/Views/AccountPermissions';
+import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
+import StakeInputView from '../../UI/Stake/Views/InputView/StakeInputView';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -321,6 +323,14 @@ const SettingsFlow = () => (
       name="ContactForm"
       component={ContactForm}
       options={ContactForm.navigationOptions}
+    />
+    <Stack.Screen
+      name="AccountPermissionsAsFullScreen"
+      component={AccountPermissions}
+      options={{ headerShown: false }}
+      initialParams={{
+        initialScreen: AccountPermissionsScreens.PermissionsSummary,
+      }}
     />
     <Stack.Screen
       name="RevealPrivateCredentialView"
@@ -675,6 +685,16 @@ const Swaps = () => (
   </Stack.Navigator>
 );
 
+const Stake = () => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name="Stake"
+      component={StakeInputView}
+      options={StakeInputView.navigationOptions}
+    />
+  </Stack.Navigator>
+);
+
 const SetPasswordFlow = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -779,6 +799,7 @@ const MainNavigator = () => (
       {() => <RampRoutes rampType={RampType.SELL} />}
     </Stack.Screen>
     <Stack.Screen name="Swaps" component={Swaps} />
+    <Stack.Screen name="Stake" component={Stake} />
     <Stack.Screen
       name="SetPasswordFlow"
       component={SetPasswordFlow}
