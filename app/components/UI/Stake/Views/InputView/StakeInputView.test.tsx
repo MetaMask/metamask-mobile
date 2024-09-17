@@ -60,69 +60,72 @@ jest.mock('../../hooks/useBalance', () => ({
   }),
 }));
 
-describe('StakeInputView Tests', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('should render correctly', () => {
+describe('StakeInputView', () => {
+  it('render matches snapshot', () => {
     render(StakeInputView);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('should update ETH and fiat when values are entered in the keypad', () => {
-    render(StakeInputView);
+  describe('when values are entered in the keypad', () => {
+    it('updates ETH and fiat values', () => {
+      render(StakeInputView);
 
-    // Simulate entering a value in the keypad
-    fireEvent.press(screen.getByText('2'));
-    // Check fiat conversion
-    expect(screen.getByText('4000 USD')).toBeTruthy();
+      fireEvent.press(screen.getByText('2'));
+
+      expect(screen.getByText('4000 USD')).toBeTruthy();
+    });
   });
 
-  it('should switch between ETH and fiat correctly', () => {
-    render(StakeInputView);
-    expect(screen.getByText('ETH')).toBeTruthy();
+  describe('currency toggle functionality', () => {
+    it('switches between ETH and fiat correctly', () => {
+      render(StakeInputView);
 
-    // Simulate currency switch by pressing the button labeled '0 USD'
-    fireEvent.press(screen.getByText('0 USD'));
+      expect(screen.getByText('ETH')).toBeTruthy();
+      fireEvent.press(screen.getByText('0 USD'));
 
-    // After switching, it should display fiat
-    expect(screen.getByText('USD')).toBeTruthy();
+      expect(screen.getByText('USD')).toBeTruthy();
+    });
   });
 
-  it('should calculate estimated annual rewards based on input', () => {
-    render(StakeInputView);
+  describe('when calculating rewards', () => {
+    it('calculates estimated annual rewards based on input', () => {
+      render(StakeInputView);
 
-    fireEvent.press(screen.getByText('2'));
+      fireEvent.press(screen.getByText('2'));
 
-    // Check if rewards calculation is triggered
-    expect(screen.getByText('0.052 ETH')).toBeTruthy();
+      expect(screen.getByText('0.052 ETH')).toBeTruthy();
+    });
   });
 
-  it('should handle quick amount button press correctly', () => {
-    render(StakeInputView);
+  describe('quick amount buttons', () => {
+    it('handles 25% quick amount button press correctly', () => {
+      render(StakeInputView);
 
-    const quickAmountButton = screen.getByText('25%');
-    fireEvent.press(quickAmountButton);
+      fireEvent.press(screen.getByText('25%'));
 
-    // Assuming 25% of balance is selected and displayed
-    expect(screen.getByText('0.375')).toBeTruthy();
+      expect(screen.getByText('0.375')).toBeTruthy();
+    });
   });
 
-  it('should display `Enter amount` on stake button if input is 0', () => {
-    render(StakeInputView);
-    expect(screen.getByText('Enter amount')).toBeTruthy();
-  });
+  describe('stake button states', () => {
+    it('displays `Enter amount` if input is 0', () => {
+      render(StakeInputView);
 
-  it('should display Review on the stake button if input is valid', () => {
-    render(StakeInputView);
-    fireEvent.press(screen.getByText('1'));
-    expect(screen.getByText('Review')).toBeTruthy();
-  });
+      expect(screen.getByText('Enter amount')).toBeTruthy();
+    });
 
-  it('should display Not enough ETH on the stake button and replace balance text if input is more than balance', () => {
-    render(StakeInputView);
-    fireEvent.press(screen.getByText('4'));
-    expect(screen.queryAllByText('Not enough ETH')).toHaveLength(2);
+    it('displays `Review` on stake button if input is valid', () => {
+      render(StakeInputView);
+
+      fireEvent.press(screen.getByText('1'));
+      expect(screen.getByText('Review')).toBeTruthy();
+    });
+
+    it('displays `Not enough ETH` when input exceeds balance', () => {
+      render(StakeInputView);
+
+      fireEvent.press(screen.getByText('4'));
+      expect(screen.queryAllByText('Not enough ETH')).toHaveLength(2);
+    });
   });
 });
