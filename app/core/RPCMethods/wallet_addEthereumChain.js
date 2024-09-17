@@ -15,6 +15,7 @@ import {
 } from '../../selectors/networkController';
 import { store } from '../../store';
 import checkSafeNetwork from './networkChecker.util';
+import { RpcEndpointType } from '@metamask/network-controller';
 
 const EVM_NATIVE_TOKEN_DECIMALS = 18;
 
@@ -273,24 +274,21 @@ const wallet_addEthereumChain = async ({
       );
       throw providerErrors.userRejectedRequest();
     }
-    const networkConfigurationId =
-      await NetworkController.upsertNetworkConfiguration(
+    const networkConfigurationId = await NetworkController.addNetwork({
+      chainId,
+      blockExplorerUrls,
+      defaultRpcEndpointIndex: 0,
+      defaultBlockExplorerUrlIndex: 0,
+      name: chainName,
+      nativeCurrency: ticker,
+      rpcEndpoints: [
         {
-          rpcUrl: firstValidRPCUrl,
-          chainId: _chainId,
-          ticker,
-          nickname: chainName,
-          rpcPrefs: {
-            blockExplorerUrl: firstValidBlockExplorerUrl,
-          },
+          url: firstValidRPCUrl,
+          name: chainName,
+          type: RpcEndpointType.Custom,
         },
-        {
-          // Metrics-related properties required, but the metric event is a no-op
-          // TODO: Use events for controller metric events
-          referrer: 'ignored',
-          source: 'ignored',
-        },
-      );
+      ],
+    });
 
     MetaMetrics.getInstance().trackEvent(
       MetaMetricsEvents.NETWORK_ADDED,
@@ -305,7 +303,11 @@ const wallet_addEthereumChain = async ({
     });
 
     CurrencyRateController.updateExchangeRate(ticker);
-    NetworkController.setActiveNetwork(networkConfigurationId);
+    NetworkController.setActiveNetwork(
+      networkConfigurationId.rpcEndpoints[
+        networkConfigurationId.defaultRpcEndpointIndex
+      ].networkClientId,
+    );
   } finally {
     endApprovalFlow({ id: approvalFlowId });
   }

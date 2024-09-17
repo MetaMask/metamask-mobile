@@ -871,6 +871,7 @@ export const getRpcMethodMiddleware = ({
        */
       metamask_logWeb3ShimUsage: () => (res.result = null),
       wallet_addEthereumChain: () => {
+        // eslint-disable-next-line no-console
         checkTabActive();
         return RPCMethods.wallet_addEthereumChain({
           req,
