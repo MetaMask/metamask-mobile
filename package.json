@@ -318,6 +318,7 @@
     "react-native-material-textfield": "0.16.1",
     "react-native-mmkv": "^2.11.0",
     "react-native-modal": "^12.1.0",
+    "react-native-open-notification": "^0.1.4",
     "react-native-os": "^1.2.6",
     "react-native-permissions": "^3.7.2",
     "react-native-progress": "3.5.0",
