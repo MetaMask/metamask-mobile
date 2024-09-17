@@ -1537,10 +1537,12 @@ meta:
     machine_type_id: g2-m1-max.5core
 trigger_map:
   - push_branch: release/*
-    pipeline: release_e2e_pipeline
+    pipeline: pr_regression_e2e_pipeline
   - push_branch: main
     pipeline: app_launch_times_pipeline
   - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline
+  - tag: 'v*.*.*-RC-*'
+    pipeline: release_e2e_pipeline

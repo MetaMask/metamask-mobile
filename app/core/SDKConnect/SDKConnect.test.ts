@@ -47,7 +47,6 @@ jest.mock('./RPCQueueManager');
 jest.mock('./SDKConnectConstants');
 jest.mock('./SessionManagement');
 jest.mock('./StateManagement');
-jest.mock('../../core/Engine');
 
 describe('SDKConnect', () => {
   let sdkConnect: SDKConnect;
