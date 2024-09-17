@@ -14,7 +14,6 @@ import { store } from '../../store';
 import { getPermittedAccounts } from '../Permissions';
 import { RPC } from '../../constants/network';
 import { getRpcMethodMiddleware } from './RPCMethodMiddleware';
-import AppConstants from '../AppConstants';
 import {
   PermissionConstraint,
   PermissionController,
