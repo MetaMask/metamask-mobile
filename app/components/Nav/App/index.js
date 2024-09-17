@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
 import {
-  Animated,
+  ActivityIndicator,
   Linking,
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   View,
@@ -125,6 +125,7 @@ import TooltipModal from '../../../components/Views/TooltipModal';
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
+import Text from '../../../component-library/components/Texts/Text';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -307,12 +308,8 @@ const VaultRecoveryFlow = () => (
 
 // eslint-disable-next-line react/prop-types
 const App = ({ userLoggedIn }) => {
-  const animationRef = useRef(null);
-  const animationNameRef = useRef(null);
-  const opacity = useRef(new Animated.Value(1)).current;
   const [navigator, setNavigator] = useState(undefined);
   const prevNavigator = useRef(navigator);
-  const [route, setRoute] = useState();
   const queueOfHandleDeeplinkFunctions = useRef([]);
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
@@ -331,13 +328,19 @@ const App = ({ userLoggedIn }) => {
     if (prevNavigator.current || !navigator) return;
     const appTriggeredAuth = async () => {
       const existingUser = await StorageWrapper.getItem(EXISTING_USER);
+      setOnboarded(!!existingUser);
       try {
         if (existingUser) {
           await Authentication.appTriggeredAuth();
           // we need to reset the navigator here so that the user cannot go back to the login screen
           navigator.reset({ routes: [{ name: Routes.ONBOARDING.HOME_NAV }] });
+        } else {
+          navigator.reset({ routes: [{ name: Routes.ONBOARDING.ROOT_NAV }] });
         }
       } catch (error) {
+        if (existingUser) {
+          navigator.reset({ routes: [{ name: Routes.ONBOARDING.LOGIN }] });
+        }
         // if there are no credentials, then they were cleared in the last session and we should not show biometrics on the login screen
         if (
           error.message === AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS
@@ -348,15 +351,12 @@ const App = ({ userLoggedIn }) => {
             }),
           );
         }
-        await Authentication.lockApp(false);
+        await Authentication.lockApp({ reset: false });
         trackErrorAsAnalytics(
           'App: Max Attempts Reached',
           error?.message,
           `Unlock attempts: 1`,
         );
-      } finally {
-        animationRef?.current?.play();
-        animationNameRef?.current?.play();
       }
     };
     appTriggeredAuth().catch((error) => {
@@ -502,22 +502,6 @@ const App = ({ userLoggedIn }) => {
       });
     }
   }, [navigator]);
-
-  useEffect(() => {
-    async function checkExisting() {
-      const existingUser = await StorageWrapper.getItem(EXISTING_USER);
-      setOnboarded(!!existingUser);
-      const route = !existingUser
-        ? Routes.ONBOARDING.ROOT_NAV
-        : Routes.ONBOARDING.LOGIN;
-      setRoute(route);
-    }
-
-    checkExisting().catch((error) => {
-      Logger.error(error, 'Error checking existing user');
-    });
-    /* eslint-disable react-hooks/exhaustive-deps */
-  }, []);
 
   useEffect(() => {
     async function startApp() {
@@ -789,149 +773,158 @@ const App = ({ userLoggedIn }) => {
   );
 
   return (
-    // do not render unless a route is defined
-    (route && (
-      <>
-        {
-          ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-        }
-        <View>
-          <SnapsExecutionWebView />
-        </View>
-        {
-          ///: END:ONLY_INCLUDE_IF
-        }
-        <PPOMView />
-        <NavigationContainer
-          // Prevents artifacts when navigating between screens
-          theme={{
-            colors: {
-              background: colors.background.default,
-            },
-          }}
-          ref={setNavigatorRef}
-          onStateChange={(state) => {
-            // Updates redux with latest route. Used by DrawerView component.
-            const currentRoute = findRouteNameFromNavigatorState(state.routes);
-            triggerSetCurrentRoute(currentRoute);
+    <>
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+      }
+      <View>
+        <SnapsExecutionWebView />
+      </View>
+      {
+        ///: END:ONLY_INCLUDE_IF
+      }
+      <PPOMView />
+      <NavigationContainer
+        // Prevents artifacts when navigating between screens
+        theme={{
+          colors: {
+            background: colors.background.default,
+          },
+        }}
+        ref={setNavigatorRef}
+        onStateChange={(state) => {
+          // Updates redux with latest route. Used by DrawerView component.
+          const currentRoute = findRouteNameFromNavigatorState(state.routes);
+          triggerSetCurrentRoute(currentRoute);
+        }}
+      >
+        <Stack.Navigator
+          initialRouteName={'loading'}
+          mode={'modal'}
+          screenOptions={{
+            headerShown: false,
+            cardStyle: { backgroundColor: importedColors.transparent },
+            animationEnabled: false,
           }}
         >
-          <Stack.Navigator
-            initialRouteName={route}
-            mode={'modal'}
-            screenOptions={{
-              headerShown: false,
-              cardStyle: { backgroundColor: importedColors.transparent },
-              animationEnabled: false,
-            }}
-          >
-            <Stack.Screen
-              name={Routes.ONBOARDING.LOGIN}
-              component={Login}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="OnboardingRootNav"
-              component={OnboardingRootNav}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name={Routes.ONBOARDING.SUCCESS_FLOW}
-              component={OnboardingSuccessFlow}
-              options={{ headerShown: false }}
-            />
-            {userLoggedIn && (
-              <Stack.Screen
-                name={Routes.ONBOARDING.HOME_NAV}
-                component={Main}
-                options={{ headerShown: false }}
-              />
+          <Stack.Screen
+            name="loading"
+            component={() => (
+              <View
+                style={{
+                  backgroundColor: colors.background.default,
+                  flex: 1,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <ActivityIndicator size="Medium" color={'orange'} />
+                <Text>Loading</Text>
+              </View>
             )}
+          />
+          <Stack.Screen
+            name={Routes.ONBOARDING.LOGIN}
+            component={Login}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="OnboardingRootNav"
+            component={OnboardingRootNav}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.ONBOARDING.SUCCESS_FLOW}
+            component={OnboardingSuccessFlow}
+            options={{ headerShown: false }}
+          />
+          {userLoggedIn && (
             <Stack.Screen
-              name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
-              component={VaultRecoveryFlow}
+              name={Routes.ONBOARDING.HOME_NAV}
+              component={Main}
+              options={{ headerShown: false }}
             />
+          )}
+          <Stack.Screen
+            name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
+            component={VaultRecoveryFlow}
+          />
+          <Stack.Screen
+            name={Routes.MODAL.ROOT_MODAL_FLOW}
+            component={RootModalFlow}
+          />
+          <Stack.Screen
+            name="ImportPrivateKeyView"
+            component={ImportPrivateKeyView}
+            options={{ animationEnabled: true }}
+          />
+          <Stack.Screen
+            name="ConnectQRHardwareFlow"
+            component={ConnectQRHardwareFlow}
+            options={{ animationEnabled: true }}
+          />
+          <Stack.Screen
+            name={Routes.HW.CONNECT_LEDGER}
+            component={LedgerConnectFlow}
+          />
+          <Stack.Screen
+            name={Routes.HW.CONNECT}
+            component={ConnectHardwareWalletFlow}
+          />
+          <Stack.Screen
+            options={{
+              //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+              cardStyle: { backgroundColor: importedColors.transparent },
+              cardStyleInterpolator: () => ({
+                overlayStyle: {
+                  opacity: 0,
+                },
+              }),
+            }}
+            name={Routes.LEDGER_TRANSACTION_MODAL}
+            component={LedgerTransactionModal}
+          />
+          <Stack.Screen
+            options={{
+              //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+              cardStyle: { backgroundColor: importedColors.transparent },
+              cardStyleInterpolator: () => ({
+                overlayStyle: {
+                  opacity: 0,
+                },
+              }),
+            }}
+            name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
+            component={LedgerMessageSignModal}
+          />
+          <Stack.Screen name={Routes.OPTIONS_SHEET} component={OptionsSheet} />
+          <Stack.Screen
+            name="EditAccountName"
+            component={EditAccountNameFlow}
+            options={{ animationEnabled: true }}
+          />
+          <Stack.Screen
+            name={Routes.ADD_NETWORK}
+            component={AddNetworkFlow}
+            options={{ animationEnabled: true }}
+          />
+          {isNetworkUiRedesignEnabled() ? (
             <Stack.Screen
-              name={Routes.MODAL.ROOT_MODAL_FLOW}
-              component={RootModalFlow}
-            />
-            <Stack.Screen
-              name="ImportPrivateKeyView"
-              component={ImportPrivateKeyView}
-              options={{ animationEnabled: true }}
-            />
-            <Stack.Screen
-              name="ConnectQRHardwareFlow"
-              component={ConnectQRHardwareFlow}
-              options={{ animationEnabled: true }}
-            />
-            <Stack.Screen
-              name={Routes.HW.CONNECT_LEDGER}
-              component={LedgerConnectFlow}
-            />
-            <Stack.Screen
-              name={Routes.HW.CONNECT}
-              component={ConnectHardwareWalletFlow}
-            />
-            <Stack.Screen
-              options={{
-                //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-                cardStyle: { backgroundColor: importedColors.transparent },
-                cardStyleInterpolator: () => ({
-                  overlayStyle: {
-                    opacity: 0,
-                  },
-                }),
-              }}
-              name={Routes.LEDGER_TRANSACTION_MODAL}
-              component={LedgerTransactionModal}
-            />
-            <Stack.Screen
-              options={{
-                //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-                cardStyle: { backgroundColor: importedColors.transparent },
-                cardStyleInterpolator: () => ({
-                  overlayStyle: {
-                    opacity: 0,
-                  },
-                }),
-              }}
-              name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
-              component={LedgerMessageSignModal}
-            />
-            <Stack.Screen
-              name={Routes.OPTIONS_SHEET}
-              component={OptionsSheet}
-            />
-            <Stack.Screen
-              name="EditAccountName"
-              component={EditAccountNameFlow}
-              options={{ animationEnabled: true }}
-            />
-            <Stack.Screen
-              name={Routes.ADD_NETWORK}
+              name={Routes.EDIT_NETWORK}
               component={AddNetworkFlow}
               options={{ animationEnabled: true }}
             />
-            {isNetworkUiRedesignEnabled() ? (
-              <Stack.Screen
-                name={Routes.EDIT_NETWORK}
-                component={AddNetworkFlow}
-                options={{ animationEnabled: true }}
-              />
-            ) : null}
+          ) : null}
 
-            <Stack.Screen
-              name={Routes.LOCK_SCREEN}
-              component={LockScreen}
-              options={{ gestureEnabled: false }}
-            />
-          </Stack.Navigator>
-        </NavigationContainer>
-        <Toast ref={toastRef} />
-      </>
-    )) ||
-    null
+          <Stack.Screen
+            name={Routes.LOCK_SCREEN}
+            component={LockScreen}
+            options={{ gestureEnabled: false }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+      <Toast ref={toastRef} />
+    </>
   );
 };
 
