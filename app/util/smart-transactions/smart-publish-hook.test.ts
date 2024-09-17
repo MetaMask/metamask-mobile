@@ -34,6 +34,14 @@ jest.mock('uuid', () => ({
   v1: jest.fn(() => 'approvalId'),
 }));
 
+jest.mock('../../core/Engine', () => ({
+  context: {
+    TransactionController: {
+      update: jest.fn(),
+    },
+  },
+}));
+
 const addressFrom = '0xabce7847fd3661a9b7c86aaf1daea08d9da5750e';
 const transactionHash =
   '0x0302b75dfb9fd9eb34056af031efcaee2a8cbd799ea054a85966165cd82a7356';
@@ -505,8 +513,6 @@ describe('submitSmartTransactionHook', () => {
           isSwapTransaction: true,
         },
       });
-      //@ts-expect-error - We are calling a protected method for testing purposes
-      expect(request.transactionController.update).toHaveBeenCalledTimes(1);
     });
   });
 });

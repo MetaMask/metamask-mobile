@@ -42,14 +42,16 @@ const initialState = {
 const mockDAI = {
   address: '0x6b175474e89094c44da98b954eedeac495271d0f',
   aggregators: ['Metamask', 'Coinmarketcap'],
-  balanceError: undefined,
   balanceFiat: '$6.49',
+  balance: '649',
+  logo: 'logo-src',
   decimals: 18,
   image:
     'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6b175474e89094c44da98b954eedeac495271d0f.png',
   name: 'Dai Stablecoin',
   symbol: 'DAI',
   isETH: false,
+  balanceError: null,
 };
 const mockAssets = {
   '0x6b175474e89094c44da98b954eedeac495271d0f': mockDAI,

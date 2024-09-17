@@ -5,8 +5,6 @@
     "deceptive_request_title": "사기성 요청입니다",
     "failed_title": "안전하지 않은 요청일 수 있습니다",
     "failed_description": "오류로 인해 보안업체에서 이 요청을 확인하지 못했습니다. 주의하여 진행하세요.",
-    "loading_title": "보안 경고 확인하는 중...",
-    "loading_complete_title": "수신한 경고가 없습니다. 요청을 승인하기 전에 항상 직접 확인하세요.",
     "malicious_domain_description": "악성 도메인과 인터렉션하고 있습니다. 이 요청을 승인하면 본인의 자산을 잃을 수도 있습니다.",
     "other_description": "이 요청을 승인하면, 자산을 잃을 수 있습니다.",
     "raw_signature_farming_description": "이 요청을 승인하면, 자산을 잃을 수 있습니다.",
