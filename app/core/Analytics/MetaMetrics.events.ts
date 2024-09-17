@@ -830,6 +830,9 @@ const events = {
   // Edit account name
   ACCOUNT_RENAMED: generateOpt(EVENT_NAME.ACCOUNT_RENAMED),
 
+  // Settings
+  SETTINGS_UPDATED: generateOpt(EVENT_NAME.SETTINGS_UPDATED),
+
   // Experimental Settings
   SETTINGS_SECURITY_ALERTS_ENABLED: generateOpt(EVENT_NAME.SETTINGS_UPDATED),
 
