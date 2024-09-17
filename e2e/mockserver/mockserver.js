@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import { getLocal } from 'mockttp';
+import { mockUrlCollection } from './mockUrlCollection';
 
 const mockServer = getLocal();
 const defaultMockPort = 8000;
@@ -8,7 +9,7 @@ export const startMockServer = async ({
   mockUrl,
   responseCode = 500,
   responseBody = {},
-  port = defaultMockPort,
+  port = mockUrlCollection.DEFAULT_PORT,
 }) => {
   if (!mockUrl) throw new Error('The mockUrl parameter is required');
 

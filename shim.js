@@ -7,6 +7,7 @@ import {
   testConfig,
 } from './app/util/test/utils.js';
 import { LaunchArguments } from 'react-native-launch-arguments';
+import { mockUrlCollection } from './e2e/mockserver/mockUrlCollection';
 
 // In a testing environment, assign the fixtureServerPort to use a deterministic port
 if (isTest) {
@@ -61,10 +62,9 @@ if (typeof localStorage !== 'undefined') {
 if (isTest) {
   (async () => {
     const { fetch: originalFetch } = global;
-    const defaultMockPort = 8000;
     const MOCKTTP_URL = `http://${
       Platform.OS === 'ios' ? 'localhost' : '10.0.2.2'
-    }:${defaultMockPort}`;
+    }:${mockUrlCollection.DEFAULT_PORT}`;
 
     const isMockServerAvailable = await originalFetch(
       `${MOCKTTP_URL}/health-check`,
