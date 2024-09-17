@@ -36,8 +36,6 @@ interface NotificationOptionsToggleProps {
   refetchAccountSettings: () => Promise<void>;
 }
 
-
-
 /**
  * View that renders the toggle for notifications options
  * This component assumes that the parent will manage the state of the toggle. This is because most of the state is global.
