@@ -347,7 +347,6 @@ describe('getRpcMethodMiddleware', () => {
       options: {},
       methods: [
         EthMethod.PersonalSign,
-        EthMethod.Sign,
         EthMethod.SignTransaction,
         EthMethod.SignTypedDataV1,
         EthMethod.SignTypedDataV3,
