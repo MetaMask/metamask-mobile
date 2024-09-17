@@ -8,25 +8,6 @@ export default function migrate(state: unknown) {
     return state;
   }
 
-  if (!isObject(state.engine)) {
-    captureException(
-      new Error(
-        `FATAL ERROR: Migration 53: Invalid engine state error: '${typeof state.engine}'`,
-      ),
-    );
-    return state;
-  }
-
-  if (!isObject(state.engine.backgroundState)) {
-    captureException(
-      new Error(
-        `FATAL ERROR: Migration 53: Invalid engine backgroundState error: '${typeof state
-          .engine.backgroundState}'`,
-      ),
-    );
-    return state;
-  }
-
   const networkControllerState = state.engine.backgroundState.NetworkController;
   if (!isObject(networkControllerState)) {
     captureException(
