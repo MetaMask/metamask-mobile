@@ -42,7 +42,7 @@ const StakingEarnings = () => {
 
   const onNavigateToTooltipModal = () =>
     openTooltipModal(
-      'Annual Rate',
+      strings('stake.annual_rate'),
       strings('tooltip_modal.reward_rate.tooltip'),
     );
 
@@ -50,7 +50,7 @@ const StakingEarnings = () => {
 
   return (
     <View style={styles.stakingEarningsContainer}>
-      <Title style={styles.title}>{strings('staking.your_earnings')}</Title>
+      <Title style={styles.title}>{strings('stake.your_earnings')}</Title>
       <View>
         {/* Annual Rate */}
         <View style={styles.keyValueRow}>
@@ -59,7 +59,7 @@ const StakingEarnings = () => {
               variant={TextVariant.BodyMDMedium}
               style={styles.keyValuePrimaryText}
             >
-              {strings('staking.annual_rate')}
+              {strings('stake.annual_rate')}
             </Text>
             <ButtonIcon
               size={ButtonIconSizes.Sm}
@@ -67,7 +67,7 @@ const StakingEarnings = () => {
               iconName={IconName.Info}
               accessibilityRole="button"
               accessibilityLabel={strings(
-                'staking.accessibility_labels.stake_annual_rate_tooltip',
+                'stake.accessibility_labels.stake_annual_rate_tooltip',
               )}
               onPress={onNavigateToTooltipModal}
             />
@@ -82,7 +82,7 @@ const StakingEarnings = () => {
               variant={TextVariant.BodyMDMedium}
               style={styles.keyValuePrimaryText}
             >
-              {strings('staking.lifetime_rewards')}
+              {strings('stake.lifetime_rewards')}
             </Text>
           </View>
           <View style={styles.keyValueSecondaryText}>
@@ -101,7 +101,7 @@ const StakingEarnings = () => {
               variant={TextVariant.BodyMDMedium}
               color={TextColor.Alternative}
             >
-              {strings('staking.estimated_annual_earnings')}
+              {strings('stake.estimated_annual_earnings')}
             </Text>
           </View>
           <View style={styles.keyValueSecondaryText}>
