@@ -245,7 +245,8 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           />
         );
       }),
-    [accounts, accountSettingsProps.data, accountSettingsProps.accountsBeingUpdated, accountAvatarType, isUpdatingMetamaskNotificationsAccount.length, refetchAccountSettings],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [ accountSettingsProps.data, accountSettingsProps.accountsBeingUpdated, accountAvatarType, isUpdatingMetamaskNotificationsAccount.length, refetchAccountSettings],
   );
 
   return (
