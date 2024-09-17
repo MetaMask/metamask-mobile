@@ -3,7 +3,6 @@
 Feature: Measure Login Screen Warm Start
     # This feature measures the warm start of the app when:
     # The user imports a wallet and the time it takes to get from launching app to login view
-    # The time it takes to get from login view to wallet view.
 
     Scenario: Measure warm start launch time after Importing a Wallet
         Given the app displayed the splash animation

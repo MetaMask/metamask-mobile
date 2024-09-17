@@ -2,7 +2,6 @@
 @performance
 Feature: Measure Wallet Screen Warm Start
   # This feature measures the warm start of the app when:
-  # The user imports a wallet and the time it takes to get from launching app to login view
   # The time it takes to get from login view to wallet view.
 
   Scenario: Measure Warm Start after Importing a Wallet
