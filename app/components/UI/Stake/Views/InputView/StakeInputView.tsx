@@ -67,6 +67,7 @@ const StakeInputView = () => {
   const annualRewardRate = '0.026'; //TODO: Replace with actual value: STAKE-806
   const calculateEstimatedAnnualRewards = useCallback(() => {
     if (isNonZeroAmount) {
+      // Limiting the decimal places to keep it consistent with other eth values in the input screen
       const ethRewards = limitToMaximumDecimalPlaces(
         parseFloat(amount) * parseFloat(annualRewardRate),
         5,
@@ -142,7 +143,7 @@ const StakeInputView = () => {
   }, [isEth]);
 
   const handleStakePress = useCallback(() => {
-    // Add your logic here
+    // TODO: Display the Review bottom sheet: STAKE-824
   }, []);
 
   const percentageOptions = [
@@ -154,14 +155,11 @@ const StakeInputView = () => {
 
   const handleAmountPress = useCallback(
     ({ value }: { value: number }) => {
+      if (!balanceBN) return;
       const percentage = value * 100;
       const amountPercentage = balanceBN
         ?.mul(new BN(percentage))
         .div(new BN(100));
-
-      if (!amountPercentage) {
-        return;
-      }
 
       const newAmountString = fromTokenMinimalUnitString(
         amountPercentage.toString(10),
