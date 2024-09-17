@@ -77,7 +77,6 @@ export const sentryStateMask = {
       },
       PhishingController: {},
       PreferencesController: {
-        disabledRpcMethodPreferences: true,
         featureFlags: true,
         isIpfsGatewayEnabled: true,
         displayNftMedia: true,
@@ -86,7 +85,6 @@ export const sentryStateMask = {
         useTransactionSimulations: true,
       },
       SignatureController: {
-        unapprovedMsgCount: true,
         unapprovedPersonalMsgCount: true,
         unapprovedTypedMessagesCount: true,
       },

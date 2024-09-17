@@ -475,7 +475,6 @@ class Engine {
       showApprovalRequest: () => undefined,
       typesExcludedFromRateLimiting: [
         // TODO: Replace with ApprovalType enum from @metamask/controller-utils when breaking change is fixed
-        'eth_sign',
         'personal_sign',
         'eth_signTypedData',
         'transaction',
@@ -1455,10 +1454,6 @@ class Engine {
           ],
           allowedEvents: [],
         }),
-        isEthSignEnabled: () =>
-          Boolean(
-            preferencesController.state?.disabledRpcMethodPreferences?.eth_sign,
-          ),
         getAllState: () => store.getState(),
         getCurrentChainId: () => networkController.state.providerConfig.chainId,
       }),

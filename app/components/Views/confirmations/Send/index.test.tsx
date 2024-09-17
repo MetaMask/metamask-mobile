@@ -64,9 +64,6 @@ const initialState: DeepPartial<RootState> = {
         displayNftMedia: true,
         useSafeChainsListValidation: false,
         isMultiAccountBalancesEnabled: true,
-        disabledRpcMethodPreferences: {
-          eth_sign: false,
-        },
         showTestNetworks: true,
         showIncomingTransactions: {
           '0x1': true,

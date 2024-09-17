@@ -158,10 +158,6 @@ class SignatureRequest extends PureComponent {
      */
     networkType: PropTypes.string,
     /**
-     * Whether it should display the warning message
-     */
-    showWarning: PropTypes.bool,
-    /**
      * Whether it should render the expand arrow icon
      */
     truncateMessage: PropTypes.bool,
@@ -232,20 +228,6 @@ class SignatureRequest extends PureComponent {
   getStyles = () => {
     const colors = this.context.colors || mockTheme.colors;
     return createStyles(colors);
-  };
-
-  renderWarning = () => {
-    const styles = this.getStyles();
-
-    return (
-      <Text>
-        {strings('signature_request.eth_sign_warning')}
-        {` `}
-        <Text style={styles.warningLink}>
-          {strings('signature_request.learn_more')}
-        </Text>
-      </Text>
-    );
   };
 
   renderActionViewChildren = () => {
@@ -331,8 +313,7 @@ class SignatureRequest extends PureComponent {
   };
 
   renderSignatureRequest() {
-    const { securityAlertResponse, showWarning, type, fromAddress } =
-      this.props;
+    const { securityAlertResponse, type, fromAddress } = this.props;
     let expandedHeight;
     const styles = this.getStyles();
     const isLedgerAccount = isHardwareAccount(fromAddress, [
@@ -341,9 +322,6 @@ class SignatureRequest extends PureComponent {
 
     if (Device.isMediumDevice()) {
       expandedHeight = styles.expandedHeight2;
-      if (type === 'ethSign') {
-        expandedHeight = styles.expandedHeight1;
-      }
     }
 
     let confirmButtonState = ConfirmButtonState.Normal;
@@ -374,17 +352,6 @@ class SignatureRequest extends PureComponent {
               <Text style={styles.signText}>
                 {strings('signature_request.signing')}
               </Text>
-              {showWarning ? (
-                <TouchableOpacity
-                  style={styles.warningWrapper}
-                  onPress={this.goToWarning}
-                >
-                  <WarningMessage
-                    type={'error'}
-                    warningMessage={this.renderWarning()}
-                  />
-                </TouchableOpacity>
-              ) : null}
             </View>
             <BlockaidBanner
               securityAlertResponse={securityAlertResponse}

@@ -221,7 +221,6 @@ class FixtureBuilder {
                     options: {},
                     methods: [
                       'personal_sign',
-                      'eth_sign',
                       'eth_signTransaction',
                       'eth_signTypedData_v1',
                       'eth_signTypedData_v3',
@@ -250,9 +249,6 @@ class FixtureBuilder {
               displayNftMedia: true,
               useSafeChainsListValidation: false,
               isMultiAccountBalancesEnabled: true,
-              disabledRpcMethodPreferences: {
-                eth_sign: false,
-              },
               showTestNetworks: true,
               _U: 0,
               _V: 1,
@@ -274,9 +270,6 @@ class FixtureBuilder {
                 displayNftMedia: true,
                 useSafeChainsListValidation: false,
                 isMultiAccountBalancesEnabled: true,
-                disabledRpcMethodPreferences: {
-                  eth_sign: false,
-                },
                 showTestNetworks: true,
                 showIncomingTransactions: {
                   '0x1': true,
