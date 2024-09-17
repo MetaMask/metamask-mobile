@@ -31,10 +31,6 @@ const mockNavigation = {
   navigate: mockNavigate,
 } as unknown as NavigationProp<ParamListBase>;
 
-const bootstrapAndroidInitialNotification = jest
-  .fn()
-  .mockResolvedValue(undefined);
-
 const mockNotificationEvent = (event: NotifeeEvent) => ({
   type: event.type,
   detail: {
@@ -52,25 +48,9 @@ describe('useNotificationHandler', () => {
     jest.clearAllMocks();
   });
 
-  it('sets initial badge count and initializes Android notifications on mount', async () => {
-    renderHook(() =>
-      useNotificationHandler(
-        bootstrapAndroidInitialNotification,
-        mockNavigation,
-      ),
-    );
-
-    expect(bootstrapAndroidInitialNotification).toHaveBeenCalled();
-
-    jest.runAllTimers();
-  });
-
   it('should handle notifications correctly', async () => {
     const { waitFor } = renderHook(() =>
-      useNotificationHandler(
-        bootstrapAndroidInitialNotification,
-        mockNavigation,
-      ),
+      useNotificationHandler(mockNavigation),
     );
 
     await act(async () => {
@@ -96,10 +76,7 @@ describe('useNotificationHandler', () => {
 
   it('should do nothing if the EventType is DISMISSED', async () => {
     const { waitFor } = renderHook(() =>
-      useNotificationHandler(
-        bootstrapAndroidInitialNotification,
-        mockNavigation,
-      ),
+      useNotificationHandler(mockNavigation),
     );
 
     await act(async () => {
@@ -126,10 +103,7 @@ describe('useNotificationHandler', () => {
 
   it('should do nothing if data.action is not tx', async () => {
     const { waitFor } = renderHook(() =>
-      useNotificationHandler(
-        bootstrapAndroidInitialNotification,
-        mockNavigation,
-      ),
+      useNotificationHandler(mockNavigation),
     );
 
     await act(async () => {
@@ -158,10 +132,7 @@ describe('useNotificationHandler', () => {
 
   it('handleOpenedNotification should do nothing if notification is null', async () => {
     const { waitFor } = renderHook(() =>
-      useNotificationHandler(
-        bootstrapAndroidInitialNotification,
-        mockNavigation,
-      ),
+      useNotificationHandler(mockNavigation),
     );
 
     await act(async () => {
@@ -183,10 +154,7 @@ describe('useNotificationHandler', () => {
 
   it('should navigate to the transaction view when the notification action is "tx"', async () => {
     const { waitFor } = renderHook(() =>
-      useNotificationHandler(
-        bootstrapAndroidInitialNotification,
-        mockNavigation,
-      ),
+      useNotificationHandler(mockNavigation),
     );
 
     await act(async () => {
@@ -216,10 +184,7 @@ describe('useNotificationHandler', () => {
     }));
 
     const { waitFor } = renderHook(() =>
-      useNotificationHandler(
-        bootstrapAndroidInitialNotification,
-        mockNavigation,
-      ),
+      useNotificationHandler(mockNavigation),
     );
 
     await act(async () => {
