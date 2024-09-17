@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/ppom-validator/dist/ppom-controller.js b/node_modules/@metamask/ppom-validator/dist/ppom-controller.js
-index 9cf1502..ddfbe2a 100644
+index 9cf1502..b74a350 100644
 --- a/node_modules/@metamask/ppom-validator/dist/ppom-controller.js
 +++ b/node_modules/@metamask/ppom-validator/dist/ppom-controller.js
 @@ -84,7 +84,7 @@ class PPOMController extends base_controller_1.BaseControllerV2 {
@@ -36,7 +36,7 @@ index 9cf1502..ddfbe2a 100644
          // enable / disable PPOM validations as user changes preferences
          onPreferencesChange(__classPrivateFieldGet(this, _PPOMController_instances, "m", _PPOMController_onPreferenceChange).bind(this));
          // register message handlers
-@@ -177,6 +188,20 @@ class PPOMController extends base_controller_1.BaseControllerV2 {
+@@ -177,6 +188,18 @@ class PPOMController extends base_controller_1.BaseControllerV2 {
      }
  }
  exports.PPOMController = PPOMController;
@@ -44,11 +44,9 @@ index 9cf1502..ddfbe2a 100644
 +      const configurations = Object.values(networkControllerState.networkConfigurations);
 +      if (configurations.length === 0) {
 +          console.warn("No network configurations available.");
-+          // Handle the empty case, maybe return a default value or halt further execution.
 +      } else {
 +          const currentNetwork = getCurrentNetwork(networkControllerState);
 +          if (currentNetwork && currentNetwork.chainId) {
-+              // Proceed with using chainId
 +          } else {
 +              console.error("Current network or chainId is undefined.");
 +          }
@@ -57,7 +55,7 @@ index 9cf1502..ddfbe2a 100644
  _PPOMController_ppom = new WeakMap(), _PPOMController_provider = new WeakMap(), _PPOMController_storage = new WeakMap(), _PPOMController_ppomMutex = new WeakMap(), _PPOMController_ppomProvider = new WeakMap(), _PPOMController_cdnBaseUrl = new WeakMap(), _PPOMController_providerRequestLimit = new WeakMap(), _PPOMController_providerRequests = new WeakMap(), _PPOMController_chainId = new WeakMap(), _PPOMController_securityAlertsEnabled = new WeakMap(), _PPOMController_providerRequestsCount = new WeakMap(), _PPOMController_blockaidPublicKey = new WeakMap(), _PPOMController_ppomInitialised = new WeakMap(), _PPOMController_nativeCrypto = new WeakMap(), _PPOMController_instances = new WeakSet(), _PPOMController_initialisePPOM =
  /*
   * Initialise PPOM loading wasm file.
-@@ -203,7 +228,10 @@ async function _PPOMController_initialisePPOM() {
+@@ -203,7 +226,10 @@ async function _PPOMController_initialisePPOM() {
          console.error(`Error in deleting files: ${error.message}`);
      });
  }, _PPOMController_onNetworkChange = function _PPOMController_onNetworkChange(networkControllerState) {
