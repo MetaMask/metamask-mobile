@@ -45,7 +45,6 @@ const PermissionsSummary = ({
   onBack,
   onUserAction,
   showActionButtons = true,
-  isInitialDappConnection = true,
   isAlreadyConnected = true,
   isRenderedAsBottomSheet = true,
 }: PermissionsSummaryProps) => {
@@ -237,7 +236,7 @@ const PermissionsSummary = ({
           {renderHeader()}
           <View style={styles.title}>
             <TextComponent variant={TextVariant.HeadingSM}>
-              {isInitialDappConnection
+              {!isAlreadyConnected
                 ? strings('permissions.title_dapp_url_wants_to', {
                     dappUrl: new URL(currentPageInformation.url).hostname,
                   })

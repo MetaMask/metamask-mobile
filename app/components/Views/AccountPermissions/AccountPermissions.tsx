@@ -392,7 +392,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         isRenderedAsBottomSheet
           ? setPermissionsScreen(AccountPermissionsScreens.Connected)
           : navigation.navigate('PermissionsManager'),
-      isInitialDappConnection: false,
       isRenderedAsBottomSheet,
     };
     return <PermissionsSummary {...permissionsSummaryProps} />;

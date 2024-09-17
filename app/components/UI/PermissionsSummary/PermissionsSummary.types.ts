@@ -11,7 +11,6 @@ export interface PermissionsSummaryProps {
   onBack?: () => void;
   onUserAction?: React.Dispatch<React.SetStateAction<USER_INTENT>>;
   showActionButtons?: boolean;
-  isInitialDappConnection?: boolean;
   isAlreadyConnected?: boolean;
   isRenderedAsBottomSheet?: boolean;
 }

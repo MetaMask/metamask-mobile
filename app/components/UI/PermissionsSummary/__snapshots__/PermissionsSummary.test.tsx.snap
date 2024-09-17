@@ -123,7 +123,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
             }
           }
         >
-          app.uniswap.org wants to:
+          app.uniswap.org has approval to:
         </Text>
       </View>
       <TouchableOpacity
