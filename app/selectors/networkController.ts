@@ -1,19 +1,7 @@
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
-import { NetworkState } from '@metamask/network-controller';
+import { NetworkState, RpcEndpointType } from '@metamask/network-controller';
 import { createDeepEqualSelector } from './util';
-import Engine from '../core/Engine';
-import { Hex } from '@metamask/utils';
-import { NetworkList } from '../util/networks';
-
-export interface ProviderConfig {
-  chainId: Hex;
-  ticker: string;
-  rpcUrl: string;
-  type: string;
-  nickname: string | undefined;
-  network?: string;
-}
 
 const selectNetworkControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.NetworkController;
@@ -27,54 +15,68 @@ export const selectSelectedNetworkClientId = createSelector(
 export const selectProviderConfig = createDeepEqualSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) => {
-    const { NetworkController } = Engine?.context || {};
-    const builtInNetwork = NetworkList[
-      networkControllerState?.selectedNetworkClientId as keyof typeof NetworkList
-    ] as unknown as ProviderConfig;
+    const selectedNetworkClientId =
+      networkControllerState?.selectedNetworkClientId;
 
-    const networkConfiguration = NetworkController?.getNetworkClientById(
-      networkControllerState?.selectedNetworkClientId,
-    )?.configuration;
+    console.log('selectedNetworkClientId ---', selectedNetworkClientId);
 
-    return builtInNetwork
-      ? {
-          ...builtInNetwork,
-          type: networkControllerState?.selectedNetworkClientId,
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          rpcPrefs: { blockExplorerUrl: builtInNetwork.blockExplorerUrl },
+    const networkConfigurationsByChainId =
+      networkControllerState?.networkConfigurationsByChainId;
+
+    console.log(
+      'networkConfigurationsByChainId ---',
+      networkConfigurationsByChainId,
+    );
+
+    for (const network of Object.values(networkConfigurationsByChainId)) {
+      for (const rpcEndpoint of network.rpcEndpoints) {
+        if (rpcEndpoint.networkClientId === selectedNetworkClientId) {
+          const indexToUse = network.defaultBlockExplorerUrlIndex ?? 0;
+          const blockExplorerUrl = network.blockExplorerUrls?.[indexToUse];
+
+          return {
+            chainId: network.chainId,
+            ticker: network.nativeCurrency,
+            rpcPrefs: { ...(blockExplorerUrl && { blockExplorerUrl }) },
+            type:
+              rpcEndpoint.type === RpcEndpointType.Custom
+                ? 'rpc'
+                : rpcEndpoint.networkClientId,
+            ...(rpcEndpoint.type === RpcEndpointType.Custom && {
+              id: rpcEndpoint.networkClientId,
+              nickname: network.name,
+              rpcUrl: rpcEndpoint.url,
+            }),
+          };
         }
-      : {
-          ...networkConfiguration,
-          type: 'rpc',
-          nickname:
-            networkControllerState?.networkConfigurations?.[
-              networkControllerState?.selectedNetworkClientId
-            ]?.nickname,
-        };
+      }
+    }
   },
 );
 
 export const selectTicker = createSelector(
   selectProviderConfig,
-  (providerConfig: ProviderConfig) => providerConfig?.ticker,
+  (providerConfig) => providerConfig?.ticker,
 );
 
 export const selectChainId = createSelector(
   selectProviderConfig,
-  (providerConfig: ProviderConfig) => providerConfig?.chainId,
+  (providerConfig) => {
+    console.log('providerConfig?.chainId ---', providerConfig);
+    return providerConfig?.chainId;
+  },
 );
 export const selectProviderType = createSelector(
   selectProviderConfig,
-  (providerConfig: ProviderConfig) => providerConfig?.type,
+  (providerConfig) => providerConfig?.type,
 );
 export const selectNickname = createSelector(
   selectProviderConfig,
-  (providerConfig: ProviderConfig) => providerConfig?.nickname,
+  (providerConfig) => providerConfig?.nickname,
 );
 export const selectRpcUrl = createSelector(
   selectProviderConfig,
-  (providerConfig: ProviderConfig) => providerConfig.rpcUrl,
+  (providerConfig) => providerConfig?.rpcUrl,
 );
 
 export const selectNetworkStatus = createSelector(
@@ -88,7 +90,7 @@ export const selectNetworkStatus = createSelector(
 export const selectNetworkConfigurations = createSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) =>
-    networkControllerState.networkConfigurations,
+    networkControllerState.networkConfigurationsByChainId,
 );
 
 export const selectNetworkClientId = createSelector(

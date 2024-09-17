@@ -30,7 +30,6 @@ import { useSelector } from 'react-redux';
 import {
   selectNetworkConfigurations,
   selectProviderConfig,
-  ProviderConfig,
 } from '../../../selectors/networkController';
 import { selectShowTestNetworks } from '../../../selectors/preferencesController';
 import Networks, {
@@ -39,6 +38,8 @@ import Networks, {
   getDecimalChainId,
   isTestNet,
   getNetworkImageSource,
+  isMainNet,
+  isLineaMainnet,
 } from '../../../util/networks';
 import {
   LINEA_MAINNET,
@@ -128,7 +129,7 @@ const NetworkSelector = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
 
-  const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
+  const providerConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const route =
@@ -382,7 +383,7 @@ const NetworkSelector = () => {
             imageSource: images.ETHEREUM,
             size: AvatarSize.Sm,
           }}
-          isSelected={chainId === selectedChainId && !providerConfig.rpcUrl}
+          isSelected={chainId === selectedChainId && !providerConfig?.rpcUrl}
           onPress={() => onNetworkChange(MAINNET)}
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
@@ -411,7 +412,7 @@ const NetworkSelector = () => {
           imageSource: images.ETHEREUM,
           size: avatarSize,
         }}
-        isSelected={chainId === selectedChainId && !providerConfig.rpcUrl}
+        isSelected={chainId === selectedChainId && !providerConfig?.rpcUrl}
         onPress={() => onNetworkChange(MAINNET)}
         style={styles.networkCell}
       />
@@ -472,17 +473,34 @@ const NetworkSelector = () => {
     );
   };
 
-  const renderRpcNetworks = () =>
-    Object.values(networkConfigurations).map(
-      ({ nickname, rpcUrl, chainId }) => {
-        if (!chainId) return null;
-        const { name } = { name: nickname || rpcUrl };
+  const renderRpcNetworks = () => {
+    console.log('networkConfigurations -----', networkConfigurations);
+    return Object.values(networkConfigurations).map(
+      ({ name: nickname, rpcEndpoints, chainId, defaultRpcEndpointIndex }) => {
+        if (
+          !chainId ||
+          isTestNet(chainId) ||
+          isMainNet(chainId) ||
+          chainId === CHAIN_IDS.LINEA_MAINNET ||
+          chainId === CHAIN_IDS.GOERLI
+        ) {
+          return null;
+        }
+
+        const rpcName = rpcEndpoints[defaultRpcEndpointIndex].name ?? '';
+        const rpcUrl = rpcEndpoints[defaultRpcEndpointIndex].url;
+
+        const { name } = {
+          name: nickname || rpcName,
+        };
 
         if (isNetworkUiRedesignEnabled() && isNoSearchResults(name))
           return null;
 
         //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
         const image = getNetworkImageSource({ chainId: chainId?.toString() });
+
+        console.log('image -----', image);
 
         if (isNetworkUiRedesignEnabled()) {
           return (
@@ -536,6 +554,7 @@ const NetworkSelector = () => {
         );
       },
     );
+  };
 
   const renderOtherNetworks = () => {
     const getAllNetworksTyped =

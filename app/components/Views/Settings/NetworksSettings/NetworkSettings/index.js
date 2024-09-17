@@ -396,6 +396,7 @@ export class NetworkSettings extends PureComponent {
       if (allNetworks.find((net) => networkTypeOrRpcUrl === net)) {
         blockExplorerUrl = getEtherscanBaseUrl(networkTypeOrRpcUrl);
         const networkInformation = Networks[networkTypeOrRpcUrl];
+        console.log('HERE 444444 ---------', networkInformation);
         nickname = networkInformation.name;
         chainId = networkInformation.chainId.toString();
         editable = false;
@@ -413,14 +414,16 @@ export class NetworkSettings extends PureComponent {
         }
       } else {
         const networkConfiguration = Object.values(networkConfigurations).find(
-          ({ rpcUrl }) => rpcUrl === networkTypeOrRpcUrl,
+          ({ rpcEndpoints, defaultRpcEndpointIndex }) =>
+            rpcEndpoints[defaultRpcEndpointIndex].url === networkTypeOrRpcUrl,
         );
-        nickname = networkConfiguration.nickname;
+        nickname = networkConfiguration.name;
         chainId = networkConfiguration.chainId;
         blockExplorerUrl =
-          networkConfiguration.rpcPrefs &&
-          networkConfiguration.rpcPrefs.blockExplorerUrl;
-        ticker = networkConfiguration.ticker;
+          networkConfiguration.blockExplorerUrls[
+            networkConfiguration.defaultBlockExplorerUrlIndex
+          ];
+        ticker = networkConfiguration.nativeCurrency;
         editable = true;
         rpcUrl = networkTypeOrRpcUrl;
       }
@@ -1101,14 +1104,18 @@ export class NetworkSettings extends PureComponent {
     }
 
     const entry = Object.entries(networkConfigurations).find(
-      ([, networkConfiguration]) => networkConfiguration.rpcUrl === rpcUrl,
+      ([, networkConfiguration]) =>
+        networkConfiguration.rpcEndpoints[
+          networkConfiguration.defaultRpcEndpointIndex
+        ].url === rpcUrl,
     );
+
     if (!entry) {
       throw new Error(`Unable to find network with RPC URL ${rpcUrl}`);
     }
-    const [networkConfigurationId] = entry;
+    const [, networkConfiguration] = entry;
     const { NetworkController } = Engine.context;
-    NetworkController.removeNetworkConfiguration(networkConfigurationId);
+    NetworkController.removeNetwork(networkConfiguration.chainId);
     navigation.goBack();
   };
 

@@ -28,6 +28,8 @@ const useApprovalRequest = () => {
       opts?: Parameters<typeof Engine.acceptPendingApproval>[2],
       value?: Parameters<typeof Engine.acceptPendingApproval>[1],
     ) => {
+      console.log('HERE 11111111', approvalRequest);
+
       if (!approvalRequest) return;
 
       await Engine.acceptPendingApproval(

@@ -36,6 +36,8 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { toHex } from '@metamask/controller-utils';
 import { rpcIdentifierUtility } from '../../../components/hooks/useSafeChains';
 import Logger from '../../../util/Logger';
+import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import { RpcEndpointType } from '@metamask/network-controller';
 
 export interface SafeChain {
   chainId: string;
@@ -104,6 +106,7 @@ const NetworkModals = (props: NetworkProps) => {
   };
 
   const addNetwork = async () => {
+    console.log('ADD_NETWORK ...');
     const isValidUrl = validateRpcUrl(rpcUrl);
     if (showPopularNetworkModal) {
       // emit popular network
@@ -130,6 +133,7 @@ const NetworkModals = (props: NetworkProps) => {
       Logger.log('MetaMetrics - Unable to capture custom network');
     }
 
+    console.log('ADD_NETWORK 22 ...');
     setNetworkAdded(isValidUrl);
   };
 
@@ -154,6 +158,10 @@ const NetworkModals = (props: NetworkProps) => {
 
   const useSafeChainsListValidation = useSelector(
     selectUseSafeChainsListValidation,
+  );
+
+  const networkConfigurationByChainId = useSelector(
+    selectNetworkConfigurations,
   );
 
   const customNetworkInformation = {
@@ -183,50 +191,72 @@ const NetworkModals = (props: NetworkProps) => {
     checkNetwork();
   }, [checkNetwork]);
 
-  const closeModal = () => {
+  const closeModal = async () => {
     const { NetworkController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
     !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
-    NetworkController.upsertNetworkConfiguration(
-      {
-        rpcUrl: url.href,
-        chainId,
-        ticker,
-        nickname,
-        rpcPrefs: { blockExplorerUrl },
-      },
-      {
-        // Metrics-related properties required, but the metric event is a no-op
-        // TODO: Use events for controller metric events
-        referrer: 'ignored',
-        source: 'ignored',
-      },
-    );
+
+    const existingNetwork = networkConfigurationByChainId[chainId];
+
+    if (existingNetwork) {
+      // todo: fix later
+      onClose();
+      return null;
+    }
+
+    await NetworkController.addNetwork({
+      chainId,
+      blockExplorerUrls: [blockExplorerUrl],
+      defaultRpcEndpointIndex: 0,
+      defaultBlockExplorerUrlIndex: 0,
+      name: nickname,
+      nativeCurrency: ticker,
+      rpcEndpoints: [
+        {
+          url: rpcUrl,
+          name: nickname,
+          type: RpcEndpointType.Custom,
+        },
+      ],
+    });
     onClose();
   };
 
-  const switchNetwork = () => {
+  const switchNetwork = async () => {
     const { NetworkController, CurrencyRateController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
     CurrencyRateController.updateExchangeRate(ticker);
+    const existingNetwork = networkConfigurationByChainId[chainId];
+
+    if (existingNetwork) {
+      // todo: fix later here
+      onClose();
+      return null;
+    }
+
     !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
-    NetworkController.upsertNetworkConfiguration(
-      {
-        rpcUrl: url.href,
-        chainId,
-        ticker,
-        nickname,
-        rpcPrefs: { blockExplorerUrl },
-      },
-      {
-        setActive: true,
-        // Metrics-related properties required, but the metric event is a no-op
-        // TODO: Use events for controller metric events
-        referrer: 'ignored',
-        source: 'ignored',
-      },
-    );
+
+    const addedNetwork = await NetworkController.addNetwork({
+      chainId,
+      blockExplorerUrls: [blockExplorerUrl],
+      defaultRpcEndpointIndex: 0,
+      defaultBlockExplorerUrlIndex: 0,
+      name: nickname,
+      nativeCurrency: ticker,
+      rpcEndpoints: [
+        {
+          url: rpcUrl,
+          name: nickname,
+          type: RpcEndpointType.Custom,
+        },
+      ],
+    });
     closeModal();
+    await NetworkController.setActiveNetwork(
+      addedNetwork.rpcEndpoints[addedNetwork.defaultRpcEndpointIndex]
+        .networkClientId,
+    );
+
     if (onNetworkSwitch) {
       onNetworkSwitch();
     } else {

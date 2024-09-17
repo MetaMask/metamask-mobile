@@ -33,6 +33,7 @@ const wallet_addEthereumChain = async ({
   startApprovalFlow,
   endApprovalFlow,
 }) => {
+  console.log('wallet_addEthereumChain .....');
   const { CurrencyRateController, NetworkController, ApprovalController } =
     Engine.context;
 

@@ -18,6 +18,8 @@ import Networks, {
   getNetworkImageSource,
   isDefaultMainnet,
   isLineaMainnet,
+  isMainNet,
+  isTestNet,
 } from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
@@ -41,6 +43,7 @@ import { NetworksViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/
 import { updateIncomingTransactions } from '../../../../util/transaction-controller';
 import { NetworksTicker } from '@metamask/controller-utils';
 import NetworkSearchTextInput from '../../NetworkSelector/NetworkSearchTextInput';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -300,8 +303,22 @@ class NetworksSettings extends PureComponent {
   renderRpcNetworks = () => {
     const { networkConfigurations } = this.props;
     return Object.values(networkConfigurations).map(
-      ({ rpcUrl, nickname, chainId }, i) => {
-        const name = nickname || rpcUrl;
+      (
+        { rpcEndpoints, name: nickname, chainId, defaultRpcEndpointIndex },
+        i,
+      ) => {
+        if (
+          !chainId ||
+          isTestNet(chainId) ||
+          isMainNet(chainId) ||
+          chainId === CHAIN_IDS.LINEA_MAINNET ||
+          chainId === CHAIN_IDS.GOERLI
+        ) {
+          return null;
+        }
+        const rpcName = rpcEndpoints[defaultRpcEndpointIndex].name ?? '';
+        const rpcUrl = rpcEndpoints[defaultRpcEndpointIndex].url;
+        const name = nickname || rpcName;
         const image = getNetworkImageSource({ chainId });
         return this.networkElement(name, image, i, rpcUrl, true);
       },
@@ -416,7 +433,7 @@ class NetworksSettings extends PureComponent {
 
     const allActiveNetworks = defaultNetwork.concat(customRPC);
     const searchResult = allActiveNetworks.filter(({ name }) =>
-      name.toLowerCase().includes(text.toLowerCase()),
+      name?.toLowerCase().includes(text.toLowerCase()),
     );
     this.setState({ filteredNetworks: searchResult });
   };
