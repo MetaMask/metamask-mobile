@@ -2,12 +2,13 @@
 import { getLocal } from 'mockttp';
 
 const mockServer = getLocal();
+const defaultMockPort = 8000;
 
 export const startMockServer = async ({
   mockUrl,
   responseCode = 500,
   responseBody = {},
-  port = 8000,
+  port = defaultMockPort,
 }) => {
   if (!mockUrl) throw new Error('The mockUrl parameter is required');
 

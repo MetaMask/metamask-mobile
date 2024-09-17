@@ -1,4 +1,5 @@
 /* eslint-disable import/no-nodejs-modules */
+/* global Platform */
 import { decode, encode } from 'base-64';
 import {
   FIXTURE_SERVER_PORT,
@@ -60,13 +61,12 @@ if (typeof localStorage !== 'undefined') {
 if (isTest) {
   (async () => {
     const { fetch: originalFetch } = global;
+    const defaultMockPort = 8000;
     const MOCKTTP_URL = `http://${
-      // eslint-disable-next-line no-undef
-      Platform.OS === 'ios' ? 'localhost' : '10.0.2.2' // l
-    }:8000`;
+      Platform.OS === 'ios' ? 'localhost' : '10.0.2.2'
+    }:${defaultMockPort}`;
 
     const isMockServerAvailable = await originalFetch(
-      // small healthcheck
       `${MOCKTTP_URL}/health-check`,
     )
       .then((res) => res.ok)
