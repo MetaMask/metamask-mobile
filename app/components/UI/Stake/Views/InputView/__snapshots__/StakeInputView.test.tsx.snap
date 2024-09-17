@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`StakeInputView Tests should render correctly 1`] = `
+exports[`StakeInputView render matches snapshot 1`] = `
 <View
   style={
     {
@@ -666,7 +666,7 @@ exports[`StakeInputView Tests should render correctly 1`] = `
                                     }
                                   }
                                 >
-                                  Est. annual rewards
+                                  Estimated annual rewards
                                 </Text>
                               </View>
                             </View>
