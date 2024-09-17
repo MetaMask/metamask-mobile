@@ -14,7 +14,7 @@
             <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
             <subviews>
-                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" fixedFrame="YES" image="Fox-Splash-Screen" translatesAutoresizingMaskIntoConstraints="NO" id="ZAJ-dt-PAV">
+                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" fixedFrame="YES" image="fox-splash-screen" translatesAutoresizingMaskIntoConstraints="NO" id="ZAJ-dt-PAV">
                     <rect key="frame" x="112" y="277" width="150" height="112"/>
                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                 </imageView>
@@ -24,7 +24,7 @@
         </view>
     </objects>
     <resources>
-        <image name="Fox-Splash-Screen" width="150" height="112"/>
+        <image name="fox-splash-screen" width="150" height="112"/>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
