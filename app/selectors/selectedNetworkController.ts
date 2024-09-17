@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
-import { ProviderConfig } from '@metamask/network-controller';
 import { SelectedNetworkControllerState } from '@metamask/selected-network-controller';
 import { getNetworkImageSource, NetworkList } from '../util/networks';
 import { strings } from '../../locales/i18n';
@@ -13,6 +12,7 @@ import {
   selectSelectedNetworkClientId,
   selectChainId as selectProviderChainId,
   selectRpcUrl as selectProviderRpcUrl,
+  ProviderConfig,
 } from './networkController';
 
 const selectSelectedNetworkControllerState = (state: RootState) =>
