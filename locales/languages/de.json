@@ -501,7 +501,7 @@
     "lists": "Token-Listen",
     "hide_cta": "Token verbergen",
     "options": {
-      "view_on_portfolio": "Auf Portfolio ansehenAuf Portfolio ansehen",
+      "view_on_portfolio": "Auf Portfolio ansehen",
       "view_on_block": "Im Block-Explorer anzeigen",
       "token_details": "Token-Details",
       "remove_token": "Token entfernen"
@@ -604,19 +604,19 @@
     "select_token": "Token auswählen",
     "address_must_be_smart_contract": "Privatadresse erkannt. Geben Sie die Token-Contract-Adresse ein.",
     "billion_abbreviation": "Mrd.",
-    "trillion_abbreviation": "T.",
+    "trillion_abbreviation": "Trill.",
     "million_abbreviation": "Mio.",
     "token_details": "Token-Details",
     "contract_address": "Contract-Adresse",
     "token_list": "Token-Liste",
     "market_details": "Marktdetails",
     "market_cap": "Marktkapitalisierung",
-    "total_volume": "Gesamtvolumen (24h)",
+    "total_volume": "Gesamtvolumen (24 Std.)",
     "volume_to_marketcap": "Volumen / Marktkapitalisierung",
     "circulating_supply": "Zirkulierende Versorgung",
     "all_time_high": "Allzeithoch",
     "all_time_low": "Allzeittief",
-    "fully_diluted": "Vollständig verdünnt"
+    "fully_diluted": "Vollständig verwässert"
   },
   "collectible": {
     "collectible_address": "Adresse",
@@ -686,9 +686,8 @@
     "suggest_transactions": "Transaktionen zur Bestätigung vorschlagen",
     "disconnect": "Trennen",
     "disconnect_all": "Alle trennen",
-    "reconnect_notice": "Wenn Sie die Verbindung Ihrer Konten von {{dappUrl}} trennen, müssen Sie die Verbindung wiederherstellen, um sie erneut zu verwenden.",
+    "reconnect_notice": "If you disconnect from {{dappUrl}}, you’ll need to reconnect your accounts and networks to use this site again.",
     "disconnect_all_accounts": "Alle Konten trennen",
-    "disconnect_you_from": "Dadurch wird die Verbindung von {{dappUrl}} getrennt",
     "deceptive_site_ahead": "Täuschende Website voraus",
     "deceptive_site_desc": "Die Website, die Sie besuchen wollen, ist nicht sicher. Angreifer könnten Sie dazu verleiten, etwas Gefährliches zu tun.",
     "learn_more": "Mehr erfahren",
@@ -864,7 +863,7 @@
     "contacts_title": "Kontakte",
     "contacts_desc": "Konten hinzufügen, bearbeiten, entfernen und verwalten",
     "permissions_title": "Genehmigungen",
-    "permissions_desc": "Verwalten Sie die Genehmigungen, die Sie Websites und Apps erteilt haben.",
+    "permissions_desc": "Verwalten Sie die für Websites und Apps erteilten Genehmigungen",
     "no_permissions": "Keine Genehmigungen",
     "no_permissions_desc": "Wenn Sie ein Konto mit einer Website oder einer App verbinden, wird es hier angezeigt.",
     "security_title": "Sicherheit und Datenschutz",
@@ -1462,7 +1461,8 @@
     "hex_data_copied": "Hex-Daten in die Zwischenablage kopiert",
     "invalid_recipient": "Ungültiger Empfänger",
     "invalid_recipient_description": "Überprüfen Sie die Adresse und vergewissern Sie sich, dass sie stimmt.",
-    "swap_tokens": "Tokens tauschen"
+    "swap_tokens": "Tokens tauschen",
+    "fromWithColon": "From:"
   },
   "custom_gas": {
     "total": "Gesamt",
@@ -1749,6 +1749,7 @@
     "continue": "Fortfahren",
     "cancel": "Stornieren",
     "approve": "Genehmigen",
+    "update": "Update",
     "edit_network_details": "Netzwerkdetails bearbeiten",
     "malicious_network_warning": "Ein betrügerischer Netzwerkanbieter kann bezüglich des Status der Blockchain täuschen und Ihre Netzwerkaktivitäten aufzeichnen. Fügen Sie nur vertrauenswürdige benutzerdefinierte Netzwerke hinzu.",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
@@ -1756,10 +1757,12 @@
     "additional_network_information_title": "Zusätzliche Netzwerkinformationen",
     "network_warning_desc": "Diese Netzwerkverbindung ist von Dritten abhängig. Diese Verbindung kann unzuverlässig sein oder es Dritten ermöglichen, Aktivitäten zu verfolgen.",
     "additonial_network_information_desc": "Einige dieser Netzwerke werden von Dritten betrieben. Die Verbindungen können weniger zuverlässig sein oder Dritten die Verfolgung von Aktivitäten ermöglichen.",
+    "connect_more_networks": "Connect more networks",
     "learn_more": "Mehr erfahren",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "Zu Netzwerk wechseln",
     "switch": "Wechseln",
+    "select_all": "Select all",
     "new_network": "Neues Netzwerk hinzugefügt",
     "network_name": "Netzwerk {{networkName}}",
     "network_added": " ist jetzt in der Netzwerkauswahl verfügbar.",
@@ -1776,7 +1779,19 @@
     "show_test_networks": "Testnetzwerke anzeigen",
     "deprecated_goerli": "Aufgrund der Protokolländerungen von Ethereum: Das Goerli-Testnetzwerk funktioniert möglicherweise nicht mehr so zuverlässig und wird demnächst abgeschaltet.",
     "network_deprecated_title": "Dieses Netzwerk ist veraltet",
-    "network_deprecated_description": "Das Netzwerk, zu dem Sie eine Verbindung herstellen möchten, wird von Metamask nicht mehr unterstützt."
+    "network_deprecated_description": "Das Netzwerk, zu dem Sie eine Verbindung herstellen möchten, wird von Metamask nicht mehr unterstützt.",
+    "edit_networks_title": "Edit networks"
+  },
+  "permissions": {
+    "title_this_site_wants_to": "This site wants to:",
+    "title_dapp_url_wants_to": "{{dappUrl}} wants to:",
+    "title_dapp_url_has_approval_to": "{{dappUrl}} has approval to:",
+    "use_enabled_networks": "Use your enabled networks",
+    "wants_to_see_your_accounts": "See your accounts and suggest transactions",
+    "requesting_for": "Requesting for ",
+    "manage_permissions": "Manage Permissions",
+    "edit": "Edit",
+    "cancel": "Cancel"
   },
   "select": {
     "cancel": "Stornieren",
@@ -2041,6 +2056,8 @@
     "back_to_safety": "Zurück zu Sicherheit"
   },
   "notifications": {
+    "no_date": "Unknown",
+    "yesterday": "Yesterday",
     "staked": "Staked",
     "received": "Empfangen",
     "unstaked": "Unstaked",
@@ -2116,6 +2133,8 @@
     "success_withdrawal_title": "Abhebung abgeschlossen!",
     "error_title": "Hoppla, etwas ist schiefgelaufen :/",
     "received_title": "Sie haben {{amount}}{{assetType}} empfangen.",
+    "default_message_title": "New transaction notification",
+    "default_message_description": "Tap to view this transaction",
     "received_payment_title": "Sofortzahlung empfangen",
     "pending_message": "Warten auf Bestätigung",
     "pending_deposit_message": "Warten auf Abschluss der Einzahlung",
@@ -2131,12 +2150,12 @@
     "cancelled_message": "Zum Anzeigen dieser Transaktion tippen",
     "received_message": "Zum Anzeigen dieser Transaktion tippen",
     "received_payment_message": "Sie haben {{amount}} DAI empfangen.",
-    "prompt_title": "Push-Benachrichtigungen aktivieren",
+    "prompt_title": "Receive Push Notifications",
     "notifications_enabled_error_title": "Etwas ist schiefgelaufen",
     "notifications_enabled_error_desc": "Wir konnten die Benachrichtigungen nicht aktivieren. Bitte versuchen Sie es später erneut.",
-    "prompt_desc": "Aktivieren Sie Benachrichtigungen, damit MetaMask Ihnen Bescheid geben kann, wenn Sie ETH erhalten oder wenn Ihre Transaktionen bestätigt werden.",
-    "prompt_ok": "Ja",
-    "prompt_cancel": "Nein, danke!",
+    "prompt_desc": "Turn on notifications from Settings to get important alerts on wallet activity and more.",
+    "prompt_ok": "Turn on",
+    "prompt_cancel": "Maybe later",
     "wc_connected_title": "Verbunden mit {{title}}",
     "wc_signed_title": "Unterzeichnet",
     "wc_sent_tx_title": "Transaktion gesendet",
@@ -2817,13 +2836,8 @@
   },
   "switch_custom_network": {
     "title_existing_network": "Diese Seite möchte das Netzwerk wechseln.",
-    "title_enabled_network": "Diese Website möchte:",
     "title_new_network": "Neues Netzwerk hinzugefügt",
     "switch_warning": "Dadurch wird das ausgewählte Netzwerk in MetaMask auf ein zuvor hinzugefügtes Netzwerk umgestellt:",
-    "use_enabled_networks": "Verwenden Sie Ihre aktivierten Netzwerke",
-    "wants_to_see_your_accounts": "Ihre Konten einsehen und Transaktionen vorschlagen",
-    "requesting_for": "Anfordern für ",
-    "edit": "Bearbeiten",
     "add_network_and_give_dapp_permission_warning": "Sie fügen dieses Netzwerk zu MetaMask hinzu und geben {{dapp_origin}} die Genehmigung, es zu nutzen.",
     "available": "ist jetzt in der Netzwerkauswahl verfügbar.",
     "cancel": "Stornieren",
@@ -2915,7 +2929,7 @@
   },
   "transaction_review_eip1559": {
     "estimated_gas_fee": "Geschätzte Gas-Gebühr",
-    "suggested_gas_fee": "% {origin} empfohlene Gas-Gebühr",
+    "network_fee": "Network fee",
     "max_fee": "Maximale Gebühr",
     "total": "Gesamt",
     "max_amount": "Maximalbetrag",
@@ -3155,6 +3169,7 @@
     "ledger_reminder_message_step_four": "4. Standort ist aktiviert mit Verwendung des genauen Standorts auf",
     "ledger_reminder_message_step_four_Androidv12plus": "4. Geräte in der Nähe ist aktiviert",
     "ledger_reminder_message_step_five": "5. Nicht stören muss ausgeschaltet sein",
+    "blind_signing_message": "6. Enable \"blind signing\" on your Ledger device.",
     "available_devices": "Verfügbare Geräte",
     "retry": "Erneut versuchen",
     "continue": "Fortfahren",
@@ -3181,11 +3196,19 @@
     "not_supported": "Operation nicht unterstützt",
     "not_supported_error": "Nur Version 4 der getippten Daten-Unterzeichnung wird unterstützt.",
     "error_during_connection": "Ein unerwarteter Fehler ist aufgetreten",
-    "error_during_connection_message": "Es gab ein kleines Problem mit der Verbindung zu Ihrem Ledger-Gerät. Tippen Sie weiter unten auf „Erneut versuchen“, um es noch einmal zu probieren. Dies passiert manchmal, wenn die EHP-App auf Ihrem Ledger-Gerät zu Beginn der Kopplung bereits mit MetaMask Mobile geöffnet ist.",
+    "error_during_connection_message": "Beim Verbindungsaufbau zu Ihrem Ledger-Gerät ist ein kleines Problem aufgetreten. Tippen Sie unten auf „Erneut versuchen“, um den Vorgang zu wiederholen. Dieses Problem kann gelegentlich auftreten, wenn die ETH-App auf Ihrem Ledger-Gerät zu Beginn des Kopplungsprozesses mit MetaMask Mobile geöffnet ist.",
     "how_to_install_eth_webview_title": "So installieren Sie die Etherum-App",
     "nonce_too_low": "Nonce zu niedrig",
     "nonce_too_low_error": "Die eingestellte Nonce ist zu niedrig",
-    "select_accounts": "Ein Konto auswählen"
+    "select_accounts": "Select an account",
+    "select_hd_path": "Select HD Path",
+    "select_hd_path_description": "If you don't see the accounts you expect, try switching the HD path or current selected network.",
+    "ledger_live_path": "Ledger Live",
+    "ledger_legacy_path": "Legacy(MEW/MyCrypto)",
+    "ledger_bip44_path": "BIP44(e.g. MetaMask, Trezor)",
+    "ledger_legacy_label": " (legacy)",
+    "blind_sign_error": "Blind signing error",
+    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings."
   },
   "account_actions": {
     "edit_name": "Kontonamen bearbeiten",
@@ -3288,6 +3311,23 @@
     "title": "Wir haben mehrere Anfragen bemerkt"
   },
   "common": {
-    "please_wait": "Bitte warten"
+    "please_wait": "Bitte warten",
+    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
+    "disconnect": "Disconnect"
+  },
+  "staking": {
+    "your_earnings": "Your earnings",
+    "annual_rate": "Annual rate",
+    "lifetime_rewards": "Lifetime rewards",
+    "estimated_annual_earnings": "Est. annual earnings",
+    "accessibility_labels": {
+      "stake_annual_rate_tooltip": "Annual rate tooltip"
+    }
+  },
+  "tooltip_modal": {
+    "reward_rate": {
+      "title": "Reward rate",
+      "tooltip": "Expected yearly increase in the value of your stake, based on the reward rate over the past week."
+    }
   }
 }

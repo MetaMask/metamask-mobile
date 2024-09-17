@@ -686,9 +686,8 @@
     "suggest_transactions": "승인할 트랜잭션 추천",
     "disconnect": "연결 해제",
     "disconnect_all": "모두 연결 해제",
-    "reconnect_notice": "{{dappUrl}}에서 계정의 연결을 끊은 경우, 다시 사용하려면 다시 연결해야 합니다.",
+    "reconnect_notice": "If you disconnect from {{dappUrl}}, you’ll need to reconnect your accounts and networks to use this site again.",
     "disconnect_all_accounts": "모든 계정 연결 해제",
-    "disconnect_you_from": "이렇게 하면 {{dappUrl}}에서의 연결이 해제됩니다",
     "deceptive_site_ahead": "의심스러운 사이트 주의",
     "deceptive_site_desc": "방문하려는 사이트가 안전하지 않습니다. 공격자가 위험한 작업을 하도록 유도할 수 있습니다.",
     "learn_more": "자세히 알아보기",
@@ -1462,7 +1461,8 @@
     "hex_data_copied": "헥스 데이터를 클립보드에 복사했습니다",
     "invalid_recipient": "잘못된 수신자",
     "invalid_recipient_description": "주소가 올바른지 확인하세요",
-    "swap_tokens": "토큰 스왑"
+    "swap_tokens": "토큰 스왑",
+    "fromWithColon": "From:"
   },
   "custom_gas": {
     "total": "총합",
@@ -1749,6 +1749,7 @@
     "continue": "계속",
     "cancel": "취소",
     "approve": "승인",
+    "update": "Update",
     "edit_network_details": "네트워크 세부 정보 편집",
     "malicious_network_warning": "악성 네트워크 공급업체는 블록체인 상태를 거짓으로 보고하고 네트워크 활동을 기록할 수 있습니다. 신뢰하는 커스텀 네트워크만 추가하세요.",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
@@ -1756,10 +1757,12 @@
     "additional_network_information_title": "추가 네트워크 정보",
     "network_warning_desc": "이 네트워크 연결은 타사 서비스를 이용합니다. 연결의 신뢰성이 낮거나 타사가 활동을 추적할 수 있습니다.",
     "additonial_network_information_desc": "이러한 네트워크 중 일부는 제삼자에 의존합니다. 이러한 연결은 안정성이 떨어지거나 제삼자가 활동을 추적할 수 있습니다.",
+    "connect_more_networks": "Connect more networks",
     "learn_more": "더 보기",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "네트워크 전환",
     "switch": "전환",
+    "select_all": "Select all",
     "new_network": "신규 네트워크 추가됨",
     "network_name": "{{networkName}} 네트워크",
     "network_added": " 를 네트워크 셀렉터에서 사용할 수 있습니다.",
@@ -1776,7 +1779,19 @@
     "show_test_networks": "테스트 네트워크 표시",
     "deprecated_goerli": "이더리움의 프로토콜 변경으로 인해 Goerli 테스트 네트워크가 안정적으로 작동하지 않을 수 있으며, 곧 사용 중지될 예정입니다.",
     "network_deprecated_title": "이 네트워크는 더 이상 지원되지 않습니다",
-    "network_deprecated_description": "연결하려는 네트워크는 Metamask에서 더 이상 지원되지 않습니다."
+    "network_deprecated_description": "연결하려는 네트워크는 Metamask에서 더 이상 지원되지 않습니다.",
+    "edit_networks_title": "Edit networks"
+  },
+  "permissions": {
+    "title_this_site_wants_to": "This site wants to:",
+    "title_dapp_url_wants_to": "{{dappUrl}} wants to:",
+    "title_dapp_url_has_approval_to": "{{dappUrl}} has approval to:",
+    "use_enabled_networks": "Use your enabled networks",
+    "wants_to_see_your_accounts": "See your accounts and suggest transactions",
+    "requesting_for": "Requesting for ",
+    "manage_permissions": "Manage Permissions",
+    "edit": "Edit",
+    "cancel": "Cancel"
   },
   "select": {
     "cancel": "취소",
@@ -2041,6 +2056,8 @@
     "back_to_safety": "안전성으로 돌아가기"
   },
   "notifications": {
+    "no_date": "Unknown",
+    "yesterday": "Yesterday",
     "staked": "스테이킹됨",
     "received": "받음",
     "unstaked": "언스테이킹됨",
@@ -2116,6 +2133,8 @@
     "success_withdrawal_title": "인출 완료!",
     "error_title": "앗, 문제가 발생했습니다 :/",
     "received_title": "{{amount}}의 {{assetType}}(을)를 받았습니다",
+    "default_message_title": "New transaction notification",
+    "default_message_description": "Tap to view this transaction",
     "received_payment_title": "즉시 결제됨",
     "pending_message": "컨펌을 기다리는 중",
     "pending_deposit_message": "입금 완료 대기 중",
@@ -2131,12 +2150,12 @@
     "cancelled_message": "눌러서 이 트랜잭션을 확인하세요",
     "received_message": "눌러서 이 트랜잭션을 확인하세요",
     "received_payment_message": "{{amount}} DAI를 받았습니다",
-    "prompt_title": "공지 알림 활성화",
+    "prompt_title": "Receive Push Notifications",
     "notifications_enabled_error_title": "문제가 발생했습니다",
     "notifications_enabled_error_desc": "알림을 활성화할 수 없습니다. 나중에 다시 시도하세요.",
-    "prompt_desc": "공지 알림을 활성화해서 MetaMask가 언제 ETH를 받았는지 혹은 언제 트랜잭션이 컨펌되었는지 등의 알림을 받으세요.",
-    "prompt_ok": "예",
-    "prompt_cancel": "아니요, 괜찮습니다",
+    "prompt_desc": "Turn on notifications from Settings to get important alerts on wallet activity and more.",
+    "prompt_ok": "Turn on",
+    "prompt_cancel": "Maybe later",
     "wc_connected_title": "{{title}}에 연결",
     "wc_signed_title": "서명함",
     "wc_sent_tx_title": "보낸 트랜잭션",
@@ -2817,13 +2836,8 @@
   },
   "switch_custom_network": {
     "title_existing_network": "이 사이트는 네트워크 전환을 원합니다",
-    "title_enabled_network": "이 사이트에서 요청하는 사항:",
     "title_new_network": "신규 네트워크 추가됨",
     "switch_warning": "이는 MetaMask에서 선택한 네트워크를 이전에 추가한 다음 네트워크로 전환하게 됩니다:",
-    "use_enabled_networks": "활성화된 네트워크 사용",
-    "wants_to_see_your_accounts": "계정 보기 및 거래 제안",
-    "requesting_for": "다음을 요청: ",
-    "edit": "편집",
     "add_network_and_give_dapp_permission_warning": "MetaMask에 이 네트워크를 추가하고 {{dapp_origin}}에 사용 권한을 허용합니다.",
     "available": "이것은 이제 네트워크 선택자 내에서 이용 가능합니다.",
     "cancel": "취소",
@@ -2915,7 +2929,7 @@
   },
   "transaction_review_eip1559": {
     "estimated_gas_fee": "예상 가스비",
-    "suggested_gas_fee": "%{origin}(이)가 가스비를 추천했습니다",
+    "network_fee": "Network fee",
     "max_fee": "최대 수수료",
     "total": "총",
     "max_amount": "최대 금액",
@@ -3155,6 +3169,7 @@
     "ledger_reminder_message_step_four": "4. 정확한 위치 사용으로 위치 권한이 활성화되었습니다",
     "ledger_reminder_message_step_four_Androidv12plus": "4. 주변 장치가 활성화되었습니다",
     "ledger_reminder_message_step_five": "5. 방해 금지 모드는 꺼져 있어야 합니다",
+    "blind_signing_message": "6. Enable \"blind signing\" on your Ledger device.",
     "available_devices": "이용 가능한 기기",
     "retry": "재시도",
     "continue": "계속",
@@ -3185,7 +3200,15 @@
     "how_to_install_eth_webview_title": "이더리움 앱 설치 방법",
     "nonce_too_low": "논스가 너무 낮습니다",
     "nonce_too_low_error": "설정한 논스가 너무 낮습니다",
-    "select_accounts": "계정 선택"
+    "select_accounts": "Select an account",
+    "select_hd_path": "Select HD Path",
+    "select_hd_path_description": "If you don't see the accounts you expect, try switching the HD path or current selected network.",
+    "ledger_live_path": "Ledger Live",
+    "ledger_legacy_path": "Legacy(MEW/MyCrypto)",
+    "ledger_bip44_path": "BIP44(e.g. MetaMask, Trezor)",
+    "ledger_legacy_label": " (legacy)",
+    "blind_sign_error": "Blind signing error",
+    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings."
   },
   "account_actions": {
     "edit_name": "계정 이름 편집",
@@ -3288,6 +3311,23 @@
     "title": "여러 건의 요청을 확인했습니다"
   },
   "common": {
-    "please_wait": "잠시만 기다려주세요"
+    "please_wait": "잠시만 기다려주세요",
+    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
+    "disconnect": "Disconnect"
+  },
+  "staking": {
+    "your_earnings": "Your earnings",
+    "annual_rate": "Annual rate",
+    "lifetime_rewards": "Lifetime rewards",
+    "estimated_annual_earnings": "Est. annual earnings",
+    "accessibility_labels": {
+      "stake_annual_rate_tooltip": "Annual rate tooltip"
+    }
+  },
+  "tooltip_modal": {
+    "reward_rate": {
+      "title": "Reward rate",
+      "tooltip": "Expected yearly increase in the value of your stake, based on the reward rate over the past week."
+    }
   }
 }

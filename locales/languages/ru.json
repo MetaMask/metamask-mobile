@@ -686,9 +686,8 @@
     "suggest_transactions": "Предлагать транзакции для одобрения",
     "disconnect": "Отключиться",
     "disconnect_all": "Отключить все",
-    "reconnect_notice": "Если вы отключите свои счета от {{dappUrl}}, вам придется повторно подключиться, чтобы снова использовать их.",
+    "reconnect_notice": "If you disconnect from {{dappUrl}}, you’ll need to reconnect your accounts and networks to use this site again.",
     "disconnect_all_accounts": "Отключить все счета",
-    "disconnect_you_from": "Это отключит вас от {{dappUrl}}",
     "deceptive_site_ahead": "Впереди моешеннический сайт",
     "deceptive_site_desc": "Сайт, который вы пытаетесь посетить, небезопасен. Злоумышленники могут обманом заставить вас сделать что-то опасное.",
     "learn_more": "Подробнее",
@@ -1462,7 +1461,8 @@
     "hex_data_copied": "Шестнадцатеричные данные скопированы в буфер обмена",
     "invalid_recipient": "Недействительный получатель",
     "invalid_recipient_description": "Проверьте адрес и убедитесь, что он действителен",
-    "swap_tokens": "Обменять токены"
+    "swap_tokens": "Обменять токены",
+    "fromWithColon": "From:"
   },
   "custom_gas": {
     "total": "Итого",
@@ -1749,6 +1749,7 @@
     "continue": "Продолжить",
     "cancel": "Отмена",
     "approve": "Одобрить",
+    "update": "Update",
     "edit_network_details": "Изменить сведения о сети",
     "malicious_network_warning": "Вредоносный сетевой провайдер может дезинформировать о состоянии блокчейна и записывать ваши действия в сети. Добавляйте только те пользовательские сети, которым доверяете.",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
@@ -1756,10 +1757,12 @@
     "additional_network_information_title": "Дополнительная информация о сетях",
     "network_warning_desc": "Это сетевое подключение зависит от третьих сторон. Оно может быть менее надежным или позволять третьим лицам отслеживать активность.",
     "additonial_network_information_desc": "Некоторые из этих сетей являются зависимыми от третьих сторон. Соединения могут быть менее надежными или позволять третьим сторонам отслеживать активность.",
+    "connect_more_networks": "Connect more networks",
     "learn_more": "Подробнее",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "Переключиться на сеть",
     "switch": "Сменить",
+    "select_all": "Select all",
     "new_network": "Добавлена новая сеть",
     "network_name": "Сеть {{networkName}}",
     "network_added": " теперь доступна в селекторе сети.",
@@ -1776,7 +1779,19 @@
     "show_test_networks": "Показать тестнеты",
     "deprecated_goerli": "Из-за изменений протокола Ethereum: тестовая сеть Goerli может работать ненадежно и скоро будет выведена из эксплуатации.",
     "network_deprecated_title": "Эта сеть устарела",
-    "network_deprecated_description": "Сеть, к которой вы пытаетесь подключиться, больше не поддерживается в Metamask."
+    "network_deprecated_description": "Сеть, к которой вы пытаетесь подключиться, больше не поддерживается в Metamask.",
+    "edit_networks_title": "Edit networks"
+  },
+  "permissions": {
+    "title_this_site_wants_to": "This site wants to:",
+    "title_dapp_url_wants_to": "{{dappUrl}} wants to:",
+    "title_dapp_url_has_approval_to": "{{dappUrl}} has approval to:",
+    "use_enabled_networks": "Use your enabled networks",
+    "wants_to_see_your_accounts": "See your accounts and suggest transactions",
+    "requesting_for": "Requesting for ",
+    "manage_permissions": "Manage Permissions",
+    "edit": "Edit",
+    "cancel": "Cancel"
   },
   "select": {
     "cancel": "Отмена",
@@ -2041,6 +2056,8 @@
     "back_to_safety": "Назад в безопасное место"
   },
   "notifications": {
+    "no_date": "Unknown",
+    "yesterday": "Yesterday",
     "staked": "В стейкинге",
     "received": "Получено",
     "unstaked": "Стейкинг отменен",
@@ -2116,6 +2133,8 @@
     "success_withdrawal_title": "Вывод средств завершен!",
     "error_title": "Ой, что-то пошло не так :/",
     "received_title": "Вы получили {{amount}} {{assetType}}",
+    "default_message_title": "New transaction notification",
+    "default_message_description": "Tap to view this transaction",
     "received_payment_title": "Получен мгновенный платеж",
     "pending_message": "Ожидает подтверждения",
     "pending_deposit_message": "Ожидание завершения внесения депозита",
@@ -2131,12 +2150,12 @@
     "cancelled_message": "Нажмите для просмотра этой транзакции",
     "received_message": "Нажмите для просмотра этой транзакции",
     "received_payment_message": "Вы получили {{amount}} DAI",
-    "prompt_title": "Включить push-уведомления",
+    "prompt_title": "Receive Push Notifications",
     "notifications_enabled_error_title": "Что-то пошло не так",
     "notifications_enabled_error_desc": "Нам не удалось включить уведомления. Повторите попытку позже.",
-    "prompt_desc": "Включите уведомления, чтобы MetaMask мог сообщить вам о получении вами ETH или подтверждении ваших транзакций.",
-    "prompt_ok": "Да",
-    "prompt_cancel": "Нет, спасибо",
+    "prompt_desc": "Turn on notifications from Settings to get important alerts on wallet activity and more.",
+    "prompt_ok": "Turn on",
+    "prompt_cancel": "Maybe later",
     "wc_connected_title": "Подключен к {{title}}",
     "wc_signed_title": "Подписано",
     "wc_sent_tx_title": "Отправленная транзакция",
@@ -2817,13 +2836,8 @@
   },
   "switch_custom_network": {
     "title_existing_network": "Этот сайт хотел бы сменить сеть",
-    "title_enabled_network": "Этот сайт хочет:",
     "title_new_network": "Добавлена новая сеть",
     "switch_warning": "В результате этого сеть, выбранная в MetaMask, будет изменена на ранее добавленную:",
-    "use_enabled_networks": "Использовать ваши включенные сети",
-    "wants_to_see_your_accounts": "Просматривать ваши счета и предлагать транзакции",
-    "requesting_for": "Запрошено для  ",
-    "edit": "Изменить",
     "add_network_and_give_dapp_permission_warning": "Вы добавляете эту сеть в MetaMask и даете разрешение {{dapp_origin}} на ее использование.",
     "available": "теперь доступно в селекторе сети.",
     "cancel": "Отмена",
@@ -2915,7 +2929,7 @@
   },
   "transaction_review_eip1559": {
     "estimated_gas_fee": "Примерная плата за газ",
-    "suggested_gas_fee": "%{origin} рекомендуемой платы за газ",
+    "network_fee": "Network fee",
     "max_fee": "Максимальная комиссия",
     "total": "Итого",
     "max_amount": "Maкс. сумма",
@@ -3155,6 +3169,7 @@
     "ledger_reminder_message_step_four": "4. Включена опция «Местоположение» с использованием точных данных",
     "ledger_reminder_message_step_four_Androidv12plus": "4. Включена опция «устройства поблизости»",
     "ledger_reminder_message_step_five": "5. Режим «Не беспокоить» должен быть выключен",
+    "blind_signing_message": "6. Enable \"blind signing\" on your Ledger device.",
     "available_devices": "Доступные устройства",
     "retry": "Повтор",
     "continue": "Продолжить",
@@ -3185,7 +3200,15 @@
     "how_to_install_eth_webview_title": "Как установить приложение Ethereum",
     "nonce_too_low": "Одноразовый код слишком короткий",
     "nonce_too_low_error": "Установлен слишком короткий одноразовый код",
-    "select_accounts": "Выберите счет"
+    "select_accounts": "Select an account",
+    "select_hd_path": "Select HD Path",
+    "select_hd_path_description": "If you don't see the accounts you expect, try switching the HD path or current selected network.",
+    "ledger_live_path": "Ledger Live",
+    "ledger_legacy_path": "Legacy(MEW/MyCrypto)",
+    "ledger_bip44_path": "BIP44(e.g. MetaMask, Trezor)",
+    "ledger_legacy_label": " (legacy)",
+    "blind_sign_error": "Blind signing error",
+    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings."
   },
   "account_actions": {
     "edit_name": "Изменить имя счета",
@@ -3288,6 +3311,23 @@
     "title": "Мы заметили множество запросов"
   },
   "common": {
-    "please_wait": "Пожалуйста, подождите"
+    "please_wait": "Пожалуйста, подождите",
+    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
+    "disconnect": "Disconnect"
+  },
+  "staking": {
+    "your_earnings": "Your earnings",
+    "annual_rate": "Annual rate",
+    "lifetime_rewards": "Lifetime rewards",
+    "estimated_annual_earnings": "Est. annual earnings",
+    "accessibility_labels": {
+      "stake_annual_rate_tooltip": "Annual rate tooltip"
+    }
+  },
+  "tooltip_modal": {
+    "reward_rate": {
+      "title": "Reward rate",
+      "tooltip": "Expected yearly increase in the value of your stake, based on the reward rate over the past week."
+    }
   }
 }

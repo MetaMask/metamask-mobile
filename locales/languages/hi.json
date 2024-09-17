@@ -686,9 +686,8 @@
     "suggest_transactions": "स्वीकृत करने के लिए लेनदेन का सुझाव देना",
     "disconnect": "डिसकनेक्ट करें",
     "disconnect_all": "सभी को डिस्कनेक्ट करें",
-    "reconnect_notice": "यदि आप अपने एकाउंट्स को {{dappUrl}} से डिस्कनेक्ट कर देते हैं, तो आपको उन्हें दोबारा उपयोग करने के लिए फिर से कनेक्ट करना होगा।",
+    "reconnect_notice": "If you disconnect from {{dappUrl}}, you’ll need to reconnect your accounts and networks to use this site again.",
     "disconnect_all_accounts": "सभी खाते डिसकनेक्ट करें",
-    "disconnect_you_from": "यह आपको {{dappUrl}} से डिस्कनेक्ट कर देगा",
     "deceptive_site_ahead": "आगे धोखाधड़ी करने वाली साइट मौजूद है",
     "deceptive_site_desc": "आप जिस साइट पर जाना चाह रहे हैं वह सुरक्षित नहीं है। हमला करने वाले आपको कुछ खतरनाक काम करने के लिए उकसा सकते हैं।",
     "learn_more": "ज़्यादा जानें",
@@ -1462,7 +1461,8 @@
     "hex_data_copied": "Hex डेटा क्लिपबोर्ड पर कॉपी किया गया",
     "invalid_recipient": "अवैध प्राप्तकर्ता",
     "invalid_recipient_description": "पते की जांच करें और सुनिश्चित करें कि वह मान्य है",
-    "swap_tokens": "टोकन स्वैप करें"
+    "swap_tokens": "टोकन स्वैप करें",
+    "fromWithColon": "From:"
   },
   "custom_gas": {
     "total": "कुल",
@@ -1749,6 +1749,7 @@
     "continue": "जारी रखें",
     "cancel": "रद्द करें",
     "approve": "स्वीकृति दें",
+    "update": "Update",
     "edit_network_details": "नेटवर्क का ब्यौरा बदलें",
     "malicious_network_warning": "एक दुर्भावनापूर्ण नेटवर्क प्रदाता ब्लॉकचेन की स्थिति के बारे में झूठ बोल सकता है और आपकी नेटवर्क गतिविधि को रिकॉर्ड कर सकता है। केवल ऐसे कस्टम नेटवर्क जोड़ें जिन पर आपको भरोसा हो।",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
@@ -1756,10 +1757,12 @@
     "additional_network_information_title": "अतिरिक्त नेटवर्क सूचना",
     "network_warning_desc": "यह नेटवर्क कनेक्शन थर्ड पार्टी पर निर्भर करता है। यह कनेक्शन कम विश्वसनीय हो सकता है या गतिविधि को ट्रैक करने के लिए तृतीय-पक्ष को सक्षम कर सकता है।",
     "additonial_network_information_desc": "इनमें से कुछ नेटवर्क थर्ड पार्टीज़ पर निर्भर हैं। कनेक्शन कम विश्वसनीय हो सकते हैं या गतिविधि को ट्रैक करने के लिए थर्ड पार्टीज़ को चालू कर सकते हैं।",
+    "connect_more_networks": "Connect more networks",
     "learn_more": "अधिक जानें",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "नेटवर्क पर स्विच करें",
     "switch": "बदलें",
+    "select_all": "Select all",
     "new_network": "नया नेटवर्क जोड़ा गया",
     "network_name": "{{networkName}} नेटवर्क",
     "network_added": "नेटवर्क चयनकर्ता में अब उपलब्ध है।",
@@ -1776,7 +1779,19 @@
     "show_test_networks": "परीक्षण नेटवर्क दिखाएं",
     "deprecated_goerli": "Ethereum के प्रोटोकॉल परिवर्तनों के कारण: Goerli परीक्षण नेटवर्क विश्वसनीय रूप से काम नहीं कर सकता है और जल्द ही बंद हो जाएगा।",
     "network_deprecated_title": "इस नेटवर्क को हटा दिया गया है",
-    "network_deprecated_description": "जिस नेटवर्क से आप कनेक्ट करने का प्रयास कर रहे हैं उसे अब MetaMask सपोर्ट नहीं करता।"
+    "network_deprecated_description": "जिस नेटवर्क से आप कनेक्ट करने का प्रयास कर रहे हैं उसे अब MetaMask सपोर्ट नहीं करता।",
+    "edit_networks_title": "Edit networks"
+  },
+  "permissions": {
+    "title_this_site_wants_to": "This site wants to:",
+    "title_dapp_url_wants_to": "{{dappUrl}} wants to:",
+    "title_dapp_url_has_approval_to": "{{dappUrl}} has approval to:",
+    "use_enabled_networks": "Use your enabled networks",
+    "wants_to_see_your_accounts": "See your accounts and suggest transactions",
+    "requesting_for": "Requesting for ",
+    "manage_permissions": "Manage Permissions",
+    "edit": "Edit",
+    "cancel": "Cancel"
   },
   "select": {
     "cancel": "रद्द करें",
@@ -2041,6 +2056,8 @@
     "back_to_safety": "सुरक्षा पर वापस जाएं"
   },
   "notifications": {
+    "no_date": "Unknown",
+    "yesterday": "Yesterday",
     "staked": "स्टेक किया गया",
     "received": "प्राप्त किया गया",
     "unstaked": "अनस्टेक किया गया",
@@ -2116,6 +2133,8 @@
     "success_withdrawal_title": "निकासी पूरा!",
     "error_title": "ओह, कुछ गलत हुआ :/",
     "received_title": "आपने {{amount}} {{assetType}}प्राप्त किया",
+    "default_message_title": "New transaction notification",
+    "default_message_description": "Tap to view this transaction",
     "received_payment_title": "तात्कालिक भुगतान प्राप्त किया",
     "pending_message": "पुष्टिकरण का इंतजार करना",
     "pending_deposit_message": "जमा पूरा होने का इंतजार करना",
@@ -2131,12 +2150,12 @@
     "cancelled_message": "इस लेन-देन को देखने के लिए टैप करें",
     "received_message": "इस लेन-देन को देखने के लिए टैप करें",
     "received_payment_message": "आपने {{amount}} DAI प्राप्त किया",
-    "prompt_title": "पुश नोटिफिकेशन को सक्षम करें",
+    "prompt_title": "Receive Push Notifications",
     "notifications_enabled_error_title": "कुछ गलत हो गया",
     "notifications_enabled_error_desc": "हम नोटिफिकेशंस चालू नहीं कर सके। कृपया बाद में फिर से प्रयास करें।",
-    "prompt_desc": "नोटिफिकेशन को सक्षम करें जिससे MetaMask आपको बता सके कि आपने कब ETH प्राप्त किया है या आपके लेन-देन की पुष्टि कब हुई है।",
-    "prompt_ok": "हां",
-    "prompt_cancel": "नहीं, धन्यवाद",
+    "prompt_desc": "Turn on notifications from Settings to get important alerts on wallet activity and more.",
+    "prompt_ok": "Turn on",
+    "prompt_cancel": "Maybe later",
     "wc_connected_title": "{{title}} से जुड़ा हुआ",
     "wc_signed_title": "हस्ताक्षर किया हुआ",
     "wc_sent_tx_title": "लेन-देन भेजा गया",
@@ -2817,13 +2836,8 @@
   },
   "switch_custom_network": {
     "title_existing_network": "यह साइट नेटवर्क बदलना चाहेगा",
-    "title_enabled_network": "यह साइट निम्नलिखित करना चाहती है:",
     "title_new_network": "नया नेटवर्क जोड़ा गया",
     "switch_warning": "इससे चुना गया नेटवर्क को MetaMask के भीतर पहले से जोड़े गए नेटवर्क में बदल दिया जाएगा:",
-    "use_enabled_networks": "आपके चालू नेटवर्क का उपयोग करना",
-    "wants_to_see_your_accounts": "आपके अकाउंट को देखकर ट्रांसेक्शन का सुझाव देना",
-    "requesting_for": "के लिए अनुरोध कर रहे हैं ",
-    "edit": "बदलें",
     "add_network_and_give_dapp_permission_warning": "आप इस नेटवर्क को MetaMask में जोड़ रहे हैं और {{dapp_origin}} को इसका उपयोग करने की अनुमति दे रहे हैं।",
     "available": "नेटवर्क चयनकर्ता में अब उपलब्ध है।",
     "cancel": "रद्द करें",
@@ -2915,7 +2929,7 @@
   },
   "transaction_review_eip1559": {
     "estimated_gas_fee": "अनुमानित गैस शुल्क",
-    "suggested_gas_fee": "%{origin} अनुमानित गैस शुल्क",
+    "network_fee": "Network fee",
     "max_fee": "अधिकतम शुल्क",
     "total": "कुल",
     "max_amount": "अधिकतम रकम",
@@ -3155,6 +3169,7 @@
     "ledger_reminder_message_step_four": "4. सटीक लोकेशन के उपयोग के साथ लोकेशन चालू कर दी गई है",
     "ledger_reminder_message_step_four_Androidv12plus": "4. नज़दीकी डिवाइसें चालू कर दी गई हैं",
     "ledger_reminder_message_step_five": "5. 'परेशान न करें' फ़ीचर को बंद कर देना चाहिए",
+    "blind_signing_message": "6. Enable \"blind signing\" on your Ledger device.",
     "available_devices": "उपलब्ध डिवाइस",
     "retry": "फिर से कोशिश करें",
     "continue": "जारी रखें",
@@ -3185,7 +3200,15 @@
     "how_to_install_eth_webview_title": "Ethereum ऐप कैसे इंस्टॉल करें",
     "nonce_too_low": "Nonce बहुत कम है",
     "nonce_too_low_error": "सेट किया हुआ nonce बहुत कम है",
-    "select_accounts": "किसी अकाउंट को चुनें"
+    "select_accounts": "Select an account",
+    "select_hd_path": "Select HD Path",
+    "select_hd_path_description": "If you don't see the accounts you expect, try switching the HD path or current selected network.",
+    "ledger_live_path": "Ledger Live",
+    "ledger_legacy_path": "Legacy(MEW/MyCrypto)",
+    "ledger_bip44_path": "BIP44(e.g. MetaMask, Trezor)",
+    "ledger_legacy_label": " (legacy)",
+    "blind_sign_error": "Blind signing error",
+    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings."
   },
   "account_actions": {
     "edit_name": "खाते का नाम संपादित करें",
@@ -3288,6 +3311,23 @@
     "title": "हमने कई अनुरोध देखे हैं"
   },
   "common": {
-    "please_wait": "कृपया प्रतीक्षा करें"
+    "please_wait": "कृपया प्रतीक्षा करें",
+    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
+    "disconnect": "Disconnect"
+  },
+  "staking": {
+    "your_earnings": "Your earnings",
+    "annual_rate": "Annual rate",
+    "lifetime_rewards": "Lifetime rewards",
+    "estimated_annual_earnings": "Est. annual earnings",
+    "accessibility_labels": {
+      "stake_annual_rate_tooltip": "Annual rate tooltip"
+    }
+  },
+  "tooltip_modal": {
+    "reward_rate": {
+      "title": "Reward rate",
+      "tooltip": "Expected yearly increase in the value of your stake, based on the reward rate over the past week."
+    }
   }
 }
