@@ -3298,11 +3298,11 @@
     "your_earnings": "Your earnings",
     "annual_rate": "Annual rate",
     "lifetime_rewards": "Lifetime rewards",
-    "estimated_annual_earnings": "Est. annual earnings",
+    "estimated_annual_earnings": "Estimated annual earnings",
     "accessibility_labels": {
       "stake_annual_rate_tooltip": "Annual rate tooltip"
     },
-    "estimated_annual_rewards": "Est. annual rewards",
+    "estimated_annual_rewards": "Estimated annual rewards",
     "metamask_pool": "MetaMask Pool",
     "enter_amount": "Enter amount",
     "review": "Review",
