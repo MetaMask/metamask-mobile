@@ -1,3 +1,4 @@
+/* eslint-disable react-native/split-platform-components */
 /* eslint-disable import/prefer-default-export */
 import notifee, { AndroidImportance } from '@notifee/react-native';
 import { STORAGE_IDS } from './settings/storage/constants';
@@ -8,5 +9,7 @@ export async function setupAndroidChannel() {
     importance: AndroidImportance.HIGH,
     name: 'Default',
     badge: true,
+    lights: false,
+    vibration: true,
   });
 }

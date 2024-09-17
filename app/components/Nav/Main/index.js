@@ -5,7 +5,9 @@ import React, {
   useCallback,
   useContext,
 } from 'react';
-
+import notifee, {
+  EventType,
+} from '@notifee/react-native';
 import {
   ActivityIndicator,
   AppState,
@@ -21,14 +23,13 @@ import BackgroundTimer from 'react-native-background-timer';
 import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
-import notifee from '@notifee/react-native';
 import I18n, { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
 import RampOrders from '../../UI/Ramp';
-import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
+
 import {
   showTransactionNotification,
   hideCurrentNotification,
@@ -113,6 +114,7 @@ const Main = (props) => {
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
 
   useEnableAutomaticSecurityChecks();
+  useNotificationHandler(props.navigation);
   useMinimumVersions();
 
   useEffect(() => {
@@ -269,21 +271,21 @@ const Main = (props) => {
     }
   });
 
-  const bootstrapAndroidInitialNotification = useCallback(async () => {
-    if (Device.isAndroid()) {
-      const initialNotification = await notifee.getInitialNotification();
-
-      if (
-        initialNotification?.data?.action === 'tx' &&
-        initialNotification.data.id
-      ) {
-        NotificationManager.setTransactionToView(initialNotification.data.id);
-        props.navigation.navigate(Routes.TRANSACTIONS_VIEW);
-      }
+  useEffect(() => notifee.onBackgroundEvent(async ({ type, detail }) => {
+    const { notification, pressAction } = detail;
+    if (type === EventType.ACTION_PRESS && pressAction.id === 'mark-as-read') {
+      notifee.decrementBadgeCount(1).then(async () => {
+        await notifee.cancelNotification(notification.id);
+      });
+    } else {
+      notifee.incrementBadgeCount(1).then(() => {
+        props.navigation.navigate(Routes.NOTIFICATIONS.VIEW);
+      });
     }
-  }, [props.navigation]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), []);
 
-  useNotificationHandler(bootstrapAndroidInitialNotification, props.navigation);
+
 
   // Remove all notifications that aren't visible
   useEffect(() => {
