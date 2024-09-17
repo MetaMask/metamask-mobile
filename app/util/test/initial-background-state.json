@@ -89,6 +89,9 @@
     "displayNftMedia": true,
     "securityAlertsEnabled": true,
     "isMultiAccountBalancesEnabled": true,
+    "disabledRpcMethodPreferences": {
+      "eth_sign": false
+    },
     "showTestNetworks": false,
     "showIncomingTransactions": {
       "0x1": true,
@@ -233,7 +236,6 @@
     "domains": {}
   },
   "SignatureController": {
-    "unapprovedMsgs": {},
     "unapprovedPersonalMsgs": {},
     "unapprovedTypedMessages": {},
     "unapprovedPersonalMsgCount": 0,
