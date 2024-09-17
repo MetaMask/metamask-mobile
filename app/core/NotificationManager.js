@@ -152,7 +152,7 @@ class NotificationManager {
         title,
         body: message,
         android: {
-          lightUpScreen: false,
+          lightUpScreen: true,
           channelId,
           smallIcon: 'ic_notification_small',
           largeIcon: 'ic_notification',
@@ -179,6 +179,7 @@ class NotificationManager {
       } else {
         pushData.userInfo = extraData; // check if is still needed
       }
+      isNotificationsFeatureEnabled() && notifee.displayNotification(pushData);
     } else {
       this._showTransactionNotification({
         autodismiss: data.duration,
@@ -186,7 +187,6 @@ class NotificationManager {
         status: data.type,
       });
     }
-
   }
 
   _failedCallback = (transactionMeta) => {
