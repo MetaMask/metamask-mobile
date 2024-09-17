@@ -22,6 +22,8 @@ import { RootState } from '../../../reducers';
 
 // Internal dependencies
 import WalletAccount from './WalletAccount';
+import { mockNetworkState } from '../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const MOCK_CHAIN_ID: Hex = '0x1';
 
@@ -44,27 +46,16 @@ const mockInitialState: DeepPartial<RootState> = {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       NetworkController: {
-        providerConfig: {
-          chainId: MOCK_CHAIN_ID,
-        },
+        ...mockNetworkState({
+          chainId: CHAIN_IDS.MAINNET,
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+        }),
       },
     },
   },
 };
-
-jest.mock('../../../core/Engine', () => ({
-  context: {
-    KeyringController: {
-      state: {
-        keyrings: [
-          {
-            accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
-          },
-        ],
-      },
-    },
-  },
-}));
 
 jest.mock('../../../core/ClipboardManager');
 

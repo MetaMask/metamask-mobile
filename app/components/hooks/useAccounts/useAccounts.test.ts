@@ -54,11 +54,6 @@ const MOCK_STORE_STATE = {
           },
         },
       },
-      NetworkController: {
-        providerConfig: {
-          chainId: MOCK_CHAIN_ID,
-        },
-      },
     },
   },
 };

@@ -8,6 +8,8 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { APPROVAL_TAG_URL_ORIGIN_PILL } from '../../../../UI/ApprovalTagUrl';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../../../reducers';
+import { mockNetworkState } from '../../../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const MOCK_ADDRESS_1 = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const MOCK_ADDRESS_2 = '0xd018538C87232FF95acbCe4870629b75640a78E7';
@@ -47,11 +49,12 @@ const mockInitialState: DeepPartial<RootState> = {
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       NetworkController: {
-        providerConfig: {
-          chainId: '0xaa36a7',
-          type: 'sepolia',
+        ...mockNetworkState({
+          chainId: CHAIN_IDS.SEPOLIA,
+          id: 'sepolia',
           nickname: 'Sepolia',
-        },
+          ticker: 'ETH',
+        }),
       },
     },
   },
