@@ -393,6 +393,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           ? setPermissionsScreen(AccountPermissionsScreens.Connected)
           : navigation.navigate('PermissionsManager'),
       isInitialDappConnection: false,
+      isRenderedAsBottomSheet,
     };
     return <PermissionsSummary {...permissionsSummaryProps} />;
   }, [faviconSource, urlWithProtocol, isRenderedAsBottomSheet, navigation]);

@@ -1,8 +1,13 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 
-const createStyles = (params: { theme: Theme }) => {
+const createStyles = (params: {
+  theme: Theme;
+  vars: { isRenderedAsBottomSheet: boolean | undefined };
+}) => {
   const { theme } = params;
+  const { vars } = params;
+
   return StyleSheet.create({
     mainContainer: {
       backgroundColor: theme.colors.background.default,
@@ -10,6 +15,10 @@ const createStyles = (params: { theme: Theme }) => {
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
       minHeight: 200,
+      height: vars.isRenderedAsBottomSheet ? undefined : '100%',
+      justifyContent: vars.isRenderedAsBottomSheet
+        ? 'flex-start'
+        : 'space-between',
     },
     title: {
       alignSelf: 'center',

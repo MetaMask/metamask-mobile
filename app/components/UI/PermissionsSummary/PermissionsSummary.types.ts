@@ -13,4 +13,5 @@ export interface PermissionsSummaryProps {
   showActionButtons?: boolean;
   isInitialDappConnection?: boolean;
   isAlreadyConnected?: boolean;
+  isRenderedAsBottomSheet?: boolean;
 }

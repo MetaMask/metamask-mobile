@@ -47,9 +47,10 @@ const PermissionsSummary = ({
   showActionButtons = true,
   isInitialDappConnection = true,
   isAlreadyConnected = true,
+  isRenderedAsBottomSheet = true,
 }: PermissionsSummaryProps) => {
   const { colors } = useTheme();
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
   const selectedAccount = useSelectedAccount();
   const networkName = useSelector(selectNetworkName);
@@ -232,55 +233,62 @@ const PermissionsSummary = ({
   return (
     <SafeAreaView>
       <View style={styles.mainContainer}>
-        {renderHeader()}
-        <View style={styles.title}>
-          <TextComponent variant={TextVariant.HeadingSM}>
-            {isInitialDappConnection
-              ? strings('permissions.title_dapp_url_wants_to', {
-                  dappUrl: new URL(currentPageInformation.url).hostname,
-                })
-              : strings('permissions.title_dapp_url_has_approval_to', {
-                  dappUrl: new URL(currentPageInformation.url).hostname,
-                })}
-          </TextComponent>
+        <View>
+          {renderHeader()}
+          <View style={styles.title}>
+            <TextComponent variant={TextVariant.HeadingSM}>
+              {isInitialDappConnection
+                ? strings('permissions.title_dapp_url_wants_to', {
+                    dappUrl: new URL(currentPageInformation.url).hostname,
+                  })
+                : strings('permissions.title_dapp_url_has_approval_to', {
+                    dappUrl: new URL(currentPageInformation.url).hostname,
+                  })}
+            </TextComponent>
+          </View>
+          {renderAccountPermissionsRequestInfoCard()}
+          {renderNetworkPermissionsRequestInfoCard()}
         </View>
-        {renderAccountPermissionsRequestInfoCard()}
-        {renderNetworkPermissionsRequestInfoCard()}
-        {isAlreadyConnected && (
-          <View style={styles.disconnectAllContainer}>
-            <Button
-              variant={ButtonVariants.Secondary}
-              label={strings('accounts.disconnect_all')}
-              onPress={toggleRevokeAllPermissionsModal}
-              startIconName={IconName.Logout}
-              isDanger
-              size={ButtonSize.Lg}
-              style={{
-                ...styles.disconnectButton,
-              }}
-            />
-          </View>
-        )}
-        {showActionButtons && (
-          <View style={styles.actionButtonsContainer}>
-            <StyledButton
-              type={'cancel'}
-              onPress={cancel}
-              containerStyle={[styles.buttonPositioning, styles.cancelButton]}
-              testID={CommonSelectorsIDs.CANCEL_BUTTON}
-            >
-              {strings('permissions.cancel')}
-            </StyledButton>
-            <StyledButton
-              type={'confirm'}
-              onPress={confirm}
-              containerStyle={[styles.buttonPositioning, styles.confirmButton]}
-              testID={CommonSelectorsIDs.CONNECT_BUTTON}
-            >
-              {strings('confirmation_modal.confirm_cta')}
-            </StyledButton>
-          </View>
-        )}
+        <View>
+          {isAlreadyConnected && (
+            <View style={styles.disconnectAllContainer}>
+              <Button
+                variant={ButtonVariants.Secondary}
+                label={strings('accounts.disconnect_all')}
+                onPress={toggleRevokeAllPermissionsModal}
+                startIconName={IconName.Logout}
+                isDanger
+                size={ButtonSize.Lg}
+                style={{
+                  ...styles.disconnectButton,
+                }}
+              />
+            </View>
+          )}
+          {showActionButtons && (
+            <View style={styles.actionButtonsContainer}>
+              <StyledButton
+                type={'cancel'}
+                onPress={cancel}
+                containerStyle={[styles.buttonPositioning, styles.cancelButton]}
+                testID={CommonSelectorsIDs.CANCEL_BUTTON}
+              >
+                {strings('permissions.cancel')}
+              </StyledButton>
+              <StyledButton
+                type={'confirm'}
+                onPress={confirm}
+                containerStyle={[
+                  styles.buttonPositioning,
+                  styles.confirmButton,
+                ]}
+                testID={CommonSelectorsIDs.CONNECT_BUTTON}
+              >
+                {strings('confirmation_modal.confirm_cta')}
+              </StyledButton>
+            </View>
+          )}
+        </View>
       </View>
     </SafeAreaView>
   );
