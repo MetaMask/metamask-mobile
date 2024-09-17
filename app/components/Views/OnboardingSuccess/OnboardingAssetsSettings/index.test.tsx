@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import AssetSettings from './';
+import OnboardingAssetSettings from '.';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 
 jest.mock('@react-navigation/native', () => ({
@@ -10,7 +10,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
-describe('AssetSettings', () => {
+describe('OnboardingAssetSettings', () => {
   const mockNavigation = {
     goBack: jest.fn(),
     setOptions: jest.fn(),
@@ -41,14 +41,14 @@ describe('AssetSettings', () => {
   };
 
   it('should render correctly', () => {
-    const tree = renderWithProvider(<AssetSettings />, {
+    const tree = renderWithProvider(<OnboardingAssetSettings />, {
       state: initialState,
     });
     expect(tree).toMatchSnapshot();
   });
 
   it('sets navigation options', () => {
-    renderWithProvider(<AssetSettings />, {
+    renderWithProvider(<OnboardingAssetSettings />, {
       state: initialState,
     });
     expect(mockNavigation.setOptions).toHaveBeenCalled();

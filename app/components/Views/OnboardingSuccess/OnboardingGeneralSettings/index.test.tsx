@@ -2,7 +2,7 @@
 import React from 'react';
 
 // internal dependencies
-import GeneralSettings from '.';
+import OnboardingGeneralSettings from '.';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { useSelector } from 'react-redux';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
@@ -30,12 +30,12 @@ jest.mock('react-redux', () => ({
 
 const mockNetworkName = 'Ethereum Main Network';
 
-describe('GeneralSettings', () => {
+describe('OnboardingGeneralSettings', () => {
   it('should render correctly', () => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectNetworkName) return mockNetworkName;
     });
-    const { toJSON } = renderWithProvider(<GeneralSettings />);
+    const { toJSON } = renderWithProvider(<OnboardingGeneralSettings />);
     expect(toJSON()).toMatchSnapshot();
   });
 });

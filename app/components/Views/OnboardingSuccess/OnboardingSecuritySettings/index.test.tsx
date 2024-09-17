@@ -1,5 +1,5 @@
 import React from 'react';
-import SecuritySettings from './';
+import OnboardingSecuritySettings from './';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -19,7 +19,7 @@ jest.mock('../../../../util/networks', () => ({
   toggleUseSafeChainsListValidation: jest.fn(),
 }));
 
-describe('SecuritySettings', () => {
+describe('OnboardingSecuritySettings', () => {
   const mockNavigation = {
     goBack: jest.fn(),
     setOptions: jest.fn(),
@@ -36,7 +36,7 @@ describe('SecuritySettings', () => {
       if (selector === selectUseSafeChainsListValidation) return false;
       return null;
     });
-    const { toJSON } = renderWithProvider(<SecuritySettings />);
+    const { toJSON } = renderWithProvider(<OnboardingSecuritySettings />);
     expect(toJSON()).toMatchSnapshot();
   });
 });
