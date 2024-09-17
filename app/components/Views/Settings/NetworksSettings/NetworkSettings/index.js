@@ -339,6 +339,7 @@ export class NetworkSettings extends PureComponent {
   state = {
     rpcUrl: undefined,
     rpcUrls: [],
+    selectedRpcEndpointIndex: 0,
     blockExplorerUrl: undefined,
     nickname: undefined,
     chainId: undefined,
@@ -413,7 +414,14 @@ export class NetworkSettings extends PureComponent {
     const networkTypeOrRpcUrl = route.params?.network;
 
     // if network is main, don't show popular network
-    let blockExplorerUrl, chainId, nickname, ticker, editable, rpcUrl, rpcUrls;
+    let blockExplorerUrl,
+      chainId,
+      nickname,
+      ticker,
+      editable,
+      rpcUrl,
+      rpcUrls,
+      selectedRpcEndpointIndex;
     // If no navigation param, user clicked on add network
     if (networkTypeOrRpcUrl) {
       if (allNetworks.find((net) => networkTypeOrRpcUrl === net)) {
@@ -449,6 +457,7 @@ export class NetworkSettings extends PureComponent {
         editable = true;
         rpcUrl = networkTypeOrRpcUrl;
         rpcUrls = networkConfiguration.rpcEndpoints;
+        selectedRpcEndpointIndex = networkConfiguration.defaultRpcEndpointIndex;
       }
       const initialState =
         rpcUrl +
@@ -461,6 +470,7 @@ export class NetworkSettings extends PureComponent {
       this.setState({
         rpcUrl,
         rpcUrls,
+        selectedRpcEndpointIndex,
         blockExplorerUrl,
         nickname,
         chainId,
@@ -629,6 +639,7 @@ export class NetworkSettings extends PureComponent {
    * Add or update network configuration, then switch networks
    */
   addRpcUrl = async () => {
+    console.log('CLICK 1 ....');
     const { NetworkController, CurrencyRateController } = Engine.context;
     const {
       rpcUrl,
@@ -637,7 +648,11 @@ export class NetworkSettings extends PureComponent {
       blockExplorerUrl,
       editable,
       enableAction,
+      rpcUrls,
+      selectedRpcEndpointIndex,
     } = this.state;
+    console.log('CLICK 2 ....');
+
     const ticker = this.state.ticker && this.state.ticker.toUpperCase();
     const { navigation, networkOnboardedState, route } = this.props;
     const isCustomMainnet = route.params?.isCustomMainnet;
@@ -651,9 +666,11 @@ export class NetworkSettings extends PureComponent {
     // Check if CTA is disabled
     const isCtaDisabled =
       !enableAction ||
-      this.disabledByRpcUrl() ||
+      // this.disabledByRpcUrl() ||
       this.disabledByChainId() ||
       this.disabledBySymbol();
+
+    console.log('CLICK 333 ....', isCtaDisabled);
 
     if (isCtaDisabled) {
       return;
@@ -668,6 +685,8 @@ export class NetworkSettings extends PureComponent {
       networkOnboardedState,
     );
 
+    console.log('CLICK 3 ....');
+
     const nativeToken = ticker || PRIVATENETWORK;
     const networkType = nickname || rpcUrl;
     const networkUrl = sanitizeUrl(rpcUrl);
@@ -676,62 +695,98 @@ export class NetworkSettings extends PureComponent {
 
     const formChainId = stateChainId.trim().toLowerCase();
 
+    console.log('CLICK 4 ....');
+
     // Ensure chainId is a 0x-prefixed, lowercase hex string
     let chainId = formChainId;
     if (!chainId.startsWith('0x')) {
       chainId = `0x${parseInt(chainId, 10).toString(16)}`;
     }
 
+    console.log('CLICK 5 ....');
+
     if (!(await this.validateChainIdOnSubmit(formChainId, chainId, rpcUrl))) {
       return;
     }
 
     console.log('TODO HERE :::: handle add case and edit case');
-    if (this.validateRpcUrl() && isNetworkExists.length === 0) {
+    if (this.validateRpcUrl()) {
       const url = new URL(rpcUrl);
 
       !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
       CurrencyRateController.updateExchangeRate(ticker);
+      const existingNetwork = this.props.networkConfigurations[chainId];
+
+      console.log('existingNetwork ::::', existingNetwork);
       // Remove trailing slashes
 
-      // TODO: call addNetwork method here ...
-      NetworkController.upsertNetworkConfiguration(
-        {
-          rpcUrl: url.href,
-          chainId,
-          ticker,
-          nickname,
-          rpcPrefs: {
-            blockExplorerUrl,
-          },
-        },
-        {
-          setActive: true,
-          // Metrics-related properties required, but the metric event is a no-op
-          // TODO: Use events for controller metric events
-          referrer: 'ignored',
-          source: 'ignored',
-        },
-      );
-      // TODO: Use network configuration ID to update existing entries
-      // Temporary solution is to manually remove the existing network using the old RPC URL.
-      const isRPCDifferent = url.href !== prevRPCURL;
-      if ((editable || isCustomMainnet) && isRPCDifferent) {
-        // Only remove from frequent list if RPC URL is different.
-        const foundNetworkConfiguration = Object.entries(
-          this.props.networkConfigurations,
-        ).find(
-          ([, networkConfiguration]) =>
-            networkConfiguration.rpcUrl === prevRPCURL,
+      if (isNetworkExists.length === 0) {
+        const indexRpc = existingNetwork.rpcEndpoints.findIndex(
+          ({ url }) => url === rpcUrl,
         );
 
-        if (foundNetworkConfiguration) {
-          const [prevNetworkConfigurationId] = foundNetworkConfiguration;
-          NetworkController.removeNetworkConfiguration(
-            prevNetworkConfigurationId,
+        if (indexRpc !== -1) {
+          await NetworkController.updateNetwork(
+            existingNetwork.chainId,
+            {
+              // fix for block explorer
+              blockExplorerUrls: existingNetwork.blockExplorerUrls,
+              chainId: stateChainId,
+              rpcEndpoints: rpcUrls,
+              nativeCurrency: ticker,
+              name: nickname,
+              defaultRpcEndpointIndex: indexRpc,
+              defaultBlockExplorerUrlIndex: 0,
+            },
+            existingNetwork.chainId === chainId
+              ? {
+                  replacementSelectedRpcEndpointIndex:
+                    existingNetwork.defaultRpcEndpointIndex,
+                }
+              : undefined,
           );
         }
+      } else {
+        // TODO: call addNetwork method here ...
+        NetworkController.upsertNetworkConfiguration(
+          {
+            rpcUrl: url.href,
+            chainId,
+            ticker,
+            nickname,
+            rpcPrefs: {
+              blockExplorerUrl,
+            },
+          },
+          {
+            setActive: true,
+            // Metrics-related properties required, but the metric event is a no-op
+            // TODO: Use events for controller metric events
+            referrer: 'ignored',
+            source: 'ignored',
+          },
+        );
       }
+
+      // TODO: Use network configuration ID to update existing entries
+      // Temporary solution is to manually remove the existing network using the old RPC URL.
+      // const isRPCDifferent = url.href !== prevRPCURL;
+      // if ((editable || isCustomMainnet) && isRPCDifferent) {
+      //   // Only remove from frequent list if RPC URL is different.
+      //   const foundNetworkConfiguration = Object.entries(
+      //     this.props.networkConfigurations,
+      //   ).find(
+      //     ([, networkConfiguration]) =>
+      //       networkConfiguration.rpcUrl === prevRPCURL,
+      //   );
+
+      //   if (foundNetworkConfiguration) {
+      //     const [prevNetworkConfigurationId] = foundNetworkConfiguration;
+      //     NetworkController.removeNetworkConfiguration(
+      //       prevNetworkConfigurationId,
+      //     );
+      //   }
+      // }
 
       this.props.showNetworkOnboardingAction({
         networkUrl,
