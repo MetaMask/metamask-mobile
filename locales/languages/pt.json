@@ -686,9 +686,8 @@
     "suggest_transactions": "Sugerir transações para aprovar",
     "disconnect": "Desconectar",
     "disconnect_all": "Desconectar todas",
-    "reconnect_notice": "Se você desconectar suas contas do {{dappUrl}}, precisará reconectar para usá-las novamente.",
+    "reconnect_notice": "If you disconnect from {{dappUrl}}, you’ll need to reconnect your accounts and networks to use this site again.",
     "disconnect_all_accounts": "Desconectar todas as contas",
-    "disconnect_you_from": "Isso desconectará você do {{dappUrl}}",
     "deceptive_site_ahead": "Site enganoso à vista",
     "deceptive_site_desc": "O site que você está tentando visitar não é seguro. Invasores podem induzir você a fazer algo perigoso por engano.",
     "learn_more": "Saiba mais",
@@ -1462,7 +1461,8 @@
     "hex_data_copied": "Dados hexa copiados para a área de transferência",
     "invalid_recipient": "Destinatário inválido",
     "invalid_recipient_description": "Verifique o endereço e certifique-se de que ele é válido",
-    "swap_tokens": "Trocar tokens"
+    "swap_tokens": "Trocar tokens",
+    "fromWithColon": "From:"
   },
   "custom_gas": {
     "total": "Total",
@@ -1749,6 +1749,7 @@
     "continue": "Continuar",
     "cancel": "Cancelar",
     "approve": "Aprovar",
+    "update": "Update",
     "edit_network_details": "Editar os dados da rede",
     "malicious_network_warning": "Um provedor de rede mal-intencionado pode mentir sobre o estado da blockchain e registrar sua atividade na rede. Adicione apenas redes personalizadas em que você confia.",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
@@ -1756,10 +1757,12 @@
     "additional_network_information_title": "Informações sobre redes adicionais",
     "network_warning_desc": "Essa conexão de rede depende de terceiros. Ela pode ser menos confiável ou permitir que eles rastreiem as atividades.",
     "additonial_network_information_desc": "Algumas dessas redes dependem de terceiros. As conexões podem ser menos confiáveis ​​ou permitir que terceiros rastreiem atividades.",
+    "connect_more_networks": "Connect more networks",
     "learn_more": "Saiba mais",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "Alternar para rede",
     "switch": "Alternar",
+    "select_all": "Select all",
     "new_network": "Nova rede adicionada",
     "network_name": "Rede {{networkName}}",
     "network_added": " agora está disponível no seletor de redes.",
@@ -1776,7 +1779,19 @@
     "show_test_networks": "Exibir redes de teste",
     "deprecated_goerli": "Devido às alterações no protocolo Ethereum, a rede de teste Goerli pode não funcionar com a mesma confiabilidade e será descontinuada.",
     "network_deprecated_title": "Essa rede foi descontinuada",
-    "network_deprecated_description": "A rede à qual você está tentando se conectar não é mais suportada pela MetaMask."
+    "network_deprecated_description": "A rede à qual você está tentando se conectar não é mais suportada pela MetaMask.",
+    "edit_networks_title": "Edit networks"
+  },
+  "permissions": {
+    "title_this_site_wants_to": "This site wants to:",
+    "title_dapp_url_wants_to": "{{dappUrl}} wants to:",
+    "title_dapp_url_has_approval_to": "{{dappUrl}} has approval to:",
+    "use_enabled_networks": "Use your enabled networks",
+    "wants_to_see_your_accounts": "See your accounts and suggest transactions",
+    "requesting_for": "Requesting for ",
+    "manage_permissions": "Manage Permissions",
+    "edit": "Edit",
+    "cancel": "Cancel"
   },
   "select": {
     "cancel": "Cancelar",
@@ -2041,6 +2056,8 @@
     "back_to_safety": "Voltar para a segurança"
   },
   "notifications": {
+    "no_date": "Unknown",
+    "yesterday": "Yesterday",
     "staked": "Em staking",
     "received": "Recebido",
     "unstaked": "Retirado de staking",
@@ -2116,6 +2133,8 @@
     "success_withdrawal_title": "Retirada concluída!",
     "error_title": "Ops, ocorreu um erro :/",
     "received_title": "Você recebeu {{amount}} {{assetType}}",
+    "default_message_title": "New transaction notification",
+    "default_message_description": "Tap to view this transaction",
     "received_payment_title": "Pagamento instantâneo recebido",
     "pending_message": "Aguardando confirmação",
     "pending_deposit_message": "Aguardando conclusão do depósito",
@@ -2131,12 +2150,12 @@
     "cancelled_message": "Toque para ver essa transação",
     "received_message": "Toque para ver essa transação",
     "received_payment_message": "Você recebeu {{amount}} DAI",
-    "prompt_title": "Ativar notificações push",
+    "prompt_title": "Receive Push Notifications",
     "notifications_enabled_error_title": "Algo deu errado",
     "notifications_enabled_error_desc": "Não foi possível ativar as notificações. Tente novamente mais tarde.",
-    "prompt_desc": "Ative as notificações para que a MetaMask informe quando você tiver recebido ETH ou quando suas transações forem confirmadas.",
-    "prompt_ok": "Sim",
-    "prompt_cancel": "Não, obrigado",
+    "prompt_desc": "Turn on notifications from Settings to get important alerts on wallet activity and more.",
+    "prompt_ok": "Turn on",
+    "prompt_cancel": "Maybe later",
     "wc_connected_title": "Conectado ao {{title}}",
     "wc_signed_title": "Assinado",
     "wc_sent_tx_title": "Enviou a transação",
@@ -2817,13 +2836,8 @@
   },
   "switch_custom_network": {
     "title_existing_network": "Este site deseja alternar a rede",
-    "title_enabled_network": "Este site quer:",
     "title_new_network": "Nova rede adicionada",
     "switch_warning": "Isso alternará a rede selecionada dentro da MetaMask para uma rede adicionada anteriormente:",
-    "use_enabled_networks": "Usar suas redes habilitadas",
-    "wants_to_see_your_accounts": "Ver suas contas e sugerir transações",
-    "requesting_for": "Solicitando para ",
-    "edit": "Editar",
     "add_network_and_give_dapp_permission_warning": "Você está adicionando esta rede à MetaMask e dando à {{dapp_origin}} permissão para usá-la.",
     "available": "está disponível agora no seletor de redes.",
     "cancel": "Cancelar",
@@ -2915,7 +2929,7 @@
   },
   "transaction_review_eip1559": {
     "estimated_gas_fee": "Taxa de gás estimada",
-    "suggested_gas_fee": "Taxa de gás sugerida por %{origin}",
+    "network_fee": "Network fee",
     "max_fee": "Taxa máxima",
     "total": "Total",
     "max_amount": "Valor máximo",
@@ -3185,7 +3199,13 @@
     "how_to_install_eth_webview_title": "Como instalar o app Ethereum",
     "nonce_too_low": "Nonce muito baixo",
     "nonce_too_low_error": "O nonce definido está muito baixo",
-    "select_accounts": "Selecione uma conta"
+    "select_accounts": "Select an account",
+    "select_hd_path": "Select HD Path",
+    "select_hd_path_description": "If you don't see the accounts you expect, try switching the HD path or current selected network.",
+    "ledger_live_path": "Ledger Live",
+    "ledger_legacy_path": "Legacy(MEW/MyCrypto)",
+    "ledger_bip44_path": "BIP44(e.g. MetaMask, Trezor)",
+    "ledger_legacy_label": " (legacy)"
   },
   "account_actions": {
     "edit_name": "Editar nome da conta",
@@ -3288,6 +3308,23 @@
     "title": "Percebemos várias solicitações"
   },
   "common": {
-    "please_wait": "Aguarde"
+    "please_wait": "Aguarde",
+    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
+    "disconnect": "Disconnect"
+  },
+  "staking": {
+    "your_earnings": "Your earnings",
+    "annual_rate": "Annual rate",
+    "lifetime_rewards": "Lifetime rewards",
+    "estimated_annual_earnings": "Est. annual earnings",
+    "accessibility_labels": {
+      "stake_annual_rate_tooltip": "Annual rate tooltip"
+    }
+  },
+  "tooltip_modal": {
+    "reward_rate": {
+      "title": "Reward rate",
+      "tooltip": "Expected yearly increase in the value of your stake, based on the reward rate over the past week."
+    }
   }
 }
