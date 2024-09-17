@@ -23,7 +23,6 @@ interface ModalNavbarTitleProps {
 /**
  * UI PureComponent that renders inside the modal navbar
  */
-//DEVIN_TODO: Verify if PureComponent needs type parameters
 export default class ModalNavbarTitle extends PureComponent<ModalNavbarTitleProps> {
   render = () => {
     const { title } = this.props;
