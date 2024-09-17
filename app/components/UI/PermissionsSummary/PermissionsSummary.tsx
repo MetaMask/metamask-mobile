@@ -106,7 +106,28 @@ const PermissionsSummary = ({
     );
   }
 
-  const toggleRevokeAllAccountPermissionsModal = useCallback(() => {
+  const renderEndAccessory = () => (
+    <View>
+      {isAlreadyConnected ? (
+        <Icon
+          size={IconSize.Md}
+          name={IconName.ArrowRight}
+          testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
+        />
+      ) : (
+        <View style={styles.editTextContainer}>
+          <TextComponent
+            color={TextColor.Primary}
+            variant={TextVariant.BodyMDMedium}
+          >
+            {strings('permissions.edit')}
+          </TextComponent>
+        </View>
+      )}
+    </View>
+  );
+
+  const toggleRevokeAllPermissionsModal = useCallback(() => {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
       params: {
@@ -162,24 +183,7 @@ const PermissionsSummary = ({
               )}
             </View>
           </View>
-          <View>
-            {isAlreadyConnected ? (
-              <Icon
-                size={IconSize.Md}
-                name={IconName.ArrowRight}
-                testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
-              />
-            ) : (
-              <View style={styles.editTextContainer}>
-                <TextComponent
-                  color={TextColor.Primary}
-                  variant={TextVariant.BodyMDMedium}
-                >
-                  {strings('permissions.edit')}
-                </TextComponent>
-              </View>
-            )}
-          </View>
+          {renderEndAccessory()}
         </View>
       </TouchableOpacity>
     );
@@ -219,24 +223,7 @@ const PermissionsSummary = ({
               </View>
             </View>
           </View>
-          <View>
-            {isAlreadyConnected ? (
-              <Icon
-                size={IconSize.Md}
-                name={IconName.ArrowRight}
-                testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
-              />
-            ) : (
-              <View style={styles.editTextContainer}>
-                <TextComponent
-                  color={TextColor.Primary}
-                  variant={TextVariant.BodyMDMedium}
-                >
-                  {strings('permissions.edit')}
-                </TextComponent>
-              </View>
-            )}
-          </View>
+          {renderEndAccessory()}
         </View>
       </TouchableOpacity>
     );
@@ -264,7 +251,7 @@ const PermissionsSummary = ({
             <Button
               variant={ButtonVariants.Secondary}
               label={strings('accounts.disconnect_all')}
-              onPress={toggleRevokeAllAccountPermissionsModal}
+              onPress={toggleRevokeAllPermissionsModal}
               startIconName={IconName.Logout}
               isDanger
               size={ButtonSize.Lg}
