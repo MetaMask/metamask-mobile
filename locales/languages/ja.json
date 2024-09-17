@@ -2726,17 +2726,7 @@
     "high_recommendation": "通常、スワップは時間が重要です。「高」にすると、市場状況の変化による問題を回避しやすくなります。",
     "recommended": "推奨",
     "recommended_gas": "推奨ガス代",
-    "gas_education_title": "ガス代の見積もり",
-    "gas_education_1": "ガス代は、",
-    "gas_education_2_ethereum": "イーサリアムネットワークでトランザクションを処理するクリプトマイナーに支払われます。",
-    "gas_education_2": "ネットワーク。",
-    "gas_education_3": "MetaMaskはガス代で利益を得ることはありません。",
-    "gas_education_4": "「ガス代の見積もり」　",
-    "gas_education_5": "は",
-    "gas_education_6": "実際の手数料の見積もりです。正確な金額はネットワークの状況により異なります。",
-    "gas_education_7": "「最大ガス代」",
-    "gas_education_8": "は使用する最高額です。ネットワークの変動が激しいと、大きな額になる場合があります。",
-    "gas_education_learn_more": "ガス代の詳細をご覧ください"
+    "gas_education_title": "ガス代の見積もり"
   },
   "protect_wallet_modal": {
     "title": "ウォレットを保護",

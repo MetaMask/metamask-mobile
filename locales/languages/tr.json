@@ -2726,17 +2726,7 @@
     "high_recommendation": "Swap işlemleri genellikle zamana duyarlıdır. “Yüksek”, piyasa koşullarındaki değişikliklerden kaynaklanan olası zararları önlemeye yardımcı olacaktır.",
     "recommended": "Önerilir",
     "recommended_gas": "Önerilen gaz ücreti",
-    "gas_education_title": "Tahmini gaz ücretleri",
-    "gas_education_1": "Gaz ücretleri",
-    "gas_education_2_ethereum": "Ethereum ağında işlem gerçekleştiren kripto madencilerine ödenir.",
-    "gas_education_2": "ağda işlem gerçekleştiren kripto madencilerine ödenir.",
-    "gas_education_3": "MetaMask gaz ücretlerinden kâr elde etmez.",
-    "gas_education_4": "Bu",
-    "gas_education_5": "“Tahmini gaz ücreti”",
-    "gas_education_6": "olmasını beklediğimiz gerçek ücrettir. Tam tutar ağ koşullarına bağlıdır.",
-    "gas_education_7": "“Maks. gaz ücreti”",
-    "gas_education_8": "en çok harcayacağınız ücrettir. Ağ volatil olduğunda bu büyük bir tutar olabilir.",
-    "gas_education_learn_more": "Gaz ücretleri hakkında daha fazla bilgi alın"
+    "gas_education_title": "Tahmini gaz ücretleri"
   },
   "protect_wallet_modal": {
     "title": "Cüzdanınızı koruyun",

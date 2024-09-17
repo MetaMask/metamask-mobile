@@ -2726,17 +2726,7 @@
     "high_recommendation": "交换通常对时间敏感。“高”将有助于避免因市场条件的变化而造成的潜在损失。",
     "recommended": "建议",
     "recommended_gas": "建议燃料费",
-    "gas_education_title": "估算的燃料费用",
-    "gas_education_1": "燃料费会支付给在以太坊网络上",
-    "gas_education_2_ethereum": "处理交易的加密货币矿工。",
-    "gas_education_2": "网络。",
-    "gas_education_3": "MetaMask 不从燃料费中获利。",
-    "gas_education_4": "此",
-    "gas_education_5": "“估算的燃料费”",
-    "gas_education_6": "是我们预计的实际费用。具体金额取决于网络条件。",
-    "gas_education_7": "“最大燃料费”",
-    "gas_education_8": "是您将要支出的最大费用。当网络不稳定时，这可能是一个很大的金额。",
-    "gas_education_learn_more": "了解更多关于燃料费的信息"
+    "gas_education_title": "估算的燃料费用"
   },
   "protect_wallet_modal": {
     "title": "保护您的钱包",

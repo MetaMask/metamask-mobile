@@ -128,6 +128,7 @@ export default {
       'https://support.metamask.io/privacy-and-security/privacy-best-practices',
     SMART_TXS:
       'https://support.metamask.io/transactions-and-gas/transactions/smart-transactions/',
+    GAS_FEES: 'https://support.metamask.io/transactions-and-gas/gas-fees/'
   },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:

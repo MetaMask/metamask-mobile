@@ -2726,17 +2726,7 @@
     "high_recommendation": "As trocas são geralmente suscetíveis ao tempo. \"Alta\" ajudará a evitar possíveis perdas devido a mudanças nas condições do mercado.",
     "recommended": "Recomendado",
     "recommended_gas": "Taxa de gás recomendada",
-    "gas_education_title": "Taxas de gás estimadas",
-    "gas_education_1": "As taxas de gás são pagas aos criptomineradores que processam as transações na ",
-    "gas_education_2_ethereum": "rede Ethereum.",
-    "gas_education_2": "rede.",
-    "gas_education_3": "A MetaMask não lucra com as taxas de gás.",
-    "gas_education_4": "A",
-    "gas_education_5": "\"taxa de gás estimada\"",
-    "gas_education_6": "é a taxa efetiva esperada. O valor exato dependerá das condições da rede.",
-    "gas_education_7": "A \"taxa de gás máxima\"",
-    "gas_education_8": "é o máximo que você vai gastar. Quando a rede estiver volátil, esse valor pode ser alto.",
-    "gas_education_learn_more": "Saiba mais sobre as taxas de gás"
+    "gas_education_title": "Taxas de gás estimadas"
   },
   "protect_wallet_modal": {
     "title": "Proteja sua carteira",

@@ -2726,17 +2726,7 @@
     "high_recommendation": "Para realizar intercambios el tiempo es muy limitado. \"Alto\" le ayudará a evitar pérdidas potenciales debido a los cambios en las condiciones del mercado.",
     "recommended": "Recomendado",
     "recommended_gas": "Tarifa de gas recomendada",
-    "gas_education_title": "Tarifas estimadas de gas",
-    "gas_education_1": "Las tarifas de gas se abonan a los mineros de criptomonedas que procesan transacciones a través de la ",
-    "gas_education_2_ethereum": "red de Ethereum.",
-    "gas_education_2": "red.",
-    "gas_education_3": "MetaMask no se beneficia de las tarifas de gas.",
-    "gas_education_4": "La",
-    "gas_education_5": "“Tarifa de gas estimada”",
-    "gas_education_6": "es el valor que esperamos que tenga la tarifa real. El monto exacto depende de las condiciones de la red.",
-    "gas_education_7": "“Tarifa de gas máxima”",
-    "gas_education_8": "es el monto máximo que gastará. Cuando la red es volátil, puede ser un monto grande.",
-    "gas_education_learn_more": "Obtenga más información sobre las tarifas de gas"
+    "gas_education_title": "Tarifas estimadas de gas"
   },
   "protect_wallet_modal": {
     "title": "Proteger su monedero",

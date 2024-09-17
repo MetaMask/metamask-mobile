@@ -2726,17 +2726,7 @@
     "high_recommendation": "Pertukaran biasanya sensitif terhadap waktu. “Tinggi” akan membantu menghindari potensi kerugian akibat perubahan kondisi pasar.",
     "recommended": "Direkomendasikan",
     "recommended_gas": "Biaya gas yang direkomendasikan",
-    "gas_education_title": "Estimasi biaya gas",
-    "gas_education_1": "Biaya gas dibayarkan kepada penambang kripto yang memproses transaksi di",
-    "gas_education_2_ethereum": "jaringan Ethereum.",
-    "gas_education_2": "jaringan.",
-    "gas_education_3": "MetaMask tidak mengambil keuntungan dari biaya gas.",
-    "gas_education_4": "“Perkiraan",
-    "gas_education_5": "biaya gas”",
-    "gas_education_6": "merupakan biaya aktual yang kami perkirakan. Jumlah pastinya tergantung pada kondisi jaringan.",
-    "gas_education_7": "“Biaya gas maks”",
-    "gas_education_8": "merupakan jumlah terbesar yang akan Anda gunakan. Saat jaringan tidak stabil, ini bisa menjadi jumlah yang besar.",
-    "gas_education_learn_more": "Pelajari selengkapnya seputar biaya gas"
+    "gas_education_title": "Estimasi biaya gas"
   },
   "protect_wallet_modal": {
     "title": "Lindungi dompet Anda",

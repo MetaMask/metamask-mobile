@@ -2726,17 +2726,7 @@
     "high_recommendation": "Les swaps étant généralement sensibles au facteur temps, le réglage « Élevé » permettra d’éviter les pertes potentielles dues aux fluctuations des conditions du marché.",
     "recommended": "Recommandé",
     "recommended_gas": "Frais de gaz recommandés",
-    "gas_education_title": "Frais de gaz estimés",
-    "gas_education_1": "Les frais de gaz sont payés aux mineurs de cryptomonnaies qui traitent les transactions sur le",
-    "gas_education_2_ethereum": "réseau Ethereum.",
-    "gas_education_2": "Ethereum.",
-    "gas_education_3": "MetaMask ne tire aucun profit des frais de gaz.",
-    "gas_education_4": "Les",
-    "gas_education_5": "« frais de gaz estimés »",
-    "gas_education_6": "correspondent à nos prévisions du montant réel des frais. Le montant exact dépend des conditions du réseau.",
-    "gas_education_7": "« Frais de gaz maximums »",
-    "gas_education_8": "représentent le maximum que vous aurez à dépenser. Lorsque le réseau est volatile, cela peut constituer un montant important.",
-    "gas_education_learn_more": "En savoir plus sur les frais de gaz"
+    "gas_education_title": "Frais de gaz estimés"
   },
   "protect_wallet_modal": {
     "title": "Protéger votre portefeuille",

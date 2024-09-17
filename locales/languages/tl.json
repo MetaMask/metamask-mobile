@@ -2726,17 +2726,7 @@
     "high_recommendation": "Ang mga pag-swap ay kadalasang sensitibo sa oras. Ang “Mataas” ay makakatulong na maiwasan ang mga potensyal na pagkalugi dahil sa mga pagbabago sa mga kondisyon ng merkado.",
     "recommended": "Inirerekomenda",
     "recommended_gas": "Inirerekomendang bayad sa gas",
-    "gas_education_title": "Mga tinantyang bayad sa gas",
-    "gas_education_1": "Binabayaran ang mga bayad sa gas sa mga minero ng crypto na nagpoproseso ng mga transaksyon sa ",
-    "gas_education_2_ethereum": "Network ng Ethereum.",
-    "gas_education_2": "network.",
-    "gas_education_3": "Hindi kumikita ang MetaMask mula sa mga bayad sa gas.",
-    "gas_education_4": "Ang",
-    "gas_education_5": "“Tinantyang bayad sa gas”",
-    "gas_education_6": "ay ang inaasahan naming magiging aktuwal na bayarin. Ang eksaktong halaga ay nakadepende sa mga kundisyon ng network.",
-    "gas_education_7": "“Pinakamataas na bayad sa gas”",
-    "gas_education_8": "ay ang pinakamalaking gagastusin mo. Kapag volatile ang network, maaaring malaking halaga ito.",
-    "gas_education_learn_more": "Matuto pa tungkol sa mga bayad sa gas"
+    "gas_education_title": "Mga tinantyang bayad sa gas"
   },
   "protect_wallet_modal": {
     "title": "Protektahan ang iyong wallet",

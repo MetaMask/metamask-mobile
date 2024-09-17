@@ -2726,17 +2726,7 @@
     "high_recommendation": "Swaps sind normalerweise zeitkritisch. „Hoch“ wird Ihnen dabei helfen, möglichen Verluste durch Änderungen der Marktzustände zu vermeiden.",
     "recommended": "Empfohlen",
     "recommended_gas": "Empfohlene Gas-Gebühr",
-    "gas_education_title": "Geschätzte Gas-Gebühren",
-    "gas_education_1": "Gas-Gebühren werden an Crypto-Miner gezahlt, die Transaktionen auf dem",
-    "gas_education_2_ethereum": "Ethereum-Netzwerk verarbeiten.",
-    "gas_education_2": "Netzwerk.",
-    "gas_education_3": "MetaMask profitiert nicht von Gas-Gebühren.",
-    "gas_education_4": "Die",
-    "gas_education_5": "„geschätzte Gas-Gebühr“",
-    "gas_education_6": "ist, wie wir die tatsächliche Gebühr einschätzen. Der genaue Betrag hängt von Netzwerkskonditionen ab.",
-    "gas_education_7": "„Maximale Gas-Gebühr“",
-    "gas_education_8": "ist das meiste, was Sie ausgeben. Wenn das Netzwerk schwankt, kann dies eine große Summe sein.",
-    "gas_education_learn_more": "Erfahren Sie mehr über Gas-Gebühren."
+    "gas_education_title": "Geschätzte Gas-Gebühren"
   },
   "protect_wallet_modal": {
     "title": "Schützen Sie Ihre Wallet.",

@@ -2726,17 +2726,7 @@
     "high_recommendation": "Giao dịch hoán đổi thường nhạy cảm về thời gian. Mức độ \"Cao\" sẽ giúp tránh những thua lỗ tiềm ẩn do tình hình thị trường biến động.",
     "recommended": "Được đề xuất",
     "recommended_gas": "Phí gas đề xuất",
-    "gas_education_title": "Phí gas ước tính",
-    "gas_education_1": "Phí gas được trả cho những người khai thác tiền mã hóa để xử lý các giao dịch trên ",
-    "gas_education_2_ethereum": "mạng Ethereum.",
-    "gas_education_2": "mạng.",
-    "gas_education_3": "MetaMask không thu lợi nhuận từ phí gas.",
-    "gas_education_4": "Chúng tôi mong đợi",
-    "gas_education_5": "\"Phí gas ước tính\"",
-    "gas_education_6": "sẽ là mức phí thực tế. Số tiền chính xác phụ thuộc vào điều kiện mạng.",
-    "gas_education_7": "\"Phí gas tối đa\"",
-    "gas_education_8": "là phí cao nhất bạn sẽ trả. Khi mạng biến động, khoản phí này có thể cao.",
-    "gas_education_learn_more": "Tìm hiểu thêm về phí gas"
+    "gas_education_title": "Phí gas ước tính"
   },
   "protect_wallet_modal": {
     "title": "Bảo vệ ví của bạn",
