@@ -4490,18 +4490,6 @@
     "@noble/hashes" "^1.3.2"
     "@scure/base" "^1.0.0"
 
-"@metamask/keyring-api@^6.0.0":
-  version "6.2.1"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-6.2.1.tgz#10e91b07c6afbf8c18d29169b4ec907adcdc8ccc"
-  integrity sha512-RT2P6RU48/CjZ8pmh8XDZN31APwByzC7l0GeZjuHVO9WKyYhvELYEBcvaID9R8BZ2HZCvHbn/hzj5IxTgDouVQ==
-  dependencies:
-    "@metamask/snaps-sdk" "^4.2.0"
-    "@metamask/utils" "^8.4.0"
-    "@types/uuid" "^9.0.8"
-    bech32 "^2.0.0"
-    superstruct "^1.0.3"
-    uuid "^9.0.1"
-
 "@metamask/keyring-api@^6.1.1":
   version "6.4.0"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-6.4.0.tgz#8d8f0adfdddeac84ac55993c3ba424e2171d4bfe"
@@ -4526,26 +4514,7 @@
     bech32 "^2.0.0"
     uuid "^9.0.1"
 
-"@metamask/keyring-controller@^16.0.0":
-  version "16.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-16.0.0.tgz#36530a5cbc311d496ef66701c66daf779a769fca"
-  integrity sha512-XzyxRXj/Sxo6fB3kSmPmFaiFV1JF2lSMUJlSvKd6pbmqvnNCXi21LXTLDruVTnyBEsqkDQ8ld2IxFggBOpqrAg==
-  dependencies:
-    "@ethereumjs/util" "^8.1.0"
-    "@keystonehq/metamask-airgapped-keyring" "^0.13.1"
-    "@metamask/base-controller" "^5.0.2"
-    "@metamask/browser-passworder" "^4.3.0"
-    "@metamask/eth-hd-keyring" "^7.0.1"
-    "@metamask/eth-sig-util" "^7.0.1"
-    "@metamask/eth-simple-keyring" "^6.0.1"
-    "@metamask/keyring-api" "^6.0.0"
-    "@metamask/message-manager" "^8.0.2"
-    "@metamask/utils" "^8.3.0"
-    async-mutex "^0.2.6"
-    ethereumjs-wallet "^1.0.1"
-    immer "^9.0.6"
-
-"@metamask/keyring-controller@^16.1.0":
+"@metamask/keyring-controller@^16.0.0", "@metamask/keyring-controller@^16.1.0":
   version "16.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-16.1.0.tgz#f15e9a0fd0242dc049e964d0a72d0f2ce00d3463"
   integrity sha512-R0ceCSu8QmoY5HWvXw5VyyfzBwITQuRme4KqbYRuMEVhcJ2KqAhjZEmHnEfHCNpd7fu6O2vRPkqEIz/j4H6Gfw==
@@ -4580,19 +4549,6 @@
   dependencies:
     "@metamask/base-controller" "^5.0.2"
     "@metamask/controller-utils" "^10.0.0"
-    uuid "^8.3.2"
-
-"@metamask/message-manager@^8.0.2":
-  version "8.0.2"
-  resolved "https://registry.yarnpkg.com/@metamask/message-manager/-/message-manager-8.0.2.tgz#84720f0fe9e0c02cc97b76f0bc8f3d5b0a25f731"
-  integrity sha512-6o0FRWzmOv5ClYv9QfSJI6LtUJaQokwhVROTV2gLsuoAns8a9NuiHmXZrBh1tdjYifXPoPh74nqim4XBBT+GQQ==
-  dependencies:
-    "@metamask/base-controller" "^5.0.2"
-    "@metamask/controller-utils" "^9.1.0"
-    "@metamask/eth-sig-util" "^7.0.1"
-    "@metamask/utils" "^8.3.0"
-    "@types/uuid" "^8.3.0"
-    jsonschema "^1.2.4"
     uuid "^8.3.2"
 
 "@metamask/message-manager@^9.0.0":
