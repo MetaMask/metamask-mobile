@@ -12,7 +12,9 @@ import { strings } from '../../../../../locales/i18n';
 import { LEDGER_SUPPORT_LINK } from '../../../../constants/urls';
 import Device from '../../../../util/device';
 import { useAssetFromTheme } from '../../../../util/theme';
-import Text, { TextVariant } from '../../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 
 import ledgerConnectDarkImage from '../../../../images/ledger-connect-dark.png';
 import ledgerConnectLightImage from '../../../../images/ledger-connect-light.png';
@@ -127,7 +129,11 @@ const SearchingForDeviceStep = () => {
         </Text>
       </View>
       <TouchableOpacity onPress={handleOpenInstallEthAppInstructions}>
-        <Text style={styles.howToInstallEthAppText} variant={TextVariant.BodyMD} numberOfLines={2}>
+        <Text
+          style={styles.howToInstallEthAppText}
+          variant={TextVariant.BodyMD}
+          numberOfLines={2}
+        >
           {strings('ledger.how_to_install_eth_app')}
         </Text>
       </TouchableOpacity>
