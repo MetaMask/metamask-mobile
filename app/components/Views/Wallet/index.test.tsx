@@ -2,15 +2,12 @@ import React from 'react';
 import Wallet from './';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { screen } from '@testing-library/react-native';
-import Engine from '../../../core/Engine';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
-
-const mockEngine = Engine;
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 
@@ -19,7 +16,6 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
 ]);
 
 jest.mock('../../../core/Engine', () => ({
-  init: () => mockEngine.init({}),
   getTotalFiatAccountBalance: jest.fn(),
   context: {
     NftController: {

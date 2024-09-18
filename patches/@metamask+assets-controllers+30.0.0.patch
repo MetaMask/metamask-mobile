@@ -1,3 +1,20 @@
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-4ODKGWYQ.js b/node_modules/@metamask/assets-controllers/dist/chunk-4ODKGWYQ.js
+index 542e3f6..6c656aa 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-4ODKGWYQ.js
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-4ODKGWYQ.js
+@@ -69,9 +69,10 @@ var AssetsContractController = class extends _basecontroller.BaseControllerV1 {
+       this.configure({ ipfsGateway });
+     });
+     onNetworkDidChange((networkState) => {
+-      if (this.config.chainId !== networkState.providerConfig.chainId) {
++      const {configuration: { chainId}} = this.getNetworkClientById(networkState.selectedNetworkClientId);
++      if (this.config.chainId !== chainId) {
+         this.configure({
+-          chainId: networkState.providerConfig.chainId
++          chainId,
+         });
+       }
+     });
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-6W5EQ3JQ.js b/node_modules/@metamask/assets-controllers/dist/chunk-6W5EQ3JQ.js
 index 0dc70ec..461a210 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-6W5EQ3JQ.js
@@ -808,6 +825,27 @@ index cd8f792..b20db8a 100644
  var TokenBalancesController_default = TokenBalancesController;
  
  
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-MBCN3MNX.js b/node_modules/@metamask/assets-controllers/dist/chunk-MBCN3MNX.js
+index b8722af..535b648 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-MBCN3MNX.js
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-MBCN3MNX.js
+@@ -103,10 +103,14 @@ var TokensController = class extends _basecontroller.BaseControllerV1 {
+     );
+     this.messagingSystem.subscribe(
+       "NetworkController:networkDidChange",
+-      ({ providerConfig }) => {
++      ({selectedNetworkClientId}) => {
+         const { allTokens, allIgnoredTokens, allDetectedTokens } = this.state;
+         const { selectedAddress } = this.config;
+-        const { chainId } = providerConfig;
++        const selectedNetworkClient = this.messagingSystem.call(
++          'NetworkController:getNetworkClientById',
++          selectedNetworkClientId,
++        );
++        const { chainId } = selectedNetworkClient.configuration;
+         this.abortController.abort();
+         this.abortController = new AbortController();
+         this.configure({ chainId });
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-NEXY7SE2.js b/node_modules/@metamask/assets-controllers/dist/chunk-NEXY7SE2.js
 index 8c506d9..bd798ec 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-NEXY7SE2.js
