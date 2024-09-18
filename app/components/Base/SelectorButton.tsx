@@ -4,7 +4,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { useTheme } from '../../util/theme';
 import { Theme } from '@metamask/design-tokens';
 
-interface SelectorButtonProps extends TouchableOpacityProps {
+interface SelectorButtonProps {
   onPress: (event: GestureResponderEvent) => void;
   disabled?: boolean;
   children: React.ReactNode;
@@ -29,7 +29,7 @@ const createStyles = (colors: Theme['colors']) =>
     },
   });
 
-const SelectorButton: React.FC<SelectorButtonProps> = ({ onPress, disabled, children, ...props }) => {
+const SelectorButton: React.FC<SelectorButtonProps & TouchableOpacityProps> = ({ onPress, disabled, children, ...props }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
