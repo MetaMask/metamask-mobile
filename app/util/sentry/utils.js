@@ -77,7 +77,6 @@ export const sentryStateMask = {
       },
       PhishingController: {},
       PreferencesController: {
-        disabledRpcMethodPreferences: true,
         featureFlags: true,
         isIpfsGatewayEnabled: true,
         displayNftMedia: true,
@@ -86,7 +85,6 @@ export const sentryStateMask = {
         useTransactionSimulations: true,
       },
       SignatureController: {
-        unapprovedMsgCount: true,
         unapprovedPersonalMsgCount: true,
         unapprovedTypedMessagesCount: true,
       },
@@ -228,7 +226,9 @@ const ERROR_URL_ALLOWLIST = [
  * Required instrumentation for Sentry Performance to work with React Navigation
  */
 export const routingInstrumentation =
-  new Sentry.ReactNavigationV5Instrumentation();
+  new Sentry.ReactNavigationV5Instrumentation({
+    enableTimeToInitialDisplay: true,
+  });
 
 /**
  * Capture Sentry user feedback and associate ID of captured exception
@@ -502,7 +502,7 @@ export function setupSentry() {
               }),
             ]
           : integrations,
-      tracesSampleRate: 0.04,
+      tracesSampleRate: 0.08,
       beforeSend: (report) => rewriteReport(report),
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
       beforeSendTransaction: (event) => excludeEvents(event),

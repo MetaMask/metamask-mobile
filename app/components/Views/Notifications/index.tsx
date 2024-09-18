@@ -1,14 +1,13 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import notifee from '@notifee/react-native';
 import { NotificationsViewSelectorsIDs } from '../../../../e2e/selectors/NotificationsView.selectors';
 import styles from './styles';
 import Notifications from '../../UI/Notification/List';
 import { TRIGGER_TYPES, sortNotifications } from '../../../util/notifications';
-import Icon, {
+import  {
   IconName,
-  IconSize,
 } from '../../../component-library/components/Icons/Icon';
 
 import Button, {
@@ -31,6 +30,7 @@ import {
   useMarkNotificationAsRead,
 } from '../../../util/notifications/hooks/useNotifications';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import ButtonIcon, { ButtonIconSizes } from '../../../component-library/components/Buttons/ButtonIcon';
 
 const TRIGGER_TYPES_VALS: ReadonlySet<string> = new Set<string>(
   Object.values(TRIGGER_TYPES),
@@ -41,7 +41,7 @@ const NotificationsView = ({
 }: {
   navigation: NavigationProp<ParamListBase>;
 }) => {
-  const { listNotifications, isLoading } = useListNotifications();
+  const { isLoading } = useListNotifications();
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
@@ -80,13 +80,7 @@ const NotificationsView = ({
     () => allNotifications.filter((n) => !n.isRead).length,
     [allNotifications],
   );
-  // Effect - fetch notifications when component/view is visible.
-  useEffect(() => {
-    async function updateNotifications() {
-      await listNotifications();
-    }
-    updateNotifications();
-  }, [listNotifications]);
+
 
   return (
     <View
@@ -130,16 +124,20 @@ NotificationsView.navigationOptions = ({
   navigation: NavigationProp<Record<string, undefined>>;
 }) => ({
   headerRight: () => (
-    <TouchableOpacity
-      onPress={() => navigation.navigate(Routes.SETTINGS.NOTIFICATIONS)}
-    >
-      <Icon name={IconName.Setting} size={IconSize.Lg} style={styles.icon} />
-    </TouchableOpacity>
+    <ButtonIcon
+    size={ButtonIconSizes.Md}
+    iconName={IconName.Setting}
+    onPress={() => navigation.navigate(Routes.SETTINGS.NOTIFICATIONS)}
+    style={styles.icon}
+  />
   ),
   headerLeft: () => (
-    <TouchableOpacity onPress={() => navigation.navigate(Routes.WALLET.HOME)}>
-      <Icon name={IconName.Close} size={IconSize.Md} style={styles.icon} />
-    </TouchableOpacity>
+    <ButtonIcon
+    size={ButtonIconSizes.Md}
+    iconName={IconName.Close}
+    onPress={() => navigation.navigate(Routes.WALLET.HOME)}
+    style={styles.icon}
+  />
   ),
   headerTitle: () => (
     <Text variant={TextVariant.HeadingMD}>

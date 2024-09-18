@@ -3,10 +3,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import DrawerView from './';
 
 import { backgroundState } from '../../../util/test/initial-root-state';
-import Engine from '../../../core/Engine';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
-
-const mockedEngine = Engine;
 
 const mockInitialState = {
   engine: {
@@ -18,14 +15,8 @@ const mockInitialState = {
 };
 
 jest.mock('../../../core/Engine', () => ({
-  init: () => mockedEngine.init({}),
   getTotalFiatAccountBalance: () => ({ ethFiat: 0, tokenFiat: 0 }),
   context: {
-    NetworkController: {
-      state: {
-        providerConfig: { chainId: '0x1' },
-      },
-    },
     KeyringController: {
       state: {
         keyrings: [],
