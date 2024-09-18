@@ -1811,3 +1811,36 @@ export const getSettingsNavigationOptions = (title, themeColors) => {
     ...innerStyles,
   };
 };
+
+export function getStakeInputNavbar(navigation, themeColors) {
+  const innerStyles = StyleSheet.create({
+    headerButtonText: {
+      color: themeColors.primary.default,
+      fontSize: 14,
+      ...fontStyles.normal,
+    },
+    headerStyle: {
+      backgroundColor: themeColors.background.default,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
+    },
+  });
+  const title = strings('stake.stake_eth');
+  return {
+    headerTitle: () => (
+      <NavbarTitle title={title} disableNetwork translate={false} />
+    ),
+    headerLeft: () => <View />,
+    headerRight: () => (
+      <TouchableOpacity
+        onPress={() => navigation.dangerouslyGetParent()?.pop()}
+        style={styles.closeButton}
+      >
+        <Text style={innerStyles.headerButtonText}>
+          {strings('navigation.cancel')}
+        </Text>
+      </TouchableOpacity>
+    ),
+    headerStyle: innerStyles.headerStyle,
+  };
+}

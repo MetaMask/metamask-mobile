@@ -94,6 +94,7 @@ import PercentageChange from '../../../component-library/components-temp/Price/P
 import AggregatedPercentage from '../../../component-library/components-temp/Price/AggregatedPercentage';
 import { RootState } from '../../../reducers';
 import { Hex } from '@metamask/utils';
+import { isPooledStakingFeatureEnabled } from '../Stake/constants';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -244,25 +245,29 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
   const renderStakeButton = (asset: TokenI) => {
     const onStakeButtonPress = () => {
-      const existingStakeTab = browserTabs.find((tab: BrowserTab) =>
-        tab.url.includes(AppConstants.STAKE.URL),
-      );
-      let existingTabId;
-      let newTabUrl;
-      if (existingStakeTab) {
-        existingTabId = existingStakeTab.id;
+      if (isPooledStakingFeatureEnabled()) {
+        navigation.navigate(Routes.STAKE.STAKE);
       } else {
-        newTabUrl = `${AppConstants.STAKE.URL}?metamaskEntry=mobile`;
+        const existingStakeTab = browserTabs.find((tab: BrowserTab) =>
+          tab.url.includes(AppConstants.STAKE.URL),
+        );
+        let existingTabId;
+        let newTabUrl;
+        if (existingStakeTab) {
+          existingTabId = existingStakeTab.id;
+        } else {
+          newTabUrl = `${AppConstants.STAKE.URL}?metamaskEntry=mobile`;
+        }
+        const params = {
+          ...(newTabUrl && { newTabUrl }),
+          ...(existingTabId && { existingTabId, newTabUrl: undefined }),
+          timestamp: Date.now(),
+        };
+        navigation.navigate(Routes.BROWSER.HOME, {
+          screen: Routes.BROWSER.VIEW,
+          params,
+        });
       }
-      const params = {
-        ...(newTabUrl && { newTabUrl }),
-        ...(existingTabId && { existingTabId, newTabUrl: undefined }),
-        timestamp: Date.now(),
-      };
-      navigation.navigate(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params,
-      });
       trackEvent(MetaMetricsEvents.STAKE_BUTTON_CLICKED, {
         chain_id: getDecimalChainId(chainId),
         location: 'Home Screen',
