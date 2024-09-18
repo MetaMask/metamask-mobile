@@ -23,30 +23,20 @@ import { v1 as random } from 'uuid';
 import { decimalToHex } from '../conversions';
 import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
 import { RAMPS_SEND } from '../../components/UI/Ramp/constants';
-import { RestrictedControllerMessenger } from '@metamask/base-controller';
+import { ControllerMessenger } from '@metamask/base-controller';
 import { addSwapsTransaction } from '../swaps/swaps-transactions';
 
 export declare type Hex = `0x${string}`;
-
-const namespace = 'SmartTransactions';
 
 export type AllowedActions = never;
 
 export type AllowedEvents = SmartTransactionsControllerSmartTransactionEvent;
 
-export type SmartTransactionHookMessenger = RestrictedControllerMessenger<
-  typeof namespace,
-  AllowedActions,
-  AllowedEvents,
-  AllowedActions['type'],
-  AllowedEvents['type']
->;
-
 export interface SubmitSmartTransactionRequest {
   transactionMeta: TransactionMeta;
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
-  controllerMessenger: SmartTransactionHookMessenger;
+  controllerMessenger: ControllerMessenger<AllowedActions, AllowedEvents>;
   shouldUseSmartTransaction: boolean;
   approvalController: ApprovalController;
   featureFlags: {
@@ -93,7 +83,7 @@ class SmartTransactionHook {
   #approvalController: ApprovalController;
   #transactionMeta: TransactionMeta;
   #txParams: TransactionParams;
-  #controllerMessenger: SmartTransactionHookMessenger;
+  #controllerMessenger: SubmitSmartTransactionRequest['controllerMessenger'];
 
   #isDapp: boolean;
   #isSend: boolean;

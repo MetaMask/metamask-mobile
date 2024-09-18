@@ -10,9 +10,7 @@ import {
   TransactionMeta,
   WalletDevice,
 } from '@metamask/transaction-controller';
-import SmartTransactionsController, {
-  SmartTransactionsControllerMessenger,
-} from '@metamask/smart-transactions-controller';
+import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import type { SmartTransaction } from '@metamask/smart-transactions-controller/dist/types';
 import {
   AllowedActions,
@@ -23,7 +21,10 @@ import {
 import { ChainId } from '@metamask/controller-utils';
 import { ApprovalController } from '@metamask/approval-controller';
 import { ControllerMessenger } from '@metamask/base-controller';
-import { NetworkControllerStateChangeEvent } from '@metamask/network-controller';
+import {
+  NetworkControllerGetNetworkClientByIdAction,
+  NetworkControllerStateChangeEvent,
+} from '@metamask/network-controller';
 
 interface PendingApprovalsData {
   id: string;
@@ -120,10 +121,10 @@ type WithRequestOptions = {
 
 type WithRequestCallback<ReturnValue> = ({
   request,
-  messenger,
+  controllerMessenger,
 }: {
   request: SubmitSmartTransactionRequestMocked;
-  messenger: SmartTransactionsControllerMessenger;
+  controllerMessenger: SubmitSmartTransactionRequestMocked['controllerMessenger'];
   getFeesSpy: jest.SpyInstance;
   submitSignedTransactionsSpy: jest.SpyInstance;
 }) => ReturnValue;
@@ -142,18 +143,17 @@ function withRequest<ReturnValue>(
     ...options
   } = rest;
   const controllerMessenger = new ControllerMessenger<
-    AllowedActions,
+    NetworkControllerGetNetworkClientByIdAction | AllowedActions,
     NetworkControllerStateChangeEvent | AllowedEvents
   >();
-  const messenger = controllerMessenger.getRestricted({
-    name: 'SmartTransactionsController',
-    allowedActions: [],
-    allowedEvents: ['NetworkController:stateChange'],
-  });
 
   const smartTransactionsController = new SmartTransactionsController({
     // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
-    messenger,
+    messenger: controllerMessenger.getRestricted({
+      name: 'SmartTransactionsController',
+      allowedActions: ['NetworkController:getNetworkClientById'],
+      allowedEvents: ['NetworkController:stateChange'],
+    }),
     getNonceLock: jest.fn(),
     confirmExternalTransaction: jest.fn(),
     trackMetaMetricsEvent: jest.fn(),
@@ -185,7 +185,7 @@ function withRequest<ReturnValue>(
       ...defaultTransactionMeta,
     },
     smartTransactionsController,
-    controllerMessenger: messenger,
+    controllerMessenger,
     transactionController: createTransactionControllerMock(),
     shouldUseSmartTransaction: true,
     approvalController: createApprovalControllerMock({
@@ -211,8 +211,7 @@ function withRequest<ReturnValue>(
   };
 
   return fn({
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
-    messenger,
+    controllerMessenger,
     request,
     getFeesSpy,
     submitSignedTransactionsSpy,
@@ -250,15 +249,18 @@ describe('submitSmartTransactionHook', () => {
   });
 
   it('throws an error if there is no transaction hash', async () => {
-    withRequest(async ({ request, messenger }) => {
+    withRequest(async ({ request, controllerMessenger }) => {
       setImmediate(() => {
-        messenger.publish('SmartTransactionsController:smartTransaction', {
-          status: 'cancelled',
-          statusMetadata: {
-            minedHash: '',
-          },
-          uuid: 'uuid',
-        } as SmartTransaction);
+        controllerMessenger.publish(
+          'SmartTransactionsController:smartTransaction',
+          {
+            status: 'cancelled',
+            statusMetadata: {
+              minedHash: '',
+            },
+            uuid: 'uuid',
+          } as SmartTransaction,
+        );
       });
       await expect(submitSmartTransactionHook(request)).rejects.toThrow(
         'Transaction does not have a transaction hash, there was a problem',
@@ -276,87 +278,95 @@ describe('submitSmartTransactionHook', () => {
   });
 
   it('submits a smart transaction', async () => {
-    withRequest(async ({ request, messenger, submitSignedTransactionsSpy }) => {
-      setImmediate(() => {
-        messenger.publish('SmartTransactionsController:smartTransaction', {
-          status: 'pending',
-          statusMetadata: {
-            minedHash: '',
-          },
-          uuid: 'uuid',
-        } as SmartTransaction);
+    withRequest(
+      async ({ request, controllerMessenger, submitSignedTransactionsSpy }) => {
+        setImmediate(() => {
+          controllerMessenger.publish(
+            'SmartTransactionsController:smartTransaction',
+            {
+              status: 'pending',
+              statusMetadata: {
+                minedHash: '',
+              },
+              uuid: 'uuid',
+            } as SmartTransaction,
+          );
 
-        messenger.publish('SmartTransactionsController:smartTransaction', {
-          status: 'success',
-          statusMetadata: {
-            minedHash: transactionHash,
-          },
-          uuid: 'uuid',
-        } as SmartTransaction);
-      });
-      const result = await submitSmartTransactionHook(request);
+          controllerMessenger.publish(
+            'SmartTransactionsController:smartTransaction',
+            {
+              status: 'success',
+              statusMetadata: {
+                minedHash: transactionHash,
+              },
+              uuid: 'uuid',
+            } as SmartTransaction,
+          );
+        });
+        const result = await submitSmartTransactionHook(request);
 
-      expect(result).toEqual({ transactionHash });
-      const { txParams, chainId } = request.transactionMeta;
-      expect(
-        request.transactionController.approveTransactionsWithSameNonce,
-      ).toHaveBeenCalledWith(
-        [
-          {
-            ...txParams,
-            maxFeePerGas: '0x2fd8a58d7',
-            maxPriorityFeePerGas: '0xaa0f8a94',
-            chainId,
-            value: undefined,
-          },
-        ],
-        { hasNonce: true },
-      );
-      expect(submitSignedTransactionsSpy).toHaveBeenCalledWith({
-        signedTransactions: [createSignedTransaction()],
-        signedCanceledTransactions: [],
-        txParams,
-        transactionMeta: request.transactionMeta,
-      });
-
-      expect(
-        request.approvalController.addAndShowApprovalRequest,
-      ).toHaveBeenCalledWith({
-        id: 'approvalId',
-        origin: 'http://localhost',
-        type: 'smart_transaction_status',
-        requestState: {
-          smartTransaction: {
-            status: 'pending',
-            uuid: stxUuid,
-            creationTime: expect.any(Number),
-          },
-          isDapp: true,
-          isInSwapFlow: false,
-          isSwapApproveTx: false,
-          isSwapTransaction: false,
-        },
-      });
-      expect(
-        request.approvalController.updateRequestState,
-      ).toHaveBeenCalledWith({
-        id: 'approvalId',
-        requestState: {
-          smartTransaction: {
-            status: 'success',
-            statusMetadata: {
-              minedHash:
-                '0x0302b75dfb9fd9eb34056af031efcaee2a8cbd799ea054a85966165cd82a7356',
+        expect(result).toEqual({ transactionHash });
+        const { txParams, chainId } = request.transactionMeta;
+        expect(
+          request.transactionController.approveTransactionsWithSameNonce,
+        ).toHaveBeenCalledWith(
+          [
+            {
+              ...txParams,
+              maxFeePerGas: '0x2fd8a58d7',
+              maxPriorityFeePerGas: '0xaa0f8a94',
+              chainId,
+              value: undefined,
             },
-            uuid: 'uuid',
+          ],
+          { hasNonce: true },
+        );
+        expect(submitSignedTransactionsSpy).toHaveBeenCalledWith({
+          signedTransactions: [createSignedTransaction()],
+          signedCanceledTransactions: [],
+          txParams,
+          transactionMeta: request.transactionMeta,
+        });
+
+        expect(
+          request.approvalController.addAndShowApprovalRequest,
+        ).toHaveBeenCalledWith({
+          id: 'approvalId',
+          origin: 'http://localhost',
+          type: 'smart_transaction_status',
+          requestState: {
+            smartTransaction: {
+              status: 'pending',
+              uuid: stxUuid,
+              creationTime: expect.any(Number),
+            },
+            isDapp: true,
+            isInSwapFlow: false,
+            isSwapApproveTx: false,
+            isSwapTransaction: false,
           },
-          isDapp: true,
-          isInSwapFlow: false,
-          isSwapApproveTx: false,
-          isSwapTransaction: false,
-        },
-      });
-    });
+        });
+        expect(
+          request.approvalController.updateRequestState,
+        ).toHaveBeenCalledWith({
+          id: 'approvalId',
+          requestState: {
+            smartTransaction: {
+              status: 'success',
+              statusMetadata: {
+                minedHash:
+                  '0x0302b75dfb9fd9eb34056af031efcaee2a8cbd799ea054a85966165cd82a7356',
+              },
+              uuid: 'uuid',
+            },
+            isDapp: true,
+            isInSwapFlow: false,
+            isSwapApproveTx: false,
+            isSwapTransaction: false,
+          },
+        });
+      },
+    );
   });
 
   describe('MM Swaps', () => {
@@ -391,23 +401,33 @@ describe('submitSmartTransactionHook', () => {
             },
           },
         },
-        async ({ request, messenger, submitSignedTransactionsSpy }) => {
+        async ({
+          request,
+          controllerMessenger,
+          submitSignedTransactionsSpy,
+        }) => {
           setImmediate(() => {
-            messenger.publish('SmartTransactionsController:smartTransaction', {
-              status: 'pending',
-              statusMetadata: {
-                minedHash: '',
-              },
-              uuid: 'uuid',
-            } as SmartTransaction);
+            controllerMessenger.publish(
+              'SmartTransactionsController:smartTransaction',
+              {
+                status: 'pending',
+                statusMetadata: {
+                  minedHash: '',
+                },
+                uuid: 'uuid',
+              } as SmartTransaction,
+            );
 
-            messenger.publish('SmartTransactionsController:smartTransaction', {
-              status: 'success',
-              statusMetadata: {
-                minedHash: transactionHash,
-              },
-              uuid: 'uuid',
-            } as SmartTransaction);
+            controllerMessenger.publish(
+              'SmartTransactionsController:smartTransaction',
+              {
+                status: 'success',
+                statusMetadata: {
+                  minedHash: transactionHash,
+                },
+                uuid: 'uuid',
+              } as SmartTransaction,
+            );
           });
           const result = await submitSmartTransactionHook(request);
 
@@ -502,23 +522,33 @@ describe('submitSmartTransactionHook', () => {
             },
           },
         },
-        async ({ request, messenger, submitSignedTransactionsSpy }) => {
+        async ({
+          request,
+          controllerMessenger,
+          submitSignedTransactionsSpy,
+        }) => {
           setImmediate(() => {
-            messenger.publish('SmartTransactionsController:smartTransaction', {
-              status: 'pending',
-              statusMetadata: {
-                minedHash: '',
-              },
-              uuid: 'uuid',
-            } as SmartTransaction);
+            controllerMessenger.publish(
+              'SmartTransactionsController:smartTransaction',
+              {
+                status: 'pending',
+                statusMetadata: {
+                  minedHash: '',
+                },
+                uuid: 'uuid',
+              } as SmartTransaction,
+            );
 
-            messenger.publish('SmartTransactionsController:smartTransaction', {
-              status: 'success',
-              statusMetadata: {
-                minedHash: transactionHash,
-              },
-              uuid: 'uuid',
-            } as SmartTransaction);
+            controllerMessenger.publish(
+              'SmartTransactionsController:smartTransaction',
+              {
+                status: 'success',
+                statusMetadata: {
+                  minedHash: transactionHash,
+                },
+                uuid: 'uuid',
+              } as SmartTransaction,
+            );
           });
           const result = await submitSmartTransactionHook(request);
 
