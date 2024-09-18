@@ -58,11 +58,6 @@
   },
   "NetworkController": {
     "networkConfigurations": {},
-    "providerConfig": {
-      "type": "mainnet",
-      "chainId": "0x1",
-      "ticker": "ETH"
-    },
     "networksMetadata": {
       "mainnet": {
         "EIPS": {},
