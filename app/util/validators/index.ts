@@ -43,4 +43,4 @@ export const parseSeedPhrase = (seedPhrase: string): string =>
   (seedPhrase || '').trim().toLowerCase().match(regex.seedPhrase)?.join(' ') ||
   '';
 
-export const isValidMnemonic: (mnemonic: string, wordlist?: Wordlist) => boolean = ethers.utils.isValidMnemonic;
+export const { isValidMnemonic } = ethers.utils;
