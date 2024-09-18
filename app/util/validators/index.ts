@@ -1,8 +1,9 @@
 import { ethers } from 'ethers';
+import { Wordlist } from '@ethersproject/wordlists';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../core/Encryptor';
 import { regex } from '../regex';
 
-export const failedSeedPhraseRequirements = (seed) => {
+export const failedSeedPhraseRequirements = (seed: string): boolean => {
   const wordCount = seed.split(/\s/u).length;
   return wordCount % 3 !== 0 || wordCount > 24 || wordCount < 12;
 };
@@ -14,8 +15,8 @@ export const failedSeedPhraseRequirements = (seed) => {
  * @param {string} vault - exported from ios/android filesystem
  * @returns seed phrase from vault
  */
-export const parseVaultValue = async (password, vault) => {
-  let vaultSeed;
+export const parseVaultValue = async (password: string, vault: string): Promise<string | undefined> => {
+  let vaultSeed: string | undefined;
 
   if (vault[0] === '{' && vault[vault.length - 1] === '}')
     try {
@@ -29,7 +30,7 @@ export const parseVaultValue = async (password, vault) => {
         const encryptor = new Encryptor({
           keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
         });
-        const result = await encryptor.decrypt(password, vault);
+        const result = await encryptor.decrypt(password, vault) as { data?: { mnemonic?: string } }[];
         vaultSeed = result[0]?.data?.mnemonic;
       }
     } catch (error) {
@@ -38,8 +39,8 @@ export const parseVaultValue = async (password, vault) => {
   return vaultSeed;
 };
 
-export const parseSeedPhrase = (seedPhrase) =>
+export const parseSeedPhrase = (seedPhrase: string): string =>
   (seedPhrase || '').trim().toLowerCase().match(regex.seedPhrase)?.join(' ') ||
   '';
 
-export const { isValidMnemonic } = ethers.utils;
+export const isValidMnemonic: (mnemonic: string, wordlist?: Wordlist) => boolean = ethers.utils.isValidMnemonic;
