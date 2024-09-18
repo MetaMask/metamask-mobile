@@ -6,7 +6,7 @@ import WalletActionsModal from '../../pages/modals/WalletActionsModal.js';
 import SendView from '../../pages/Send/SendView.js';
 import AmountView from '../../pages/Send/AmountView.js';
 import TransactionConfirmView from '../../pages/Send/TransactionConfirmView.js';
-import { startMockServer, stopMockServer } from '../../mockserver/mockserver.js';
+import { startMockServer, stopMockServer } from '../../mockServer/mockServer.js';
 import WalletView from '../../pages/wallet/WalletView.js';
 import Assertions from '../../utils/Assertions.js';
 import AccountListView from '../../pages/AccountListView.js';
@@ -16,7 +16,7 @@ import Accounts from '../../../wdio/helpers/Accounts.js';
 import { withFixtures } from '../../fixtures/fixture-helper.js';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
 import TestHelpers from '../../helpers.js';
-import { mockUrlCollection } from '../../mockserver/mockUrlCollection.js';
+import { urls } from '../../mockServer/mockUrlCollection.json';
 
 describe(SmokeCore('Mock suggestedGasApi fallback to legacy gas endpoint  when EIP1559 endpoint is down'), () => {
   let mockServer;
@@ -25,7 +25,7 @@ describe(SmokeCore('Mock suggestedGasApi fallback to legacy gas endpoint  when E
     await TestHelpers.reverseServerPort();
 
     mockServer = await startMockServer({ // Configure mock server
-      mockUrl: mockUrlCollection.SUGGESTED_GAS_API_MAINNET_URL,
+      mockUrl: urls.suggestedGasApiMainnet,
       responseCode: 500,
       responseBody: { error: 'Internal server error' },
     });
