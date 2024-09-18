@@ -9,8 +9,8 @@ const initialState: { step: number } = {
 };
 
 const onboardingWizardReducer = (
-  action: OnboardingWizardAction,
-  state = initialState
+  state: { step: number } = initialState,
+  action: OnboardingWizardAction
 ): { step: number } => {
   switch (action.type) {
     case REHYDRATE:
