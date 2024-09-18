@@ -1,0 +1,2 @@
+- [ ] Type for parameter `value`: Uint8Array or number[]
+- [ ] Type for return value: string
