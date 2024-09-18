@@ -4045,14 +4045,6 @@
     "@metamask/utils" "^9.1.0"
     immer "^9.0.6"
 
-"@metamask/base-controller@^7.0.0":
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-7.0.0.tgz#c6eedac9692d65222d7715e048b1b6f74af07b12"
-  integrity sha512-/wFqfXe/caAWvsHcSNJOTQdUPL7HJeM15d/7IzTI/Jpd1aaO4u/CVY5dPxnBXjhSVtQGQZC6jIGlWim5GluoUw==
-  dependencies:
-    "@metamask/utils" "^9.1.0"
-    immer "^9.0.6"
-
 "@metamask/base-controller@^7.0.1":
   version "7.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-7.0.1.tgz#78eef77c2cd980e1f86bd5077c229bbaa5fd2b9d"
@@ -4125,7 +4117,7 @@
     eth-ens-namehash "^2.0.8"
     fast-deep-equal "^3.1.3"
 
-"@metamask/controller-utils@^11.1.0":
+"@metamask/controller-utils@^11.3.0":
   version "11.3.0"
   resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-11.3.0.tgz#530fd22289f717b752b4a7b6e504e1f2911b30a4"
   integrity sha512-5b+Jg9sKKESzvQcuipHC1D7KSh98MVIi7hXQUk7iX+YVMl4KoKDv94Bl+li8g+jCBshMOV9bRMRh25/hdEvTZQ==
@@ -4790,13 +4782,13 @@
     fastest-levenshtein "^1.0.16"
     punycode "^2.1.1"
 
-"@metamask/phishing-controller@^12.0.1":
-  version "12.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-12.0.1.tgz#c88dff822c4e0a879f80475723180fcf11862744"
-  integrity sha512-wgyhYNnzuzP/2k4QwV14fi90LffbF8qupXrBOd+dOGuPFqNuqTAxXyyWOBf2khgD3Ju3VbR9kV30xFfHV1dhHg==
+"@metamask/phishing-controller@^12.0.3":
+  version "12.0.3"
+  resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-12.0.3.tgz#f1a5a2046e4c7a04613b4c41bc19771cf8235db7"
+  integrity sha512-CR1qN2FkMJp+MyNSXVTvrZY7MjCdkvsofW/kyv6oshPtLV6BGBWFyueS2UgjMNsmQDW/vMXUJMZfcMS6rs3S4w==
   dependencies:
-    "@metamask/base-controller" "^7.0.0"
-    "@metamask/controller-utils" "^11.1.0"
+    "@metamask/base-controller" "^7.0.1"
+    "@metamask/controller-utils" "^11.3.0"
     "@noble/hashes" "^1.4.0"
     "@types/punycode" "^2.1.0"
     eth-phishing-detect "^1.2.0"

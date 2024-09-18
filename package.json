@@ -171,7 +171,7 @@
     "@metamask/network-controller": "^20.1.0",
     "@metamask/notification-services-controller": "^0.2.1",
     "@metamask/permission-controller": "^11.0.0",
-    "@metamask/phishing-controller": "^12.0.1",
+    "@metamask/phishing-controller": "^12.0.3",
     "@metamask/post-message-stream": "^8.0.0",
     "@metamask/ppom-validator": "0.32.0",
     "@metamask/preferences-controller": "^11.0.0",
