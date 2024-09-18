@@ -25,7 +25,7 @@ const createStyles = (colors: Theme['colors']) =>
 type ImageKeys = 'a' | 'b' | 'c' | 'd' | 'carousel';
 
 type ImagesType = {
-  [key in ImageKeys]: key extends 'carousel' ? null : ImageSourcePropType;
+  [key in ImageKeys]: ImageSourcePropType | null;
 };
 
 const images: ImagesType = {
@@ -37,7 +37,16 @@ const images: ImagesType = {
 };
 
 interface OnboardingScreenWithBgProps {
+  /**
+   * String specifying the image to be used
+   */
   screen: ImageKeys;
+
+  /**
+   * Children components of the OnboardingScreenWithBg
+   * It can be a text node, an image, or an icon
+   * or an Array with a combination of them
+   */
   children: React.ReactNode;
 }
 
