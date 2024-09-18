@@ -414,7 +414,7 @@ buildAndroidRelease(){
 		adb uninstall io.metamask || true
 	fi
 
-	# Enable Sentry to auto upload source maps and debug symbols
+	# Disable Sentry to auto upload source maps and debug symbols
 	export SENTRY_DISABLE_AUTO_UPLOAD="true"
 	prebuild_android
 
