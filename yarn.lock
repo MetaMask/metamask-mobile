@@ -4742,16 +4742,15 @@
     "@ethersproject/providers" "^5.7.2"
     async-mutex "^0.3.1"
 
-"@metamask/notification-services-controller@^0.2.1":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@metamask/notification-services-controller/-/notification-services-controller-0.2.1.tgz#aa36275d20f71297d73c33055e88bf55b33ac4d9"
-  integrity sha512-TvQAiA38a8j0r7amNQivi4itFFfuNAGrCWJUGbKqyu/rZiS2itTFLXchhazGu1H8TK3lxOx9r7C/RfRYwkuDpA==
+"@metamask/notification-services-controller@^0.7.0":
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/@metamask/notification-services-controller/-/notification-services-controller-0.7.0.tgz#1a487e3f4d6c6ca92ca277f0511525ffceffa3c8"
+  integrity sha512-04oC+uLG9F9b2vJkRt0Q8tQJg8p8ivRBYp6OpGhtkQZSJKtxJ56gHqAUMyRaYkXK83YU2aNvk4nNLUdjypgdlw==
   dependencies:
     "@contentful/rich-text-html-renderer" "^16.5.2"
-    "@metamask/base-controller" "^6.0.2"
-    "@metamask/controller-utils" "^11.0.2"
+    "@metamask/base-controller" "^7.0.1"
+    "@metamask/controller-utils" "^11.3.0"
     bignumber.js "^4.1.0"
-    contentful "^10.3.6"
     firebase "^10.11.0"
     loglevel "^1.8.1"
     uuid "^8.3.2"
@@ -4935,10 +4934,10 @@
     "@metamask/base-controller" "^5.0.2"
     "@metamask/controller-utils" "^9.1.0"
 
-"@metamask/profile-sync-controller@^0.7.0":
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-0.7.0.tgz#31a8e0ebb8025b71776725e2383b2ee0c51749ac"
-  integrity sha512-ZuOwneWE403Imq1aoTrtxvH13oqlkfl/fAYsnRdlASw0Wr2FrlySHv5aRonziFQJdYQHSxTuSvz4SZKk+AeR6g==
+"@metamask/profile-sync-controller@^0.8.0":
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-0.8.0.tgz#3892ab9c6e0884ce4945f06ab809f7bb3fddd824"
+  integrity sha512-M0cqlTcqVDk5P3uTyp4FutbWu86mhLArjnrTx7GTrnZbAG+Gsw2kFH2zlZIXlYzKYyfmV09DbkWUxiZpNdHsjQ==
   dependencies:
     "@metamask/base-controller" "^7.0.1"
     "@metamask/snaps-sdk" "^6.5.0"
@@ -14513,7 +14512,7 @@ contentful-sdk-core@^8.1.0:
     p-throttle "^4.1.1"
     qs "^6.11.2"
 
-contentful@^10.3.6, contentful@^10.8.7:
+contentful@^10.8.7:
   version "10.12.10"
   resolved "https://registry.yarnpkg.com/contentful/-/contentful-10.12.10.tgz#b9c47e64febcc87975f2486d77c7d014402a437c"
   integrity sha512-YVc+aCvehjsJI8K/IglbLjEAl/fiyUzorCFrgR60R4v44VMa4wmFJTrY48x+YQ7DPKZw5MzFk1wgeG74fxCN2g==
