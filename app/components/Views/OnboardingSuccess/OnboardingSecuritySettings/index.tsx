@@ -1,11 +1,10 @@
-// packages
+// Third party dependencies
 import React, { useCallback, useLayoutEffect } from 'react';
 import { ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useStyles } from '../../../../component-library/hooks';
 
-// internal
-import NetworkDetailsCheckSettings from '../../Settings/NetworkDetailsCheckSettings';
+// External dependencies
+import { useStyles } from '../../../../component-library/hooks';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
@@ -14,6 +13,9 @@ import Icon, {
   IconName,
 } from '../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../locales/i18n';
+
+// Internal dependencies
+import NetworkDetailsCheckSettings from '../../Settings/NetworkDetailsCheckSettings';
 import styleSheet from './index.styles';
 
 const SecuritySettings = () => {

@@ -1,22 +1,24 @@
-// external packages
+// Third party dependencies
 import React from 'react';
 import { View, Switch } from 'react-native';
 import { useSelector } from 'react-redux';
 
-// internal packages
+// External dependencies
 import { useTheme } from '../../../../util/theme';
 import { useStyles } from '../../../../component-library/hooks';
 import { selectUseSafeChainsListValidation } from '../../../../selectors/preferencesController';
 import { strings } from '../../../../../locales/i18n';
-import {
-  USE_SAFE_CHAINS_LIST_VALIDATION,
-  DISPLAY_SAFE_CHAINS_LIST_VALIDATION,
-} from './index.constants';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { toggleUseSafeChainsListValidation } from '../../../../util/networks';
+
+// Internal dependencies
+import {
+  USE_SAFE_CHAINS_LIST_VALIDATION,
+  DISPLAY_SAFE_CHAINS_LIST_VALIDATION,
+} from './index.constants';
 import styleSheet from './index.styles';
 
 const NetworkDetailsCheckSettings = () => {

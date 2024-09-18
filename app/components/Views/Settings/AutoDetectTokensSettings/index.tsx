@@ -1,9 +1,9 @@
-// external packages
+// Third party dependencies
 import React, { useCallback } from 'react';
 import { View, Switch } from 'react-native';
 import { useSelector } from 'react-redux';
 
-// internal packages
+// External dependencies
 import { useStyles } from '../../../../component-library/hooks';
 import Engine from '../../../../core/Engine';
 import { selectUseTokenDetection } from '../../../../selectors/preferencesController';
@@ -13,6 +13,8 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
+
+// Internal dependencies
 import styleSheet from './index.styles';
 import { TOKEN_DETECTION_TOGGLE } from './index.constants';
 

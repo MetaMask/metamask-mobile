@@ -1,11 +1,16 @@
+// Third party dependencies
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import DefaultSettings from './';
-import { strings } from '../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
+
+// External dependencies
+import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { Linking } from 'react-native';
 import AppConstants from '../../../../core/AppConstants';
+
+// Internal dependencies
+import DefaultSettings from './';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),

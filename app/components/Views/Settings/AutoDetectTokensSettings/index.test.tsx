@@ -1,10 +1,14 @@
+// Third party dependencies
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
+// External dependencies
 import Engine from '../../../../core/Engine';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import AssetSettings from '.';
 import { backgroundState } from '../../../../util/test/initial-root-state';
+
+// Internal dependencies
+import AssetSettings from '.';
 import { TOKEN_DETECTION_TOGGLE } from './index.constants';
 
 let mockSetUseTokenDetection: jest.Mock;

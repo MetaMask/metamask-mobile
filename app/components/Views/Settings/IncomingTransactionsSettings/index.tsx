@@ -1,18 +1,10 @@
-// external packages
+// Third party dependencies
 import React from 'react';
 import { View, Switch } from 'react-native';
 import { useSelector } from 'react-redux';
-import images from 'images/image-icons';
 
-// internal packages
-import { EtherscanSupportedHexChainId } from '@metamask/preferences-controller';
-import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller';
+// External dependencies
 import Engine from '../../../../core/Engine';
-import {
-  selectShowTestNetworks,
-  selectShowIncomingTransactionNetworks,
-} from '../../../../selectors/preferencesController';
-import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { useTheme } from '../../../../util/theme';
 import { useStyles } from '../../../../component-library/hooks';
 import { strings } from '../../../../../locales/i18n';
@@ -20,19 +12,29 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import styleSheet from './index.styles';
-import {
-  INCOMING_TRANSACTIONS,
-  INCOMING_LINEA_MAINNET_TOGGLE,
-  INCOMING_MAINNET_TOGGLE,
-} from './index.constants';
-import Cell from '../../../..//component-library/components/Cells/Cell/Cell';
+import Cell from '../../../../component-library/components/Cells/Cell/Cell';
 import { CellVariant } from '../../../../component-library/components/Cells/Cell';
 import { AvatarVariant } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import Networks, {
   getAllNetworks,
   getNetworkImageSource,
 } from '../../../../util/networks';
+import {
+  selectShowTestNetworks,
+  selectShowIncomingTransactionNetworks,
+} from '../../../../selectors/preferencesController';
+import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import { EtherscanSupportedHexChainId } from '@metamask/preferences-controller';
+import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller';
+import images from 'images/image-icons';
+
+// Internal dependencies
+import styleSheet from './index.styles';
+import {
+  INCOMING_TRANSACTIONS,
+  INCOMING_LINEA_MAINNET_TOGGLE,
+  INCOMING_MAINNET_TOGGLE,
+} from './index.constants';
 import { NetworksI } from './index.types';
 
 const IncomingTransactionsSettings = () => {

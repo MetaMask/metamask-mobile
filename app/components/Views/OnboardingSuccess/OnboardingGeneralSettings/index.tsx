@@ -1,5 +1,10 @@
+// Third party dependencies
 import React, { useCallback, useLayoutEffect } from 'react';
 import { ScrollView, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+
+// External dependencies
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
@@ -7,19 +12,19 @@ import Icon, {
   IconSize,
   IconName,
 } from '../../../../component-library/components/Icons/Icon';
-import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
 import ManageNetworksComponent from '../../../UI/ManageNetworks/ManageNetworks';
 import { useStyles } from '../../../../component-library/hooks';
-import styleSheet from './index.styles';
 import ProfileSyncingComponent from '../../../UI/ProfileSyncing/ProfileSyncing';
-import { useSelector } from 'react-redux';
 import { selectIsProfileSyncingEnabled } from '../../../../selectors/notifications';
 import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
 import { enableProfileSyncing } from '../../../../actions/notification/helpers';
 import { RootState } from '../../../../reducers';
+
+// Internal dependencies
+import styleSheet from './index.styles';
 
 const GeneralSettings = () => {
   const { styles } = useStyles(styleSheet, {});

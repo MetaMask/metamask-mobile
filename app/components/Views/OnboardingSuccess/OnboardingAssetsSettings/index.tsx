@@ -1,9 +1,9 @@
-// external dependencies
+// Third party dependencies
 import React, { useCallback, useLayoutEffect } from 'react';
 import { ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-// internal dependencies
+// External dependencies
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
@@ -13,13 +13,15 @@ import Icon, {
 } from '../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
-import styleSheet from './index.styles';
 import AutoDetectTokensSettings from '../../Settings/AutoDetectTokensSettings';
 import DisplayNFTMediaSettings from '../../Settings/DisplayNFTMediaSettings';
 import AutoDetectNFTSettings from '../../Settings/AutoDetectNFTSettings';
 import IPFSGatewaySettings from '../../Settings/IPFSGatewaySettings';
 import IncomingTransactionsSettings from '../../Settings/IncomingTransactionsSettings';
 import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSettings';
+
+// Internal dependencies
+import styleSheet from './index.styles';
 
 const AssetSettings = () => {
   const { styles } = useStyles(styleSheet, {});

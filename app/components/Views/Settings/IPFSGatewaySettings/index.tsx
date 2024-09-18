@@ -1,9 +1,9 @@
-// external packages
+// Third party dependencies
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Switch, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 
-// internal packages
+// External dependencies
 import Engine from '../../../../core/Engine';
 import { useStyles } from '../../../../component-library/hooks';
 import {
@@ -16,6 +16,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
+import ipfsGateways from '../../../../util/ipfs-gateways.json';
+import { timeoutFetch } from '../../../../util/general';
+import SelectComponent from '../../../UI/SelectComponent';
+
+// Internal dependencies
 import styleSheet from './index.styles';
 import {
   IPFS_GATEWAY_SECTION,
@@ -23,10 +28,7 @@ import {
   HASH_STRING,
   IPFS_GATEWAY_SELECTED,
 } from './index.constants';
-import ipfsGateways from '../../../../util/ipfs-gateways.json';
 import { Gateway } from './index.types';
-import { timeoutFetch } from '../../../../util/general';
-import SelectComponent from '../../../UI/SelectComponent';
 
 const IPFSGatewaySettings = () => {
   const theme = useTheme();

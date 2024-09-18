@@ -1,16 +1,21 @@
+// Third party dependencies
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import NetworkDetailsCheckSettings from '.';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+
+// External dependencies
+import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { selectUseSafeChainsListValidation } from '../../../../selectors/preferencesController';
+import { strings } from '../../../../../locales/i18n';
+import { toggleUseSafeChainsListValidation } from '../../../../util/networks';
+
+// Internal dependencies
+import NetworkDetailsCheckSettings from '.';
 import {
   USE_SAFE_CHAINS_LIST_VALIDATION,
   DISPLAY_SAFE_CHAINS_LIST_VALIDATION,
 } from './index.constants';
-import { strings } from '../../../../../locales/i18n';
-import { toggleUseSafeChainsListValidation } from '../../../../util/networks';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),

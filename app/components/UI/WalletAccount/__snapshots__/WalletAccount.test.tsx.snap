@@ -18,8 +18,8 @@ exports[`WalletAccount renders correctly 1`] = `
         "alignItems": "center",
         "backgroundColor": "#ffffff",
         "borderColor": "#bbc0c5",
-        "borderRadius": 4,
-        "borderWidth": 1,
+        "borderRadius": 8,
+        "borderWidth": 0,
         "flexDirection": "row",
         "padding": 16,
       }

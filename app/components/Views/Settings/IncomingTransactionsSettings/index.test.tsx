@@ -1,15 +1,19 @@
+// Third party dependencies
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
+// External dependencies
 import Engine from '../../../../core/Engine';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import IncomingTransactionsSettings from './';
 import { backgroundState } from '../../../../util/test/initial-root-state';
+import Networks from '../../../../util/networks';
+
+// Internal dependencies
+import IncomingTransactionsSettings from './';
 import {
   INCOMING_MAINNET_TOGGLE,
   INCOMING_LINEA_MAINNET_TOGGLE,
 } from './index.constants';
-import Networks from '../../../../util/networks';
 
 let mockSetEnableNetworkIncomingTransactions: jest.Mock;
 

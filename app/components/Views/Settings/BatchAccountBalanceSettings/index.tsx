@@ -1,22 +1,26 @@
+// Third party dependencies
 import React from 'react';
 import { View, Switch, Platform } from 'react-native';
 import { useSelector } from 'react-redux';
 
+// External dependencies
 import Engine from '../../../../core/Engine';
 import { selectIsMultiAccountBalancesEnabled } from '../../../../selectors/preferencesController';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import { useStyles } from '../../../../component-library/hooks';
-import styleSheet from './index.styles';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+
+// Internal dependencies
+import styleSheet from './index.styles';
 import {
   BATCH_BALANCE_REQUESTS_SECTION,
   SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
 } from './index.constants';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const BatchAccountBalanceSettings = () => {
   const theme = useTheme();

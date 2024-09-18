@@ -1,5 +1,9 @@
+// Third party dependencies
 import React, { useCallback, useLayoutEffect } from 'react';
 import { ScrollView, TouchableOpacity, Linking } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+
+// External dependencies
 import Text, {
   TextVariant,
   TextColor,
@@ -8,10 +12,11 @@ import Icon, {
   IconSize,
   IconName,
 } from '../../../../component-library/components/Icons/Icon';
-import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
+
+// Internal dependencies
 import styles from './index.styles';
 import SettingsDrawer from '../../../UI/SettingsDrawer';
 

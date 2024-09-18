@@ -1,9 +1,9 @@
-// external packages
+// Third party dependencies
 import React, { useCallback } from 'react';
 import { View, Switch } from 'react-native';
 import { useSelector } from 'react-redux';
 
-// internal packages
+// External dependencies
 import Engine from '../../../../core/Engine';
 import { selectUseNftDetection } from '../../../../selectors/preferencesController';
 import { useTheme } from '../../../../util/theme';
@@ -13,9 +13,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
+import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+
+// Internal dependencies
 import createStyles from './index.styles';
 import { NFT_AUTO_DETECT_MODE_SECTION } from './index.constants';
-import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 const AutoDetectNFTSettings = () => {
   const { trackEvent, addTraitsToUser } = useMetrics();

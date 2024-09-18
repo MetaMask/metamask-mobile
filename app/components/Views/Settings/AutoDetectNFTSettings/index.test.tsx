@@ -1,11 +1,15 @@
+// Third party dependencies
 import React from 'react';
-import { useNavigation } from '@react-navigation/native';
 import { fireEvent } from '@testing-library/react-native';
+import { useNavigation } from '@react-navigation/native';
 
+// External dependencies
 import Engine from '../../../../core/Engine';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import AutoDetectNFTSettings from './index';
 import { backgroundState } from '../../../../util/test/initial-root-state';
+
+// Internal dependencies
+import AutoDetectNFTSettings from './index';
 import { NFT_AUTO_DETECT_MODE_SECTION } from './index.constants';
 
 let mockSetDisplayNftMedia: jest.Mock;

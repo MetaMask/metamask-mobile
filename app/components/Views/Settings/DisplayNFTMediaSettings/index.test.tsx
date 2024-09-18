@@ -1,10 +1,14 @@
+// Third party dependencies
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
+// External dependencies
 import Engine from '../../../../core/Engine';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import DisplayNFTMediaSettings from '.';
 import { backgroundState } from '../../../../util/test/initial-root-state';
+
+// Internal dependencies
+import DisplayNFTMediaSettings from '.';
 import { NFT_DISPLAY_MEDIA_MODE_SECTION } from './index.constants';
 
 let mockSetDisplayNftMedia: jest.Mock;

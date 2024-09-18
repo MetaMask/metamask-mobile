@@ -1,9 +1,13 @@
+// Third party dependencies
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 
+// External dependencies
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import OnboardingAssetSettings from '.';
 import { backgroundState } from '../../../../util/test/initial-root-state';
+
+// Internal dependencies
+import OnboardingAssetSettings from '.';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
