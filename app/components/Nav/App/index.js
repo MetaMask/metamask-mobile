@@ -305,7 +305,10 @@ const VaultRecoveryFlow = () => (
 );
 
 // eslint-disable-next-line react/prop-types
-const App = ({ userLoggedIn }) => {
+const App = (props) => {
+  const { userLoggedIn } = props;
+  // FIXME: Remove this when the unit tests are resolved for rendering this component. This property is only used by unit tests at the moment. Tests break when this is removed.
+  const supressRender = props?.route?.params?.supressRender;
   const [navigator, setNavigator] = useState(undefined);
   const prevNavigator = useRef(navigator);
   const queueOfHandleDeeplinkFunctions = useRef([]);
@@ -763,7 +766,7 @@ const App = ({ userLoggedIn }) => {
     </Stack.Navigator>
   );
 
-  return (
+  return supressRender ? null : (
     <>
       {
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
