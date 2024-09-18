@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, StyleProp, ViewStyle, ViewProps } from 'react-native';
+import { View, StyleSheet, ViewStyle, ViewProps } from 'react-native';
 import { useTheme } from '../../util/theme';
 import type { Theme as DesignTokenTheme } from '@metamask/design-tokens';
 
@@ -35,27 +35,38 @@ const createStyles = (colors: DesignTokenTheme['colors']) =>
     },
   });
 
-const useGetStyles = (): ReturnType<typeof createStyles> => {
+const useGetStyles = () => {
   const { colors } = useTheme();
   return createStyles(colors);
 };
 
-type SummaryProps<T extends ViewProps = ViewProps> = T & {
-  style?: StyleProp<ViewStyle>;
-};
+interface SummaryProps {
+  style?: ViewStyle | ViewStyle[];
+}
 
-const Summary = <T extends ViewProps = ViewProps>({ style, ...props }: SummaryProps<T>) => {
+interface SummaryRowProps extends SummaryProps {
+  end?: boolean;
+  last?: boolean;
+}
+
+interface SummaryColProps extends SummaryProps {
+  end?: boolean;
+}
+
+interface SummarySeparatorProps extends SummaryProps {}
+
+interface SummaryComponent extends React.FC<SummaryProps> {
+  Row: React.FC<SummaryRowProps>;
+  Col: React.FC<SummaryColProps>;
+  Separator: React.FC<SummarySeparatorProps>;
+}
+
+const Summary: SummaryComponent = ({ style, ...props }) => {
   const styles = useGetStyles();
   return <View style={[styles.wrapper, style]} {...props} />;
 };
 
-type SummaryRowProps<T extends ViewProps = ViewProps> = T & {
-  style?: StyleProp<ViewStyle>;
-  end?: boolean;
-  last?: boolean;
-};
-
-const SummaryRow = <T extends ViewProps = ViewProps>({ style, end, last, ...props }: SummaryRowProps<T>) => {
+const SummaryRow: React.FC<SummaryRowProps> = ({ style, end, last, ...props }) => {
   const styles = useGetStyles();
   return (
     <View
@@ -65,35 +76,18 @@ const SummaryRow = <T extends ViewProps = ViewProps>({ style, end, last, ...prop
   );
 };
 
-type SummaryColProps<T extends ViewProps = ViewProps> = T & {
-  style?: StyleProp<ViewStyle>;
-  end?: boolean;
-};
-
-const SummaryCol = <T extends ViewProps = ViewProps>({ style, end, ...props }: SummaryColProps<T>) => {
+const SummaryCol: React.FC<SummaryColProps> = ({ style, end, ...props }) => {
   const styles = useGetStyles();
   return <View style={[styles.col, end && styles.rowEnd, style]} {...props} />;
 };
 
-type SummarySeparatorProps<T extends ViewProps = ViewProps> = T & {
-  style?: StyleProp<ViewStyle>;
-};
-
-const SummarySeparator = <T extends ViewProps = ViewProps>({ style, ...props }: SummarySeparatorProps<T>) => {
+const SummarySeparator: React.FC<SummarySeparatorProps> = ({ style, ...props }) => {
   const styles = useGetStyles();
   return <View style={[styles.separator, style]} {...props} />;
 };
 
-type SummaryComponent = typeof Summary & {
-  Row: typeof SummaryRow;
-  Col: typeof SummaryCol;
-  Separator: typeof SummarySeparator;
-};
+Summary.Row = SummaryRow;
+Summary.Col = SummaryCol;
+Summary.Separator = SummarySeparator;
 
-const SummaryWithComponents = Summary as SummaryComponent;
-
-SummaryWithComponents.Row = SummaryRow;
-SummaryWithComponents.Col = SummaryCol;
-SummaryWithComponents.Separator = SummarySeparator;
-
-export default SummaryWithComponents;
+export default Summary;
