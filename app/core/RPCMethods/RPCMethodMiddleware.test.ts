@@ -12,7 +12,6 @@ import Engine from '../Engine';
 import { store } from '../../store';
 import { getPermittedAccounts } from '../Permissions';
 import { getRpcMethodMiddleware } from './RPCMethodMiddleware';
-import AppConstants from '../AppConstants';
 import {
   PermissionConstraint,
   PermissionController,
@@ -47,7 +46,6 @@ jest.mock('../Engine', () => ({
       state: {},
     },
     SignatureController: {
-      newUnsignedMessage: jest.fn(),
       newUnsignedPersonalMessage: jest.fn(),
       newUnsignedTypedMessage: jest.fn(),
     },
@@ -366,7 +364,6 @@ describe('getRpcMethodMiddleware', () => {
       options: {},
       methods: [
         EthMethod.PersonalSign,
-        EthMethod.Sign,
         EthMethod.SignTransaction,
         EthMethod.SignTypedDataV1,
         EthMethod.SignTypedDataV3,
@@ -1224,72 +1221,6 @@ describe('getRpcMethodMiddleware', () => {
 
       expect((response as JsonRpcFailure).error).toBeUndefined();
       expect((response as JsonRpcSuccess<string>).result).toBeNull();
-    });
-  });
-
-  describe('eth_sign', () => {
-    async function sendRequest({ data = dataMock } = {}) {
-      const { middleware } = setupSignature();
-
-      const request = {
-        jsonrpc,
-        id: 1,
-        method: 'eth_sign',
-        params: [addressMock, data],
-      };
-
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return (await callMiddleware({ middleware, request })) as any;
-    }
-
-    beforeEach(() => {
-      Engine.context.PreferencesController.state.disabledRpcMethodPreferences =
-        { eth_sign: true };
-    });
-
-    it('creates unsigned message', async () => {
-      await sendRequest();
-
-      expect(
-        Engine.context.SignatureController.newUnsignedMessage,
-      ).toHaveBeenCalledTimes(1);
-      expect(
-        Engine.context.SignatureController.newUnsignedMessage,
-      ).toHaveBeenCalledWith({
-        data: dataMock,
-        from: addressMock,
-        meta: expect.any(Object),
-        origin: hostMock,
-      });
-    });
-
-    it('returns resolved value from message promise', async () => {
-      MockEngine.context.SignatureController.newUnsignedMessage.mockResolvedValue(
-        signatureMock,
-      );
-
-      const response = await sendRequest();
-
-      expect(response.error).toBeUndefined();
-      expect(response.result).toBe(signatureMock);
-    });
-
-    it('returns error if eth_sign disabled in preferences', async () => {
-      Engine.context.PreferencesController.state.disabledRpcMethodPreferences =
-        { eth_sign: false };
-
-      const response = await sendRequest();
-
-      expect(response.error.message).toBe(
-        'eth_sign has been disabled. You must enable it in the advanced settings',
-      );
-    });
-
-    it('returns error if data is wrong length', async () => {
-      const response = await sendRequest({ data: '0x1' });
-
-      expect(response.error.message).toBe(AppConstants.ETH_SIGN_ERROR);
     });
   });
 
