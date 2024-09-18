@@ -376,7 +376,6 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
       <BlockingActionModal
         modalVisible={blockingModalVisible}
         isLoadingAction
-        onAnimationCompleted={() => undefined}
       >
         <Text style={styles.text}>{strings('common.please_wait')}</Text>
       </BlockingActionModal>
