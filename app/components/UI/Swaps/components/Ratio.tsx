@@ -4,10 +4,10 @@ import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import { useRatio } from '../utils';
 import Text from '../../../Base/Text';
 import { useTheme } from '../../../../util/theme';
-import { Theme } from '../../../../util/theme/models';
 import BigNumber from 'bignumber.js';
+import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
 
-const createStyles = (colors: Theme['colors']) =>
+const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     infoIcon: {
       fontSize: 12,
