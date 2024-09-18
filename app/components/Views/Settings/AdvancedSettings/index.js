@@ -22,7 +22,6 @@ import Device from '../../../../util/device';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
 import { selectChainId } from '../../../../selectors/networkController';
 import {
-  selectDisabledRpcMethodPreferences,
   selectSmartTransactionsOptInStatus,
   selectUseTokenDetection,
 } from '../../../../selectors/preferencesController';
@@ -40,10 +39,6 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
-import Banner, {
-  BannerAlertSeverity,
-  BannerVariant,
-} from '../../../../component-library/components/Banners/Banner';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import { wipeTransactions } from '../../../../util/transaction-controller';
 import AppConstants from '../../../../../app/core/AppConstants';
@@ -151,10 +146,6 @@ class AdvancedSettings extends PureComponent {
      */
     showHexData: PropTypes.bool,
     /**
-     * Allow dapp api requests to eth_sign
-     */
-    enableEthSign: PropTypes.bool,
-    /**
      * Called to toggle show hex data
      */
     setShowHexData: PropTypes.func,
@@ -259,23 +250,6 @@ class AdvancedSettings extends PureComponent {
     downloadStateLogs(fullState);
   };
 
-  onEthSignSettingChangeAttempt = (enabled) => {
-    if (enabled) {
-      // Navigate to the bottomsheet friction flow
-      const { navigation } = this.props;
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.ETH_SIGN_FRICTION,
-      });
-    } else {
-      // Disable eth_sign directly without friction
-      const { PreferencesController } = Engine.context;
-      PreferencesController.setDisabledRpcMethodPreference('eth_sign', false);
-      this.props.metrics.trackEvent(
-        MetaMetricsEvents.SETTINGS_ADVANCED_ETH_SIGN_DISABLED,
-      );
-    }
-  };
-
   toggleTokenDetection = (detectionStatus) => {
     const { PreferencesController } = Engine.context;
     PreferencesController.setUseTokenDetection(detectionStatus);
@@ -305,7 +279,6 @@ class AdvancedSettings extends PureComponent {
       setShowHexData,
       setShowCustomNonce,
       setShowFiatOnTestnets,
-      enableEthSign,
       smartTransactionsOptInStatus,
     } = this.props;
     const { resetModalVisible } = this.state;
@@ -431,58 +404,6 @@ class AdvancedSettings extends PureComponent {
             <View style={styles.setting}>
               <View style={styles.titleContainer}>
                 <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-                  {strings('app_settings.enable_eth_sign')}
-                </Text>
-                <View style={styles.toggle}>
-                  <Text
-                    variant={TextVariant.BodySM}
-                    onPress={() =>
-                      this.onEthSignSettingChangeAttempt(!enableEthSign)
-                    }
-                    style={styles.toggleDesc}
-                  >
-                    {strings(
-                      enableEthSign
-                        ? 'app_settings.toggleEthSignOn'
-                        : 'app_settings.toggleEthSignOff',
-                    )}
-                  </Text>
-                  <Switch
-                    value={enableEthSign}
-                    onValueChange={this.onEthSignSettingChangeAttempt}
-                    trackColor={{
-                      true: colors.primary.default,
-                      false: colors.border.muted,
-                    }}
-                    thumbColor={theme.brandColors.white}
-                    style={styles.switch}
-                    ios_backgroundColor={colors.border.muted}
-                    accessibilityRole={'switch'}
-                    accessibilityLabel={strings('app_settings.enable_eth_sign')}
-                    testID={AdvancedViewSelectorsIDs.ETH_SIGN_SWITCH}
-                  />
-                </View>
-              </View>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.desc}
-              >
-                {strings('app_settings.enable_eth_sign_desc')}
-              </Text>
-              {enableEthSign && (
-                // display warning if eth_sign is enabled
-                <Banner
-                  variant={BannerVariant.Alert}
-                  severity={BannerAlertSeverity.Error}
-                  description={strings('app_settings.enable_eth_sign_warning')}
-                  style={styles.accessory}
-                />
-              )}
-            </View>
-            <View style={styles.setting}>
-              <View style={styles.titleContainer}>
-                <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
                   {strings('app_settings.show_custom_nonce')}
                 </Text>
                 <View style={styles.toggle}>
@@ -580,7 +501,6 @@ const mapStateToProps = (state) => ({
   showHexData: state.settings.showHexData,
   showCustomNonce: state.settings.showCustomNonce,
   showFiatOnTestnets: state.settings.showFiatOnTestnets,
-  enableEthSign: selectDisabledRpcMethodPreferences(state).eth_sign,
   fullState: state,
   isTokenDetectionEnabled: selectUseTokenDetection(state),
   chainId: selectChainId(state),
