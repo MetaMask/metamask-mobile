@@ -1213,6 +1213,8 @@ class Engine {
             smartTransactionsController: this.smartTransactionsController,
             shouldUseSmartTransaction,
             approvalController,
+            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
+            controllerMessenger: this.controllerMessenger,
             featureFlags: selectSwapsChainFeatureFlags(store.getState()),
           }) as Promise<{ transactionHash: string }>;
         },
