@@ -371,7 +371,7 @@ function NetworkSwitcher() {
                   isNetworkModalVisible={Boolean(networkToBeAdded)}
                   closeNetworkModal={handleNetworkModalClose}
                   showNetworkModal={handleNetworkPress}
-                  onNetworkSwitch={() => console.log('TODO HERE ....')}
+                  onNetworkSwitch={() => undefined}
                   shouldNetworkSwitchPopToWallet={false}
                   customNetworksList={rampNetworksDetails}
                   showCompletionMessage={false}

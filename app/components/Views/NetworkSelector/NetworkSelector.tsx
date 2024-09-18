@@ -711,8 +711,6 @@ const NetworkSelector = () => {
       ([chainId]) => chainId === networkId,
     );
 
-    console.log('entry ----', entry);
-
     if (!entry) {
       throw new Error(`Unable to find network with chain id ${networkId}`);
     }
@@ -730,10 +728,8 @@ const NetworkSelector = () => {
   };
 
   const confirmRemoveRpc = () => {
-    console.log('HERE ***********', showConfirmDeleteModal);
     if (showConfirmDeleteModal.chainId) {
       const { chainId } = showConfirmDeleteModal;
-      console.log('HERE ***********', showConfirmDeleteModal, chainId);
       const { NetworkController } = Engine.context;
       NetworkController.removeNetwork(chainId);
 
