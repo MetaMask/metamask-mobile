@@ -214,7 +214,7 @@ export default {
     'config-api.metamask.io/featureFlags',
   ],
   FEATURE_FLAGS_API: {
-    BASE_URL: 'https://client-config.dev-api.cx.metamask.io',
+    BASE_URL: 'https://client-config.api.cx.metamask.io/',
     VERSION: 'v1',
   },
 } as const;
