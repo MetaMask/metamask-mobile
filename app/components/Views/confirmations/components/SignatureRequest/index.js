@@ -129,10 +129,6 @@ const createStyles = (colors) =>
 class SignatureRequest extends PureComponent {
   static propTypes = {
     /**
-     * Object representing the navigator
-     */
-    navigation: PropTypes.object,
-    /**
      * Callback triggered when this message signature is rejected
      */
     onReject: PropTypes.func,
