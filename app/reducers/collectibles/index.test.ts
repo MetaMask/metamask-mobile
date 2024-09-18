@@ -3,6 +3,7 @@ import reducer, {
   ADD_FAVORITE_COLLECTIBLE,
   REMOVE_FAVORITE_COLLECTIBLE,
 } from './index';
+import mockedEngine from '../../core/__mocks__/MockedEngine';
 
 const emptyAction = { type: null };
 
@@ -12,6 +13,22 @@ const collectibleB1 = { tokenId: '101', address: '0xB' };
 const collectibleB2 = { tokenId: '102', address: '0xB' };
 const selectedAddressA = '0x0A';
 const selectedAddressB = '0x0B';
+
+jest.mock('../../core/Engine', () => ({
+  init: () => mockedEngine.init(),
+  context: {
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+    },
+  },
+}));
 
 describe('collectibles reducer', () => {
   it('should add favorite', () => {
