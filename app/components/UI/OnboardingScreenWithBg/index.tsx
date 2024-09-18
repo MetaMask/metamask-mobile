@@ -1,9 +1,9 @@
 import React from 'react';
 import { StyleSheet, ImageBackground, View, ImageSourcePropType } from 'react-native';
 import { useTheme } from '../../../util/theme';
-import { Theme } from '../../../util/theme/models';
+import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
 
-const createStyles = (colors: Theme['colors']) =>
+const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     flex: {
       flex: 1,
@@ -51,7 +51,7 @@ interface OnboardingScreenWithBgProps {
 }
 
 const OnboardingScreenWithBg: React.FC<OnboardingScreenWithBgProps> = ({ screen, children }) => {
-  const { colors }: Theme = useTheme();
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const backgroundImage = images[screen];
