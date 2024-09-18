@@ -373,10 +373,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
         onScanError={onScanError}
         hideModal={hideScanner}
       />
-      <BlockingActionModal
-        modalVisible={blockingModalVisible}
-        isLoadingAction
-      >
+      <BlockingActionModal modalVisible={blockingModalVisible} isLoadingAction>
         <Text style={styles.text}>{strings('common.please_wait')}</Text>
       </BlockingActionModal>
     </Fragment>
