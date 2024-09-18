@@ -11,7 +11,7 @@ const initialState: { step: number } = {
 const onboardingWizardReducer = (
   action: OnboardingWizardAction,
   state = initialState
-): { step: number } => { //DEVIN_TODO: Confirm if this return type is correct
+): { step: number } => {
   switch (action.type) {
     case REHYDRATE:
       return {
