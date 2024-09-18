@@ -7,7 +7,6 @@ import React, {
 } from 'react';
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
 import {
-  ActivityIndicator,
   Linking,
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   View,
@@ -125,7 +124,7 @@ import TooltipModal from '../../../components/Views/TooltipModal';
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
-import Text from '../../../component-library/components/Texts/Text';
+import FoxLoader from '../../../components/UI/FoxLoader';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -338,9 +337,6 @@ const App = ({ userLoggedIn }) => {
           navigator.reset({ routes: [{ name: Routes.ONBOARDING.ROOT_NAV }] });
         }
       } catch (error) {
-        if (existingUser) {
-          navigator.reset({ routes: [{ name: Routes.ONBOARDING.LOGIN }] });
-        }
         // if there are no credentials, then they were cleared in the last session and we should not show biometrics on the login screen
         if (
           error.message === AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS
@@ -799,7 +795,7 @@ const App = ({ userLoggedIn }) => {
         }}
       >
         <Stack.Navigator
-          initialRouteName={'loading'}
+          initialRouteName={Routes.FOX_LOADER}
           mode={'modal'}
           screenOptions={{
             headerShown: false,
@@ -807,22 +803,7 @@ const App = ({ userLoggedIn }) => {
             animationEnabled: false,
           }}
         >
-          <Stack.Screen
-            name="loading"
-            component={() => (
-              <View
-                style={{
-                  backgroundColor: colors.background.default,
-                  flex: 1,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
-              >
-                <ActivityIndicator size="Medium" color={'orange'} />
-                <Text>Loading</Text>
-              </View>
-            )}
-          />
+          <Stack.Screen name={Routes.FOX_LOADER} component={FoxLoader} />
           <Stack.Screen
             name={Routes.ONBOARDING.LOGIN}
             component={Login}

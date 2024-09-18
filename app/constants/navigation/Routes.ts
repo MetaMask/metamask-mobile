@@ -146,6 +146,7 @@ const Routes = {
     SNAP_SETTINGS: 'SnapSettings',
   },
   ///: END:ONLY_INCLUDE_IF
+  FOX_LOADER: 'FoxLoader',
 };
 
 export default Routes;
