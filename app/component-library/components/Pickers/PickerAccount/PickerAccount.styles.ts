@@ -24,6 +24,7 @@ const styleSheet = (params: {
   const { colors } = theme;
   const { style, cellAccountContainerStyle } = vars;
   return StyleSheet.create({
+    base: Object.assign({} as ViewStyle, style) as ViewStyle,
     accountAvatar: {
       marginRight: 16,
     },
