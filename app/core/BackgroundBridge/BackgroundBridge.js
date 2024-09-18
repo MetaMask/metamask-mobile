@@ -70,7 +70,10 @@ export class BackgroundBridge extends EventEmitter {
     super();
     this.url = url;
     // TODO - When WalletConnect and MMSDK uses the Permission System, URL does not apply in all conditions anymore since hosts may not originate from web. This will need to change!
-    this.hostname = new URL(url).hostname;
+    // TODO: remove hostname and urlObj
+    const urlObj = new URL(url);
+    this.hostname = urlObj.hostname;
+    this.origin = urlObj.origin;
     this.remoteConnHost = remoteConnHost;
     this.isMainFrame = isMainFrame;
     this.isWalletConnect = isWalletConnect;
@@ -394,7 +397,8 @@ export class BackgroundBridge extends EventEmitter {
    * A method for creating a provider that is safely restricted for the requesting domain.
    **/
   setupProviderEngine() {
-    const origin = this.hostname;
+    // const origin = this.hostname;
+    const origin = this.origin;
     // setup json rpc engine stack
     const engine = new JsonRpcEngine();
 
