@@ -1595,24 +1595,68 @@ export class NetworkSettings extends PureComponent {
       return null;
     };
 
-    const renderButtons = () => (
-      <View style={styles.buttonsWrapper}>
-        {
-          <View style={styles.buttonsContainer}>
-            <Button
-              size={ButtonSize.Lg}
-              variant={ButtonVariants.Primary}
-              onPress={this.toggleNetworkDetailsModal}
-              testID={NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON}
-              style={styles.button}
-              label={strings('app_settings.network_save')}
-              isDisabled={isActionDisabled}
-              width={ButtonWidthTypes.Full}
-            />
+    const renderButtons = () => {
+      if (isNetworkUiRedesignEnabled()) {
+        return (
+          <View style={styles.buttonsWrapper}>
+            <View style={styles.buttonsContainer}>
+              <Button
+                size={ButtonSize.Lg}
+                variant={ButtonVariants.Primary}
+                onPress={this.toggleNetworkDetailsModal}
+                testID={NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON}
+                style={styles.button}
+                label={strings('app_settings.network_save')}
+                isDisabled={isActionDisabled}
+                width={ButtonWidthTypes.Full}
+              />
+            </View>
           </View>
-        }
-      </View>
-    );
+        );
+      }
+      if (addMode || editable) {
+        return (
+          <View style={styles.buttonsWrapper}>
+            {editable ? (
+              <View style={styles.editableButtonsContainer}>
+                <Button
+                  size={ButtonSize.Lg}
+                  variant={ButtonVariants.Secondary}
+                  isDanger
+                  onPress={this.removeRpcUrl}
+                  testID={NetworksViewSelectorsIDs.REMOVE_NETWORK_BUTTON}
+                  style={{ ...styles.button, ...styles.cancel }}
+                  label={strings('app_settings.delete')}
+                />
+                <Button
+                  size={ButtonSize.Lg}
+                  variant={ButtonVariants.Primary}
+                  onPress={this.addRpcUrl}
+                  testID={NetworksViewSelectorsIDs.ADD_NETWORKS_BUTTON}
+                  style={styles.button}
+                  label={strings('app_settings.network_save')}
+                  isDisabled={isActionDisabled}
+                />
+              </View>
+            ) : (
+              <View style={styles.buttonsContainer}>
+                <Button
+                  size={ButtonSize.Lg}
+                  variant={ButtonVariants.Primary}
+                  onPress={this.toggleNetworkDetailsModal}
+                  testID={NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON}
+                  style={styles.button}
+                  label={strings('app_settings.network_add')}
+                  isDisabled={isActionDisabled}
+                  width={ButtonWidthTypes.Full}
+                />
+              </View>
+            )}
+          </View>
+        );
+      }
+      return null;
+    };
 
     return this.state.showNetworkDetailsModal ? (
       <CustomNetwork
