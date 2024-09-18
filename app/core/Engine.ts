@@ -1792,7 +1792,7 @@ class Engine {
     await this._handleTransactionFinalizedEvent(transactionEventPayload, properties);
   }
 
-  _handleTransactionFailed = async (transactionEventPayload: any) => {
+  _handleTransactionFailed = async (transactionEventPayload: TransactionMeta) => {
     const properties = { status: 'failed' };
     await this._handleTransactionFinalizedEvent(transactionEventPayload, properties);
   }
