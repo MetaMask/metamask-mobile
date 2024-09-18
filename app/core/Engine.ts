@@ -614,8 +614,6 @@ class Engine {
           'KeyringController:getAccounts',
           'KeyringController:getKeyringsByType',
           'KeyringController:getKeyringForAccount',
-          'AccountsController:accountAdded',
-          'AccountsController:accountRenamed',
         ],
       });
 
