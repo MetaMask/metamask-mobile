@@ -224,7 +224,7 @@ import { zeroAddress } from 'ethereumjs-util';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
 import EthQuery from '@metamask/eth-query';
-import { TransactionControllerOptions } from '@metamask/transaction-controller/dist/types/TransactionController';
+import { TransactionControllerOptions } from '@metamask/transaction-controller';
 import DomainProxyMap from '../lib/DomainProxyMap/DomainProxyMap';
 
 const NON_EMPTY = 'NON_EMPTY';
@@ -1240,7 +1240,6 @@ class Engine {
       },
       isSimulationEnabled: () =>
         preferencesController.state.useTransactionSimulations,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'TransactionController',
         allowedActions: [
