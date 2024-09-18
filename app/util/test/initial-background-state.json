@@ -128,7 +128,9 @@
   },
   "SmartTransactionsController": {
     "smartTransactionsState": {
-      "smartTransactions": {},
+      "smartTransactions": {
+        "0x1": []
+      },
       "userOptIn": null,
       "userOptInV2": null,
       "fees": {
@@ -137,15 +139,15 @@
       },
       "liveness": true,
       "livenessByChainId": {
-        "mainnet": true,
-        "sepolia": true
+        "0x1": true,
+        "0xaa36a7": true
       },
       "feesByChainId": {
-        "mainnet": {
+        "0x1": {
           "approvalTxFees": null,
           "tradeTxFees": null
         },
-        "sepolia": {
+        "0xaa36a7": {
           "approvalTxFees": null,
           "tradeTxFees": null
         }
