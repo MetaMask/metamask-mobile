@@ -204,6 +204,16 @@ const nodeifyTask = {
   },
 };
 
+const jetifyTask = {
+  title: 'Jetify npm packages for Android',
+  task: async (_, task) => {
+    if (IS_NODE) {
+      return task.skip('Skipping jetifying npm packages.');
+    }
+    await $`yarn jetify`;
+  },
+};
+
 const patchPackageTask = {
   title: 'Patch npm packages',
   task: async () => {
@@ -293,6 +303,7 @@ const prepareDependenciesTask = {
         // Inpage bridge must generate before node modules are altered
         buildInpageBridgeTask,
         nodeifyTask,
+        jetifyTask,
         runLavamoatAllowScriptsTask,
         patchPackageTask,
       ],
