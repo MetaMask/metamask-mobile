@@ -1116,6 +1116,26 @@ class Engine {
       env: {
         isAccountSyncingEnabled: true,
       },
+      config: {
+        accountSyncing: {
+          onAccountAdded: (profileId) => {
+            MetaMetrics.getInstance().trackEvent(
+              MetaMetricsEvents.ACCOUNTS_SYNC_ACCOUNT_ADDED,
+              {
+                profile_id: profileId,
+              },
+            );
+          },
+          onAccountNameUpdated: (profileId) => {
+            MetaMetrics.getInstance().trackEvent(
+              MetaMetricsEvents.ACCOUNTS_SYNC_ACCOUNT_NAME_UPDATED,
+              {
+                profile_id: profileId,
+              },
+            );
+          },
+        },
+      },
       state: initialState.UserStorageController,
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
