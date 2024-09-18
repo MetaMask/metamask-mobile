@@ -63,7 +63,7 @@ const createStyles = (colors: Colors) =>
 
 const SearchingForDeviceStep = () => {
   const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), []);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const navigation = useNavigation();
 
   const deviceOSVersion = Number(getSystemVersion()) || 0;
