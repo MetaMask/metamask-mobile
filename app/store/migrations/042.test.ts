@@ -37,7 +37,6 @@ function createMockAccountsControllerState(selectedAccount = 'id1') {
           },
           methods: [
             EthMethod.PersonalSign,
-            EthMethod.Sign,
             EthMethod.SignTransaction,
             EthMethod.SignTypedDataV1,
             EthMethod.SignTypedDataV3,
@@ -57,7 +56,6 @@ function createMockAccountsControllerState(selectedAccount = 'id1') {
           },
           methods: [
             EthMethod.PersonalSign,
-            EthMethod.Sign,
             EthMethod.SignTransaction,
             EthMethod.SignTypedDataV1,
             EthMethod.SignTypedDataV3,
@@ -77,7 +75,6 @@ function createMockAccountsControllerState(selectedAccount = 'id1') {
           },
           methods: [
             EthMethod.PersonalSign,
-            EthMethod.Sign,
             EthMethod.SignTransaction,
             EthMethod.SignTypedDataV1,
             EthMethod.SignTypedDataV3,
@@ -97,7 +94,6 @@ function createMockAccountsControllerState(selectedAccount = 'id1') {
           },
           methods: [
             EthMethod.PersonalSign,
-            EthMethod.Sign,
             EthMethod.SignTransaction,
             EthMethod.SignTypedDataV1,
             EthMethod.SignTypedDataV3,
@@ -117,7 +113,6 @@ function createMockAccountsControllerState(selectedAccount = 'id1') {
           },
           methods: [
             EthMethod.PersonalSign,
-            EthMethod.Sign,
             EthMethod.SignTransaction,
             EthMethod.SignTypedDataV1,
             EthMethod.SignTypedDataV3,
@@ -131,7 +126,6 @@ function createMockAccountsControllerState(selectedAccount = 'id1') {
           options: {},
           methods: [
             EthMethod.PersonalSign,
-            EthMethod.Sign,
             EthMethod.SignTransaction,
             EthMethod.SignTypedDataV1,
             EthMethod.SignTypedDataV3,
@@ -152,7 +146,6 @@ function createMockAccountsControllerState(selectedAccount = 'id1') {
           options: {},
           methods: [
             EthMethod.PersonalSign,
-            EthMethod.Sign,
             EthMethod.SignTransaction,
             EthMethod.SignTypedDataV1,
             EthMethod.SignTypedDataV3,
@@ -173,7 +166,6 @@ function createMockAccountsControllerState(selectedAccount = 'id1') {
           options: {},
           methods: [
             EthMethod.PersonalSign,
-            EthMethod.Sign,
             EthMethod.SignTransaction,
             EthMethod.SignTypedDataV1,
             EthMethod.SignTypedDataV3,
@@ -194,7 +186,6 @@ function createMockAccountsControllerState(selectedAccount = 'id1') {
           options: {},
           methods: [
             EthMethod.PersonalSign,
-            EthMethod.Sign,
             EthMethod.SignTransaction,
             EthMethod.SignTypedDataV1,
             EthMethod.SignTypedDataV3,
@@ -215,7 +206,6 @@ function createMockAccountsControllerState(selectedAccount = 'id1') {
           options: {},
           methods: [
             EthMethod.PersonalSign,
-            EthMethod.Sign,
             EthMethod.SignTransaction,
             EthMethod.SignTypedDataV1,
             EthMethod.SignTypedDataV3,
@@ -279,7 +269,6 @@ describe('Migration #042', () => {
                   },
                   methods: [
                     EthMethod.PersonalSign,
-                    EthMethod.Sign,
                     EthMethod.SignTransaction,
                     EthMethod.SignTypedDataV1,
                     EthMethod.SignTypedDataV3,
@@ -298,7 +287,6 @@ describe('Migration #042', () => {
                   },
                   methods: [
                     EthMethod.PersonalSign,
-                    EthMethod.Sign,
                     EthMethod.SignTransaction,
                     EthMethod.SignTypedDataV1,
                     EthMethod.SignTypedDataV3,
@@ -317,7 +305,6 @@ describe('Migration #042', () => {
                   },
                   methods: [
                     EthMethod.PersonalSign,
-                    EthMethod.Sign,
                     EthMethod.SignTransaction,
                     EthMethod.SignTypedDataV1,
                     EthMethod.SignTypedDataV3,
@@ -336,7 +323,6 @@ describe('Migration #042', () => {
                   },
                   methods: [
                     EthMethod.PersonalSign,
-                    EthMethod.Sign,
                     EthMethod.SignTransaction,
                     EthMethod.SignTypedDataV1,
                     EthMethod.SignTypedDataV3,
@@ -355,7 +341,6 @@ describe('Migration #042', () => {
                   },
                   methods: [
                     EthMethod.PersonalSign,
-                    EthMethod.Sign,
                     EthMethod.SignTransaction,
                     EthMethod.SignTypedDataV1,
                     EthMethod.SignTypedDataV3,
@@ -437,7 +422,6 @@ describe('Migration #042', () => {
             },
             methods: [
               EthMethod.PersonalSign,
-              EthMethod.Sign,
               EthMethod.SignTransaction,
               EthMethod.SignTypedDataV1,
               EthMethod.SignTypedDataV3,
@@ -457,7 +441,6 @@ describe('Migration #042', () => {
             },
             methods: [
               EthMethod.PersonalSign,
-              EthMethod.Sign,
               EthMethod.SignTransaction,
               EthMethod.SignTypedDataV1,
               EthMethod.SignTypedDataV3,

@@ -21,6 +21,7 @@ import { v1 as random } from 'uuid';
 import { decimalToHex } from '../conversions';
 import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
 import { RAMPS_SEND } from '../../components/UI/Ramp/constants';
+import { addSwapsTransaction } from '../swaps/swaps-transactions';
 
 export declare type Hex = `0x${string}`;
 
@@ -427,17 +428,15 @@ class SmartTransactionHook {
     this.#approvalEnded = true;
   };
 
-  #updateSwapsTransactions = (id: string) => {
+  #updateSwapsTransactions = (uuid: string) => {
     // We do this so we can show the Swap data (e.g. ETH to USDC, fiat values) in the app/components/Views/TransactionsView/index.js
-    const newSwapsTransactions =
+    const swapsTransactions =
       // @ts-expect-error This is not defined on the type, but is a field added in app/components/UI/Swaps/QuotesView.js
       this.#transactionController.state.swapsTransactions || {};
 
-    newSwapsTransactions[id] = newSwapsTransactions[this.#transactionMeta.id];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (this.#transactionController as any).update((state: any) => {
-      state.swapsTransactions = newSwapsTransactions;
-    });
+    const originalSwapsTransaction = swapsTransactions[this.#transactionMeta.id];
+
+    addSwapsTransaction(uuid, originalSwapsTransaction);
   };
 }
 

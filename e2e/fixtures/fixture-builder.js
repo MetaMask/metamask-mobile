@@ -143,11 +143,6 @@ class FixtureBuilder {
             },
             NetworkController: {
               selectedNetworkClientId: 'mainnet',
-              providerConfig: {
-                type: 'mainnet',
-                chainId: '0x1',
-                ticker: 'ETH',
-              },
               networksMetadata: {
                 goerli: {
                   EIPS: {},
@@ -175,6 +170,12 @@ class FixtureBuilder {
                 },
               },
               networkConfigurations: {
+                mainnet: {
+                  id: 'mainnet',
+                  chainId: '0x1',
+                  ticker: 'ETH',
+                  rpcPrefs: {},
+                },
                 networkId1: {
                   rpcUrl: `http://localhost:${getGanachePort()}`,
                   chainId: '1337',
@@ -221,7 +222,6 @@ class FixtureBuilder {
                     options: {},
                     methods: [
                       'personal_sign',
-                      'eth_sign',
                       'eth_signTransaction',
                       'eth_signTypedData_v1',
                       'eth_signTypedData_v3',
@@ -250,9 +250,6 @@ class FixtureBuilder {
               displayNftMedia: true,
               useSafeChainsListValidation: false,
               isMultiAccountBalancesEnabled: true,
-              disabledRpcMethodPreferences: {
-                eth_sign: false,
-              },
               showTestNetworks: true,
               _U: 0,
               _V: 1,
@@ -274,9 +271,6 @@ class FixtureBuilder {
                 displayNftMedia: true,
                 useSafeChainsListValidation: false,
                 isMultiAccountBalancesEnabled: true,
-                disabledRpcMethodPreferences: {
-                  eth_sign: false,
-                },
                 showTestNetworks: true,
                 showIncomingTransactions: {
                   '0x1': true,
@@ -646,22 +640,37 @@ class FixtureBuilder {
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
   withNetworkController(data) {
-    merge(this.fixture.state.engine.backgroundState.NetworkController, data);
+    const networkController =
+      this.fixture.state.engine.backgroundState.NetworkController;
 
-    if (data.providerConfig.ticker !== 'ETH')
+    // Extract providerConfig data
+    const { providerConfig } = data;
+
+    // Generate a unique key for the new network configuration
+    const newNetworkId = `networkId${
+      Object.keys(networkController.networkConfigurations).length + 1
+    }`;
+
+    // Add the extracted providerConfig data to the networkConfigurations object
+    networkController.networkConfigurations[newNetworkId] = {
+      rpcUrl: providerConfig.rpcUrl,
+      chainId: providerConfig.chainId,
+      ticker: providerConfig.ticker,
+      nickname: providerConfig.nickname,
+      type: providerConfig.type,
+    };
+
+    // Update selectedNetworkClientId to the new network configuration ID
+    networkController.selectedNetworkClientId = newNetworkId;
+
+    // Merge the rest of the data
+    merge(networkController, data);
+
+    if (data.providerConfig.ticker !== 'ETH') {
       this.fixture.state.engine.backgroundState.CurrencyRateController.pendingNativeCurrency =
         data.providerConfig.ticker;
-    return this;
-  }
+    }
 
-  withAddressBookController(data) {
-    merge(
-      this.fixture.state.engine.backgroundState.AddressBookController
-        ? this.fixture.state.engine.backgroundState.AddressBookController
-        : (this.fixture.state.engine.backgroundState.AddressBookController =
-            {}),
-      data,
-    );
     return this;
   }
 
@@ -707,32 +716,57 @@ class FixtureBuilder {
   withGanacheNetwork() {
     const fixtures = this.fixture.state.engine.backgroundState;
 
-    fixtures.NetworkController = {
-      isCustomNetwork: true,
-      providerConfig: {
-        type: 'rpc',
-        chainId: '0x539',
-        rpcUrl: `http://localhost:${getGanachePort()}`,
-        nickname: 'Localhost',
-        ticker: 'ETH',
-      },
+    // Generate a unique key for the new network configuration
+    const newNetworkId = `networkId${
+      Object.keys(fixtures.NetworkController.networkConfigurations).length + 1
+    }`;
+
+    // Add the new Ganache network configuration
+    fixtures.NetworkController.networkConfigurations[newNetworkId] = {
+      id: newNetworkId,
+      rpcUrl: `http://localhost:${getGanachePort()}`,
+      chainId: '0x539',
+      ticker: 'ETH',
+      nickname: 'Localhost',
+      type: 'rpc',
     };
+
+    // Update selectedNetworkClientId to the new network configuration ID
+    fixtures.NetworkController.selectedNetworkClientId = newNetworkId;
+
+    // Set isCustomNetwork to true
+    fixtures.NetworkController.isCustomNetwork = true;
+
     return this;
   }
 
   withSepoliaNetwork() {
     const fixtures = this.fixture.state.engine.backgroundState;
 
-    fixtures.NetworkController = {
-      isCustomNetwork: true,
-      providerConfig: {
-        type: 'rpc',
-        chainId: CustomNetworks.Sepolia.providerConfig.chainId,
-        rpcUrl: CustomNetworks.Sepolia.providerConfig.rpcTarget,
-        nickname: CustomNetworks.Sepolia.providerConfig.nickname,
-        ticker: CustomNetworks.Sepolia.providerConfig.ticker,
-      },
+    // Extract Sepolia network configuration from CustomNetworks
+    const sepoliaConfig = CustomNetworks.Sepolia.providerConfig;
+
+    // Generate a unique key for the new network configuration
+    const newNetworkId = `networkId${
+      Object.keys(fixtures.NetworkController.networkConfigurations).length + 1
+    }`;
+
+    // Add the new Sepolia network configuration
+    fixtures.NetworkController.networkConfigurations[newNetworkId] = {
+      id: newNetworkId,
+      rpcUrl: sepoliaConfig.rpcTarget,
+      chainId: sepoliaConfig.chainId,
+      ticker: sepoliaConfig.ticker,
+      nickname: sepoliaConfig.nickname,
+      type: sepoliaConfig.type,
     };
+
+    // Update selectedNetworkClientId to the new network configuration ID
+    fixtures.NetworkController.selectedNetworkClientId = newNetworkId;
+
+    // Set isCustomNetwork to true
+    fixtures.NetworkController.isCustomNetwork = true;
+
     return this;
   }
 

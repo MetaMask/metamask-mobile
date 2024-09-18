@@ -249,7 +249,7 @@ exports[`Staking Earnings should render correctly 1`] = `
             }
           }
         >
-          Est. annual earnings
+          Estimated annual earnings
         </Text>
       </View>
       <View
