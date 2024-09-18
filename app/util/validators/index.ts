@@ -1,5 +1,4 @@
 import { ethers } from 'ethers';
-import { Wordlist } from '@ethersproject/wordlists';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../core/Encryptor';
 import { regex } from '../regex';
 
