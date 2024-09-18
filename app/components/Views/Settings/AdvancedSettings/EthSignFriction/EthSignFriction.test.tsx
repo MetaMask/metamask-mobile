@@ -1,17 +1,10 @@
 import { shallow } from 'enzyme';
 import React from 'react';
 import EthSignFriction from './EthSignFriction';
-import Engine from '../../../../../core/Engine';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import AppConstants from '../../../../../core/AppConstants';
-
-const mockEngine = Engine;
-
-jest.mock('../../../../../core/Engine', () => ({
-  init: () => mockEngine.init({}),
-}));
 
 jest.mock('react-native-safe-area-context', () => {
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };

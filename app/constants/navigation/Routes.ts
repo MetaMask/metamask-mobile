@@ -137,6 +137,10 @@ const Routes = {
     OPT_IN_STACK: 'OptInStack',
     DETAILS: 'NotificationsDetails',
   },
+  STAKE: {
+    STAKE: 'Stake',
+    UNSTAKE: 'Unstake',
+  },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {
     SNAPS_SETTINGS_LIST: 'SnapsSettingsList',
