@@ -13,12 +13,7 @@ describe('GenericButton', () => {
     jest.doMock('react-native/Libraries/Utilities/Platform', () => ({
       OS: 'android',
     }));
-    const mockOnPress = jest.fn();
-    const wrapper = shallow(
-      <GenericButtonAndroid onPress={mockOnPress}>
-        Test Button
-      </GenericButtonAndroid>
-    );
+    const wrapper = shallow(<GenericButtonAndroid />);
     expect(wrapper).toMatchSnapshot();
   });
 });
