@@ -10,7 +10,6 @@ import {
   SectionDirections,
   TooltipSizes,
   IconSizes,
-  // LabelVariants,
   SectionAlignments,
   KeyValueRowProps,
 } from './KeyValueRow.types';
@@ -19,9 +18,10 @@ import ButtonIcon from '../../components/Buttons/ButtonIcon';
 import { IconColor, IconName } from '../../components/Icons/Icon';
 import { TextColor, TextVariant } from '../../components/Texts/Text';
 import { View } from 'react-native';
+import { areKeyValueRowPropsEqual } from './KeyValueRow.utils';
 
 /**
- * @children Must be an array with exactly 2 <KeyValueSection> elements
+ * @children should be an array with exactly 2 <KeyValueSection> elements
  */
 const KeyValueRowRoot = ({ children }: KeyValueRowRootProps) => {
   const { styles } = useStyles(stylesheet, {});
@@ -89,104 +89,107 @@ const KeyValueRowLabel = ({
   );
 };
 
-const KeyValueRow = ({ keyText, valueText }: KeyValueRowProps) => {
-  const shouldRenderKeyTextPrimaryIcon =
-    keyText.textPrimary?.icon?.src && keyText.textPrimary?.icon?.name;
+const KeyValueRow = React.memo(
+  ({ field: keyText, value: valueText }: KeyValueRowProps) => {
+    const shouldRenderKeyTextPrimaryIcon =
+      keyText.primary?.icon?.src && keyText.primary?.icon?.name;
 
-  const shouldRenderKeyTextSecondaryIcon =
-    keyText.textSecondary?.icon?.src && keyText.textSecondary?.icon?.name;
+    const shouldRenderKeyTextSecondaryIcon =
+      keyText.secondary?.icon?.src && keyText.secondary?.icon?.name;
 
-  const shouldRenderValueTextPrimaryIcon =
-    valueText.textPrimary?.icon?.src && valueText.textPrimary?.icon?.name;
+    const shouldRenderValueTextPrimaryIcon =
+      valueText.primary?.icon?.src && valueText.primary?.icon?.name;
 
-  const shouldRenderValueTextSecondaryIcon =
-    valueText.textSecondary?.icon?.src && valueText.textSecondary?.icon?.name;
+    const shouldRenderValueTextSecondaryIcon =
+      valueText.secondary?.icon?.src && valueText.secondary?.icon?.name;
 
-  return (
-    <KeyValueRowRoot>
-      <KeyValueSection align={SectionAlignments.LEFT}>
-        {shouldRenderKeyTextPrimaryIcon && (
-          <AvatarToken
-            imageSource={keyText.textPrimary?.icon?.src}
-            name={keyText.textPrimary?.icon?.name}
-            isIpfsGatewayCheckBypassed={
-              keyText.textPrimary?.icon?.isIpfsGatewayCheckBypassed
-            }
-            size={keyText.textPrimary.icon?.size ?? IconSizes.Sm}
-          />
-        )}
-        <KeyValueRowLabel
-          label={keyText.textPrimary.text}
-          variant={keyText.textPrimary.variant}
-          color={keyText.textPrimary.color}
-          tooltip={keyText.textPrimary.tooltip}
-        />
-        {keyText.textSecondary?.text && (
-          <>
-            {shouldRenderKeyTextSecondaryIcon && (
-              <AvatarToken
-                imageSource={keyText.textSecondary?.icon?.src}
-                name={keyText.textSecondary?.icon?.name}
-                isIpfsGatewayCheckBypassed={
-                  keyText.textSecondary?.icon?.isIpfsGatewayCheckBypassed
-                }
-                size={keyText.textSecondary.icon?.size ?? IconSizes.Sm}
-              />
-            )}
-            <KeyValueRowLabel
-              label={keyText.textSecondary.text}
-              variant={keyText.textSecondary.variant}
-              color={keyText.textSecondary.color}
-              tooltip={keyText.textSecondary.tooltip}
+    return (
+      <KeyValueRowRoot>
+        <KeyValueSection align={SectionAlignments.LEFT}>
+          {shouldRenderKeyTextPrimaryIcon && (
+            <AvatarToken
+              imageSource={keyText.primary?.icon?.src}
+              name={keyText.primary?.icon?.name}
+              isIpfsGatewayCheckBypassed={
+                keyText.primary?.icon?.isIpfsGatewayCheckBypassed
+              }
+              size={keyText.primary.icon?.size ?? IconSizes.Sm}
             />
-          </>
-        )}
-      </KeyValueSection>
-      <KeyValueSection align={SectionAlignments.RIGHT}>
-        {shouldRenderValueTextPrimaryIcon && (
-          <AvatarToken
-            imageSource={valueText.textPrimary?.icon?.src}
-            name={valueText.textPrimary?.icon?.name}
-            isIpfsGatewayCheckBypassed={
-              valueText.textPrimary?.icon?.isIpfsGatewayCheckBypassed
-            }
-            size={valueText.textPrimary.icon?.size ?? IconSizes.Sm}
+          )}
+          <KeyValueRowLabel
+            label={keyText.primary.text}
+            variant={keyText.primary.variant}
+            color={keyText.primary.color}
+            tooltip={keyText.primary.tooltip}
           />
-        )}
-        <KeyValueRowLabel
-          label={valueText.textPrimary.text}
-          variant={valueText.textPrimary.variant}
-          color={valueText.textPrimary.color}
-          tooltip={valueText.textPrimary.tooltip}
-        />
-        {valueText.textSecondary?.text && (
-          <KeyValueSection direction={SectionDirections.ROW}>
-            {shouldRenderValueTextSecondaryIcon && (
-              <AvatarToken
-                imageSource={valueText.textSecondary?.icon?.src}
-                name={valueText.textSecondary?.icon?.name}
-                isIpfsGatewayCheckBypassed={
-                  valueText.textSecondary?.icon?.isIpfsGatewayCheckBypassed
-                }
-                size={valueText.textSecondary.icon?.size ?? IconSizes.Sm}
+          {keyText.secondary?.text && (
+            <>
+              {shouldRenderKeyTextSecondaryIcon && (
+                <AvatarToken
+                  imageSource={keyText.secondary?.icon?.src}
+                  name={keyText.secondary?.icon?.name}
+                  isIpfsGatewayCheckBypassed={
+                    keyText.secondary?.icon?.isIpfsGatewayCheckBypassed
+                  }
+                  size={keyText.secondary.icon?.size ?? IconSizes.Sm}
+                />
+              )}
+              <KeyValueRowLabel
+                label={keyText.secondary.text}
+                variant={keyText.secondary.variant}
+                color={keyText.secondary.color}
+                tooltip={keyText.secondary.tooltip}
               />
-            )}
-            <KeyValueRowLabel
-              label={valueText.textSecondary.text}
-              variant={valueText.textSecondary.variant}
-              color={valueText.textSecondary.color}
-              tooltip={valueText.textSecondary.tooltip}
+            </>
+          )}
+        </KeyValueSection>
+        <KeyValueSection align={SectionAlignments.RIGHT}>
+          {shouldRenderValueTextPrimaryIcon && (
+            <AvatarToken
+              imageSource={valueText.primary?.icon?.src}
+              name={valueText.primary?.icon?.name}
+              isIpfsGatewayCheckBypassed={
+                valueText.primary?.icon?.isIpfsGatewayCheckBypassed
+              }
+              size={valueText.primary.icon?.size ?? IconSizes.Sm}
             />
-          </KeyValueSection>
-        )}
-      </KeyValueSection>
-    </KeyValueRowRoot>
-  );
-};
+          )}
+          <KeyValueRowLabel
+            label={valueText.primary.text}
+            variant={valueText.primary.variant}
+            color={valueText.primary.color}
+            tooltip={valueText.primary.tooltip}
+          />
+          {valueText.secondary?.text && (
+            <KeyValueSection direction={SectionDirections.ROW}>
+              {shouldRenderValueTextSecondaryIcon && (
+                <AvatarToken
+                  imageSource={valueText.secondary?.icon?.src}
+                  name={valueText.secondary?.icon?.name}
+                  isIpfsGatewayCheckBypassed={
+                    valueText.secondary?.icon?.isIpfsGatewayCheckBypassed
+                  }
+                  size={valueText.secondary.icon?.size ?? IconSizes.Sm}
+                />
+              )}
+              <KeyValueRowLabel
+                label={valueText.secondary.text}
+                variant={valueText.secondary.variant}
+                color={valueText.secondary.color}
+                tooltip={valueText.secondary.tooltip}
+              />
+            </KeyValueSection>
+          )}
+        </KeyValueSection>
+      </KeyValueRowRoot>
+    );
+  },
+  areKeyValueRowPropsEqual,
+);
 
 export const KeyValueRowStubs = {
   /**
-   * @children Must be an array with exactly 2 <KeyValueSection> elements
+   * @children should be an array with exactly 2 <KeyValueSection> elements
    */
   Root: KeyValueRowRoot,
   Section: KeyValueSection,

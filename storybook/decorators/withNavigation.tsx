@@ -20,7 +20,7 @@ const clearStackNavigatorOptions = {
   animationEnabled: false,
 };
 
-export const StorybookRootModalFlow = () => (
+const StorybookRootModalFlow = () => (
   <StoryBookStack.Navigator
     mode={'modal'}
     screenOptions={clearStackNavigatorOptions}

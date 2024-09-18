@@ -1,11 +1,6 @@
-// Third party dependencies.
 import React from 'react';
-
-// External dependencies
 import { withNavigation } from '../../../../storybook/decorators';
 import ethLogo from '../../../images/eth-logo-new.png';
-
-// Internal dependencies
 import { View, StyleSheet } from 'react-native';
 import KeyValueRowComponent, { TooltipSizes } from './index';
 import Text, { TextColor, TextVariant } from '../../components/Texts/Text';
@@ -35,27 +30,27 @@ export const KeyValueRow = {
       <Title>KeyValueRow Component</Title>
       <Text variant={TextVariant.BodySM}>
         Prebuilt component displayed below but KeyValueRow stubs are available
-        to create new types fo KeyValueRow types.
+        to create new KeyValueRow variants.
       </Text>
       <View style={styles.listItem}>
         <KeyValueRowComponent
-          keyText={{
-            textPrimary: { text: 'Sample Key Text' },
+          field={{
+            primary: { text: 'Sample Key Text' },
           }}
-          valueText={{ textPrimary: { text: 'Sample Value Text' } }}
+          value={{ primary: { text: 'Sample Value Text' } }}
         />
         <KeyValueRowComponent
-          keyText={{
-            textPrimary: { text: 'Sample Key Text' },
-            textSecondary: {
+          field={{
+            primary: { text: 'Sample Key Text' },
+            secondary: {
               text: 'Secondary Key Text',
               variant: TextVariant.BodySMMedium,
               color: TextColor.Alternative,
             },
           }}
-          valueText={{
-            textPrimary: { text: 'Sample Value Text' },
-            textSecondary: {
+          value={{
+            primary: { text: 'Sample Value Text' },
+            secondary: {
               text: 'Secondary Value Text',
               variant: TextVariant.BodyXSMedium,
               color: TextColor.Success,
@@ -63,23 +58,23 @@ export const KeyValueRow = {
           }}
         />
         <KeyValueRowComponent
-          keyText={{
-            textPrimary: {
+          field={{
+            primary: {
               text: 'Sample Key Text',
               tooltip: {
                 title: 'Sample Tooltip',
                 text: 'Quis sunt ullamco incididunt id ad. Magna deserunt quis aliqua non laborum nostrud exercitation adipisicing commodo.',
               },
             },
-            textSecondary: {
+            secondary: {
               text: 'Secondary Key Text',
               variant: TextVariant.BodySMMedium,
               color: TextColor.Alternative,
             },
           }}
-          valueText={{
-            textPrimary: { text: 'Sample Value Text' },
-            textSecondary: {
+          value={{
+            primary: { text: 'Sample Value Text' },
+            secondary: {
               text: 'Secondary Value Text',
               variant: TextVariant.BodyXSMedium,
               color: TextColor.Warning,
@@ -92,23 +87,23 @@ export const KeyValueRow = {
           }}
         />
         <KeyValueRowComponent
-          keyText={{
-            textPrimary: {
+          field={{
+            primary: {
               text: 'Sample Key Text',
               tooltip: {
                 title: 'Sample Tooltip',
                 text: 'Quis sunt ullamco incididunt id ad. Magna deserunt quis aliqua non laborum nostrud exercitation adipisicing commodo.',
               },
             },
-            textSecondary: {
+            secondary: {
               text: 'Secondary Key Text',
               variant: TextVariant.BodySMMedium,
               color: TextColor.Alternative,
             },
           }}
-          valueText={{
-            textPrimary: { text: 'Sample Value Text' },
-            textSecondary: {
+          value={{
+            primary: { text: 'Sample Value Text' },
+            secondary: {
               text: 'Secondary Value Text',
               icon: {
                 name: 'Ethereum Logo',

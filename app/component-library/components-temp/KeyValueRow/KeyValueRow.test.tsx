@@ -1,11 +1,6 @@
-// Third party dependencies.
 import React from 'react';
 import { render } from '@testing-library/react-native';
-
-// External dependencies
 import ethLogo from '../../../images/eth-logo-new.png';
-
-// Internal dependencies.
 import KeyValueRow from './KeyValueRow';
 import { TextVariant, TextColor } from '../../components/Texts/Text';
 
@@ -25,10 +20,10 @@ describe('KeyValueRow', () => {
       it('should render when there is only primary text', () => {
         const { toJSON } = render(
           <KeyValueRow
-            keyText={{
-              textPrimary: { text: 'Sample Key Text' },
+            field={{
+              primary: { text: 'Sample Key Text' },
             }}
-            valueText={{ textPrimary: { text: 'Sample Value Text' } }}
+            value={{ primary: { text: 'Sample Value Text' } }}
           />,
         );
 
@@ -38,17 +33,17 @@ describe('KeyValueRow', () => {
       it('should render both primary and secondary text', () => {
         const { toJSON } = render(
           <KeyValueRow
-            keyText={{
-              textPrimary: { text: 'Primary Key Text' },
-              textSecondary: {
+            field={{
+              primary: { text: 'Primary Key Text' },
+              secondary: {
                 text: 'Secondary Key Text',
                 variant: TextVariant.BodySMMedium,
                 color: TextColor.Alternative,
               },
             }}
-            valueText={{
-              textPrimary: { text: 'Primary Value Text' },
-              textSecondary: {
+            value={{
+              primary: { text: 'Primary Value Text' },
+              secondary: {
                 text: 'Secondary Value Text',
                 variant: TextVariant.BodyXSMedium,
                 color: TextColor.Success,
@@ -63,15 +58,15 @@ describe('KeyValueRow', () => {
       it('should render both primary and secondary text with tooltips', () => {
         const { toJSON } = render(
           <KeyValueRow
-            keyText={{
-              textPrimary: {
+            field={{
+              primary: {
                 text: 'Primary Key Text',
                 tooltip: {
                   title: 'Sample Tooltip 1',
                   text: 'Tooltip 1 text',
                 },
               },
-              textSecondary: {
+              secondary: {
                 text: 'Secondary Key Text',
                 variant: TextVariant.BodySMMedium,
                 color: TextColor.Alternative,
@@ -81,15 +76,15 @@ describe('KeyValueRow', () => {
                 },
               },
             }}
-            valueText={{
-              textPrimary: {
+            value={{
+              primary: {
                 text: 'Primary Value Text',
                 tooltip: {
                   title: 'Sample Tooltip 3',
                   text: 'Tooltip 3 text',
                 },
               },
-              textSecondary: {
+              secondary: {
                 text: 'Secondary Value Text',
                 variant: TextVariant.BodyXSMedium,
                 color: TextColor.Success,
@@ -108,8 +103,8 @@ describe('KeyValueRow', () => {
       it('should render both primary and secondary text with icons', () => {
         const { toJSON } = render(
           <KeyValueRow
-            keyText={{
-              textPrimary: {
+            field={{
+              primary: {
                 text: 'Primary Key Text',
                 icon: {
                   name: 'Ethereum Logo',
@@ -117,7 +112,7 @@ describe('KeyValueRow', () => {
                   src: ethLogo,
                 },
               },
-              textSecondary: {
+              secondary: {
                 text: 'Secondary Key Text',
                 variant: TextVariant.BodySMMedium,
                 color: TextColor.Alternative,
@@ -128,8 +123,8 @@ describe('KeyValueRow', () => {
                 },
               },
             }}
-            valueText={{
-              textPrimary: {
+            value={{
+              primary: {
                 text: 'Primary Value Text',
                 icon: {
                   name: 'Ethereum Logo',
@@ -137,7 +132,7 @@ describe('KeyValueRow', () => {
                   src: ethLogo,
                 },
               },
-              textSecondary: {
+              secondary: {
                 text: 'Secondary Value Text',
                 variant: TextVariant.BodyXSMedium,
                 color: TextColor.Success,
