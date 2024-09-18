@@ -35,9 +35,7 @@ const createStyles = (colors: Colors) =>
 
 const ConnectHeader: React.FC<ConnectHeaderProps> = ({ title, action }) => {
   const context = React.useContext(ThemeContext);
-  //DEVIN_TODO: Determine the exact structure of `colors` from ThemeContext
   const colors = context?.colors || mockTheme.colors;
-  //DEVIN_TODO: Determine the exact structure of `styles` returned by createStyles
   const styles = createStyles(colors);
 
   return (
@@ -49,7 +47,6 @@ const ConnectHeader: React.FC<ConnectHeaderProps> = ({ title, action }) => {
           color={colors.text.default}
         />
       </TouchableOpacity>
-      {/* DEVIN_TODO: Check the possible values for TextVariant */}
       <Text variant={TextVariant.HeadingSMRegular} style={styles.title}>
         {title}
       </Text>
