@@ -369,6 +369,8 @@ enum EVENT_NAME {
   ALL_NOTIFICATIONS = 'All Notifications',
   WALLET_NOTIFICATIONS = 'Wallet Notifications',
   ANNOUCEMENTS_NOTIFICATIONS = 'Annoucements Notifications',
+  NOTIFICATIONS_ACTIVATED = 'Notifications Activated',
+
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
 
@@ -869,6 +871,7 @@ const events = {
     EVENT_NAME.ANNOUCEMENTS_NOTIFICATIONS,
     ACTIONS.SELECTS_ANNOUCEMENTS_NOTIFICATIONS,
   ),
+  NOTIFICATIONS_ACTIVATED: generateOpt(EVENT_NAME.NOTIFICATIONS_ACTIVATED),
   // Simulations
   INCOMPLETE_ASSET_DISPLAYED: generateOpt(
     EVENT_NAME.INCOMPLETE_ASSET_DISPLAYED,

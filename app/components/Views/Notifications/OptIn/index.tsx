@@ -2,6 +2,8 @@ import React, { Fragment, useCallback } from 'react';
 import { Image, View, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
+import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Button, {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
@@ -23,8 +25,10 @@ import AppConstants from '../../../../core/AppConstants';
 import { RootState } from '../../../../reducers';
 import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
+import { selectIsProfileSyncingEnabled } from '../../../../selectors/notifications';
 
 const OptIn = () => {
+  const { trackEvent } = useMetrics();
   const theme = useTheme();
   const styles = createStyles(theme);
   const navigation = useNavigation();
@@ -33,8 +37,18 @@ const OptIn = () => {
     (state: RootState) => state.settings.basicFunctionalityEnabled,
   );
   const { enableNotifications } = useEnableNotifications();
+  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+
   const [optimisticLoading, setOptimisticLoading] = React.useState(false);
+  const [isUpdating, setIsUpdating] = React.useState(false);
+
   const navigateToMainWallet = () => {
+    if (!isUpdating) {
+      trackEvent(MetaMetricsEvents.NOTIFICATIONS_ACTIVATED, {
+        action_type: 'dismissed',
+        is_profile_syncing_enabled: isProfileSyncingEnabled,
+      });
+    }
     navigation.navigate(Routes.WALLET_VIEW);
   };
 
@@ -66,8 +80,20 @@ const OptIn = () => {
           navigation.navigate(Routes.NOTIFICATIONS.VIEW);
         }, 5000);
       }
+      setIsUpdating(true);
+      trackEvent(MetaMetricsEvents.NOTIFICATIONS_ACTIVATED, {
+        action_type: 'activated',
+        is_profile_syncing_enabled: isProfileSyncingEnabled,
+      });
     }
-  }, [basicFunctionalityEnabled, enableNotifications, navigation]);
+  }, [
+    basicFunctionalityEnabled,
+    enableNotifications,
+    navigation,
+    isProfileSyncingEnabled,
+    trackEvent,
+    setIsUpdating,
+  ]);
 
   const goToLearnMore = () => {
     Linking.openURL(AppConstants.URLS.PROFILE_SYNC);

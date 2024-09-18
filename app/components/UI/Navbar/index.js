@@ -916,6 +916,7 @@ export function getWalletNavbarOptions(
   navigation,
   themeColors,
   isNotificationEnabled,
+  isProfileSyncingEnabled,
   unreadNotificationCount,
 ) {
   const innerStyles = StyleSheet.create({
@@ -990,6 +991,10 @@ export function getWalletNavbarOptions(
       navigation.navigate(Routes.NOTIFICATIONS.VIEW);
     } else {
       navigation.navigate(Routes.NOTIFICATIONS.OPT_IN_STACK);
+      trackEvent(MetaMetricsEvents.NOTIFICATIONS_ACTIVATED, {
+        action_type: 'started',
+        is_profile_syncing_enabled: isProfileSyncingEnabled,
+      });
     }
   }
 

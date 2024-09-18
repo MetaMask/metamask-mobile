@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useCallback, useContext, useLayoutEffect } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useCallback,
+  useContext,
+  useLayoutEffect,
+} from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -84,6 +90,7 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import {
   getMetamaskNotificationsUnreadCount,
   selectIsMetamaskNotificationsEnabled,
+  selectIsProfileSyncingEnabled,
 } from '../../../selectors/notifications';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
@@ -279,6 +286,8 @@ const Wallet = ({
     selectIsMetamaskNotificationsEnabled,
   );
 
+  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+
   const unreadNotificationCount = useSelector(
     getMetamaskNotificationsUnreadCount,
   );
@@ -429,6 +438,7 @@ const Wallet = ({
         navigation,
         colors,
         isNotificationEnabled,
+        isProfileSyncingEnabled,
         unreadNotificationCount,
       ),
     );
@@ -440,6 +450,7 @@ const Wallet = ({
     networkImageSource,
     onTitlePress,
     isNotificationEnabled,
+    isProfileSyncingEnabled,
     unreadNotificationCount,
   ]);
 
