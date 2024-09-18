@@ -186,7 +186,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
       numberOfLines={2}
       style={
         {
-          "color": "#141618",
+          "color": "#0376c9",
           "flex": 1,
           "flexWrap": "wrap",
           "fontFamily": "EuclidCircularB-Regular",
@@ -392,7 +392,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
       numberOfLines={2}
       style={
         {
-          "color": "#141618",
+          "color": "#0376c9",
           "flex": 1,
           "flexWrap": "wrap",
           "fontFamily": "EuclidCircularB-Regular",
