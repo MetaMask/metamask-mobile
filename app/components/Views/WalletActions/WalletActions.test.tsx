@@ -7,11 +7,10 @@ import renderWithProvider, {
 
 import WalletActions from './WalletActions';
 import { WalletActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/WalletActionsModal.selectors';
-import Engine from '../../../core/Engine';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
-
-const mockEngine = Engine;
+import { mockNetworkState } from '../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const mockInitialState: DeepPartial<RootState> = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
@@ -29,15 +28,16 @@ const mockInitialState: DeepPartial<RootState> = {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
-        providerConfig: { type: 'mainnet', chainId: '0x1', ticker: 'ETH' },
+        ...mockNetworkState({
+          chainId: CHAIN_IDS.MAINNET,
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+        }),
       },
     },
   },
 };
-
-jest.mock('../../../core/Engine', () => ({
-  init: () => mockEngine.init({}),
-}));
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -115,11 +115,12 @@ describe('WalletActions', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            providerConfig: {
-              type: 'mainnet',
-              chainId: '0x1asdscxds',
-              ticker: 'eth',
-            },
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.SEPOLIA,
+              id: 'sepolia',
+              nickname: 'Sepolia',
+              ticker: 'ETH',
+            }),
           },
         },
       },

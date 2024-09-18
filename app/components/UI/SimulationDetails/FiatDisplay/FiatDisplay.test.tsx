@@ -6,7 +6,8 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import { IndividualFiatDisplay, TotalFiatDisplay } from './FiatDisplay';
 import { FIAT_UNAVAILABLE } from '../types';
 import useFiatFormatter from './useFiatFormatter';
-import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
+import { mockNetworkState } from '../../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.mock('./useFiatFormatter');
 
@@ -20,9 +21,12 @@ const mockStateWithTestnet = merge({}, mockInitialState, {
   engine: {
     backgroundState: {
       NetworkController: {
-        providerConfig: {
-          chainId: NETWORKS_CHAIN_ID.SEPOLIA,
-        },
+        ...mockNetworkState({
+          chainId: CHAIN_IDS.SEPOLIA,
+          id: 'sepolia',
+          nickname: 'Sepolia',
+          ticker: 'ETH',
+        }),
       },
     },
   },

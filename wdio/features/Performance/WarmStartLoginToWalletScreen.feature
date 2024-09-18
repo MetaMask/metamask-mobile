@@ -1,8 +1,10 @@
 @androidApp
 @performance
-Feature: Measure the app launch times for warm starts
+Feature: Measure Wallet Screen Warm Start
+  # This feature measures the warm start of the app when:
+  # The time it takes to get from login view to wallet view.
 
-  Scenario: Measure warm start launch time after importing a wallet
+  Scenario: Measure Warm Start after Importing a Wallet
     Given the app displayed the splash animation
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
@@ -13,7 +15,6 @@ Feature: Measure the app launch times for warm starts
     Then I connect my active wallet to the test dapp
     When I background the app for 30 seconds
     And the app is move to the foreground
-    Then the timer starts running
     And I fill my password in the Login screen
-    And I log into my wallet
-    And the app should launch within "12" seconds
+    And The timer starts running after I tap the login button
+    Then The wallet view appears in "6" seconds
