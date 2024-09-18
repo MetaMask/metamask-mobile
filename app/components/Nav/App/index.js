@@ -86,7 +86,6 @@ import SDKFeedbackModal from '../../Views/SDK/SDKFeedbackModal/SDKFeedbackModal'
 import LedgerMessageSignModal from '../../UI/LedgerModals/LedgerMessageSignModal';
 import LedgerTransactionModal from '../../UI/LedgerModals/LedgerTransactionModal';
 import AccountActions from '../../../components/Views/AccountActions';
-import EthSignFriction from '../../../components/Views/Settings/AdvancedSettings/EthSignFriction';
 import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedSettings/FiatOnTestnetsFriction';
 import WalletActions from '../../Views/WalletActions';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
@@ -705,10 +704,6 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.ACCOUNT_ACTIONS}
         component={AccountActions}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.ETH_SIGN_FRICTION}
-        component={EthSignFriction}
       />
       <Stack.Screen
         name={Routes.SHEET.FIAT_ON_TESTNETS_FRICTION}
