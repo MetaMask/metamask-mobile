@@ -14,7 +14,7 @@ interface ComponentErrorBoundaryProps {
   /**
    * Function to be called when there is an error
    */
-  onError?: () => void; //DEVIN_TODO: Determine the exact type for `props.onError`. It's a function, but we need to know its parameters and return type.
+  onError?: () => void;
   /**
    * Will not track as an error, but still log to analytics
    */
@@ -33,19 +33,16 @@ class ComponentErrorBoundary extends React.Component<ComponentErrorBoundaryProps
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
-    // eslint-disable-next-line no-unused-expressions
     this.props.onError?.();
 
     const { componentLabel, dontTrackAsError } = this.props;
 
     if (dontTrackAsError) {
-      //DEVIN_TODO: Verify the types of parameters and return value for `trackErrorAsAnalytics()` function.
       return trackErrorAsAnalytics(
         `Component Error Boundary: ${componentLabel}`,
         error?.message,
       );
     }
-    //DEVIN_TODO: Confirm the return type of `Logger.error()` method.
     Logger.error(error, { View: this.props.componentLabel, ...errorInfo });
   }
 
