@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TouchableNativeFeedback, StyleProp, ViewStyle } from 'react-native';
+import { View, TouchableNativeFeedback, StyleProp, ViewStyle, GestureResponderEvent } from 'react-native';
 
 /**
  * @deprecated The `<GenericButton>` component has been deprecated in favor of the new `<Button>` component from the component-library.
@@ -16,7 +16,7 @@ interface GenericButtonProps {
    * it can be a text node, an image, or an icon
    * or an Array with a combination of them
    */
-  children: React.ReactNode; //DEVIN_TODO: Verify if this type is correct for all possible children
+  children?: React.ReactNode;
 
   /**
    * Styles to be applied to the GenericButton
@@ -26,7 +26,7 @@ interface GenericButtonProps {
   /**
    * Function to be called on press
    */
-  onPress: () => void;
+  onPress?: (event: GestureResponderEvent) => void;
 }
 
 const GenericButton: React.FC<GenericButtonProps> = ({ children, style, onPress }) => (
