@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-const createStyles = () =>
+const styleSheet = () =>
   StyleSheet.create({
     titleContainer: {
       flexDirection: 'row',
@@ -23,4 +23,4 @@ const createStyles = () =>
     },
   });
 
-export default createStyles;
+export default styleSheet;

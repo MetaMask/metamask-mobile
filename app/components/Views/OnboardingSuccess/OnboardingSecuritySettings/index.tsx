@@ -2,6 +2,7 @@
 import React, { useCallback, useLayoutEffect } from 'react';
 import { ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useStyles } from '../../../../component-library/hooks';
 
 // internal
 import NetworkDetailsCheckSettings from '../../Settings/NetworkDetailsCheckSettings';
@@ -13,9 +14,10 @@ import Icon, {
   IconName,
 } from '../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../locales/i18n';
-import styles from './index.styles';
+import styleSheet from './index.styles';
 
 const SecuritySettings = () => {
+  const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
 
   const renderBackButton = useCallback(
@@ -27,7 +29,7 @@ const SecuritySettings = () => {
         <Icon name={IconName.ArrowLeft} size={IconSize.Lg} />
       </TouchableOpacity>
     ),
-    [navigation],
+    [navigation, styles.backButton],
   );
   const renderTitle = useCallback(
     () => (

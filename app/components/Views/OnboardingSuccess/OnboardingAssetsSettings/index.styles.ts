@@ -1,8 +1,21 @@
+// Third party dependencies.
 import { StyleSheet } from 'react-native';
-import { Colors } from '../../../../util/theme/models';
 
-const createStyles = (colors: Colors) =>
-  StyleSheet.create({
+// External dependencies.
+import { Theme } from '../../../../util/theme/models';
+
+/**
+ * Style sheet function for PickerAccount component.
+ *
+ * @param params Style sheet params.
+ * @param params.theme App theme from ThemeContext.
+ * @param params.vars Inputs that the style sheet depends on.
+ * @returns StyleSheet object.
+ */
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { colors } = theme;
+  return StyleSheet.create({
     root: {
       flex: 1,
       paddingHorizontal: 16,
@@ -60,5 +73,6 @@ const createStyles = (colors: Colors) =>
       paddingBottom: 75,
     },
   });
+};
 
-export default createStyles;
+export default styleSheet;

@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 
 // internal packages
 import Engine from '../../../../core/Engine';
+import { useStyles } from '../../../../component-library/hooks';
 import {
   selectIsIpfsGatewayEnabled,
   selectIpfsGateway,
@@ -15,7 +16,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import createStyles from './index.styles';
+import styleSheet from './index.styles';
 import {
   IPFS_GATEWAY_SECTION,
   HASH_TO_TEST,
@@ -30,7 +31,7 @@ import SelectComponent from '../../../UI/SelectComponent';
 const IPFSGatewaySettings = () => {
   const theme = useTheme();
   const { colors } = theme;
-  const styles = createStyles(colors);
+  const { styles } = useStyles(styleSheet, colors);
 
   const [onlineIpfsGateways, setOnlineIpfsGateways] = useState<Gateway[]>([]);
   const [gotAvailableGateways, setGotAvailableGateways] = useState(false);

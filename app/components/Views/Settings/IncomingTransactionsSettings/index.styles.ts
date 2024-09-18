@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-const createStyles = () =>
+const styleSheet = () =>
   StyleSheet.create({
     setting: {
       marginTop: 32,
@@ -19,4 +19,4 @@ const createStyles = () =>
     cellBorder: { borderWidth: 0 },
   });
 
-export default createStyles;
+export default styleSheet;

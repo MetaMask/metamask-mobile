@@ -93,6 +93,7 @@ describe('AutoDetectNFTSettings', () => {
     });
     expect(tree).toMatchSnapshot();
   });
+
   describe('NFT Autodetection', () => {
     it('should render NFT autodetection switch', () => {
       const { getByTestId } = renderWithProvider(<AutoDetectNFTSettings />, {

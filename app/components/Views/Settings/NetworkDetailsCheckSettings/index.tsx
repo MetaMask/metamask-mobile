@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 
 // internal packages
 import { useTheme } from '../../../../util/theme';
+import { useStyles } from '../../../../component-library/hooks';
 import { selectUseSafeChainsListValidation } from '../../../../selectors/preferencesController';
 import { strings } from '../../../../../locales/i18n';
 import {
@@ -16,16 +17,17 @@ import Text, {
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { toggleUseSafeChainsListValidation } from '../../../../util/networks';
-import createStyles from './index.styles';
+import styleSheet from './index.styles';
 
 const NetworkDetailsCheckSettings = () => {
   const theme = useTheme();
   const { colors } = theme;
-  const styles = createStyles();
+  const { styles } = useStyles(styleSheet, {});
 
   const useSafeChainsListValidation = useSelector(
     selectUseSafeChainsListValidation,
   );
+
   return (
     <View style={styles.halfSetting} testID={USE_SAFE_CHAINS_LIST_VALIDATION}>
       <View style={styles.titleContainer}>

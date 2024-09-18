@@ -1,8 +1,13 @@
+// Third party dependencies.
 import { StyleSheet } from 'react-native';
-import { Colors } from '../../../../util/theme/models';
 
-const createStyles = (colors: Colors) =>
-  StyleSheet.create({
+// External dependencies.
+import { Theme } from '../../../../util/theme/models';
+
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { colors } = theme;
+  return StyleSheet.create({
     titleContainer: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -35,5 +40,6 @@ const createStyles = (colors: Colors) =>
       marginTop: 16,
     },
   });
+};
 
-export default createStyles;
+export default styleSheet;

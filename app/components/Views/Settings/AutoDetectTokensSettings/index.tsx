@@ -4,6 +4,7 @@ import { View, Switch } from 'react-native';
 import { useSelector } from 'react-redux';
 
 // internal packages
+import { useStyles } from '../../../../component-library/hooks';
 import Engine from '../../../../core/Engine';
 import { selectUseTokenDetection } from '../../../../selectors/preferencesController';
 import { useTheme } from '../../../../util/theme';
@@ -12,13 +13,13 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import createStyles from './index.styles';
+import styleSheet from './index.styles';
 import { TOKEN_DETECTION_TOGGLE } from './index.constants';
 
 const AutoDetectTokensSettings = () => {
   const theme = useTheme();
   const { colors } = theme;
-  const styles = createStyles();
+  const { styles } = useStyles(styleSheet, {});
 
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
 

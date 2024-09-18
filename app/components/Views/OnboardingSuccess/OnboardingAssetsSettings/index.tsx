@@ -12,8 +12,8 @@ import Icon, {
   IconName,
 } from '../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../locales/i18n';
-import createStyles from './index.styles';
-import { useTheme } from '../../../../util/theme';
+import { useStyles } from '../../../../component-library/hooks';
+import styleSheet from './index.styles';
 import AutoDetectTokensSettings from '../../Settings/AutoDetectTokensSettings';
 import DisplayNFTMediaSettings from '../../Settings/DisplayNFTMediaSettings';
 import AutoDetectNFTSettings from '../../Settings/AutoDetectNFTSettings';
@@ -22,9 +22,7 @@ import IncomingTransactionsSettings from '../../Settings/IncomingTransactionsSet
 import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSettings';
 
 const AssetSettings = () => {
-  const theme = useTheme();
-  const { colors } = theme;
-  const styles = createStyles(colors);
+  const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
 
   const renderBackButton = useCallback(

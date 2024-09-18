@@ -12,8 +12,9 @@ import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
 import ManageNetworksComponent from '../../../UI/ManageNetworks/ManageNetworks';
-import styles from './index.styles';
-import ProfileSyncingComponent from '../../../../components/UI/ProfileSyncing/ProfileSyncing';
+import { useStyles } from '../../../../component-library/hooks';
+import styleSheet from './index.styles';
+import ProfileSyncingComponent from '../../../UI/ProfileSyncing/ProfileSyncing';
 import { useSelector } from 'react-redux';
 import { selectIsProfileSyncingEnabled } from '../../../../selectors/notifications';
 import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
@@ -21,6 +22,7 @@ import { enableProfileSyncing } from '../../../../actions/notification/helpers';
 import { RootState } from '../../../../reducers';
 
 const GeneralSettings = () => {
+  const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const isBasicFunctionalityEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
@@ -35,7 +37,7 @@ const GeneralSettings = () => {
         <Icon name={IconName.ArrowLeft} size={IconSize.Lg} />
       </TouchableOpacity>
     ),
-    [navigation],
+    [navigation, styles.backButton],
   );
   const renderTitle = useCallback(
     () => (

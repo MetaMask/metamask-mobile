@@ -6,7 +6,8 @@ import Engine from '../../../../core/Engine';
 import { selectIsMultiAccountBalancesEnabled } from '../../../../selectors/preferencesController';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
-import createStyles from './index.styles';
+import { useStyles } from '../../../../component-library/hooks';
+import styleSheet from './index.styles';
 import Text, {
   TextVariant,
   TextColor,
@@ -20,7 +21,7 @@ import generateTestId from '../../../../../wdio/utils/generateTestId';
 const BatchAccountBalanceSettings = () => {
   const theme = useTheme();
   const { colors } = theme;
-  const styles = createStyles();
+  const { styles } = useStyles(styleSheet, {});
 
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,

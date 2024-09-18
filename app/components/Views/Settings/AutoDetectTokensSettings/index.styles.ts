@@ -1,6 +1,7 @@
+// Third party dependencies.
 import { StyleSheet } from 'react-native';
 
-const createStyles = () =>
+const styleSheet = () =>
   StyleSheet.create({
     setting: {
       marginTop: 32,
@@ -25,4 +26,4 @@ const createStyles = () =>
     },
   });
 
-export default createStyles;
+export default styleSheet;

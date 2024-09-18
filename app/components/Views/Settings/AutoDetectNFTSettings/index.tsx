@@ -26,7 +26,7 @@ const AutoDetectNFTSettings = () => {
   const useNftDetection = useSelector(selectUseNftDetection);
 
   const toggleNftAutodetect = useCallback(
-    (value) => {
+    (value: boolean) => {
       const { PreferencesController } = Engine.context;
       if (value) {
         PreferencesController.setDisplayNftMedia(value);

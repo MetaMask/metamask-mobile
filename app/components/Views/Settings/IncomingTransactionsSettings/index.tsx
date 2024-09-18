@@ -14,12 +14,13 @@ import {
 } from '../../../../selectors/preferencesController';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { useTheme } from '../../../../util/theme';
+import { useStyles } from '../../../../component-library/hooks';
 import { strings } from '../../../../../locales/i18n';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import createStyles from './index.styles';
+import styleSheet from './index.styles';
 import {
   INCOMING_TRANSACTIONS,
   INCOMING_LINEA_MAINNET_TOGGLE,
@@ -37,7 +38,7 @@ import { NetworksI } from './index.types';
 const IncomingTransactionsSettings = () => {
   const theme = useTheme();
   const { colors } = theme;
-  const styles = createStyles();
+  const { styles } = useStyles(styleSheet, {});
 
   const showTestNetworks = useSelector(selectShowTestNetworks);
   const showIncomingTransactionsNetworks = useSelector(
