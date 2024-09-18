@@ -405,6 +405,10 @@ export const getNetworkNameFromProviderConfig = (providerConfig) => {
   let name = strings('network_information.unknown_network');
   if (providerConfig.nickname) {
     name = providerConfig.nickname;
+  } else if (providerConfig.chainId === NETWORKS_CHAIN_ID.MAINNET) {
+    name = 'Ethereum Main Network';
+  } else if (providerConfig.chainId === NETWORKS_CHAIN_ID.LINEA_MAINNET) {
+    name = 'Linea Main Network';
   } else {
     const networkType = providerConfig.type;
     name = NetworkList?.[networkType]?.name || NetworkList[RPC].name;
@@ -422,14 +426,12 @@ export const getNetworkNameFromProviderConfig = (providerConfig) => {
  */
 export const getNetworkImageSource = ({ networkType, chainId }) => {
   const defaultNetwork = getDefaultNetworkByChainId(chainId);
-  const isDefaultEthMainnet = isDefaultMainnet(networkType);
-  const isLineaMainnetNetwork = isLineaMainnet(networkType);
 
-  if (defaultNetwork && isDefaultEthMainnet) {
+  if (defaultNetwork) {
     return defaultNetwork.imageSource;
   }
 
-  if (defaultNetwork && isLineaMainnetNetwork) {
+  if (defaultNetwork) {
     return defaultNetwork.imageSource;
   }
 
