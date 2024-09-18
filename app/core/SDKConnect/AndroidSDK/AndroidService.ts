@@ -372,7 +372,11 @@ export default class AndroidService extends EventEmitter2 {
           }
         ).NetworkController;
 
-        const chainId = networkController.state.providerConfig.chainId;
+        const {
+          configuration: { chainId },
+        } = networkController.getNetworkClientById(
+          networkController.state?.selectedNetworkClientId,
+        );
 
         this.currentClientId = sessionId;
 

@@ -14,7 +14,7 @@ const createStyles = (params: { theme: Theme }) => {
       paddingBottom: Device.isIphoneX() ? 20 : 0,
     },
     title: {
-      fontSize: Device.isSmallDevice() ? 18 : 24,
+      alignSelf: 'center',
       marginBottom: 16,
       marginTop: 16,
       marginRight: 24,
@@ -98,6 +98,9 @@ const createStyles = (params: { theme: Theme }) => {
     },
     startAccessory: { flex: 1, paddingLeft: 16 },
     endAccessory: { flex: 1, paddingRight: 16 },
+    editArrow: {
+      marginHorizontal: 16,
+    },
   });
 };
 

@@ -115,6 +115,13 @@ jest.mock('../Permissions', () => ({
 
 jest.mock('../../selectors/networkController', () => ({
   selectChainId: jest.fn().mockReturnValue('0x1'),
+  selectProviderConfig: jest.fn().mockReturnValue({
+    type: 'mainnet',
+    chainId: '0x1',
+    ticker: 'ETH',
+  }),
+  selectNetworkConfigurations: jest.fn().mockReturnValue({}),
+  selectSelectedNetworkClientId: jest.fn().mockReturnValue('0x1'),
 }));
 
 jest.mock('../../store/storage-wrapper', () => ({

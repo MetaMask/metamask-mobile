@@ -52,6 +52,7 @@ import {
   NetworkController,
   NetworkControllerActions,
   NetworkControllerEvents,
+  NetworkControllerMessenger,
   NetworkState,
   NetworkStatus,
 } from '@metamask/network-controller';
@@ -83,6 +84,12 @@ import {
   ApprovalControllerEvents,
   ApprovalControllerState,
 } from '@metamask/approval-controller';
+import {
+  SelectedNetworkController,
+  SelectedNetworkControllerState,
+  SelectedNetworkControllerEvents,
+  SelectedNetworkControllerActions,
+} from '@metamask/selected-network-controller';
 import {
   PermissionController,
   PermissionControllerActions,
@@ -219,6 +226,7 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
 import EthQuery from '@metamask/eth-query';
 import { TransactionControllerOptions } from '@metamask/transaction-controller/dist/types/TransactionController';
+import DomainProxyMap from '../lib/DomainProxyMap/DomainProxyMap';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -279,7 +287,8 @@ type GlobalActions =
   | AccountsControllerActions
   | PreferencesControllerActions
   | TokensControllerActions
-  | TokenListControllerActions;
+  | TokenListControllerActions
+  | SelectedNetworkControllerActions;
 
 type GlobalEvents =
   | ApprovalControllerEvents
@@ -299,7 +308,8 @@ type GlobalEvents =
   | PreferencesControllerEvents
   | TokensControllerEvents
   | TokenListControllerEvents
-  | TransactionControllerEvents;
+  | TransactionControllerEvents
+  | SelectedNetworkControllerEvents;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
@@ -337,6 +347,7 @@ export interface EngineState {
   LoggingController: LoggingControllerState;
   PPOMController: PPOMState;
   AccountsController: AccountsControllerState;
+  SelectedNetworkController: SelectedNetworkControllerState;
 }
 
 /**
@@ -359,6 +370,7 @@ interface Controllers {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   PermissionController: PermissionController<any, any>;
+  SelectedNetworkController: SelectedNetworkController;
   PhishingController: PhishingController;
   PreferencesController: PreferencesController;
   PPOMController: PPOMController;
@@ -457,6 +469,7 @@ class Engine {
     };
 
     const approvalController = new ApprovalController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'ApprovalController',
         allowedEvents: [],
@@ -465,7 +478,6 @@ class Engine {
       showApprovalRequest: () => undefined,
       typesExcludedFromRateLimiting: [
         // TODO: Replace with ApprovalType enum from @metamask/controller-utils when breaking change is fixed
-        'eth_sign',
         'personal_sign',
         'eth_signTypedData',
         'transaction',
@@ -498,7 +510,7 @@ class Engine {
         name: 'NetworkController',
         allowedEvents: [],
         allowedActions: [],
-      }),
+      }) as unknown as NetworkControllerMessenger,
       // Metrics event tracking is handled in this repository instead
       // TODO: Use events for controller metric events
       trackMetaMetricsEvent: () => {
@@ -514,10 +526,13 @@ class Engine {
       onNetworkDidChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_DID_CHANGE_EVENT,
+          // @ts-expect-error TODO: Resolve bump the assets controller version.
           listener,
         ),
-      chainId: networkController.state.providerConfig.chainId,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
+      chainId: networkController.getNetworkClientById(
+        networkController?.state.selectedNetworkClientId,
+      ).configuration.chainId,
+      // @ts-expect-error TODO: Resolve bump the assets controller version.
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
@@ -529,7 +544,7 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
+        // @ts-expect-error TODO: Resolve bump the assets controller version.
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
         // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
@@ -541,7 +556,9 @@ class Engine {
           ],
           allowedEvents: [],
         }),
-        chainId: networkController.state.providerConfig.chainId,
+        chainId: networkController.getNetworkClientById(
+          networkController?.state.selectedNetworkClientId,
+        ).configuration.chainId,
 
         getERC721AssetName: assetsContractController.getERC721AssetName.bind(
           assetsContractController,
@@ -565,7 +582,9 @@ class Engine {
       },
       {
         useIPFSSubdomains: false,
-        chainId: networkController.state.providerConfig.chainId,
+        chainId: networkController.getNetworkClientById(
+          networkController?.state.selectedNetworkClientId,
+        ).configuration.chainId,
       },
     );
 
@@ -582,6 +601,7 @@ class Engine {
       }),
       state: initialState.LoggingController,
     });
+    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     const accountsControllerMessenger: AccountsControllerMessenger =
       this.controllerMessenger.getRestricted({
         name: 'AccountsController',
@@ -611,11 +631,15 @@ class Engine {
       state: initialState.AccountsController ?? defaultAccountsControllerState,
     });
     const tokensController = new TokensController({
-      chainId: networkController.state.providerConfig.chainId,
+      chainId: networkController.getNetworkClientById(
+        networkController?.state.selectedNetworkClientId,
+      ).configuration.chainId,
       config: {
         // @ts-expect-error TODO: Resolve mismatch between network-controller versions.
         provider: networkController.getProviderAndBlockTracker().provider,
-        chainId: networkController.state.providerConfig.chainId,
+        chainId: networkController.getNetworkClientById(
+          networkController?.state.selectedNetworkClientId,
+        ).configuration.chainId,
         selectedAddress: preferencesController.state.selectedAddress,
       },
       state: initialState.TokensController,
@@ -634,7 +658,9 @@ class Engine {
       }),
     });
     const tokenListController = new TokenListController({
-      chainId: networkController.state.providerConfig.chainId,
+      chainId: networkController.getNetworkClientById(
+        networkController?.state.selectedNetworkClientId,
+      ).configuration.chainId,
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
@@ -660,6 +686,7 @@ class Engine {
       networkController.state.selectedNetworkClientId,
     );
     const gasFeeController = new GasFeeController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'GasFeeController',
         allowedActions: [
@@ -675,7 +702,9 @@ class Engine {
       getCurrentNetworkEIP1559Compatibility: async () =>
         (await networkController.getEIP1559Compatibility()) ?? false,
       getCurrentNetworkLegacyGasAPICompatibility: () => {
-        const chainId = networkController.state.providerConfig.chainId;
+        const chainId = networkController.getNetworkClientById(
+          networkController?.state.selectedNetworkClientId,
+        ).configuration.chainId;
         return (
           isMainnetByChainId(chainId) ||
           chainId === addHexPrefix(swapsUtils.BSC_CHAIN_ID) ||
@@ -833,12 +862,17 @@ class Engine {
       getMultiAccountBalancesEnabled: () =>
         preferencesController.state.isMultiAccountBalancesEnabled,
       getCurrentChainId: () =>
-        toHexadecimal(networkController.state.providerConfig.chainId),
+        toHexadecimal(
+          networkController.getNetworkClientById(
+            networkController?.state.selectedNetworkClientId,
+          ).configuration.chainId,
+        ),
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
     const permissionController = new PermissionController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'PermissionController',
         allowedActions: [
@@ -900,10 +934,34 @@ class Engine {
       unrestrictedMethods,
     });
 
+    const selectedNetworkController = new SelectedNetworkController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'SelectedNetworkController',
+        allowedActions: [
+          'NetworkController:getNetworkClientById',
+          'NetworkController:getState',
+          'NetworkController:getSelectedNetworkClient',
+          'PermissionController:hasPermissions',
+          'PermissionController:getSubjectNames',
+        ],
+        allowedEvents: [
+          'NetworkController:stateChange',
+          'PermissionController:stateChange',
+        ],
+      }),
+      state: initialState.SelectedNetworkController || { domains: {} },
+      useRequestQueuePreference: !!process.env.MULTICHAIN_V1,
+      // TODO we need to modify core PreferencesController for better cross client support
+      onPreferencesStateChange: (
+        listener: ({ useRequestQueue }: { useRequestQueue: boolean }) => void,
+      ) => listener({ useRequestQueue: !!process.env.MULTICHAIN_V1 }),
+      domainProxyMap: new DomainProxyMap(),
+    });
+
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     const subjectMetadataController = new SubjectMetadataController({
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'SubjectMetadataController',
         allowedActions: [`${permissionController.name}:hasPermissions`],
@@ -953,8 +1011,7 @@ class Engine {
     const requireAllowlist = process.env.METAMASK_BUILD_TYPE === 'main';
     const disableSnapInstallation = process.env.METAMASK_BUILD_TYPE === 'main';
     const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore TODO: Resolve/patch mismatch between base-controller versions.
+    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     const snapsRegistryMessenger: SnapsRegistryMessenger =
       this.controllerMessenger.getRestricted({
         name: 'SnapsRegistry',
@@ -974,8 +1031,7 @@ class Engine {
     });
 
     this.snapExecutionService = new WebViewExecutionService({
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore TODO: Resolve/patch mismatch between base-controller versions.
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'ExecutionService',
         allowedActions: [],
@@ -1057,8 +1113,7 @@ class Engine {
 
     const authenticationController = new AuthenticationController.Controller({
       state: initialState.AuthenticationController,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore TODO: Resolve/patch mismatch between messenger types
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'AuthenticationController',
         allowedActions: [
@@ -1080,8 +1135,7 @@ class Engine {
     const userStorageController = new UserStorageController.Controller({
       getMetaMetricsState: () => MetaMetrics.getInstance().isEnabled(),
       state: initialState.UserStorageController,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore TODO: Resolve/patch mismatch between messenger types
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'UserStorageController',
         allowedActions: [
@@ -1109,8 +1163,7 @@ class Engine {
 
     const notificationServicesController =
       new NotificationServicesController.Controller({
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore TODO: Resolve/patch mismatch between messenger types
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'NotificationServicesController',
           allowedActions: [
@@ -1182,8 +1235,9 @@ class Engine {
       },
       incomingTransactions: {
         isEnabled: () => {
-          const currentHexChainId =
-            networkController.state.providerConfig.chainId;
+          const currentHexChainId = networkController.getNetworkClientById(
+            networkController?.state.selectedNetworkClientId,
+          ).configuration.chainId;
 
           const showIncomingTransactions =
             preferencesController?.state?.showIncomingTransactions;
@@ -1197,7 +1251,7 @@ class Engine {
       },
       isSimulationEnabled: () =>
         preferencesController.state.useTransactionSimulations,
-      // but only breaking change is Node version
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'TransactionController',
         allowedActions: [
@@ -1251,6 +1305,7 @@ class Engine {
           this.transactionController.confirmExternalTransaction.bind(
             this.transactionController,
           ),
+
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
         getNonceLock: this.transactionController.getNonceLock.bind(
@@ -1320,7 +1375,9 @@ class Engine {
               token_standard: 'ERC20',
               asset_type: 'token',
               chain_id: getDecimalChainId(
-                networkController.state.providerConfig.chainId,
+                networkController.getNetworkClientById(
+                  networkController?.state.selectedNetworkClientId,
+                ).configuration.chainId,
               ),
             },
           ),
@@ -1339,7 +1396,9 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
-        chainId: networkController.state.providerConfig.chainId,
+        chainId: networkController.getNetworkClientById(
+          networkController?.state.selectedNetworkClientId,
+        ).configuration.chainId,
         getOpenSeaApiKey: () => nftController.openSeaApiKey,
         addNft: nftController.addNft.bind(nftController),
         getNftApi: nftController.getNftApi.bind(nftController),
@@ -1376,8 +1435,12 @@ class Engine {
             listener,
           ),
         onPreferencesStateChange,
-        chainId: networkController.state.providerConfig.chainId,
-        ticker: networkController.state.providerConfig.ticker,
+        chainId: networkController.getNetworkClientById(
+          networkController?.state.selectedNetworkClientId,
+        ).configuration.chainId,
+        ticker: networkController.getNetworkClientById(
+          networkController?.state.selectedNetworkClientId,
+        ).configuration.ticker,
         selectedAddress: preferencesController.state.selectedAddress,
         tokenPricesService: codefiTokenApiV2,
         interval: 30 * 60 * 1000,
@@ -1417,6 +1480,7 @@ class Engine {
       gasFeeController,
       approvalController,
       permissionController,
+      selectedNetworkController,
       new SignatureController({
         // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
@@ -1430,12 +1494,11 @@ class Engine {
           ],
           allowedEvents: [],
         }),
-        isEthSignEnabled: () =>
-          Boolean(
-            preferencesController.state?.disabledRpcMethodPreferences?.eth_sign,
-          ),
         getAllState: () => store.getState(),
-        getCurrentChainId: () => networkController.state.providerConfig.chainId,
+        getCurrentChainId: () =>
+          networkController.getNetworkClientById(
+            networkController?.state.selectedNetworkClientId,
+          ).configuration.chainId,
       }),
       loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -1447,13 +1510,15 @@ class Engine {
       ///: END:ONLY_INCLUDE_IF
       accountsController,
       new PPOMController({
-        chainId: networkController.state.providerConfig.chainId,
+        chainId: networkController.getNetworkClientById(
+          networkController?.state.selectedNetworkClientId,
+        ).configuration.chainId,
         blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
         cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
         // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
         messenger: this.controllerMessenger.getRestricted({
           name: 'PPOMController',
-          allowedActions: [],
+          allowedActions: ['NetworkController:getNetworkClientById'],
           allowedEvents: [`${networkController.name}:stateChange`],
         }),
         onPreferencesChange: (listener) =>
@@ -1533,12 +1598,16 @@ class Engine {
         if (
           state.networksMetadata[state.selectedNetworkClientId].status ===
             NetworkStatus.Available &&
-          state.providerConfig.chainId !== currentChainId
+          networkController.getNetworkClientById(
+            networkController?.state.selectedNetworkClientId,
+          ).configuration.chainId !== currentChainId
         ) {
           // We should add a state or event emitter saying the provider changed
           setTimeout(() => {
             this.configureControllersOnNetworkChange();
-            currentChainId = state.providerConfig.chainId;
+            currentChainId = networkController.getNetworkClientById(
+              networkController?.state.selectedNetworkClientId,
+            ).configuration.chainId;
           }, 500);
         }
       },
@@ -1553,7 +1622,11 @@ class Engine {
         } catch (error) {
           console.error(
             error,
-            `Network ID not changed, current chainId: ${networkController.state.providerConfig.chainId}`,
+            `Network ID not changed, current chainId: ${
+              networkController.getNetworkClientById(
+                networkController?.state.selectedNetworkClientId,
+              ).configuration.chainId
+            }`,
           );
         }
       },
@@ -1628,7 +1701,9 @@ class Engine {
 
     SwapsController.configure({
       provider,
-      chainId: NetworkController.state?.providerConfig?.chainId,
+      chainId: NetworkController.getNetworkClientById(
+        NetworkController?.state.selectedNetworkClientId,
+      ).configuration.chainId,
       pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
     });
     TokenDetectionController.detectTokens();
@@ -1659,7 +1734,9 @@ class Engine {
       const selectSelectedInternalAccountChecksummedAddress =
         toChecksumHexAddress(selectedInternalAccount.address);
       const { currentCurrency } = CurrencyRateController.state;
-      const { chainId, ticker } = NetworkController.state.providerConfig;
+      const { chainId, ticker } = NetworkController.getNetworkClientById(
+        NetworkController?.state.selectedNetworkClientId,
+      ).configuration;
       const { settings: { showFiatOnTestnets } = {} } = store.getState();
 
       if (isTestNet(chainId) && !showFiatOnTestnets) {
@@ -1802,6 +1879,7 @@ class Engine {
       TokenBalancesController,
       TokenRatesController,
       PermissionController,
+      // SelectedNetworkController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController,
       ///: END:ONLY_INCLUDE_IF
@@ -1814,6 +1892,9 @@ class Engine {
     SnapController.clearState();
     ///: END:ONLY_INCLUDE_IF
 
+    // Clear selected network
+    // TODO implement this method on SelectedNetworkController
+    // SelectedNetworkController.unsetAllDomains()
     //Clear assets info
     TokensController.update({
       allTokens: {},
@@ -1836,6 +1917,7 @@ class Engine {
       transactions: [],
       lastFetchedBlockNumbers: {},
       submitHistory: [],
+      swapsTransactions: {},
     }));
 
     LoggingController.clear();
@@ -2002,6 +2084,7 @@ export default {
       NotificationServicesController,
       ///: END:ONLY_INCLUDE_IF
       PermissionController,
+      SelectedNetworkController,
       ApprovalController,
       LoggingController,
       AccountsController,
@@ -2046,6 +2129,7 @@ export default {
       NotificationServicesController,
       ///: END:ONLY_INCLUDE_IF
       PermissionController,
+      SelectedNetworkController,
       ApprovalController,
       LoggingController,
       AccountsController,

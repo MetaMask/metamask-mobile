@@ -3,7 +3,6 @@ import React, { useCallback, useContext } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { ProviderConfig } from '@metamask/network-controller';
 
 // External dependencies.
 import SheetActions from '../../../../component-library/components-temp/SheetActions';
@@ -25,11 +24,11 @@ import {
 import getAccountNameWithENS from '../../../../util/accounts';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectProviderConfig } from '../../../../selectors/networkController';
 import {
-  selectNetworkName,
-  selectNetworkImageSource,
-} from '../../../../selectors/networkInfos';
+  selectProviderConfig,
+  ProviderConfig,
+} from '../../../../selectors/networkController';
+import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectedAccountModal.selectors';
 
 // Internal dependencies.
@@ -67,8 +66,8 @@ const AccountPermissionsConnected = ({
   const { trackEvent } = useMetrics();
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
-  const networkName = useSelector(selectNetworkName);
-  const networkImageSource = useSelector(selectNetworkImageSource);
+
+  const { networkName, networkImageSource } = useNetworkInfo(hostname);
 
   const activeAddress = selectedAddresses[0];
   const { toastRef } = useContext(ToastContext);
