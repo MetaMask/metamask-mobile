@@ -374,6 +374,7 @@ enum EVENT_NAME {
   NOTIFICATIONS_SETTINGS_UPDATED = 'Notifications Settings Updated',
   NOTIFICATION_CLICKED = 'Notification Clicked',
   NOTIFICATIONS_MARKED_ALL_AS_READ = 'Notifications Marked All as Read',
+  NOTIFICATION_DETAIL_CLICKED = 'Notification Detail Clicked',
 
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
@@ -883,6 +884,9 @@ const events = {
   NOTIFICATION_CLICKED: generateOpt(EVENT_NAME.NOTIFICATION_CLICKED),
   NOTIFICATIONS_MARKED_ALL_AS_READ: generateOpt(
     EVENT_NAME.NOTIFICATIONS_MARKED_ALL_AS_READ,
+  ),
+  NOTIFICATION_DETAIL_CLICKED: generateOpt(
+    EVENT_NAME.NOTIFICATION_DETAIL_CLICKED,
   ),
   // Simulations
   INCOMPLETE_ASSET_DISPLAYED: generateOpt(

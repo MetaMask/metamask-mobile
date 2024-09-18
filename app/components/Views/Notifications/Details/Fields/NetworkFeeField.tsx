@@ -21,8 +21,15 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { NotificationDetailStyles } from '../styles';
 import { CURRENCY_SYMBOL_BY_CHAIN_ID } from '../../../../../constants/network';
+import {
+  type Notification,
+  TRIGGER_TYPES,
+} from '../../../../../util/notifications';
+import { useMetrics } from '../../../../../components/hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 type NetworkFeeFieldProps = ModalFieldNetworkFee & {
+  notification: Notification;
   isCollapsed: boolean;
   setIsCollapsed: (newVal: boolean) => void;
 };
@@ -63,10 +70,11 @@ function NetworkFeeLabelAndValue(props: {
 }
 
 function NetworkFeeField(props: NetworkFeeFieldProps) {
-  const { setIsCollapsed, isCollapsed } = props;
+  const { setIsCollapsed, isCollapsed, notification } = props;
   const { styles, theme } = useStyles();
   const sheetRef = useRef<BottomSheetRef>(null);
   const networkFee = useNetworkFee(props);
+  const { trackEvent } = useMetrics();
 
   if (!networkFee) {
     return null;
@@ -75,9 +83,23 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
   const collapsedIcon = isCollapsed ? IconName.ArrowDown : IconName.ArrowUp;
   const ticker = CURRENCY_SYMBOL_BY_CHAIN_ID[networkFee.chainId];
 
+  const onPress = () => {
+    setIsCollapsed(!isCollapsed);
+    if (!isCollapsed) {
+      trackEvent(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED, {
+        notification_id: notification.id,
+        notification_type: notification.type,
+        ...(notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT && {
+          chain_id: notification?.chain_id,
+        }),
+        clicked_item: 'fee_details',
+      });
+    }
+  };
+
   return (
     <>
-      <TouchableOpacity onPress={() => setIsCollapsed(!isCollapsed)}>
+      <TouchableOpacity onPress={onPress}>
         <View style={styles.row}>
           <Avatar
             variant={AvatarVariant.Icon}
