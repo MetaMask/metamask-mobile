@@ -15,7 +15,6 @@ import {
   selectTicker,
 } from '../../../selectors/networkController';
 import { swapsLivenessSelector } from '../../../reducers/swaps';
-import { toggleReceiveModal } from '../../../actions/modals';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import isBridgeAllowed from '../../UI/Bridge/utils/isBridgeAllowed';
 import useGoToBridge from '../../../components/UI/Bridge/utils/useGoToBridge';
@@ -28,12 +27,14 @@ import WalletAction from '../../../components/UI/WalletAction';
 import { useStyles } from '../../../component-library/hooks';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import useRampNetwork from '../../UI/Ramp/hooks/useRampNetwork';
+import Routes from '../../../constants/navigation/Routes';
 import { getDecimalChainId } from '../../../util/networks';
 import { WalletActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/WalletActionsModal.selectors';
 
 // Internal dependencies
 import styleSheet from './WalletActions.styles';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import {
   createBuyNavigationDetails,
   createSellNavigationDetails,
@@ -54,7 +55,12 @@ const WalletActions = () => {
   const { trackEvent } = useMetrics();
 
   const onReceive = () => {
-    sheetRef.current?.onCloseBottomSheet(() => dispatch(toggleReceiveModal()));
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigate(Routes.QR_TAB_SWITCHER, {
+        initialScreen: QRTabSwitcherScreens.Receive,
+      });
+    });
+
     trackEvent(MetaMetricsEvents.RECEIVE_BUTTON_CLICKED, {
       text: 'Receive',
       tokenSymbol: '',
