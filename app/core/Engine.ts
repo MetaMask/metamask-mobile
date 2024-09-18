@@ -557,7 +557,6 @@ class Engine {
         // noop
       },
     };
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     const networkController = new NetworkController(networkControllerOpts);
 
     networkController.initializeProvider();
