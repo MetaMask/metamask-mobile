@@ -2165,12 +2165,12 @@
     "cancelled_message": "Tap to view this transaction",
     "received_message": "Tap to view this transaction",
     "received_payment_message": "You received {{amount}} DAI",
-    "prompt_title": "Enable Push Notifications",
+    "prompt_title": "Receive Push Notifications",
     "notifications_enabled_error_title": "Something went wrong",
     "notifications_enabled_error_desc": "We couldn't enable notifications. Please try again later.",
-    "prompt_desc": "Enable notifications so MetaMask can let you know when you've received ETH or when your transactions have been confirmed.",
-    "prompt_ok": "Yes",
-    "prompt_cancel": "No, thanks",
+    "prompt_desc": "Turn on notifications from Settings to get important alerts on wallet activity and more.",
+    "prompt_ok": "Turn on",
+    "prompt_cancel": "Maybe later",
     "wc_connected_title": "Connected to {{title}}",
     "wc_signed_title": "Signed",
     "wc_sent_tx_title": "Sent transaction",
@@ -3184,6 +3184,7 @@
     "ledger_reminder_message_step_four": "4. Location is enabled with use precise location on",
     "ledger_reminder_message_step_four_Androidv12plus": "4. Nearby devices is enabled",
     "ledger_reminder_message_step_five": "5. Do not disturb must be turned off",
+    "blind_signing_message": "6. Enable \"blind signing\" on your Ledger device.",
     "available_devices": "Available devices",
     "retry": "Retry",
     "continue": "Continue",
@@ -3220,7 +3221,10 @@
     "ledger_live_path": "Ledger Live",
     "ledger_legacy_path": "Legacy(MEW/MyCrypto)",
     "ledger_bip44_path": "BIP44(e.g. MetaMask, Trezor)",
-    "ledger_legacy_label": " (legacy)"
+    "ledger_legacy_label": " (legacy)",
+    "blind_sign_error": "Blind signing error",
+    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings."
+
   },
   "account_actions": {
     "edit_name": "Edit account name",
@@ -3274,7 +3278,21 @@
     "error_description": "Installation of {{snap}} failed."
   },
   "stake": {
-    "stake": "Stake"
+    "stake": "Stake",
+    "stake_eth": "Stake ETH",
+    "your_earnings": "Your earnings",
+    "annual_rate": "Annual rate",
+    "lifetime_rewards": "Lifetime rewards",
+    "estimated_annual_earnings": "Estimated annual earnings",
+    "accessibility_labels": {
+      "stake_annual_rate_tooltip": "Annual rate tooltip"
+    },
+    "estimated_annual_rewards": "Estimated annual rewards",
+    "metamask_pool": "MetaMask Pool",
+    "enter_amount": "Enter amount",
+    "review": "Review",
+    "not_enough_eth": "Not enough ETH",
+    "balance":"Balance"
   },
   "default_settings": {
     "title": "Your Wallet is ready",
@@ -3326,15 +3344,6 @@
     "please_wait": "Please wait",
     "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
     "disconnect": "Disconnect"
-  },
-  "staking": {
-    "your_earnings": "Your earnings",
-    "annual_rate": "Annual rate",
-    "lifetime_rewards": "Lifetime rewards",
-    "estimated_annual_earnings": "Est. annual earnings",
-    "accessibility_labels": {
-      "stake_annual_rate_tooltip": "Annual rate tooltip"
-    }
   },
   "tooltip_modal": {
     "reward_rate": {
