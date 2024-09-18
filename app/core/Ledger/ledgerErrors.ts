@@ -9,6 +9,7 @@ export enum LedgerCommunicationErrors {
   NotSupported = 'NotSupported',
   UnknownError = 'UnknownError',
   NonceTooLow = 'NonceTooLow',
+  BlindSignError = 'BlindSignError',
 }
 
 export enum BluetoothPermissionErrors {

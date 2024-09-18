@@ -979,7 +979,7 @@ export function getWalletNavbarOptions(
   };
 
   function openQRScanner() {
-    navigation.navigate('QRScanner', {
+    navigation.navigate(Routes.QR_TAB_SWITCHER, {
       onScanSuccess,
     });
     trackEvent(MetaMetricsEvents.WALLET_QR_SCANNER);
@@ -1014,7 +1014,7 @@ export function getWalletNavbarOptions(
     ),
     headerRight: () => (
       <View style={styles.leftButtonContainer}>
-        {isNotificationsFeatureEnabled() && (
+        {isNotificationEnabled && isNotificationsFeatureEnabled() && (
           <View style={styles.notificationsWrapper}>
             <ButtonIcon
               iconColor={IconColor.Primary}
@@ -1116,12 +1116,12 @@ export function getImportTokenNavbarOptions(
             onClose
               ? () => onClose()
               : () =>
-                  navigation.navigate(Routes.WALLET.HOME, {
-                    screen: Routes.WALLET.TAB_STACK_FLOW,
-                    params: {
-                      screen: Routes.WALLET_VIEW,
-                    },
-                  })
+                navigation.navigate(Routes.WALLET.HOME, {
+                  screen: Routes.WALLET.TAB_STACK_FLOW,
+                  params: {
+                    screen: Routes.WALLET_VIEW,
+                  },
+                })
           }
         />
       </TouchableOpacity>
@@ -1176,14 +1176,14 @@ export function getNftDetailsNavbarOptions(
     ),
     headerRight: onRightPress
       ? () => (
-          <TouchableOpacity style={styles.backButton} onPress={onRightPress}>
-            <Icon
-              name={IconName.MoreVertical}
-              size={IconSize.Lg}
-              style={innerStyles.headerBackIcon}
-            />
-          </TouchableOpacity>
-        )
+        <TouchableOpacity style={styles.backButton} onPress={onRightPress}>
+          <Icon
+            name={IconName.MoreVertical}
+            size={IconSize.Lg}
+            style={innerStyles.headerBackIcon}
+          />
+        </TouchableOpacity>
+      )
       : () => <View />,
     headerStyle: [
       innerStyles.headerStyle,
@@ -1299,15 +1299,15 @@ export function getNetworkNavbarOptions(
     ),
     headerRight: onRightPress
       ? () => (
-          <TouchableOpacity style={styles.backButton} onPress={onRightPress}>
-            <MaterialCommunityIcon
-              name={'dots-horizontal'}
-              size={28}
-              style={innerStyles.headerIcon}
-            />
-          </TouchableOpacity>
-          // eslint-disable-next-line no-mixed-spaces-and-tabs
-        )
+        <TouchableOpacity style={styles.backButton} onPress={onRightPress}>
+          <MaterialCommunityIcon
+            name={'dots-horizontal'}
+            size={28}
+            style={innerStyles.headerIcon}
+          />
+        </TouchableOpacity>
+        // eslint-disable-next-line no-mixed-spaces-and-tabs
+      )
       : () => <View />,
     headerStyle: [
       innerStyles.headerStyle,
@@ -1811,3 +1811,36 @@ export const getSettingsNavigationOptions = (title, themeColors) => {
     ...innerStyles,
   };
 };
+
+export function getStakeInputNavbar(navigation, themeColors) {
+  const innerStyles = StyleSheet.create({
+    headerButtonText: {
+      color: themeColors.primary.default,
+      fontSize: 14,
+      ...fontStyles.normal,
+    },
+    headerStyle: {
+      backgroundColor: themeColors.background.default,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
+    },
+  });
+  const title = strings('stake.stake_eth');
+  return {
+    headerTitle: () => (
+      <NavbarTitle title={title} disableNetwork translate={false} />
+    ),
+    headerLeft: () => <View />,
+    headerRight: () => (
+      <TouchableOpacity
+        onPress={() => navigation.dangerouslyGetParent()?.pop()}
+        style={styles.closeButton}
+      >
+        <Text style={innerStyles.headerButtonText}>
+          {strings('navigation.cancel')}
+        </Text>
+      </TouchableOpacity>
+    ),
+    headerStyle: innerStyles.headerStyle,
+  };
+}

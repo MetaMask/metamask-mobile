@@ -29,7 +29,7 @@ import SendTo from '../../Views/confirmations/SendFlow/SendTo';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
-import QrScanner from '../../Views/QRScanner';
+import QRTabSwitcher from '../../Views/QRTabSwitcher';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
 import ResetPassword from '../../Views/ResetPassword';
@@ -84,11 +84,11 @@ import ConfirmAddAsset from '../../UI/ConfirmAddAsset';
 import { AesCryptoTestForm } from '../../Views/AesCryptoTestForm';
 import { isTest } from '../../../util/test/utils';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
-
 import NftDetails from '../../Views/NftDetails';
 import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
+import StakeInputView from '../../UI/Stake/Views/InputView/StakeInputView';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -685,6 +685,16 @@ const Swaps = () => (
   </Stack.Navigator>
 );
 
+const Stake = () => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name="Stake"
+      component={StakeInputView}
+      options={StakeInputView.navigationOptions}
+    />
+  </Stack.Navigator>
+);
+
 const SetPasswordFlow = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -775,12 +785,12 @@ const MainNavigator = () => (
       name={Routes.NOTIFICATIONS.VIEW}
       component={NotificationsModeView}
     />
+    <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
     <Stack.Screen name="NftDetails" component={NftDetailsModeView} />
     <Stack.Screen
       name="NftDetailsFullImage"
       component={NftDetailsFullImageModeView}
     />
-    <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
     <Stack.Screen name={Routes.RAMP.BUY}>
       {() => <RampRoutes rampType={RampType.BUY} />}
@@ -789,6 +799,7 @@ const MainNavigator = () => (
       {() => <RampRoutes rampType={RampType.SELL} />}
     </Stack.Screen>
     <Stack.Screen name="Swaps" component={Swaps} />
+    <Stack.Screen name="Stake" component={Stake} />
     <Stack.Screen
       name="SetPasswordFlow"
       component={SetPasswordFlow}

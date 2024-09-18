@@ -2,6 +2,18 @@ import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { NetworkState, RpcEndpointType } from '@metamask/network-controller';
 import { createDeepEqualSelector } from './util';
+import Engine from '../core/Engine';
+import { Hex } from '@metamask/utils';
+import { NetworkList } from '../util/networks';
+
+export interface ProviderConfig {
+  chainId: Hex;
+  ticker: string;
+  rpcUrl: string;
+  type: string;
+  nickname: string | undefined;
+  network?: string;
+}
 
 const selectNetworkControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.NetworkController;

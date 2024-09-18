@@ -5,7 +5,6 @@ import { useNavigation } from '@react-navigation/native';
 import setSignatureRequestSecurityAlertResponse from '../../../../../../actions/signatureRequest';
 import { store } from '../../../../../../store';
 import { useTheme } from '../../../../../../util/theme';
-import MessageSign from '../../MessageSign';
 import PersonalSign from '../../PersonalSign';
 import TypedSign from '../../TypedSign';
 import { MessageParams } from '../types';
@@ -87,16 +86,6 @@ const Root = ({
       {approvalType === ApprovalTypes.ETH_SIGN_TYPED_DATA && (
         <TypedSign
           navigation={navigation}
-          messageParams={messageParams}
-          onReject={onSignReject}
-          onConfirm={onSignConfirm}
-          currentPageInformation={currentPageMeta}
-          toggleExpandedMessage={toggleExpandedMessage}
-          showExpandedMessage={showExpandedMessage}
-        />
-      )}
-      {approvalType === ApprovalTypes.ETH_SIGN && (
-        <MessageSign
           messageParams={messageParams}
           onReject={onSignReject}
           onConfirm={onSignConfirm}

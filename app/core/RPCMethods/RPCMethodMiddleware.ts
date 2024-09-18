@@ -38,6 +38,7 @@ import { regex } from '../../../app/util/regex';
 import Logger from '../../../app/util/Logger';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { addTransaction } from '../../util/transaction-controller';
+import Routes from '../../constants/navigation/Routes';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -52,7 +53,6 @@ export enum ApprovalTypes {
   SWITCH_ETHEREUM_CHAIN = 'SWITCH_ETHEREUM_CHAIN',
   REQUEST_PERMISSIONS = 'wallet_requestPermissions',
   WALLET_CONNECT = 'WALLET_CONNECT',
-  ETH_SIGN = 'eth_sign',
   PERSONAL_SIGN = 'personal_sign',
   ETH_SIGN_TYPED_DATA = 'eth_signTypedData',
   WATCH_ASSET = 'wallet_watchAsset',
@@ -530,52 +530,6 @@ export const getRpcMethodMiddleware = ({
           },
         });
       },
-      eth_sign: async () => {
-        const { SignatureController, PreferencesController } = Engine.context;
-        const { disabledRpcMethodPreferences } = PreferencesController.state;
-        const { eth_sign } = disabledRpcMethodPreferences;
-
-        if (!eth_sign) {
-          throw rpcErrors.methodNotFound(
-            'eth_sign has been disabled. You must enable it in the advanced settings',
-          );
-        }
-        const pageMeta = {
-          meta: {
-            url: url.current,
-            title: title.current,
-            icon: icon.current,
-            channelId,
-            analytics: {
-              request_source: getSource(),
-              request_platform: analytics?.platform,
-            },
-          },
-        };
-
-        checkTabActive();
-
-        if (req.params[1].length === 66 || req.params[1].length === 67) {
-          await checkActiveAccountAndChainId({
-            hostname,
-            channelId,
-            address: req.params[0].from,
-            isWalletConnect,
-          });
-          PPOMUtil.validateRequest(req);
-          const rawSig = await SignatureController.newUnsignedMessage({
-            data: req.params[1],
-            from: req.params[0],
-            ...pageMeta,
-            origin: hostname,
-          });
-
-          res.result = rawSig;
-        } else {
-          res.result = AppConstants.ETH_SIGN_ERROR;
-          throw rpcErrors.invalidParams(AppConstants.ETH_SIGN_ERROR);
-        }
-      },
 
       personal_sign: async () => {
         const { SignatureController } = Engine.context;
@@ -733,7 +687,7 @@ export const getRpcMethodMiddleware = ({
       wallet_scanQRCode: () =>
         new Promise<void>((resolve, reject) => {
           checkTabActive();
-          navigation.navigate('QRScanner', {
+          navigation.navigate(Routes.QR_TAB_SWITCHER, {
             // TODO: Replace "any" with type
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             onScanSuccess: (data: any) => {
