@@ -36,7 +36,7 @@ import {
   AddressBookController,
   AddressBookState,
 } from '@metamask/address-book-controller';
-import { BaseState, Listener } from '@metamask/base-controller';
+import { BaseState } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
@@ -529,7 +529,6 @@ class Engine {
         // noop
       },
     };
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     const networkController = new NetworkController(networkControllerOpts);
 
     networkController.initializeProvider();
@@ -1312,33 +1311,16 @@ class Engine {
       );
     };
     this.smartTransactionsController = new SmartTransactionsController({
+      // @ts-expect-error TODO: resolve types
+      supportedChainIds: getAllowedSmartTransactionsChainIds(),
+      getNonceLock: this.transactionController.getNonceLock.bind(
+        this.transactionController,
+      ),
       confirmExternalTransaction:
         this.transactionController.confirmExternalTransaction.bind(
           this.transactionController,
         ),
-
-      getNetworkClientById:
-        networkController.getNetworkClientById.bind(networkController),
-      getNonceLock: this.transactionController.getNonceLock.bind(
-        this.transactionController,
-      ),
-      getTransactions: this.transactionController.getTransactions.bind(
-        this.transactionController,
-      ),
-      onNetworkStateChange: (listener: Listener<NetworkState>) =>
-        this.controllerMessenger.subscribe(
-          AppConstants.NETWORK_STATE_CHANGE_EVENT,
-          listener,
-        ),
-      // TODO: Replace "any" with type
-      provider:
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        networkController.getProviderAndBlockTracker().provider as any,
-
       trackMetaMetricsEvent: smartTransactionsControllerTrackMetaMetricsEvent,
-      getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
-      // @ts-expect-error TODO: resolve types
-      supportedChainIds: getAllowedSmartTransactionsChainIds(),
       state: initialState.SmartTransactionsController,
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
@@ -1346,6 +1328,10 @@ class Engine {
         allowedActions: ['NetworkController:getNetworkClientById'],
         allowedEvents: ['NetworkController:stateChange'],
       }),
+      getTransactions: this.transactionController.getTransactions.bind(
+        this.transactionController,
+      ),
+      getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
     });
 
     const controllers: Controllers[keyof Controllers][] = [
