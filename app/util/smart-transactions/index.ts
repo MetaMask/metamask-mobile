@@ -8,6 +8,7 @@ import {
   getIsNativeTokenTransferred,
 } from '../transactions';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
+import { SmartTransaction } from '@metamask/smart-transactions-controller/dist/types';
 
 export const getTransactionType = (
   transactionMeta: TransactionMeta,
@@ -74,57 +75,44 @@ export const getShouldUpdateApprovalRequest = (
   isSwapTransaction: boolean,
 ): boolean => isDapp || isSend || isSwapTransaction;
 
+const waitForSmartTransactionConfirmationDone = (
+  smartTransactionsController: SmartTransactionsController,
+): Promise<SmartTransaction | undefined> => {
+  return new Promise((resolve) => {
+    smartTransactionsController.eventEmitter.on(
+      'SmartTransactionsController:smartTransactionConfirmationDone',
+      async (smartTransaction: SmartTransaction) => {
+        resolve(smartTransaction);
+      },
+    );
+    setTimeout(() => {
+      resolve(undefined); // In a rare case we don't get the "smartTransactionConfirmationDone" event within 10 seconds, we resolve with undefined to continue.
+    }, 10000);
+  });
+};
+
 export const getSmartTransactionMetricsProperties = async (
   smartTransactionsController: SmartTransactionsController,
   transactionMeta: TransactionMeta | undefined,
   waitForSmartTransaction: boolean,
 ) => {
   if (!transactionMeta) return {};
-
   let smartTransaction =
     smartTransactionsController.getSmartTransactionByMinedTxHash(
       transactionMeta.hash,
     );
-
-  // Since the smart transaction may not be available immediately, we need to wait for it a little bit.
   if (waitForSmartTransaction && !smartTransaction?.statusMetadata) {
-    const intervalDuration = 100; // 100ms
-    const maxDuration = 2000; // 2 seconds
-    const maxAttempts = maxDuration / intervalDuration;
-    let attempts = 0;
-
-    const interval = setInterval(() => {
-      smartTransaction =
-        smartTransactionsController.getSmartTransactionByMinedTxHash(
-          transactionMeta.hash,
-        );
-
-      if (smartTransaction?.statusMetadata || attempts >= maxAttempts) {
-        clearInterval(interval); // Stop the interval
-      }
-
-      attempts++;
-    }, intervalDuration);
-
-    // Wait for the interval to either find the smart transaction or reach max attempts
-    await new Promise((resolve) => {
-      const checkInterval = setInterval(() => {
-        if (attempts >= maxAttempts || smartTransaction?.statusMetadata) {
-          clearInterval(checkInterval);
-          resolve(true);
-        }
-      }, intervalDuration);
-    });
+    smartTransaction = await waitForSmartTransactionConfirmationDone(
+      smartTransactionsController,
+    );
   }
-
-  if (smartTransaction?.statusMetadata) {
-    const { duplicated, timedOut, proxied } = smartTransaction.statusMetadata;
-    return {
-      smart_transaction_duplicated: duplicated,
-      smart_transaction_timed_out: timedOut,
-      smart_transaction_proxied: proxied,
-    };
+  if (!smartTransaction?.statusMetadata) {
+    return {};
   }
-
-  return {};
+  const { duplicated, timedOut, proxied } = smartTransaction.statusMetadata;
+  return {
+    smart_transaction_duplicated: duplicated,
+    smart_transaction_timed_out: timedOut,
+    smart_transaction_proxied: proxied,
+  };
 };
