@@ -29,10 +29,12 @@ import Routes from '../../../../constants/navigation/Routes';
 import {
   asyncAlert,
   requestPushNotificationsPermission,
+  isNotificationsFeatureEnabled,
 } from '../../../../util/notifications';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 import { useMetrics } from '../../../hooks/useMetrics';
+import { selectIsProfileSyncingEnabled } from '../../../../selectors/notifications';
 
 interface Props {
   route: {
@@ -52,6 +54,7 @@ const BasicFunctionalityModal = ({ route }: Props) => {
   const isEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
+  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
 
   const { enableNotifications } = useEnableNotifications();
 
@@ -78,6 +81,16 @@ const BasicFunctionalityModal = ({ route }: Props) => {
           ? MetaMetricsEvents.BASIC_FUNCTIONALITY_ENABLED
           : MetaMetricsEvents.BASIC_FUNCTIONALITY_DISABLED,
       );
+      trackEvent(MetaMetricsEvents.SETTINGS_UPDATED, {
+        settings_group: 'security_privacy',
+        settings_type: 'basic_functionality',
+        old_value: isEnabled,
+        new_value: !isEnabled,
+        was_notifications_on: isEnabled
+          ? isNotificationsFeatureEnabled()
+          : false,
+        was_profile_syncing_on: isEnabled ? isProfileSyncingEnabled : false,
+      });
     });
 
     if (
