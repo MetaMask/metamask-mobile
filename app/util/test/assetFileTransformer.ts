@@ -2,11 +2,11 @@
 import path from 'path';
 
 interface AssetTransformer {
-  process: (filename: string) => { code: string };
+  process: (_: unknown, filename: string) => { code: string };
 }
 
 const assetTransformer: AssetTransformer = {
-  process(filename: string) {
+  process(_: unknown, filename: string) {
     const assetFilename = JSON.stringify(path.basename(filename));
 
     return {
