@@ -237,55 +237,60 @@ const NetworkModals = (props: NetworkProps) => {
     onClose();
   };
 
-  const switchNetwork = async () => {
-    const { NetworkController, CurrencyRateController } = Engine.context;
-    const url = new URLPARSE(rpcUrl);
-    CurrencyRateController.updateExchangeRate(ticker);
-    const existingNetwork = networkConfigurationByChainId[chainId];
+  const handleExistingNetwork = async (
+    existingNetwork,
+    chainId,
+    NetworkController,
+  ) => {
+    const updatedNetwork = await NetworkController.updateNetwork(
+      existingNetwork.chainId,
+      existingNetwork,
+      existingNetwork.chainId === chainId
+        ? {
+            replacementSelectedRpcEndpointIndex:
+              existingNetwork.defaultRpcEndpointIndex,
+          }
+        : undefined,
+    );
 
-    !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
+    await NetworkController.setActiveNetwork(
+      updatedNetwork.rpcEndpoints[updatedNetwork.defaultRpcEndpointIndex]
+        .networkClientId,
+    );
+  };
 
-    if (existingNetwork) {
-      // todo: fix later here
-      const updatedNetwork = await NetworkController.updateNetwork(
-        existingNetwork.chainId,
-        existingNetwork,
-        existingNetwork.chainId === chainId
-          ? {
-              replacementSelectedRpcEndpointIndex:
-                existingNetwork.defaultRpcEndpointIndex,
-            }
-          : undefined,
-      );
+  const handleNewNetwork = async (
+    chainId,
+    rpcUrl,
+    nickname,
+    ticker,
+    blockExplorerUrl,
+    NetworkController,
+  ) => {
+    const networkConfig = {
+      chainId,
+      blockExplorerUrls: blockExplorerUrl ? [blockExplorerUrl] : [],
+      defaultRpcEndpointIndex: 0,
+      defaultBlockExplorerUrlIndex: blockExplorerUrl ? 0 : undefined,
+      name: nickname,
+      nativeCurrency: ticker,
+      rpcEndpoints: [
+        {
+          url: rpcUrl,
+          name: nickname,
+          type: RpcEndpointType.Custom,
+        },
+      ],
+    };
 
-      await NetworkController.setActiveNetwork(
-        updatedNetwork.rpcEndpoints[updatedNetwork.defaultRpcEndpointIndex]
-          .networkClientId,
-      );
-    } else {
-      const addedNetwork = await NetworkController.addNetwork({
-        chainId,
-        blockExplorerUrls: [blockExplorerUrl],
-        defaultRpcEndpointIndex: 0,
-        defaultBlockExplorerUrlIndex: 0,
-        name: nickname,
-        nativeCurrency: ticker,
-        rpcEndpoints: [
-          {
-            url: rpcUrl,
-            name: nickname,
-            type: RpcEndpointType.Custom,
-          },
-        ],
-      });
-      await NetworkController.setActiveNetwork(
-        addedNetwork.rpcEndpoints[addedNetwork.defaultRpcEndpointIndex]
-          .networkClientId,
-      );
-    }
+    return NetworkController.addNetwork(networkConfig);
+  };
 
-    closeModal();
-
+  const handleNavigation = (
+    onNetworkSwitch,
+    shouldNetworkSwitchPopToWallet,
+    navigation,
+  ) => {
     if (onNetworkSwitch) {
       onNetworkSwitch();
     } else {
@@ -293,6 +298,42 @@ const NetworkModals = (props: NetworkProps) => {
         ? navigation.navigate('WalletView')
         : navigation.goBack();
     }
+  };
+
+  const switchNetwork = async () => {
+    const { NetworkController, CurrencyRateController } = Engine.context;
+    const url = new URLPARSE(rpcUrl);
+    const existingNetwork = networkConfigurationByChainId[chainId];
+
+    CurrencyRateController.updateExchangeRate(ticker);
+
+    if (!isprivateConnection(url.hostname)) {
+      url.set('protocol', 'https:');
+    }
+
+    if (existingNetwork) {
+      await handleExistingNetwork(existingNetwork, chainId, NetworkController);
+    } else {
+      const addedNetwork = await handleNewNetwork(
+        chainId,
+        rpcUrl,
+        nickname,
+        ticker,
+        blockExplorerUrl,
+        NetworkController,
+      );
+      await NetworkController.setActiveNetwork(
+        addedNetwork.rpcEndpoints[addedNetwork.defaultRpcEndpointIndex]
+          .networkClientId,
+      );
+    }
+
+    closeModal();
+    handleNavigation(
+      onNetworkSwitch,
+      shouldNetworkSwitchPopToWallet,
+      navigation,
+    );
     dispatch(networkSwitched({ networkUrl: url.href, networkStatus: true }));
   };
 

@@ -106,6 +106,7 @@ interface ShowConfirmDeleteModalState {
   isVisible: boolean;
   networkName: string;
   entry?: [string, NetworkConfiguration & { id: string }];
+  chainId?: `0x${string}`;
 }
 
 interface NetworkSelectorRouteParams {
@@ -706,14 +707,16 @@ const NetworkSelector = () => {
 
   const removeRpcUrl = (networkId: string) => {
     const entry = Object.entries(networkConfigurations).find(
-      ([, { chainId }]) => chainId === networkId,
+      ([chainId]) => chainId === networkId,
     );
+
+    console.log('entry ----', entry);
 
     if (!entry) {
       throw new Error(`Unable to find network with chain id ${networkId}`);
     }
 
-    const [, { nickname }] = entry;
+    const [chainId, { name: nickname }] = entry;
 
     closeModal();
     closeRpcModal();
@@ -721,17 +724,17 @@ const NetworkSelector = () => {
     setShowConfirmDeleteModal({
       isVisible: true,
       networkName: nickname ?? '',
-      entry,
+      chainId: chainId as `0x${string}`,
     });
   };
 
   const confirmRemoveRpc = () => {
-    if (showConfirmDeleteModal.entry) {
-      const [networkConfigurationId] = showConfirmDeleteModal.entry;
-
+    console.log('HERE ***********', showConfirmDeleteModal);
+    if (showConfirmDeleteModal.chainId) {
+      const { chainId } = showConfirmDeleteModal;
+      console.log('HERE ***********', showConfirmDeleteModal, chainId);
       const { NetworkController } = Engine.context;
-
-      NetworkController.removeNetworkConfiguration(networkConfigurationId);
+      NetworkController.removeNetwork(chainId);
 
       setShowConfirmDeleteModal({
         isVisible: false,
@@ -903,10 +906,12 @@ const NetworkSelector = () => {
               )}
               iconName={IconName.Edit}
               onPress={() => {
-                navigate(Routes.ADD_NETWORK, {
-                  shouldNetworkSwitchPopToWallet: false,
-                  shouldShowPopularNetworks: false,
-                  network: showNetworkMenuModal.networkTypeOrRpcUrl,
+                sheetRef.current?.onCloseBottomSheet(() => {
+                  navigate(Routes.ADD_NETWORK, {
+                    shouldNetworkSwitchPopToWallet: false,
+                    shouldShowPopularNetworks: false,
+                    network: showNetworkMenuModal.networkTypeOrRpcUrl,
+                  });
                 });
               }}
             />

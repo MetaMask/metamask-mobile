@@ -73,6 +73,22 @@ function networkOnboardReducer(
           [action.payload]: true,
         },
       };
+    case 'RPC_UPDATE':
+      console.log('STATE ----', state);
+      return { ...state };
+    // return {
+    //   ...state,
+    //   networkState: {
+    //     showNetworkOnboarding: false,
+    //     nativeToken: '',
+    //     networkType: '',
+    //     networkUrl: '',
+    //   },
+    //   networkOnboardedState: {
+    //     ...state.networkOnboardedState,
+    //     [action.payload]: true,
+    //   },
+    // };
     default:
       return state;
   }
