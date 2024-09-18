@@ -8,6 +8,7 @@ import { strings } from '../../../locales/i18n';
 import { mmStorage } from './settings';
 import { STORAGE_IDS } from './settings/storage/constants';
 import Logger from '../Logger';
+import Device from '../device';
 
 interface AlertButton {
   text: string;
@@ -35,6 +36,13 @@ const defaultButtons = (resolve: (value: boolean) => void): AlertButton[] => [
   {
     text: strings('notifications.prompt_ok'),
     onPress: async () => {
+      if (Device.isIos()) {
+        await notifee.requestPermission({
+          provisional: true,
+        });
+      } else {
+        await notifee.requestPermission();
+      }
       NotificationSetting.open();
       resolve(true);
     },
