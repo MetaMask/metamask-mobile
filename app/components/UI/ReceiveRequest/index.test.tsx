@@ -8,6 +8,13 @@ const initialState = {
   engine: {
     backgroundState: {
       ...backgroundState,
+      NetworkController: {
+        providerConfig: {
+          type: 'mainnet',
+          chainId: '0x1',
+          ticker: 'ETH',
+        },
+      },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
@@ -40,6 +47,7 @@ describe('ReceiveRequest', () => {
     const { toJSON } = renderScreen(
       ReceiveRequest,
       { name: 'ReceiveRequest' },
+      // @ts-expect-error initialBackgroundState throws error
       { state: initialState },
     );
     expect(toJSON()).toMatchSnapshot();
@@ -52,6 +60,7 @@ describe('ReceiveRequest', () => {
     const { toJSON } = renderScreen(
       ReceiveRequest,
       { name: 'ReceiveRequest' },
+      // @ts-expect-error initialBackgroundState throws error
       { state },
     );
     expect(toJSON()).toMatchSnapshot();
@@ -65,6 +74,7 @@ describe('ReceiveRequest', () => {
     const { toJSON } = renderScreen(
       ReceiveRequest,
       { name: 'ReceiveRequest' },
+      // @ts-expect-error initialBackgroundState throws error
       { state },
     );
     expect(toJSON()).toMatchSnapshot();
