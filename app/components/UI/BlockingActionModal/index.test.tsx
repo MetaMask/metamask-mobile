@@ -6,7 +6,7 @@ import BlockingActionModal from './';
 describe('BlockingActionModal', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
-      <BlockingActionModal isLoadingAction modalVisible>
+      <BlockingActionModal isLoadingAction modalVisible onAnimationCompleted={() => undefined}>
         <Text>{'Please wait'}</Text>
       </BlockingActionModal>,
     );
