@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle, ViewProps } from 'react-native';
+import { View, StyleSheet, ViewStyle } from 'react-native';
 import { useTheme } from '../../util/theme';
 import type { Theme as DesignTokenTheme } from '@metamask/design-tokens';
 
