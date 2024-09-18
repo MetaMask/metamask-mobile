@@ -1,24 +1,16 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity, TouchableOpacityProps } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, TouchableOpacityProps, GestureResponderEvent } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useTheme } from '../../util/theme';
+import { Theme } from '@metamask/design-tokens';
 
 interface SelectorButtonProps extends TouchableOpacityProps {
-  onPress: () => void;
+  onPress: (event: GestureResponderEvent) => void;
   disabled?: boolean;
   children: React.ReactNode;
 }
 
-interface ThemeColors {
-  background: {
-    alternative: string;
-  };
-  text: {
-    alternative: string;
-  };
-}
-
-const createStyles = (colors: ThemeColors) =>
+const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     container: {
       backgroundColor: colors.background.alternative,
