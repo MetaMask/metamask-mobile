@@ -9,8 +9,6 @@ on:
       - synchronize
       - labeled
       - unlabeled
-  merge_group:
-    types: [checks_requested]
 
 jobs:
   check-pr-labels:
