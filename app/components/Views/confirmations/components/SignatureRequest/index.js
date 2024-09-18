@@ -20,7 +20,6 @@ import ActionView, { ConfirmButtonState } from '../../../../UI/ActionView';
 import QRSigningDetails from '../../../../UI/QRHardware/QRSigningDetails';
 import withQRHardwareAwareness from '../../../../UI/QRHardware/withQRHardwareAwareness';
 import WebsiteIcon from '../../../../UI/WebsiteIcon';
-import WarningMessage from '../../SendFlow/WarningMessage';
 import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
 import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 
@@ -214,17 +213,6 @@ class SignatureRequest extends PureComponent {
     };
   };
 
-  goToWarning = () => {
-    this.props.onReject();
-    this.props.navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: 'https://support.metamask.io',
-        title: 'support.metamask.io',
-      },
-    });
-  };
-
   getStyles = () => {
     const colors = this.context.colors || mockTheme.colors;
     return createStyles(colors);
@@ -313,7 +301,7 @@ class SignatureRequest extends PureComponent {
   };
 
   renderSignatureRequest() {
-    const { securityAlertResponse, type, fromAddress } = this.props;
+    const { securityAlertResponse, fromAddress } = this.props;
     let expandedHeight;
     const styles = this.getStyles();
     const isLedgerAccount = isHardwareAccount(fromAddress, [
