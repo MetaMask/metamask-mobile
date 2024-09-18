@@ -6,8 +6,7 @@ Feature: Measure Wallet Screen Cold Start
   # The time it takes to get from login view to wallet view.
 
   Scenario: Cold Start after importing a wallet
-    Given the splash animation disappears
-    And I have imported my wallet
+    Given I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I close all the onboarding modals
     And I am on the wallet screen
