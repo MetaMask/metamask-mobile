@@ -229,7 +229,7 @@ const RevealPrivateCredential = ({
 
     if (!isPrivateKey) {
       const currentDate = new Date();
-      dispatch(recordSRPRevealTimestamp(currentDate.getTime()));
+      dispatch(recordSRPRevealTimestamp(currentDate.toString()));
       trackEvent(MetaMetricsEvents.NEXT_REVEAL_SRP_CTA);
     }
     setIsModalVisible(true);
