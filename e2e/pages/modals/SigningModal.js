@@ -15,10 +15,6 @@ class SigningModal {
       : Matchers.getElementByID(SigningModalSelectorsIDs.CANCEL_BUTTON);
   }
 
-  get ethRequest() {
-    return Matchers.getElementByID(SigningModalSelectorsIDs.ETH_REQUEST);
-  }
-
   get personalRequest() {
     return Matchers.getElementByID(SigningModalSelectorsIDs.PERSONAL_REQUEST);
   }
