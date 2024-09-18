@@ -23,6 +23,7 @@ import AppConstants from '../../../../core/AppConstants';
 import { RootState } from '../../../../reducers';
 import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
+import { AuthorizationStatus } from '@notifee/react-native';
 
 const OptIn = () => {
   const theme = useTheme();
@@ -51,7 +52,7 @@ const OptIn = () => {
         asyncAlert,
       );
 
-      if (nativeNotificationStatus) {
+      if (nativeNotificationStatus?.authorizationStatus === AuthorizationStatus.AUTHORIZED) {
         /**
          * Although this is an async function, we are dispatching an action (firing & forget)
          * to emulate optimistic UI.
