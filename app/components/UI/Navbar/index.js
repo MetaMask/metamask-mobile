@@ -1024,8 +1024,9 @@ export function getWalletNavbarOptions(
     ),
     headerRight: () => (
       <View style={styles.leftButtonContainer}>
-        {isNotificationEnabled && isNotificationsFeatureEnabled() && (
-          <View style={styles.notificationsWrapper}>
+
+        <View style={styles.notificationsWrapper}>
+          {isNotificationsFeatureEnabled() && (
             <ButtonIcon
               iconColor={IconColor.Primary}
               onPress={handleNotificationOnPress}
@@ -1034,6 +1035,8 @@ export function getWalletNavbarOptions(
               testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
               style={styles.notificationButton}
             />
+          )}
+          {isNotificationEnabled && (
             <View
               style={[
                 styles.notificationsBadge,
@@ -1043,9 +1046,9 @@ export function getWalletNavbarOptions(
                     : themeColors.background.transparent,
                 },
               ]}
-            />
-          </View>
-        )}
+            />)}
+        </View>
+
 
         <ButtonIcon
           iconColor={IconColor.Primary}

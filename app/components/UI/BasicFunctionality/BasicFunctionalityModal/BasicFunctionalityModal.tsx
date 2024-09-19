@@ -37,6 +37,7 @@ import {
   selectIsProfileSyncingEnabled,
   selectIsMetamaskNotificationsEnabled,
 } from '../../../../selectors/notifications';
+import { AuthorizationStatus } from '@notifee/react-native';
 
 interface Props {
   route: {
@@ -68,7 +69,7 @@ const BasicFunctionalityModal = ({ route }: Props) => {
       asyncAlert,
     );
 
-    if (nativeNotificationStatus) {
+    if (nativeNotificationStatus?.authorizationStatus === AuthorizationStatus.AUTHORIZED) {
       /**
        * Although this is an async function, we are dispatching an action (firing & forget)
        * to emulate optimistic UI.

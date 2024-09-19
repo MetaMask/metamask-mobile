@@ -54,6 +54,7 @@ import AppConstants from '../../../../core/AppConstants';
 import notificationsRows from './notificationsRows';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import { AuthorizationStatus } from '@notifee/react-native';
 
 interface MainNotificationSettingsProps extends Props {
   toggleNotificationsEnabled: () => void;
@@ -190,7 +191,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
         asyncAlert,
       );
 
-      if (nativeNotificationStatus) {
+      if (nativeNotificationStatus?.authorizationStatus === AuthorizationStatus.AUTHORIZED) {
         /**
          * Although this is an async function, we are dispatching an action (firing & forget)
          * to emulate optimistic UI.
