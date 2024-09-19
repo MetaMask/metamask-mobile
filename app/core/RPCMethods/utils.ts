@@ -129,8 +129,9 @@ export const polyfillGasPrice = async (
     'SelectedNetworkController:getNetworkClientIdForDomain',
     origin,
   );
-
-  const networkClient = Engine.controllerMessenger.call(
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const networkClient: any = Engine.controllerMessenger.call(
     'NetworkController:getNetworkClientById',
     networkClientId,
   );
