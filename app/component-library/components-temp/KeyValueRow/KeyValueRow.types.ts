@@ -4,25 +4,25 @@ import { TextColor, TextVariant } from '../../components/Texts/Text';
 import { ReactNode } from 'react';
 import { ImageSourcePropType } from 'react-native';
 
-interface Tooltip {
+interface KeyValueRowTooltip {
   title: string;
   text: string;
   size?: ButtonIconSizes;
 }
 
-interface Icon {
+interface KeyValueRowIcon {
   src: ImageSourcePropType;
   name: string;
   isIpfsGatewayCheckBypassed?: boolean;
   size?: AvatarSize;
 }
 
-interface TextField {
+interface KeyValueRowField {
   text: string;
   variant?: TextVariant;
   color?: TextColor;
-  icon?: Icon;
-  tooltip?: Tooltip;
+  icon?: KeyValueRowIcon;
+  tooltip?: KeyValueRowTooltip;
 }
 
 export const IconSizes = AvatarSize;
@@ -33,7 +33,7 @@ export interface KeyValueRowLabelProps {
   label: string;
   variant?: TextVariant;
   color?: TextColor;
-  tooltip?: Tooltip;
+  tooltip?: KeyValueRowTooltip;
 }
 
 export interface KeyValueRowRootProps {
@@ -59,8 +59,8 @@ export interface KeyValueSectionProps {
 }
 
 interface KeyValueRowText {
-  primary: TextField;
-  secondary?: TextField;
+  primary: KeyValueRowField;
+  secondary?: KeyValueRowField;
 }
 
 export interface KeyValueRowProps {
