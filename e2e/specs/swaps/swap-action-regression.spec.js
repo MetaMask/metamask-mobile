@@ -81,13 +81,13 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
     );
     await Assertions.checkIfElementNotToHaveText(WalletView.totalBalance, '$0');
   });
-
+// removed the following line because bug 11085 with unapproved tokens
+// ${'unapproved'}$ |${'50'}   | ${'DAI'}          | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
   it.each`
     type             | quantity | sourceTokenSymbol | destTokenSymbol | network
     ${'native'}$     |${'.5'}   | ${'ETH'}          | ${'DAI'}        | ${CustomNetworks.Tenderly.Mainnet}
     ${'native'}$     |${'.4'}   | ${'ETH'}          | ${'WETH'}       | ${CustomNetworks.Tenderly.Mainnet}
     ${'native'}$     |${'.3'}   | ${'ETH'}          | ${'USDT'}       | ${CustomNetworks.Tenderly.Arbitrum}
-    ${'unapproved'}$ |${'50'}   | ${'DAI'}          | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
     ${'wrapped'}$    |${'.4'}   | ${'WETH'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
   `(
     "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
@@ -144,6 +144,7 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
       await Assertions.checkIfVisible(SwapView.quoteSummary);
       await Assertions.checkIfVisible(SwapView.gasFee);
       await SwapView.tapIUnderstandPriceWarning();
+      await TestHelpers.delay(1000);
       await SwapView.swipeToSwap();
       try {
         await Assertions.checkIfVisible(

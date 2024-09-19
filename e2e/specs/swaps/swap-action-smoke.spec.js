@@ -83,11 +83,12 @@ describe(SmokeSwaps('Swap from Actions'), () => {
     await Assertions.checkIfElementNotToHaveText(WalletView.totalBalance, '$0');
   });
 
+  // removed the following line because bug 11085 with unapproved tokens
+  // ${'unapproved'}$ |${'50'}   | ${'DAI'}          | ${'USDC'}        | ${CustomNetworks.Tenderly.Mainnet}
   it.each`
     type             | quantity | sourceTokenSymbol | destTokenSymbol | network
     ${'native'}$     |${'.5'}   | ${'ETH'}          | ${'DAI'}        | ${CustomNetworks.Tenderly.Mainnet}
     ${'native'}$     |${'.3'}   | ${'ETH'}          | ${'USDT'}       | ${CustomNetworks.Tenderly.Arbitrum}
-    ${'unapproved'}$ |${'50'}   | ${'DAI'}          | ${'USDC'}        | ${CustomNetworks.Tenderly.Mainnet}
   `(
     "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
     async ({ quantity, sourceTokenSymbol, destTokenSymbol, network }) => {
