@@ -262,7 +262,7 @@ class OnboardingCarousel extends PureComponent {
                               {jsBundleDuration}
                             </Text>
                             <Text style={styles.metricsData} testID={PerformanceRegressionSelectorIDs.APP_START_TIME_ID}>
-                              {appStartTime}
+                              App start time: {appStartTime}
                             </Text>
                           </>
                         )}
