@@ -5,6 +5,10 @@ import { merge } from 'lodash';
 import { CustomNetworks, PopularNetworksList } from '../resources/networks.e2e';
 const DAPP_URL = 'localhost';
 
+/* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
+const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
+const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
+
 /**
  * FixtureBuilder class provides a fluent interface for building fixture data.
  */
@@ -755,6 +759,7 @@ class FixtureBuilder {
         .length + 1
     }`;
 
+    console.log('newNetworkClientId ----', newNetworkClientId);
     // Define the Ganache network configuration
     const ganacheNetworkConfig = {
       chainId: '0x539',
@@ -768,7 +773,6 @@ class FixtureBuilder {
       ],
       defaultRpcEndpointIndex: 0,
       blockExplorerUrls: [],
-      defaultBlockExplorerUrlIndex: 0,
       name: 'Localhost',
       nativeCurrency: 'ETH',
     };
@@ -780,8 +784,10 @@ class FixtureBuilder {
     // Update selectedNetworkClientId to the new network client ID
     fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
 
-    // Set isCustomNetwork to true (if this property still exists in the new state)
-    fixtures.NetworkController.isCustomNetwork = true;
+    console.log(
+      'fixtures.NetworkController -----',
+      fixtures.NetworkController.networkConfigurationsByChainId,
+    );
 
     return this;
   }
