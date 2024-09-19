@@ -157,7 +157,7 @@ describe('PPOM Utils', () => {
             rpcUrl: 'https://mainnet.infura.io/v3',
             chainId: CHAIN_ID_MOCK,
             ticker: 'ETH',
-            nickname: 'Sepolia network',
+            nickname: 'Ethereum mainnet',
             rpcPrefs: {
               blockExplorerUrl: 'https://etherscan.com',
             },
