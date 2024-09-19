@@ -28,20 +28,16 @@ export const isDeviceNotificationEnabled = async () => {
   switch (settings.authorizationStatus) {
     case AuthorizationStatus.AUTHORIZED:
     case AuthorizationStatus.PROVISIONAL:
-      {
-        store.dispatch({
-          type: 'TOGGLE_DEVICE_NOTIFICATIONS',
-          deviceNotificationEnabled: true,
-        });
-      }
+      store.dispatch({
+        type: 'TOGGLE_DEVICE_NOTIFICATIONS',
+        deviceNotificationEnabled: true,
+      });
       return true;
     default:
-      {
-        store.dispatch({
-          type: 'TOGGLE_DEVICE_NOTIFICATIONS',
-          deviceNotificationEnabled: false,
-        });
-      }
+      store.dispatch({
+        type: 'TOGGLE_DEVICE_NOTIFICATIONS',
+        deviceNotificationEnabled: false,
+      });
       return false;
   }
 };
