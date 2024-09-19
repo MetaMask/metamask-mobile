@@ -3,8 +3,8 @@ import React, { Component, RefObject } from 'react';
 import { View, ScrollView, NativeSyntheticEvent } from 'react-native';
 import WebView, { WebViewMessageEvent } from '@metamask/react-native-webview';
 import { createStyles } from './styles';
-import { WebViewInterface } from '@metamask/snaps-controllers/dist/types/services/webview/WebViewMessageStream';
 import { WebViewError } from '@metamask/react-native-webview/lib/WebViewTypes';
+import { WebViewInterface } from '@metamask/snaps-controllers/dist/services/webview/WebViewMessageStream.cjs';
 import { PostMessageEvent } from '@metamask/post-message-stream';
 
 const SNAPS_EE_URL = 'https://execution.metamask.io/webview/6.7.1/index.html';
