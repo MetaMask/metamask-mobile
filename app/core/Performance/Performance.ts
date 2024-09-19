@@ -18,8 +18,8 @@ class Performance {
    * Measures app start and JS bundle loading times
    */
   static setupPerformanceObservers = () => {
-    // Don't run in release mode
-    if (!__DEV__) return;
+    // // Don't run in release mode
+    // if (!__DEV__) return;
 
     new PerformanceObserver((list) => {
       // Get measurement entries
