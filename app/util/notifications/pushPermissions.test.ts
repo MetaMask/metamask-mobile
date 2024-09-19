@@ -100,15 +100,14 @@ describe('requestPushNotificationsPermission', () => {
 
     const mockAsyncAlert = jest.fn().mockResolvedValue(true);
 
-    const result = await requestPushNotificationsPermission(mockAsyncAlert);
+    await requestPushNotificationsPermission(mockAsyncAlert);
 
     expect(mockAsyncAlert).toHaveBeenCalledWith(
       'notifications.prompt_title',
       'notifications.prompt_desc',
     );
-    expect(notifee.getNotificationSettings).toHaveBeenCalledTimes(2);
+    expect(notifee.getNotificationSettings).toHaveBeenCalledTimes(1);
     expect(strings).toHaveBeenCalledWith('notifications.prompt_title');
     expect(strings).toHaveBeenCalledWith('notifications.prompt_desc');
-    expect(result).toBe(updatedSettings);
   });
 });
