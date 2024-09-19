@@ -85,15 +85,10 @@ pipelines:
 stages:
   create_build_all_targets:
     workflows:
-      - build_release_with_sentry_sourcemap: {}
-  build_release_with_sentry_sourcemap:
-    envs:
-      - SENTRY_DISABLE_AUTO_UPLOAD: false
-    workflows:
-      # - build_android_release: {}
+      - build_android_release: {}
       - build_ios_release: {}
-      # - build_android_qa: {}
-      # - build_ios_qa: {}
+      - build_android_qa: {}
+      - build_ios_qa: {}
   create_build_for_test_flight:
     workflows:
       - build_android_release: {}
@@ -102,6 +97,16 @@ stages:
     workflows:
       - deploy_android_to_store: {}
       - deploy_ios_to_store: {}
+  build_ios_release_with_sourcemaps:
+    envs:
+      - SENTRY_DISABLE_AUTO_UPLOAD: false
+    after_run:
+      - build_ios_release: {}
+  build_android_release_with_sourcemaps:
+    envs:
+      - SENTRY_DISABLE_AUTO_UPLOAD: false
+    after_run:
+      - build_android_release: {}
   create_ios_release:
     workflows:
       - build_ios_release: {}
