@@ -125,6 +125,7 @@ import TooltipModal from '../../../components/Views/TooltipModal';
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
+import QRScanner from 'app/components/Views/QRScanner';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
