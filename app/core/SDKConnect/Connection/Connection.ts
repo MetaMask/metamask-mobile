@@ -317,7 +317,7 @@ export class Connection extends EventEmitter2 {
     this.trigger = trigger;
   }
 
-  disconnect({ terminate, context }: { terminate: boolean; context?: string }) {
+  disconnect({ terminate, context }: { terminate: boolean; context?: string }): Promise<boolean> {
     return disconnect({ instance: this, terminate, context });
   }
 
