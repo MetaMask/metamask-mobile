@@ -5,7 +5,7 @@ import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
 import StorageWrapper from '../../store/storage-wrapper';
 import { regex } from '../regex';
 import { AGREED, METRICS_OPT_IN } from '../../constants/storage';
-import { isTest } from '../test/utils';
+import { isE2E } from '../test/utils';
 import { store } from '../../store';
 
 /**
@@ -77,7 +77,6 @@ export const sentryStateMask = {
       },
       PhishingController: {},
       PreferencesController: {
-        disabledRpcMethodPreferences: true,
         featureFlags: true,
         isIpfsGatewayEnabled: true,
         displayNftMedia: true,
@@ -86,7 +85,6 @@ export const sentryStateMask = {
         useTransactionSimulations: true,
       },
       SignatureController: {
-        unapprovedMsgCount: true,
         unapprovedPersonalMsgCount: true,
         unapprovedTypedMessagesCount: true,
       },
@@ -474,14 +472,14 @@ export function deriveSentryEnvironment(
 
 // Setup sentry remote error reporting
 export function setupSentry() {
-  // Disable Sentry for E2E tests
-  if (isTest) {
+  const dsn = process.env.MM_SENTRY_DSN;
+
+  // Disable Sentry for E2E tests or when DSN is not provided
+  if (isE2E || !dsn) {
     return;
   }
 
   const init = async () => {
-    const dsn = process.env.MM_SENTRY_DSN;
-
     const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
 
     const integrations = [new Dedupe(), new ExtraErrorData()];
@@ -504,7 +502,8 @@ export function setupSentry() {
               }),
             ]
           : integrations,
-      tracesSampleRate: 0.08,
+      // Set tracesSampleRate to 1.0, as that ensures that every transaction will be sent to Sentry for development builds.
+      tracesSampleRate: __DEV__ ? 1.0 : 0.08,
       beforeSend: (report) => rewriteReport(report),
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
       beforeSendTransaction: (event) => excludeEvents(event),
