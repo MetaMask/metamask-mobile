@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 
 // External dependencies.
+import { useMetrics } from '../../../hooks/useMetrics';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
@@ -23,10 +24,15 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
-import { selectIsProfileSyncingEnabled } from '../../../../selectors/notifications';
+import {
+  selectIsProfileSyncingEnabled,
+  selectIsMetamaskNotificationsEnabled,
+} from '../../../../selectors/notifications';
 import { useProfileSyncing } from '../../../../util/notifications/hooks/useProfileSyncing';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 const ProfileSyncingModal = () => {
+  const { trackEvent } = useMetrics();
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -34,6 +40,9 @@ const ProfileSyncingModal = () => {
   const { disableProfileSyncing } = useProfileSyncing();
 
   const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+  const isMetamaskNotificationsEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
 
   // TODO: Handle errror/loading states from enabling/disabling profile syncing
   const closeBottomSheet = () => {
@@ -41,6 +50,13 @@ const ProfileSyncingModal = () => {
       if (isProfileSyncingEnabled) {
         await disableProfileSyncing();
       }
+      trackEvent(MetaMetricsEvents.SETTINGS_UPDATED, {
+        settings_group: 'security_privacy',
+        settings_type: 'profile_syncing',
+        old_value: isProfileSyncingEnabled,
+        new_value: !isProfileSyncingEnabled,
+        was_notifications_on: isMetamaskNotificationsEnabled,
+      });
     });
   };
 
