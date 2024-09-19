@@ -6,6 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
+import PropTypes from 'prop-types';
 import {
   Linking,
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -304,7 +305,6 @@ const VaultRecoveryFlow = () => (
   </Stack.Navigator>
 );
 
-// eslint-disable-next-line react/prop-types
 const App = (props) => {
   const { userLoggedIn } = props;
   // FIXME: Remove this when the unit tests are resolved for rendering this component. This property is only used by unit tests at the moment. Tests break when this is removed.
@@ -905,6 +905,15 @@ const App = (props) => {
       <Toast ref={toastRef} />
     </>
   );
+};
+
+App.propTypes = {
+  userLoggedIn: PropTypes.bool.isRequired,
+  route: PropTypes.shape({
+    params: PropTypes.shape({
+      supressRender: PropTypes.bool,
+    }),
+  }),
 };
 
 const mapStateToProps = (state) => ({
