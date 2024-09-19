@@ -75,11 +75,11 @@ function loadStories() {
   require('../app/components/UI/WarningAlert/WarningAlert.stories');
   require('../app/components/Views/AssetDetails/AssetDetailsActions/AssetDetailsActions.stories');
   require('../app/components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.stories');
+  require('../app/components/Views/QRAccountDisplay/QRAccountDisplay.stories');
   require('../app/component-library/components-temp/Accounts/AccountBalance/AccountBalance.stories');
   require('../app/component-library/components-temp/CellSelectWithMenu/CellSelectWithMenu.stories');
   require('../app/component-library/components-temp/Contracts/ContractBox/ContractBox.stories');
   require('../app/component-library/components-temp/CustomSpendCap/CustomSpendCap.stories');
-  require('../app/component-library/components-temp/KeyValuePair/KeyValuePair.stories');
   require('../app/component-library/components-temp/ListItemMultiSelectButton/ListItemMultiSelectButton.stories');
   require('../app/component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentage.stories');
   require('../app/component-library/components-temp/Price/PercentageChange/PercentageChange.stories');
@@ -158,11 +158,11 @@ const stories = [
   '../app/components/UI/WarningAlert/WarningAlert.stories',
   '../app/components/Views/AssetDetails/AssetDetailsActions/AssetDetailsActions.stories',
   '../app/components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.stories',
+  '../app/components/Views/QRAccountDisplay/QRAccountDisplay.stories',
   '../app/component-library/components-temp/Accounts/AccountBalance/AccountBalance.stories',
   '../app/component-library/components-temp/CellSelectWithMenu/CellSelectWithMenu.stories',
   '../app/component-library/components-temp/Contracts/ContractBox/ContractBox.stories',
   '../app/component-library/components-temp/CustomSpendCap/CustomSpendCap.stories',
-  '../app/component-library/components-temp/KeyValuePair/KeyValuePair.stories',
   '../app/component-library/components-temp/ListItemMultiSelectButton/ListItemMultiSelectButton.stories',
   '../app/component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentage.stories',
   '../app/component-library/components-temp/Price/PercentageChange/PercentageChange.stories',

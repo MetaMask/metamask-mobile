@@ -19,7 +19,7 @@ const StakingButtons = () => {
 
   const { styles } = useStyles(styleSheet, {});
 
-  // TODO: Connect to unstaking flow it's when ready
+  // TODO: Connect to unstaking flow when it's ready
   const onUnstakePress = () =>
     openTooltipModal('TODO', 'Connect to unstaking flow');
 

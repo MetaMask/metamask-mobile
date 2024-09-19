@@ -22,8 +22,6 @@ import UnstakingBanner from './StakingBanners/UnstakeBanner/UnstakeBanner';
 const MOCK_STAKED_ETH_ASSET = {
   balance: '4.9999 ETH',
   balanceFiat: '$13,292.20',
-  isETH: true,
-  logo: '../images/eth-logo-new.png',
   name: 'Staked Ethereum',
   symbol: 'ETH',
 };

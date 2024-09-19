@@ -6,6 +6,5 @@
   "cucumberautocomplete.steps": ["wdio/step-definitions/**/*.js"],
   "cucumberautocomplete.syncfeatures": "wdio/to/features/*.feature",
   "cucumberautocomplete.strictGherkinCompletion": true,
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "cSpell.words": ["Unstaking"]
+  "typescript.tsdk": "node_modules/typescript/lib"
 }
