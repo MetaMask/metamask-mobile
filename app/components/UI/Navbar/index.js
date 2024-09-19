@@ -979,7 +979,7 @@ export function getWalletNavbarOptions(
   };
 
   function openQRScanner() {
-    navigation.navigate('QRScanner', {
+    navigation.navigate(Routes.QR_TAB_SWITCHER, {
       onScanSuccess,
     });
     trackEvent(MetaMetricsEvents.WALLET_QR_SCANNER);
@@ -1014,8 +1014,9 @@ export function getWalletNavbarOptions(
     ),
     headerRight: () => (
       <View style={styles.leftButtonContainer}>
-        {isNotificationsFeatureEnabled() && (
-          <View style={styles.notificationsWrapper}>
+
+        <View style={styles.notificationsWrapper}>
+          {isNotificationsFeatureEnabled() && (
             <ButtonIcon
               iconColor={IconColor.Primary}
               onPress={handleNotificationOnPress}
@@ -1024,6 +1025,8 @@ export function getWalletNavbarOptions(
               testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
               style={styles.notificationButton}
             />
+          )}
+          {isNotificationEnabled && (
             <View
               style={[
                 styles.notificationsBadge,
@@ -1033,9 +1036,9 @@ export function getWalletNavbarOptions(
                     : themeColors.background.transparent,
                 },
               ]}
-            />
-          </View>
-        )}
+            />)}
+        </View>
+
 
         <ButtonIcon
           iconColor={IconColor.Primary}
@@ -1116,12 +1119,12 @@ export function getImportTokenNavbarOptions(
             onClose
               ? () => onClose()
               : () =>
-                  navigation.navigate(Routes.WALLET.HOME, {
-                    screen: Routes.WALLET.TAB_STACK_FLOW,
-                    params: {
-                      screen: Routes.WALLET_VIEW,
-                    },
-                  })
+                navigation.navigate(Routes.WALLET.HOME, {
+                  screen: Routes.WALLET.TAB_STACK_FLOW,
+                  params: {
+                    screen: Routes.WALLET_VIEW,
+                  },
+                })
           }
         />
       </TouchableOpacity>
@@ -1176,14 +1179,14 @@ export function getNftDetailsNavbarOptions(
     ),
     headerRight: onRightPress
       ? () => (
-          <TouchableOpacity style={styles.backButton} onPress={onRightPress}>
-            <Icon
-              name={IconName.MoreVertical}
-              size={IconSize.Lg}
-              style={innerStyles.headerBackIcon}
-            />
-          </TouchableOpacity>
-        )
+        <TouchableOpacity style={styles.backButton} onPress={onRightPress}>
+          <Icon
+            name={IconName.MoreVertical}
+            size={IconSize.Lg}
+            style={innerStyles.headerBackIcon}
+          />
+        </TouchableOpacity>
+      )
       : () => <View />,
     headerStyle: [
       innerStyles.headerStyle,
@@ -1299,15 +1302,15 @@ export function getNetworkNavbarOptions(
     ),
     headerRight: onRightPress
       ? () => (
-          <TouchableOpacity style={styles.backButton} onPress={onRightPress}>
-            <MaterialCommunityIcon
-              name={'dots-horizontal'}
-              size={28}
-              style={innerStyles.headerIcon}
-            />
-          </TouchableOpacity>
-          // eslint-disable-next-line no-mixed-spaces-and-tabs
-        )
+        <TouchableOpacity style={styles.backButton} onPress={onRightPress}>
+          <MaterialCommunityIcon
+            name={'dots-horizontal'}
+            size={28}
+            style={innerStyles.headerIcon}
+          />
+        </TouchableOpacity>
+        // eslint-disable-next-line no-mixed-spaces-and-tabs
+      )
       : () => <View />,
     headerStyle: [
       innerStyles.headerStyle,
