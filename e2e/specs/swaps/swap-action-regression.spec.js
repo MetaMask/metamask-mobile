@@ -124,7 +124,7 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
 
       //Select destination token
       await QuoteView.tapOnSelectDestToken();
-      if (destTokenSymbol != 'ETH')
+      if (destTokenSymbol !== 'ETH')
       {
           await QuoteView.tapSearchToken();
           await QuoteView.typeSearchToken(destTokenSymbol);
