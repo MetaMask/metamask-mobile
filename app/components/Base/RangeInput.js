@@ -6,14 +6,7 @@ import PropTypes from 'prop-types';
 import BigNumber from 'bignumber.js';
 import { useTheme } from '../../util/theme';
 
-interface Colors {
-  error: { default: string };
-  border: { default: string };
-  text: { default: string };
-  primary: { default: string };
-}
-
-const createStyles = (colors: Colors) =>
+const createStyles = (colors) =>
   StyleSheet.create({
     labelContainer: {
       flexDirection: 'row',
@@ -22,31 +15,21 @@ const createStyles = (colors: Colors) =>
       marginBottom: 14,
       flexWrap: 'wrap',
     },
-    rangeInputContainer: {
+    rangeInputContainer: (error) => ({
+      borderColor: error ? colors.error.default : colors.border.default,
       borderWidth: 1,
       borderRadius: 6,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       height: 42,
-    },
-    rangeInputContainerError: {
-      borderColor: colors.error.default,
-    },
-    rangeInputContainerNormal: {
-      borderColor: colors.border.default,
-    },
-    input: {
+    }),
+    input: (error) => ({
       height: 38,
       minWidth: 10,
       paddingRight: 6,
-    },
-    inputError: {
-      color: colors.error.default,
-    },
-    inputNormal: {
-      color: colors.text.default,
-    },
+      color: error ? colors.error.default : colors.text.default,
+    }),
     buttonContainerLeft: {
       marginLeft: 17,
       flex: 1,
@@ -105,54 +88,7 @@ const createStyles = (colors: Colors) =>
     },
   });
 
-interface RangeInputProps {
-  /**
-   * Component or text to render on the left side of the label
-   */
-  leftLabelComponent?: React.ReactNode;
-  /**
-   * Component or text to render on the right side of the label
-   */
-  rightLabelComponent?: React.ReactNode;
-  /**
-   * The value to be on the input
-   */
-  value: string;
-  /**
-   * The unit to show inside the input
-   */
-  unit?: string;
-  /**
-   * A BigNumber value per which the input is incremented when clicking on the plus and minus button
-   */
-  increment: BigNumber;
-  /**
-   * Function that is called when the input is changed
-   */
-  onChangeValue: (value: string) => void;
-  /**
-   * The label to show inside the input
-   */
-  inputInsideLabel?: string;
-  /**
-   * The error to show below the input. Also when the error exists the input text will turn red
-   */
-  error?: string;
-  /**
-   * A BigNumber minimum value the input is allowed to have when clicking on the minus button
-   */
-  min: BigNumber;
-  /**
-   * A BigNumber maximum value the input is allowed to have when clicking on the plus button
-   */
-  max: BigNumber;
-  /**
-   * The name of the input
-   */
-  name: string;
-}
-
-const RangeInput: React.FC<RangeInputProps> = ({
+const RangeInput = ({
   leftLabelComponent,
   rightLabelComponent,
   value,
@@ -165,8 +101,8 @@ const RangeInput: React.FC<RangeInputProps> = ({
   max,
   name,
 }) => {
-  const textInput = useRef<TextInput | null>(null);
-  const [errorState, setErrorState] = useState<string | undefined>();
+  const textInput = useRef(null);
+  const [errorState, setErrorState] = useState();
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
@@ -175,7 +111,7 @@ const RangeInput: React.FC<RangeInputProps> = ({
   }, []);
 
   const changeValue = useCallback(
-    (newValue: string, dontEmptyError?: boolean) => {
+    (newValue, dontEmptyError) => {
       if (!dontEmptyError) setErrorState('');
       const cleanValue = newValue?.replace?.(',', '.');
       if (cleanValue && new BigNumber(cleanValue).isNaN()) {
@@ -200,7 +136,7 @@ const RangeInput: React.FC<RangeInputProps> = ({
     changeValue(newValue.toString());
   }, [changeValue, increment, min, value]);
 
-  const renderLabelComponent = useCallback((component: React.ReactNode) => {
+  const renderLabelComponent = useCallback((component) => {
     if (!component) return null;
     if (typeof component === 'string')
       return (
@@ -236,7 +172,7 @@ const RangeInput: React.FC<RangeInputProps> = ({
         {renderLabelComponent(rightLabelComponent)}
       </View>
 
-      <View style={[styles.rangeInputContainer, hasError ? styles.rangeInputContainerError : styles.rangeInputContainerNormal]}>
+      <View style={styles.rangeInputContainer(Boolean(error))}>
         <View style={styles.buttonContainerLeft}>
           <TouchableOpacity
             style={styles.button}
@@ -248,7 +184,7 @@ const RangeInput: React.FC<RangeInputProps> = ({
         </View>
         <View style={styles.inputContainer}>
           <TextInput
-            style={[styles.input, hasError ? styles.inputError : styles.inputNormal]}
+            style={styles.input(Boolean(error))}
             onChangeText={changeValue}
             onBlur={checkLimits}
             value={value}
@@ -297,9 +233,53 @@ const RangeInput: React.FC<RangeInputProps> = ({
 
 RangeInput.defaultProps = {
   increment: new BigNumber(1),
-} as Partial<RangeInputProps>;
+};
 
-// PropTypes have been removed as part of the TypeScript conversion process.
-// The component's props are now defined by the RangeInputProps interface.
+RangeInput.propTypes = {
+  /**
+   * Component or text to render on the right side of the label
+   */
+  rightLabelComponent: PropTypes.node,
+  /**
+   * Component or text to render on the left side of the label
+   */
+  leftLabelComponent: PropTypes.node,
+  /**
+   * The value to be on the input
+   */
+  value: PropTypes.string,
+  /**
+   * The unit to show inside the input
+   */
+  unit: PropTypes.string,
+  /**
+   * Function that is called when the input is changed
+   */
+  onChangeValue: PropTypes.func,
+  /**
+   * A BigNumber value per which the input is incremented when clicking on the plus and minus button
+   */
+  increment: PropTypes.object,
+  /**
+   * The label to show inside the input
+   */
+  inputInsideLabel: PropTypes.string,
+  /**
+   * The error to show bellow the input. Also when the error exists the input text will turn red
+   */
+  error: PropTypes.string,
+  /**
+   * A BigNumber minimum value the input is allowed to have when clicking on the minus button
+   */
+  min: PropTypes.object,
+  /**
+   * A BigNumber maximum value the input is allowed to have when clicking on the plus button
+   */
+  max: PropTypes.object,
+  /**
+   * The name of the input
+   */
+  name: PropTypes.string,
+};
 
 export default RangeInput;
