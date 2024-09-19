@@ -184,7 +184,6 @@ class EngineService {
       if (key) {
         engine.controllerMessenger.subscribe(key, update_bg_state_cb);
       } else {
-        console.log('subscribing to ', name);
         engine.context[name].subscribe(update_bg_state_cb);
       }
     });
