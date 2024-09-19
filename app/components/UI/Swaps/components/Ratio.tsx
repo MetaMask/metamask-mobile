@@ -5,9 +5,9 @@ import { useRatio } from '../utils';
 import Text from '../../../Base/Text';
 import { useTheme } from '../../../../util/theme';
 import BigNumber from 'bignumber.js';
-import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
+import { Theme } from '@metamask/design-tokens';
 
-const createStyles = (colors: ThemeColors) =>
+const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     infoIcon: {
       fontSize: 12,
