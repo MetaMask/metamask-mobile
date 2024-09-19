@@ -13,9 +13,9 @@ import { handleSnapRequest } from './utils';
 
 export function getSnapIdFromRequest(
   request: Record<string, unknown>,
-): string | null {
-  const snapId = request.snapId;
-  return typeof snapId === 'string' ? snapId : null;
+): SnapId | null {
+  const { snapId } = request;
+  return typeof snapId === 'string' ? snapId as SnapId : null;
 }
 // Snaps middleware
 /*
@@ -79,7 +79,7 @@ const snapMethodMiddlewareBuilder = (
       }
 
       return await handleSnapRequest(controllerMessenger, {
-        snapId: snapId as SnapId,
+        snapId,
         origin,
         handler: request.handler,
         request: request.request,

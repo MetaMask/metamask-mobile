@@ -1,21 +1,7 @@
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import type { SnapController } from '@metamask/snaps-controllers';
 import { SnapKeyringBuilderMessenger } from './types';
-import type { SnapId } from '@metamask/snaps-sdk';
 import Logger from '../../util/Logger';
-
-/**
- * Get the addresses of the accounts managed by a given Snap.
- *
- * @param controller - Instance of the MetaMask Controller.
- * @param snapId - Snap ID to get accounts for.
- * @returns The addresses of the accounts.
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getAccountsBySnapId = async (engine: any, snapId: SnapId) => {
-  const snapKeyring: SnapKeyring = await engine.getSnapKeyring();
-  return await snapKeyring.getAccountsBySnapId(snapId);
-};
 
 /**
  * Constructs a SnapKeyring builder with specified handlers for managing snap accounts.
@@ -38,78 +24,79 @@ export const snapKeyringBuilder = (
   persistKeyringHelper: () => Promise<void>,
   removeAccountHelper: (address: string) => Promise<unknown>,
 ): { (): SnapKeyring; type: string } => {
-  const builder = () => new SnapKeyring(getSnapController(), {
-    addressExists: async (address) =>
-      (
-        await controllerMessenger.call('KeyringController:getAccounts')
-      ).includes(address.toLowerCase()),
+  const builder = () =>
+    new SnapKeyring(getSnapController(), {
+      addressExists: async (address) =>
+        (
+          await controllerMessenger.call('KeyringController:getAccounts')
+        ).includes(address.toLowerCase()),
 
-    redirectUser: async (snapId: string, url: string, message: string) => {
-      Logger.log(
-        `SnapKeyring: redirectUser called with \n
+      redirectUser: async (snapId: string, url: string, message: string) => {
+        Logger.log(
+          `SnapKeyring: redirectUser called with \n
         - snapId: ${snapId} \n
         - url: ${url} \n
         - message: ${message} \n`,
-      );
-    },
+        );
+      },
 
-    saveState: async () => {
-      await persistKeyringHelper();
-    },
+      saveState: async () => {
+        await persistKeyringHelper();
+      },
 
-    addAccount: async (
-      address: string,
-      snapId: string,
-      handleUserInput: (accepted: boolean) => Promise<void>,
-      accountNameSuggestion = '',
-      displayConfirmation = false,
-    ) => {
-      Logger.log(
-        `SnapKeyring: addAccount called with \n
+      addAccount: async (
+        address: string,
+        snapId: string,
+        handleUserInput: (accepted: boolean) => Promise<void>,
+        accountNameSuggestion = '',
+        displayConfirmation = false,
+      ) => {
+        // TODO: Implement proper snap account confirmations. Currently, we are approving everything for testing purposes.
+        Logger.log(
+          `SnapKeyring: addAccount called with \n
         - address: ${address} \n
         - handleUserInput: ${handleUserInput} \n
         - snapId: ${snapId} \n
         - accountNameSuggestion: ${accountNameSuggestion} \n
         - displayConfirmation: ${displayConfirmation}`,
-      );
-
-      //approve everything for now because we have not implemented snap account confirmations yet
-      await handleUserInput(true);
-      await persistKeyringHelper();
-      const account = controllerMessenger.call(
-        'AccountsController:getAccountByAddress',
-        address,
-      );
-      if (!account) {
-        throw new Error(
-          `Internal account not found for address: ${address}`,
         );
-      }
 
-      // Set the selected account to the new account
-      controllerMessenger.call(
-        'AccountsController:setSelectedAccount',
-        account.id,
-      );
-    },
+        // Approve everything for now because we have not implemented snap account confirmations yet
+        await handleUserInput(true);
+        await persistKeyringHelper();
+        const account = controllerMessenger.call(
+          'AccountsController:getAccountByAddress',
+          address,
+        );
+        if (!account) {
+          throw new Error(`Internal account not found for address: ${address}`);
+        }
 
-    removeAccount: async (
-      address: string,
-      snapId: string,
-      handleUserInput: (accepted: boolean) => Promise<void>,
-    ) => {
-      Logger.log(
-        `SnapKeyring: removeAccount called with \n
+        // Set the selected account to the new account
+        controllerMessenger.call(
+          'AccountsController:setSelectedAccount',
+          account.id,
+        );
+      },
+
+      removeAccount: async (
+        address: string,
+        snapId: string,
+        handleUserInput: (accepted: boolean) => Promise<void>,
+      ) => {
+        // TODO: Implement proper snap account confirmations. Currently, we are approving everything for testing purposes.
+        Logger.log(
+          `SnapKeyring: removeAccount called with \n
         - address: ${address} \n
         - handleUserInput: ${handleUserInput} \n
         - snapId: ${snapId} \n`,
-      );
-      // approve everything for now because we have not implemented snap account confirmations yet
-      await removeAccountHelper(address);
-      await handleUserInput(true);
-      await persistKeyringHelper();
-    },
-  });
+        );
+        // Approve everything for now because we have not implemented snap account confirmations yet
+        await handleUserInput(true);
+        await removeAccountHelper(address);
+        await persistKeyringHelper();
+      },
+    });
   builder.type = SnapKeyring.type;
   return builder;
 };
