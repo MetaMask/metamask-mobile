@@ -18,9 +18,6 @@ const mockInitialState = {
         displayNftMedia: true,
         useSafeChainsListValidation: false,
         isMultiAccountBalancesEnabled: true,
-        disabledRpcMethodPreferences: {
-          eth_sign: false,
-        },
         showTestNetworks: true,
         _U: 0,
         _V: 1,
@@ -35,9 +32,6 @@ const mockInitialState = {
           displayNftMedia: true,
           useSafeChainsListValidation: false,
           isMultiAccountBalancesEnabled: true,
-          disabledRpcMethodPreferences: {
-            eth_sign: false,
-          },
           showTestNetworks: true,
           showIncomingTransactions: {
             '0x1': true,

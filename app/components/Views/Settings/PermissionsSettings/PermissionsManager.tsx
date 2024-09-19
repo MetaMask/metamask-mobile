@@ -52,9 +52,9 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
   const safeAreaInsets = useSafeAreaInsets();
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography, safeAreaInsets);
+  const { navigation } = props;
 
   useEffect(() => {
-    const { navigation } = props;
     navigation.setOptions(
       getNavigationOptionsTitle(
         strings('app_settings.permissions_title'),
@@ -63,7 +63,18 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
         colors,
       ),
     );
-  }, [props, colors]);
+  }, [navigation, colors]);
+
+  const goToPermissionsDetails = useCallback(() => {
+    navigation.navigate('AccountPermissionsAsFullScreen', {
+      hostInfo: {
+        metadata: {
+          origin: 'https://app.uniswap.org/',
+        },
+      },
+      isRenderedAsBottomSheet: false,
+    });
+  }, [navigation]);
 
   const renderPermissions = useCallback(
     () => (
@@ -73,13 +84,17 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
             /* TODO: replace mock data with real data once available */
             isMutichainVersion1Enabled &&
               mockPermissionItems.map((mockPermissionItem, _index) => (
-                <PermissionItem key={`${_index}`} item={mockPermissionItem} />
+                <PermissionItem
+                  key={`${_index}`}
+                  item={mockPermissionItem}
+                  onPress={goToPermissionsDetails}
+                />
               ))
           }
         </ScrollView>
       </>
     ),
-    [],
+    [goToPermissionsDetails],
   );
 
   const renderEmptyResult = () => (

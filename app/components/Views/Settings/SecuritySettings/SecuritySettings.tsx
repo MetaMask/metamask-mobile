@@ -131,6 +131,7 @@ import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoa
 import { RootState } from '../../../../reducers';
 import { EtherscanSupportedHexChainId } from '@metamask/preferences-controller';
 import { useDisableNotifications } from '../../../../util/notifications/hooks/useNotifications';
+import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -1039,6 +1040,13 @@ const Settings: React.FC = () => {
       });
     } else {
       await enableProfileSyncing();
+      trackEvent(MetaMetricsEvents.SETTINGS_UPDATED, {
+        settings_group: 'security_privacy',
+        settings_type: 'profile_syncing',
+        old_value: isProfileSyncingEnabled,
+        new_value: !isProfileSyncingEnabled,
+        was_notifications_on: isNotificationEnabled,
+      });
     }
   };
 
@@ -1100,11 +1108,13 @@ const Settings: React.FC = () => {
             handleSwitchToggle={toggleBasicFunctionality}
           />
         </View>
-        <ProfileSyncingComponent
-          handleSwitchToggle={toggleProfileSyncing}
-          isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
-          isProfileSyncingEnabled={isProfileSyncingEnabled}
-        />
+        {isNotificationsFeatureEnabled() && (
+          <ProfileSyncingComponent
+            handleSwitchToggle={toggleProfileSyncing}
+            isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
+            isProfileSyncingEnabled={isProfileSyncingEnabled}
+          />
+        )}
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}

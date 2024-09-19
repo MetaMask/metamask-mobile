@@ -17,7 +17,7 @@ const MarketDetailsList: React.FC<MarketDetailsListProps> = ({
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.wrapper}>
+    <View>
       <Title style={styles.title}>{strings('token.market_details')}</Title>
       <View style={styles.listWrapper}>
         {marketDetails.marketCap && (

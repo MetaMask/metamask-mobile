@@ -172,7 +172,6 @@ describe('captureSentryFeedback', () => {
                   },
                   methods: [
                     'personal_sign',
-                    'eth_sign',
                     'eth_signTransaction',
                     'eth_signTypedData_v1',
                     'eth_signTypedData_v3',
@@ -234,11 +233,6 @@ describe('captureSentryFeedback', () => {
                 status: NetworkStatus.Available,
               },
             },
-            providerConfig: {
-              chainId: '0x1',
-              ticker: 'ETH',
-              type: 'mainnet',
-            },
             selectedNetworkClientId: 'mainnet',
           },
           NftController: {
@@ -249,9 +243,6 @@ describe('captureSentryFeedback', () => {
           NftDetectionController: {},
           PermissionController: undefined,
           PreferencesController: {
-            disabledRpcMethodPreferences: {
-              eth_sign: false,
-            },
             displayNftMedia: true,
             featureFlags: {},
             identities: {
