@@ -1,6 +1,116 @@
+diff --git a/node_modules/@metamask/transaction-controller/.idea/.gitignore b/node_modules/@metamask/transaction-controller/.idea/.gitignore
+new file mode 100644
+index 0000000..b58b603
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/.idea/.gitignore
+@@ -0,0 +1,5 @@
++# Default ignored files
++/shelf/
++/workspace.xml
++# Editor-based HTTP Client requests
++/httpRequests/
+diff --git a/node_modules/@metamask/transaction-controller/.idea/modules.xml b/node_modules/@metamask/transaction-controller/.idea/modules.xml
+new file mode 100644
+index 0000000..638e46c
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/.idea/modules.xml
+@@ -0,0 +1,8 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="ProjectModuleManager">
++    <modules>
++      <module fileurl="file://$PROJECT_DIR$/.idea/transaction-controller.iml" filepath="$PROJECT_DIR$/.idea/transaction-controller.iml" />
++    </modules>
++  </component>
++</project>
+\ No newline at end of file
+diff --git a/node_modules/@metamask/transaction-controller/.idea/transaction-controller.iml b/node_modules/@metamask/transaction-controller/.idea/transaction-controller.iml
+new file mode 100644
+index 0000000..24643cc
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/.idea/transaction-controller.iml
+@@ -0,0 +1,12 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<module type="WEB_MODULE" version="4">
++  <component name="NewModuleRootManager">
++    <content url="file://$MODULE_DIR$">
++      <excludeFolder url="file://$MODULE_DIR$/.tmp" />
++      <excludeFolder url="file://$MODULE_DIR$/temp" />
++      <excludeFolder url="file://$MODULE_DIR$/tmp" />
++    </content>
++    <orderEntry type="inheritedJdk" />
++    <orderEntry type="sourceFolder" forTests="false" />
++  </component>
++</module>
+\ No newline at end of file
+diff --git a/node_modules/@metamask/transaction-controller/.idea/workspace.xml b/node_modules/@metamask/transaction-controller/.idea/workspace.xml
+new file mode 100644
+index 0000000..173f33b
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/.idea/workspace.xml
+@@ -0,0 +1,58 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="AutoImportSettings">
++    <option name="autoReloadType" value="SELECTIVE" />
++  </component>
++  <component name="ChangeListManager">
++    <list default="true" id="172d59ac-5f7e-4240-a7b2-17492b765fab" name="Changes" comment="" />
++    <option name="SHOW_DIALOG" value="false" />
++    <option name="HIGHLIGHT_CONFLICTS" value="true" />
++    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
++    <option name="LAST_RESOLUTION" value="IGNORE" />
++  </component>
++  <component name="ProjectColorInfo">{
++  &quot;associatedIndex&quot;: 0
++}</component>
++  <component name="ProjectId" id="2mImjxyTPozSIRjFFClVSVqNfQt" />
++  <component name="ProjectViewState">
++    <option name="autoscrollToSource" value="true" />
++    <option name="hideEmptyMiddlePackages" value="true" />
++    <option name="showLibraryContents" value="true" />
++  </component>
++  <component name="PropertiesComponent"><![CDATA[{
++  "keyToString": {
++    "RunOnceActivity.ShowReadmeOnStart": "true",
++    "last_opened_file_path": "/Users/salim/metamask/metamask-mobile/node_modules/@metamask/transaction-controller",
++    "node.js.detected.package.eslint": "true",
++    "node.js.detected.package.tslint": "true",
++    "node.js.selected.package.eslint": "(autodetect)",
++    "node.js.selected.package.tslint": "(autodetect)",
++    "nodejs_package_manager_path": "npm",
++    "ts.external.directory.path": "/Users/salim/Applications/JetBrains Toolbox/IntelliJ IDEA Ultimate.app/WebStorm.app/Contents/plugins/javascript-plugin/jsLanguageServicesImpl/external",
++    "vue.rearranger.settings.migration": "true"
++  }
++}]]></component>
++  <component name="SharedIndexes">
++    <attachedChunks>
++      <set>
++        <option value="bundled-js-predefined-1d06a55b98c1-0b3e54e931b4-JavaScript-WS-241.17011.90" />
++      </set>
++    </attachedChunks>
++  </component>
++  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
++  <component name="TaskManager">
++    <task active="true" id="Default" summary="Default task">
++      <changelist id="172d59ac-5f7e-4240-a7b2-17492b765fab" name="Changes" comment="" />
++      <created>1726772603410</created>
++      <option name="number" value="Default" />
++      <option name="presentableId" value="Default" />
++      <updated>1726772603410</updated>
++      <workItem from="1726772605496" duration="576000" />
++      <workItem from="1726777454551" duration="324000" />
++    </task>
++    <servers />
++  </component>
++  <component name="TypeScriptGeneratedFilesManager">
++    <option name="version" value="3" />
++  </component>
++</project>
+\ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/.patch.txt b/node_modules/@metamask/transaction-controller/dist/.patch.txt
 new file mode 100644
-index 0000000..550de56
+index 0000000..7b6a002
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/.patch.txt
 @@ -0,0 +1,7 @@
@@ -381,7 +491,7 @@ diff --git a/node_modules/@metamask/transaction-controller/dist/chunk-UKV5HIMT.m
 similarity index 97%
 rename from node_modules/@metamask/transaction-controller/dist/chunk-UKV5HIMT.mjs
 rename to node_modules/@metamask/transaction-controller/dist/chunk-6I3TW2M6.mjs
-index 17eb6a6..b9c63f1 100644
+index 17eb6a6..8d23b92 100644
 --- a/node_modules/@metamask/transaction-controller/dist/chunk-UKV5HIMT.mjs
 +++ b/node_modules/@metamask/transaction-controller/dist/chunk-6I3TW2M6.mjs
 @@ -1,23 +1,22 @@
@@ -626,8 +736,8 @@ index 17eb6a6..b9c63f1 100644
  };
 +_updateSubmitHistory = new WeakSet();
 +updateSubmitHistory_fn = function(rawTransaction, hash, transaction, chainId, origin) {
-+  const { networkConfigurations, selectedNetworkClientId } = this.getNetworkState();
-+  const networkConfiguration = networkConfigurations[selectedNetworkClientId];
++  const { networkConfigurationsByChainId, selectedNetworkClientId } = this.getNetworkState();
++  const networkConfiguration = networkConfigurationsByChainId[chainId];
 +  const networkUrl = networkConfiguration?.rpcUrl;
 +  const networkType = networkConfiguration?.nickname || selectedNetworkClientId;
 +  const submitHistoryEntry = {
@@ -660,7 +770,6 @@ index 17eb6a6..b9c63f1 100644
 -//# sourceMappingURL=chunk-UKV5HIMT.mjs.map
 \ No newline at end of file
 +//# sourceMappingURL=chunk-6I3TW2M6.mjs.map
-\ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/chunk-6OLJWLKK.js.map b/node_modules/@metamask/transaction-controller/dist/chunk-6OLJWLKK.js.map
 deleted file mode 100644
 index d4d48cb..0000000
@@ -1020,10 +1129,10 @@ index 5f03ad7..0000000
 -{"version":3,"sources":["../src/helpers/IncomingTransactionHelper.ts"],"names":[],"mappings":"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","sourcesContent":["import type { AccountsController } from '@metamask/accounts-controller';\nimport type { BlockTracker } from '@metamask/network-controller';\nimport type { Hex } from '@metamask/utils';\nimport { Mutex } from 'async-mutex';\nimport EventEmitter from 'events';\n\nimport { incomingTransactionsLogger as log } from '../logger';\nimport type { RemoteTransactionSource, TransactionMeta } from '../types';\n\nconst RECENT_HISTORY_BLOCK_RANGE = 10;\n\n// TODO: Replace `any` with type\n// eslint-disable-next-line @typescript-eslint/no-explicit-any\nconst UPDATE_CHECKS: ((txMeta: TransactionMeta) => any)[] = [\n  (txMeta) => txMeta.status,\n  (txMeta) => txMeta.txParams.gasUsed,\n];\n\n/**\n * Configuration options for the IncomingTransactionHelper\n *\n * @property includeTokenTransfers - Whether or not to include ERC20 token transfers.\n * @property isEnabled - Whether or not incoming transaction retrieval is enabled.\n * @property queryEntireHistory - Whether to initially query the entire transaction history or only recent blocks.\n * @property updateTransactions - Whether to update local transactions using remote transaction data.\n */\nexport type IncomingTransactionOptions = {\n  includeTokenTransfers?: boolean;\n  isEnabled?: () => boolean;\n  queryEntireHistory?: boolean;\n  updateTransactions?: boolean;\n};\n\nexport class IncomingTransactionHelper {\n  hub: EventEmitter;\n\n  #blockTracker: BlockTracker;\n\n  #getCurrentAccount: () => ReturnType<\n    AccountsController['getSelectedAccount']\n  >;\n\n  #getLastFetchedBlockNumbers: () => Record<string, number>;\n\n  #getLocalTransactions: () => TransactionMeta[];\n\n  #getChainId: () => Hex;\n\n  #isEnabled: () => boolean;\n\n  #isRunning: boolean;\n\n  #mutex = new Mutex();\n\n  #onLatestBlock: (blockNumberHex: Hex) => Promise<void>;\n\n  #queryEntireHistory: boolean;\n\n  #remoteTransactionSource: RemoteTransactionSource;\n\n  #transactionLimit?: number;\n\n  #updateTransactions: boolean;\n\n  constructor({\n    blockTracker,\n    getCurrentAccount,\n    getLastFetchedBlockNumbers,\n    getLocalTransactions,\n    getChainId,\n    isEnabled,\n    queryEntireHistory,\n    remoteTransactionSource,\n    transactionLimit,\n    updateTransactions,\n  }: {\n    blockTracker: BlockTracker;\n    getCurrentAccount: () => ReturnType<\n      AccountsController['getSelectedAccount']\n    >;\n    getLastFetchedBlockNumbers: () => Record<string, number>;\n    getLocalTransactions?: () => TransactionMeta[];\n    getChainId: () => Hex;\n    isEnabled?: () => boolean;\n    queryEntireHistory?: boolean;\n    remoteTransactionSource: RemoteTransactionSource;\n    transactionLimit?: number;\n    updateTransactions?: boolean;\n  }) {\n    this.hub = new EventEmitter();\n\n    this.#blockTracker = blockTracker;\n    this.#getCurrentAccount = getCurrentAccount;\n    this.#getLastFetchedBlockNumbers = getLastFetchedBlockNumbers;\n    this.#getLocalTransactions = getLocalTransactions || (() => []);\n    this.#getChainId = getChainId;\n    this.#isEnabled = isEnabled ?? (() => true);\n    this.#isRunning = false;\n    this.#queryEntireHistory = queryEntireHistory ?? true;\n    this.#remoteTransactionSource = remoteTransactionSource;\n    this.#transactionLimit = transactionLimit;\n    this.#updateTransactions = updateTransactions ?? false;\n\n    // Using a property instead of a method to provide a listener reference\n    // with the correct scope that we can remove later if stopped.\n    this.#onLatestBlock = async (blockNumberHex: Hex) => {\n      try {\n        await this.update(blockNumberHex);\n      } catch (error) {\n        console.error('Error while checking incoming transactions', error);\n      }\n    };\n  }\n\n  start() {\n    if (this.#isRunning) {\n      return;\n    }\n\n    if (!this.#canStart()) {\n      return;\n    }\n\n    // TODO: Either fix this lint violation or explain why it's necessary to ignore.\n    // eslint-disable-next-line @typescript-eslint/no-misused-promises\n    this.#blockTracker.addListener('latest', this.#onLatestBlock);\n    this.#isRunning = true;\n  }\n\n  stop() {\n    // TODO: Either fix this lint violation or explain why it's necessary to ignore.\n    // eslint-disable-next-line @typescript-eslint/no-misused-promises\n    this.#blockTracker.removeListener('latest', this.#onLatestBlock);\n    this.#isRunning = false;\n  }\n\n  async update(latestBlockNumberHex?: Hex): Promise<void> {\n    const releaseLock = await this.#mutex.acquire();\n\n    log('Checking for incoming transactions');\n\n    try {\n      if (!this.#canStart()) {\n        return;\n      }\n\n      const latestBlockNumber = parseInt(\n        latestBlockNumberHex || (await this.#blockTracker.getLatestBlock()),\n        16,\n      );\n\n      const additionalLastFetchedKeys =\n        this.#remoteTransactionSource.getLastBlockVariations?.() ?? [];\n\n      const fromBlock = this.#getFromBlock(latestBlockNumber);\n      const account = this.#getCurrentAccount();\n      const currentChainId = this.#getChainId();\n\n      let remoteTransactions = [];\n\n      try {\n        remoteTransactions =\n          await this.#remoteTransactionSource.fetchTransactions({\n            address: account.address,\n            currentChainId,\n            fromBlock,\n            limit: this.#transactionLimit,\n          });\n        // TODO: Replace `any` with type\n        // eslint-disable-next-line @typescript-eslint/no-explicit-any\n      } catch (error: any) {\n        log('Error while fetching remote transactions', error);\n        return;\n      }\n      if (!this.#updateTransactions) {\n        const address = account.address.toLowerCase();\n        remoteTransactions = remoteTransactions.filter(\n          (tx) => tx.txParams.to?.toLowerCase() === address,\n        );\n      }\n\n      const localTransactions = !this.#updateTransactions\n        ? []\n        : this.#getLocalTransactions();\n\n      const newTransactions = this.#getNewTransactions(\n        remoteTransactions,\n        localTransactions,\n      );\n\n      const updatedTransactions = this.#getUpdatedTransactions(\n        remoteTransactions,\n        localTransactions,\n      );\n\n      if (newTransactions.length > 0 || updatedTransactions.length > 0) {\n        this.#sortTransactionsByTime(newTransactions);\n        this.#sortTransactionsByTime(updatedTransactions);\n\n        log('Found incoming transactions', {\n          new: newTransactions,\n          updated: updatedTransactions,\n        });\n\n        this.hub.emit('transactions', {\n          added: newTransactions,\n          updated: updatedTransactions,\n        });\n      }\n      this.#updateLastFetchedBlockNumber(\n        remoteTransactions,\n        additionalLastFetchedKeys,\n      );\n    } finally {\n      releaseLock();\n    }\n  }\n\n  #sortTransactionsByTime(transactions: TransactionMeta[]) {\n    transactions.sort((a, b) => (a.time < b.time ? -1 : 1));\n  }\n\n  #getNewTransactions(\n    remoteTxs: TransactionMeta[],\n    localTxs: TransactionMeta[],\n  ): TransactionMeta[] {\n    return remoteTxs.filter(\n      (tx) => !localTxs.some(({ hash }) => hash === tx.hash),\n    );\n  }\n\n  #getUpdatedTransactions(\n    remoteTxs: TransactionMeta[],\n    localTxs: TransactionMeta[],\n  ): TransactionMeta[] {\n    return remoteTxs.filter((remoteTx) =>\n      localTxs.some(\n        (localTx) =>\n          remoteTx.hash === localTx.hash &&\n          this.#isTransactionOutdated(remoteTx, localTx),\n      ),\n    );\n  }\n\n  #isTransactionOutdated(\n    remoteTx: TransactionMeta,\n    localTx: TransactionMeta,\n  ): boolean {\n    return UPDATE_CHECKS.some(\n      (getValue) => getValue(remoteTx) !== getValue(localTx),\n    );\n  }\n\n  #getLastFetchedBlockNumberDec(): number {\n    const additionalLastFetchedKeys =\n      this.#remoteTransactionSource.getLastBlockVariations?.() ?? [];\n    const lastFetchedKey = this.#getBlockNumberKey(additionalLastFetchedKeys);\n    const lastFetchedBlockNumbers = this.#getLastFetchedBlockNumbers();\n    return lastFetchedBlockNumbers[lastFetchedKey];\n  }\n\n  #getFromBlock(latestBlockNumber: number): number | undefined {\n    const lastFetchedBlockNumber = this.#getLastFetchedBlockNumberDec();\n\n    if (lastFetchedBlockNumber) {\n      return lastFetchedBlockNumber + 1;\n    }\n\n    return this.#queryEntireHistory\n      ? undefined\n      : latestBlockNumber - RECENT_HISTORY_BLOCK_RANGE;\n  }\n\n  #updateLastFetchedBlockNumber(\n    remoteTxs: TransactionMeta[],\n    additionalKeys: string[],\n  ) {\n    let lastFetchedBlockNumber = -1;\n\n    for (const tx of remoteTxs) {\n      const currentBlockNumberValue = tx.blockNumber\n        ? parseInt(tx.blockNumber, 10)\n        : -1;\n\n      lastFetchedBlockNumber = Math.max(\n        lastFetchedBlockNumber,\n        currentBlockNumberValue,\n      );\n    }\n\n    if (lastFetchedBlockNumber === -1) {\n      return;\n    }\n\n    const lastFetchedKey = this.#getBlockNumberKey(additionalKeys);\n    const lastFetchedBlockNumbers = this.#getLastFetchedBlockNumbers();\n    const previousValue = lastFetchedBlockNumbers[lastFetchedKey];\n\n    if (previousValue >= lastFetchedBlockNumber) {\n      return;\n    }\n\n    this.hub.emit('updatedLastFetchedBlockNumbers', {\n      lastFetchedBlockNumbers: {\n        ...lastFetchedBlockNumbers,\n        [lastFetchedKey]: lastFetchedBlockNumber,\n      },\n      blockNumber: lastFetchedBlockNumber,\n    });\n  }\n\n  #getBlockNumberKey(additionalKeys: string[]): string {\n    const currentChainId = this.#getChainId();\n    const currentAccount = this.#getCurrentAccount()?.address.toLowerCase();\n\n    return [currentChainId, currentAccount, ...additionalKeys].join('#');\n  }\n\n  #canStart(): boolean {\n    const isEnabled = this.#isEnabled();\n    const currentChainId = this.#getChainId();\n\n    const isSupportedNetwork =\n      this.#remoteTransactionSource.isSupportedNetwork(currentChainId);\n\n    return isEnabled && isSupportedNetwork;\n  }\n}\n"]}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/chunk-S7Q622IS.js b/node_modules/@metamask/transaction-controller/dist/chunk-RIGWBLJE.js
-similarity index 97%
+similarity index 96%
 rename from node_modules/@metamask/transaction-controller/dist/chunk-S7Q622IS.js
 rename to node_modules/@metamask/transaction-controller/dist/chunk-RIGWBLJE.js
-index 295d59e..a13893e 100644
+index 295d59e..69dd429 100644
 --- a/node_modules/@metamask/transaction-controller/dist/chunk-S7Q622IS.js
 +++ b/node_modules/@metamask/transaction-controller/dist/chunk-RIGWBLJE.js
 @@ -1,23 +1,22 @@
@@ -1168,7 +1277,7 @@ index 295d59e..a13893e 100644
      _chunkRXIUMVA5js.validateTxParams.call(void 0, txParams, isEIP1559Compatible);
 -    if (origin) {
 +    if (origin && this.getPermittedAccounts) {
-       await _chunkRXIUMVA5js.validateTransactionOrigin.call(void 0, 
+       await _chunkRXIUMVA5js.validateTransactionOrigin.call(void 0,
          await this.getPermittedAccounts(origin),
          _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _getSelectedAccount, getSelectedAccount_fn).call(this).address,
 @@ -669,7 +676,9 @@ var TransactionController = class extends _basecontroller.BaseController {
@@ -1198,7 +1307,7 @@ index 295d59e..a13893e 100644
        networkClientId
      };
 -    const gasFeeFlow = _chunk76FONEDAjs.getGasFeeFlow.call(void 0, 
-+    const gasFeeFlow = _chunkOEMCU4FYjs.getGasFeeFlow.call(void 0, 
++    const gasFeeFlow = _chunkOEMCU4FYjs.getGasFeeFlow.call(void 0,
        transactionMeta,
        this.gasFeeFlows
      );
@@ -1292,8 +1401,8 @@ index 295d59e..a13893e 100644
  };
 +_updateSubmitHistory = new WeakSet();
 +updateSubmitHistory_fn = function(rawTransaction, hash, transaction, chainId, origin) {
-+  const { networkConfigurations, selectedNetworkClientId } = this.getNetworkState();
-+  const networkConfiguration = networkConfigurations[selectedNetworkClientId];
++  const { networkConfigurationsByChainId, selectedNetworkClientId } = this.getNetworkState();
++  const networkConfiguration = networkConfigurationsByChainId[chainId];
 +  const networkUrl = networkConfiguration?.rpcUrl;
 +  const networkType = networkConfiguration?.nickname || selectedNetworkClientId;
 +  const submitHistoryEntry = {
@@ -1326,7 +1435,6 @@ index 295d59e..a13893e 100644
 -//# sourceMappingURL=chunk-S7Q622IS.js.map
 \ No newline at end of file
 +//# sourceMappingURL=chunk-RIGWBLJE.js.map
-\ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/chunk-RXIUMVA5.js.map b/node_modules/@metamask/transaction-controller/dist/chunk-RXIUMVA5.js.map
 deleted file mode 100644
 index f44a8d6..0000000
