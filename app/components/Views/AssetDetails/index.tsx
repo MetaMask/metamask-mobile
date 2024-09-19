@@ -128,8 +128,9 @@ const AssetDetails = (props: Props) => {
   const { symbol, decimals, aggregators = [] } = token as TokenType;
 
   const getNetworkName = () => {
+    console.log('GET NETWORK NAME ....');
     let name = '';
-    if (providerConfig.nickname) {
+    if (providerConfig?.nickname) {
       name = providerConfig.nickname;
     } else {
       name =
@@ -138,7 +139,7 @@ const AssetDetails = (props: Props) => {
          * removes goerli from provider config types
          */
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (Networks as any)[providerConfig.type]?.name ||
+        (Networks as any)[providerConfig?.type]?.name ||
         { ...Networks.rpc, color: null }.name;
     }
     return name;
@@ -329,7 +330,7 @@ const AssetDetails = (props: Props) => {
       {renderTokenBalance()}
       {renderSectionTitle(strings('asset_details.address'))}
       {renderTokenAddressLink()}
-      {renderSectionTitle(strings('asset_details.decimal'))}
+      {/* {renderSectionTitle(strings('asset_details.decimal'))} */}
       {renderSectionDescription(String(decimals))}
       {renderSectionTitle(strings('asset_details.network'))}
       {renderSectionDescription(getNetworkName())}

@@ -235,27 +235,44 @@ const NetworkSelector = () => {
       SelectedNetworkController,
     } = Engine.context;
 
-    const entry = Object.entries(networkConfigurations).find(([, { rpcUrl }]) =>
-      compareRpcUrls(rpcUrl, rpcTarget),
+    const entry = Object.entries(networkConfigurations).find(
+      ([, { rpcEndpoints }]) =>
+        rpcEndpoints.some(({ url }) => compareRpcUrls(url, rpcTarget)),
     );
 
     if (entry) {
-      const [networkConfigurationId, networkConfiguration] = entry;
-      const { ticker, nickname } = networkConfiguration;
+      const [
+        chainId,
+        {
+          name: nickname,
+          nativeCurrency: ticker,
+          rpcEndpoints,
+          defaultRpcEndpointIndex,
+        },
+      ] = entry;
+
+      const networkConfigurationId =
+        NetworkController.findNetworkClientIdByChainId(
+          chainId as `0x${string}`,
+        );
 
       if (domainIsConnectedDapp && process.env.MULTICHAIN_V1) {
+        // todo: check with the author
         SelectedNetworkController.setNetworkClientIdForDomain(
           origin,
           networkConfigurationId,
         );
       } else {
         CurrencyRateController.updateExchangeRate(ticker);
-        NetworkController.setActiveNetwork(networkConfigurationId);
+
+        await NetworkController.setActiveNetwork(
+          rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
+        );
       }
 
       sheetRef.current?.onCloseBottomSheet();
       trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
-        chain_id: getDecimalChainId(providerConfig.chainId),
+        chain_id: getDecimalChainId(chainId),
         from_network: selectedNetworkName,
         to_network: nickname,
       });

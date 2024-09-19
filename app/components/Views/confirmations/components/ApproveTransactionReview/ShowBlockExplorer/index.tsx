@@ -44,7 +44,7 @@ interface ShowBlockExplorerProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   iconStyle?: any;
   providerRpcTarget?: string;
-  networkConfigurations: NetworkState['networkConfigurations'];
+  networkConfigurations: NetworkState['networkConfigurationsByChainId'];
   learnMoreURL?: string;
 }
 

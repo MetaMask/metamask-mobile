@@ -12,6 +12,7 @@ import { TESTID_ACCORDION_CONTENT } from '../../../../../component-library/compo
 import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../../components/BlockaidBanner/BlockaidBanner.constants';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../../../reducers';
+import { RpcEndpointType } from '@metamask/network-controller';
 
 const MOCK_ADDRESS = '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58';
 
@@ -26,16 +27,22 @@ const mockInitialState: DeepPartial<RootState> = {
       NetworkController: {
         selectedNetworkClientId: 'mainnet',
         networksMetadata: {},
-        networkConfigurations: {
-          sepolia: {
-            id: 'mainnet',
-            rpcUrl: 'http://localhost/v3/',
+        networkConfigurationsByChainId: {
+          '0x1': {
             chainId: '0x1',
-            ticker: 'ETH',
-            nickname: 'Sepolia network',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://etherscan.com',
-            },
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+                url: 'http://localhost/v3/',
+                type: 'custom',
+                name: 'Ethereum Network default RPC',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+            blockExplorerUrls: ['https://etherscan.io'],
+            defaultBlockExplorerUrlIndex: 0,
+            name: 'Ethereum Network Mainnet',
+            nativeCurrency: 'ETH',
           },
         },
       },
