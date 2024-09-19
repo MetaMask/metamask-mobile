@@ -5137,7 +5137,7 @@
     fast-json-patch "^3.1.0"
     lodash "^4.17.21"
 
-"@metamask/snaps-controllers@^9.6.0":
+"@metamask/snaps-controllers@^9.6.0", "@metamask/snaps-controllers@^9.7.0":
   version "9.7.0"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-9.7.0.tgz#3c1ef4fd88e63df893710e4788b5290c231c2919"
   integrity sha512-/hvun7vPWERYTTi48TSVxZ3W0rjg/+XAC9+2RBEx7HvMteoKUpP3tmYEq2W+x5bkdALQ15iDAE1Hi8OF1usCrg==
