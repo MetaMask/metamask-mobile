@@ -6,6 +6,7 @@ import { JsonRpcMiddleware } from 'json-rpc-engine';
 import { PermittedHandlerExport } from '@metamask/permission-controller';
 import { Json, JsonRpcParams, hasProperty } from '@metamask/utils';
 import EthQuery from '@metamask/eth-query';
+import { NetworkClient } from '@metamask/network-controller';
 
 export const UNSUPPORTED_RPC_METHODS = new Set([
   // This is implemented later in our middleware stack – specifically, in
@@ -129,9 +130,8 @@ export const polyfillGasPrice = async (
     'SelectedNetworkController:getNetworkClientIdForDomain',
     origin,
   );
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const networkClient: any = Engine.controllerMessenger.call(
+
+  const networkClient: NetworkClient = Engine.controllerMessenger.call(
     'NetworkController:getNetworkClientById',
     networkClientId,
   );
