@@ -205,6 +205,14 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     return accountsByPermittedStatus;
   }, [accounts, permittedAccountsByHostname]);
 
+  const permittedAddresses = useMemo(
+    () =>
+      accountsFilteredByPermissions.permitted.map(
+        (account: Account) => account.address,
+      ),
+    [accountsFilteredByPermissions.permitted],
+  );
+
   const handleCreateAccount = useCallback(
     async () => {
       const { KeyringController } = Engine.context;
@@ -401,9 +409,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const renderEditAccountsPermissionsScreen = useCallback(
     () => (
       <AccountConnectMultiSelector
-        accounts={accountsFilteredByPermissions.unpermitted}
+        accounts={accounts}
         ensByAccountAddress={ensByAccountAddress}
-        selectedAddresses={selectedAddresses}
+        selectedAddresses={permittedAddresses}
         onSelectAddress={setSelectedAddresses}
         isLoading={isLoading}
         onUserAction={setUserIntent}
