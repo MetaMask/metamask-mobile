@@ -854,7 +854,7 @@ class Engine {
       keyringBuilders: additionalKeyrings,
     });
 
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps,keyring-snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     /**
      * Gets the mnemonic of the user's primary keyring.
      */
@@ -876,89 +876,102 @@ class Engine {
       return state === 'active';
     };
 
+    const snapRestrictedMethods = {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      clearSnapState: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapController:clearSnapState',
+      ),
+      getMnemonic: getPrimaryKeyringMnemonic.bind(this),
+      getUnlockPromise: getAppState.bind(this),
+      getSnap: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapController:get',
+      ),
+      handleSnapRpcRequest: async (args: HandleSnapRequestArgs) =>
+        await handleSnapRequest(this.controllerMessenger, args),
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      getSnapState: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapController:getSnapState',
+      ),
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      updateSnapState: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapController:updateSnapState',
+      ),
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      maybeUpdatePhishingList: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'PhishingController:maybeUpdateState',
+      ),
+      isOnPhishingList: (origin: string) =>
+        this.controllerMessenger.call<'PhishingController:testOrigin'>(
+          'PhishingController:testOrigin',
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          origin,
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+        ).result,
+      showDialog: (
+        origin: string,
+        type: EnumToUnion<DialogType>,
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        content: any, // should be Component from '@metamask/snaps-ui';
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        placeholder?: any,
+      ) =>
+        approvalController.addAndShowApprovalRequest({
+          origin,
+          type,
+          requestData: { content, placeholder },
+        }),
+      showInAppNotification: (origin: string, args: NotificationArgs) => {
+        Logger.log(
+          'Snaps/ showInAppNotification called with args: ',
+          args,
+          ' and origin: ',
+          origin,
+        );
+      },
+      hasPermission: (origin: string, target: string) =>
+        this.controllerMessenger.call<'PermissionController:hasPermission'>(
+          'PermissionController:hasPermission',
+          origin,
+          target,
+        ),
+    };
+    ///: END:ONLY_INCLUDE_IF
+
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    const keyringSnapMethods = {
+      getAllowedKeyringMethods: (origin: string) =>
+        keyringSnapPermissionsBuilder(origin),
+      getSnapKeyring: this.getSnapKeyring.bind(this),
+    };
+    ///: END:ONLY_INCLUDE_IF
+
     const getSnapPermissionSpecifications = () => ({
       ...buildSnapEndowmentSpecifications(Object.keys(ExcludedSnapEndowments)),
       ...buildSnapRestrictedMethodSpecifications(
         Object.keys(ExcludedSnapPermissions),
         {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          clearSnapState: this.controllerMessenger.call.bind(
-            this.controllerMessenger,
-            'SnapController:clearSnapState',
-          ),
-          getMnemonic: getPrimaryKeyringMnemonic.bind(this),
-          getUnlockPromise: getAppState.bind(this),
-          getSnap: this.controllerMessenger.call.bind(
-            this.controllerMessenger,
-            'SnapController:get',
-          ),
-          handleSnapRpcRequest: async (args: HandleSnapRequestArgs) =>
-            await handleSnapRequest(this.controllerMessenger, args),
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          getSnapState: this.controllerMessenger.call.bind(
-            this.controllerMessenger,
-            'SnapController:getSnapState',
-          ),
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          updateSnapState: this.controllerMessenger.call.bind(
-            this.controllerMessenger,
-            'SnapController:updateSnapState',
-          ),
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          maybeUpdatePhishingList: this.controllerMessenger.call.bind(
-            this.controllerMessenger,
-            'PhishingController:maybeUpdateState',
-          ),
-          isOnPhishingList: (origin: string) =>
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
-            this.controllerMessenger.call<'PhishingController:testOrigin'>(
-              'PhishingController:testOrigin',
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore
-              origin,
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore
-            ).result,
-          showDialog: (
-            origin: string,
-            type: EnumToUnion<DialogType>,
-            // TODO: Replace "any" with type
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            content: any, // should be Component from '@metamask/snaps-ui';
-            // TODO: Replace "any" with type
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            placeholder?: any,
-          ) =>
-            approvalController.addAndShowApprovalRequest({
-              origin,
-              type,
-              requestData: { content, placeholder },
-            }),
-          showInAppNotification: (origin: string, args: NotificationArgs) => {
-            Logger.log(
-              'Snaps/ showInAppNotification called with args: ',
-              args,
-              ' and origin: ',
-              origin,
-            );
-          },
-          getAllowedKeyringMethods: (origin: string) =>
-            keyringSnapPermissionsBuilder(origin),
-          hasPermission: (origin: string, target: string) =>
-            this.controllerMessenger.call<'PermissionController:hasPermission'>(
-              'PermissionController:hasPermission',
-              origin,
-              target,
-            ),
-          getSnapKeyring: this.getSnapKeyring.bind(this),
-        },
+          ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+          ...snapRestrictedMethods,
+          ///: END:ONLY_INCLUDE_IF
+          ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+          ...keyringSnapMethods,
+          ///: END:ONLY_INCLUDE_IF
+        }
       ),
     });
-    ///: END:ONLY_INCLUDE_IF
 
     const accountTrackerController = new AccountTrackerController({
       onPreferencesStateChange,
