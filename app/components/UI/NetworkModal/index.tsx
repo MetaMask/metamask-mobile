@@ -37,7 +37,11 @@ import { toHex } from '@metamask/controller-utils';
 import { rpcIdentifierUtility } from '../../../components/hooks/useSafeChains';
 import Logger from '../../../util/Logger';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
-import { RpcEndpointType } from '@metamask/network-controller';
+import {
+  NetworkConfiguration,
+  RpcEndpointType,
+} from '@metamask/network-controller';
+import { AddNetworkFields } from '@metamask/network-controller/dist/NetworkController.cjs';
 
 export interface SafeChain {
   chainId: string;
@@ -235,14 +239,14 @@ const NetworkModals = (props: NetworkProps) => {
   };
 
   const handleExistingNetwork = async (
-    existingNetwork,
-    chainId,
-    NetworkController,
+    existingNetwork: NetworkConfiguration,
+    networkId: string,
   ) => {
+    const { NetworkController } = Engine.context;
     const updatedNetwork = await NetworkController.updateNetwork(
       existingNetwork.chainId,
       existingNetwork,
-      existingNetwork.chainId === chainId
+      existingNetwork.chainId === networkId
         ? {
             replacementSelectedRpcEndpointIndex:
               existingNetwork.defaultRpcEndpointIndex,
@@ -257,41 +261,42 @@ const NetworkModals = (props: NetworkProps) => {
   };
 
   const handleNewNetwork = async (
-    chainId,
-    rpcUrl,
-    nickname,
-    ticker,
-    blockExplorerUrl,
-    NetworkController,
+    networkId: `0x${string}`,
+    networkRpcUrl: string,
+    name: string,
+    nativeCurrency: string,
+    networkBlockExplorerUrl: string,
   ) => {
+    const { NetworkController } = Engine.context;
     const networkConfig = {
-      chainId,
-      blockExplorerUrls: blockExplorerUrl ? [blockExplorerUrl] : [],
+      chainId: networkId,
+      blockExplorerUrls: networkBlockExplorerUrl
+        ? [networkBlockExplorerUrl]
+        : [],
       defaultRpcEndpointIndex: 0,
       defaultBlockExplorerUrlIndex: blockExplorerUrl ? 0 : undefined,
-      name: nickname,
-      nativeCurrency: ticker,
+      name,
+      nativeCurrency,
       rpcEndpoints: [
         {
-          url: rpcUrl,
-          name: nickname,
+          url: networkRpcUrl,
+          name,
           type: RpcEndpointType.Custom,
         },
       ],
-    };
+    } as AddNetworkFields;
 
     return NetworkController.addNetwork(networkConfig);
   };
 
   const handleNavigation = (
-    onNetworkSwitch,
-    shouldNetworkSwitchPopToWallet,
-    navigation,
+    onSwitchNetwork: () => void,
+    networkSwitchPopToWallet: boolean,
   ) => {
-    if (onNetworkSwitch) {
-      onNetworkSwitch();
+    if (onSwitchNetwork) {
+      onSwitchNetwork();
     } else {
-      shouldNetworkSwitchPopToWallet
+      networkSwitchPopToWallet
         ? navigation.navigate('WalletView')
         : navigation.goBack();
     }
@@ -309,7 +314,7 @@ const NetworkModals = (props: NetworkProps) => {
     }
 
     if (existingNetwork) {
-      await handleExistingNetwork(existingNetwork, chainId, NetworkController);
+      await handleExistingNetwork(existingNetwork, chainId);
     } else {
       const addedNetwork = await handleNewNetwork(
         chainId,
@@ -317,20 +322,16 @@ const NetworkModals = (props: NetworkProps) => {
         nickname,
         ticker,
         blockExplorerUrl,
-        NetworkController,
       );
       await NetworkController.setActiveNetwork(
         addedNetwork.rpcEndpoints[addedNetwork.defaultRpcEndpointIndex]
           .networkClientId,
       );
     }
-
     closeModal();
-    handleNavigation(
-      onNetworkSwitch,
-      shouldNetworkSwitchPopToWallet,
-      navigation,
-    );
+    if (onNetworkSwitch) {
+      handleNavigation(onNetworkSwitch, shouldNetworkSwitchPopToWallet);
+    }
     dispatch(networkSwitched({ networkUrl: url.href, networkStatus: true }));
   };
 

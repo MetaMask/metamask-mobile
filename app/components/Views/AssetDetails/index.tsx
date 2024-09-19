@@ -46,6 +46,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RootState } from 'app/reducers';
 import { Colors } from '../../../util/theme/models';
 import { Hex } from '@metamask/utils';
+import { RpcEndpointType } from '@metamask/network-controller';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -128,7 +129,6 @@ const AssetDetails = (props: Props) => {
   const { symbol, decimals, aggregators = [] } = token as TokenType;
 
   const getNetworkName = () => {
-    console.log('GET NETWORK NAME ....');
     let name = '';
     if (providerConfig?.nickname) {
       name = providerConfig.nickname;
@@ -139,8 +139,9 @@ const AssetDetails = (props: Props) => {
          * removes goerli from provider config types
          */
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (Networks as any)[providerConfig?.type]?.name ||
-        { ...Networks.rpc, color: null }.name;
+        // todo check this later
+        (Networks as any)[providerConfig?.type ?? RpcEndpointType.Custom]
+          ?.name || { ...Networks.rpc, color: null }.name;
     }
     return name;
   };
@@ -330,7 +331,7 @@ const AssetDetails = (props: Props) => {
       {renderTokenBalance()}
       {renderSectionTitle(strings('asset_details.address'))}
       {renderTokenAddressLink()}
-      {/* {renderSectionTitle(strings('asset_details.decimal'))} */}
+      {renderSectionTitle(strings('asset_details.decimal'))}
       {renderSectionDescription(String(decimals))}
       {renderSectionTitle(strings('asset_details.network'))}
       {renderSectionDescription(getNetworkName())}

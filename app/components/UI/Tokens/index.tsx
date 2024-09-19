@@ -37,6 +37,8 @@ import {
   selectChainId,
   selectNetworkClientId,
   selectProviderConfig,
+  selectProviderType,
+  selectRpcUrl,
   selectTicker,
 } from '../../../selectors/networkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
@@ -139,8 +141,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const actionSheet = useRef<typeof ActionSheet>();
 
   const networkName = useSelector(selectNetworkName);
-  const { type, rpcUrl } = useSelector(selectProviderConfig);
-  const chainId = useSelector(selectChainId);
+  const rpcUrl = useSelector(selectRpcUrl);
+  const type = useSelector(selectProviderType) as string;
+  const chainId = useSelector(selectChainId) as `0x${string}`;
   const ticker = useSelector(selectTicker);
   const networkClientId = useSelector(selectNetworkClientId);
   const currentCurrency = useSelector(selectCurrentCurrency);

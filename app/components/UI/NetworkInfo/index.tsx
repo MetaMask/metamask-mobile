@@ -10,7 +10,12 @@ import { useTheme } from '../../../util/theme';
 import { fontStyles } from '../../../styles/common';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
 import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids.js';
-import { selectProviderConfig } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectProviderType,
+  selectRpcUrl,
+  selectTicker,
+} from '../../../selectors/networkController';
 import {
   selectNetworkName,
   selectNetworkImageSource,
@@ -112,8 +117,11 @@ interface NetworkInfoProps {
 
 const NetworkInfo = (props: NetworkInfoProps) => {
   const { onClose, ticker, isTokenDetectionEnabled } = props;
-  const providerConfig = useSelector(selectProviderConfig);
-  const { type, ticker: networkTicker, rpcUrl, chainId } = providerConfig;
+  const type = useSelector(selectProviderType);
+  const networkTicker = useSelector(selectTicker);
+  const chainId = useSelector(selectChainId) as `0x${string}`;
+  const rpcUrl = useSelector(selectRpcUrl);
+
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const isTokenDetectionSupported =
