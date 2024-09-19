@@ -25,8 +25,9 @@ import { WELCOME_SCREEN_CAROUSEL_TITLE_ID } from '../../../../wdio/screen-object
 import { OnboardingCarouselSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingCarousel.selectors';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { isE2E } from '../../../util/test/utils';
+import { isTest } from '../../../util/test/utils';
 import StorageWrapper from '../../../store/storage-wrapper';
+import { PerformanceRegressionSelectorIDs } from '../../../../e2e/selectors/PerformanceRegression.selectors';
 
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;
@@ -252,18 +253,18 @@ class OnboardingCarousel extends PureComponent {
                         <Text style={styles.title}>
                           {strings(`onboarding_carousel.title${key}`)}
                         </Text>
-                        {isE2E && (
-                          <Text style={styles.metricsWrapper}>
-                            <Text style={styles.metricsData}>
-                              Native Launch Duration: {nativeLaunchDuration}
+                        {true && (
+                          <>
+                            <Text style={styles.metricsData} testID={PerformanceRegressionSelectorIDs.NATIVE_LAUNCH_DURATION_ID}>
+                              {nativeLaunchDuration}
                             </Text>
-                            <Text style={styles.metricsData}>
-                              Js Bundle Duration: {jsBundleDuration}
+                            <Text style={styles.metricsData} testID={PerformanceRegressionSelectorIDs.JS_BUNDLE_DURATION_ID}>
+                              {jsBundleDuration}
                             </Text>
-                            <Text style={styles.metricsData}>
-                              App Start Time: {appStartTime}
+                            <Text style={styles.metricsData} testID={PerformanceRegressionSelectorIDs.APP_START_TIME_ID}>
+                              {appStartTime}
                             </Text>
-                          </Text>
+                          </>
                         )}
                         <Text style={styles.subtitle}>
                           {strings(`onboarding_carousel.subtitle${key}`)}
