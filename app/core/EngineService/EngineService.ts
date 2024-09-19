@@ -90,7 +90,10 @@ class EngineService {
         name: 'TransactionController',
         key: `${engine.context.TransactionController.name}:stateChange`,
       },
-      { name: 'SmartTransactionsController' },
+      {
+        name: 'SmartTransactionsController',
+        key: `${engine.context.SmartTransactionsController.name}:stateChange`,
+      },
       { name: 'SwapsController' },
       {
         name: 'TokenListController',
@@ -181,6 +184,7 @@ class EngineService {
       if (key) {
         engine.controllerMessenger.subscribe(key, update_bg_state_cb);
       } else {
+        console.log('subscribing to ', name);
         engine.context[name].subscribe(update_bg_state_cb);
       }
     });
