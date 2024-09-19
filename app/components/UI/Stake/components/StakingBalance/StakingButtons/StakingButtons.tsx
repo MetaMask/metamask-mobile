@@ -7,22 +7,23 @@ import { View } from 'react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './StakingButtons.styles';
 import useTooltipModal from '../../../../../hooks/useTooltipModal';
+import { useNavigation } from '@react-navigation/native';
 
 const StakingButtons = () => {
-  const { styles } = useStyles(styleSheet, {});
-
   const [hasStakedPosition] = useState(true);
   const [hasEthToUnstake] = useState(true);
 
   const { openTooltipModal } = useTooltipModal();
 
+  const { navigate } = useNavigation();
+
+  const { styles } = useStyles(styleSheet, {});
+
   // TODO: Connect to unstaking flow it's when ready
   const onUnstakePress = () =>
     openTooltipModal('TODO', 'Connect to unstaking flow');
 
-  // TODO: Connect to unstaking flow when it's ready
-  const onStakePress = () =>
-    openTooltipModal('TODO', 'Connect to staking flow');
+  const onStakePress = () => navigate('Stake');
 
   return (
     <View style={styles.balanceButtonsContainer}>
