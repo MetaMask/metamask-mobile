@@ -1,10 +1,10 @@
 // Third party dependencies.
 import React from 'react';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
 // Internal dependencies.
 import DefaultSettings from '.';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
 
@@ -20,7 +20,7 @@ jest.mock('@react-navigation/native', () => {
       dangerouslyGetParent: () => ({
         pop: jest.fn(),
       }),
-    }),
+    }) as NavigationProp<ParamListBase>,
   };
 });
 
@@ -33,11 +33,11 @@ const mockNetworkName = 'Ethereum Main Network';
 
 describe('DefaultSettings', () => {
   it('should render correctly', () => {
-    useSelector.mockImplementation((selector) => {
+    (useSelector as jest.Mock).mockImplementation((selector: (state: unknown) => unknown) => {
       if (selector === selectNetworkName) return mockNetworkName;
     });
     const { toJSON } = renderWithProvider(
-      <DefaultSettings navigation={useNavigation()} />,
+      <DefaultSettings />,
     );
     expect(toJSON()).toMatchSnapshot();
   });
