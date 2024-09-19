@@ -35,7 +35,7 @@ describe(Regression('Swap from Token view'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
-      .withNetworkController(CustomNetworks.Tenderly)
+      .withNetworkController(CustomNetworks.Tenderly.Mainnet)
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });

@@ -20,17 +20,18 @@ import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import Assertions from '../../utils/Assertions';
+import Tenderly from '../../tenderly';
 
 const fixtureServer = new FixtureServer();
 
 describe(SmokeConfirmations('Send ETH'), () => {
   const TOKEN_NAME = enContent.unit.eth;
-  const AMOUNT = '0.12345';
+  const AMOUNT = '0.9123';
 
   beforeEach(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
-      .withNetworkController(CustomNetworks.Tenderly)
+      .withNetworkController(CustomNetworks.Tenderly.Mainnet)
       .withAddressBookController({
         addressBook: {
           '0x1': {
@@ -45,6 +46,8 @@ describe(SmokeConfirmations('Send ETH'), () => {
         },
       })
       .build();
+          console.log(fixture.state.engine.backgroundState.PreferencesController.selectedAddress)
+    await Tenderly.addFunds( CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl, fixture.state.engine.backgroundState.PreferencesController.selectedAddress);
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await device.launchApp({
