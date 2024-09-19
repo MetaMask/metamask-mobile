@@ -29,6 +29,8 @@ export const getAccountsBySnapId = async (engine: any, snapId: SnapId) => {
  * - `saveState`: Persists all keyrings in the keyring controller.
  * - `addAccount`: Initiates the process of adding an account with user confirmation and handling the user input.
  * - `removeAccount`: Initiates the process of removing an account with user confirmation and handling the user input.
+ * - `redirectUser`: Redirects the user to a specified URL with a message to complete signing. This method is used to handle asynchronous signing requests.
+ * - `addressExists`: Returns a boolean indicating if an address exists in the keyring.
  */
 export const snapKeyringBuilder = (
   controllerMessenger: SnapKeyringBuilderMessenger,
@@ -72,7 +74,7 @@ export const snapKeyringBuilder = (
         - displayConfirmation: ${displayConfirmation}`,
         );
 
-        // approve everything for now
+        //approve everything for now because we have not implemented snap account confirmations yet
         await handleUserInput(true);
         await persistKeyringHelper();
         const account = controllerMessenger.call(
@@ -101,7 +103,7 @@ export const snapKeyringBuilder = (
         - handleUserInput: ${handleUserInput} \n
         - snapId: ${snapId} \n`,
         );
-        // approve everything for now
+        // approve everything for now because we have not implemented snap account confirmations yet
         await removeAccountHelper(address);
         await handleUserInput(true);
         await persistKeyringHelper();

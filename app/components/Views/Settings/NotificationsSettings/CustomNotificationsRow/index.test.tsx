@@ -11,7 +11,7 @@ describe('CustomNotificationsRow', () => {
         description={notificationsRows[0].description}
         icon={notificationsRows[0].icon}
         isEnabled={notificationsRows[0].value}
-        onChange={() => jest.fn()}
+        toggleCustomNotificationsEnabled={() => jest.fn()}
       />,
     );
     expect(toJSON()).toMatchSnapshot();

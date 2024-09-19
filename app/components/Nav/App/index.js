@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
-import QRScanner from '../../Views/QRScanner';
+import QRTabSwitcher from '../../Views/QRTabSwitcher';
 import DataCollectionModal from '../../Views/DataCollectionModal';
 import Onboarding from '../../Views/Onboarding';
 import OnboardingCarousel from '../../Views/OnboardingCarousel';
@@ -61,6 +61,7 @@ import Toast, {
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AccountConnect from '../../../components/Views/AccountConnect';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
+import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import AccountPermissionsConfirmRevokeAll from '../../../components/Views/AccountPermissions/AccountPermissionsConfirmRevokeAll';
 import { SRPQuiz } from '../../Views/Quiz';
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
@@ -85,7 +86,6 @@ import SDKFeedbackModal from '../../Views/SDK/SDKFeedbackModal/SDKFeedbackModal'
 import LedgerMessageSignModal from '../../UI/LedgerModals/LedgerMessageSignModal';
 import LedgerTransactionModal from '../../UI/LedgerModals/LedgerTransactionModal';
 import AccountActions from '../../../components/Views/AccountActions';
-import EthSignFriction from '../../../components/Views/Settings/AdvancedSettings/EthSignFriction';
 import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedSettings/FiatOnTestnetsFriction';
 import WalletActions from '../../Views/WalletActions';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
@@ -273,8 +273,8 @@ const OnboardingRootNav = () => (
   >
     <Stack.Screen name="OnboardingNav" component={OnboardingNav} />
     <Stack.Screen
-      name={Routes.QR_SCANNER}
-      component={QRScanner}
+      name={Routes.QR_TAB_SWITCHER}
+      component={QRTabSwitcher}
       header={null}
     />
     <Stack.Screen
@@ -655,6 +655,7 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.ACCOUNT_PERMISSIONS}
         component={AccountPermissions}
+        initialParams={{ initialScreen: AccountPermissionsScreens.Connected }}
       />
       <Stack.Screen
         name={Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS}
@@ -705,10 +706,6 @@ const App = ({ userLoggedIn }) => {
         component={AccountActions}
       />
       <Stack.Screen
-        name={Routes.SHEET.ETH_SIGN_FRICTION}
-        component={EthSignFriction}
-      />
-      <Stack.Screen
         name={Routes.SHEET.FIAT_ON_TESTNETS_FRICTION}
         component={FiatOnTestnetsFriction}
       />
@@ -752,8 +749,8 @@ const App = ({ userLoggedIn }) => {
         component={ImportPrivateKeySuccess}
       />
       <Stack.Screen
-        name={Routes.QR_SCANNER}
-        component={QRScanner}
+        name={Routes.QR_TAB_SWITCHER}
+        component={QRTabSwitcher}
         screenOptions={{
           headerShown: false,
         }}

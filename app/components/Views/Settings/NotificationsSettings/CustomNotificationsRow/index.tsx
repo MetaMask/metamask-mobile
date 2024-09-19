@@ -16,7 +16,7 @@ interface CustomNotificationsRowProps {
   description?: string;
   icon: IconName;
   isEnabled: boolean;
-  onChange: () => void;
+  toggleCustomNotificationsEnabled: () => void;
 }
 
 const CustomNotificationsRow = ({
@@ -24,7 +24,7 @@ const CustomNotificationsRow = ({
   description,
   icon,
   isEnabled,
-  onChange,
+  toggleCustomNotificationsEnabled,
 }: CustomNotificationsRowProps) => {
   const theme = useTheme();
   const { colors } = theme;
@@ -50,7 +50,7 @@ const CustomNotificationsRow = ({
       </View>
       <Switch
         value={isEnabled}
-        onChange={onChange}
+        onChange={toggleCustomNotificationsEnabled}
         trackColor={{
           true: colors.primary.default,
           false: colors.border.muted,

@@ -14,7 +14,6 @@ import { createMockInternalAccount } from '../../../util/test/accountsController
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 jest.mock('../SDKConnect');
-jest.mock('../../../core/Engine');
 jest.mock('react-native');
 jest.mock('../../BackgroundBridge/BackgroundBridge');
 jest.mock('../utils/DevLogger');
@@ -55,7 +54,13 @@ describe('DeeplinkProtocolService', () => {
           .mockReturnValue({ eth_accounts: { caveats: [{ value: [] }] } }),
       },
       KeyringController: { unlock: jest.fn() },
-      NetworkController: { state: { providerConfig: { chainId: '0x1' } } },
+      NetworkController: {
+        getNetworkClientById: () => ({
+          configuration: {
+            chainId: '0x1',
+          },
+        }),
+      },
       AccountsController: {
         getSelectedAccount: jest.fn().mockReturnValue(mockInternalAccount),
       },
