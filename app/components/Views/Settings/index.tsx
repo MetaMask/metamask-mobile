@@ -103,6 +103,10 @@ const Settings = () => {
     navigation.navigate('ContactsSettings');
   };
 
+  const onPressDeveloperOptions = () => {
+    navigation.navigate('DeveloperOptions');
+  };
+
   const goToManagePermissions = () => {
     navigation.navigate('PermissionsManager');
   };
@@ -280,6 +284,12 @@ const Settings = () => {
         onPress={onPressInfo}
         testID={SettingsViewSelectorsIDs.ABOUT_METAMASK}
       />
+      {process.env.MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS === 'true' && (
+        <SettingsDrawer
+          title={strings('app_settings.developer_options.title')}
+          onPress={onPressDeveloperOptions}
+        />
+      )}
       <SettingsDrawer
         title={strings('app_settings.request_feature')}
         onPress={submitFeedback}
