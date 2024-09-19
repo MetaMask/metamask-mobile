@@ -33,7 +33,7 @@ import Emoji from 'react-native-emoji';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
 import styles from './index.styles';
 
-interface OnboardingSuccessProps {
+export interface OnboardingSuccessProps {
   onDone: () => void;
   backedUpSRP: boolean;
   noSRP: boolean;
