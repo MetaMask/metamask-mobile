@@ -6,19 +6,20 @@ const styleSheet = () =>
       flexDirection: 'row',
       paddingVertical: 8,
       justifyContent: 'space-between',
-    },
-    labelRow: {
-      flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
+      overflow: 'hidden',
     },
-    labelColumn: {
-      flexDirection: 'column',
-      justifyContent: 'center',
+    keyValueSection: {
+      flex: 1,
     },
     labelContainer: {
       flexDirection: 'row',
       alignItems: 'center',
+    },
+    flexRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
     },
   });
 

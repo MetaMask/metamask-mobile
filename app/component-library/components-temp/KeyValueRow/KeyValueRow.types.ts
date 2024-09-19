@@ -1,8 +1,10 @@
-import { AvatarSize } from '../../components/Avatars/Avatar';
+import {
+  IconProps,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
 import { ButtonIconSizes } from '../../components/Buttons/ButtonIcon';
-import { TextColor, TextVariant } from '../../components/Texts/Text';
 import { ReactNode } from 'react';
-import { ImageSourcePropType } from 'react-native';
+import { TextProps } from '../../components/Texts/Text/Text.types';
 
 /**
  * The optional tooltip tha can be displayed within a KeyValueRowField or KeyValueRowLabel.
@@ -27,29 +29,14 @@ interface KeyValueRowTooltip {
 }
 
 /**
- * An optional icon that can be displayed in a KeyValueRowField.
+ * Used to position icon in KeyValueRowField
  *
  * @see KeyValueRowField
  */
-interface KeyValueRowIcon {
-  /**
-   * The image source.
-   */
-  src: ImageSourcePropType;
-  /**
-   * The name of the image.
-   */
-  name: string;
-  /**
-   * Optional prop to bypass IPFS Gateway Check.
-   * @default false
-   */
-  isIpfsGatewayCheckBypassed?: boolean;
-  /**
-   * Optional size of the icon.
-   * @default IconSizes.Sm
-   */
-  size?: AvatarSize;
+export enum KeyValueRowFieldIconSides {
+  LEFT = 'LEFT',
+  RIGHT = 'RIGHT',
+  BOTH = 'BOTH',
 }
 
 /**
@@ -66,23 +53,23 @@ interface KeyValueRowField {
    * Optional text variant.
    * @default TextVariant.BodyMDMedium
    */
-  variant?: TextVariant;
+  variant?: TextProps['variant'];
   /**
    * Optional text color.
    * @default TextColor.Default
    */
-  color?: TextColor;
+  color?: TextProps['color'];
   /**
    * Optional icon to display. If undefined, no icon is displayed.
    */
-  icon?: KeyValueRowIcon;
+  icon?: IconProps & { side?: KeyValueRowFieldIconSides };
   /**
    * Optional tooltip to display. If undefined, no tooltip is displayed.
    */
   tooltip?: KeyValueRowTooltip;
 }
 
-export const IconSizes = AvatarSize;
+export const IconSizes = IconSize;
 
 export const TooltipSizes = ButtonIconSizes;
 
@@ -100,12 +87,12 @@ export interface KeyValueRowLabelProps {
    * Optional text variant.
    * @default TextVariant.BodyMDMedium
    */
-  variant?: TextVariant;
+  variant?: TextProps['variant'];
   /**
    * Optional text color.
    * @default TextColor.Default
    */
-  color?: TextColor;
+  color?: TextProps['color'];
   /**
    * Optional tooltip. If undefined, the tooltip won't be displayed.
    */
@@ -142,7 +129,6 @@ export enum SectionDirections {
 export enum SectionAlignments {
   LEFT = 'flex-start',
   RIGHT = 'flex-end',
-  CENTER = 'center',
 }
 
 /**

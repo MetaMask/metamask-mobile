@@ -2,6 +2,7 @@ export { KeyValueRowStubs, default } from './KeyValueRow';
 export {
   SectionDirections,
   SectionAlignments,
+  KeyValueRowFieldIconSides,
   TooltipSizes,
   IconSizes,
 } from './KeyValueRow.types';

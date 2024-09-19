@@ -1,21 +1,19 @@
 import { useStyles } from '../../hooks';
 import React from 'react';
-import AvatarToken from '../../components/Avatars/Avatar/variants/AvatarToken';
 import Label from '../../components/Form/Label';
 import stylesheet from './KeyValueRow.styles';
 import {
   KeyValueRowRootProps,
   KeyValueRowLabelProps,
   KeyValueSectionProps,
-  SectionDirections,
   TooltipSizes,
-  IconSizes,
-  SectionAlignments,
   KeyValueRowProps,
+  KeyValueRowFieldIconSides,
+  SectionAlignments,
 } from './KeyValueRow.types';
 import useTooltipModal from '../../../components/hooks/useTooltipModal';
 import ButtonIcon from '../../components/Buttons/ButtonIcon';
-import { IconColor, IconName } from '../../components/Icons/Icon';
+import Icon, { IconColor, IconName } from '../../components/Icons/Icon';
 import { TextColor, TextVariant } from '../../components/Texts/Text';
 import { View } from 'react-native';
 import { areKeyValueRowPropsEqual } from './KeyValueRow.utils';
@@ -58,23 +56,12 @@ const KeyValueRowRoot = ({ children }: KeyValueRowRootProps) => {
  */
 const KeyValueSection = ({
   children,
-  direction = SectionDirections.COLUMN,
-  align,
+  align = SectionAlignments.LEFT,
 }: KeyValueSectionProps) => {
   const { styles } = useStyles(stylesheet, {});
 
-  const className =
-    direction === SectionDirections.ROW ? styles.labelRow : styles.labelColumn;
-
-  const defaultDirectionAlignment =
-    direction === SectionDirections.ROW
-      ? SectionAlignments.CENTER
-      : SectionAlignments.RIGHT;
-
   return (
-    <View
-      style={{ ...className, alignItems: align ?? defaultDirectionAlignment }}
-    >
+    <View style={{ ...styles.keyValueSection, alignItems: align }}>
       {children}
     </View>
   );
@@ -140,94 +127,116 @@ const KeyValueRowLabel = ({
  */
 const KeyValueRow = React.memo(
   ({ field: keyText, value: valueText }: KeyValueRowProps) => {
-    const shouldRenderKeyTextPrimaryIcon =
-      keyText.primary?.icon?.src && keyText.primary?.icon?.name;
+    const { styles } = useStyles(stylesheet, {});
 
-    const shouldRenderKeyTextSecondaryIcon =
-      keyText.secondary?.icon?.src && keyText.secondary?.icon?.name;
+    // KeyText Primary (left side)
+    const keyTextPrimaryIcon = keyText.primary?.icon;
+    const shouldShowKeyTextPrimaryIcon = keyTextPrimaryIcon?.name;
 
-    const shouldRenderValueTextPrimaryIcon =
-      valueText.primary?.icon?.src && valueText.primary?.icon?.name;
+    // KeyText Secondary (left side)
+    const keyTextSecondaryIcon = keyText?.secondary?.icon;
+    const shouldShowKeyTextSecondaryIcon = keyTextSecondaryIcon?.name;
 
-    const shouldRenderValueTextSecondaryIcon =
-      valueText.secondary?.icon?.src && valueText.secondary?.icon?.name;
+    // ValueText Primary (right side)
+    const valueTextPrimaryIcon = valueText.primary?.icon;
+    const shouldShowValueTextPrimaryIcon = valueTextPrimaryIcon?.name;
+
+    // ValueText Secondary (right side)
+    const valueTextSecondaryIcon = valueText?.secondary?.icon;
+    const shouldShowValueTextSecondaryIcon = valueTextSecondaryIcon?.name;
 
     return (
       <KeyValueRowRoot>
-        <KeyValueSection align={SectionAlignments.LEFT}>
-          {shouldRenderKeyTextPrimaryIcon && (
-            <AvatarToken
-              imageSource={keyText.primary?.icon?.src}
-              name={keyText.primary?.icon?.name}
-              isIpfsGatewayCheckBypassed={
-                keyText.primary?.icon?.isIpfsGatewayCheckBypassed
-              }
-              size={keyText.primary.icon?.size ?? IconSizes.Sm}
+        <KeyValueSection>
+          <View style={styles.flexRow}>
+            {shouldShowKeyTextPrimaryIcon &&
+              (keyTextPrimaryIcon.side === KeyValueRowFieldIconSides.LEFT ||
+                keyTextPrimaryIcon.side === KeyValueRowFieldIconSides.BOTH ||
+                !keyTextPrimaryIcon?.side) && <Icon {...keyTextPrimaryIcon} />}
+            <KeyValueRowLabel
+              label={keyText.primary.text}
+              variant={keyText.primary.variant}
+              color={keyText.primary.color}
+              tooltip={keyText.primary.tooltip}
             />
-          )}
-          <KeyValueRowLabel
-            label={keyText.primary.text}
-            variant={keyText.primary.variant}
-            color={keyText.primary.color}
-            tooltip={keyText.primary.tooltip}
-          />
-          {keyText.secondary?.text && (
-            <>
-              {shouldRenderKeyTextSecondaryIcon && (
-                <AvatarToken
-                  imageSource={keyText.secondary?.icon?.src}
-                  name={keyText.secondary?.icon?.name}
-                  isIpfsGatewayCheckBypassed={
-                    keyText.secondary?.icon?.isIpfsGatewayCheckBypassed
-                  }
-                  size={keyText.secondary.icon?.size ?? IconSizes.Sm}
-                />
+            {shouldShowKeyTextPrimaryIcon &&
+              (keyTextPrimaryIcon?.side === KeyValueRowFieldIconSides.RIGHT ||
+                keyTextPrimaryIcon?.side ===
+                  KeyValueRowFieldIconSides.BOTH) && (
+                <Icon {...keyTextPrimaryIcon} />
               )}
-              <KeyValueRowLabel
-                label={keyText.secondary.text}
-                variant={keyText.secondary.variant}
-                color={keyText.secondary.color}
-                tooltip={keyText.secondary.tooltip}
-              />
-            </>
-          )}
+          </View>
+          <View style={styles.flexRow}>
+            {keyText?.secondary?.text && (
+              <>
+                {shouldShowKeyTextSecondaryIcon &&
+                  (keyTextSecondaryIcon.side ===
+                    KeyValueRowFieldIconSides.LEFT ||
+                    keyTextSecondaryIcon.side ===
+                      KeyValueRowFieldIconSides.BOTH ||
+                    !keyTextSecondaryIcon?.side) && (
+                    <Icon {...keyTextSecondaryIcon} />
+                  )}
+                <KeyValueRowLabel
+                  label={keyText.secondary.text}
+                  variant={keyText.secondary.variant}
+                  color={keyText.secondary.color}
+                  tooltip={keyText.secondary.tooltip}
+                />
+                {shouldShowKeyTextSecondaryIcon &&
+                  (keyTextSecondaryIcon.side ===
+                    KeyValueRowFieldIconSides.RIGHT ||
+                    keyTextSecondaryIcon.side ===
+                      KeyValueRowFieldIconSides.BOTH) && (
+                    <Icon {...keyTextSecondaryIcon} />
+                  )}
+              </>
+            )}
+          </View>
         </KeyValueSection>
         <KeyValueSection align={SectionAlignments.RIGHT}>
-          {shouldRenderValueTextPrimaryIcon && (
-            <AvatarToken
-              imageSource={valueText.primary?.icon?.src}
-              name={valueText.primary?.icon?.name}
-              isIpfsGatewayCheckBypassed={
-                valueText.primary?.icon?.isIpfsGatewayCheckBypassed
-              }
-              size={valueText.primary.icon?.size ?? IconSizes.Sm}
-            />
-          )}
+          {shouldShowValueTextPrimaryIcon &&
+            (valueTextPrimaryIcon?.side === KeyValueRowFieldIconSides.LEFT ||
+              valueTextPrimaryIcon?.side === KeyValueRowFieldIconSides.BOTH ||
+              !valueTextPrimaryIcon?.side) && (
+              <Icon {...valueTextPrimaryIcon} />
+            )}
           <KeyValueRowLabel
             label={valueText.primary.text}
             variant={valueText.primary.variant}
             color={valueText.primary.color}
             tooltip={valueText.primary.tooltip}
           />
+          {shouldShowValueTextPrimaryIcon &&
+            (valueTextPrimaryIcon?.side === KeyValueRowFieldIconSides.RIGHT ||
+              valueTextPrimaryIcon?.side ===
+                KeyValueRowFieldIconSides.BOTH) && (
+              <Icon {...valueTextPrimaryIcon} />
+            )}
           {valueText.secondary?.text && (
-            <KeyValueSection direction={SectionDirections.ROW}>
-              {shouldRenderValueTextSecondaryIcon && (
-                <AvatarToken
-                  imageSource={valueText.secondary?.icon?.src}
-                  name={valueText.secondary?.icon?.name}
-                  isIpfsGatewayCheckBypassed={
-                    valueText.secondary?.icon?.isIpfsGatewayCheckBypassed
-                  }
-                  size={valueText.secondary.icon?.size ?? IconSizes.Sm}
-                />
-              )}
+            <View style={styles.flexRow}>
+              {shouldShowValueTextSecondaryIcon &&
+                (valueTextSecondaryIcon?.side ===
+                  KeyValueRowFieldIconSides.LEFT ||
+                  valueTextSecondaryIcon?.side ===
+                    KeyValueRowFieldIconSides.BOTH ||
+                  !valueTextSecondaryIcon?.side) && (
+                  <Icon {...valueTextSecondaryIcon} />
+                )}
               <KeyValueRowLabel
                 label={valueText.secondary.text}
                 variant={valueText.secondary.variant}
                 color={valueText.secondary.color}
                 tooltip={valueText.secondary.tooltip}
               />
-            </KeyValueSection>
+              {shouldShowValueTextSecondaryIcon &&
+                (valueTextSecondaryIcon?.side ===
+                  KeyValueRowFieldIconSides.RIGHT ||
+                  valueTextSecondaryIcon?.side ===
+                    KeyValueRowFieldIconSides.BOTH) && (
+                  <Icon {...valueTextSecondaryIcon} />
+                )}
+            </View>
           )}
         </KeyValueSection>
       </KeyValueRowRoot>

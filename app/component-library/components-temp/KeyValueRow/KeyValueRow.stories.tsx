@@ -1,10 +1,13 @@
 import React from 'react';
 import { withNavigation } from '../../../../storybook/decorators';
-import ethLogo from '../../../images/eth-logo-new.png';
 import { View, StyleSheet } from 'react-native';
-import KeyValueRowComponent, { TooltipSizes } from './index';
+import KeyValueRowComponent, {
+  KeyValueRowFieldIconSides,
+  TooltipSizes,
+} from './index';
 import Text, { TextColor, TextVariant } from '../../components/Texts/Text';
 import Title from '../../../components/Base/Title';
+import { IconColor, IconName, IconSize } from '../../components/Icons/Icon';
 
 const KeyValueRowMeta = {
   title: 'Components Temp / KeyValueRow',
@@ -35,25 +38,31 @@ export const KeyValueRow = {
       <View style={styles.listItem}>
         <KeyValueRowComponent
           field={{
-            primary: { text: 'Sample Key Text' },
+            primary: {
+              text: 'Sample Key Text',
+            },
           }}
-          value={{ primary: { text: 'Sample Value Text' } }}
+          value={{ primary: { text: 'Sample Key Text' } }}
         />
         <KeyValueRowComponent
           field={{
-            primary: { text: 'Sample Key Text' },
+            primary: {
+              text: 'Sample Key Text',
+            },
             secondary: {
-              text: 'Secondary Key Text',
-              variant: TextVariant.BodySMMedium,
+              text: 'Sample Value Text',
+              variant: TextVariant.BodySM,
               color: TextColor.Alternative,
             },
           }}
           value={{
-            primary: { text: 'Sample Value Text' },
+            primary: {
+              text: 'Sample Value Text',
+            },
             secondary: {
-              text: 'Secondary Value Text',
-              variant: TextVariant.BodyXSMedium,
+              text: 'Sample Value Text',
               color: TextColor.Success,
+              variant: TextVariant.BodySM,
             },
           }}
         />
@@ -63,7 +72,7 @@ export const KeyValueRow = {
               text: 'Sample Key Text',
               tooltip: {
                 title: 'Sample Tooltip',
-                text: 'Quis sunt ullamco incididunt id ad. Magna deserunt quis aliqua non laborum nostrud exercitation adipisicing commodo.',
+                text: 'Pariatur nisi pariatur ex veniam ad. Non tempor nostrud sint velit cupidatat aliquip elit ut pariatur reprehenderit enim enim commodo eu.',
               },
             },
             secondary: {
@@ -73,15 +82,18 @@ export const KeyValueRow = {
             },
           }}
           value={{
-            primary: { text: 'Sample Value Text' },
+            primary: {
+              text: 'Sample Value Text',
+            },
             secondary: {
               text: 'Secondary Value Text',
-              variant: TextVariant.BodyXSMedium,
+              variant: TextVariant.BodySMMedium,
               color: TextColor.Warning,
-              tooltip: {
-                title: 'Sample Tooltip',
-                text: 'Quis sunt ullamco incididunt id ad. Magna deserunt quis aliqua non laborum nostrud exercitation adipisicing commodo.',
-                size: TooltipSizes.Sm,
+              icon: {
+                name: IconName.Warning,
+                color: IconColor.Warning,
+                size: IconSize.Sm,
+                side: KeyValueRowFieldIconSides.RIGHT,
               },
             },
           }}
@@ -90,9 +102,11 @@ export const KeyValueRow = {
           field={{
             primary: {
               text: 'Sample Key Text',
-              tooltip: {
-                title: 'Sample Tooltip',
-                text: 'Quis sunt ullamco incididunt id ad. Magna deserunt quis aliqua non laborum nostrud exercitation adipisicing commodo.',
+              icon: {
+                name: IconName.Wifi,
+                color: IconColor.Primary,
+                size: IconSize.Sm,
+                side: KeyValueRowFieldIconSides.BOTH,
               },
             },
             secondary: {
@@ -102,13 +116,17 @@ export const KeyValueRow = {
             },
           }}
           value={{
-            primary: { text: 'Sample Value Text' },
+            primary: {
+              text: 'Sample Value Text',
+            },
             secondary: {
               text: 'Secondary Value Text',
-              icon: {
-                name: 'Ethereum Logo',
-                isIpfsGatewayCheckBypassed: true,
-                src: ethLogo,
+              variant: TextVariant.BodySMMedium,
+              color: TextColor.Alternative,
+              tooltip: {
+                title: 'Sample Tooltip',
+                text: 'Pariatur nisi pariatur ex veniam ad. Non tempor nostrud sint velit cupidatat aliquip elit ut pariatur reprehenderit enim enim commodo eu.',
+                size: TooltipSizes.Sm,
               },
             },
           }}
