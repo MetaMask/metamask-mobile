@@ -21,7 +21,22 @@ import { View } from 'react-native';
 import { areKeyValueRowPropsEqual } from './KeyValueRow.utils';
 
 /**
- * @children should be an array with exactly 2 <KeyValueSection> elements
+ * The main container for the KeyValueRow component.
+ * When creating custom KeyValueRow components, this must be the outermost component wrapping the two <KeyValueSection/> components.
+ *
+ * e.g.
+ * ```
+ * <KeyValueRowRoot>
+ *  <KeyValueSection></KeyValueSection>
+ *  <KeyValueSection></KeyValueSection>
+ * </KeyValueRowRoot>
+ * ```
+ *
+ * @component
+ * @param {Object} props - Component props.
+ * @param {Array<ReactNode>} props.children - The two <KeyValueSection> children.
+ *
+ * @returns {JSX.Element} The rendered Root component.
  */
 const KeyValueRowRoot = ({ children }: KeyValueRowRootProps) => {
   const { styles } = useStyles(stylesheet, {});
@@ -29,6 +44,18 @@ const KeyValueRowRoot = ({ children }: KeyValueRowRootProps) => {
   return <View style={styles.rootContainer}>{children}</View>;
 };
 
+/**
+ * A container representing either the left or right side of the KeyValueRow.
+ * For desired results, use only two <KeyValueSection> components within the <KeyValueRowRoot>.
+ *
+ * @component
+ * @param {Object} props - Component props.
+ * @param {ReactNode} props.children - The child components.
+ * @param {SectionDirections} [props.direction] - The orientation of the KeyValueSection. Default to SectionDirections.COLUMN
+ * @param {SectionAlignments} [props.align] - The alignment of the KeyValueSection. Default to SectionAlignments.RIGHT
+ *
+ * @returns {JSX.Element} The rendered KeyValueSection component.
+ */
 const KeyValueSection = ({
   children,
   direction = SectionDirections.COLUMN,
@@ -53,6 +80,16 @@ const KeyValueSection = ({
   );
 };
 
+/**
+ * A label and tooltip component.
+ *
+ * @param {Object} props - Component props.
+ * @param {TextVariant} [props.variant] - Optional text variant. Defaults to TextVariant.BodyMDMedium.
+ * @param {TextVariant} [props.color] - Optional text color. Defaults to TextColor.Default.
+ * @param {TextVariant} [props.tooltip] - Optional tooltip to render to the right of the label text.
+ *
+ * @returns {JSX.Element} The rendered KeyValueRowLabel component.
+ */
 const KeyValueRowLabel = ({
   label,
   variant = TextVariant.BodyMDMedium,
@@ -89,6 +126,18 @@ const KeyValueRowLabel = ({
   );
 };
 
+/**
+ * Prebuilt convenience component to format and display a key/value KeyValueRowLabel pair.
+ * The KeyValueRowLabel component supports convenience props to display a tooltip and icon.
+ *
+ * Examples are in the Storybook: [StorybookLink](./KeyValueRow.stories.tsx)
+ *
+ * @param {Object} props - Component props
+ * @param {KeyValueRowText} [props.field] - Represents the left side of the key value row pair
+ * @param {KeyValueRowText} [props.value] - Represents the right side of the key value row pair
+ *
+ * @returns {JSX.Element} The rendered KeyValueRow component.
+ */
 const KeyValueRow = React.memo(
   ({ field: keyText, value: valueText }: KeyValueRowProps) => {
     const shouldRenderKeyTextPrimaryIcon =
@@ -187,10 +236,10 @@ const KeyValueRow = React.memo(
   areKeyValueRowPropsEqual,
 );
 
+/**
+ * Exported sub-components to provide a base for new KeyValueRow variants.
+ */
 export const KeyValueRowStubs = {
-  /**
-   * @children should be an array with exactly 2 <KeyValueSection> elements
-   */
   Root: KeyValueRowRoot,
   Section: KeyValueSection,
   Label: KeyValueRowLabel,
