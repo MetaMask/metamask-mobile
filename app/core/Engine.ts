@@ -1383,6 +1383,7 @@ class Engine {
         getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
       },
       {
+        // @ts-expect-error TODO: resolve types
         supportedChainIds: getAllowedSmartTransactionsChainIds(),
       },
       initialState.SmartTransactionsController,
