@@ -5,10 +5,9 @@ import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 
 /**
- * Style sheet function for ButtonSecondary component.
+ * Style sheet function for FoxLoader component.
  *
  * @param params Style sheet params.
- * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
 const styleSheet = (params: { theme: Theme }) => {
