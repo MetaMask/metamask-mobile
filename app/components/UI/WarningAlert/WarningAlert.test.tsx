@@ -1,16 +1,14 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react-native';
 
 // Internal dependencies.
 import WarningAlert from './WarningAlert';
 
-describe('ButtonBase', () => {
+describe('WarningAlert', () => {
   it('should render correctly', () => {
     const mockDismissFunction = jest.fn();
-    const wrapper = shallow(
-      <WarningAlert text={'test'} dismissAlert={mockDismissFunction} />,
-    );
-    expect(wrapper).toMatchSnapshot();
+    render(<WarningAlert text={'test'} dismissAlert={mockDismissFunction} />);
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 });

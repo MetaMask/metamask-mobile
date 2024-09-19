@@ -1,6 +1,6 @@
 /* eslint-disable import/no-nodejs-modules */
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 // eslint-disable-next-line import/named
 import { NavigationContainer } from '@react-navigation/native';
 import Main from './';
@@ -9,6 +9,28 @@ import { act } from '@testing-library/react-hooks';
 import { MetaMetricsEvents } from '../../hooks/useMetrics';
 import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
+import { Provider } from 'react-redux';
+import configureStore from 'redux-mock-store';
+
+const mockStore = configureStore([]);
+const store = mockStore({
+  engine: {
+    backgroundState: {
+      PreferencesController: {
+        showIncomingTransactions: {},
+      },
+    },
+  },
+  user: {
+    backUpSeedphraseVisible: false,
+  },
+  security: {
+    hasUserSelectedAutomaticSecurityCheckOption: false,
+    pin: {
+      isPinSet: true,
+    },
+  },
+});
 
 jest.mock('../../../core/Engine.ts', () => ({
   controllerMessenger: {
@@ -94,12 +116,14 @@ describe('Main', () => {
 
   it('should render correctly', () => {
     const MainAppContainer = () => (
-      <NavigationContainer>
-        <Main />
-      </NavigationContainer>
+      <Provider store={store}>
+        <NavigationContainer>
+          <Main />
+        </NavigationContainer>
+      </Provider>
     );
-    const wrapper = shallow(<MainAppContainer />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<MainAppContainer />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   describe('useSwapConfirmedEvent', () => {
