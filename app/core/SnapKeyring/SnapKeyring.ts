@@ -1,21 +1,7 @@
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import type { SnapController } from '@metamask/snaps-controllers';
 import { SnapKeyringBuilderMessenger } from './types';
-import type { SnapId } from '@metamask/snaps-sdk';
 import Logger from '../../util/Logger';
-
-/**
- * Get the addresses of the accounts managed by a given Snap.
- *
- * @param controller - Instance of the MetaMask Controller.
- * @param snapId - Snap ID to get accounts for.
- * @returns The addresses of the accounts.
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getAccountsBySnapId = async (engine: any, snapId: SnapId) => {
-  const snapKeyring: SnapKeyring = await engine.getSnapKeyring();
-  return await snapKeyring.getAccountsBySnapId(snapId);
-};
 
 /**
  * Constructs a SnapKeyring builder with specified handlers for managing snap accounts.
@@ -65,6 +51,7 @@ export const snapKeyringBuilder = (
         accountNameSuggestion = '',
         displayConfirmation = false,
       ) => {
+        // TODO: Implement proper snap account confirmations. Currently, we are approving everything for testing purposes.
         Logger.log(
           `SnapKeyring: addAccount called with \n
         - address: ${address} \n
@@ -74,7 +61,7 @@ export const snapKeyringBuilder = (
         - displayConfirmation: ${displayConfirmation}`,
         );
 
-        //approve everything for now because we have not implemented snap account confirmations yet
+        // Approve everything for now because we have not implemented snap account confirmations yet
         await handleUserInput(true);
         await persistKeyringHelper();
         const account = controllerMessenger.call(
@@ -97,15 +84,16 @@ export const snapKeyringBuilder = (
         snapId: string,
         handleUserInput: (accepted: boolean) => Promise<void>,
       ) => {
+        // TODO: Implement proper snap account confirmations. Currently, we are approving everything for testing purposes.
         Logger.log(
           `SnapKeyring: removeAccount called with \n
         - address: ${address} \n
         - handleUserInput: ${handleUserInput} \n
         - snapId: ${snapId} \n`,
         );
-        // approve everything for now because we have not implemented snap account confirmations yet
-        await removeAccountHelper(address);
+        // Approve everything for now because we have not implemented snap account confirmations yet
         await handleUserInput(true);
+        await removeAccountHelper(address);
         await persistKeyringHelper();
       },
     });

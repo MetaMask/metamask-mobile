@@ -519,9 +519,7 @@ describe('SnapPermissions', () => {
     expect(permissionCellDates[20].props.children).toBe(
       'Approved on Jun 6 at 4:02 pm',
     );
-    expect(permissionCellTitles[21].props.children).toBe(
-      snapManageAccountsTitle,
-    );
+    expect(permissionCellTitles[21].props.children).toBe(snapManageAccountsTitle);
     expect(permissionCellDates[21].props.children).toBe(
       'Approved on Jun 6 at 4:02 pm',
     );

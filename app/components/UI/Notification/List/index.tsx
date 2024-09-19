@@ -16,7 +16,7 @@ import {
 } from '../../../../util/notifications/notification-states';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { Notification } from '../../../../util/notifications';
+import { Notification, TRIGGER_TYPES } from '../../../../util/notifications';
 import {
   useListNotifications,
   useMarkNotificationAsRead,
@@ -59,7 +59,7 @@ function Loading() {
 function NotificationsListItem(props: NotificationsListItemProps) {
   const { styles } = useStyles();
   const { markNotificationAsRead } = useMarkNotificationAsRead();
-
+  const { trackEvent } = useMetrics();
   const onNotificationClick = useCallback(
     (item: Notification) => {
       markNotificationAsRead([
@@ -82,8 +82,17 @@ function NotificationsListItem(props: NotificationsListItemProps) {
           notifee.setBadgeCount(0);
         }
       });
+
+      trackEvent(MetaMetricsEvents.NOTIFICATION_CLICKED, {
+        notification_id: item.id,
+        notification_type: item.type,
+        ...(item.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT
+          ? { chain_id: item?.chain_id }
+          : {}),
+        previously_read: item.isRead,
+      });
     },
-    [markNotificationAsRead, props.navigation],
+    [markNotificationAsRead, props.navigation, trackEvent],
   );
 
   const menuItemState = useMemo(() => {

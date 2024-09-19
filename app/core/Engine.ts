@@ -773,7 +773,7 @@ class Engine {
     /**
      * Removes an account from state / storage.
      *
-     * @param {string[]} address - A hex address
+     * @param {string} address - A hex address
      */
     const removeAccount = async (address: string) => {
       // Remove all associated permissions
@@ -786,16 +786,16 @@ class Engine {
     const snapKeyringBuildMessenger = this.controllerMessenger.getRestricted({
       name: 'SnapKeyringBuilder',
       allowedActions: [
-        `${approvalController.name}:addRequest`,
-        `${approvalController.name}:acceptRequest`,
-        `${approvalController.name}:rejectRequest`,
-        `${approvalController.name}:startFlow`,
-        `${approvalController.name}:endFlow`,
-        `${approvalController.name}:showSuccess`,
-        `${approvalController.name}:showError`,
-        `${phishingController.name}:testOrigin`,
-        `${phishingController.name}:maybeUpdateState`,
-        `KeyringController:getAccounts`,
+        'ApprovalController:addRequest',
+        'ApprovalController:acceptRequest',
+        'ApprovalController:rejectRequest',
+        'ApprovalController:startFlow',
+        'ApprovalController:endFlow',
+        'ApprovalController:showSuccess',
+        'ApprovalController:showError',
+        'PhishingController:testOrigin',
+        'PhishingController:maybeUpdateState',
+        'KeyringController:getAccounts',
         'AccountsController:setSelectedAccount',
         'AccountsController:getAccountByAddress',
         'AccountsController:setAccountName',
@@ -931,8 +931,7 @@ class Engine {
           },
           getAllowedKeyringMethods: (origin: string) =>
             keyringSnapPermissionsBuilder(origin),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          hasPermission: (origin: string, target: any) =>
+          hasPermission: (origin: string, target: string) =>
             this.controllerMessenger.call<'PermissionController:hasPermission'>(
               'PermissionController:hasPermission',
               origin,
