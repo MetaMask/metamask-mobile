@@ -1,6 +1,5 @@
 // Third party dependencies.
 import React from 'react';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
 // Internal dependencies.
 import DefaultSettings from '.';
