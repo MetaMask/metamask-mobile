@@ -131,10 +131,10 @@ export const polyfillGasPrice = async (
     origin,
   );
 
-  const networkClient: NetworkClient = Engine.controllerMessenger.call(
+  const networkClient = Engine.controllerMessenger.call(
     'NetworkController:getNetworkClientById',
     networkClientId,
-  );
+  ) as unknown as NetworkClient;
 
   const ethQuery = new EthQuery(networkClient.provider);
 
