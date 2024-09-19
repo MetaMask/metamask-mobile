@@ -35,14 +35,6 @@ const useNotificationHandler = (navigation: NavigationProp<ParamListBase>) => {
 
   const handleNotificationPressed = useCallback(
     (event: NotifeeEvent) => {
-      // eslint-disable-next-line no-console
-      console.log(
-        `[onForegroundEvent] notification id: ${
-          event.detail.notification !== undefined
-            ? event.detail.notification.id
-            : 'undefined'
-        },  event type: ${EventType[event.type]}${event.detail.pressAction}`,
-      );
       if (event.type === EventType.PRESS) {
         handleOpenedNotification(event.detail.notification as Notification);
       }
@@ -67,8 +59,7 @@ const useNotificationHandler = (navigation: NavigationProp<ParamListBase>) => {
     }, 1000);
 
     return notifee.onForegroundEvent(handleNotificationPressed);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  });
+  }, [handleNotificationPressed, navigation]);
 };
 
 export default useNotificationHandler;

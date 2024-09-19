@@ -1,5 +1,3 @@
-/* eslint-disable react-native/split-platform-components */
-/* eslint-disable import/prefer-default-export */
 import notifee, { AndroidImportance } from '@notifee/react-native';
 import { STORAGE_IDS } from './settings/storage/constants';
 

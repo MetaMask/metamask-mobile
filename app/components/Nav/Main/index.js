@@ -282,11 +282,6 @@ const Main = (props) => {
 
     return notifee.onBackgroundEvent(async ({ type, detail }) => {
       const { notification, pressAction } = detail;
-      // eslint-disable-next-line no-console
-      console.log(
-        `[onBackgroundEvent] notification id: ${notification !== undefined ? notification.id : 'undefined'
-        },  event type: ${EventType[type]}, press action: ${pressAction?.id}`,
-      );
       if (type === EventType.ACTION_PRESS && pressAction.id === 'mark-as-read') {
         notifee.decrementBadgeCount(1).then(async () => {
           await notifee.cancelNotification(notification.id);
@@ -297,8 +292,7 @@ const Main = (props) => {
         });
       }
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  });
+  }, [props.navigation]);
 
 
 
