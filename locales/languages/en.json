@@ -835,24 +835,6 @@
     "show_fiat_on_testnets_modal_button": "Continue",
     "show_hex_data": "Show Hex Data",
     "show_hex_data_desc": "Select this to show the hex data field on the send screen.",
-    "toggleEthSignBannerDescription": "You’re at risk for phishing attacks. Protect yourself by turning off eth_sign.",
-    "enable_eth_sign": "Eth_sign requests",
-    "enable_eth_sign_desc": "If you enable this setting, you might get signature requests that aren’t readable. By signing a message you don't understand, you could be agreeing to give away your funds and NFTs.",
-    "enable_eth_sign_warning": "You're at risk for phishing attacks. Protect yourself by turning off eth_sign.",
-    "toggleEthSignModalBannerText": "If you've been asked to turn this setting on,",
-    "toggleEthSignModalBannerBoldText": " you might be getting scammed.",
-    "toggleEthSignModalCheckBox": "I understand that I can lose all of my funds and NFTs if I enable eth_sign requests.",
-    "toggleEthSignModalDescription": "Allowing eth_sign requests can make you vulnerable to phishing attacks. Always review the URL and be careful when signing messages that contain code.",
-    "toggleEthSignModalFormError": "This text is incorrect. Try again.",
-    "toggleEthSignModalFormLabel": "Enter “I only sign what I understand” to continue",
-    "toggleEthSignModalFormValidation": "I only sign what I understand",
-    "toggleEthSignModalTitle": "Use at your own risk",
-    "toggleEthSignModalEnable": "Enable",
-    "toggleEthSignModalLearnMore": "Learn more.",
-    "toggleEthSignOff": "(Recommended)",
-    "toggleEthSignOn": "(Not recommended)",
-    "toggleEthSignContinueButton": "Continue",
-    "toggleEthSignEnableButton": "Enable",
     "show_custom_nonce": "Customize transaction nonce",
     "custom_nonce_desc": "Turn this on to change the nonce (transaction number) on confirmation screens. This is an advanced feature, use cautiously.",
     "accounts_identicon_title": "Account Identicon",
@@ -1106,7 +1088,12 @@
     "simulation_details_description": "Turn this on to estimate balance changes of transactions before you confirm them. This doesn't guarantee the final outcome of your transactions. ",
     "simulation_details_learn_more": "Learn more.",
     "aes_crypto_test_form_title": "AES Crypto - Test Form",
-    "aes_crypto_test_form_description": "Section exclusively developed for E2E testing. If this is visible in your app, please report it to MetaMask support."
+    "aes_crypto_test_form_description": "Section exclusively developed for E2E testing. If this is visible in your app, please report it to MetaMask support.",
+    "developer_options": {
+      "title": "Developer Options",
+      "generate_trace_test": "Generate Trace Test",
+      "generate_trace_test_desc": "Generate a Developer Test Sentry trace."
+    }
   },
   "aes_crypto_test_form": {
     "generate_random_salt": "Generate Random Salt",
@@ -1842,8 +1829,7 @@
     "message": "Message",
     "message_from": "Message from",
     "learn_more": "Learn more",
-    "read_more": "Read more",
-    "eth_sign_warning": "Signing this message can be dangerous. This signature could potentially perform any operation on your account's behalf, including granting complete control of your account and all of its assets to the requesting site. Only sign this message if you know what you're doing or completely trust the requesting site."
+    "read_more": "Read more"
   },
   "watch_asset_request": {
     "title": "Add Suggested Token",
@@ -3298,6 +3284,7 @@
   },
   "stake": {
     "stake": "Stake",
+    "stake_eth": "Stake ETH",
     "staked_ethereum": "Staked Ethereum",
     "unstake": "Unstake",
     "stake_more": "Stake more",
@@ -3305,11 +3292,11 @@
     "your_earnings": "Your earnings",
     "annual_rate": "Annual rate",
     "lifetime_rewards": "Lifetime rewards",
-    "estimated_annual_earnings": "Est. annual earnings",
+    "estimated_annual_earnings": "Estimated annual earnings",
     "accessibility_labels": {
       "stake_annual_rate_tooltip": "Annual rate tooltip"
     },
-    "estimated_annual_rewards": "Est. annual rewards",
+    "estimated_annual_rewards": "Estimated annual rewards",
     "metamask_pool": "MetaMask Pool",
     "enter_amount": "Enter amount",
     "review": "Review",
@@ -3381,15 +3368,6 @@
     "please_wait": "Please wait",
     "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
     "disconnect": "Disconnect"
-  },
-  "staking": {
-    "your_earnings": "Your earnings",
-    "annual_rate": "Annual rate",
-    "lifetime_rewards": "Lifetime rewards",
-    "estimated_annual_earnings": "Est. annual earnings",
-    "accessibility_labels": {
-      "stake_annual_rate_tooltip": "Annual rate tooltip"
-    }
   },
   "tooltip_modal": {
     "reward_rate": {
