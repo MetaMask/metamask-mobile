@@ -1026,8 +1026,13 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                node -v
-                METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle
+                if [ "$SENTRY_DISABLE_AUTO_UPLOAD" = "true" ]; then
+                  echo "Skipping Sentry sourcemap creation and upload..."
+                  METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' SKIP_SENTRY_UPLOAD=true yarn build:android:pre-release:bundle
+                else
+                  echo "Creating and uploading Sentry sourcemap..."
+                  METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle
+                fi
           title: Build Android Pre-Release Bundle
           is_always_run: false
       - save-gradle-cache@1: {}
@@ -1096,8 +1101,13 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                node -v
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
+                if [ "$SENTRY_DISABLE_AUTO_UPLOAD" = "true" ]; then
+                  echo "Skipping Sentry sourcemap creation and upload..."
+                  GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' SKIP_SENTRY_UPLOAD=true yarn build:android:pre-qa
+                else
+                  echo "Creating and uploading Sentry sourcemap..."
+                  GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:android:pre-qa
+                fi
           title: Build Android Pre-Release Bundle
           is_always_run: false
       - save-gradle-cache@1: {}
@@ -1256,7 +1266,13 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
+                if [ "$SENTRY_DISABLE_AUTO_UPLOAD" = "true" ]; then
+                  echo "Skipping Sentry sourcemap creation and upload..."
+                  METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' SKIP_SENTRY_UPLOAD=true yarn build:ios:pre-release
+                else
+                  echo "Creating and uploading Sentry sourcemap..."
+                  METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
+                fi
           title: iOS Sourcemaps & Build
           is_always_run: false
       - deploy-to-bitrise-io@2.2.3:
@@ -1298,8 +1314,13 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                node -v
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:ios:pre-qa
+                if [ "$SENTRY_DISABLE_AUTO_UPLOAD" = "true" ]; then
+                  echo "Skipping Sentry sourcemap creation and upload..."
+                  GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' SKIP_SENTRY_UPLOAD=true yarn build:ios:pre-qa
+                else
+                    echo "Creating and uploading Sentry sourcemap..."
+                  GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:ios:pre-qa
+                fi
           title: iOS Sourcemaps & Build
           is_always_run: false
       - deploy-to-bitrise-io@2.2.3:
