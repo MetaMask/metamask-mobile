@@ -5,14 +5,14 @@ import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { Colors } from '../../../util/theme/models';
+import { Theme } from '@metamask/design-tokens';
 
 interface ConnectHeaderProps {
   action: () => void;
   title: string;
 }
 
-const createStyles = (colors: Colors) =>
+const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     header: {
       width: '100%',
