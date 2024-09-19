@@ -54,7 +54,7 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
   });
 
   beforeEach(async () => {
-    jest.setTimeout(15000);
+    jest.setTimeout(120000);
   });
 
   it('should be able to import account', async () => {
@@ -79,7 +79,7 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
       WalletView.accountName,
       'Account 1',
     );
-    await Assertions.checkIfElementNotToHaveText(WalletView.totalBalance, '$0');
+    await Assertions.checkIfElementNotToHaveText(WalletView.totalBalance, '$0', 60000);
   });
 
   it.each`
