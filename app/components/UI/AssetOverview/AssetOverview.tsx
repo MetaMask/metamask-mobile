@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { TOKEN_ASSET_OVERVIEW } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
@@ -42,6 +41,8 @@ import ChartNavigationButton from './ChartNavigationButton';
 import Price from './Price';
 import styleSheet from './AssetOverview.styles';
 import { useStyles } from '../../../component-library/hooks';
+import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
+import Routes from '../../../constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
 import useGoToBridge from '../Bridge/utils/useGoToBridge';
@@ -115,7 +116,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }, []);
 
   const onReceive = () => {
-    dispatch(toggleReceiveModal(asset));
+    navigation.navigate(Routes.QR_TAB_SWITCHER, {
+      initialScreen: QRTabSwitcherScreens.Receive,
+      disableTabber: true,
+    });
   };
 
   const onSend = async () => {
