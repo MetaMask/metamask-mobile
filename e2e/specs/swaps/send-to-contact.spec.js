@@ -46,7 +46,6 @@ describe(SmokeConfirmations('Send ETH'), () => {
         },
       })
       .build();
-          console.log(fixture.state.engine.backgroundState.PreferencesController.selectedAddress)
     await Tenderly.addFunds( CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl, fixture.state.engine.backgroundState.PreferencesController.selectedAddress);
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });

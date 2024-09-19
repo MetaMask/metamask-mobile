@@ -29,6 +29,7 @@ import Assertions from '../../utils/Assertions';
 import AddAccountModal from '../../pages/modals/AddAccountModal';
 
 const fixtureServer = new FixtureServer();
+const firstElement = 0;
 
 describe(SmokeSwaps('Swap from Actions'), () => {
   let swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
@@ -122,7 +123,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
 
       //Select destination token
       await QuoteView.tapOnSelectDestToken();
-      if (destTokenSymbol != 'ETH')
+      if (destTokenSymbol !== 'ETH')
       {
           await QuoteView.tapSearchToken();
           await QuoteView.typeSearchToken(destTokenSymbol);
