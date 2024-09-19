@@ -108,13 +108,6 @@ const mockState: DeepPartial<RootState> = {
         securityAlertsEnabled: true,
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-      NetworkController: {
-        providerConfig: {
-          chainId: '0x1',
-          type: 'sepolia',
-          nickname: 'Sepolia',
-        },
-      },
     },
   },
   settings: {
