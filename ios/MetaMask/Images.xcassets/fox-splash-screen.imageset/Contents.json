@@ -11,7 +11,7 @@
           "value" : "light"
         }
       ],
-      "filename" : "lightmode.png",
+      "filename" : "fox-light.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
@@ -22,7 +22,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "darkmode.png",
+      "filename" : "fox-dark.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
