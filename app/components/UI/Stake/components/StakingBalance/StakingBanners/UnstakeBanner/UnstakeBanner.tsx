@@ -2,9 +2,9 @@ import React from 'react';
 import Banner, {
   BannerAlertSeverity,
   BannerVariant,
-} from '../../../../../component-library/components/Banners/Banner';
-import Text from '../../../../../component-library/components/Texts/Text';
-import { strings } from '../../../../../../locales/i18n';
+} from '../../../../../../../component-library/components/Banners/Banner';
+import Text from '../../../../../../../component-library/components/Texts/Text';
+import { strings } from '../../../../../../../../locales/i18n';
 
 interface UnstakingBannerProps {
   amountEth: string;

@@ -2,14 +2,16 @@ import React from 'react';
 import Banner, {
   BannerAlertSeverity,
   BannerVariant,
-} from '../../../../components/Banners/Banner';
+} from '../../../../../../../component-library/components/Banners/Banner';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../components/Texts/Text';
-import { strings } from '../../../../../../locales/i18n';
-import Button, { ButtonVariants } from '../../../../components/Buttons/Button';
-import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
+} from '../../../../../../../component-library/components/Texts/Text';
+import { strings } from '../../../../../../../../locales/i18n';
+import Button, {
+  ButtonVariants,
+} from '../../../../../../../component-library/components/Buttons/Button';
+import useTooltipModal from '../../../../../../hooks/useTooltipModal';
 
 interface StakeBannerProps {
   claimableAmount: string;

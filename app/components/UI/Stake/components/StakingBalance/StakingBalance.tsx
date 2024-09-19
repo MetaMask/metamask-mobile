@@ -1,17 +1,17 @@
 import React from 'react';
 import Badge, {
   BadgeVariant,
-} from '../../../../app/component-library/components/Badges/Badge';
-import BadgeWrapper from '../../../../app/component-library/components/Badges/BadgeWrapper';
+} from '../../../../../component-library/components/Badges/Badge';
+import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
 import Text, {
   TextVariant,
-} from '../../../../app/component-library/components/Texts/Text';
-import { useStyles } from '../../../../app/component-library/hooks';
-import AssetElement from '../../../../app/components/UI/AssetElement';
-import NetworkMainAssetLogo from '../../../../app/components/UI/NetworkMainAssetLogo';
-import { selectNetworkName } from '../../../../app/selectors/networkInfos';
+} from '../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../component-library/hooks';
+import AssetElement from '../../../AssetElement';
+import NetworkMainAssetLogo from '../../../NetworkMainAssetLogo';
+import { selectNetworkName } from '../../../../../selectors/networkInfos';
 import { useSelector } from 'react-redux';
-import images from '../../../images/image-icons';
+import images from '../../../../../images/image-icons';
 import styleSheet from './StakingBalance.styles';
 import { View } from 'react-native';
 import StakingButtons from './StakingButtons/StakingButtons';

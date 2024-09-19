@@ -26,7 +26,7 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import { TokenI } from '../../Tokens/types';
 import { isPooledStakingFeatureEnabled } from '../../Stake/constants';
-import StakingBalance from '../../../../../app/component-library/Stake/StakingBalance/StakingBalance';
+import StakingBalance from '../../Stake/components/StakingBalance/StakingBalance';
 
 interface BalanceProps {
   asset: TokenI;

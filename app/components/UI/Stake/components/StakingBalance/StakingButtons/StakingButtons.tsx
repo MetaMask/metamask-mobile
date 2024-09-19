@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import Button, {
   ButtonVariants,
-} from '../../../../../app/component-library/components/Buttons/Button';
-import { strings } from '../../../../../locales/i18n';
+} from '../../../../../../component-library/components/Buttons/Button';
+import { strings } from '../../../../../../../locales/i18n';
 import { View } from 'react-native';
-import { useStyles } from '../../../../../app/component-library/hooks';
+import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './StakingButtons.styles';
-import useTooltipModal from '../../../../../app/components/hooks/useTooltipModal';
+import useTooltipModal from '../../../../../hooks/useTooltipModal';
 
 const StakingButtons = () => {
   const { styles } = useStyles(styleSheet, {});
