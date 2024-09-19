@@ -48,9 +48,9 @@ export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {
     trackEvent(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED, {
       notification_id: notification.id,
       notification_type: notification.type,
-      ...(notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT && {
-        chain_id: notification?.chain_id,
-      }),
+      ...(notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT
+        ? { chain_id: notification?.chain_id }
+        : {}),
       clicked_item: 'block_explorer',
     });
   };

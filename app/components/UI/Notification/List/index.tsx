@@ -86,9 +86,9 @@ function NotificationsListItem(props: NotificationsListItemProps) {
       trackEvent(MetaMetricsEvents.NOTIFICATION_CLICKED, {
         notification_id: item.id,
         notification_type: item.type,
-        ...(item.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT && {
-          chain_id: item?.chain_id,
-        }),
+        ...(item.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT
+          ? { chain_id: item?.chain_id }
+          : {}),
         previously_read: item.isRead,
       });
     },
