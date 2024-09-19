@@ -1,20 +1,14 @@
 import axios from 'axios';
 
 export default class Tenderly {
-  constructor(id, url) {
-    this.chainId = id;
-    this.rpcURL = url;
-  }
 
- static async addFunds(rpcURL, account, amount) {
+ static async addFunds(rpcURL, account, amount = '0xDE0B6B3A7640000') {
     const data = {
       jsonrpc: '2.0',
       method: 'tenderly_setBalance',
       params: [[account], amount],
       id: '1234',
     };
-    // eslint-disable-next-line no-console
-    console.log('Adding funds to account');
 
     const response = await axios.post(rpcURL, data, {
       headers: {
