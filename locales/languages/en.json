@@ -3297,7 +3297,39 @@
     "error_description": "Installation of {{snap}} failed."
   },
   "stake": {
-    "stake": "Stake"
+    "stake": "Stake",
+    "staked_ethereum": "Staked Ethereum",
+    "unstake": "Unstake",
+    "stake_more": "Stake more",
+    "claim": "Claim",
+    "your_earnings": "Your earnings",
+    "annual_rate": "Annual rate",
+    "lifetime_rewards": "Lifetime rewards",
+    "estimated_annual_earnings": "Est. annual earnings",
+    "accessibility_labels": {
+      "stake_annual_rate_tooltip": "Annual rate tooltip"
+    },
+    "estimated_annual_rewards": "Est. annual rewards",
+    "metamask_pool": "MetaMask Pool",
+    "enter_amount": "Enter amount",
+    "review": "Review",
+    "not_enough_eth": "Not enough ETH",
+    "balance":"Balance",
+    "your_balance": "Your balance",
+    "day": {
+      "zero": "",
+      "one": "day",
+      "other": "days"
+    },
+    "hour": {
+      "zero": "",
+      "one": "hour",
+      "other": "hours"
+    },
+    "bannerText": {
+      "has_claimable_eth": "You can claim {{amountEth}} ETH. Once claimed, you'll get ETH back in your wallet.",
+      "unstaking_in_progress": "Unstaking {{amountEth}} ETH in progress. Come back in {{daysUntilClaimable}} {{daysCopy}} and {{hoursUntilClaimable}} {{hoursCopy}} to claim it."
+    }
   },
   "default_settings": {
     "title": "Your Wallet is ready",
