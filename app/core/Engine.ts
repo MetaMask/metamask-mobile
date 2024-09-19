@@ -69,6 +69,7 @@ import {
   TransactionController,
   TransactionControllerEvents,
   TransactionControllerState,
+  TransactionControllerOptions
 } from '@metamask/transaction-controller';
 import {
   GasFeeController,
@@ -224,7 +225,6 @@ import { zeroAddress } from 'ethereumjs-util';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
 import EthQuery from '@metamask/eth-query';
-import { TransactionControllerOptions } from '@metamask/transaction-controller';
 import DomainProxyMap from '../lib/DomainProxyMap/DomainProxyMap';
 
 const NON_EMPTY = 'NON_EMPTY';
@@ -1630,7 +1630,6 @@ class Engine {
     this.configureControllersOnNetworkChange();
     this.startPolling();
     this.handleVaultBackup();
-    this.transactionController.clearUnapprovedTransactions();
 
     Engine.instance = this;
   }
