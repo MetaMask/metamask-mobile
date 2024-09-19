@@ -4,9 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import  {
-  AuthorizationStatus,
-} from '@notifee/react-native';
+import { AuthorizationStatus } from '@notifee/react-native';
 import Button, {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
@@ -28,8 +26,10 @@ import AppConstants from '../../../../core/AppConstants';
 import { RootState } from '../../../../reducers';
 import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
-import { selectIsProfileSyncingEnabled } from '../../../../selectors/notifications';
-import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
+import {
+  selectIsProfileSyncingEnabled,
+  selectIsMetamaskNotificationsEnabled,
+} from '../../../../selectors/notifications';
 
 const OptIn = () => {
   const { trackEvent } = useMetrics();
@@ -54,7 +54,8 @@ const OptIn = () => {
   const [optimisticLoading, setOptimisticLoading] = React.useState(false);
   const [isUpdating, setIsUpdating] = React.useState(false);
 
-  const [enableManuallyNotification, setEnableManuallyNotification] = React.useState(false);
+  const [enableManuallyNotification, setEnableManuallyNotification] =
+    React.useState(false);
   const navigateToMainWallet = () => {
     if (!isUpdating) {
       trackEvent(MetaMetricsEvents.NOTIFICATIONS_ACTIVATED, {
@@ -79,7 +80,10 @@ const OptIn = () => {
         asyncAlert,
       );
 
-      if (nativeNotificationStatus?.authorizationStatus === AuthorizationStatus.AUTHORIZED) {
+      if (
+        nativeNotificationStatus?.authorizationStatus ===
+        AuthorizationStatus.AUTHORIZED
+      ) {
         /**
          * Although this is an async function, we are dispatching an action (firing & forget)
          * to emulate optimistic UI.
@@ -113,11 +117,20 @@ const OptIn = () => {
     Linking.openURL(AppConstants.URLS.PROFILE_SYNC);
   };
 
- useEffect(() => {
-  if (isDeviceNotificationEnabled && !isNotificationEnabled && enableManuallyNotification) {
-    toggleNotificationsEnabled();
-  }
-},[enableManuallyNotification, isDeviceNotificationEnabled, isNotificationEnabled, toggleNotificationsEnabled]);
+  useEffect(() => {
+    if (
+      isDeviceNotificationEnabled &&
+      !isNotificationEnabled &&
+      enableManuallyNotification
+    ) {
+      toggleNotificationsEnabled();
+    }
+  }, [
+    enableManuallyNotification,
+    isDeviceNotificationEnabled,
+    isNotificationEnabled,
+    toggleNotificationsEnabled,
+  ]);
 
   return (
     <Fragment>
