@@ -20,7 +20,7 @@ jest.mock('@react-navigation/native', () => {
       dangerouslyGetParent: () => ({
         pop: jest.fn(),
       }),
-    }) as NavigationProp<ParamListBase>,
+    }) as unknown as NavigationProp<ParamListBase>,
   };
 });
 
