@@ -35,6 +35,9 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
+import {
+  isDeviceNotificationEnabled,
+} from '../../../util/notifications';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -335,6 +338,11 @@ const Wallet = ({
     ) {
       checkNftAutoDetectionModal();
     }
+
+    async function checkIfNotificationsAreEnabled() {
+      await isDeviceNotificationEnabled();
+    }
+    checkIfNotificationsAreEnabled();
   });
 
   /**
