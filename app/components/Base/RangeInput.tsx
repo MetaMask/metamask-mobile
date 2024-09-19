@@ -6,14 +6,9 @@ import PropTypes from 'prop-types';
 import BigNumber from 'bignumber.js';
 import { useTheme } from '../../util/theme';
 
-interface Colors {
-  error: { default: string };
-  border: { default: string };
-  text: { default: string };
-  primary: { default: string };
-}
+import type { Theme } from '../../util/theme/models';
 
-const createStyles = (colors: Colors) =>
+const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     labelContainer: {
       flexDirection: 'row',
