@@ -1040,6 +1040,13 @@ const Settings: React.FC = () => {
       });
     } else {
       await enableProfileSyncing();
+      trackEvent(MetaMetricsEvents.SETTINGS_UPDATED, {
+        settings_group: 'security_privacy',
+        settings_type: 'profile_syncing',
+        old_value: isProfileSyncingEnabled,
+        new_value: !isProfileSyncingEnabled,
+        was_notifications_on: isNotificationEnabled,
+      });
     }
   };
 
@@ -1101,12 +1108,13 @@ const Settings: React.FC = () => {
             handleSwitchToggle={toggleBasicFunctionality}
           />
         </View>
-        {isNotificationsFeatureEnabled() &&
-        (<ProfileSyncingComponent
-          handleSwitchToggle={toggleProfileSyncing}
-          isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
-          isProfileSyncingEnabled={isProfileSyncingEnabled}
-        />)}
+        {isNotificationsFeatureEnabled() && (
+          <ProfileSyncingComponent
+            handleSwitchToggle={toggleProfileSyncing}
+            isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
+            isProfileSyncingEnabled={isProfileSyncingEnabled}
+          />
+        )}
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}

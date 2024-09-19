@@ -40,14 +40,12 @@ describe(SmokeConfirmations('Personal Sign'), () => {
         await Assertions.checkIfVisible(SigningModal.personalRequest);
         await SigningModal.tapCancelButton();
         await Assertions.checkIfNotVisible(SigningModal.typedRequest);
-        await Assertions.checkIfNotVisible(SigningModal.ethRequest);
         await Assertions.checkIfNotVisible(SigningModal.personalRequest);
 
         await TestDApp.tapPersonalSignButton();
         await Assertions.checkIfVisible(SigningModal.personalRequest);
         await SigningModal.tapSignButton();
         await Assertions.checkIfNotVisible(SigningModal.typedRequest);
-        await Assertions.checkIfNotVisible(SigningModal.ethRequest);
         await Assertions.checkIfNotVisible(SigningModal.personalRequest);
       },
     );

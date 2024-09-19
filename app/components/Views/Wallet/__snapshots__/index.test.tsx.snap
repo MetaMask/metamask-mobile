@@ -260,6 +260,16 @@ exports[`Wallet should render correctly 1`] = `
                   }
                 }
               >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flex": 1,
+                      "justifyContent": "center",
+                      "position": "relative",
+                    }
+                  }
+                />
                 <TouchableOpacity
                   accessible={true}
                   activeOpacity={1}
