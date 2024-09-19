@@ -36,6 +36,9 @@ const ONBOARDING_WIZARD_STEP_DESCRIPTION: { [key: number]: string } = {
  * Analytics Tracking Events
  */
 enum EVENT_NAME {
+  // App
+  APP_OPENED = 'App Opened',
+
   // Error
   ERROR = 'Error occurred',
   ERROR_SCREEN_VIEWED = 'Error Screen Viewed',
@@ -432,6 +435,7 @@ enum ACTIONS {
 }
 
 const events = {
+  APP_OPENED: generateOpt(EVENT_NAME.APP_OPENED),
   ERROR: generateOpt(EVENT_NAME.ERROR),
   ERROR_SCREEN_VIEWED: generateOpt(EVENT_NAME.ERROR_SCREEN_VIEWED),
   APPROVAL_STARTED: generateOpt(EVENT_NAME.APPROVAL_STARTED),
