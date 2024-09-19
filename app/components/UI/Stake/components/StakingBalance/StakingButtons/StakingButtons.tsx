@@ -35,21 +35,16 @@ const StakingButtons = () => {
           onPress={onUnstakePress}
         />
       )}
-      {hasStakedPosition ? (
-        <Button
-          style={styles.balanceActionButton}
-          variant={ButtonVariants.Secondary}
-          label={strings('stake.stake_more')}
-          onPress={onStakePress}
-        />
-      ) : (
-        <Button
-          style={styles.balanceActionButton}
-          variant={ButtonVariants.Secondary}
-          label={strings('stake.stake')}
-          onPress={onStakePress}
-        />
-      )}
+      <Button
+        style={styles.balanceActionButton}
+        variant={ButtonVariants.Secondary}
+        label={
+          hasStakedPosition
+            ? strings('stake.stake_more')
+            : strings('stake.stake')
+        }
+        onPress={onStakePress}
+      />
     </View>
   );
 };
