@@ -192,12 +192,12 @@ class FixtureBuilder {
                 },
 
                 '0x539': {
-                  chainId: '0x1',
+                  chainId: '0x539',
                   rpcEndpoints: [
                     {
-                      networkClientId: 'mainnet',
+                      networkClientId: 'networkId1',
                       url: `http://localhost:${getGanachePort()}`,
-                      type: 'infura',
+                      type: 'custom',
                       name: 'Local RPC',
                     },
                   ],
@@ -688,7 +688,6 @@ class FixtureBuilder {
       ],
       defaultRpcEndpointIndex: 0,
       blockExplorerUrls: [],
-      defaultBlockExplorerUrlIndex: 0,
       name: providerConfig.nickname,
       nativeCurrency: providerConfig.ticker,
     };
@@ -759,7 +758,6 @@ class FixtureBuilder {
         .length + 1
     }`;
 
-    console.log('newNetworkClientId ----', newNetworkClientId);
     // Define the Ganache network configuration
     const ganacheNetworkConfig = {
       chainId: '0x539',
@@ -783,11 +781,6 @@ class FixtureBuilder {
 
     // Update selectedNetworkClientId to the new network client ID
     fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
-
-    console.log(
-      'fixtures.NetworkController -----',
-      fixtures.NetworkController.networkConfigurationsByChainId,
-    );
 
     return this;
   }
@@ -817,7 +810,6 @@ class FixtureBuilder {
       ],
       defaultRpcEndpointIndex: 0,
       blockExplorerUrls: [],
-      defaultBlockExplorerUrlIndex: 0,
       name: sepoliaConfig.nickname,
       nativeCurrency: sepoliaConfig.ticker,
     };
@@ -863,7 +855,6 @@ class FixtureBuilder {
         ],
         defaultRpcEndpointIndex: 0,
         blockExplorerUrls: [],
-        defaultBlockExplorerUrlIndex: 0,
         name: nickname,
         nativeCurrency: ticker,
       };
