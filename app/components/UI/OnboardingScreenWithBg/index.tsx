@@ -1,9 +1,9 @@
 import React from 'react';
 import { StyleSheet, ImageBackground, View, ImageSourcePropType } from 'react-native';
 import { useTheme } from '../../../util/theme';
-import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
+import { Theme } from '@metamask/design-tokens';
 
-const createStyles = (colors: ThemeColors) =>
+const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     flex: {
       flex: 1,
