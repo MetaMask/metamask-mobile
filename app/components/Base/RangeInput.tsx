@@ -292,7 +292,4 @@ RangeInput.defaultProps = {
   increment: new BigNumber(1),
 } as Partial<RangeInputProps>;
 
-// PropTypes have been removed as part of the TypeScript conversion process.
-// The component's props are now defined by the RangeInputProps interface.
-
 export default RangeInput;
