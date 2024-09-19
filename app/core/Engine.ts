@@ -600,7 +600,6 @@ class Engine {
       }),
       state: initialState.LoggingController,
     });
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     const accountsControllerMessenger: AccountsControllerMessenger =
       this.controllerMessenger.getRestricted({
         name: 'AccountsController',
@@ -742,7 +741,6 @@ class Engine {
         preferencesController,
       ),
       encryptor,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'KeyringController',
         allowedActions: [],
@@ -1110,7 +1108,6 @@ class Engine {
 
     const authenticationController = new AuthenticationController.Controller({
       state: initialState.AuthenticationController,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'AuthenticationController',
         allowedActions: [
@@ -1155,7 +1152,6 @@ class Engine {
         },
       },
       state: initialState.UserStorageController,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'UserStorageController',
         allowedActions: [
@@ -1183,7 +1179,6 @@ class Engine {
 
     const notificationServicesController =
       new NotificationServicesController.Controller({
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'NotificationServicesController',
           allowedActions: [
