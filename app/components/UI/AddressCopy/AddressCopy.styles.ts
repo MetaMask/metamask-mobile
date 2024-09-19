@@ -17,7 +17,7 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.primary.muted,
       borderRadius: 20,
       paddingHorizontal: 12,
-      padding: 5,
+      padding: 4,
       marginLeft: 12,
     },
     icon: { marginLeft: 4 },

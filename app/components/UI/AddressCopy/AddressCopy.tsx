@@ -69,7 +69,7 @@ const AddressCopy = ({ formatAddressType = 'full' }: AddressCopyProps) => {
   };
   return (
     <View style={styles.address}>
-      <Text variant={TextVariant.BodyMDMedium}>
+      <Text variant={TextVariant.BodySMBold}>
         {strings('asset_overview.address')}:
       </Text>
       <TouchableOpacity
