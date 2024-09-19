@@ -272,12 +272,15 @@ export class Connection extends EventEmitter2 {
   public connect({
     withKeyExchange,
     authorized,
+    rejected,
   }: {
     authorized: boolean;
+    rejected?: boolean;
     withKeyExchange: boolean;
   }) {
     return connect({
       instance: this,
+      rejected,
       withKeyExchange,
       authorized,
     });
