@@ -33,6 +33,7 @@ import {
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 import { useMetrics } from '../../../hooks/useMetrics';
+import { AuthorizationStatus } from '@notifee/react-native';
 
 interface Props {
   route: {
@@ -60,7 +61,7 @@ const BasicFunctionalityModal = ({ route }: Props) => {
       asyncAlert,
     );
 
-    if (nativeNotificationStatus) {
+    if (nativeNotificationStatus?.authorizationStatus === AuthorizationStatus.AUTHORIZED) {
       /**
        * Although this is an async function, we are dispatching an action (firing & forget)
        * to emulate optimistic UI.
