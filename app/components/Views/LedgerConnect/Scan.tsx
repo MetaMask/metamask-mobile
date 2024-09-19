@@ -15,9 +15,7 @@ import {
   BluetoothPermissionErrors,
   LedgerCommunicationErrors,
 } from '../../../core/Ledger/ledgerErrors';
-import SelectOptionSheet, {
-  ISelectOption,
-} from '../../UI/SelectOptionSheet';
+import SelectOptionSheet, { ISelectOption } from '../../UI/SelectOptionSheet';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
