@@ -526,6 +526,7 @@ class Engine {
       onNetworkDidChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_DID_CHANGE_EVENT,
+          // @ts-expect-error TODO: Resolve bump the assets controller version.
           listener,
         ),
       chainId: networkController.getNetworkClientById(
@@ -1262,6 +1263,7 @@ class Engine {
       getGasFeeEstimates:
         gasFeeController.fetchGasFeeEstimates.bind(gasFeeController),
       // but only breaking change is Node version and bumped dependencies
+      // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
       getNetworkClientRegistry:
         networkController.getNetworkClientRegistry.bind(networkController),
       getNetworkState: () => networkController.state,
@@ -1357,7 +1359,7 @@ class Engine {
           this.transactionController.confirmExternalTransaction.bind(
             this.transactionController,
           ),
-
+        // @ts-expect-error TODO: resolve types
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
         getNonceLock: this.transactionController.getNonceLock.bind(
@@ -1381,7 +1383,6 @@ class Engine {
         getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
       },
       {
-        // @ts-expect-error TODO: resolve types
         supportedChainIds: getAllowedSmartTransactionsChainIds(),
       },
       initialState.SmartTransactionsController,
