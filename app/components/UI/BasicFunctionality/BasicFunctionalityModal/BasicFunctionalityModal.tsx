@@ -30,7 +30,14 @@ import {
   asyncAlert,
   requestPushNotificationsPermission,
 } from '../../../../util/notifications';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
+import { useMetrics } from '../../../hooks/useMetrics';
+import {
+  selectIsProfileSyncingEnabled,
+  selectIsMetamaskNotificationsEnabled,
+} from '../../../../selectors/notifications';
+import { AuthorizationStatus } from '@notifee/react-native';
 
 interface Props {
   route: {
@@ -41,6 +48,7 @@ interface Props {
 }
 
 const BasicFunctionalityModal = ({ route }: Props) => {
+  const { trackEvent } = useMetrics();
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -48,6 +56,10 @@ const BasicFunctionalityModal = ({ route }: Props) => {
   const dispatch = useDispatch();
   const isEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
+  );
+  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+  const isNotificationsFeatureEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
   );
 
   const { enableNotifications } = useEnableNotifications();
@@ -57,7 +69,7 @@ const BasicFunctionalityModal = ({ route }: Props) => {
       asyncAlert,
     );
 
-    if (nativeNotificationStatus) {
+    if (nativeNotificationStatus?.authorizationStatus === AuthorizationStatus.AUTHORIZED) {
       /**
        * Although this is an async function, we are dispatching an action (firing & forget)
        * to emulate optimistic UI.
@@ -68,9 +80,22 @@ const BasicFunctionalityModal = ({ route }: Props) => {
   }, [enableNotifications]);
 
   const closeBottomSheet = async () => {
-    bottomSheetRef.current?.onCloseBottomSheet(() =>
-      dispatch(toggleBasicFunctionality(!isEnabled)),
-    );
+    bottomSheetRef.current?.onCloseBottomSheet(() => {
+      dispatch(toggleBasicFunctionality(!isEnabled));
+      trackEvent(
+        !isEnabled
+          ? MetaMetricsEvents.BASIC_FUNCTIONALITY_ENABLED
+          : MetaMetricsEvents.BASIC_FUNCTIONALITY_DISABLED,
+      );
+      trackEvent(MetaMetricsEvents.SETTINGS_UPDATED, {
+        settings_group: 'security_privacy',
+        settings_type: 'basic_functionality',
+        old_value: isEnabled,
+        new_value: !isEnabled,
+        was_notifications_on: isEnabled ? isNotificationsFeatureEnabled : false,
+        was_profile_syncing_on: isEnabled ? isProfileSyncingEnabled : false,
+      });
+    });
 
     if (
       route.params.caller === Routes.SETTINGS.NOTIFICATIONS ||

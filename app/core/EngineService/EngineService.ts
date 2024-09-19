@@ -78,6 +78,10 @@ class EngineService {
         key: `${engine.context.PreferencesController.name}:stateChange`,
       },
       {
+        name: 'SelectedNetworkController',
+        key: `${engine.context.SelectedNetworkController.name}:stateChange`,
+      },
+      {
         name: 'TokenBalancesController',
         key: `${engine.context.TokenBalancesController.name}:stateChange`,
       },

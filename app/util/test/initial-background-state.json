@@ -58,11 +58,6 @@
   },
   "NetworkController": {
     "networkConfigurations": {},
-    "providerConfig": {
-      "type": "mainnet",
-      "chainId": "0x1",
-      "ticker": "ETH"
-    },
     "networksMetadata": {
       "mainnet": {
         "EIPS": {},
@@ -232,11 +227,12 @@
   "PermissionController": {
     "subjects": {}
   },
+  "SelectedNetworkController": {
+    "domains": {}
+  },
   "SignatureController": {
-    "unapprovedMsgs": {},
     "unapprovedPersonalMsgs": {},
     "unapprovedTypedMessages": {},
-    "unapprovedMsgCount": 0,
     "unapprovedPersonalMsgCount": 0,
     "unapprovedTypedMessagesCount": 0
   },

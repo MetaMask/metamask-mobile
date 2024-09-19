@@ -151,29 +151,17 @@ describe('useAccountSettingsProps', () => {
       .spyOn(Selectors, 'selectIsUpdatingMetamaskNotificationsAccount')
       .mockReturnValue([]);
 
+      const isMetamaskNotificationsEnabled = jest
+      .spyOn(Selectors,
+        'selectIsMetamaskNotificationsEnabled',
+      )
+      .mockReturnValue(true);
+
     return {
       selectIsUpdatingMetamaskNotificationsAccount,
+      isMetamaskNotificationsEnabled
     };
   }
-
-  it('fetchs initial account settings', async () => {
-    const ACCOUNT_1 = 'account1';
-
-    const mockEngine = arrangeEngine();
-    mockEngine.mockCheckAccountsPresence.mockResolvedValue({ ACCOUNT_1: true });
-    arrangeSelectors();
-
-    const { result, waitForValueToChange } = arrangeHook([ACCOUNT_1]);
-
-    // Initial Effect
-    expect(result.current.initialLoading).toBe(true);
-    expect(result.current.data).toEqual({});
-    await waitForValueToChange(() => result.current.initialLoading);
-
-    // Effect Finished
-    expect(result.current.initialLoading).toBe(false);
-    expect(result.current.data).toEqual({ ACCOUNT_1: true });
-  });
 
   it('returns accounts update status if an account is being updated', () => {
     const ACCOUNT_1 = 'account1';
@@ -187,26 +175,4 @@ describe('useAccountSettingsProps', () => {
     expect(result.current.accountsBeingUpdated.length).toBeGreaterThan(0);
   });
 
-  it('performs refetch to update account settings', async () => {
-    const ACCOUNT_1 = 'account1';
-
-    const mockEngine = arrangeEngine();
-    arrangeSelectors();
-
-    const { result, waitForValueToChange } = arrangeHook([]);
-
-    // Wait for initial loading effect to finish (reset mocks)
-    await waitForValueToChange(() => result.current.initialLoading === false);
-    mockEngine.mockCheckAccountsPresence.mockClear();
-    mockEngine.mockCheckAccountsPresence.mockResolvedValueOnce({
-      ACCOUNT_1: true,
-    });
-
-    // Act, perform refetch/update
-    await act(async () => {
-      await result.current.update([ACCOUNT_1]);
-    });
-
-    expect(mockEngine.mockCheckAccountsPresence).toHaveBeenCalledTimes(1);
-  });
 });

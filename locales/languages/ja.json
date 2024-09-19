@@ -5,8 +5,6 @@
     "deceptive_request_title": "これは虚偽のリクエストです",
     "failed_title": "リクエストが安全でない可能性があります",
     "failed_description": "エラーが発生したため、このリクエストはセキュリティプロバイダーにより確認されませんでした。慎重に進めてください。",
-    "loading_title": "セキュリティアラートを確認中...",
-    "loading_complete_title": "アラートはありません。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。",
     "malicious_domain_description": "悪質なドメインとやり取りしています。このリクエストを承認すると、資産を失う可能性があります。",
     "other_description": "このリクエストを承認すると、資産を失う可能性があります。",
     "raw_signature_farming_description": "このリクエストを承認すると、資産を失う可能性があります。",
@@ -499,11 +497,14 @@
     "address": "トークンコントラクトアドレス",
     "decimal": "トークンの小数桁数",
     "network": "ネットワーク",
+    "network_fee": "Network fee",
     "lists": "トークンリスト",
     "hide_cta": "トークンを非表示",
     "options": {
+      "view_on_portfolio": "View on Portfolio",
       "view_on_block": "ブロックエクスプローラーで表示",
-      "token_details": "トークンの詳細"
+      "token_details": "トークンの詳細",
+      "remove_token": "Remove token"
     }
   },
   "activity_view": {
@@ -550,6 +551,7 @@
     "description_title": "MetaMaskの改善にご協力ください",
     "description_content_1": "MetaMaskの改善を目的に、基本的な使用状況データを収集したいと思います。ここで提供されるデータが販売されることはありません。",
     "description_content_2": "指標を収集する際、常に次の条件が適用されます...",
+    "description_content_3": "Learn how we protect your privacy while collecting usage data for your profile.",
     "checkbox": "このデータは、ユーザーによる当社のマーケティングコミュニケーションとのインタラクションを把握するために使用されます。また、関連ニュースをお伝えする場合もあります (製品の機能など)。",
     "action_description_1_prefix": "非公開:",
     "action_description_2_prefix": "一般:",
@@ -600,7 +602,21 @@
     "decimals_is_required": "小数点以下の桁数が必要です。確認はこちら:",
     "no_tokens_found": "その名前のトークンは見つかりませんでした。",
     "select_token": "トークンを選択",
-    "address_must_be_smart_contract": "パーソナルアドレスが検出されました。トークンのコントラクトアドレスを入力してください。"
+    "address_must_be_smart_contract": "パーソナルアドレスが検出されました。トークンのコントラクトアドレスを入力してください。",
+    "billion_abbreviation": "B",
+    "trillion_abbreviation": "T",
+    "million_abbreviation": "M",
+    "token_details": "Token details",
+    "contract_address": "Contract address",
+    "token_list": "Token list",
+    "market_details": "Market details",
+    "market_cap": "Market Cap",
+    "total_volume": "Total Volume (24h)",
+    "volume_to_marketcap": "Volume / Market Cap",
+    "circulating_supply": "Circulating supply",
+    "all_time_high": "All time high",
+    "all_time_low": "All time low",
+    "fully_diluted": "Fully diluted"
   },
   "collectible": {
     "collectible_address": "アドレス",
@@ -669,7 +685,10 @@
     "address_balance_activity_permission": "アドレス、アカウント残高、アクティビティの表示",
     "suggest_transactions": "承認するトランザクションの提案",
     "disconnect": "接続解除",
+    "disconnect_all": "Disconnect all",
+    "reconnect_notice": "If you disconnect your accounts from {{dappUrl}}, you’ll need to reconnect to use them again.",
     "disconnect_all_accounts": "すべてのアカウントの接続を解除",
+    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
     "deceptive_site_ahead": "偽装サイトにアクセスしようとしています",
     "deceptive_site_desc": "アクセスしようとしているサイトは安全ではありません。攻撃者が危険な行為に誘導しようとする可能性があります。",
     "learn_more": "詳細",
@@ -687,6 +706,7 @@
     "accounts_connected": "アカウントが接続されました。",
     "disconnected": "接続が解除されました。",
     "disconnected_all": "すべてのアカウントの接続が解除されました。",
+    "disconnected_from": "Disconnected from {{dappHostName}}",
     "nft_detection_enabled": "NFTの自動検出が有効になりました"
   },
   "connect_qr_hardware": {
@@ -793,24 +813,6 @@
     "show_fiat_on_testnets_modal_button": "続行",
     "show_hex_data": "16進データを表示",
     "show_hex_data_desc": "送信画面に16進データフィールドを表示するにはこれを選択します。",
-    "toggleEthSignBannerDescription": "フィッシング攻撃のリスクがあります。eth_signを無効にして自分の身を守ってください。",
-    "enable_eth_sign": "eth_signリクエスト",
-    "enable_eth_sign_desc": "この設定を有効にすると、読めない署名リクエストを受ける可能性があります。理解できないメッセージに署名すると、資金やNFTの提供に同意してしまう可能性があります。",
-    "enable_eth_sign_warning": "フィッシング攻撃のリスクがあります。eth_signを無効にして自分の身を守ってください。",
-    "toggleEthSignModalBannerText": "この設定を有効にするよう求められた場合、",
-    "toggleEthSignModalBannerBoldText": "騙されている可能性があります。",
-    "toggleEthSignModalCheckBox": "私は、eth_signリクエストを有効にすると、すべての資金とNFTを失う可能性があることを理解しています。",
-    "toggleEthSignModalDescription": "eth_signリクエストを許可すると、フィッシング攻撃を受けやすくなる可能性があります。常にURLを確認し、コードを含むメッセージに署名する際には注意してください。",
-    "toggleEthSignModalFormError": "このテキストは正しくありません。もう一度やり直してください。",
-    "toggleEthSignModalFormLabel": "続行するには、「私は理解できるものにしか署名しません」と入力してください",
-    "toggleEthSignModalFormValidation": "私は理解できるものにしか署名しません",
-    "toggleEthSignModalTitle": "自己責任でご利用ください",
-    "toggleEthSignModalEnable": "有効にする",
-    "toggleEthSignModalLearnMore": "詳細。",
-    "toggleEthSignOff": "(推奨)",
-    "toggleEthSignOn": "(非推奨)",
-    "toggleEthSignContinueButton": "続行",
-    "toggleEthSignEnableButton": "有効にする",
     "show_custom_nonce": "トランザクションナンスをカスタマイズ",
     "custom_nonce_desc": "確認画面のナンス (トランザクション番号) を変更するにはこれをオンにします。これは上級者向けの機能ですので、慎重にご使用ください。",
     "accounts_identicon_title": "アカウントアイデンティコン",
@@ -843,6 +845,10 @@
     },
     "contacts_title": "連絡先",
     "contacts_desc": "アカウントを追加、編集、削除、管理します",
+    "permissions_title": "Permissions",
+    "permissions_desc": "Manage the permissions given to sites and apps",
+    "no_permissions": "No permissions",
+    "no_permissions_desc": "If you connect an account to a site or an app, you’ll see it here.",
     "security_title": "セキュリティとプライバシー",
     "back": "戻る",
     "security_desc": "プライバシー設定、MetaMetrics、秘密鍵、ウォレットのシークレットリカバリーフレーズ",
@@ -932,6 +938,10 @@
     "custom_network_name": "カスタムネットワーク",
     "popular": "人気",
     "delete": "削除",
+    "account": "account",
+    "accounts": "accounts",
+    "network": "network",
+    "networks": "networks",
     "network_exists": "このネットワークはすでに追加されています。",
     "unMatched_chain": "According to our records, this URL does not match a known provider for this chain ID.",
     "unMatched_chain_name": "This chain ID doesn’t match the network name.",
@@ -1296,13 +1306,14 @@
     "error": "エラー",
     "attempting_to_scan_with_wallet_locked": "QRコードをスキャンしようとしているようですが、使用するにはウォレットのロックを解除する必要があります。",
     "attempting_sync_from_wallet_error": "拡張機能と同期しようとしているようですが、これを行うには現在のウォレットを消去する必要があります。\n\n消去してアプリの新しいバージョンを再インストールしたら、「MetaMask拡張機能と同期」オプションを選択してください。ウォレットを消去する前に、必ずシークレットリカバリーフレーズがバックアップされていることを確認してください。",
-    "not_allowed_error_title": "カメラへのアクセスを有効にしてください",
-    "not_allowed_error_desc": "アカウントアドレスやコントラクトアドレスに関連したQRコードをスキャンするには、カメラへのアクセスが必要です",
+    "not_allowed_error_title": "Turn on camera access",
+    "not_allowed_error_desc": "To scan a QR code, you'll need to give MetaMask camera access from your device's settings menu.",
     "unrecognized_address_qr_code_title": "認識されないQRコード",
     "unrecognized_address_qr_code_desc": "申し訳ございませんが、このQRコードはアカウントアドレスまたはコントラクトアドレスに関連付けられていません。",
     "url_redirection_alert_title": "外部リンクにアクセスしようとしています。",
     "url_redirection_alert_desc": "リンクは詐欺やフィッシングに利用される場合があるため、信頼できるWebサイトにのみアクセスするようにしてください。",
-    "label": "QRコードをスキャン"
+    "label": "QRコードをスキャン",
+    "open_settings": "Settings"
   },
   "action_view": {
     "cancel": "キャンセル",
@@ -1312,6 +1323,7 @@
     "transaction_id": "トランザクションID",
     "alert": "アラート",
     "amount": "金額",
+    "details": "Details",
     "next": "次へ",
     "back": "戻る",
     "confirm": "確定",
@@ -1703,6 +1715,10 @@
     "network_chain_id": "チェーンID",
     "network_rpc_url": "ネットワークURL",
     "network_rpc_url_label": "Network RPC URL",
+    "new_default_network_url": "New default network URL",
+    "current_label": "Current",
+    "new_label": "New",
+    "review": "Review",
     "view_details": "詳細を表示",
     "network_details": "ネットワークの詳細",
     "network_select_confirm_use_safe_check": "「確定」を選択すると、ネットワーク情報の確認がオンになります。ネットワーク情報の確認は、",
@@ -1759,8 +1775,7 @@
     "message": "メッセージ",
     "message_from": "メッセージ送信者:",
     "learn_more": "詳細",
-    "read_more": "続きを表示",
-    "eth_sign_warning": "このメッセージへの署名は危険を伴います。署名すると、アカウントとその全アセットの完全なコントロールをリクエスト元のサイトに許可するなど、あなたのアカウントに代わってあらゆる操作が行われるおそれがあります。状況がしっかりと把握できているか、リクエスト元のサイトが間違いなく信用できる場合を除き、このメッセージには署名しないください。"
+    "read_more": "続きを表示"
   },
   "watch_asset_request": {
     "title": "推奨トークンを追加",
@@ -2129,9 +2144,9 @@
     "transaction_id_copied_to_clipboard": "トランザクションIDがクリップボードにコピーされました",
     "activation_card": {
       "title": "通知をオンにする",
-      "description_1": "通知を使えば、ウォレットで何が起きているか常に把握できます。",
+      "description_1": "Stay in the loop on what's happening in your wallet with notifications.",
       "description_2": "この機能を使うために、アカウントの匿名のIDが生成されます。このIDはMetaMask内のユーザーのデータの同期にのみ使用され、アクティビティや他の識別要素にはリンクされず、プライバシーは確保されます。",
-      "learn_more": "この機能を使用する際に当社がどのようにユーザーのプライバシーを保護するのか、詳細をご覧ください。",
+      "learn_more": "Learn how we protect your privacy while using this feature.",
       "manage_preferences_1": "通知は",
       "manage_preferences_2": "「設定」>「通知」でいつでもオフにできます。",
       "cancel": "キャンセル",
@@ -2523,7 +2538,8 @@
       "sale_completed_title": "注文が完了しました",
       "sale_completed_description": "注文に成功しました。",
       "sale_pending_title": "{{currency}}の売却を処理しています",
-      "sale_pending_description": "ただ今注文を処理しています。"
+      "sale_pending_description": "ただ今注文を処理しています。",
+      "no_date": "Unknown"
     }
   },
   "swaps": {
@@ -3150,9 +3166,7 @@
     "how_to_install_eth_webview_title": "イーサリアムアプリのインストール方法",
     "nonce_too_low": "ナンスが低すぎます",
     "nonce_too_low_error": "設定されたナンスが低すぎます",
-    "select_accounts": "Select an Account",
-    "select_accounts_warning": "Note: these accounts might be different to what you're used to.",
-    "select_accounts_sub_msg": "These accounts are derived using the BIP44 derivation path, which is different to the default Ledger Live derivation path on MetaMask Extension, Different derivation paths for Ledger will be available on MetaMask Mobile soon."
+    "select_accounts": "Select an Account"
   },
   "account_actions": {
     "edit_name": "アカウント名を編集",
@@ -3225,7 +3239,7 @@
       "title_off": "基本機能をオフにする",
       "description_off": "これは、MetaMaskでの時間が完全に最適化されないことを意味します。基本機能 (トークンの詳細、最適なガス設定など) は利用できません。",
       "title_on": "基本機能をオンにする",
-      "description_on": "MetaMaskでの時間を最適化するには、この機能をオンにする必要があります。基本機能 (トークンの詳細、最適なガス設定など) は、Web3エクスペリエンスに重要です。",
+      "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, notifications, and others) are important to the web3 experience.",
       "checkbox_label": "理解したうえで続行します",
       "buttons": {
         "cancel": "キャンセル",

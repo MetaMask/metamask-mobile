@@ -3,7 +3,6 @@ import React, { useCallback, useContext } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { ProviderConfig } from '@metamask/network-controller';
 
 // External dependencies.
 import SheetActions from '../../../../component-library/components-temp/SheetActions';
@@ -11,7 +10,10 @@ import SheetHeader from '../../../../component-library/components/Sheet/SheetHea
 import { strings } from '../../../../../locales/i18n';
 import TagUrl from '../../../../component-library/components/Tags/TagUrl';
 import PickerNetwork from '../../../../component-library/components/Pickers/PickerNetwork';
-import { getDecimalChainId } from '../../../../util/networks';
+import {
+  getDecimalChainId,
+  isMutichainVersion1Enabled,
+} from '../../../../util/networks';
 import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import { switchActiveAccounts } from '../../../../core/Permissions';
@@ -22,17 +24,29 @@ import {
 import getAccountNameWithENS from '../../../../util/accounts';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectProviderConfig } from '../../../../selectors/networkController';
 import {
-  selectNetworkName,
-  selectNetworkImageSource,
-} from '../../../../selectors/networkInfos';
+  selectProviderConfig,
+  ProviderConfig,
+} from '../../../../selectors/networkController';
+import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectedAccountModal.selectors';
 
 // Internal dependencies.
 import { AccountPermissionsConnectedProps } from './AccountPermissionsConnected.types';
 import styles from './AccountPermissionsConnected.styles';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
+import Text, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
+import Avatar, {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../../component-library/components/Avatars/Avatar';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../component-library/components/Buttons/Button';
 
 const AccountPermissionsConnected = ({
   ensByAccountAddress,
@@ -52,15 +66,15 @@ const AccountPermissionsConnected = ({
   const { trackEvent } = useMetrics();
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
-  const networkName = useSelector(selectNetworkName);
-  const networkImageSource = useSelector(selectNetworkImageSource);
+
+  const { networkName, networkImageSource } = useNetworkInfo(hostname);
 
   const activeAddress = selectedAddresses[0];
   const { toastRef } = useContext(ToastContext);
 
   const onConnectMoreAccounts = useCallback(() => {
     onSetSelectedAddresses([]);
-    onSetPermissionsScreen(AccountPermissionsScreens.Connect);
+    onSetPermissionsScreen(AccountPermissionsScreens.ConnectMoreAccounts);
   }, [onSetSelectedAddresses, onSetPermissionsScreen]);
 
   const openRevokePermissions = () =>
@@ -134,24 +148,46 @@ const AccountPermissionsConnected = ({
 
   return (
     <>
-      <SheetHeader title={strings('accounts.connected_accounts_title')} />
+      {!isMutichainVersion1Enabled && (
+        <SheetHeader title={strings('accounts.connected_accounts_title')} />
+      )}
+      {isMutichainVersion1Enabled && (
+        <View style={styles.header}>
+          <Avatar
+            variant={AvatarVariant.Favicon}
+            imageSource={favicon}
+            size={AvatarSize.Md}
+            style={styles.favicon}
+          />
+          <Text variant={TextVariant.HeadingMD}>{hostname}</Text>
+        </View>
+      )}
       <View style={styles.body}>
-        <TagUrl
-          imageSource={favicon}
-          label={urlWithProtocol}
-          cta={{
-            label: strings('accounts.permissions'),
-            onPress: openRevokePermissions,
-          }}
-          iconName={secureIcon}
-        />
-        <PickerNetwork
-          label={networkName}
-          imageSource={networkImageSource}
-          onPress={switchNetwork}
-          style={styles.networkPicker}
-          testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
-        />
+        {!isMutichainVersion1Enabled && (
+          <TagUrl
+            imageSource={favicon}
+            label={urlWithProtocol}
+            cta={{
+              label: strings('accounts.permissions'),
+              onPress: openRevokePermissions,
+            }}
+            iconName={secureIcon}
+          />
+        )}
+        {isMutichainVersion1Enabled && (
+          <Text style={styles.sectionTitle} variant={TextVariant.BodyMDMedium}>
+            {strings('accounts.connected_accounts_title')}
+          </Text>
+        )}
+        {!isMutichainVersion1Enabled && (
+          <PickerNetwork
+            label={networkName}
+            imageSource={networkImageSource}
+            onPress={switchNetwork}
+            style={styles.networkPicker}
+            testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
+          />
+        )}
       </View>
       <AccountSelectorList
         onSelectAccount={switchActiveAccount}
@@ -162,6 +198,20 @@ const AccountPermissionsConnected = ({
         isRemoveAccountEnabled
       />
       {renderSheetAction()}
+      {isMutichainVersion1Enabled && (
+        <Button
+          style={styles.managePermissionsButton}
+          variant={ButtonVariants.Secondary}
+          label={strings('permissions.manage_permissions')}
+          size={ButtonSize.Lg}
+          onPress={() => {
+            onSetPermissionsScreen(
+              AccountPermissionsScreens.PermissionsSummary,
+            );
+          }}
+          width={ButtonWidthTypes.Full}
+        />
+      )}
     </>
   );
 };
