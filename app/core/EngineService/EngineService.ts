@@ -27,13 +27,13 @@ class EngineService {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initalizeEngine = (store: any) => {
-    const reduxState = store.getState?.();
-    const state = reduxState?.engine?.backgroundState || {};
+    // const reduxState = store.getState?.();
+    const state = {};
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const Engine = UntypedEngine as any;
     Engine.init(state);
-    this.updateControllers(store, Engine);
+    // this.updateControllers(store, Engine);
   };
 
   // TODO: Replace "any" with type
