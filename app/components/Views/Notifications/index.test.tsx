@@ -6,6 +6,8 @@ import renderWithProvider, {
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { RootState } from '../../../reducers';
 import { backgroundState } from '../../../util/test/initial-root-state';
+import Routes from '../../../constants/navigation/Routes';
+import { createStackNavigator } from '@react-navigation/stack';
 
 const navigationMock = {
   navigate: jest.fn(),
@@ -34,11 +36,28 @@ jest.mock('react-redux', () => ({
   useSelector: (fn: any) => fn(mockInitialState),
 }));
 
+const Stack = createStackNavigator();
+
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const renderComponent = (state: any = {}) =>
+  renderWithProvider(
+    <Stack.Navigator>
+      <Stack.Screen name={Routes.NOTIFICATIONS.VIEW} options={{}}>
+        {(props) => (
+          <NotificationsView
+            {...props}
+            navigation={navigationMock}
+          />
+        )}
+      </Stack.Screen>
+    </Stack.Navigator>,
+    { state },
+  );
+
 describe('NotificationsView', () => {
   it('should render correctly', () => {
-    const { toJSON } = renderWithProvider(
-      <NotificationsView navigation={navigationMock} />,
-    );
+    const { toJSON } = renderComponent({});
     expect(toJSON()).toMatchSnapshot();
   });
 });
