@@ -499,9 +499,9 @@ const HomeTabs = () => {
   }, []);
 
   const renderTabBar = (state, descriptors, navigation) =>
-    isKeyboardHidden ? (
+    isKeyboardHidden && (
       <TabBar state={state} descriptors={descriptors} navigation={navigation} />
-    ) : null;
+    );
 
   return (
     <DrawerContext.Provider value={{ drawerRef }}>
