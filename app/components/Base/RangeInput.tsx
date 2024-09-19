@@ -2,12 +2,10 @@ import React, { useCallback, useRef, useEffect, useState } from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import Text from './Text';
-import PropTypes from 'prop-types';
 import BigNumber from 'bignumber.js';
 import { useTheme } from '../../util/theme';
 
 import type { Theme } from '../../util/theme/models';
-
 const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     labelContainer: {
