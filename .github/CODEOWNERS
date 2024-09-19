@@ -63,3 +63,32 @@ patches/react-native+0.*.patch       @MetaMask/supply-chain
 
 # Staking Team
 app/components/UI/Stake              @MetaMask/metamask-staking
+
+# Assets Team
+app/components/hooks/useIsOriginalNativeTokenSymbol @MetaMask/metamask-assets
+app/components/hooks/useTokenBalancesController @MetaMask/metamask-assets
+app/components/hooks/useTokenBalance.tsx @MetaMask/metamask-assets
+app/components/hooks/useSafeChains.ts @MetaMask/metamask-assets
+app/components/UI/AssetOverview @MetaMask/metamask-assets
+app/components/UI/Collectibles @MetaMask/metamask-assets
+app/components/UI/CollectibleContractElement @MetaMask/metamask-assets
+app/components/UI/CollectivelContractInformation @MetaMask/metamask-assets
+app/components/UI/CollectibleContractOverview @MetaMask/metamask-assets
+app/components/UI/CollectibleContracts @MetaMask/metamask-assets
+app/components/UI/CollectibleDetectionModal @MetaMask/metamask-assets
+app/components/UI/CollectibleMedia @MetaMask/metamask-assets
+app/components/UI/CollectibleModal @MetaMask/metamask-assets
+app/components/UI/CollectibleOverview @MetaMask/metamask-assets
+app/components/UI/ConfirmAddAsset @MetaMask/metamask-assets
+app/components/UI/Tokens @MetaMask/metamask-assets
+app/components/Views/AddAsset @MetaMask/metamask-assets
+app/components/Views/Asset @MetaMask/metamask-assets
+app/components/Views/AssetDetails @MetaMask/metamask-assets
+app/components/Views/AssetHideConfirmation @MetaMask/metamask-assets
+app/components/Views/AssetOptions @MetaMask/metamask-assets
+app/components/Views/Collectible @MetaMask/metamask-assets
+app/components/Views/CollectibleView @MetaMask/metamask-assets
+app/components/Views/DetectedTokens @MetaMask/metamask-assets
+app/components/Views/NFTAutoDetectionModal @MetaMask/metamask-assets
+app/components/Views/NftDetails @MetaMask/metamask-assets
+app/reducers/collectibles @MetaMask/metamask-assets
