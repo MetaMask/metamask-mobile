@@ -1,5 +1,7 @@
 import React, { useCallback } from 'react';
 import { ActivityIndicator, Platform, Switch, View } from 'react-native';
+import { useMetrics } from '../../../../../components/hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 import { createStyles } from './styles';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import Text, {
@@ -22,7 +24,6 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import { useUpdateAccountSetting } from '../../../../../util/notifications/hooks/useUpdateAccountSetting';
-
 
 interface NotificationOptionsToggleProps {
   address: string;
@@ -49,22 +50,28 @@ const NotificationOptionToggle = ({
   isEnabled,
   disabledSwitch,
   isLoading,
-  refetchAccountSettings
+  refetchAccountSettings,
 }: NotificationOptionsToggleProps) => {
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles();
+  const { trackEvent } = useMetrics();
 
-  const {
-    toggleAccount,
-    loading: isUpdatingAccount,
-  } = useUpdateAccountSetting(address, refetchAccountSettings);
+  const { toggleAccount, loading: isUpdatingAccount } = useUpdateAccountSetting(
+    address,
+    refetchAccountSettings,
+  );
 
   const loading = isLoading || isUpdatingAccount;
 
   const handleToggleAccountNotifications = useCallback(async () => {
+    trackEvent(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED, {
+      settings_type: 'account_notifications',
+      old_value: isEnabled,
+      new_value: !isEnabled,
+    });
     await toggleAccount(!isEnabled);
-  }, [isEnabled, toggleAccount]);
+  }, [isEnabled, toggleAccount, trackEvent]);
 
   return (
     <View style={styles.container}>
@@ -97,7 +104,7 @@ const NotificationOptionToggle = ({
         )}
       </View>
       <View style={styles.switchElement}>
-      {isLoading || loading ? (
+        {isLoading || loading ? (
           <ActivityIndicator />
         ) : (
           <Switch
