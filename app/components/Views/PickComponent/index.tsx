@@ -3,8 +3,9 @@ import { StyleSheet, View, ViewStyle } from 'react-native';
 import { baseStyles } from '../../../styles/common';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import RadioButton from '../../../component-library/components/RadioButton/RadioButton';
+import { Theme } from '@metamask/design-tokens';
 
-const createStyles = (colors: typeof mockTheme.colors) =>
+const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     root: {
       ...baseStyles.flexGrow,
