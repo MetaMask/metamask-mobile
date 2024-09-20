@@ -172,6 +172,8 @@ describe('PPOM Utils', () => {
             ],
           },
         },
+        networksMetadata: {},
+        selectedNetworkClientId: 'mainnet',
       },
     };
     normalizeTransactionParamsMock.mockImplementation((params) => params);

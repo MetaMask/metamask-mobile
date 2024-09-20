@@ -16,7 +16,6 @@ describe('DomainProxyMap', () => {
 
   // Helper function to create a mock NetworkProxy
   const createMockNetworkProxy = (): NetworkProxy => ({
-    // @ts-expect-error TODO: resolve types
     provider: {
       sendAsync: jest.fn(),
     } as unknown as ProviderProxy,
