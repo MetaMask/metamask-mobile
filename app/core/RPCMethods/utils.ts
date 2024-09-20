@@ -6,6 +6,7 @@ import { JsonRpcMiddleware } from 'json-rpc-engine';
 import { PermittedHandlerExport } from '@metamask/permission-controller';
 import { Json, JsonRpcParams, hasProperty } from '@metamask/utils';
 import EthQuery from '@metamask/eth-query';
+import { NetworkClient } from '@metamask/network-controller';
 
 export const UNSUPPORTED_RPC_METHODS = new Set([
   // This is implemented later in our middleware stack – specifically, in
@@ -133,7 +134,7 @@ export const polyfillGasPrice = async (
   const networkClient = Engine.controllerMessenger.call(
     'NetworkController:getNetworkClientById',
     networkClientId,
-  );
+  ) as unknown as NetworkClient;
 
   const ethQuery = new EthQuery(networkClient.provider);
 
