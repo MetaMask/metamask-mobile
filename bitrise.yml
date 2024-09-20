@@ -235,13 +235,13 @@ workflows:
       - setup
       - prep_environment
     steps:
-      - restore-cocoapods-cache@2: {}
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
-          title: Get Yarn cache directory
+      # - restore-cocoapods-cache@2: {}
+      # - script@1:
+      #     inputs:
+      #       - content: |-
+      #           #!/usr/bin/env bash
+      #           envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
+      #     title: Get Yarn cache directory
       - yarn@0:
           inputs:
             - command: setup
@@ -574,13 +574,13 @@ workflows:
     after_run:
       - notify_failure
     steps:
-      - script@1:
-          title: Generating ccache key using native folder checksum
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                ./scripts/cache/set-cache-envs.sh android
-      - restore-gradle-cache@2: {}
+      # - script@1:
+      #     title: Generating ccache key using native folder checksum
+      #     inputs:
+      #       - content: |-
+      #           #!/usr/bin/env bash
+      #           ./scripts/cache/set-cache-envs.sh android
+      # - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
             - ndk_version: $NDK_VERSION
@@ -592,17 +592,17 @@ workflows:
                 #!/usr/bin/env bash
                 sudo apt update
                 sudo apt install ccache -y
-      - restore-cache@2:
-          title: Restore CCache
-          inputs:
-            - key: '{{ getenv "CCACHE_KEY" }}'
-      - script@1:
-          title: Set skip ccache upload
-          run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                envman add --key SKIP_CCACHE_UPLOAD --value "true"
+      # - restore-cache@2:
+      #     title: Restore CCache
+      #     inputs:
+      #       - key: '{{ getenv "CCACHE_KEY" }}'
+      # - script@1:
+      #     title: Set skip ccache upload
+      #     run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
+      #     inputs:
+      #       - content: |-
+      #           #!/usr/bin/env bash
+      #           envman add --key SKIP_CCACHE_UPLOAD --value "true"
       - script@1:
           title: Run detox build
           timeout: 1200
@@ -620,23 +620,23 @@ workflows:
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:build
-      - save-gradle-cache@1: {}
-      - save-cache@1:
-          title: Save CCache
-          run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
-          inputs:
-            - key: '{{ getenv "CCACHE_KEY" }}'
-            - paths: |-
-                ccache
+      # - save-gradle-cache@1: {}
+      # - save-cache@1:
+      #     title: Save CCache
+      #     run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
+      #     inputs:
+      #       - key: '{{ getenv "CCACHE_KEY" }}'
+      #       - paths: |-
+      #           ccache
       - deploy-to-bitrise-io@2.2.3:
           inputs:
             - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
           title: Save Android build
-      - save-cache@1:
-          title: Save node_modules
-          inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
-            - paths: node_modules
+      # - save-cache@1:
+      #     title: Save node_modules
+      #     inputs:
+      #       - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      #       - paths: node_modules
     meta:
       bitrise.io:
         machine_type_id: elite-xl
@@ -809,12 +809,12 @@ workflows:
     after_run:
       - notify_failure
     steps:
-      - script@1:
-          title: Generating ccache key using native folder checksum
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                ./scripts/cache/set-cache-envs.sh ios
+      # - script@1:
+      #     title: Generating ccache key using native folder checksum
+      #     inputs:
+      #       - content: |-
+      #           #!/usr/bin/env bash
+      #           ./scripts/cache/set-cache-envs.sh ios
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
@@ -840,17 +840,17 @@ workflows:
                 ln -s $(which ccache) /usr/local/bin/c++
                 ln -s $(which ccache) /usr/local/bin/clang
                 ln -s $(which ccache) /usr/local/bin/clang++
-      - restore-cache@2:
-          title: Restore CCache
-          inputs:
-            - key: '{{ getenv "CCACHE_KEY" }}'
-      - script@1:
-          title: Set skip ccache upload
-          run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                envman add --key SKIP_CCACHE_UPLOAD --value "true"
+      # - restore-cache@2:
+      #     title: Restore CCache
+      #     inputs:
+      #       - key: '{{ getenv "CCACHE_KEY" }}'
+      # - script@1:
+      #     title: Set skip ccache upload
+      #     run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
+      #     inputs:
+      #       - content: |-
+      #           #!/usr/bin/env bash
+      #           envman add --key SKIP_CCACHE_UPLOAD --value "true"
       - script@1:
           title: Run detox build
           timeout: 1200
@@ -868,25 +868,25 @@ workflows:
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug:build
-      - save-cocoapods-cache@1: {}
-      - save-cache@1:
-          title: Save CCache
-          run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
-          inputs:
-            - key: '{{ getenv "CCACHE_KEY" }}'
-            - paths: |-
-                ccache
+      # - save-cocoapods-cache@1: {}
+      # - save-cache@1:
+      #     title: Save CCache
+      #     run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
+      #     inputs:
+      #       - key: '{{ getenv "CCACHE_KEY" }}'
+      #       - paths: |-
+      #           ccache
       - deploy-to-bitrise-io@2.2.3:
           inputs:
             - pipeline_intermediate_files: |-
                 ios/build/Build:INTERMEDIATE_IOS_BUILD_DIR
                 ../Library/Detox/ios:INTERMEDIATE_IOS_DETOX_DIR
           title: Save iOS build
-      - save-cache@1:
-          title: Save node_modules
-          inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
-            - paths: node_modules
+      # - save-cache@1:
+      #     title: Save node_modules
+      #     inputs:
+      #       - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      #       - paths: node_modules
   ios_e2e_test:
     before_run:
       - setup
