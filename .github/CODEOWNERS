@@ -63,3 +63,12 @@ patches/react-native+0.*.patch       @MetaMask/supply-chain
 
 # Staking Team
 app/components/UI/Stake              @MetaMask/metamask-staking
+
+# UX Team
+app/components                       @MetaMask/wallet-ux
+app/reducers/experimentalSettings    @MetaMask/wallet-ux
+app/reducers/modals                  @MetaMask/wallet-ux
+app/reducers/navigation              @MetaMask/wallet-ux
+app/reducers/onboarding              @MetaMask/wallet-ux
+app/reducers/privacy                 @MetaMask/wallet-ux
+app/reducers/settings                @MetaMask/wallet-ux
