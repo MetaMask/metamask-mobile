@@ -1,6 +1,6 @@
 // Third party dependencies
 import React, { useCallback, useLayoutEffect } from 'react';
-import { ScrollView, TouchableOpacity } from 'react-native';
+import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies
@@ -8,11 +8,10 @@ import { useStyles } from '../../../../component-library/hooks';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconSize,
-  IconName,
-} from '../../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../locales/i18n';
+import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon';
+import { ButtonIconSizes } from '../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon.types';
 
 // Internal dependencies
 import NetworkDetailsCheckSettings from '../../Settings/NetworkDetailsCheckSettings';
@@ -24,15 +23,18 @@ const SecuritySettings = () => {
 
   const renderBackButton = useCallback(
     () => (
-      <TouchableOpacity
+      <ButtonIcon
+        size={ButtonIconSizes.Lg}
+        iconName={IconName.ArrowLeft}
+        accessibilityRole="button"
+        accessibilityLabel="back"
         onPress={() => navigation.goBack()}
-        style={styles.backButton}
-      >
-        <Icon name={IconName.ArrowLeft} size={IconSize.Lg} />
-      </TouchableOpacity>
+        style={styles.backButtonContainer}
+      />
     ),
-    [navigation, styles.backButton],
+    [navigation, styles.backButtonContainer],
   );
+
   const renderTitle = useCallback(
     () => (
       <Text variant={TextVariant.HeadingMD}>

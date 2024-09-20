@@ -7,8 +7,8 @@ const styleSheet = () =>
       paddingHorizontal: 16,
       paddingTop: 16,
     },
-    backButton: {
-      padding: 10,
+    backButtonContainer: {
+      marginLeft: 6,
     },
   });
 

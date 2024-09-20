@@ -22,8 +22,8 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 8,
       paddingBottom: 16,
     },
-    backButton: {
-      padding: 10,
+    backButtonContainer: {
+      marginLeft: 6,
     },
     setting: {
       marginTop: 32,

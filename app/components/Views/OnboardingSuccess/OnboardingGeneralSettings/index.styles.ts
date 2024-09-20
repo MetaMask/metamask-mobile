@@ -30,8 +30,8 @@ const styleSheet = () =>
       marginVertical: 16,
       alignSelf: 'flex-start',
     },
-    backButton: {
-      padding: 10,
+    backButtonContainer: {
+      marginLeft: 6,
     },
   });
 
