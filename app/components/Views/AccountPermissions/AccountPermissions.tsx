@@ -486,6 +486,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     urlWithProtocol,
     secureIcon,
     hostname,
+    isRenderedAsBottomSheet,
   ]);
 
   const renderConnectMoreAccountsScreen = useCallback(
