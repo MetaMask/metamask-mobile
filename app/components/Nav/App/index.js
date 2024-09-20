@@ -125,6 +125,7 @@ import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
+import AppStateManager from '../../../core/AppStateManager';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -317,6 +318,8 @@ const App = (props) => {
   const dispatch = useDispatch();
   const sdkInit = useRef();
   const [onboarded, setOnboarded] = useState(false);
+  const appStateManager = useRef(null);
+
   const triggerSetCurrentRoute = (route) => {
     dispatch(setCurrentRoute(route));
     if (route === 'Wallet' || route === 'BrowserView') {
@@ -324,6 +327,8 @@ const App = (props) => {
       dispatch(setCurrentBottomNavRoute(route));
     }
   };
+
+  useEffect(() => () => appStateManager.current.cleanup(), []);
 
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
@@ -369,6 +374,7 @@ const App = (props) => {
     const deeplink = params?.['+non_branch_link'] || uri || null;
     try {
       if (deeplink) {
+        appStateManager.current.setCurrentDeeplink(deeplink);
         SharedDeeplinkManager.parse(deeplink, {
           origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
         });
@@ -393,6 +399,12 @@ const App = (props) => {
   }, [handleDeeplink]);
 
   useEffect(() => {
+    if (navigator && !appStateManager.current) {
+      appStateManager.current = new AppStateManager();
+    }
+  }, [navigator]);
+
+  useEffect(() => {
     if (navigator) {
       // Initialize deep link manager
       SharedDeeplinkManager.init({
@@ -406,6 +418,7 @@ const App = (props) => {
         },
         dispatch,
       });
+
       if (!prevNavigator.current) {
         // Setup navigator with Sentry instrumentation
         routingInstrumentation.registerNavigationContainer(navigator);
