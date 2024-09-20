@@ -65,14 +65,14 @@ const CheckIcon = () => {
 };
 
 interface SettingsNotificationProps {
-  style?: StyleProp<ViewStyle>;
+  style: StyleProp<ViewStyle>;
   isWarning?: boolean;
   isNotification?: boolean;
-  children?: React.ReactNode;
+  children: React.ReactNode;
 }
 
 const SettingsNotification: React.FC<SettingsNotificationProps> = ({
-  style = {},
+  style,
   isWarning = false,
   isNotification,
   children,
