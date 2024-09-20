@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useTheme } from '../../util/theme';
-import { Theme } from '../../util/theme/models';
+import { Theme } from '@metamask/design-tokens';
 import { colors as importedColors } from '../../styles/common';
 
 interface ModalDraggerProps {
@@ -30,7 +30,7 @@ const createStyles = (colors: Theme['colors']) =>
   });
 
 function ModalDragger({ borderless }: ModalDraggerProps) {
-  const { colors } = useTheme() as Theme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (
