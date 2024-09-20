@@ -255,7 +255,7 @@ type AuthenticationControllerActions = AuthenticationController.AllowedActions;
 // TODO - add back UserStorageControllerActions
 // This union uses some keyring controller actions that are not currently available in mobile
 // Waiting for @metamask/keyring-controller@17.2.0
-type UserStorageControllerActions = never; //UserStorageController.AllowedActions;
+type UserStorageControllerActions = UserStorageController.AllowedActions;
 type NotificationsServicesControllerActions =
   NotificationServicesController.AllowedActions;
 
@@ -1144,18 +1144,12 @@ class Engine {
           'SnapController:handleRequest',
           'KeyringController:getState',
           'AuthenticationController:getBearerToken',
-          // @ts-expect-error Waiting for @metamask/keyring-controller@17.2.0
           'AuthenticationController:getSessionProfile',
           'AuthenticationController:isSignedIn',
-          // @ts-expect-error Waiting for @metamask/keyring-controller@17.2.0
           'AuthenticationController:performSignOut',
-          // @ts-expect-error Waiting for @metamask/keyring-controller@17.2.0
           'AuthenticationController:performSignIn',
-          // @ts-expect-error Waiting for @metamask/keyring-controller@17.2.0
           'NotificationServicesController:disableNotificationServices',
-          // @ts-expect-error Waiting for @metamask/keyring-controller@17.2.0
           'NotificationServicesController:selectIsNotificationServicesEnabled',
-          // @ts-expect-error Waiting for @metamask/keyring-controller@17.2.0
           'KeyringController:addNewAccount',
           'AccountsController:listAccounts',
           'AccountsController:updateAccountMetadata',
