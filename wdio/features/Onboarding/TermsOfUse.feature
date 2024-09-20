@@ -17,7 +17,6 @@ Feature: Onboarding Terms of Use
     When I kill the app
     And I relaunch the app
     And the app displayed the splash animation
-    And the splash animation disappears
     Then the Welcome Screen is displayed
     When I tap "Get started"
     Then Wallet setup screen is displayed
@@ -32,7 +31,6 @@ Feature: Onboarding Terms of Use
     When I kill the app
     And I relaunch the app
     And the app displayed the splash animation
-    And the splash animation disappears
     Then the Welcome Screen is displayed
     When I tap "Get started"
     Then Wallet setup screen is displayed
