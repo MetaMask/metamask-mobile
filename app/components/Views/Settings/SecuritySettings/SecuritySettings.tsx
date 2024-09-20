@@ -58,7 +58,6 @@ import {
   selectIsIpfsGatewayEnabled,
   selectIsMultiAccountBalancesEnabled,
   selectDisplayNftMedia,
-  selectUseNftDetection,
   selectShowIncomingTransactionNetworks,
   selectShowTestNetworks,
   selectUseSafeChainsListValidation,
