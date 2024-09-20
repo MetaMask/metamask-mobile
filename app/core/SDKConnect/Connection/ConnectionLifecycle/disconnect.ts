@@ -1,10 +1,9 @@
-import Logger from '../../../../util/Logger';
 
 import { MessageType } from '@metamask/sdk-communication-layer';
 import DevLogger from '../../utils/DevLogger';
 import { Connection } from '../Connection';
 
-function disconnect({
+async function disconnect({
   terminate,
   context,
   instance,
@@ -12,21 +11,24 @@ function disconnect({
   instance: Connection;
   terminate: boolean;
   context?: string;
-}) {
+}): Promise<boolean> {
   DevLogger.log(
     `Connection::disconnect() context=${context} id=${instance.channelId} terminate=${terminate}`,
   );
   instance.receivedClientsReady = false;
+  let terminated = false;
   if (terminate) {
-    instance.remote
+    DevLogger.log(`Connection::disconnect() context=${context} id=${instance.channelId} terminate=${terminate} sending terminate`);
+    terminated = await instance.remote
       .sendMessage({
         type: MessageType.TERMINATE,
-      })
-      .catch((err) => {
-        Logger.log(err, `Connection failed to send terminate`);
       });
+    DevLogger.log(`Connection::disconnect() context=${context} id=${instance.channelId} terminate=${terminate} sent terminate=${terminated}`);
   }
-  instance.remote.disconnect();
+  if(terminated) {
+    instance.remote.disconnect();
+  }
+  return terminated;
 }
 
 export default disconnect;
