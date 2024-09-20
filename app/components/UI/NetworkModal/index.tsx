@@ -323,12 +323,12 @@ const NetworkModals = (props: NetworkProps) => {
         ticker,
         blockExplorerUrl,
       );
-      await NetworkController.setActiveNetwork(
+      NetworkController.setActiveNetwork(
         addedNetwork.rpcEndpoints[addedNetwork.defaultRpcEndpointIndex]
           .networkClientId,
       );
     }
-    closeModal();
+    onClose();
     if (onNetworkSwitch) {
       handleNavigation(onNetworkSwitch, shouldNetworkSwitchPopToWallet);
     }

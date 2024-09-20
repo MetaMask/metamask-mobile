@@ -2,17 +2,16 @@ import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { NetworkState, RpcEndpointType } from '@metamask/network-controller';
 import { createDeepEqualSelector } from './util';
-import Engine from '../core/Engine';
-import { Hex } from '@metamask/utils';
-import { NetworkList } from '../util/networks';
+import { NETWORKS_CHAIN_ID } from '../constants/network';
 
 export interface ProviderConfig {
-  chainId: Hex;
+  id?: string | undefined;
+  nickname?: string | undefined;
+  rpcUrl?: string | undefined;
+  chainId: `0x${string}`;
   ticker: string;
-  rpcUrl: string;
+  rpcPrefs: { blockExplorerUrl?: string | undefined };
   type: string;
-  nickname: string | undefined;
-  network?: string;
 }
 
 const selectNetworkControllerState = (state: RootState) =>
@@ -31,11 +30,6 @@ export const selectProviderConfig = createDeepEqualSelector(
       networkControllerState?.selectedNetworkClientId;
     const networkConfigurationsByChainId =
       networkControllerState?.networkConfigurationsByChainId;
-
-    console.log(
-      'networkConfigurationsByChainId ---',
-      JSON.stringify(networkControllerState),
-    );
 
     for (const network of Object.values(networkConfigurationsByChainId)) {
       for (const rpcEndpoint of network.rpcEndpoints) {
@@ -60,6 +54,13 @@ export const selectProviderConfig = createDeepEqualSelector(
         }
       }
     }
+    // return mainnet by default
+    return {
+      chainId: NETWORKS_CHAIN_ID.MAINNET,
+      ticker: 'ETH',
+      rpcPrefs: {},
+      type: RpcEndpointType.Infura,
+    };
   },
 );
 
@@ -70,19 +71,19 @@ export const selectTicker = createSelector(
 
 export const selectChainId = createSelector(
   selectProviderConfig,
-  (providerConfig) => providerConfig?.chainId,
+  (providerConfig) => providerConfig.chainId,
 );
 export const selectProviderType = createSelector(
   selectProviderConfig,
-  (providerConfig) => providerConfig?.type,
+  (providerConfig) => providerConfig.type,
 );
 export const selectNickname = createSelector(
   selectProviderConfig,
-  (providerConfig) => providerConfig?.nickname,
+  (providerConfig) => providerConfig.nickname,
 );
 export const selectRpcUrl = createSelector(
   selectProviderConfig,
-  (providerConfig) => providerConfig?.rpcUrl,
+  (providerConfig) => providerConfig.rpcUrl,
 );
 
 export const selectNetworkStatus = createSelector(

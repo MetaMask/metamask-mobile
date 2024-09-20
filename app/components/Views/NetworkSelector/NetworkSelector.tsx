@@ -191,7 +191,8 @@ const NetworkSelector = () => {
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
 
   // The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
-  const onNetworkChange = (type: InfuraNetworkType) => {
+  const onNetworkChange = (type: InfuraNetworkType, chainId: `0x${string}`) => {
+    console.log('CLICK 2 ....', chainId);
     const {
       NetworkController,
       CurrencyRateController,
@@ -210,8 +211,16 @@ const NetworkSelector = () => {
         ticker = TESTNET_TICKER_SYMBOLS.SEPOLIA as InfuraNetworkType;
       }
 
+      const networkConfiguration =
+        NetworkController.getNetworkConfigurationByChainId(chainId);
+
+      const clientId =
+        networkConfiguration?.rpcEndpoints[
+          networkConfiguration.defaultRpcEndpointIndex
+        ].networkClientId ?? type;
+
       CurrencyRateController.updateExchangeRate(ticker);
-      NetworkController.setProviderType(type);
+      NetworkController.setActiveNetwork(clientId);
       AccountTrackerController.refresh();
 
       setTimeout(async () => {
@@ -229,6 +238,7 @@ const NetworkSelector = () => {
   };
 
   const onSetRpcTarget = async (rpcTarget: string) => {
+    console.log('CLICK ....');
     const {
       CurrencyRateController,
       NetworkController,
@@ -403,7 +413,7 @@ const NetworkSelector = () => {
             size: AvatarSize.Sm,
           }}
           isSelected={chainId === selectedChainId && !providerConfig?.rpcUrl}
-          onPress={() => onNetworkChange(MAINNET)}
+          onPress={() => onNetworkChange(MAINNET, chainId)}
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
           onButtonClick={() => {
@@ -432,7 +442,7 @@ const NetworkSelector = () => {
           size: avatarSize,
         }}
         isSelected={chainId === selectedChainId && !providerConfig?.rpcUrl}
-        onPress={() => onNetworkChange(MAINNET)}
+        onPress={() => onNetworkChange(MAINNET, chainId)}
         style={styles.networkCell}
       />
     );
@@ -457,7 +467,7 @@ const NetworkSelector = () => {
             size: AvatarSize.Sm,
           }}
           isSelected={chainId === selectedChainId}
-          onPress={() => onNetworkChange(LINEA_MAINNET)}
+          onPress={() => onNetworkChange(LINEA_MAINNET, chainId)}
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
           secondaryText={hideKeyFromUrl(LINEA_DEFAULT_RPC_URL)}
@@ -487,7 +497,7 @@ const NetworkSelector = () => {
           size: avatarSize,
         }}
         isSelected={chainId === selectedChainId}
-        onPress={() => onNetworkChange(LINEA_MAINNET)}
+        onPress={() => onNetworkChange(LINEA_MAINNET, chainId)}
       />
     );
   };
@@ -515,7 +525,6 @@ const NetworkSelector = () => {
         if (isNetworkUiRedesignEnabled() && isNoSearchResults(name))
           return null;
 
-        console.log('IM HERE 3 ----------');
         //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
         const image = getNetworkImageSource({ chainId: chainId?.toString() });
 
@@ -598,7 +607,7 @@ const NetworkSelector = () => {
               size: AvatarSize.Sm,
             }}
             isSelected={chainId === selectedChainId}
-            onPress={() => onNetworkChange(networkType)}
+            onPress={() => onNetworkChange(networkType, chainId)}
             style={styles.networkCell}
             buttonIcon={IconName.MoreVertical}
             onButtonClick={() => {
@@ -620,7 +629,7 @@ const NetworkSelector = () => {
             size: avatarSize,
           }}
           isSelected={chainId === selectedChainId}
-          onPress={() => onNetworkChange(networkType)}
+          onPress={() => onNetworkChange(networkType, chainId)}
           style={styles.networkCell}
         />
       );
@@ -781,7 +790,6 @@ const NetworkSelector = () => {
     } else if (showMultiRpcSelectModal.chainId === CHAIN_IDS.LINEA_MAINNET) {
       imageSource = images['LINEA-MAINNET'];
     } else {
-      console.log('IM HERE 4 ----------');
       //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
       imageSource = getNetworkImageSource({
         chainId: showMultiRpcSelectModal?.chainId?.toString(),
