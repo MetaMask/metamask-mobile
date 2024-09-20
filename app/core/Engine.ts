@@ -802,18 +802,31 @@ class Engine {
     const snapKeyringBuildMessenger = this.controllerMessenger.getRestricted({
       name: 'SnapKeyringBuilder',
       allowedActions: [
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'ApprovalController:addRequest',
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'ApprovalController:acceptRequest',
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'ApprovalController:rejectRequest',
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'ApprovalController:startFlow',
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'ApprovalController:endFlow',
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'ApprovalController:showSuccess',
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'ApprovalController:showError',
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'PhishingController:testOrigin',
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'PhishingController:maybeUpdateState',
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'KeyringController:getAccounts',
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'AccountsController:setSelectedAccount',
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'AccountsController:getAccountByAddress',
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'AccountsController:setAccountName',
       ],
       allowedEvents: [],
@@ -910,6 +923,7 @@ class Engine {
         'PhishingController:maybeUpdateState',
       ),
       isOnPhishingList: (origin: string) =>
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         this.controllerMessenger.call<'PhishingController:testOrigin'>(
           'PhishingController:testOrigin',
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -1663,7 +1677,7 @@ class Engine {
           name: 'SignatureController',
           allowedActions: [
             // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
-            `${this.approvalController.name}:addRequest`,
+            `${approvalController.name}:addRequest`,
             // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             `${this.keyringController.name}:signPersonalMessage`,
             // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
