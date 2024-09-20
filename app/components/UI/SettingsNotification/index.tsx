@@ -71,7 +71,6 @@ interface SettingsNotificationProps {
   isWarning?: boolean;
   isNotification?: boolean;
   children?: React.ReactNode;
-  isHighlighted?: boolean;
 }
 
 
@@ -81,7 +80,6 @@ const SettingsNotification: React.FC<SettingsNotificationProps> = ({
   isWarning = false,
   isNotification,
   children,
-  isHighlighted = false,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
