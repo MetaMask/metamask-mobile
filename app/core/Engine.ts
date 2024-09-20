@@ -51,6 +51,7 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import {
+  NetworkConfiguration,
   NetworkController,
   NetworkControllerActions,
   NetworkControllerEvents,
@@ -183,7 +184,10 @@ import {
   AuthenticationController,
   UserStorageController,
 } from '@metamask/profile-sync-controller';
-import { NotificationServicesController, NotificationServicesPushController } from '@metamask/notification-services-controller';
+import {
+  NotificationServicesController,
+  NotificationServicesPushController,
+} from '@metamask/notification-services-controller';
 ///: END:ONLY_INCLUDE_IF
 import {
   getCaveatSpecifications,
@@ -229,6 +233,7 @@ import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
 import EthQuery from '@metamask/eth-query';
 import { TransactionControllerOptions } from '@metamask/transaction-controller/dist/types/TransactionController';
 import DomainProxyMap from '../lib/DomainProxyMap/DomainProxyMap';
+import { InternalAccount } from '@metamask/keyring-api';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -252,6 +257,41 @@ interface TestOrigin {
 }
 
 type PhishingControllerActions = MaybeUpdateState | TestOrigin;
+
+// TODO: Remove once `@metamask/accounts-controller` is upgraded to `>=18.2.0`.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+type AccountsControllerAccountRenamedEvent = {
+  type: `AccountsController:accountRenamed`;
+  payload: [InternalAccount];
+};
+
+// TODO: Remove once `@metamask/keyring-controller` is upgraded to `>=17.2.0`.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+type KeyringControllerAddNewAccountAction = {
+  type: `KeyringController:addNewAccount`;
+  handler: KeyringController['addNewAccount'];
+};
+
+// TODO: Remove once `@metamask/network-controller` is upgraded to `>=21.0.0`.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+type NetworkControllerNetworkAddedEvent = {
+  type: 'NetworkController:networkAdded';
+  payload: [networkConfiguration: NetworkConfiguration];
+};
+
+// TODO: Remove once `@metamask/network-controller` is upgraded to `>=21.0.0`.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+type NetworkControllerNetworkChangedEvent = {
+  type: 'NetworkController:networkChanged';
+  payload: [networkConfiguration: NetworkConfiguration];
+};
+
+// TODO: Remove once `@metamask/network-controller` is upgraded to `>=21.0.0`.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+type NetworkControllerNetworkDeletedEvent = {
+  type: 'NetworkController:networkDeleted';
+  payload: [networkConfiguration: NetworkConfiguration];
+};
 
 type SnapsGlobalActions =
   | SnapControllerActions
@@ -280,6 +320,10 @@ type GlobalActions =
   | SnapsGlobalActions
   | AuthenticationController.Actions
   | UserStorageController.Actions
+  /** BEGIN:TEMP_UserStorageController */
+  // TODO: Remove once `@metamask/keyring-controller` is upgraded to `>=17.2.0`.
+  | KeyringControllerAddNewAccountAction
+  /** END:TEMP_UserStorageController */
   | NotificationServicesController.Actions
   | NotificationServicesPushController.Actions
   ///: END:ONLY_INCLUDE_IF
@@ -303,6 +347,14 @@ type GlobalEvents =
   | SnapsGlobalEvents
   | AuthenticationController.Events
   | UserStorageController.Events
+  /** BEGIN:TEMP_UserStorageController */
+  // TODO: Remove once `@metamask/accounts-controller` is upgraded to `>=18.2.0`.
+  | AccountsControllerAccountRenamedEvent
+  // TODO: Remove the following three lines once `@metamask/network-controller` is upgraded to `>=21.0.0`.
+  | NetworkControllerNetworkAddedEvent
+  | NetworkControllerNetworkChangedEvent
+  | NetworkControllerNetworkDeletedEvent
+  /** END:TEMP_UserStorageController */
   | NotificationServicesController.Events
   | NotificationServicesPushController.Events
   ///: END:ONLY_INCLUDE_IF
@@ -1196,7 +1248,10 @@ class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'UserStorageController',
         allowedActions: [
+          'AccountsController:listAccounts',
+          'AccountsController:updateAccountMetadata',
           'SnapController:handleRequest',
+          'KeyringController:addNewAccount',
           'KeyringController:getState',
           'AuthenticationController:getBearerToken',
           'AuthenticationController:getSessionProfile',
@@ -1207,12 +1262,13 @@ class Engine {
           'NotificationServicesController:selectIsNotificationServicesEnabled',
         ],
         allowedEvents: [
+          'AccountsController:accountAdded',
+          'AccountsController:accountRenamed',
+          'NetworkController:networkAdded',
+          'NetworkController:networkChanged',
+          'NetworkController:networkDeleted',
           'KeyringController:unlock',
           'KeyringController:lock',
-          'AccountsController:accountAdded',
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore TODO: Resolve/patch mismatch between allowedEvents
-          'AccountsController:accountRenamed',
         ],
       }),
       nativeScryptCrypto: scrypt,
@@ -1231,11 +1287,16 @@ class Engine {
             'UserStorageController:getStorageKey',
             'UserStorageController:performGetStorage',
             'UserStorageController:performSetStorage',
+            'NotificationServicesPushController:enablePushNotifications',
+            'NotificationServicesPushController:disablePushNotifications',
+            'NotificationServicesPushController:updateTriggerPushNotifications',
+            'NotificationServicesPushController:subscribeToPushNotifications',
           ],
           allowedEvents: [
             'KeyringController:unlock',
             'KeyringController:lock',
             'KeyringController:stateChange',
+            'NotificationServicesPushController:onNewNotifications',
           ],
         }),
         state: initialState.NotificationServicesController,
