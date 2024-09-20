@@ -69,7 +69,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     isRenderedAsBottomSheet = true,
     initialScreen = AccountPermissionsScreens.Connected,
   } = props.route.params;
-
   const accountAvatarType = useSelector((state: RootState) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -442,7 +441,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         isRenderedAsBottomSheet
           ? setPermissionsScreen(AccountPermissionsScreens.Connected)
           : navigation.navigate('PermissionsManager'),
-      isInitialDappConnection: false,
+      isRenderedAsBottomSheet,
     };
     return <PermissionsSummary {...permissionsSummaryProps} />;
   }, [faviconSource, urlWithProtocol, isRenderedAsBottomSheet, navigation]);
@@ -473,6 +472,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           setPermissionsScreen(AccountPermissionsScreens.PermissionsSummary)
         }
         screenTitle={strings('accounts.edit_accounts_title')}
+        isRenderedAsBottomSheet={isRenderedAsBottomSheet}
       />
     );
   }, [
@@ -530,9 +530,16 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         onBack={() =>
           setPermissionsScreen(AccountPermissionsScreens.PermissionsSummary)
         }
+        isRenderedAsBottomSheet={isRenderedAsBottomSheet}
       />
     ),
-    [isLoading, setUserIntent, urlWithProtocol, hostname],
+    [
+      isLoading,
+      setUserIntent,
+      urlWithProtocol,
+      hostname,
+      isRenderedAsBottomSheet,
+    ],
   );
 
   const renderRevokeScreen = useCallback(
@@ -563,6 +570,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       accountAvatarType,
     ],
   );
+
   const renderPermissionsScreens = useCallback(() => {
     switch (permissionsScreen) {
       case AccountPermissionsScreens.Connected:
