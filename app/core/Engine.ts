@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import Crypto from 'react-native-quick-crypto';
-import { scrypt } from 'react-native-fast-crypto';
 import {
   AccountTrackerController,
   AccountTrackerState,
@@ -216,19 +215,37 @@ import {
   networkIdUpdated,
   networkIdWillUpdate,
 } from '../core/redux/slices/inpageProvider';
-import SmartTransactionsController from '@metamask/smart-transactions-controller';
+import SmartTransactionsController, {
+  type SmartTransactionsControllerActions,
+  type SmartTransactionsControllerEvents,
+  type SmartTransactionsControllerState,
+} from '@metamask/smart-transactions-controller';
 import { getAllowedSmartTransactionsChainIds } from '../../app/constants/smartTransactions';
 import { selectShouldUseSmartTransaction } from '../selectors/smartTransactionsController';
 import { selectSwapsChainFeatureFlags } from '../reducers/swaps';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { submitSmartTransactionHook } from '../util/smart-transactions/smart-publish-hook';
-import { SmartTransactionsControllerState } from '@metamask/smart-transactions-controller/dist/SmartTransactionsController';
 import { zeroAddress } from 'ethereumjs-util';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
 import EthQuery from '@metamask/eth-query';
 import { TransactionControllerOptions } from '@metamask/transaction-controller/dist/types/TransactionController';
 import DomainProxyMap from '../lib/DomainProxyMap/DomainProxyMap';
+import {
+  MetaMetricsEventCategory,
+  MetaMetricsEventName,
+} from '@metamask/smart-transactions-controller/dist/constants';
+import {
+  getSmartTransactionMetricsProperties,
+  getSmartTransactionMetricsSensitiveProperties,
+} from '@metamask/smart-transactions-controller/dist/utils';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { snapKeyringBuilder } from './SnapKeyring';
+import { removeAccountsFromPermissions } from './Permissions';
+import { keyringSnapPermissionsBuilder } from './SnapKeyring/keyringSnapsPermissions';
+import { HandleSnapRequestArgs } from './Snaps/types';
+import { handleSnapRequest } from './Snaps/utils';
+///: END:ONLY_INCLUDE_IF
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -291,7 +308,8 @@ type GlobalActions =
   | PreferencesControllerActions
   | TokensControllerActions
   | TokenListControllerActions
-  | SelectedNetworkControllerActions;
+  | SelectedNetworkControllerActions
+  | SmartTransactionsControllerActions;
 
 type GlobalEvents =
   | AddressBookControllerEvents
@@ -313,7 +331,8 @@ type GlobalEvents =
   | TokensControllerEvents
   | TokenListControllerEvents
   | TransactionControllerEvents
-  | SelectedNetworkControllerEvents;
+  | SelectedNetworkControllerEvents
+  | SmartTransactionsControllerEvents;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
@@ -407,6 +426,20 @@ type RequiredControllers = Omit<Controllers, 'PPOMController'>;
 type OptionalControllers = Pick<Controllers, 'PPOMController'>;
 
 /**
+ * Combines required and optional controllers for the Engine context type.
+ */
+export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
+
+/**
+ * Type definition for the controller messenger used in the Engine.
+ * It extends the base ControllerMessenger with global actions and events.
+ */
+export type ControllerMessenger = ExtendedControllerMessenger<
+  GlobalActions,
+  GlobalEvents
+>;
+
+/**
  * Core controller responsible for composing other metamask controllers together
  * and exposing convenience methods for common wallet operations.
  */
@@ -418,11 +451,11 @@ class Engine {
   /**
    * A collection of all controller instances
    */
-  context: RequiredControllers & Partial<OptionalControllers>;
+  context: EngineContext;
   /**
    * The global controller messenger.
    */
-  controllerMessenger: ExtendedControllerMessenger<GlobalActions, GlobalEvents>;
+  controllerMessenger: ControllerMessenger;
   /**
    * ComposableController reference containing all child controllers
    */
@@ -443,11 +476,15 @@ class Engine {
    * Object that runs and manages the execution of Snaps
    */
   snapExecutionService: WebViewExecutionService;
+  snapController: SnapController;
+  subjectMetadataController: SubjectMetadataController;
 
   ///: END:ONLY_INCLUDE_IF
 
   transactionController: TransactionController;
   smartTransactionsController: SmartTransactionsController;
+
+  keyringController: KeyringController;
 
   /**
    * Creates a CoreController instance
@@ -555,9 +592,7 @@ class Engine {
         messenger: this.controllerMessenger.getRestricted({
           name: 'NftController',
           allowedActions: [
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             `${approvalController.name}:addRequest`,
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             `${networkController.name}:getNetworkClientById`,
           ],
           allowedEvents: [],
@@ -607,7 +642,6 @@ class Engine {
       }),
       state: initialState.LoggingController,
     });
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     const accountsControllerMessenger: AccountsControllerMessenger =
       this.controllerMessenger.getRestricted({
         name: 'AccountsController',
@@ -617,11 +651,8 @@ class Engine {
           'KeyringController:stateChange',
         ],
         allowedActions: [
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           'KeyringController:getAccounts',
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           'KeyringController:getKeyringsByType',
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           'KeyringController:getKeyringForAccount',
         ],
       });
@@ -654,9 +685,7 @@ class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'TokensController',
         allowedActions: [
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `${approvalController.name}:addRequest`,
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           'NetworkController:getNetworkClientById',
         ],
         allowedEvents: [
@@ -686,7 +715,6 @@ class Engine {
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'CurrencyRateController',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         allowedActions: [`${networkController.name}:getNetworkClientById`],
         allowedEvents: [],
       }),
@@ -700,11 +728,8 @@ class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'GasFeeController',
         allowedActions: [
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `${networkController.name}:getNetworkClientById`,
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `${networkController.name}:getEIP1559Compatibility`,
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `${networkController.name}:getState`,
         ],
         allowedEvents: [AppConstants.NETWORK_DID_CHANGE_EVENT],
@@ -741,6 +766,8 @@ class Engine {
     });
     phishingController.maybeUpdateState();
 
+    const additionalKeyrings = [];
+
     const qrKeyringBuilder = () => {
       const keyring = new QRHardwareKeyring();
       // to fix the bug in #9560, forgetDevice will reset all keyring properties to default.
@@ -749,16 +776,73 @@ class Engine {
     };
     qrKeyringBuilder.type = QRHardwareKeyring.type;
 
+    additionalKeyrings.push(qrKeyringBuilder);
+
     const bridge = new LedgerMobileBridge(new LedgerTransportMiddleware());
     const ledgerKeyringBuilder = () => new LedgerKeyring({ bridge });
     ledgerKeyringBuilder.type = LedgerKeyring.type;
 
-    const keyringController = new KeyringController({
+    additionalKeyrings.push(ledgerKeyringBuilder);
+
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+
+    /**
+     * Removes an account from state / storage.
+     *
+     * @param {string} address - A hex address
+     */
+    const removeAccount = async (address: string) => {
+      // Remove all associated permissions
+      await removeAccountsFromPermissions([address]);
+      // Remove account from the keyring
+      await this.keyringController.removeAccount(address as Hex);
+      return address;
+    };
+
+    const snapKeyringBuildMessenger = this.controllerMessenger.getRestricted({
+      name: 'SnapKeyringBuilder',
+      allowedActions: [
+        'ApprovalController:addRequest',
+        'ApprovalController:acceptRequest',
+        'ApprovalController:rejectRequest',
+        'ApprovalController:startFlow',
+        'ApprovalController:endFlow',
+        'ApprovalController:showSuccess',
+        'ApprovalController:showError',
+        'PhishingController:testOrigin',
+        'PhishingController:maybeUpdateState',
+        'KeyringController:getAccounts',
+        'AccountsController:setSelectedAccount',
+        'AccountsController:getAccountByAddress',
+        'AccountsController:setAccountName',
+      ],
+      allowedEvents: [],
+    });
+
+    const getSnapController = () => this.snapController;
+
+    // Necessary to persist the keyrings and update the accounts both within the keyring controller and accounts controller
+    const persistAndUpdateAccounts = async () => {
+      await this.keyringController.persistAllKeyrings();
+      await accountsController.updateAccounts();
+    };
+
+    additionalKeyrings.push(
+      snapKeyringBuilder(
+        snapKeyringBuildMessenger,
+        getSnapController,
+        persistAndUpdateAccounts,
+        (address) => removeAccount(address),
+      ),
+    );
+
+    ///: END:ONLY_INCLUDE_IF
+
+    this.keyringController = new KeyringController({
       removeIdentity: preferencesController.removeIdentity.bind(
         preferencesController,
       ),
       encryptor,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'KeyringController',
         allowedActions: [],
@@ -766,7 +850,7 @@ class Engine {
       }),
       state: initialKeyringState || initialState.KeyringController,
       // @ts-expect-error To Do: Update the type of QRHardwareKeyring to Keyring<Json>
-      keyringBuilders: [qrKeyringBuilder, ledgerKeyringBuilder],
+      keyringBuilders: additionalKeyrings,
     });
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -776,7 +860,7 @@ class Engine {
     const getPrimaryKeyringMnemonic = () => {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const [keyring]: any = keyringController.getKeyringsByType(
+      const [keyring]: any = this.keyringController.getKeyringsByType(
         KeyringTypes.hd,
       );
       if (!keyring.mnemonic) {
@@ -791,84 +875,103 @@ class Engine {
       return state === 'active';
     };
 
+    const snapRestrictedMethods = {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      clearSnapState: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapController:clearSnapState',
+      ),
+      getMnemonic: getPrimaryKeyringMnemonic.bind(this),
+      getUnlockPromise: getAppState.bind(this),
+      getSnap: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapController:get',
+      ),
+      handleSnapRpcRequest: async (args: HandleSnapRequestArgs) =>
+        await handleSnapRequest(this.controllerMessenger, args),
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      getSnapState: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapController:getSnapState',
+      ),
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      updateSnapState: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapController:updateSnapState',
+      ),
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      maybeUpdatePhishingList: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'PhishingController:maybeUpdateState',
+      ),
+      isOnPhishingList: (origin: string) =>
+        this.controllerMessenger.call<'PhishingController:testOrigin'>(
+          'PhishingController:testOrigin',
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          origin,
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+        ).result,
+      showDialog: (
+        origin: string,
+        type: EnumToUnion<DialogType>,
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        content: any, // should be Component from '@metamask/snaps-ui';
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        placeholder?: any,
+      ) =>
+        approvalController.addAndShowApprovalRequest({
+          origin,
+          type,
+          requestData: { content, placeholder },
+        }),
+      showInAppNotification: (origin: string, args: NotificationArgs) => {
+        Logger.log(
+          'Snaps/ showInAppNotification called with args: ',
+          args,
+          ' and origin: ',
+          origin,
+        );
+      },
+      hasPermission: (origin: string, target: string) =>
+        this.controllerMessenger.call<'PermissionController:hasPermission'>(
+          'PermissionController:hasPermission',
+          origin,
+          target,
+        ),
+    };
+    ///: END:ONLY_INCLUDE_IF
+
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    const keyringSnapMethods = {
+      getAllowedKeyringMethods: (origin: string) =>
+        keyringSnapPermissionsBuilder(origin),
+      getSnapKeyring: this.getSnapKeyring.bind(this),
+    };
+    ///: END:ONLY_INCLUDE_IF
+
     const getSnapPermissionSpecifications = () => ({
       ...buildSnapEndowmentSpecifications(Object.keys(ExcludedSnapEndowments)),
       ...buildSnapRestrictedMethodSpecifications(
         Object.keys(ExcludedSnapPermissions),
         {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          clearSnapState: this.controllerMessenger.call.bind(
-            this.controllerMessenger,
-            'SnapController:clearSnapState',
-          ),
-          getMnemonic: getPrimaryKeyringMnemonic.bind(this),
-          getUnlockPromise: getAppState.bind(this),
-          getSnap: this.controllerMessenger.call.bind(
-            this.controllerMessenger,
-            'SnapController:get',
-          ),
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          handleSnapRpcRequest: this.controllerMessenger.call.bind(
-            this.controllerMessenger,
-            'SnapController:handleRequest',
-          ),
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          getSnapState: this.controllerMessenger.call.bind(
-            this.controllerMessenger,
-            'SnapController:getSnapState',
-          ),
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          updateSnapState: this.controllerMessenger.call.bind(
-            this.controllerMessenger,
-            'SnapController:updateSnapState',
-          ),
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          maybeUpdatePhishingList: this.controllerMessenger.call.bind(
-            this.controllerMessenger,
-            'PhishingController:maybeUpdateState',
-          ),
-          isOnPhishingList: (origin: string) =>
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
-            this.controllerMessenger.call<'PhishingController:testOrigin'>(
-              'PhishingController:testOrigin',
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore
-              origin,
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore
-            ).result,
-          showDialog: (
-            origin: string,
-            type: EnumToUnion<DialogType>,
-            // TODO: Replace "any" with type
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            content: any, // should be Component from '@metamask/snaps-ui';
-            // TODO: Replace "any" with type
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            placeholder?: any,
-          ) =>
-            approvalController.addAndShowApprovalRequest({
-              origin,
-              type,
-              requestData: { content, placeholder },
-            }),
-          showInAppNotification: (origin: string, args: NotificationArgs) => {
-            Logger.log(
-              'Snaps/ showInAppNotification called with args: ',
-              args,
-              ' and origin: ',
-              origin,
-            );
-          },
+          ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+          ...snapRestrictedMethods,
+          ///: END:ONLY_INCLUDE_IF
+          ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+          ...keyringSnapMethods,
+          ///: END:ONLY_INCLUDE_IF
         },
       ),
     });
-    ///: END:ONLY_INCLUDE_IF
+
     const accountTrackerController = new AccountTrackerController({
       onPreferencesStateChange,
       getIdentities: () => preferencesController.state.identities,
@@ -890,20 +993,13 @@ class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'PermissionController',
         allowedActions: [
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `${approvalController.name}:addRequest`,
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `${approvalController.name}:hasRequest`,
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `${approvalController.name}:acceptRequest`,
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `${approvalController.name}:rejectRequest`,
           ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `SnapController:getPermitted`,
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `SnapController:install`,
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `SubjectMetadataController:getSubjectMetadata`,
           ///: END:ONLY_INCLUDE_IF
         ],
@@ -917,7 +1013,7 @@ class Engine {
       // @ts-expect-error Typecast permissionType from getPermissionSpecifications to be of type PermissionType.RestrictedMethod
       permissionSpecifications: {
         ...getPermissionSpecifications({
-          getAllAccounts: () => keyringController.getAccounts(),
+          getAllAccounts: () => this.keyringController.getAccounts(),
           getInternalAccounts:
             accountsController.listAccounts.bind(accountsController),
           captureKeyringTypesWithMissingIdentities: (
@@ -932,7 +1028,7 @@ class Engine {
             });
             const keyringTypesWithMissingIdentities =
               accountsMissingIdentities.map((address) =>
-                keyringController.getAccountKeyringType(address),
+                this.keyringController.getAccountKeyringType(address),
               );
 
             const internalAccountCount = internalAccounts.length;
@@ -960,15 +1056,10 @@ class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'SelectedNetworkController',
         allowedActions: [
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           'NetworkController:getNetworkClientById',
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           'NetworkController:getState',
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           'NetworkController:getSelectedNetworkClient',
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           'PermissionController:hasPermissions',
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           'PermissionController:getSubjectNames',
         ],
         allowedEvents: [
@@ -986,11 +1077,10 @@ class Engine {
     });
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-    const subjectMetadataController = new SubjectMetadataController({
+    this.subjectMetadataController = new SubjectMetadataController({
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'SubjectMetadataController',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         allowedActions: [`${permissionController.name}:hasPermissions`],
         allowedEvents: [],
       }),
@@ -1076,68 +1166,39 @@ class Engine {
         'ExecutionService:outboundResponse',
       ],
       allowedActions: [
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${approvalController.name}:addRequest`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${permissionController.name}:getEndowments`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${permissionController.name}:getPermissions`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${permissionController.name}:hasPermission`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${permissionController.name}:hasPermissions`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${permissionController.name}:requestPermissions`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${permissionController.name}:revokeAllPermissions`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${permissionController.name}:revokePermissions`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${permissionController.name}:revokePermissionForAllSubjects`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${permissionController.name}:getSubjectNames`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${permissionController.name}:updateCaveat`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${approvalController.name}:addRequest`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${approvalController.name}:updateRequestState`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${permissionController.name}:grantPermissions`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
-        `${subjectMetadataController.name}:getSubjectMetadata`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
-        `${subjectMetadataController.name}:addSubjectMetadata`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
+        `${this.subjectMetadataController.name}:getSubjectMetadata`,
+        `${this.subjectMetadataController.name}:addSubjectMetadata`,
         `${phishingController.name}:maybeUpdateState`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${phishingController.name}:testOrigin`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${snapsRegistry.name}:get`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${snapsRegistry.name}:getMetadata`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${snapsRegistry.name}:update`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'ExecutionService:executeSnap',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'ExecutionService:terminateSnap',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'ExecutionService:terminateAllSnaps',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'ExecutionService:handleRpcRequest',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'SnapsRegistry:get',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'SnapsRegistry:getMetadata',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'SnapsRegistry:update',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'SnapsRegistry:resolveVersion',
       ],
     });
 
-    const snapController = new SnapController({
+    this.snapController = new SnapController({
       environmentEndowmentPermissions: Object.values(EndowmentPermissions),
       featureFlags: {
         requireAllowlist,
@@ -1169,6 +1230,7 @@ class Engine {
 
     const authenticationController = new AuthenticationController.Controller({
       state: initialState.AuthenticationController,
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'AuthenticationController',
         allowedActions: [
@@ -1190,6 +1252,7 @@ class Engine {
     const userStorageController = new UserStorageController.Controller({
       getMetaMetricsState: () => MetaMetrics.getInstance().isEnabled(),
       state: initialState.UserStorageController,
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'UserStorageController',
         allowedActions: [
@@ -1203,20 +1266,13 @@ class Engine {
           'NotificationServicesController:disableNotificationServices',
           'NotificationServicesController:selectIsNotificationServicesEnabled',
         ],
-        allowedEvents: [
-          'KeyringController:unlock',
-          'KeyringController:lock',
-          'AccountsController:accountAdded',
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore TODO: Resolve/patch mismatch between allowedEvents
-          'AccountsController:accountRenamed',
-        ],
+        allowedEvents: ['KeyringController:unlock', 'KeyringController:lock'],
       }),
-      nativeScryptCrypto: scrypt,
     });
 
     const notificationServicesController =
       new NotificationServicesController.Controller({
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'NotificationServicesController',
           allowedActions: [
@@ -1282,6 +1338,8 @@ class Engine {
             smartTransactionsController: this.smartTransactionsController,
             shouldUseSmartTransaction,
             approvalController,
+            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
+            controllerMessenger: this.controllerMessenger,
             featureFlags: selectSwapsChainFeatureFlags(store.getState()),
           }) as Promise<{ transactionHash: string }>;
         },
@@ -1308,13 +1366,9 @@ class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'TransactionController',
         allowedActions: [
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `${accountsController.name}:getSelectedAccount`,
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `${approvalController.name}:addRequest`,
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `${networkController.name}:getNetworkClientById`,
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `${networkController.name}:findNetworkClientIdByChainId`,
         ],
         allowedEvents: [`NetworkController:stateChange`],
@@ -1329,21 +1383,28 @@ class Engine {
       },
       // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
       provider: networkController.getProviderAndBlockTracker().provider,
-      sign: keyringController.signTransaction.bind(
-        keyringController,
+      sign: this.keyringController.signTransaction.bind(
+        this.keyringController,
       ) as unknown as TransactionControllerOptions['sign'],
       state: initialState.TransactionController,
     });
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
 
-    const smartTransactionsControllerTrackMetaMetricsEvent = (params: {
-      event: string;
-      category: string;
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      sensitiveProperties: any;
-    }) => {
+    const smartTransactionsControllerTrackMetaMetricsEvent = (
+      params: {
+        event: MetaMetricsEventName;
+        category: MetaMetricsEventCategory;
+        properties?: ReturnType<typeof getSmartTransactionMetricsProperties>;
+        sensitiveProperties?: ReturnType<
+          typeof getSmartTransactionMetricsSensitiveProperties
+        >;
+      },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      options?: {
+        metaMetricsId?: string;
+      },
+    ) => {
       const { event, category, ...restParams } = params;
 
       MetaMetrics.getInstance().trackEvent(
@@ -1356,43 +1417,32 @@ class Engine {
         restParams,
       );
     };
-    this.smartTransactionsController = new SmartTransactionsController(
-      {
-        confirmExternalTransaction:
-          this.transactionController.confirmExternalTransaction.bind(
-            this.transactionController,
-          ),
-        getNetworkClientById:
-          networkController.getNetworkClientById.bind(networkController),
-        getNonceLock: this.transactionController.getNonceLock.bind(
+    this.smartTransactionsController = new SmartTransactionsController({
+      // @ts-expect-error TODO: resolve types
+      supportedChainIds: getAllowedSmartTransactionsChainIds(),
+      getNonceLock: this.transactionController.getNonceLock.bind(
+        this.transactionController,
+      ),
+      confirmExternalTransaction:
+        this.transactionController.confirmExternalTransaction.bind(
           this.transactionController,
         ),
-        getTransactions: this.transactionController.getTransactions.bind(
-          this.transactionController,
-        ),
-        onNetworkStateChange: (listener) =>
-          this.controllerMessenger.subscribe(
-            AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            listener,
-          ),
-
-        // TODO: Replace "any" with type
-        provider:
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          networkController.getProviderAndBlockTracker().provider as any,
-
-        trackMetaMetricsEvent: smartTransactionsControllerTrackMetaMetricsEvent,
-        getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
-      },
-      {
-        // @ts-expect-error TODO: resolve types
-        supportedChainIds: getAllowedSmartTransactionsChainIds(),
-      },
-      initialState.SmartTransactionsController,
-    );
+      trackMetaMetricsEvent: smartTransactionsControllerTrackMetaMetricsEvent,
+      state: initialState.SmartTransactionsController,
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'SmartTransactionsController',
+        allowedActions: ['NetworkController:getNetworkClientById'],
+        allowedEvents: ['NetworkController:stateChange'],
+      }),
+      getTransactions: this.transactionController.getTransactions.bind(
+        this.transactionController,
+      ),
+      getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
+    });
 
     const controllers: Controllers[keyof Controllers][] = [
-      keyringController,
+      this.keyringController,
       accountTrackerController,
       new AddressBookController({
         messenger: this.controllerMessenger.getRestricted({
@@ -1410,23 +1460,14 @@ class Engine {
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenDetectionController',
           allowedActions: [
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             'AccountsController:getSelectedAccount',
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             'NetworkController:getNetworkClientById',
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             'NetworkController:getNetworkConfigurationByNetworkClientId',
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             'NetworkController:getState',
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             'KeyringController:getState',
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             'PreferencesController:getState',
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             'TokenListController:getState',
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             'TokensController:getState',
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             'TokensController:addDetectedTokens',
           ],
           allowedEvents: [
@@ -1488,7 +1529,6 @@ class Engine {
         // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenBalancesController',
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           allowedActions: ['PreferencesController:getState'],
           allowedEvents: ['TokensController:stateChange'],
         }),
@@ -1558,15 +1598,10 @@ class Engine {
         messenger: this.controllerMessenger.getRestricted({
           name: 'SignatureController',
           allowedActions: [
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             `${approvalController.name}:addRequest`,
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
-            `${keyringController.name}:signPersonalMessage`,
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
-            `${keyringController.name}:signMessage`,
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
-            `${keyringController.name}:signTypedMessage`,
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
+            `${this.keyringController.name}:signPersonalMessage`,
+            `${this.keyringController.name}:signMessage`,
+            `${this.keyringController.name}:signTypedMessage`,
             `${loggingController.name}:add`,
           ],
           allowedEvents: [],
@@ -1579,8 +1614,8 @@ class Engine {
       }),
       loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-      snapController,
-      subjectMetadataController,
+      this.snapController,
+      this.subjectMetadataController,
       authenticationController,
       userStorageController,
       notificationServicesController,
@@ -1595,7 +1630,6 @@ class Engine {
         // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
         messenger: this.controllerMessenger.getRestricted({
           name: 'PPOMController',
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           allowedActions: ['NetworkController:getNetworkClientById'],
           allowedEvents: [`${networkController.name}:stateChange`],
         }),
@@ -1911,6 +1945,20 @@ class Engine {
       tokenFiat1dAgo: 0,
     };
   };
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  getSnapKeyring = async () => {
+    let [snapKeyring] = this.keyringController.getKeyringsByType(
+      KeyringTypes.snap,
+    );
+    if (!snapKeyring) {
+      snapKeyring = await this.keyringController.addNewKeyring(
+        KeyringTypes.snap,
+      );
+    }
+    return snapKeyring;
+  };
+  ///: END:ONLY_INCLUDE_IF
 
   /**
    * Returns true or false whether the user has funds or not
