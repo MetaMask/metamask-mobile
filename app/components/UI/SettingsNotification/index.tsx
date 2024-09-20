@@ -1,11 +1,11 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTheme } from '../../../util/theme';
+import { Theme } from '../../../util/theme/models';
 
-const createStyles = (colors) =>
+const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     menuItemWarning: {
       flex: 1,
@@ -64,15 +64,14 @@ const CheckIcon = () => {
   );
 };
 
-const propTypes = {
-  style: PropTypes.object,
-  isWarning: PropTypes.bool,
-  isNotification: PropTypes.bool,
-  children: PropTypes.oneOfType([
-    PropTypes.arrayOf(PropTypes.node),
-    PropTypes.node,
-  ]),
-};
+
+
+interface SettingsNotificationProps {
+  style?: StyleProp<ViewStyle>;
+  isWarning?: boolean;
+  isNotification?: boolean;
+  children?: React.ReactNode;
+}
 
 const defaultProps = {
   style: {},
@@ -80,7 +79,7 @@ const defaultProps = {
   isHighlighted: false,
 };
 
-const SettingsNotification = ({
+const SettingsNotification: React.FC<SettingsNotificationProps> = ({
   style,
   isWarning,
   isNotification,
@@ -104,7 +103,6 @@ const SettingsNotification = ({
   );
 };
 
-SettingsNotification.propTypes = propTypes;
 SettingsNotification.defaultProps = defaultProps;
 
 export default SettingsNotification;
