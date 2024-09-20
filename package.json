@@ -166,7 +166,7 @@
     "@metamask/gas-fee-controller": "^18.0.0",
     "@metamask/key-tree": "^9.0.0",
     "@metamask/keyring-api": "^8.1.0",
-    "@metamask/keyring-controller": "^16.1.0",
+    "@metamask/keyring-controller": "^17.2.1",
     "@metamask/logging-controller": "^3.0.0",
     "@metamask/message-signing-snap": "^0.3.3",
     "@metamask/network-controller": "^20.1.0",
