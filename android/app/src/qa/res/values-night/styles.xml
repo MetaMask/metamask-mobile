@@ -1,0 +1,23 @@
+<resources>
+
+	<!-- Base application theme. -->
+	<style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+	 <item name="android:windowDisablePreview">true</item>
+		<!-- Customize your theme here. -->
+        <item name="android:windowBackground">@drawable/app_background</item>
+		<item name="android:statusBarColor">@color/theme</item>
+		<item name="android:navigationBarColor">@color/navBar</item>
+		<item name="android:windowLightStatusBar">@bool/useLightStatusBar</item>
+		<item name="android:textColor">@color/themeInverse</item>
+	</style>
+
+	<style name="SplashTheme" parent="Theme.AppCompat.Light">
+	 	<item name="android:windowDisablePreview">true</item>
+        <item name="android:windowBackground">@drawable/app_background</item>
+		<item name="android:statusBarColor">@color/theme</item>
+		<item name="android:navigationBarColor">@color/navBar</item>
+		<item name="android:windowLightStatusBar">@bool/useLightStatusBar</item>
+		<item name="android:textColor">@color/themeInverse</item>
+	</style>
+
+</resources>
