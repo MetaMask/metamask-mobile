@@ -1,8 +1,9 @@
 import {
-  Plugin,
-  SegmentEvent,
   EventType,
+  Plugin,
   PluginType,
+  SegmentClient,
+  SegmentEvent,
 } from '@segment/analytics-react-native';
 import METAMETRICS_ANONYMOUS_ID from './MetaMetrics.constants';
 
@@ -17,6 +18,10 @@ import METAMETRICS_ANONYMOUS_ID from './MetaMetrics.constants';
  */
 class MetaMetricsPrivacySegmentPlugin extends Plugin {
   type = PluginType.enrichment;
+
+  configure(analytics: SegmentClient) {
+    super.configure(analytics);
+  }
 
   /**
    * This method is called for every event that is sent to Segment.
@@ -40,15 +45,10 @@ class MetaMetricsPrivacySegmentPlugin extends Plugin {
       return event;
     }
 
-    const isAnonymousEvent = event.properties?.anonymous;
+    event.properties?.anonymous && (event.userId = METAMETRICS_ANONYMOUS_ID);
     // We remove the anonymous property from the event properties once we have read it
     // so that it is not sent to Segment
     delete event.properties?.anonymous;
-
-    if (isAnonymousEvent) {
-      event.userId = METAMETRICS_ANONYMOUS_ID;
-    }
-
     return event;
   }
 }

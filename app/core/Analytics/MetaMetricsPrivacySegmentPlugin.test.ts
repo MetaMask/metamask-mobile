@@ -1,3 +1,25 @@
+jest.mock('@segment/analytics-react-native', () => ({
+  Plugin: class Plugin {
+    type = 'utility';
+    analytics: SegmentClient | undefined;
+
+    configure(analytics: SegmentClient) {
+      this.analytics = analytics;
+    }
+
+    execute(event: SegmentEvent) {
+      return event;
+    }
+  },
+  PluginType: {
+    enrichment: 'enrichment',
+  },
+  EventType: {
+    TrackEvent: 'track',
+    IdentifyEvent: 'identify',
+  },
+}));
+
 import MetaMetricsPrivacySegmentPlugin from './MetaMetricsPrivacySegmentPlugin';
 import METAMETRICS_ANONYMOUS_ID from './MetaMetrics.constants';
 
@@ -7,13 +29,19 @@ import {
   TrackEventType,
   UserTraits,
   EventType,
+  SegmentClient,
+  SegmentEvent,
 } from '@segment/analytics-react-native';
 
-const mockAnalytics = {
-  userInfo: {
+class MockSegmentClient {
+  userInfo = {
     set: jest.fn(),
-  },
-};
+    get: jest.fn(),
+    onChange: jest.fn(),
+  };
+}
+
+const mockAnalytics = new MockSegmentClient() as unknown as SegmentClient;
 
 describe('MetaMetricsPrivacySegmentPlugin', () => {
   it('is an enrichment plugin', () => {
@@ -31,6 +59,8 @@ describe('MetaMetricsPrivacySegmentPlugin', () => {
     };
 
     const plugin = new MetaMetricsPrivacySegmentPlugin();
+    plugin.configure(mockAnalytics);
+
     await plugin.execute(trackEvent);
     await plugin.execute(identifyEvent);
 
@@ -48,6 +78,8 @@ describe('MetaMetricsPrivacySegmentPlugin', () => {
     };
 
     const plugin = new MetaMetricsPrivacySegmentPlugin();
+    plugin.configure(mockAnalytics);
+
     const result = await plugin.execute(event);
 
     expect(result.userId).toBe(METAMETRICS_ANONYMOUS_ID);
@@ -65,6 +97,8 @@ describe('MetaMetricsPrivacySegmentPlugin', () => {
     };
 
     const plugin = new MetaMetricsPrivacySegmentPlugin();
+    plugin.configure(mockAnalytics);
+
     const result = await plugin.execute(event);
 
     expect(result.userId).toBe(expectedUserId);
@@ -81,6 +115,8 @@ describe('MetaMetricsPrivacySegmentPlugin', () => {
     };
 
     const plugin = new MetaMetricsPrivacySegmentPlugin();
+    plugin.configure(mockAnalytics);
+
     const result = await plugin.execute(identifyEvent);
 
     expect(result.userId).toBe(expectedUserId);
