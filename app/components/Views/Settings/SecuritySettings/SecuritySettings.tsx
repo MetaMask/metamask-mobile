@@ -132,6 +132,8 @@ import { RootState } from '../../../../reducers';
 import { EtherscanSupportedHexChainId } from '@metamask/preferences-controller';
 import { useDisableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
+import AutoDetectNFTSettings from '../../Settings/AutoDetectNFTSettings';
+
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -1154,7 +1156,11 @@ const Settings: React.FC = () => {
           {strings('app_settings.token_nft_ens_subheading')}
         </Text>
         {renderDisplayNftMedia()}
-        {isMainnet && renderAutoDetectNft()}
+        {isMainnet && (
+          <View ref={detectNftComponentRef}>
+            <AutoDetectNFTSettings />
+          </View>
+        )}
         {renderIpfsGateway()}
         <Text
           variant={TextVariant.BodyLGMedium}
