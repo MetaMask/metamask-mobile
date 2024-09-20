@@ -21,8 +21,10 @@ CHANGELOG_BRANCH_NAME="chore/${NEW_VERSION}-Changelog"
 git config user.name metamaskbot
 git config user.email metamaskbot@users.noreply.github.com
 
+echo "Checkout release branch"
 git checkout "${RELEASE_BRANCH_NAME}"
 
+echo "Checkout new chore branch"
 git checkout -b "${CHANGELOG_BRANCH_NAME}"
 
 #Generate version bump, changelog and test plan csv
