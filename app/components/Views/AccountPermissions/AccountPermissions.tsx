@@ -324,6 +324,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       setIsLoading(false);
     }
   }, [
+    permittedAccountsList,
     selectedAddresses,
     accounts,
     setIsLoading,
@@ -480,7 +481,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     ensByAccountAddress,
     selectedAddresses,
     isLoading,
-    accountsFilteredByPermissions,
     setUserIntent,
     faviconSource,
     urlWithProtocol,
