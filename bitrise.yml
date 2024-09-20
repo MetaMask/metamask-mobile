@@ -867,7 +867,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug:build
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:build
       # - save-cocoapods-cache@1: {}
       # - save-cache@1:
       #     title: Save CCache
@@ -954,7 +954,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: false
