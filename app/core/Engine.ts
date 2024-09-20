@@ -1263,7 +1263,6 @@ class Engine {
       getGasFeeEstimates:
         gasFeeController.fetchGasFeeEstimates.bind(gasFeeController),
       // but only breaking change is Node version and bumped dependencies
-      // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
       getNetworkClientRegistry:
         networkController.getNetworkClientRegistry.bind(networkController),
       getNetworkState: () => networkController.state,
@@ -1359,7 +1358,6 @@ class Engine {
           this.transactionController.confirmExternalTransaction.bind(
             this.transactionController,
           ),
-        // @ts-expect-error TODO: resolve types
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
         getNonceLock: this.transactionController.getNonceLock.bind(
