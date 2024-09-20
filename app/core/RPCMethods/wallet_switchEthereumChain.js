@@ -88,7 +88,11 @@ const wallet_switchEthereumChain = async ({
 
     let networkConfigurationId, networkConfiguration;
     if (existingEntry) {
-      [networkConfigurationId, networkConfiguration] = existingEntry;
+      [chainId, networkConfiguration] = existingEntry;
+      networkConfigurationId =
+        networkConfiguration.rpcEndpoints[
+          networkConfiguration.defaultRpcEndpointIndex
+        ].networkClientId;
     }
 
     let requestData;
@@ -99,10 +103,13 @@ const wallet_switchEthereumChain = async ({
     };
     if (networkConfiguration) {
       requestData = {
-        rpcUrl: networkConfiguration.rpcUrl,
+        rpcUrl:
+          networkConfiguration.rpcEndpoints[
+            networkConfiguration.defaultRpcEndpointIndex
+          ],
         chainId: _chainId,
-        chainName: networkConfiguration.nickname,
-        ticker: networkConfiguration.ticker,
+        chainName: networkConfiguration.name,
+        ticker: networkConfiguration.nativeCurrency,
       };
       analyticsParams = {
         ...analyticsParams,

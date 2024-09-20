@@ -18,6 +18,7 @@ const useApprovalRequest = () => {
     | ApprovalRequestType
     | undefined;
 
+  console.log('firstPendingApproval ----', firstPendingApproval);
   const approvalRequest = useMemo(
     () => cloneDeep(firstPendingApproval),
     [firstPendingApproval],
