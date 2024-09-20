@@ -5148,10 +5148,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/slip44/-/slip44-4.0.0.tgz#690a52d2ba74ea677d9bd0e827a90c8809fbecd3"
   integrity sha512-MQMocMvFmp1MWownjKMuxevivwYeNQPSpNyIg9K7nmxKuoatp5NUc9L8EJ3Bh//rOfl6fBfXn9byfS0t+NE02Q==
 
-"@metamask/smart-transactions-controller@11.0.0":
-  version "11.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/smart-transactions-controller/-/smart-transactions-controller-11.0.0.tgz#79c9d52bb3fc6c3fdc4c470c92f1a287111353f0"
-  integrity sha512-CNOB737ibWTMSI2/UMqszlP3qsrZNW5uOtWGgnA1t3upuxgJ63R1BJ8lQl5hGLx7R2VyehvRh7K0tXsPLcQGEg==
+"@metamask/smart-transactions-controller@^13.0.0":
+  version "13.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/smart-transactions-controller/-/smart-transactions-controller-13.0.0.tgz#4a1f47cc5831598edc1bffb00ff74dbda6a3499e"
+  integrity sha512-7tNtCBXmkWnjHRHVskd2NuJnn+nAZQ3r0oX8QOcc4yINzTk+rBTPEMbPyCmlGP8md53t2EeTuM80iLO61BTGug==
   dependencies:
     "@babel/runtime" "^7.24.1"
     "@ethereumjs/tx" "^5.2.1"
@@ -5161,7 +5161,7 @@
     "@metamask/controller-utils" "^11.0.0"
     "@metamask/eth-json-rpc-provider" "^4.1.0"
     "@metamask/eth-query" "^4.0.0"
-    "@metamask/network-controller" "^19.0.0"
+    "@metamask/network-controller" "^20.0.0"
     "@metamask/polling-controller" "^8.0.0"
     "@metamask/transaction-controller" "^34.0.0"
     bignumber.js "^9.0.1"
