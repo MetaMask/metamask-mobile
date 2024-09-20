@@ -6,7 +6,6 @@ import { createStyles } from './styles';
 import { WebViewError } from '@metamask/react-native-webview/lib/WebViewTypes';
 import { WebViewInterface } from '@metamask/snaps-controllers/react-native';
 import { PostMessageEvent } from '@metamask/post-message-stream';
-import { WebViewInterface } from '@metamask/snaps-controllers/react-native';
 
 const SNAPS_EE_URL = 'https://execution.metamask.io/webview/6.7.1/index.html';
 
