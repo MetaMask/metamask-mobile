@@ -2,10 +2,11 @@ import { StyleSheet } from 'react-native';
 
 const styleSheet = () =>
   StyleSheet.create({
-    flexRow: {
+    rootContainer: {
       flexDirection: 'row',
+      justifyContent: 'space-between',
       alignItems: 'center',
-      gap: 8,
+      overflow: 'hidden',
     },
   });
 

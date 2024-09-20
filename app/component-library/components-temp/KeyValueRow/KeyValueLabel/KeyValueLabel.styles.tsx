@@ -2,10 +2,9 @@ import { StyleSheet } from 'react-native';
 
 const styleSheet = () =>
   StyleSheet.create({
-    flexRow: {
+    labelContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
     },
   });
 
