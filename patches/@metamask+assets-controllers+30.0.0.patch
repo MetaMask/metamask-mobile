@@ -381,7 +381,7 @@ index ee6155c..06a3a04 100644
  };
  var NftDetectionController_default = NftDetectionController;
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js b/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js
-index 76e3362..586b15e 100644
+index 76e3362..6f79cf7 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js
 +++ b/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js
 @@ -34,7 +34,7 @@ var STATIC_MAINNET_TOKEN_LIST = Object.entries(
@@ -440,7 +440,17 @@ index 76e3362..586b15e 100644
          await _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _restartTokenDetection, restartTokenDetection_fn).call(this, {
            selectedAddress: _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _selectedAddress)
          });
-@@ -324,7 +326,7 @@ getSlicesOfTokensToDetect_fn = function({
+@@ -241,7 +243,8 @@ registerEventListeners_fn = function() {
+     async ({ address: newSelectedAddress }) => {
+       const isSelectedAddressChanged = _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _selectedAddress) !== newSelectedAddress;
+       if (isSelectedAddressChanged) {
+-        _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _selectedAddress, newSelectedAddress);
++        const newSelectedAddressChecksummed = _controllerutils.toChecksumHexAddress.call(void 0, newSelectedAddress)
++        _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _selectedAddress, newSelectedAddressChecksummed);
+         await _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _restartTokenDetection, restartTokenDetection_fn).call(this, {
+           selectedAddress: _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _selectedAddress)
+         });
+@@ -324,7 +327,7 @@ getSlicesOfTokensToDetect_fn = function({
    chainId,
    selectedAddress
  }) {
