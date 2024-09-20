@@ -217,11 +217,12 @@ const wallet_addEthereumChain = async ({
     }
 
     CurrencyRateController.updateExchangeRate(networkConfiguration.ticker);
-    NetworkController.setActiveNetwork(
-      networkConfiguration.rpcEndpoints[
+    const { networkClientId } =
+      networkConfiguration?.rpcEndpoints?.[
         networkConfiguration.defaultRpcEndpointIndex
-      ].networkClientId,
-    );
+      ] ?? {};
+
+    NetworkController.setActiveNetwork(networkClientId);
 
     MetaMetrics.getInstance().trackEvent(
       MetaMetricsEvents.NETWORK_SWITCHED,
@@ -356,11 +357,12 @@ const wallet_addEthereumChain = async ({
     });
 
     CurrencyRateController.updateExchangeRate(ticker);
-    NetworkController.setActiveNetwork(
-      networkConfigurationId.rpcEndpoints[
+    const { networkClientId } =
+      networkConfigurationId?.rpcEndpoints?.[
         networkConfigurationId.defaultRpcEndpointIndex
-      ].networkClientId,
-    );
+      ] ?? {};
+
+    NetworkController.setActiveNetwork(networkClientId);
   } finally {
     endApprovalFlow({ id: approvalFlowId });
   }

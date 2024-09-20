@@ -210,10 +210,13 @@ const NetworkModals = (props: NetworkProps) => {
             }
           : undefined,
       );
-      await NetworkController.setActiveNetwork(
-        updatedNetwork.rpcEndpoints[updatedNetwork.defaultRpcEndpointIndex]
-          .networkClientId,
-      );
+
+      const { networkClientId } =
+        updatedNetwork?.rpcEndpoints?.[
+          updatedNetwork.defaultRpcEndpointIndex
+        ] ?? {};
+
+      await NetworkController.setActiveNetwork(networkClientId);
     } else {
       const addedNetwork = await NetworkController.addNetwork({
         chainId,
@@ -230,10 +233,12 @@ const NetworkModals = (props: NetworkProps) => {
           },
         ],
       });
-      await NetworkController.setActiveNetwork(
-        addedNetwork.rpcEndpoints[addedNetwork.defaultRpcEndpointIndex]
-          .networkClientId,
-      );
+
+      const { networkClientId } =
+        addedNetwork?.rpcEndpoints?.[addedNetwork.defaultRpcEndpointIndex] ??
+        {};
+
+      await NetworkController.setActiveNetwork(networkClientId);
     }
     onClose();
   };
@@ -254,10 +259,11 @@ const NetworkModals = (props: NetworkProps) => {
         : undefined,
     );
 
-    await NetworkController.setActiveNetwork(
-      updatedNetwork.rpcEndpoints[updatedNetwork.defaultRpcEndpointIndex]
-        .networkClientId,
-    );
+    const { networkClientId } =
+      updatedNetwork?.rpcEndpoints?.[updatedNetwork.defaultRpcEndpointIndex] ??
+      {};
+
+    await NetworkController.setActiveNetwork(networkClientId);
   };
 
   const handleNewNetwork = async (
@@ -323,10 +329,11 @@ const NetworkModals = (props: NetworkProps) => {
         ticker,
         blockExplorerUrl,
       );
-      NetworkController.setActiveNetwork(
-        addedNetwork.rpcEndpoints[addedNetwork.defaultRpcEndpointIndex]
-          .networkClientId,
-      );
+      const { networkClientId } =
+        addedNetwork?.rpcEndpoints?.[addedNetwork.defaultRpcEndpointIndex] ??
+        {};
+
+      NetworkController.setActiveNetwork(networkClientId);
     }
     onClose();
     if (onNetworkSwitch) {

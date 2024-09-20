@@ -275,9 +275,10 @@ const NetworkSelector = () => {
       } else {
         CurrencyRateController.updateExchangeRate(ticker);
 
-        await NetworkController.setActiveNetwork(
-          rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
-        );
+        const { networkClientId } =
+          rpcEndpoints?.[defaultRpcEndpointIndex] ?? {};
+
+        await NetworkController.setActiveNetwork(networkClientId);
       }
 
       sheetRef.current?.onCloseBottomSheet();

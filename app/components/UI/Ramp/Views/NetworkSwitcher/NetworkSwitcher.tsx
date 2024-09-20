@@ -159,11 +159,16 @@ function NetworkSwitcher() {
       );
 
       if (entry) {
-        const [networkConfigurationId] = entry;
-        const { ticker } = networkConfiguration;
+        const [, { nativeCurrency: ticker }] = entry;
+
+        const { networkClientId } =
+          networkConfiguration?.rpcEndpoints?.[
+            networkConfiguration.defaultRpcEndpointIndex
+          ] ?? {};
 
         CurrencyRateController.updateExchangeRate(ticker);
-        NetworkController.setActiveNetwork(networkConfigurationId);
+        // TODO: fix it here setActiveNetwork
+        NetworkController.setActiveNetwork(networkClientId);
         navigateToGetStarted();
       }
     },

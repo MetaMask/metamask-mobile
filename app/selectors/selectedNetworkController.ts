@@ -51,7 +51,7 @@ const selectProviderNetworkName = createSelector(
     if (providerConfig.type === 'rpc') {
       return networkConfigurations[chainId]?.rpcEndpoints.find(
         ({ networkClientId }) => networkClientId === selectedNetworkClientId,
-      );
+      )?.name;
     }
     let name;
     if (providerConfig.nickname) {
@@ -102,7 +102,7 @@ export const makeSelectNetworkName = () =>
         networkConfigurations[chainId]?.rpcEndpoints.find(
           ({ networkClientId }: { networkClientId: string }) =>
             networkClientId === relevantNetworkClientId,
-        ) ||
+        )?.name ||
         // @ts-expect-error The utils/network file is still JS
         NetworkList[relevantNetworkClientId]?.name
       );
@@ -170,9 +170,7 @@ export const makeSelectChainId = () =>
       const relevantNetworkClientId =
         domainNetworkClientId || globalNetworkClientId;
       return (
-        networkConfigurations[chainId]?.rpcEndpoints.find(
-          ({ networkClientId }) => networkClientId === relevantNetworkClientId,
-        ) ||
+        chainId ||
         // @ts-expect-error The utils/network file is still JS
         NetworkList[relevantNetworkClientId]?.chainId
       );
@@ -202,7 +200,7 @@ export const makeSelectRpcUrl = () =>
         domainNetworkClientId || globalNetworkClientId;
       return networkConfigurations[chainId]?.rpcEndpoints.find(
         ({ networkClientId }) => networkClientId === relevantNetworkClientId,
-      );
+      )?.url;
     },
   );
 

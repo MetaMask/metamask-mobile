@@ -64,7 +64,7 @@ export default async function migrate(stateAsync: unknown) {
 
   const networkControllerState = state.engine.backgroundState.NetworkController;
   const newNetworkControllerState = state.engine.backgroundState
-    .NetworkController as NetworkState;
+    .NetworkController as any;
 
   if (!isObject(networkControllerState)) {
     captureException(
