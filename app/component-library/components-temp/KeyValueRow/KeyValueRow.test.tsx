@@ -1,8 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import ethLogo from '../../../images/eth-logo-new.png';
 import KeyValueRow from './KeyValueRow';
-import { TextVariant, TextColor } from '../../components/Texts/Text';
+import { IconName } from '../../components/Icons/Icon';
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -17,81 +16,32 @@ jest.mock('@react-navigation/native', () => {
 describe('KeyValueRow', () => {
   describe('Prebuilt Component', () => {
     describe('KeyValueRow', () => {
-      it('should render when there is only primary text', () => {
+      it('should render when there is only text', () => {
         const { toJSON } = render(
           <KeyValueRow
-            field={{
-              primary: { text: 'Sample Key Text' },
-            }}
-            value={{ primary: { text: 'Sample Value Text' } }}
+            field={{ text: 'Sample Key Text' }}
+            value={{ text: 'Sample Value Text' }}
           />,
         );
 
         expect(toJSON()).toMatchSnapshot();
       });
 
-      it('should render both primary and secondary text', () => {
+      it('should render text with tooltips', () => {
         const { toJSON } = render(
           <KeyValueRow
             field={{
-              primary: { text: 'Primary Key Text' },
-              secondary: {
-                text: 'Secondary Key Text',
-                variant: TextVariant.BodySMMedium,
-                color: TextColor.Alternative,
+              text: 'Key Text',
+              tooltip: {
+                title: 'Sample Tooltip 1',
+                text: 'Tooltip 1 text',
               },
             }}
             value={{
-              primary: { text: 'Primary Value Text' },
-              secondary: {
-                text: 'Secondary Value Text',
-                variant: TextVariant.BodyXSMedium,
-                color: TextColor.Success,
-              },
-            }}
-          />,
-        );
-
-        expect(toJSON()).toMatchSnapshot();
-      });
-
-      it('should render both primary and secondary text with tooltips', () => {
-        const { toJSON } = render(
-          <KeyValueRow
-            field={{
-              primary: {
-                text: 'Primary Key Text',
-                tooltip: {
-                  title: 'Sample Tooltip 1',
-                  text: 'Tooltip 1 text',
-                },
-              },
-              secondary: {
-                text: 'Secondary Key Text',
-                variant: TextVariant.BodySMMedium,
-                color: TextColor.Alternative,
-                tooltip: {
-                  title: 'Sample Tooltip 2',
-                  text: 'Tooltip 2 text',
-                },
-              },
-            }}
-            value={{
-              primary: {
-                text: 'Primary Value Text',
-                tooltip: {
-                  title: 'Sample Tooltip 3',
-                  text: 'Tooltip 3 text',
-                },
-              },
-              secondary: {
-                text: 'Secondary Value Text',
-                variant: TextVariant.BodyXSMedium,
-                color: TextColor.Success,
-                tooltip: {
-                  title: 'Sample Tooltip 4',
-                  text: 'Tooltip 4 text',
-                },
+              text: 'Value Text',
+              tooltip: {
+                title: 'Sample Tooltip 2',
+                text: 'Tooltip 2 text',
               },
             }}
           />,
@@ -100,47 +50,48 @@ describe('KeyValueRow', () => {
         expect(toJSON()).toMatchSnapshot();
       });
 
-      it('should render both primary and secondary text with icons', () => {
+      it('should render text with icons', () => {
         const { toJSON } = render(
           <KeyValueRow
             field={{
-              primary: {
-                text: 'Primary Key Text',
-                icon: {
-                  name: 'Ethereum Logo',
-                  isIpfsGatewayCheckBypassed: true,
-                  src: ethLogo,
-                },
-              },
-              secondary: {
-                text: 'Secondary Key Text',
-                variant: TextVariant.BodySMMedium,
-                color: TextColor.Alternative,
-                icon: {
-                  name: 'Ethereum Logo',
-                  isIpfsGatewayCheckBypassed: true,
-                  src: ethLogo,
-                },
+              text: 'Key Text',
+              icon: {
+                name: IconName.Activity,
               },
             }}
             value={{
-              primary: {
-                text: 'Primary Value Text',
-                icon: {
-                  name: 'Ethereum Logo',
-                  isIpfsGatewayCheckBypassed: true,
-                  src: ethLogo,
-                },
+              text: 'Value Text',
+              icon: {
+                name: IconName.Add,
               },
-              secondary: {
-                text: 'Secondary Value Text',
-                variant: TextVariant.BodyXSMedium,
-                color: TextColor.Success,
-                icon: {
-                  name: 'Ethereum Logo',
-                  isIpfsGatewayCheckBypassed: true,
-                  src: ethLogo,
-                },
+            }}
+          />,
+        );
+
+        expect(toJSON()).toMatchSnapshot();
+      });
+
+      it('should render text with icons and tooltips', () => {
+        const { toJSON } = render(
+          <KeyValueRow
+            field={{
+              text: 'Key Text',
+              icon: {
+                name: IconName.Activity,
+              },
+              tooltip: {
+                title: 'Sample Tooltip 2',
+                text: 'Tooltip 2 text',
+              },
+            }}
+            value={{
+              text: 'Value Text',
+              icon: {
+                name: IconName.Add,
+              },
+              tooltip: {
+                title: 'Sample Tooltip 2',
+                text: 'Tooltip 2 text',
               },
             }}
           />,
