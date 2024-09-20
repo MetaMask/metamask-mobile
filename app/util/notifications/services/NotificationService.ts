@@ -4,6 +4,8 @@ import notifee, {
   EventDetail,
   AndroidChannel,
 } from '@notifee/react-native';
+
+import { Event } from '@notifee/react-native';
 import { Notification } from '../types';
 
 import { Linking, Platform, Alert as NativeAlert } from 'react-native';
@@ -25,24 +27,35 @@ interface AlertButton {
 
 class NotificationsService {
   async getBlockedNotifications(): Promise<Map<ChannelId, boolean>> {
-    const settings = await notifee.getNotificationSettings();
-    const channels = await notifee.getChannels();
+    try {
+      const settings = await notifee.getNotificationSettings();
+      const channels = await notifee.getChannels();
 
-    switch (settings.authorizationStatus) {
-      case AuthorizationStatus.NOT_DETERMINED:
-      case AuthorizationStatus.DENIED:
-        return notificationChannels.reduce((map, next) => {
-          map.set(next.id as ChannelId, true);
-          return map;
-        }, new Map<ChannelId, boolean>());
-    }
-
-    return channels.reduce((map, next) => {
-      if (next.blocked) {
-        map.set(next.id as ChannelId, true);
+      switch (settings.authorizationStatus) {
+        case AuthorizationStatus.NOT_DETERMINED:
+        case AuthorizationStatus.DENIED:
+          return notificationChannels.reduce((map, next) => {
+            map.set(next.id as ChannelId, true);
+            return map;
+          }, new Map<ChannelId, boolean>());
       }
-      return map;
-    }, new Map<ChannelId, boolean>());
+
+      return channels.reduce((map, next) => {
+        if (next.blocked) {
+          map.set(next.id as ChannelId, true);
+        }
+        return map;
+      }, new Map<ChannelId, boolean>());
+    } catch (e) {
+      if (e instanceof Error) {
+        Logger.error(e, strings('notifications.error_checking_permission'));
+      } else {
+        Logger.error(
+          new Error(strings('notifications.error_checking_permission')),
+        );
+      }
+      return new Map<ChannelId, boolean>();
+    }
   }
 
   async getAllPermissions(shouldOpenSettings = true) {
@@ -151,15 +164,12 @@ class NotificationsService {
       : 'denied';
   }
 
-  onForegroundEvent = (observer: (event: Event) => void): (() => void) =>
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    notifee.onForegroundEvent(observer as any);
+  onForegroundEvent = (
+    observer: (event: Event) => Promise<void>,
+  ): (() => void) => notifee.onForegroundEvent(observer);
 
   onBackgroundEvent = (observer: (event: Event) => Promise<void>) =>
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    notifee.onBackgroundEvent(observer as any);
+    notifee.onBackgroundEvent(observer);
 
   incrementBadgeCount = async (incrementBy?: number) => {
     notifee.incrementBadgeCount(incrementBy);
@@ -192,7 +202,6 @@ class NotificationsService {
 
   handleNotificationEvent = async ({
     type,
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'detail' does not exist on type 'Event &
     detail,
     callback,
   }: Event & {
