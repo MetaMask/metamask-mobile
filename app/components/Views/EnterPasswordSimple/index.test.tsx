@@ -11,8 +11,21 @@ const mockTheme = {
     text: { default: 'black' },
     primary: { default: 'blue' },
     warning: { default: 'yellow' },
+    error: { default: 'red' },
+    overlay: { default: 'white' },
   },
   themeAppearance: 'light',
+};
+
+const mockNavigation = {
+  setOptions: jest.fn(),
+  goBack: jest.fn(),
+  navigate: jest.fn(),
+  route: {
+    params: {
+      accountAddress: '0x123',
+    },
+  },
 };
 
 describe('EnterPasswordSimple', () => {
@@ -20,7 +33,7 @@ describe('EnterPasswordSimple', () => {
     render(
       <ThemeContext.Provider value={mockTheme}>
         <NavigationContainer>
-          <EnterPasswordSimple route={{ params: {} }} />
+          <EnterPasswordSimple navigation={mockNavigation} />
         </NavigationContainer>
       </ThemeContext.Provider>,
     );

@@ -161,7 +161,10 @@ const TransactionsView = ({
   }, [filterTransactions]);
 
   return (
-    <View style={styles.wrapper}>
+    <View
+      style={styles.wrapper}
+      testID={loading ? 'transactions-loading' : 'transactions-view'}
+    >
       <Transactions
         navigation={navigation}
         transactions={allTransactions}

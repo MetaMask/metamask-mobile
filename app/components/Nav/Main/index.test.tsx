@@ -19,6 +19,12 @@ const store = mockStore({
       PreferencesController: {
         showIncomingTransactions: {},
       },
+      NetworkController: {
+        provider: {
+          chainId: '1',
+          type: 'mainnet',
+        },
+      },
     },
   },
   user: {
