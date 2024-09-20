@@ -11,9 +11,10 @@ import { AppState } from 'react-native';
 import {
   NotificationTransactionTypes,
   isNotificationsFeatureEnabled,
-  requestPushNotificationsPermission,
-  asyncAlert,
+
 } from '../util/notifications';
+
+import NotificationsService from '../util/notifications/services/NotificationService';
 import { safeToChecksumAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
 import { selectChainId } from '../selectors/networkController';
@@ -257,7 +258,7 @@ class NotificationManager {
 
         Device.isIos() &&
           setTimeout(() => {
-            requestPushNotificationsPermission(asyncAlert);
+            NotificationsService.getAllPermissions(false);
           }, 5000);
 
         // Prompt review
@@ -489,9 +490,6 @@ export default {
   },
   gotIncomingTransaction(lastBlock) {
     return instance?.gotIncomingTransaction(lastBlock);
-  },
-  requestPushNotificationsPermission() {
-    return instance?.requestPushNotificationsPermission(asyncAlert);
   },
   showSimpleNotification(data) {
     return instance?.showSimpleNotification(data);
