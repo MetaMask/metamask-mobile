@@ -746,7 +746,6 @@ class Engine {
         preferencesController,
       ),
       encryptor,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'KeyringController',
         allowedActions: [],
