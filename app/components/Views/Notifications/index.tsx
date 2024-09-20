@@ -143,7 +143,7 @@ NotificationsView.navigationOptions = ({
     />
   ),
   headerTitle: () => (
-    <Text variant={TextVariant.HeadingMD} style={styles.title}>
+    <Text variant={TextVariant.HeadingMD}>
       {strings('app_settings.notifications_title')}
     </Text>
   ),

@@ -8,17 +8,6 @@ declare module 'react-native-fade-in-image';
 
 declare module 'react-native-minimizer';
 
-declare module 'react-native-fast-crypto' {
-  const scrypt: (
-    password: string,
-    salt: Uint8Array,
-    N: number,
-    r: number,
-    p: number,
-    size: number,
-  ) => Promise<Uint8Array>;
-}
-
 declare module 'xhr2';
 declare module 'react-native-scrollable-tab-view/DefaultTabBar' {
   // TODO: Replace "any" with type
