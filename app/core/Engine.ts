@@ -34,7 +34,9 @@ import PREINSTALLED_SNAPS from '../lib/snaps/preinstalled-snaps';
 ///: END:ONLY_INCLUDE_IF
 import {
   AddressBookController,
-  AddressBookState,
+  AddressBookControllerActions,
+  AddressBookControllerEvents,
+  AddressBookControllerState,
 } from '@metamask/address-book-controller';
 import { BaseState } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
@@ -258,6 +260,7 @@ type SnapsGlobalEvents =
 ///: END:ONLY_INCLUDE_IF
 
 type GlobalActions =
+  | AddressBookControllerActions
   | ApprovalControllerActions
   | GetCurrencyRateState
   | GetGasFeeState
@@ -281,6 +284,7 @@ type GlobalActions =
   | SelectedNetworkControllerActions;
 
 type GlobalEvents =
+  | AddressBookControllerEvents
   | ApprovalControllerEvents
   | CurrencyRateStateChange
   | GasFeeStateChange
@@ -306,7 +310,7 @@ type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 
 export interface EngineState {
   AccountTrackerController: AccountTrackerState;
-  AddressBookController: AddressBookState;
+  AddressBookController: AddressBookControllerState;
   AssetsContractController: BaseState;
   NftController: NftState;
   TokenListController: TokenListState;
@@ -1317,7 +1321,13 @@ class Engine {
     const controllers: Controllers[keyof Controllers][] = [
       keyringController,
       accountTrackerController,
-      new AddressBookController(),
+      new AddressBookController({
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'AddressBookController',
+          allowedActions: [],
+          allowedEvents: [],
+        }),
+      }),
       assetsContractController,
       nftController,
       tokensController,
