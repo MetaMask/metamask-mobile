@@ -1,11 +1,11 @@
 import notifee, {
   AuthorizationStatus,
+  Event as NotifeeEvent,
   EventType,
   EventDetail,
   AndroidChannel,
 } from '@notifee/react-native';
 
-import { Event } from '@notifee/react-native';
 import { Notification } from '../types';
 
 import { Linking, Platform, Alert as NativeAlert } from 'react-native';
@@ -165,10 +165,10 @@ class NotificationsService {
   }
 
   onForegroundEvent = (
-    observer: (event: Event) => Promise<void>,
+    observer: (event: NotifeeEvent) => Promise<void>,
   ): (() => void) => notifee.onForegroundEvent(observer);
 
-  onBackgroundEvent = (observer: (event: Event) => Promise<void>) =>
+  onBackgroundEvent = (observer: (event: NotifeeEvent) => Promise<void>) =>
     notifee.onBackgroundEvent(observer);
 
   incrementBadgeCount = async (incrementBy?: number) => {
@@ -204,7 +204,7 @@ class NotificationsService {
     type,
     detail,
     callback,
-  }: Event & {
+  }: NotifeeEvent & {
     callback?: (notification: Notification) => void;
   }) => {
     switch (type as unknown as EventType) {
