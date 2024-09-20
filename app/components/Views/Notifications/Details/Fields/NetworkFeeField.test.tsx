@@ -1,11 +1,12 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import NetworkFeeField from './NetworkFeeField';
-import { NotificationServicesController } from '@metamask/notification-services-controller';
 import {
-  ModalFieldType,
   type Notification,
+  ModalFieldType,
 } from '../../../../../util/notifications';
+
+import { NotificationServicesController } from '@metamask/notification-services-controller';
 
 const {
   Processors: { processNotification },
