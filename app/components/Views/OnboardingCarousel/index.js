@@ -253,14 +253,8 @@ class OnboardingCarousel extends PureComponent {
                         <Text style={styles.title}>
                           {strings(`onboarding_carousel.title${key}`)}
                         </Text>
-                        {true && (
+                        {isTest && (
                           <>
-                            <Text style={styles.metricsData} testID={PerformanceRegressionSelectorIDs.NATIVE_LAUNCH_DURATION_ID}>
-                              {nativeLaunchDuration}
-                            </Text>
-                            <Text style={styles.metricsData} testID={PerformanceRegressionSelectorIDs.JS_BUNDLE_DURATION_ID}>
-                              {jsBundleDuration}
-                            </Text>
                             <Text style={styles.metricsData} testID={PerformanceRegressionSelectorIDs.APP_START_TIME_ID}>
                               {appStartTime}
                             </Text>
