@@ -12,12 +12,13 @@ import Button, {
   ButtonVariants,
 } from '../../../../../../../component-library/components/Buttons/Button';
 import useTooltipModal from '../../../../../../hooks/useTooltipModal';
+import { BannerProps } from '../../../../../../../component-library/components/Banners/Banner/Banner.types';
 
-interface StakeBannerProps {
+type StakeBannerProps = Pick<BannerProps, 'style'> & {
   claimableAmount: string;
-}
+};
 
-const ClaimBanner = ({ claimableAmount }: StakeBannerProps) => {
+const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
   const { openTooltipModal } = useTooltipModal();
 
   const onClaimPress = () => openTooltipModal('TODO', 'Connect to claim flow');
@@ -26,10 +27,11 @@ const ClaimBanner = ({ claimableAmount }: StakeBannerProps) => {
     <Banner
       severity={BannerAlertSeverity.Success}
       variant={BannerVariant.Alert}
+      style={style}
       description={
         <>
           <Text>
-            {strings('stake.bannerText.has_claimable_eth', {
+            {strings('stake.banner_text.has_claimable_eth', {
               amountEth: claimableAmount,
             })}
           </Text>

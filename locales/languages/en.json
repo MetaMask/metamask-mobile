@@ -3313,9 +3313,10 @@
       "one": "hour",
       "other": "hours"
     },
-    "bannerText": {
+    "banner_text": {
       "has_claimable_eth": "You can claim {{amountEth}} ETH. Once claimed, you'll get ETH back in your wallet.",
-      "unstaking_in_progress": "Unstaking {{amountEth}} ETH in progress. Come back in {{daysUntilClaimable}} {{daysCopy}} and {{hoursUntilClaimable}} {{hoursCopy}} to claim it."
+      "unstaking_in_progress": "Unstaking {{amountEth}} ETH in progress. Come back in {{daysUntilClaimable}} {{daysCopy}} and {{hoursUntilClaimable}} {{hoursCopy}} to claim it.",
+      "geo_blocked": "You are located in a geographic location where unstaking or staking is not permitted."
     }
   },
   "default_settings": {

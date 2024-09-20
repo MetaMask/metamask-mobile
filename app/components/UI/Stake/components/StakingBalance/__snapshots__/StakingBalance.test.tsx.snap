@@ -546,239 +546,278 @@ exports[`StakingBalance should render and match snapshot 1`] = `
                         <View
                           style={
                             {
-                              "paddingVertical": 8,
+                              "backgroundColor": "#0376c91a",
+                              "borderColor": "#0376c9",
+                              "borderLeftWidth": 4,
+                              "borderRadius": 4,
+                              "flexDirection": "row",
+                              "marginVertical": 8,
+                              "padding": 12,
+                              "paddingLeft": 8,
                             }
                           }
+                          testID="banneralert"
+                          variant="Alert"
                         >
                           <View
                             style={
                               {
-                                "backgroundColor": "#0376c91a",
-                                "borderColor": "#0376c9",
-                                "borderLeftWidth": 4,
-                                "borderRadius": 4,
-                                "flexDirection": "row",
-                                "padding": 12,
-                                "paddingLeft": 8,
+                                "marginRight": 8,
                               }
                             }
-                            testID="banneralert"
-                            variant="Alert"
                           >
-                            <View
+                            <SvgMock
+                              color="#0376c9"
+                              height={24}
+                              name="Info"
                               style={
                                 {
-                                  "marginRight": 8,
+                                  "height": 24,
+                                  "width": 24,
+                                }
+                              }
+                              width={24}
+                            />
+                          </View>
+                          <View
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#141618",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
                                 }
                               }
                             >
-                              <SvgMock
-                                color="#0376c9"
-                                height={24}
-                                name="Info"
-                                style={
-                                  {
-                                    "height": 24,
-                                    "width": 24,
-                                  }
-                                }
-                                width={24}
-                              />
-                            </View>
-                            <View
-                              style={
-                                {
-                                  "flex": 1,
-                                }
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#141618",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 14,
-                                    "fontWeight": "400",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
-                                  }
-                                }
-                              >
-                                Unstaking 2.0 ETH in progress. Come back in 4 days and 2 hours to claim it.
-                              </Text>
-                            </View>
+                              Unstaking 2.0 ETH in progress. Come back in 4 days and 2 hours to claim it.
+                            </Text>
                           </View>
                         </View>
                         <View
                           style={
                             {
-                              "paddingVertical": 8,
+                              "backgroundColor": "#0376c91a",
+                              "borderColor": "#0376c9",
+                              "borderLeftWidth": 4,
+                              "borderRadius": 4,
+                              "flexDirection": "row",
+                              "marginVertical": 8,
+                              "padding": 12,
+                              "paddingLeft": 8,
                             }
                           }
+                          testID="banneralert"
+                          variant="Alert"
                         >
                           <View
                             style={
                               {
-                                "backgroundColor": "#0376c91a",
-                                "borderColor": "#0376c9",
-                                "borderLeftWidth": 4,
-                                "borderRadius": 4,
-                                "flexDirection": "row",
-                                "padding": 12,
-                                "paddingLeft": 8,
+                                "marginRight": 8,
                               }
                             }
-                            testID="banneralert"
-                            variant="Alert"
                           >
-                            <View
+                            <SvgMock
+                              color="#0376c9"
+                              height={24}
+                              name="Info"
                               style={
                                 {
-                                  "marginRight": 8,
+                                  "height": 24,
+                                  "width": 24,
+                                }
+                              }
+                              width={24}
+                            />
+                          </View>
+                          <View
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#141618",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
                                 }
                               }
                             >
-                              <SvgMock
-                                color="#0376c9"
-                                height={24}
-                                name="Info"
-                                style={
-                                  {
-                                    "height": 24,
-                                    "width": 24,
-                                  }
-                                }
-                                width={24}
-                              />
-                            </View>
-                            <View
-                              style={
-                                {
-                                  "flex": 1,
-                                }
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#141618",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 14,
-                                    "fontWeight": "400",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
-                                  }
-                                }
-                              >
-                                Unstaking 0.51 ETH in progress. Come back in 1 day and 1 hour to claim it.
-                              </Text>
-                            </View>
+                              Unstaking 0.51 ETH in progress. Come back in 1 day and 1 hour to claim it.
+                            </Text>
                           </View>
                         </View>
                         <View
                           style={
                             {
-                              "paddingVertical": 8,
+                              "backgroundColor": "#1c82341a",
+                              "borderColor": "#1c8234",
+                              "borderLeftWidth": 4,
+                              "borderRadius": 4,
+                              "flexDirection": "row",
+                              "marginVertical": 8,
+                              "padding": 12,
+                              "paddingLeft": 8,
                             }
                           }
+                          testID="banneralert"
+                          variant="Alert"
                         >
                           <View
                             style={
                               {
-                                "backgroundColor": "#1c82341a",
-                                "borderColor": "#1c8234",
-                                "borderLeftWidth": 4,
-                                "borderRadius": 4,
-                                "flexDirection": "row",
-                                "padding": 12,
-                                "paddingLeft": 8,
+                                "marginRight": 8,
                               }
                             }
-                            testID="banneralert"
-                            variant="Alert"
                           >
-                            <View
+                            <SvgMock
+                              color="#1c8234"
+                              height={24}
+                              name="Confirmation"
                               style={
                                 {
-                                  "marginRight": 8,
+                                  "height": 24,
+                                  "width": 24,
+                                }
+                              }
+                              width={24}
+                            />
+                          </View>
+                          <View
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#141618",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
                                 }
                               }
                             >
-                              <SvgMock
-                                color="#1c8234"
-                                height={24}
-                                name="Confirmation"
-                                style={
-                                  {
-                                    "height": 24,
-                                    "width": 24,
-                                  }
-                                }
-                                width={24}
-                              />
-                            </View>
-                            <View
+                              You can claim 2.0 ETH. Once claimed, you'll get ETH back in your wallet.
+                            </Text>
+                            <Text
+                              accessibilityRole="link"
+                              accessible={true}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
-                                  "flex": 1,
+                                  "backgroundColor": "transparent",
+                                  "color": "#141618",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
                                 }
                               }
+                              suppressHighlighting={true}
+                              width={100}
                             >
                               <Text
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#141618",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "color": "#0376c9",
+                                    "fontFamily": "EuclidCircularB-Medium",
                                     "fontSize": 14,
-                                    "fontWeight": "400",
+                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 22,
                                   }
                                 }
                               >
-                                You can claim 2.0 ETH. Once claimed, you'll get ETH back in your wallet.
+                                Claim
+                                 ETH
                               </Text>
-                              <Text
-                                accessibilityRole="link"
-                                accessible={true}
-                                onPress={[Function]}
-                                onPressIn={[Function]}
-                                onPressOut={[Function]}
-                                style={
-                                  {
-                                    "backgroundColor": "transparent",
-                                    "color": "#141618",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 14,
-                                    "fontWeight": "400",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
-                                  }
+                            </Text>
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "backgroundColor": "#bf52081a",
+                              "borderColor": "#bf5208",
+                              "borderLeftWidth": 4,
+                              "borderRadius": 4,
+                              "flexDirection": "row",
+                              "marginVertical": 8,
+                              "padding": 12,
+                              "paddingLeft": 8,
+                            }
+                          }
+                          testID="banneralert"
+                          variant="Alert"
+                        >
+                          <View
+                            style={
+                              {
+                                "marginRight": 8,
+                              }
+                            }
+                          >
+                            <SvgMock
+                              color="#bf5208"
+                              height={24}
+                              name="Danger"
+                              style={
+                                {
+                                  "height": 24,
+                                  "width": 24,
                                 }
-                                suppressHighlighting={true}
-                                width={100}
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#0376c9",
-                                      "fontFamily": "EuclidCircularB-Medium",
-                                      "fontSize": 14,
-                                      "fontWeight": "500",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                    }
-                                  }
-                                >
-                                  Claim
-                                   ETH
-                                </Text>
-                              </Text>
-                            </View>
+                              }
+                              width={24}
+                            />
+                          </View>
+                          <View
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#141618",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
+                                }
+                              }
+                            >
+                              You are located in a geographic location where unstaking or staking is not permitted.
+                            </Text>
                           </View>
                         </View>
                         <View

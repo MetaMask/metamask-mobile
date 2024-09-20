@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
@@ -17,6 +17,11 @@ import { View } from 'react-native';
 import StakingButtons from './StakingButtons/StakingButtons';
 import ClaimBanner from './StakingBanners/ClaimBanner/ClaimBanner';
 import UnstakingBanner from './StakingBanners/UnstakeBanner/UnstakeBanner';
+import Banner, {
+  BannerAlertSeverity,
+  BannerVariant,
+} from '../../../../../component-library/components/Banners/Banner';
+import { strings } from '../../../../../../locales/i18n';
 
 // TODO: Replace mock data when connecting to backend.
 const MOCK_STAKED_ETH_ASSET = {
@@ -52,6 +57,9 @@ const StakingBalance = () => {
 
   const networkName = useSelector(selectNetworkName);
 
+  const [hasClaimableEth] = useState(true);
+  const [isGeoBlocked] = useState(true);
+
   return (
     <View>
       <AssetElement
@@ -78,16 +86,24 @@ const StakingBalance = () => {
       </AssetElement>
       <View style={styles.container}>
         {MOCK_UNSTAKING_REQUESTS.map(({ id, amountEth, timeRemaining }) => (
-          <View key={id} style={styles.bannerContainer}>
-            <UnstakingBanner
-              amountEth={amountEth}
-              timeRemaining={timeRemaining}
-            />
-          </View>
+          <UnstakingBanner
+            key={id}
+            amountEth={amountEth}
+            timeRemaining={timeRemaining}
+            style={styles.bannerStyles}
+          />
         ))}
-        <View style={styles.bannerContainer}>
-          <ClaimBanner claimableAmount="2.0" />
-        </View>
+        {hasClaimableEth && (
+          <ClaimBanner claimableAmount="2.0" style={styles.bannerStyles} />
+        )}
+        {isGeoBlocked && (
+          <Banner
+            variant={BannerVariant.Alert}
+            severity={BannerAlertSeverity.Warning}
+            description={strings('stake.banner_text.geo_blocked')}
+            style={styles.bannerStyles}
+          />
+        )}
         <View style={styles.buttonsContainer}>
           <StakingButtons />
         </View>

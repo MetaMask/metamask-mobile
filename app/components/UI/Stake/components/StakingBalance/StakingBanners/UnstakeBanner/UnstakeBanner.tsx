@@ -5,25 +5,28 @@ import Banner, {
 } from '../../../../../../../component-library/components/Banners/Banner';
 import Text from '../../../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../../../locales/i18n';
+import { BannerProps } from 'app/component-library/components/Banners/Banner/Banner.types';
 
-interface UnstakingBannerProps {
+type UnstakingBannerProps = Pick<BannerProps, 'style'> & {
   amountEth: string;
   timeRemaining: {
     days: number;
     hours: number;
   };
-}
+};
 
 const UnstakingBanner = ({
   amountEth,
   timeRemaining,
+  style,
 }: UnstakingBannerProps) => (
   <Banner
     severity={BannerAlertSeverity.Info}
     variant={BannerVariant.Alert}
+    style={style}
     description={
       <Text>
-        {strings('stake.bannerText.unstaking_in_progress', {
+        {strings('stake.banner_text.unstaking_in_progress', {
           amountEth,
           daysUntilClaimable: timeRemaining.days,
           daysCopy: strings('stake.day', { count: timeRemaining.days }),

@@ -20,8 +20,8 @@ const styleSheet = () =>
       borderRadius: 16,
       overflow: 'hidden',
     },
-    bannerContainer: {
-      paddingVertical: 8,
+    bannerStyles: {
+      marginVertical: 8,
     },
     buttonsContainer: {
       paddingTop: 8,
