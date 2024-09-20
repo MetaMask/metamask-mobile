@@ -121,7 +121,7 @@ import {
 } from '@metamask/snaps-controllers';
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
-import { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/types/restricted/notify';
+import { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/restricted/notify.cjs';
 import { getSnapsWebViewPromise } from '../lib/snaps';
 import {
   buildSnapEndowmentSpecifications,
