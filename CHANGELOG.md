@@ -2,7 +2,7 @@
 
 ## Current Main Branch
 
-## release/7.32.0 - <Date>
+## 7.32.0 - Sep 19, 2024
 
 ### Added
 - [#11093](https://github.com/MetaMask/metamask-mobile/pull/11093): feat: 7.31.0 (#11093)
@@ -19,6 +19,10 @@
 - [#10964](https://github.com/MetaMask/metamask-mobile/pull/10964): feat: build your earnings component stub in eth token details (#10964)
 - [#11117](https://github.com/MetaMask/metamask-mobile/pull/11117): fix: add feat flag (#11117)
 - [#11051](https://github.com/MetaMask/metamask-mobile/pull/11051): feat: add brand evo font files (#11051)
+- [#11285](https://github.com/MetaMask/metamask-mobile/pull/11285): Feat/notifications add analytics (#11285)
+- [#10755](https://github.com/MetaMask/metamask-mobile/pull/10755): feat: ledger account selection screen add hd options to sync with extension (#10755)
+- [#11195](https://github.com/MetaMask/metamask-mobile/pull/11195): feat: add AppState dependency to load notifications (#11195)
+- [#11175](https://github.com/MetaMask/metamask-mobile/pull/11175): feat: add product announcements toggle (#11175)
 
 ### Changed
 - [#11148](https://github.com/MetaMask/metamask-mobile/pull/11148): chore: remove animation and add new splash screen  (#11148)
@@ -49,6 +53,15 @@
 - [#10788](https://github.com/MetaMask/metamask-mobile/pull/10788): chore: Add `@metamask/selected-network-controller` & integrate (#10788)
 - [#11084](https://github.com/MetaMask/metamask-mobile/pull/11084): fix: locks api spec version for api spec tests (#11084)
 - [#11122](https://github.com/MetaMask/metamask-mobile/pull/11122): test: e2e for auto-lock  (#11122)
+- [#11143](https://github.com/MetaMask/metamask-mobile/pull/11143): chore: bump react native webview to 14.0.3 version (#11143)
+- [#11284](https://github.com/MetaMask/metamask-mobile/pull/11284): chore: add notifications state awareness inapp badge (#11284)
+- [#11209](https://github.com/MetaMask/metamask-mobile/pull/11209): chore(runway): cherry-pick fix: freeze during swap with approval (#11209)
+- [#11157](https://github.com/MetaMask/metamask-mobile/pull/11157): chore(runway): cherry-pick chore: bump send for all the packages (#11157)
+- [#11082](https://github.com/MetaMask/metamask-mobile/pull/11082): chore: bump network controller 20.0.0 (#11082)
+- [#11095](https://github.com/MetaMask/metamask-mobile/pull/11095): chore(runway): cherry-pick fix: Intermittent Display Issue of Fiat Currency on Main Wallet View (#11095)
+- [#11181](https://github.com/MetaMask/metamask-mobile/pull/11181): chore(runway): cherry-pick fix: fix check token balance is zero (#11181)
+- [#11208](https://github.com/MetaMask/metamask-mobile/pull/11208): chore(runway): cherry-pick chore: update performance for new allocation (#11208)
+- [#10821](https://github.com/MetaMask/metamask-mobile/pull/10821): chore(deps): bump `accounts-controller` to v18.1.0 and `keyring-api` to v8.1.0 (#10821)
 
 ### Fixed
 - [#11302](https://github.com/MetaMask/metamask-mobile/pull/11302): fix: cp & resolve merge conflict (#11302)
@@ -72,34 +85,11 @@
 - [#11172](https://github.com/MetaMask/metamask-mobile/pull/11172): fix: fix check token balance is zero (#11172)
 - [#11087](https://github.com/MetaMask/metamask-mobile/pull/11087): fix: Intermittent Display Issue of Fiat Currency on Main Wallet View (#11087)
 - [#11176](https://github.com/MetaMask/metamask-mobile/pull/11176): fix: switch from bundled to url EE (#11176)
-
-### Other
-- [#11298](https://github.com/MetaMask/metamask-mobile/pull/11298): chore: bump to 1432 (#11298)
-- [#11268](https://github.com/MetaMask/metamask-mobile/pull/11268): chore: bump build to 1429 (#11268)
-- [#11238](https://github.com/MetaMask/metamask-mobile/pull/11238): chore: cherry-pick c5dd290d46650cf328cc1ca460479f347203983e enabling merge queue checks (#11238)
-- [#11211](https://github.com/MetaMask/metamask-mobile/pull/11211): chore: bump build 1427 (#11211)
-- [#11143](https://github.com/MetaMask/metamask-mobile/pull/11143): chore: bump react native webview to 14.0.3 version (#11143)
-- [#11285](https://github.com/MetaMask/metamask-mobile/pull/11285): Feat/notifications add analytics (#11285)
 - [#11281](https://github.com/MetaMask/metamask-mobile/pull/11281): fix: Fix the styling issue of link in SearchingForDeviceStep component (#11281)
-- [#Xiaoming Wang](Xiaoming Wang): "fix: 587 due to ledger rollback blind signing setting
-- [#10755](https://github.com/MetaMask/metamask-mobile/pull/10755): feat: ledger account selection screen add hd options to sync with extension (#10755)
-- [#11284](https://github.com/MetaMask/metamask-mobile/pull/11284): chore: add notifications state awareness inapp badge (#11284)
 - [#11265](https://github.com/MetaMask/metamask-mobile/pull/11265): fix: notification account syncing (#11265)
 - [#11218](https://github.com/MetaMask/metamask-mobile/pull/11218): fix: close icon on notifications list screen (#11218)
 - [#11193](https://github.com/MetaMask/metamask-mobile/pull/11193): fix: ItemMenu crash using dayjs (#11193)
-- [#11195](https://github.com/MetaMask/metamask-mobile/pull/11195): feat: add AppState dependency to load notifications (#11195)
-- [#11175](https://github.com/MetaMask/metamask-mobile/pull/11175): feat: add product announcements toggle (#11175)
 - [#11098](https://github.com/MetaMask/metamask-mobile/pull/11098): fix: badge count and ui polishing (#11098)
-- [#runway-github[bot]](runway-github[bot]): "chore(runway): cherry-pick fix: 587 due to ledger rollback blind signing setting
-- [#11209](https://github.com/MetaMask/metamask-mobile/pull/11209): chore(runway): cherry-pick fix: freeze during swap with approval (#11209)
-- [#11157](https://github.com/MetaMask/metamask-mobile/pull/11157): chore(runway): cherry-pick chore: bump send for all the packages (#11157)
-- [#11082](https://github.com/MetaMask/metamask-mobile/pull/11082): chore: bump network controller 20.0.0 (#11082)
-- [#11095](https://github.com/MetaMask/metamask-mobile/pull/11095): chore(runway): cherry-pick fix: Intermittent Display Issue of Fiat Currency on Main Wallet View (#11095)
-- [#11181](https://github.com/MetaMask/metamask-mobile/pull/11181): chore(runway): cherry-pick fix: fix check token balance is zero (#11181)
-- [#11208](https://github.com/MetaMask/metamask-mobile/pull/11208): chore(runway): cherry-pick chore: update performance for new allocation (#11208)
-- [#11205](https://github.com/MetaMask/metamask-mobile/pull/11205): chore(runway): cherry-pick fix: dset version (#11205)
-- [#10821](https://github.com/MetaMask/metamask-mobile/pull/10821): chore(deps): bump `accounts-controller` to v18.1.0 and `keyring-api` to v8.1.0 (#10821)
-- [#11131](https://github.com/MetaMask/metamask-mobile/pull/11131): chore: cherry-pick #10755 (#11131)
 
 
 ## 7.31.0 - Sep 6, 2024
