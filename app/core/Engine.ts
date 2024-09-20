@@ -1692,6 +1692,7 @@ class Engine {
            * V1/V2 controllers with correctly defined messengers and `stateChange` events.
            */
           'AccountsController:stateChange',
+          'AddressBookController:stateChange',
           'ApprovalController:stateChange',
           'CurrencyRateController:stateChange',
           'GasFeeController:stateChange',
@@ -1740,8 +1741,6 @@ class Engine {
            */
           // TODO: uncomment once `AccountTrackerController` is migrated to V2 and the `stateChange` event is added to its `messagingSystem`.
           // 'AccountTrackerController:stateChange', // StaticIntervalPollingControllerV1, no `messagingSystem`
-          // TODO: uncomment once `AddressBookController` is migrated to V2 and the `stateChange` event is added to its `messagingSystem`.
-          // 'AddressBookController:stateChange', // BaseControllerV1, no `messagingSystem`
           // TODO: uncomment once `SmartTransactionsController` is migrated to V2 and the `stateChange` event is added to its `messagingSystem`.
           // 'SmartTransactionsController:stateChange', // StaticIntervalPollingControllerV1, no `messagingSystem`
           // TODO: uncomment once `SwapsController` is migrated to V2 and the `stateChange` event is added to its `messagingSystem`.
