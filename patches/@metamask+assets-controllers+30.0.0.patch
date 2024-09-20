@@ -381,7 +381,7 @@ index ee6155c..06a3a04 100644
  };
  var NftDetectionController_default = NftDetectionController;
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js b/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js
-index 76e3362..6f79cf7 100644
+index 76e3362..057c90e 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js
 +++ b/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js
 @@ -34,7 +34,7 @@ var STATIC_MAINNET_TOKEN_LIST = Object.entries(
@@ -417,7 +417,18 @@ index 76e3362..6f79cf7 100644
      _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _trackMetaMetricsEvent, trackMetaMetricsEvent);
      const { isUnlocked } = this.messagingSystem.call(
        "KeyringController:getState"
-@@ -203,6 +206,7 @@ _isDetectionEnabledFromPreferences = new WeakMap();
+@@ -165,7 +168,9 @@ var TokenDetectionController = class extends _pollingcontroller.StaticIntervalPo
+     if (!this.isActive) {
+       return;
+     }
+-    const addressAgainstWhichToDetect = selectedAddress ?? _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _selectedAddress);
++    const currentAddress = _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _selectedAddress);
++    const currentAddressChecksum = _controllerutils.toChecksumHexAddress.call(void 0, currentAddress)
++    const addressAgainstWhichToDetect = _controllerutils.toChecksumHexAddress.call(void 0, selectedAddress) ?? currentAddressChecksum;
+     const { chainId, networkClientId: selectedNetworkClientId } = _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _getCorrectChainIdAndNetworkClientId, getCorrectChainIdAndNetworkClientId_fn).call(this, networkClientId);
+     const chainIdAgainstWhichToDetect = chainId;
+     const networkClientIdAgainstWhichToDetect = selectedNetworkClientId;
+@@ -203,6 +208,7 @@ _isDetectionEnabledFromPreferences = new WeakMap();
  _isDetectionEnabledForNetwork = new WeakMap();
  _getBalancesInSingleCall = new WeakMap();
  _trackMetaMetricsEvent = new WeakMap();
@@ -425,7 +436,7 @@ index 76e3362..6f79cf7 100644
  _registerEventListeners = new WeakSet();
  registerEventListeners_fn = function() {
    this.messagingSystem.subscribe("KeyringController:unlock", async () => {
-@@ -224,12 +228,10 @@ registerEventListeners_fn = function() {
+@@ -224,12 +230,10 @@ registerEventListeners_fn = function() {
    );
    this.messagingSystem.subscribe(
      "PreferencesController:stateChange",
@@ -440,17 +451,7 @@ index 76e3362..6f79cf7 100644
          await _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _restartTokenDetection, restartTokenDetection_fn).call(this, {
            selectedAddress: _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _selectedAddress)
          });
-@@ -241,7 +243,8 @@ registerEventListeners_fn = function() {
-     async ({ address: newSelectedAddress }) => {
-       const isSelectedAddressChanged = _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _selectedAddress) !== newSelectedAddress;
-       if (isSelectedAddressChanged) {
--        _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _selectedAddress, newSelectedAddress);
-+        const newSelectedAddressChecksummed = _controllerutils.toChecksumHexAddress.call(void 0, newSelectedAddress)
-+        _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _selectedAddress, newSelectedAddressChecksummed);
-         await _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _restartTokenDetection, restartTokenDetection_fn).call(this, {
-           selectedAddress: _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _selectedAddress)
-         });
-@@ -324,7 +327,7 @@ getSlicesOfTokensToDetect_fn = function({
+@@ -324,7 +328,7 @@ getSlicesOfTokensToDetect_fn = function({
    chainId,
    selectedAddress
  }) {
