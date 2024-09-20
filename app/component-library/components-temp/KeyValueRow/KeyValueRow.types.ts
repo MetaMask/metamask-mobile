@@ -5,6 +5,7 @@ import {
 import { ButtonIconSizes } from '../../components/Buttons/ButtonIcon';
 import { ReactNode } from 'react';
 import { TextProps } from '../../components/Texts/Text/Text.types';
+import { ViewProps } from 'react-native';
 
 /**
  * The optional tooltip tha can be displayed within a KeyValueRowField or KeyValueRowLabel.
@@ -22,7 +23,7 @@ interface KeyValueRowTooltip {
    */
   text: string;
   /**
-   * Optional size of the tooltip icon displayed.
+   * Optional size of the tooltip icon.
    * @default TooltipSizes.Md
    */
   size?: ButtonIconSizes;
@@ -40,9 +41,9 @@ export enum KeyValueRowFieldIconSides {
 }
 
 /**
- * Represents a field displayed within KeyValueRowText.
+ * Represents a field displayed within KeyValueRowProps.
  *
- * @see KeyValueRowText
+ * @see KeyValueRowProps
  */
 interface KeyValueRowField {
   /**
@@ -107,26 +108,16 @@ export interface KeyValueRowRootProps {
    * Must have exactly two children. Adding more will lead to an undesired outcome.
    */
   children: [ReactNode, ReactNode];
-}
-
-/**
- * Represents the valid KeyValueSection directions.
- */
-export enum SectionDirections {
   /**
-   * Horizontal.
+   * Optional styles. Useful for controlling padding and margins.
    */
-  ROW = 'row',
-  /**
-   * Vertical.
-   */
-  COLUMN = 'column',
+  style?: ViewProps['style'];
 }
 
 /**
  * Represents the valid KeyValueSection alignments.
  */
-export enum SectionAlignments {
+export enum KeyValueRowSectionAlignments {
   LEFT = 'flex-start',
   RIGHT = 'flex-end',
 }
@@ -140,29 +131,10 @@ export interface KeyValueSectionProps {
    */
   children: ReactNode;
   /**
-   * Optional content direction.
-   * @default SectionDirections.COLUMN
-   */
-  direction?: SectionDirections;
-  /**
    * Optional content alignment.
-   * @default SectionAlignments.RIGHT
+   * @default KeyValueRowSectionAlignments.RIGHT
    */
-  align?: SectionAlignments;
-}
-
-/**
- * Represents either the "key" (field) or the "value" in the KeyValueRow.
- */
-interface KeyValueRowText {
-  /**
-   * Displayed on the top.
-   */
-  primary: KeyValueRowField;
-  /**
-   * Optional field displayed underneath the primary field.
-   */
-  secondary?: KeyValueRowField;
+  align?: KeyValueRowSectionAlignments;
 }
 
 /**
@@ -171,10 +143,15 @@ interface KeyValueRowText {
 export interface KeyValueRowProps {
   /**
    * The "key" portion of the KeyValueRow (left side).
+   * Using the variable name field because key is reserved.
    */
-  field: KeyValueRowText;
+  field: KeyValueRowField;
   /**
    * The "value" portion of the KeyValueRow (right side).
    */
-  value: KeyValueRowText;
+  value: KeyValueRowField;
+  /**
+   * Optional styles. E.g. specifying padding or margins.
+   */
+  style?: ViewProps['style'];
 }

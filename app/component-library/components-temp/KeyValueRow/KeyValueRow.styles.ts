@@ -4,12 +4,11 @@ const styleSheet = () =>
   StyleSheet.create({
     rootContainer: {
       flexDirection: 'row',
-      paddingVertical: 8,
       justifyContent: 'space-between',
       alignItems: 'center',
       overflow: 'hidden',
     },
-    keyValueSection: {
+    keyValueSectionContainer: {
       flex: 1,
     },
     labelContainer: {

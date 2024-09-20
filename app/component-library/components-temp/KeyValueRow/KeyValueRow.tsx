@@ -9,7 +9,7 @@ import {
   TooltipSizes,
   KeyValueRowProps,
   KeyValueRowFieldIconSides,
-  SectionAlignments,
+  KeyValueRowSectionAlignments,
 } from './KeyValueRow.types';
 import useTooltipModal from '../../../components/hooks/useTooltipModal';
 import ButtonIcon from '../../components/Buttons/ButtonIcon';
@@ -33,13 +33,19 @@ import { areKeyValueRowPropsEqual } from './KeyValueRow.utils';
  * @component
  * @param {Object} props - Component props.
  * @param {Array<ReactNode>} props.children - The two <KeyValueSection> children.
+ * @param {ViewProps} [props.style] - Optional styling
  *
  * @returns {JSX.Element} The rendered Root component.
  */
-const KeyValueRowRoot = ({ children }: KeyValueRowRootProps) => {
-  const { styles } = useStyles(stylesheet, {});
+const KeyValueRowRoot = ({
+  children,
+  style: customStyles,
+}: KeyValueRowRootProps) => {
+  const { styles: defaultStyles } = useStyles(stylesheet, {});
 
-  return <View style={styles.rootContainer}>{children}</View>;
+  const styles = [defaultStyles.rootContainer, customStyles];
+
+  return <View style={styles}>{children}</View>;
 };
 
 /**
@@ -49,19 +55,18 @@ const KeyValueRowRoot = ({ children }: KeyValueRowRootProps) => {
  * @component
  * @param {Object} props - Component props.
  * @param {ReactNode} props.children - The child components.
- * @param {SectionDirections} [props.direction] - The orientation of the KeyValueSection. Default to SectionDirections.COLUMN
- * @param {SectionAlignments} [props.align] - The alignment of the KeyValueSection. Default to SectionAlignments.RIGHT
+ * @param {KeyValueRowSectionAlignments} [props.align] - The alignment of the KeyValueSection. Defaults to KeyValueRowSectionAlignments.RIGHT
  *
  * @returns {JSX.Element} The rendered KeyValueSection component.
  */
 const KeyValueSection = ({
   children,
-  align = SectionAlignments.LEFT,
+  align = KeyValueRowSectionAlignments.LEFT,
 }: KeyValueSectionProps) => {
   const { styles } = useStyles(stylesheet, {});
 
   return (
-    <View style={{ ...styles.keyValueSection, alignItems: align }}>
+    <View style={{ ...styles.keyValueSectionContainer, alignItems: align }}>
       {children}
     </View>
   );
@@ -114,136 +119,72 @@ const KeyValueRowLabel = ({
 };
 
 /**
- * Prebuilt convenience component to format and display a key/value KeyValueRowLabel pair.
- * The KeyValueRowLabel component supports convenience props to display a tooltip and icon.
+ * Prebuilt convenience component to format and render a key/value KeyValueRowLabel pair.
+ * The KeyValueRowLabel component has props to display a tooltip and icon.
  *
  * Examples are in the Storybook: [StorybookLink](./KeyValueRow.stories.tsx)
  *
  * @param {Object} props - Component props
- * @param {KeyValueRowText} [props.field] - Represents the left side of the key value row pair
- * @param {KeyValueRowText} [props.value] - Represents the right side of the key value row pair
+ * @param {KeyValueRowField} props.field - Represents the left side of the key value row pair
+ * @param {KeyValueRowField} props.value - Represents the right side of the key value row pair
+ * @param {ViewProps} [props.style] - Optional styling
  *
  * @returns {JSX.Element} The rendered KeyValueRow component.
  */
-const KeyValueRow = React.memo(
-  ({ field: keyText, value: valueText }: KeyValueRowProps) => {
-    const { styles } = useStyles(stylesheet, {});
+const KeyValueRow = React.memo(({ field, value, style }: KeyValueRowProps) => {
+  const { styles } = useStyles(stylesheet, {});
 
-    // KeyText Primary (left side)
-    const keyTextPrimaryIcon = keyText.primary?.icon;
-    const shouldShowKeyTextPrimaryIcon = keyTextPrimaryIcon?.name;
+  // Field (left side)
+  const fieldIcon = field?.icon;
+  const shouldShowFieldIcon = fieldIcon?.name;
 
-    // KeyText Secondary (left side)
-    const keyTextSecondaryIcon = keyText?.secondary?.icon;
-    const shouldShowKeyTextSecondaryIcon = keyTextSecondaryIcon?.name;
+  // Value (right side)
+  const valueIcon = value?.icon;
+  const shouldShowValueIcon = valueIcon?.name;
 
-    // ValueText Primary (right side)
-    const valueTextPrimaryIcon = valueText.primary?.icon;
-    const shouldShowValueTextPrimaryIcon = valueTextPrimaryIcon?.name;
-
-    // ValueText Secondary (right side)
-    const valueTextSecondaryIcon = valueText?.secondary?.icon;
-    const shouldShowValueTextSecondaryIcon = valueTextSecondaryIcon?.name;
-
-    return (
-      <KeyValueRowRoot>
-        <KeyValueSection>
-          <View style={styles.flexRow}>
-            {shouldShowKeyTextPrimaryIcon &&
-              (keyTextPrimaryIcon.side === KeyValueRowFieldIconSides.LEFT ||
-                keyTextPrimaryIcon.side === KeyValueRowFieldIconSides.BOTH ||
-                !keyTextPrimaryIcon?.side) && <Icon {...keyTextPrimaryIcon} />}
-            <KeyValueRowLabel
-              label={keyText.primary.text}
-              variant={keyText.primary.variant}
-              color={keyText.primary.color}
-              tooltip={keyText.primary.tooltip}
-            />
-            {shouldShowKeyTextPrimaryIcon &&
-              (keyTextPrimaryIcon?.side === KeyValueRowFieldIconSides.RIGHT ||
-                keyTextPrimaryIcon?.side ===
-                  KeyValueRowFieldIconSides.BOTH) && (
-                <Icon {...keyTextPrimaryIcon} />
-              )}
-          </View>
-          <View style={styles.flexRow}>
-            {keyText?.secondary?.text && (
-              <>
-                {shouldShowKeyTextSecondaryIcon &&
-                  (keyTextSecondaryIcon.side ===
-                    KeyValueRowFieldIconSides.LEFT ||
-                    keyTextSecondaryIcon.side ===
-                      KeyValueRowFieldIconSides.BOTH ||
-                    !keyTextSecondaryIcon?.side) && (
-                    <Icon {...keyTextSecondaryIcon} />
-                  )}
-                <KeyValueRowLabel
-                  label={keyText.secondary.text}
-                  variant={keyText.secondary.variant}
-                  color={keyText.secondary.color}
-                  tooltip={keyText.secondary.tooltip}
-                />
-                {shouldShowKeyTextSecondaryIcon &&
-                  (keyTextSecondaryIcon.side ===
-                    KeyValueRowFieldIconSides.RIGHT ||
-                    keyTextSecondaryIcon.side ===
-                      KeyValueRowFieldIconSides.BOTH) && (
-                    <Icon {...keyTextSecondaryIcon} />
-                  )}
-              </>
-            )}
-          </View>
-        </KeyValueSection>
-        <KeyValueSection align={SectionAlignments.RIGHT}>
-          {shouldShowValueTextPrimaryIcon &&
-            (valueTextPrimaryIcon?.side === KeyValueRowFieldIconSides.LEFT ||
-              valueTextPrimaryIcon?.side === KeyValueRowFieldIconSides.BOTH ||
-              !valueTextPrimaryIcon?.side) && (
-              <Icon {...valueTextPrimaryIcon} />
-            )}
+  return (
+    <KeyValueRowRoot style={[style]}>
+      <KeyValueSection>
+        <View style={styles.flexRow}>
+          {shouldShowFieldIcon &&
+            (fieldIcon.side === KeyValueRowFieldIconSides.LEFT ||
+              fieldIcon.side === KeyValueRowFieldIconSides.BOTH ||
+              !fieldIcon?.side) && <Icon {...fieldIcon} />}
           <KeyValueRowLabel
-            label={valueText.primary.text}
-            variant={valueText.primary.variant}
-            color={valueText.primary.color}
-            tooltip={valueText.primary.tooltip}
+            label={field.text}
+            variant={field.variant}
+            color={field.color}
+            tooltip={field.tooltip}
           />
-          {shouldShowValueTextPrimaryIcon &&
-            (valueTextPrimaryIcon?.side === KeyValueRowFieldIconSides.RIGHT ||
-              valueTextPrimaryIcon?.side ===
-                KeyValueRowFieldIconSides.BOTH) && (
-              <Icon {...valueTextPrimaryIcon} />
+          {shouldShowFieldIcon &&
+            (fieldIcon?.side === KeyValueRowFieldIconSides.RIGHT ||
+              fieldIcon?.side === KeyValueRowFieldIconSides.BOTH) && (
+              <Icon {...fieldIcon} />
             )}
-          {valueText.secondary?.text && (
-            <View style={styles.flexRow}>
-              {shouldShowValueTextSecondaryIcon &&
-                (valueTextSecondaryIcon?.side ===
-                  KeyValueRowFieldIconSides.LEFT ||
-                  valueTextSecondaryIcon?.side ===
-                    KeyValueRowFieldIconSides.BOTH ||
-                  !valueTextSecondaryIcon?.side) && (
-                  <Icon {...valueTextSecondaryIcon} />
-                )}
-              <KeyValueRowLabel
-                label={valueText.secondary.text}
-                variant={valueText.secondary.variant}
-                color={valueText.secondary.color}
-                tooltip={valueText.secondary.tooltip}
-              />
-              {shouldShowValueTextSecondaryIcon &&
-                (valueTextSecondaryIcon?.side ===
-                  KeyValueRowFieldIconSides.RIGHT ||
-                  valueTextSecondaryIcon?.side ===
-                    KeyValueRowFieldIconSides.BOTH) && (
-                  <Icon {...valueTextSecondaryIcon} />
-                )}
-            </View>
-          )}
-        </KeyValueSection>
-      </KeyValueRowRoot>
-    );
-  },
-  areKeyValueRowPropsEqual,
-);
+        </View>
+      </KeyValueSection>
+      <KeyValueSection align={KeyValueRowSectionAlignments.RIGHT}>
+        <View style={styles.flexRow}>
+          {shouldShowValueIcon &&
+            (valueIcon?.side === KeyValueRowFieldIconSides.LEFT ||
+              valueIcon?.side === KeyValueRowFieldIconSides.BOTH ||
+              !valueIcon?.side) && <Icon {...valueIcon} />}
+          <KeyValueRowLabel
+            label={value.text}
+            variant={value.variant}
+            color={value.color}
+            tooltip={value.tooltip}
+          />
+          {shouldShowValueIcon &&
+            (valueIcon?.side === KeyValueRowFieldIconSides.RIGHT ||
+              valueIcon?.side === KeyValueRowFieldIconSides.BOTH) && (
+              <Icon {...valueIcon} />
+            )}
+        </View>
+      </KeyValueSection>
+    </KeyValueRowRoot>
+  );
+}, areKeyValueRowPropsEqual);
 
 /**
  * Exported sub-components to provide a base for new KeyValueRow variants.

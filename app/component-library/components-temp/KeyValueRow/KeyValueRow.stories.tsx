@@ -38,96 +38,56 @@ export const KeyValueRow = {
       <View style={styles.listItem}>
         <KeyValueRowComponent
           field={{
-            primary: {
-              text: 'Sample Key Text',
-            },
+            text: 'Sample Key Text',
           }}
-          value={{ primary: { text: 'Sample Key Text' } }}
+          value={{ text: 'Sample Key Text' }}
         />
         <KeyValueRowComponent
           field={{
-            primary: {
-              text: 'Sample Key Text',
-            },
-            secondary: {
-              text: 'Sample Value Text',
-              variant: TextVariant.BodySM,
-              color: TextColor.Alternative,
-            },
+            text: 'Sample Key Text',
+            variant: TextVariant.BodySM,
+            color: TextColor.Alternative,
           }}
           value={{
-            primary: {
-              text: 'Sample Value Text',
-            },
-            secondary: {
-              text: 'Sample Value Text',
-              color: TextColor.Success,
-              variant: TextVariant.BodySM,
+            text: 'Sample Value Text',
+            variant: TextVariant.BodySMBold,
+            color: TextColor.Success,
+            tooltip: {
+              title: 'Sample Title',
+              text: 'Sample Tooltip',
+              size: TooltipSizes.Sm,
             },
           }}
         />
         <KeyValueRowComponent
           field={{
-            primary: {
-              text: 'Sample Key Text',
-              tooltip: {
-                title: 'Sample Tooltip',
-                text: 'Pariatur nisi pariatur ex veniam ad. Non tempor nostrud sint velit cupidatat aliquip elit ut pariatur reprehenderit enim enim commodo eu.',
-              },
-            },
-            secondary: {
-              text: 'Secondary Key Text',
-              variant: TextVariant.BodySMMedium,
-              color: TextColor.Alternative,
+            text: 'Sample Key Text',
+            tooltip: {
+              title: 'Sample Tooltip',
+              text: 'Pariatur nisi pariatur ex veniam ad. Non tempor nostrud sint velit cupidatat aliquip elit ut pariatur reprehenderit enim enim commodo eu.',
             },
           }}
           value={{
-            primary: {
-              text: 'Sample Value Text',
-            },
-            secondary: {
-              text: 'Secondary Value Text',
-              variant: TextVariant.BodySMMedium,
-              color: TextColor.Warning,
-              icon: {
-                name: IconName.Warning,
-                color: IconColor.Warning,
-                size: IconSize.Sm,
-                side: KeyValueRowFieldIconSides.RIGHT,
-              },
-            },
+            text: 'Sample Value Text',
           }}
         />
         <KeyValueRowComponent
           field={{
-            primary: {
-              text: 'Sample Key Text',
-              icon: {
-                name: IconName.Wifi,
-                color: IconColor.Primary,
-                size: IconSize.Sm,
-                side: KeyValueRowFieldIconSides.BOTH,
-              },
-            },
-            secondary: {
-              text: 'Secondary Key Text',
-              variant: TextVariant.BodySMMedium,
-              color: TextColor.Alternative,
+            text: 'Sample Key Text',
+            icon: {
+              name: IconName.Wifi,
+              color: IconColor.Primary,
+              size: IconSize.Sm,
+              side: KeyValueRowFieldIconSides.BOTH,
             },
           }}
           value={{
-            primary: {
-              text: 'Sample Value Text',
-            },
-            secondary: {
-              text: 'Secondary Value Text',
-              variant: TextVariant.BodySMMedium,
-              color: TextColor.Alternative,
-              tooltip: {
-                title: 'Sample Tooltip',
-                text: 'Pariatur nisi pariatur ex veniam ad. Non tempor nostrud sint velit cupidatat aliquip elit ut pariatur reprehenderit enim enim commodo eu.',
-                size: TooltipSizes.Sm,
-              },
+            text: 'Sample Value Text',
+            icon: {
+              name: IconName.Wifi,
+              color: IconColor.Primary,
+              size: IconSize.Sm,
+              side: KeyValueRowFieldIconSides.BOTH,
             },
           }}
         />
