@@ -172,11 +172,8 @@ describe('PPOM Utils', () => {
             ],
           },
         },
-        selectedNetworkClientId: 'mainnet',
-        networksMetadata: {},
       },
     };
-
     normalizeTransactionParamsMock.mockImplementation((params) => params);
     mockIsBlockaidFeatureEnabled.mockResolvedValue(true);
   });

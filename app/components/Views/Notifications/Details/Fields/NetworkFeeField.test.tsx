@@ -1,8 +1,9 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import NetworkFeeField from './NetworkFeeField';
-import { OnChainRawNotificationsWithNetworkFields } from '@metamask/notification-services-controller/dist/types/NotificationServicesController/types';
-import { ModalFieldType } from '../../../../../util/notifications';
+import { OnChainRawNotificationsWithNetworkFields } from '@metamask/notification-services-controller/dist/NotificationServicesController/types/on-chain-notification/index.mjs';
+import { type Notification, ModalFieldType } from '../../../../../util/notifications';
+
 import { NotificationServicesController } from '@metamask/notification-services-controller';
 
 const {
@@ -55,6 +56,7 @@ describe('NetworkFeeField', () => {
             chainId: '0x1',
           })
         }
+        notification={MOCK_NOTIFICATION as Notification}
       />,
     );
 
