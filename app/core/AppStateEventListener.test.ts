@@ -33,7 +33,7 @@ jest.mock('../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-describe('AppStateManager', () => {
+describe('AppStateEventListener', () => {
   let appStateManager: AppStateEventListener;
   let mockAppStateListener: (state: AppStateStatus) => void;
   let mockTrackEvent: jest.Mock;

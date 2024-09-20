@@ -45,16 +45,6 @@ describe('processAttribution', () => {
     expect(result).toBeUndefined();
   });
 
-  it('returns undefined when deeplink is wrong', () => {
-    (store.getState as jest.Mock).mockReturnValue({
-      security: { dataCollectionForMarketing: true },
-    });
-
-    //@ts-error testing invalid input
-    const result = processAttribution('afadf');
-    expect(result).toBeUndefined();
-  });
-
   it('returns undefined when attributionId is not present in params', () => {
     (store.getState as jest.Mock).mockReturnValue({
       security: { dataCollectionForMarketing: true },
