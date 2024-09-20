@@ -1,7 +1,7 @@
 import { AppState, AppStateStatus } from 'react-native';
 import { MetaMetrics, MetaMetricsEvents } from './Analytics';
 import { store } from '../store';
-import AppStateManager from './AppStateManager';
+import AppStateEventListener from './AppStateEventListener';
 import extractURLParams from './DeeplinkManager/ParseManager/extractURLParams';
 import Logger from '../util/Logger';
 
@@ -34,7 +34,7 @@ jest.mock('../util/Logger', () => ({
 }));
 
 describe('AppStateManager', () => {
-  let appStateManager: AppStateManager;
+  let appStateManager: AppStateEventListener;
   let mockAppStateListener: (state: AppStateStatus) => void;
   let mockTrackEvent: jest.Mock;
 
@@ -49,7 +49,7 @@ describe('AppStateManager', () => {
       mockAppStateListener = listener;
       return { remove: jest.fn() };
     });
-    appStateManager = new AppStateManager();
+    appStateManager = new AppStateEventListener();
   });
 
   afterEach(() => {
@@ -126,7 +126,7 @@ describe('AppStateManager', () => {
     const mockRemove = jest.fn();
     (AppState.addEventListener as jest.Mock).mockReturnValue({ remove: mockRemove });
 
-    appStateManager = new AppStateManager();
+    appStateManager = new AppStateEventListener();
     appStateManager.cleanup();
 
     expect(mockRemove).toHaveBeenCalled();

@@ -125,7 +125,7 @@ import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
-import AppStateManager from '../../../core/AppStateManager';
+import AppStateEventListener from '../../../core/AppStateEventListener';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -318,7 +318,7 @@ const App = (props) => {
   const dispatch = useDispatch();
   const sdkInit = useRef();
   const [onboarded, setOnboarded] = useState(false);
-  const appStateManager = useRef(null);
+  const appStateEventListener = useRef(null);
 
   const triggerSetCurrentRoute = (route) => {
     dispatch(setCurrentRoute(route));
@@ -328,7 +328,7 @@ const App = (props) => {
     }
   };
 
-  useEffect(() => () => appStateManager.current.cleanup(), []);
+  useEffect(() => () => appStateEventListener.current.cleanup(), []);
 
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
@@ -374,7 +374,7 @@ const App = (props) => {
     const deeplink = params?.['+non_branch_link'] || uri || null;
     try {
       if (deeplink) {
-        appStateManager.current.setCurrentDeeplink(deeplink);
+        appStateEventListener.current.setCurrentDeeplink(deeplink);
         SharedDeeplinkManager.parse(deeplink, {
           origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
         });
@@ -399,8 +399,8 @@ const App = (props) => {
   }, [handleDeeplink]);
 
   useEffect(() => {
-    if (navigator && !appStateManager.current) {
-      appStateManager.current = new AppStateManager();
+    if (navigator && !appStateEventListener.current) {
+      appStateEventListener.current = new AppStateEventListener();
     }
   }, [navigator]);
 

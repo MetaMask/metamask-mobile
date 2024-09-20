@@ -1,11 +1,10 @@
 import { AppState, AppStateStatus } from 'react-native';
-import { store } from '../store';
 import Logger from '../util/Logger';
 import { MetaMetrics, MetaMetricsEvents } from './Analytics';
-import extractURLParams from './DeeplinkManager/ParseManager/extractURLParams';
+import { processAttribution } from './processAttribution';
 import DevLogger from './SDKConnect/utils/DevLogger';
 
-class AppStateManager {
+class AppStateEventListener {
   private appStateSubscription: ReturnType<typeof AppState.addEventListener>;
   private currentDeeplink: string | null = null;
   private lastAppState: AppStateStatus = AppState.currentState;
@@ -34,15 +33,8 @@ class AppStateManager {
 
   private processAppStateChange = () => {
     try {
-      const state = store.getState();
-      const isMarketingEnabled = state.security.dataCollectionForMarketing;
-
-      let attributionId: string | undefined;
-      if (isMarketingEnabled && this.currentDeeplink) {
-          const { params } = extractURLParams(this.currentDeeplink);
-          attributionId = params.attributionId;
-      }
-      DevLogger.log(`AppStateManager:: processAppStateChange:: sending event 'APP_OPENED' isMarketingEnabled=${isMarketingEnabled} attributionId=${attributionId}`);
+      const attributionId = processAttribution(this.currentDeeplink);
+      DevLogger.log(`AppStateManager:: processAppStateChange:: sending event 'APP_OPENED' attributionId=${attributionId}`);
       MetaMetrics.getInstance().trackEvent(
         MetaMetricsEvents.APP_OPENED,
         { attributionId },
@@ -58,4 +50,4 @@ class AppStateManager {
   }
 }
 
-export default AppStateManager;
+export default AppStateEventListener;
