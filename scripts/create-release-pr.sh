@@ -21,14 +21,14 @@ CHANGELOG_BRANCH_NAME="chore/${NEW_VERSION}-Changelog"
 git config user.name metamaskbot
 git config user.email metamaskbot@users.noreply.github.com
 
-echo "Checkout release branch"
-git checkout "${RELEASE_BRANCH_NAME}"
+# echo "Checkout release branch"
+# git checkout "${RELEASE_BRANCH_NAME}"
 
-echo "Checkout new chore branch"
-git checkout -b "${CHANGELOG_BRANCH_NAME}"
+# echo "Checkout new chore branch"
+# git checkout -b "${CHANGELOG_BRANCH_NAME}"
 
-#Generate version bump, changelog and test plan csv
-yarn set-version
+# #Generate version bump, changelog and test plan csv
+# yarn set-version
 node ./scripts/generate-rc-commits.mjs "${PREVIOUS_VERSION}" "${RELEASE_BRANCH_NAME}" 
 ./scripts/changelog-csv.sh  "${RELEASE_BRANCH_NAME}" 
 
