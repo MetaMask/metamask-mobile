@@ -5267,9 +5267,9 @@
     superstruct "^1.0.3"
 
 "@metamask/snaps-sdk@^4.2.0":
-  version "4.4.1"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-sdk/-/snaps-sdk-4.4.1.tgz#90603a6c83eeb27334e7192a77e7abd6a01d1f53"
-  integrity sha512-SNtkyIOYdaadFKPSpnGfNu7dXHiTXogHusQdmIHkqidWQaFTIEnKuViePTPgBCdx17/nwu/ZBEhq0AlugRsZ6w==
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-sdk/-/snaps-sdk-4.4.2.tgz#6d7654ca3ecbcda5cd8689f49721c084241a4495"
+  integrity sha512-V6d1kQdkCTYQ7Z3+ZVnMWjwsS2TRaKNnSRtSHgjATdSacW5d/1td2KbTs+1x1/cSe58ULKW1SBwRNy0i0c95hA==
   dependencies:
     "@metamask/key-tree" "^9.1.1"
     "@metamask/providers" "^17.0.0"
