@@ -532,6 +532,8 @@ PODS:
     - React-Core
   - react-native-cookies (6.2.1):
     - React-Core
+  - react-native-fast-crypto (2.2.0):
+    - React
   - react-native-flipper (0.263.0):
     - React-Core
   - react-native-get-random-values (1.8.0):
@@ -567,8 +569,6 @@ PODS:
   - react-native-slider (4.5.2):
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
-  - react-native-splash-screen (3.2.0):
-    - React
   - react-native-video (5.2.1):
     - React-Core
     - react-native-video/Video (= 5.2.1)
@@ -767,9 +767,10 @@ PODS:
     - React-RCTImage
   - RNSensors (5.3.0):
     - React
-  - RNSentry (5.24.1):
+  - RNSentry (5.33.0):
+    - RCT-Folly (= 2021.07.22.00)
     - React-Core
-    - Sentry/HybridSDK (= 8.29.1)
+    - Sentry/HybridSDK (= 8.36.0)
   - RNShare (7.3.7):
     - React-Core
   - RNSVG (15.3.0):
@@ -779,7 +780,7 @@ PODS:
   - segment-analytics-react-native (2.17.0):
     - React-Core
     - sovran-react-native
-  - Sentry/HybridSDK (8.29.1)
+  - Sentry/HybridSDK (8.36.0)
   - SocketRocket (0.6.1)
   - sovran-react-native (1.0.4):
     - React-Core
@@ -855,6 +856,7 @@ DEPENDENCIES:
   - react-native-camera (from `../node_modules/react-native-camera`)
   - "react-native-compat (from `../node_modules/@walletconnect/react-native-compat`)"
   - "react-native-cookies (from `../node_modules/@react-native-cookies/cookies`)"
+  - react-native-fast-crypto (from `../node_modules/react-native-fast-crypto`)
   - react-native-flipper (from `../node_modules/react-native-flipper`)
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
   - react-native-gzip (from `../node_modules/react-native-gzip`)
@@ -869,7 +871,6 @@ DEPENDENCIES:
   - react-native-render-html (from `../node_modules/react-native-render-html`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - "react-native-slider (from `../node_modules/@react-native-community/slider`)"
-  - "react-native-splash-screen (from `../node_modules/@metamask/react-native-splash-screen`)"
   - react-native-video (from `../node_modules/react-native-video`)
   - react-native-view-shot (from `../node_modules/react-native-view-shot`)
   - "react-native-webview-mm (from `../node_modules/@metamask/react-native-webview`)"
@@ -1031,6 +1032,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@walletconnect/react-native-compat"
   react-native-cookies:
     :path: "../node_modules/@react-native-cookies/cookies"
+  react-native-fast-crypto:
+    :path: "../node_modules/react-native-fast-crypto"
   react-native-flipper:
     :path: "../node_modules/react-native-flipper"
   react-native-get-random-values:
@@ -1059,8 +1062,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-slider:
     :path: "../node_modules/@react-native-community/slider"
-  react-native-splash-screen:
-    :path: "../node_modules/@metamask/react-native-splash-screen"
   react-native-video:
     :path: "../node_modules/react-native-video"
   react-native-view-shot:
@@ -1232,6 +1233,7 @@ SPEC CHECKSUMS:
   react-native-camera: b8cc03e2feec0c04403d0998e37cf519d8fd4c6f
   react-native-compat: 8b6a38155e778a20a008aea837efd00e099b6fe8
   react-native-cookies: f54fcded06bb0cda05c11d86788020b43528a26c
+  react-native-fast-crypto: 5943c42466b86ad70be60d3a5f64bd22251e5d9e
   react-native-flipper: 6cfd5991388121f7f96fc5171b93380f97ebb3c6
   react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
   react-native-gzip: c5e87ee9e359f02350e3a2ee52eb35eddc398868
@@ -1246,7 +1248,6 @@ SPEC CHECKSUMS:
   react-native-render-html: 984dfe2294163d04bf5fe25d7c9f122e60e05ebe
   react-native-safe-area-context: 9e40fb181dac02619414ba1294d6c2a807056ab9
   react-native-slider: f266dd860064138a659a42714e6da47a52a51107
-  react-native-splash-screen: 49a7160705f32169d27ab8dff9dda53331592412
   react-native-video: c26780b224543c62d5e1b2a7244a5cd1b50e8253
   react-native-view-shot: 4475fde003fe8a210053d1f98fb9e06c1d834e1c
   react-native-webview-mm: 37644cf11406a7135d030555a82186976feb5621
@@ -1290,12 +1291,12 @@ SPEC CHECKSUMS:
   RNReanimated: f8379347f71248607d530a21e31e4140c5910c25
   RNScreens: 68fd1060f57dd1023880bf4c05d74784b5392789
   RNSensors: c363d486c879e181905dea84a2535e49af1c2d25
-  RNSentry: 0aefd4f23b45e3c00577c3a18af79b8f8193bcdb
+  RNSentry: 36bacbec2825ee461937bcc151cbb5a2150d1ea6
   RNShare: f116bbb04f310c665ca483d0bd1e88cf59b3b334
   RNSVG: a48668fd382115bc89761ce291a81c4ca5f2fd2e
   RNVectorIcons: 6607bd3a30291d0edb56f9bbe7ae411ee2b928b0
   segment-analytics-react-native: dbdd08d96fec78132e96bda092562e41c2ce0ce0
-  Sentry: c446963245407030e17f1b926a83c6337dc99f4e
+  Sentry: f8374b5415bc38dfb5645941b3ae31230fbeae57
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   sovran-react-native: 791f2f726b4d57ece59676eda58d6da9dc95ad4e
   TcpSockets: a8eb6b5867fe643e6cfed5db2e4de62f4d1e8fd0

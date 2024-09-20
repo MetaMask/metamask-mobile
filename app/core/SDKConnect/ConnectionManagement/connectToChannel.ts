@@ -136,6 +136,11 @@ async function connectToChannel({
       });
       authorized = true;
     } catch (error) {
+      // TODO: send rejected event
+
+      // first needs to connect without key exchange to send the event
+      await instance.state.connected[id].remote.reject({channelId: id});
+
       instance.removeChannel({ channelId: id, sendTerminate: true });
       // cleanup connection
       await wait(100); // Add delay for connect modal to be fully closed
