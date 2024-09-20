@@ -916,7 +916,9 @@ export function getWalletNavbarOptions(
   navigation,
   themeColors,
   isNotificationEnabled,
+  isProfileSyncingEnabled,
   unreadNotificationCount,
+  readNotificationCount,
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -988,8 +990,16 @@ export function getWalletNavbarOptions(
   function handleNotificationOnPress() {
     if (isNotificationEnabled && isNotificationsFeatureEnabled()) {
       navigation.navigate(Routes.NOTIFICATIONS.VIEW);
+      trackEvent(MetaMetricsEvents.NOTIFICATIONS_MENU_OPENED, {
+        unread_count: unreadNotificationCount,
+        read_count: readNotificationCount,
+      });
     } else {
       navigation.navigate(Routes.NOTIFICATIONS.OPT_IN_STACK);
+      trackEvent(MetaMetricsEvents.NOTIFICATIONS_ACTIVATED, {
+        action_type: 'started',
+        is_profile_syncing_enabled: isProfileSyncingEnabled,
+      });
     }
   }
 

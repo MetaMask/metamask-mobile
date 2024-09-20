@@ -1,10 +1,10 @@
-import { AddressBookState } from '@metamask/address-book-controller';
+import { AddressBookControllerState } from '@metamask/address-book-controller';
 import checkIfAddressIsSaved from './checkAddress';
 
 describe('checkIfAddressIsSaved', () => {
   it(`returns an empty array if the transaction recipient is unset`, () => {
     const mockAddress = '0x0000000000000000000000000000000000000001';
-    const addressBook: AddressBookState['addressBook'] = {
+    const addressBook: AddressBookControllerState['addressBook'] = {
       '0x1': {
         [mockAddress]: {
           address: mockAddress,
@@ -26,7 +26,7 @@ describe('checkIfAddressIsSaved', () => {
   // TODO: Update this case to return undefined to improve consistency
   it('returns undefined if the address book is empty', () => {
     const mockAddress = '0x0000000000000000000000000000000000000001';
-    const addressBook: AddressBookState['addressBook'] = {};
+    const addressBook: AddressBookControllerState['addressBook'] = {};
     const chainId = '0x1';
     const transaction = {
       to: mockAddress,
@@ -40,7 +40,7 @@ describe('checkIfAddressIsSaved', () => {
   it('returns an empty array if transaction recipient is not in the address book', () => {
     const mockAddress1 = '0x0000000000000000000000000000000000000001';
     const mockAddress2 = '0x0000000000000000000000000000000000000002';
-    const addressBook: AddressBookState['addressBook'] = {
+    const addressBook: AddressBookControllerState['addressBook'] = {
       '0x1': {
         [mockAddress2]: {
           address: mockAddress2,
@@ -63,7 +63,7 @@ describe('checkIfAddressIsSaved', () => {
 
   it('returns an empty array if transaction recipient is not in the address book for the given network', () => {
     const mockAddress = '0x0000000000000000000000000000000000000001';
-    const addressBook: AddressBookState['addressBook'] = {
+    const addressBook: AddressBookControllerState['addressBook'] = {
       '0x2': {
         [mockAddress]: {
           address: mockAddress,
@@ -86,7 +86,7 @@ describe('checkIfAddressIsSaved', () => {
 
   it('returns an address book entry', () => {
     const mockAddress = '0x0000000000000000000000000000000000000001';
-    const addressBook: AddressBookState['addressBook'] = {
+    const addressBook: AddressBookControllerState['addressBook'] = {
       '0x1': {
         [mockAddress]: {
           address: mockAddress,
@@ -115,7 +115,7 @@ describe('checkIfAddressIsSaved', () => {
   it('returns an address book entry with a checksummed address', () => {
     const mockAddress = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
     const mockAddressChecksummed = '0xaAaAaAaaAaAaAaaAaAAAAAAAAaaaAaAaAaaAaaAa';
-    const addressBook: AddressBookState['addressBook'] = {
+    const addressBook: AddressBookControllerState['addressBook'] = {
       '0x1': {
         [mockAddress]: {
           address: mockAddress,
@@ -145,7 +145,7 @@ describe('checkIfAddressIsSaved', () => {
   it('returns multiple address book entries', () => {
     const mockAddress = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
     const mockAddressChecksummed = '0xaAaAaAaaAaAaAaaAaAAAAAAAAaaaAaAaAaaAaaAa';
-    const addressBook: AddressBookState['addressBook'] = {
+    const addressBook: AddressBookControllerState['addressBook'] = {
       '0x1': {
         [mockAddress]: {
           address: mockAddress,

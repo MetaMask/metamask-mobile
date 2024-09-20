@@ -92,7 +92,9 @@ import { getCurrentRoute } from '../../../reducers/navigation';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import {
   getMetamaskNotificationsUnreadCount,
+  getMetamaskNotificationsReadCount,
   selectIsMetamaskNotificationsEnabled,
+  selectIsProfileSyncingEnabled,
 } from '../../../selectors/notifications';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
@@ -291,9 +293,13 @@ const Wallet = ({
     selectIsMetamaskNotificationsEnabled,
   );
 
+  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+
   const unreadNotificationCount = useSelector(
     getMetamaskNotificationsUnreadCount,
   );
+
+  const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
 
   const networkName = useSelector(selectNetworkName);
 
@@ -453,7 +459,9 @@ const Wallet = ({
         navigation,
         colors,
         isNotificationEnabled,
+        isProfileSyncingEnabled,
         unreadNotificationCount,
+        readNotificationCount,
       ),
     );
     /* eslint-disable-next-line */
@@ -464,7 +472,9 @@ const Wallet = ({
     networkImageSource,
     onTitlePress,
     isNotificationEnabled,
+    isProfileSyncingEnabled,
     unreadNotificationCount,
+    readNotificationCount,
   ]);
 
   const renderTabBar = useCallback(

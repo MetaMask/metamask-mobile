@@ -1,8 +1,11 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import NetworkFeeField from './NetworkFeeField';
-import { ModalFieldType } from '../../../../../util/notifications';
 import { NotificationServicesController } from '@metamask/notification-services-controller';
+import {
+  ModalFieldType,
+  type Notification,
+} from '../../../../../util/notifications';
 
 const {
   Processors: { processNotification },
@@ -54,6 +57,7 @@ describe('NetworkFeeField', () => {
             chainId: '0x1',
           })
         }
+        notification={MOCK_NOTIFICATION as Notification}
       />,
     );
 
