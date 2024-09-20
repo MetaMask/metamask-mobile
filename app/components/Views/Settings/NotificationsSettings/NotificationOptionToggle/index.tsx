@@ -71,7 +71,8 @@ const NotificationOptionToggle = ({
       new_value: !isEnabled,
     });
     await toggleAccount(!isEnabled);
-  }, [isEnabled, toggleAccount, trackEvent]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEnabled, toggleAccount]);
 
   return (
     <View style={styles.container}>

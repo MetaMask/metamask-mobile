@@ -43,7 +43,6 @@ import MainNavigator from './MainNavigator';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import { query } from '@metamask/controller-utils';
 import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
-import useNotificationHandler from '../../../util/notifications/hooks';
 
 import {
   setInfuraAvailabilityBlocked,
@@ -72,6 +71,8 @@ import {
   selectNetworkImageSource,
 } from '../../../selectors/networkInfos';
 import { selectShowIncomingTransactionNetworks } from '../../../selectors/preferencesController';
+import NotificationsService from '../../../util/notifications/services/NotificationService';
+import useNotificationHandler from '../../../util/notifications/hooks';
 import {
   DEPRECATED_NETWORKS,
   NETWORKS_CHAIN_ID,
@@ -107,7 +108,7 @@ const Main = (props) => {
   const [showDeprecatedAlert, setShowDeprecatedAlert] = useState(true);
   const { colors } = useTheme();
   const styles = createStyles(colors);
-
+  const { handleNotificationPressed } = useNotificationHandler();
   const backgroundMode = useRef(false);
   const locale = useRef(I18n.locale);
   const removeConnectionStatusListener = useRef();
@@ -115,8 +116,34 @@ const Main = (props) => {
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
 
   useEnableAutomaticSecurityChecks();
-  useNotificationHandler(props.navigation);
   useMinimumVersions();
+
+  useEffect(() => {
+    if (!isNotificationsFeatureEnabled()) return;
+
+    const unsubscribeForegroundEvent = NotificationsService.onForegroundEvent(
+      async ({ type, detail }) => {
+        await NotificationsService.handleNotificationEvent({
+          type,
+          detail,
+          callback: handleNotificationPressed
+        });
+      }
+    );
+
+    NotificationsService.onBackgroundEvent(async ({ type, detail }) => {
+      await NotificationsService.handleNotificationEvent({
+        type,
+        detail,
+        callback: handleNotificationPressed
+      });
+    });
+
+    return () => {
+      unsubscribeForegroundEvent();
+    };
+  }, [handleNotificationPressed]);
+
 
   useEffect(() => {
     if (DEPRECATED_NETWORKS.includes(props.chainId)) {
@@ -272,29 +299,6 @@ const Main = (props) => {
     }
 
   });
-
-  useEffect(() => {
-
-    if (!isNotificationsFeatureEnabled()) {
-      return;
-    }
-
-
-    return notifee.onBackgroundEvent(async ({ type, detail }) => {
-      const { notification, pressAction } = detail;
-      if (type === EventType.ACTION_PRESS && pressAction.id === 'mark-as-read') {
-        notifee.decrementBadgeCount(1).then(async () => {
-          await notifee.cancelNotification(notification.id);
-        });
-      } else {
-        notifee.incrementBadgeCount(1).then(() => {
-          props.navigation.navigate(Routes.NOTIFICATIONS.VIEW);
-        });
-      }
-    });
-  }, [props.navigation]);
-
-
 
   // Remove all notifications that aren't visible
   useEffect(() => {
