@@ -5159,15 +5159,17 @@
     immer "^9.0.6"
     nanoid "^3.1.31"
 
-"@metamask/phishing-controller@^10.1.1":
-  version "10.1.1"
-  resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-10.1.1.tgz#3db238f2babd34e1b206122a12a8a09fa62c71a4"
-  integrity sha512-MDLzeCui5uhsY0nkJpdOtSyxq5zIyFfD2QsZG95QXHGyF1/xr3T6zljGQqdg7dCD2qZ4OWohLG5GbZK5K0nr8Q==
+"@metamask/phishing-controller@^12.0.2":
+  version "12.0.3"
+  resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-12.0.3.tgz#f1a5a2046e4c7a04613b4c41bc19771cf8235db7"
+  integrity sha512-CR1qN2FkMJp+MyNSXVTvrZY7MjCdkvsofW/kyv6oshPtLV6BGBWFyueS2UgjMNsmQDW/vMXUJMZfcMS6rs3S4w==
   dependencies:
-    "@metamask/base-controller" "^6.0.2"
-    "@metamask/controller-utils" "^11.0.2"
+    "@metamask/base-controller" "^7.0.1"
+    "@metamask/controller-utils" "^11.3.0"
+    "@noble/hashes" "^1.4.0"
     "@types/punycode" "^2.1.0"
     eth-phishing-detect "^1.2.0"
+    ethereum-cryptography "^2.1.2"
     fastest-levenshtein "^1.0.16"
     punycode "^2.1.1"
 
@@ -5240,6 +5242,14 @@
   integrity sha512-3qnep25SRFLg51wZCez1AqwL/ahJdjyOkAs8Wk0zZHUuTHZ4h0ZtehidX904cHx4QM3STWA1pTRI7ygtkzkN0Q==
   dependencies:
     "@metamask/utils" "^8.1.0"
+    readable-stream "3.6.2"
+
+"@metamask/post-message-stream@^8.1.1":
+  version "8.1.1"
+  resolved "https://registry.yarnpkg.com/@metamask/post-message-stream/-/post-message-stream-8.1.1.tgz#fd8f4c2363921aaf15c0fa56d087fa9f2d93f047"
+  integrity sha512-Z5LHqE8MI0g9xKT7dOr4G11Qjf2bWg9rFonpFnUJwxJvfIl6KuGVnfOTo7PVXH3zdlWotlhhC2F65QW9WxVSPQ==
+  dependencies:
+    "@metamask/utils" "^9.0.0"
     readable-stream "3.6.2"
 
 "@metamask/ppom-validator@0.32.0":
@@ -5490,10 +5500,10 @@
     readable-web-to-node-stream "^3.0.2"
     tar-stream "^3.1.7"
 
-"@metamask/snaps-controllers@^9.4.0":
-  version "9.4.0"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-9.4.0.tgz#5038d34b0ca1d90b91c784ee260aa4cd176d2b07"
-  integrity sha512-Lqwxu5ag5mh6clgPn+5CEo6zRnFTcy0qn8j8IBYgyNFv1jx5vvw1eLvNrUySDkUconV3q80Qsi9QhZqFnXRBRg==
+"@metamask/snaps-controllers@^9.8.0":
+  version "9.8.0"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-9.8.0.tgz#576de64fcaec7d393cc5c39f7d94dec068f3e2bf"
+  integrity sha512-Ey5bHhCsODF7NIkFvr3773ZYrxhbErLE1M12AUBIiLo7p5h/h8nWY+ilObQjTj3Au58oQ5QNYK1juvHMogFgdA==
   dependencies:
     "@metamask/approval-controller" "^7.0.2"
     "@metamask/base-controller" "^6.0.2"
@@ -5501,14 +5511,14 @@
     "@metamask/json-rpc-middleware-stream" "^8.0.2"
     "@metamask/object-multiplex" "^2.0.0"
     "@metamask/permission-controller" "^11.0.0"
-    "@metamask/phishing-controller" "^10.1.1"
-    "@metamask/post-message-stream" "^8.1.0"
+    "@metamask/phishing-controller" "^12.0.2"
+    "@metamask/post-message-stream" "^8.1.1"
     "@metamask/rpc-errors" "^6.3.1"
     "@metamask/snaps-registry" "^3.2.1"
-    "@metamask/snaps-rpc-methods" "^11.0.0"
-    "@metamask/snaps-sdk" "^6.2.0"
-    "@metamask/snaps-utils" "^8.0.0"
-    "@metamask/utils" "^9.1.0"
+    "@metamask/snaps-rpc-methods" "^11.1.1"
+    "@metamask/snaps-sdk" "^6.5.1"
+    "@metamask/snaps-utils" "^8.1.1"
+    "@metamask/utils" "^9.2.1"
     "@xstate/fsm" "^2.0.0"
     browserify-zlib "^0.2.0"
     concat-stream "^2.0.0"
@@ -5547,18 +5557,18 @@
     "@noble/curves" "^1.2.0"
     "@noble/hashes" "^1.3.2"
 
-"@metamask/snaps-rpc-methods@^11.0.0":
-  version "11.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-rpc-methods/-/snaps-rpc-methods-11.0.0.tgz#eefabb1de50c0cdb2a8ed35b106298c8d4b064d4"
-  integrity sha512-M2T+BHGdEunCXZESX3x6aYl4A4BjTtXn2cW3Z5UVhJORpqgGqvBxCgvohbol0y2oCoqaOe/elDy9N8xap8pJpQ==
+"@metamask/snaps-rpc-methods@^11.1.1":
+  version "11.1.1"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-rpc-methods/-/snaps-rpc-methods-11.1.1.tgz#d01a82cb1d8af60ade5f3d3da3adf8a275beda48"
+  integrity sha512-j4oJyMSBLTLg0RA28wgsCjdbC/YZUyRB/U6/tLCsaGXDKIPnOR17yjyeOx/IKLQR91ZC2+y4dMkgFbyOVSDI3Q==
   dependencies:
     "@metamask/key-tree" "^9.1.2"
     "@metamask/permission-controller" "^11.0.0"
     "@metamask/rpc-errors" "^6.3.1"
-    "@metamask/snaps-sdk" "^6.2.0"
-    "@metamask/snaps-utils" "^8.0.0"
+    "@metamask/snaps-sdk" "^6.5.0"
+    "@metamask/snaps-utils" "^8.1.1"
     "@metamask/superstruct" "^3.1.0"
-    "@metamask/utils" "^9.1.0"
+    "@metamask/utils" "^9.2.1"
     "@noble/hashes" "^1.3.1"
 
 "@metamask/snaps-rpc-methods@^9.1.2", "@metamask/snaps-rpc-methods@^9.1.4":
@@ -5599,10 +5609,21 @@
     fast-xml-parser "^4.3.4"
     superstruct "^1.0.3"
 
-"@metamask/snaps-sdk@^6.0.0", "@metamask/snaps-sdk@^6.1.0", "@metamask/snaps-sdk@^6.1.1", "@metamask/snaps-sdk@^6.2.0", "@metamask/snaps-sdk@^6.2.1", "@metamask/snaps-sdk@^6.5.0":
+"@metamask/snaps-sdk@^6.0.0", "@metamask/snaps-sdk@^6.1.0", "@metamask/snaps-sdk@^6.1.1", "@metamask/snaps-sdk@^6.2.1", "@metamask/snaps-sdk@^6.5.0":
   version "6.5.0"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-sdk/-/snaps-sdk-6.5.0.tgz#e3c5f2c4723d0730e472ae6e65d9c98e7f320fde"
   integrity sha512-MHNbCQ/4+HwIyWAHlrLbokoO3CGNTod696FGi3WjYHlKC/1fLE06q8jE/NzuixY11Q6wkShBBk2u7MBGLyLp0w==
+  dependencies:
+    "@metamask/key-tree" "^9.1.2"
+    "@metamask/providers" "^17.1.2"
+    "@metamask/rpc-errors" "^6.3.1"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^9.2.1"
+
+"@metamask/snaps-sdk@^6.5.1":
+  version "6.5.1"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-sdk/-/snaps-sdk-6.5.1.tgz#527691767d98c08c802656b020d5d94d6336623e"
+  integrity sha512-uQEZZNjKwHZZfu9StwlmvTFle5MqiheO6AQctVhpYGJ1kjJ7Qwa+vJhMd0Ox1QI9C3qaUCqxOCDV0mpd1jPRKg==
   dependencies:
     "@metamask/key-tree" "^9.1.2"
     "@metamask/providers" "^17.1.2"
@@ -5639,7 +5660,7 @@
     ses "^1.1.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/snaps-utils@^8.0.0", "@metamask/snaps-utils@^8.0.1", "@metamask/snaps-utils@^8.1.1":
+"@metamask/snaps-utils@^8.0.1", "@metamask/snaps-utils@^8.1.1":
   version "8.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-utils/-/snaps-utils-8.1.1.tgz#b32c403c0b5419dae3a22e4c6119099e9b3466ba"
   integrity sha512-oKwm+0r2WIFinMo07RYAQVb2Khr/T+c8+V0m4iT9WfJHVNG8mHUMonH3ae2jksZ0/327na0mYVj804PLQ88SNA==
