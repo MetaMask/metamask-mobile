@@ -434,7 +434,8 @@ class SmartTransactionHook {
       // @ts-expect-error This is not defined on the type, but is a field added in app/components/UI/Swaps/QuotesView.js
       this.#transactionController.state.swapsTransactions || {};
 
-    const originalSwapsTransaction = swapsTransactions[this.#transactionMeta.id];
+    const originalSwapsTransaction =
+      swapsTransactions[this.#transactionMeta.id];
 
     addSwapsTransaction(uuid, originalSwapsTransaction);
   };
