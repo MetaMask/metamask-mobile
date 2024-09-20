@@ -4,7 +4,7 @@ import { View, ScrollView, NativeSyntheticEvent } from 'react-native';
 import { WebViewMessageEvent, WebView } from '@metamask/react-native-webview';
 import { createStyles } from './styles';
 import { WebViewError } from '@metamask/react-native-webview/lib/WebViewTypes';
-import { WebViewInterface } from '@metamask/snaps-controllers/dist/services/webview/WebViewMessageStream.cjs';
+import { WebViewInterface } from '@metamask/snaps-controllers/react-native';
 import { PostMessageEvent } from '@metamask/post-message-stream';
 
 const SNAPS_EE_URL = 'https://execution.metamask.io/webview/6.7.1/index.html';
@@ -86,7 +86,7 @@ export class SnapsExecutionWebView extends Component {
             ref={
               this.setWebViewRef as unknown as React.RefObject<WebView> | null
             }
-            source={{ uri: SNAPS_EE_URL }}
+            source={{ uri: SNAPS_EE_URL}}
             onMessage={this.onWebViewMessage}
             onError={this.onWebViewError}
             onLoadEnd={this.onWebViewLoad}

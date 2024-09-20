@@ -15,7 +15,6 @@ import { useAssetFromTheme, useTheme } from '../../../../util/theme';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-
 import ledgerConnectDarkImage from '../../../../images/ledger-connect-dark.png';
 import ledgerConnectLightImage from '../../../../images/ledger-connect-light.png';
 import { SEARCHING_FOR_DEVICE_STEP } from './Steps.constants';
