@@ -16,16 +16,71 @@ const mockStore = configureStore([]);
 const store = mockStore({
   engine: {
     backgroundState: {
-      PreferencesController: {
-        showIncomingTransactions: {},
+      CurrencyRateController: {
+        conversionRate: 1,
+        currentCurrency: 'USD',
+      },
+      TokenRatesController: {
+        contractExchangeRates: {},
+        marketData: {
+          '0x1': {
+            '0x0d8775f59023cbe76e541b6497bbed3cd21acbdc': {
+              price: 1,
+            },
+          },
+        },
+      },
+      TokensController: {
+        marketData: {
+          '0x1': {
+            '0x0d8775f59023cbe76e541b6497bbed3cd21acbdc': {
+              price: 1,
+            },
+          },
+        },
+        tokens: [],
       },
       NetworkController: {
         provider: {
+          ticker: 'ETH',
           chainId: '1',
-          type: 'mainnet',
         },
       },
+      AccountsController: {
+        selectedAddress: '0x0d8775f59023cbe76e541b6497bbed3cd21acbdc',
+        internalAccounts: {
+          accounts: [
+            {
+              accountId: '1',
+              address: '0x0d8775f59023cbe76e541b6497bbed3cd21acbdc',
+              name: 'Internal Account 1',
+              balance: 100,
+            },
+          ],
+        },
+      },
+      TokenListController: {
+        tokenList: {
+          '0x1': {
+            '0x0d8775f59023cbe76e541b6497bbed3cd21acbdc': {
+              address: '0x0d8775f59023cbe76e541b6497bbed3cd21acbdc',
+              symbol: 'BAT',
+              decimals: 18,
+              name: 'Basic Attention Token',
+              iconUrl:
+                'https://assets.coingecko.com/coins/images/677/thumb/basic-attention-token.png?1547034427',
+              type: 'erc20',
+            },
+          },
+        },
+      },
+      PreferencesController: {
+        ipfsGateway: {},
+      },
     },
+  },
+  settings: {
+    primaryCurrency: 'ETH',
   },
   user: {
     backUpSeedphraseVisible: false,

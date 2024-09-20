@@ -10,13 +10,12 @@ exports[`TransactionsView renders correctly 1`] = `
   testID="transactions-view"
 >
   <Transactions
-    confirmedTransactions={false}
+    confirmedTransactions={[]}
     currentCurrency="USD"
-    loading={false}
     networkType="rpc"
     selectedAddress="0x1234567890123456789012345678901234567890"
-    submittedTransactions={false}
-    transactions={false}
+    submittedTransactions={[]}
+    transactions={[]}
   />
 </View>
 `;

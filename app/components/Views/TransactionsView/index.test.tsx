@@ -80,11 +80,6 @@ describe('TransactionsView', () => {
   let mockLoading = false;
 
   it('renders correctly', async () => {
-    (React.useState as jest.Mock).mockImplementation(() => [
-      mockLoading,
-      mockSetLoading,
-    ]);
-
     const { toJSON } = render(
       <Provider store={store}>
         <TransactionsView />
@@ -94,10 +89,6 @@ describe('TransactionsView', () => {
   });
 
   it('initializes with correct state', async () => {
-    (React.useState as jest.Mock).mockImplementation(() => [
-      mockLoading,
-      mockSetLoading,
-    ]);
     const { getByTestId } = render(
       <Provider store={store}>
         <TransactionsView />
@@ -108,11 +99,6 @@ describe('TransactionsView', () => {
   });
 
   it('filters transactions correctly', async () => {
-    (React.useState as jest.Mock).mockImplementation(() => [
-      mockLoading,
-      mockSetLoading,
-    ]);
-
     const transactions = [
       { id: '1', status: 'confirmed', time: 1620000000000 },
       { id: '2', status: 'submitted', time: 1620000100000 },
@@ -142,6 +128,7 @@ describe('TransactionsView', () => {
 
   it('handles loading state', async () => {
     mockLoading = true;
+
     (React.useState as jest.Mock).mockImplementation(() => [
       mockLoading,
       mockSetLoading,
