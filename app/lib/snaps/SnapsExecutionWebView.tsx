@@ -1,7 +1,7 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import React, { Component, RefObject } from 'react';
 import { View, ScrollView, NativeSyntheticEvent } from 'react-native';
-import WebView, { WebViewMessageEvent } from '@metamask/react-native-webview';
+import { WebViewMessageEvent, WebView } from '@metamask/react-native-webview';
 import { createStyles } from './styles';
 import { WebViewError } from '@metamask/react-native-webview/lib/WebViewTypes';
 import { WebViewInterface } from '@metamask/snaps-controllers/dist/services/webview/WebViewMessageStream.cjs';
