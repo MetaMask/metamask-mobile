@@ -87,7 +87,7 @@ describe('AppStateManager', () => {
 
     expect(mockTrackEvent).toHaveBeenCalledWith(
       MetaMetricsEvents.APP_OPENED,
-      { attributionId: undefined },
+      {},
       true
     );
   });
