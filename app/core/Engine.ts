@@ -1155,8 +1155,18 @@ class Engine {
           'NotificationServicesController:disableNotificationServices',
           // @ts-expect-error Waiting for @metamask/keyring-controller@17.2.0
           'NotificationServicesController:selectIsNotificationServicesEnabled',
+          // @ts-expect-error Waiting for @metamask/keyring-controller@17.2.0
+          'KeyringController:addNewAccount',
+          'AccountsController:listAccounts',
+          'AccountsController:updateAccountMetadata',
         ],
-        allowedEvents: ['KeyringController:unlock', 'KeyringController:lock'],
+        allowedEvents: [
+          'KeyringController:lock',
+          'KeyringController:unlock',
+          'AccountsController:accountAdded',
+          // @ts-expect-error Waiting for @metamask/keyring-controller@17.2.0
+          'AccountsController:accountRenamed',
+        ],
       }),
     });
 
