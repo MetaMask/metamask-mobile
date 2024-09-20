@@ -1,15 +1,15 @@
-import { Alert } from 'react-native';
-import { strings } from '../../../../locales/i18n';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import Logger from '../../../util/Logger';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import DeeplinkManager from '../DeeplinkManager';
-import connectWithWC from './connectWithWC';
 import extractURLParams from './extractURLParams';
 import handleDappUrl from './handleDappUrl';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 import handleUniversalLink from './handleUniversalLink';
+import connectWithWC from './connectWithWC';
+import { Alert } from 'react-native';
+import { strings } from '../../../../locales/i18n';
 
 function parseDeeplink({
   deeplinkManager: instance,
