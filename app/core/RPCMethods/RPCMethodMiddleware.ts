@@ -505,6 +505,8 @@ export const getRpcMethodMiddleware = ({
       eth_coinbase: getEthAccounts,
       parity_defaultAccount: getEthAccounts,
       eth_sendTransaction: async () => {
+        // eslint-disable-next-line no-console
+        console.log('IM HERE +++++++++ 18888888');
         checkTabActive();
 
         return RPCMethods.eth_sendTransaction({

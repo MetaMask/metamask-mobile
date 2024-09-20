@@ -45,6 +45,7 @@ const selectProviderNetworkName = createSelector(
     networkConfigurations,
     selectedNetworkClientId,
   ) => {
+    console.log('IM HERE -----------', networkConfigurations);
     if (providerConfig.type === 'rpc') {
       return (
         networkConfigurations[selectedNetworkClientId]?.nickname ||
@@ -118,6 +119,7 @@ export const makeSelectNetworkImageSource = () =>
       globalNetworkClientId,
       hostname,
     ) => {
+      console.log('IMAGE ************************');
       if (!hostname || !process.env.MULTICHAIN_V1)
         return providerNetworkImageSource;
       const relevantNetworkClientId =
@@ -127,6 +129,7 @@ export const makeSelectNetworkImageSource = () =>
         // @ts-expect-error The utils/network file is still JS and this function expects a networkType, and should be optional
         return getNetworkImageSource({ chainId: networkConfig.chainId });
       }
+      console.log('IM HERE 11 ----------');
       return getNetworkImageSource({
         // @ts-expect-error The utils/network file is still JS
         networkType: NetworkList[relevantNetworkClientId]?.networkType,

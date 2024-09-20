@@ -319,6 +319,7 @@ class NetworksSettings extends PureComponent {
         const rpcName = rpcEndpoints[defaultRpcEndpointIndex].name ?? '';
         const rpcUrl = rpcEndpoints[defaultRpcEndpointIndex].url;
         const name = nickname || rpcName;
+        console.log('IM HERE 5 ----------');
         const image = getNetworkImageSource({ chainId });
         return this.networkElement(name, image, i, rpcUrl, true);
       },
@@ -447,6 +448,7 @@ class NetworksSettings extends PureComponent {
     if (this.state.filteredNetworks.length > 0) {
       return this.state.filteredNetworks.map((data, i) => {
         const { networkTypeOrRpcUrl, chainId, name, color, isCustomRPC } = data;
+        console.log('IM HERE 6 ----------');
         const image = getNetworkImageSource({ chainId });
         return (
           // TODO: remove this check when linea mainnet is ready

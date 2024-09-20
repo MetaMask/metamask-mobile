@@ -515,6 +515,7 @@ const NetworkSelector = () => {
         if (isNetworkUiRedesignEnabled() && isNoSearchResults(name))
           return null;
 
+        console.log('IM HERE 3 ----------');
         //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
         const image = getNetworkImageSource({ chainId: chainId?.toString() });
 
@@ -780,6 +781,7 @@ const NetworkSelector = () => {
     } else if (showMultiRpcSelectModal.chainId === CHAIN_IDS.LINEA_MAINNET) {
       imageSource = images['LINEA-MAINNET'];
     } else {
+      console.log('IM HERE 4 ----------');
       //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
       imageSource = getNetworkImageSource({
         chainId: showMultiRpcSelectModal?.chainId?.toString(),

@@ -34,7 +34,7 @@ const mockInitialState: DeepPartial<RootState> = {
               {
                 networkClientId: 'mainnet',
                 url: 'http://localhost/v3/',
-                type: 'custom',
+                type: RpcEndpointType.Custom,
                 name: 'Ethereum Network default RPC',
               },
             ],

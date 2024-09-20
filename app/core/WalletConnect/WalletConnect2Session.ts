@@ -443,6 +443,7 @@ class WalletConnect2Session {
       const networkConfigurations = selectNetworkConfigurations(
         store.getState(),
       );
+      console.log('wallet Connect ----', _chainId);
       const existingNetworkDefault = getDefaultNetworkByChainId(_chainId);
       const existingEntry = Object.entries(networkConfigurations).find(
         ([, networkConfiguration]) => networkConfiguration.chainId === _chainId,

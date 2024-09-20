@@ -26,9 +26,7 @@ export const selectSelectedNetworkClientId = createSelector(
 
 export const selectProviderConfig = createDeepEqualSelector(
   selectNetworkControllerState,
-  (networkControllerState: NetworkState) => {
-    // console.log('IM HERE ++++++++', networkControllerState);
-
+  (networkControllerState: NetworkState): ProviderConfig => {
     const selectedNetworkClientId =
       networkControllerState?.selectedNetworkClientId;
     const networkConfigurationsByChainId =

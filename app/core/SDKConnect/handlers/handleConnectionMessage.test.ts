@@ -21,6 +21,7 @@ import { AccountsController } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { NETWORKS_CHAIN_ID } from '../../../../app/constants/network';
 
 jest.mock('../../Engine');
 jest.mock('@metamask/keyring-controller');
@@ -252,10 +253,7 @@ describe('handleConnectionMessage', () => {
         navigation: undefined,
         connection,
         selectedAddress: toChecksumHexAddress(MOCK_ADDRESS),
-        selectedChainId:
-          Engine.context.NetworkController.state.networkConfigurations[
-            Engine.context.NetworkController.state.selectedNetworkClientId
-          ].chainId,
+        selectedChainId: NETWORKS_CHAIN_ID.MAINNET,
         rpc: {
           method: message.method,
           params: message.params,

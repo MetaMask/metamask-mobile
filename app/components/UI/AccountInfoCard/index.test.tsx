@@ -9,6 +9,7 @@ import {
   MOCK_ADDRESS_1,
 } from '../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../reducers';
+import { RpcEndpointType } from '@metamask/network-controller';
 
 jest.mock('../../../core/Engine', () => ({
   resetState: jest.fn(),
@@ -50,16 +51,20 @@ const mockInitialState: DeepPartial<RootState> = {
       NetworkController: {
         selectedNetworkClientId: 'sepolia',
         networksMetadata: {},
-        networkConfigurations: {
-          sepolia: {
-            id: 'sepolia',
-            rpcUrl: 'http://localhost/v3/',
+        networkConfigurationsByChainId: {
+          '0xaa36a7': {
+            blockExplorerUrls: [],
             chainId: '0xaa36a7',
-            ticker: 'ETH',
-            nickname: 'sepolia',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://etherscan.com',
-            },
+            defaultRpcEndpointIndex: 0,
+            name: 'sepolia',
+            nativeCurrency: 'ETH',
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+                type: RpcEndpointType.Custom,
+                url: 'http://localhost/v3/',
+              },
+            ],
           },
         },
       },

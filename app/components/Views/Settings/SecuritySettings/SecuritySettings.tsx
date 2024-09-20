@@ -920,12 +920,19 @@ const Settings: React.FC = () => {
 
     const renderRpcNetworks = () =>
       Object.values(networkConfigurations).map(
-        ({ nickname, rpcUrl, chainId }) => {
+        ({
+          name: nickname,
+          rpcEndpoints,
+          defaultRpcEndpointIndex,
+          chainId,
+        }) => {
           if (!chainId) return null;
 
           if (!Object.keys(myNetworks).includes(chainId)) return null;
 
+          const rpcUrl = rpcEndpoints[defaultRpcEndpointIndex].url;
           const { name } = { name: nickname || rpcUrl };
+          console.log('IM HERE 7 ----------');
           //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
           const image = getNetworkImageSource({ chainId: chainId?.toString() });
 
@@ -1101,12 +1108,13 @@ const Settings: React.FC = () => {
             handleSwitchToggle={toggleBasicFunctionality}
           />
         </View>
-        {isNotificationsFeatureEnabled() &&
-        (<ProfileSyncingComponent
-          handleSwitchToggle={toggleProfileSyncing}
-          isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
-          isProfileSyncingEnabled={isProfileSyncingEnabled}
-        />)}
+        {isNotificationsFeatureEnabled() && (
+          <ProfileSyncingComponent
+            handleSwitchToggle={toggleProfileSyncing}
+            isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
+            isProfileSyncingEnabled={isProfileSyncingEnabled}
+          />
+        )}
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}
