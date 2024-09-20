@@ -1,5 +1,6 @@
 'use strict';
 
+import EnableDeviceNotificationsAlert from './pages/EnableDeviceNotificationsAlert';
 import EnableAutomaticSecurityChecksView from './pages/EnableAutomaticSecurityChecksView';
 import ImportWalletView from './pages/Onboarding/ImportWalletView';
 import MetaMetricsOptIn from './pages/Onboarding/MetaMetricsOptInView';
@@ -83,9 +84,13 @@ export const importWalletWithRecoveryPhrase = async () => {
   await ImportWalletView.enterPassword(validAccount.password);
   await ImportWalletView.reEnterPassword(validAccount.password);
 
-  // Should dismiss Automatic Security checks screen
+
+  //'Should dismiss Enable device Notifications checks alert'
   await TestHelpers.delay(3500);
   await OnboardingSuccessView.tapDone();
+  await EnableDeviceNotificationsAlert.isVisible();
+  await EnableDeviceNotificationsAlert.tapNoThanks();
+  // Should dismiss Automatic Security checks screen
   await EnableAutomaticSecurityChecksView.isVisible();
   await EnableAutomaticSecurityChecksView.tapNoThanks();
 
@@ -120,9 +125,12 @@ export const CreateNewWallet = async () => {
   await device.enableSynchronization();
   await Assertions.checkIfVisible(WalletView.container);
 
-  //'Should dismiss Automatic Security checks screen'
+  //'Should dismiss Enable device Notifications checks alert'
   await TestHelpers.delay(3500);
   await OnboardingSuccessView.tapDone();
+  await EnableDeviceNotificationsAlert.isVisible();
+  await EnableDeviceNotificationsAlert.tapNoThanks();
+  //'Should dismiss Automatic Security checks screen'
   await EnableAutomaticSecurityChecksView.isVisible();
   await EnableAutomaticSecurityChecksView.tapNoThanks();
 
