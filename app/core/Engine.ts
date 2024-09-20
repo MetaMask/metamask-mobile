@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import Crypto from 'react-native-quick-crypto';
-import { scrypt } from 'react-native-fast-crypto';
 import {
   AccountTrackerController,
   AccountTrackerState,
@@ -580,9 +579,7 @@ class Engine {
         messenger: this.controllerMessenger.getRestricted({
           name: 'NftController',
           allowedActions: [
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             `${approvalController.name}:addRequest`,
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             `${networkController.name}:getNetworkClientById`,
           ],
           allowedEvents: [],
@@ -642,11 +639,8 @@ class Engine {
           'KeyringController:stateChange',
         ],
         allowedActions: [
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           'KeyringController:getAccounts',
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           'KeyringController:getKeyringsByType',
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           'KeyringController:getKeyringForAccount',
         ],
       });
@@ -679,9 +673,7 @@ class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'TokensController',
         allowedActions: [
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `${approvalController.name}:addRequest`,
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           'NetworkController:getNetworkClientById',
         ],
         allowedEvents: [
@@ -711,7 +703,6 @@ class Engine {
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'CurrencyRateController',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         allowedActions: [`${networkController.name}:getNetworkClientById`],
         allowedEvents: [],
       }),
@@ -725,11 +716,8 @@ class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'GasFeeController',
         allowedActions: [
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `${networkController.name}:getNetworkClientById`,
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `${networkController.name}:getEIP1559Compatibility`,
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `${networkController.name}:getState`,
         ],
         allowedEvents: [AppConstants.NETWORK_DID_CHANGE_EVENT],
@@ -802,31 +790,18 @@ class Engine {
     const snapKeyringBuildMessenger = this.controllerMessenger.getRestricted({
       name: 'SnapKeyringBuilder',
       allowedActions: [
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'ApprovalController:addRequest',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'ApprovalController:acceptRequest',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'ApprovalController:rejectRequest',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'ApprovalController:startFlow',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'ApprovalController:endFlow',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'ApprovalController:showSuccess',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'ApprovalController:showError',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'PhishingController:testOrigin',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'PhishingController:maybeUpdateState',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'KeyringController:getAccounts',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'AccountsController:setSelectedAccount',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'AccountsController:getAccountByAddress',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'AccountsController:setAccountName',
       ],
       allowedEvents: [],
@@ -923,7 +898,6 @@ class Engine {
         'PhishingController:maybeUpdateState',
       ),
       isOnPhishingList: (origin: string) =>
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         this.controllerMessenger.call<'PhishingController:testOrigin'>(
           'PhishingController:testOrigin',
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -983,7 +957,7 @@ class Engine {
           ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
           ...keyringSnapMethods,
           ///: END:ONLY_INCLUDE_IF
-        }
+        },
       ),
     });
 
@@ -1008,20 +982,13 @@ class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'PermissionController',
         allowedActions: [
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `${approvalController.name}:addRequest`,
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `${approvalController.name}:hasRequest`,
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `${approvalController.name}:acceptRequest`,
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `${approvalController.name}:rejectRequest`,
           ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `SnapController:getPermitted`,
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `SnapController:install`,
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `SubjectMetadataController:getSubjectMetadata`,
           ///: END:ONLY_INCLUDE_IF
         ],
@@ -1078,15 +1045,10 @@ class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'SelectedNetworkController',
         allowedActions: [
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           'NetworkController:getNetworkClientById',
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           'NetworkController:getState',
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           'NetworkController:getSelectedNetworkClient',
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           'PermissionController:hasPermissions',
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           'PermissionController:getSubjectNames',
         ],
         allowedEvents: [
@@ -1108,7 +1070,6 @@ class Engine {
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'SubjectMetadataController',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         allowedActions: [`${permissionController.name}:hasPermissions`],
         allowedEvents: [],
       }),
@@ -1194,63 +1155,34 @@ class Engine {
         'ExecutionService:outboundResponse',
       ],
       allowedActions: [
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${approvalController.name}:addRequest`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${permissionController.name}:getEndowments`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${permissionController.name}:getPermissions`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${permissionController.name}:hasPermission`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${permissionController.name}:hasPermissions`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${permissionController.name}:requestPermissions`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${permissionController.name}:revokeAllPermissions`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${permissionController.name}:revokePermissions`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${permissionController.name}:revokePermissionForAllSubjects`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${permissionController.name}:getSubjectNames`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${permissionController.name}:updateCaveat`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${approvalController.name}:addRequest`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${approvalController.name}:updateRequestState`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${permissionController.name}:grantPermissions`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${this.subjectMetadataController.name}:getSubjectMetadata`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${this.subjectMetadataController.name}:addSubjectMetadata`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${phishingController.name}:maybeUpdateState`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${phishingController.name}:testOrigin`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${snapsRegistry.name}:get`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${snapsRegistry.name}:getMetadata`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         `${snapsRegistry.name}:update`,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'ExecutionService:executeSnap',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'ExecutionService:terminateSnap',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'ExecutionService:terminateAllSnaps',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'ExecutionService:handleRpcRequest',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'SnapsRegistry:get',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'SnapsRegistry:getMetadata',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'SnapsRegistry:update',
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         'SnapsRegistry:resolveVersion',
       ],
     });
@@ -1287,6 +1219,7 @@ class Engine {
 
     const authenticationController = new AuthenticationController.Controller({
       state: initialState.AuthenticationController,
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'AuthenticationController',
         allowedActions: [
@@ -1308,6 +1241,7 @@ class Engine {
     const userStorageController = new UserStorageController.Controller({
       getMetaMetricsState: () => MetaMetrics.getInstance().isEnabled(),
       state: initialState.UserStorageController,
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'UserStorageController',
         allowedActions: [
@@ -1321,20 +1255,13 @@ class Engine {
           'NotificationServicesController:disableNotificationServices',
           'NotificationServicesController:selectIsNotificationServicesEnabled',
         ],
-        allowedEvents: [
-          'KeyringController:unlock',
-          'KeyringController:lock',
-          'AccountsController:accountAdded',
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore TODO: Resolve/patch mismatch between allowedEvents
-          'AccountsController:accountRenamed',
-        ],
+        allowedEvents: ['KeyringController:unlock', 'KeyringController:lock'],
       }),
-      nativeScryptCrypto: scrypt,
     });
 
     const notificationServicesController =
       new NotificationServicesController.Controller({
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'NotificationServicesController',
           allowedActions: [
@@ -1426,13 +1353,9 @@ class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'TransactionController',
         allowedActions: [
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `${accountsController.name}:getSelectedAccount`,
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `${approvalController.name}:addRequest`,
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `${networkController.name}:getNetworkClientById`,
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           `${networkController.name}:findNetworkClientIdByChainId`,
         ],
         allowedEvents: [`NetworkController:stateChange`],
@@ -1480,6 +1403,7 @@ class Engine {
           this.transactionController.confirmExternalTransaction.bind(
             this.transactionController,
           ),
+
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
         getNonceLock: this.transactionController.getNonceLock.bind(
@@ -1528,23 +1452,14 @@ class Engine {
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenDetectionController',
           allowedActions: [
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             'AccountsController:getSelectedAccount',
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             'NetworkController:getNetworkClientById',
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             'NetworkController:getNetworkConfigurationByNetworkClientId',
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             'NetworkController:getState',
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             'KeyringController:getState',
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             'PreferencesController:getState',
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             'TokenListController:getState',
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             'TokensController:getState',
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             'TokensController:addDetectedTokens',
           ],
           allowedEvents: [
@@ -1606,7 +1521,6 @@ class Engine {
         // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenBalancesController',
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           allowedActions: ['PreferencesController:getState'],
           allowedEvents: ['TokensController:stateChange'],
         }),
@@ -1676,15 +1590,10 @@ class Engine {
         messenger: this.controllerMessenger.getRestricted({
           name: 'SignatureController',
           allowedActions: [
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             `${approvalController.name}:addRequest`,
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             `${this.keyringController.name}:signPersonalMessage`,
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             `${this.keyringController.name}:signMessage`,
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             `${this.keyringController.name}:signTypedMessage`,
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             `${loggingController.name}:add`,
           ],
           allowedEvents: [],
@@ -1713,7 +1622,6 @@ class Engine {
         // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
         messenger: this.controllerMessenger.getRestricted({
           name: 'PPOMController',
-          // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
           allowedActions: ['NetworkController:getNetworkClientById'],
           allowedEvents: [`${networkController.name}:stateChange`],
         }),

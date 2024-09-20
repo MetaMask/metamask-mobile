@@ -151,18 +151,13 @@ describe('useAccountSettingsProps', () => {
       .spyOn(Selectors, 'selectIsUpdatingMetamaskNotificationsAccount')
       .mockReturnValue([]);
 
-    const selectIsMetamaskNotificationsEnabled = jest
-      .spyOn(Selectors, 'selectIsMetamaskNotificationsEnabled');
-      const isMetamaskNotificationsEnabled = jest
-      .spyOn(Selectors,
-        'selectIsMetamaskNotificationsEnabled',
-      )
+    const isMetamaskNotificationsEnabled = jest
+      .spyOn(Selectors, 'selectIsMetamaskNotificationsEnabled')
       .mockReturnValue(true);
 
     return {
       selectIsUpdatingMetamaskNotificationsAccount,
-      selectIsMetamaskNotificationsEnabled,
-      isMetamaskNotificationsEnabled
+      isMetamaskNotificationsEnabled,
     };
   }
 
@@ -177,5 +172,4 @@ describe('useAccountSettingsProps', () => {
     const { result } = arrangeHook([]);
     expect(result.current.accountsBeingUpdated.length).toBeGreaterThan(0);
   });
-
 });
