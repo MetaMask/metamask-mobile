@@ -4605,6 +4605,25 @@
     ethereumjs-wallet "^1.0.1"
     immer "^9.0.6"
 
+"@metamask/keyring-controller@^17.2.1":
+  version "17.2.1"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-17.2.1.tgz#3625650e18b80af3f9a1227fc7ca106adf77f5f3"
+  integrity sha512-9GDrP3jK5uM5e1mX/qHkvjuByAtkf7ZiJoeYRE5OIo0OAYFwMAeFw2JlIdWB+BR6CT8C0KEXo+Ne/5ZTn+HCqA==
+  dependencies:
+    "@ethereumjs/util" "^8.1.0"
+    "@keystonehq/metamask-airgapped-keyring" "^0.14.1"
+    "@metamask/base-controller" "^7.0.1"
+    "@metamask/browser-passworder" "^4.3.0"
+    "@metamask/eth-hd-keyring" "^7.0.1"
+    "@metamask/eth-sig-util" "^7.0.1"
+    "@metamask/eth-simple-keyring" "^6.0.1"
+    "@metamask/keyring-api" "^8.1.0"
+    "@metamask/message-manager" "^10.1.1"
+    "@metamask/utils" "^9.1.0"
+    async-mutex "^0.5.0"
+    ethereumjs-wallet "^1.0.1"
+    immer "^9.0.6"
+
 "@metamask/logging-controller@^3.0.0":
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/logging-controller/-/logging-controller-3.0.1.tgz#11c2b127bc2d7d4b753e2d757b0c09bf2742bf0a"
@@ -4621,6 +4640,19 @@
   dependencies:
     "@metamask/base-controller" "^5.0.2"
     "@metamask/controller-utils" "^10.0.0"
+    uuid "^8.3.2"
+
+"@metamask/message-manager@^10.1.1":
+  version "10.1.1"
+  resolved "https://registry.yarnpkg.com/@metamask/message-manager/-/message-manager-10.1.1.tgz#390acc4dff9f7c72aaf5c183397c872e53ae7f12"
+  integrity sha512-VFFqEPKOyo59P79CP/vlPDpMng1a1mMHIaXuvEJYTOf/UOqeVpw77G5IHVfjuG+tZNlAQIHYp7sEmPkob+rzcA==
+  dependencies:
+    "@metamask/base-controller" "^7.0.1"
+    "@metamask/controller-utils" "^11.3.0"
+    "@metamask/eth-sig-util" "^7.0.1"
+    "@metamask/utils" "^9.1.0"
+    "@types/uuid" "^8.3.0"
+    jsonschema "^1.2.4"
     uuid "^8.3.2"
 
 "@metamask/message-manager@^9.0.0":
