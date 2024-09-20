@@ -149,9 +149,11 @@ describe('PPOM Utils', () => {
         },
       }),
       state: {
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {},
         networkConfigurations: {
           mainnet: {
-            id: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
+            id: 'mainnet',
             rpcUrl: 'https://mainnet.infura.io/v3',
             chainId: CHAIN_ID_MOCK,
             ticker: 'ETH',
@@ -161,11 +163,8 @@ describe('PPOM Utils', () => {
             },
           },
         },
-        selectedNetworkClientId: 'mainnet',
-        networksMetadata: {},
       },
     };
-
     normalizeTransactionParamsMock.mockImplementation((params) => params);
     mockIsBlockaidFeatureEnabled.mockResolvedValue(true);
   });

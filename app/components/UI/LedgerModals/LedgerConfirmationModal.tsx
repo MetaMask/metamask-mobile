@@ -118,7 +118,6 @@ const LedgerConfirmationModal = ({
 
   useEffect(() => {
     if (isSendingLedgerCommands && !delayClose && !completeClose) {
-
       setDelayClose(true);
       setTimeout(() => {
         setDelayClose(false);
