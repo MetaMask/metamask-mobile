@@ -11,14 +11,16 @@ import { getSystemVersion } from 'react-native-device-info';
 import { strings } from '../../../../../locales/i18n';
 import { LEDGER_SUPPORT_LINK } from '../../../../constants/urls';
 import Device from '../../../../util/device';
-import { useAssetFromTheme } from '../../../../util/theme';
-import Text, { TextVariant } from '../../../../component-library/components/Texts/Text';
-
+import { useAssetFromTheme, useTheme } from '../../../../util/theme';
+import Text, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 import ledgerConnectDarkImage from '../../../../images/ledger-connect-dark.png';
 import ledgerConnectLightImage from '../../../../images/ledger-connect-light.png';
 import { SEARCHING_FOR_DEVICE_STEP } from './Steps.constants';
+import { Colors } from '../../../../util/theme/models';
 
-const createStyles = () =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     modalTitle: {
       marginTop: 30,
@@ -51,6 +53,7 @@ const createStyles = () =>
       flexWrap: 'wrap',
       marginLeft: 20,
       marginRight: 20,
+      color: colors.primary.default,
     },
     lookingForDeviceContainer: {
       flex: 1,
@@ -59,7 +62,8 @@ const createStyles = () =>
   });
 
 const SearchingForDeviceStep = () => {
-  const styles = useMemo(() => createStyles(), []);
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const navigation = useNavigation();
 
   const deviceOSVersion = Number(getSystemVersion()) || 0;
@@ -127,7 +131,11 @@ const SearchingForDeviceStep = () => {
         </Text>
       </View>
       <TouchableOpacity onPress={handleOpenInstallEthAppInstructions}>
-        <Text style={styles.howToInstallEthAppText} variant={TextVariant.BodyMD} numberOfLines={2}>
+        <Text
+          style={styles.howToInstallEthAppText}
+          variant={TextVariant.BodyMD}
+          numberOfLines={2}
+        >
           {strings('ledger.how_to_install_eth_app')}
         </Text>
       </TouchableOpacity>
