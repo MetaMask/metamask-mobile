@@ -5318,7 +5318,7 @@
     ses "^1.1.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/snaps-utils@^8.0.1", "@metamask/snaps-utils@^8.1.1":
+"@metamask/snaps-utils@^8.1.1":
   version "8.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-utils/-/snaps-utils-8.1.1.tgz#b32c403c0b5419dae3a22e4c6119099e9b3466ba"
   integrity sha512-oKwm+0r2WIFinMo07RYAQVb2Khr/T+c8+V0m4iT9WfJHVNG8mHUMonH3ae2jksZ0/327na0mYVj804PLQ88SNA==
