@@ -3,7 +3,7 @@ import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTheme } from '../../../util/theme';
-import { Theme } from '../../../util/theme/models';
+import { Theme } from '@metamask/design-tokens';
 
 const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
@@ -71,19 +71,17 @@ interface SettingsNotificationProps {
   isWarning?: boolean;
   isNotification?: boolean;
   children?: React.ReactNode;
+  isHighlighted?: boolean;
 }
 
-const defaultProps = {
-  style: {},
-  isWarning: false,
-  isHighlighted: false,
-};
+
 
 const SettingsNotification: React.FC<SettingsNotificationProps> = ({
-  style,
-  isWarning,
+  style = {},
+  isWarning = false,
   isNotification,
   children,
+  isHighlighted = false,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -102,7 +100,5 @@ const SettingsNotification: React.FC<SettingsNotificationProps> = ({
     </View>
   );
 };
-
-SettingsNotification.defaultProps = defaultProps;
 
 export default SettingsNotification;
