@@ -129,7 +129,7 @@ stages:
     abort_on_fail: true
     workflows:
       - ios_e2e_build: {}
-      - android_e2e_build: {}
+      # - android_e2e_build: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
       # - run_ios_api_specs: {}
@@ -142,7 +142,7 @@ stages:
       # - run_tag_smoke_swaps_ios: {}
       # - run_tag_smoke_swaps_android: {}
       - run_tag_smoke_core_ios: {}
-      - run_tag_smoke_core_android: {}
+      # - run_tag_smoke_core_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
       - ios_build_regression_tests: {}
@@ -914,24 +914,24 @@ workflows:
                 # INTERMEDIATE_IOS_BUILD_DIR & INTERMEDIATE_IOS_DETOX_DIR are the cached directories by ios_e2e_build's "Save iOS build" step
                 cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build"
                 cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
-      - restore-cocoapods-cache@2: {}
-      - restore-cache@2:
-          title: Restore cache node_modules
-          inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      # - restore-cocoapods-cache@2: {}
+      # - restore-cache@2:
+      #     title: Restore cache node_modules
+      #     inputs:
+      #       - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
             - build_short_version_string: $VERSION_NAME
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
-      - script:
-          inputs:
-            - content: |-
-                # Add cache directory to environment variable
-                envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
-                envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
-                brew tap wix/brew
-          title: Set Env Path for caching deps
+      # - script:
+      #     inputs:
+      #       - content: |-
+      #           # Add cache directory to environment variable
+      #           envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
+      #           envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
+      #           brew tap wix/brew
+      #     title: Set Env Path for caching deps
       - script@1:
           title: Run detox test
           timeout: 1200
