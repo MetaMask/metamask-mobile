@@ -12,4 +12,5 @@ export interface NetworkConnectMultiSelectorProps {
   urlWithProtocol: string;
   hostname: string;
   onBack: () => void;
+  isRenderedAsBottomSheet?: boolean;
 }
