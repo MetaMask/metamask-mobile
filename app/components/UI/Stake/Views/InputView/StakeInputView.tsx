@@ -56,6 +56,10 @@ const StakeInputView = () => {
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate) || 1;
 
+  const handleIconPress = () => {
+    navigation.navigate('StakeModals', { screen: 'LearnMore' });
+  };
+
   const balanceText = isEth
     ? `${balance} ETH`
     : `${balanceFiatNumber?.toString()} ${currentCurrency.toUpperCase()}`;
@@ -219,9 +223,7 @@ const StakeInputView = () => {
       <View style={styles.rewardsRateContainer}>
         <EstimatedAnnualRewardsCard
           estimatedAnnualRewards={estimatedAnnualRewards}
-          onIconPress={() => {
-            // TODO: Add tooltip modal
-          }}
+          onIconPress={handleIconPress}
         />
       </View>
       <QuickAmounts

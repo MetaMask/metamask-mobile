@@ -140,6 +140,10 @@ const Routes = {
   STAKE: {
     STAKE: 'Stake',
     UNSTAKE: 'Unstake',
+    CLAIM: 'Claim',
+    MODAL: {
+      LEARN_MORE: 'LearnMore',
+    },
   },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {
