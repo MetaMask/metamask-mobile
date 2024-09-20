@@ -64,16 +64,12 @@ const CheckIcon = () => {
   );
 };
 
-
-
 interface SettingsNotificationProps {
   style?: StyleProp<ViewStyle>;
   isWarning?: boolean;
   isNotification?: boolean;
   children?: React.ReactNode;
 }
-
-
 
 const SettingsNotification: React.FC<SettingsNotificationProps> = ({
   style = {},
