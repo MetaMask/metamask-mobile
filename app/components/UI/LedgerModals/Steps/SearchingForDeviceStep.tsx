@@ -12,8 +12,9 @@ import { strings } from '../../../../../locales/i18n';
 import { LEDGER_SUPPORT_LINK } from '../../../../constants/urls';
 import Device from '../../../../util/device';
 import { useAssetFromTheme, useTheme } from '../../../../util/theme';
-import Text, { TextVariant } from '../../../../component-library/components/Texts/Text';
-
+import Text, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 import ledgerConnectDarkImage from '../../../../images/ledger-connect-dark.png';
 import ledgerConnectLightImage from '../../../../images/ledger-connect-light.png';
 import { SEARCHING_FOR_DEVICE_STEP } from './Steps.constants';
@@ -53,7 +54,6 @@ const createStyles = (colors: Colors) =>
       marginLeft: 20,
       marginRight: 20,
       color: colors.primary.default,
-
     },
     lookingForDeviceContainer: {
       flex: 1,
@@ -131,7 +131,11 @@ const SearchingForDeviceStep = () => {
         </Text>
       </View>
       <TouchableOpacity onPress={handleOpenInstallEthAppInstructions}>
-        <Text style={styles.howToInstallEthAppText} variant={TextVariant.BodyMD} numberOfLines={2}>
+        <Text
+          style={styles.howToInstallEthAppText}
+          variant={TextVariant.BodyMD}
+          numberOfLines={2}
+        >
           {strings('ledger.how_to_install_eth_app')}
         </Text>
       </TouchableOpacity>
