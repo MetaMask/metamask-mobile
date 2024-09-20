@@ -56,11 +56,11 @@ describe('AppStateManager', () => {
     jest.useRealTimers();
   });
 
-  it('should subscribe to AppState changes on instantiation', () => {
+  it('subscribes to AppState changes on instantiation', () => {
     expect(AppState.addEventListener).toHaveBeenCalledWith('change', expect.any(Function));
   });
 
-  it('should track event when app becomes active and conditions are met', () => {
+  it('tracks event when app becomes active and conditions are met', () => {
     (store.getState as jest.Mock).mockReturnValue({
       security: { dataCollectionForMarketing: true },
     });
@@ -77,7 +77,7 @@ describe('AppStateManager', () => {
     );
   });
 
-  it('should not track event when data collection is disabled', () => {
+  it('does not track event when data collection is disabled', () => {
     (store.getState as jest.Mock).mockReturnValue({
       security: { dataCollectionForMarketing: false },
     });
@@ -92,7 +92,7 @@ describe('AppStateManager', () => {
     );
   });
 
-  it('should not track event when there is no deeplink', () => {
+  it('does not track event when there is no deeplink', () => {
     (store.getState as jest.Mock).mockReturnValue({
       security: { dataCollectionForMarketing: true },
     });
@@ -107,7 +107,7 @@ describe('AppStateManager', () => {
     );
   });
 
-  it('should handle errors gracefully', () => {
+  it('handles errors gracefully', () => {
     (store.getState as jest.Mock).mockImplementation(() => {
       throw new Error('Test error');
     });
@@ -122,7 +122,7 @@ describe('AppStateManager', () => {
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
-  it('should clean up the AppState listener on cleanup', () => {
+  it('cleans up the AppState listener on cleanup', () => {
     const mockRemove = jest.fn();
     (AppState.addEventListener as jest.Mock).mockReturnValue({ remove: mockRemove });
 
