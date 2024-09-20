@@ -51,7 +51,6 @@ import AppConstants from '../../../../core/AppConstants';
 import notificationsRows from './notificationsRows';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
-import { AuthorizationStatus } from '@notifee/react-native';
 
 interface MainNotificationSettingsProps extends Props {
   toggleNotificationsEnabled: () => void;
