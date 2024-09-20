@@ -1337,7 +1337,6 @@ class Engine {
       keyringController,
       accountTrackerController,
       new AddressBookController({
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'AddressBookController',
           allowedActions: [],
