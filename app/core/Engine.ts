@@ -252,7 +252,10 @@ interface TestOrigin {
 
 type PhishingControllerActions = MaybeUpdateState | TestOrigin;
 type AuthenticationControllerActions = AuthenticationController.AllowedActions;
-type UserStorageControllerActions = UserStorageController.AllowedActions;
+// TODO - add back UserStorageControllerActions
+// This union uses some keyring controller actions that are not currently available in mobile
+// Waiting for @metamask/keyring-controller@17.2.0
+type UserStorageControllerActions = never; //UserStorageController.AllowedActions;
 type NotificationsServicesControllerActions =
   NotificationServicesController.AllowedActions;
 
@@ -1114,7 +1117,6 @@ class Engine {
 
     const authenticationController = new AuthenticationController.Controller({
       state: initialState.AuthenticationController,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'AuthenticationController',
         allowedActions: [
@@ -1136,18 +1138,22 @@ class Engine {
     const userStorageController = new UserStorageController.Controller({
       getMetaMetricsState: () => MetaMetrics.getInstance().isEnabled(),
       state: initialState.UserStorageController,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'UserStorageController',
         allowedActions: [
           'SnapController:handleRequest',
           'KeyringController:getState',
           'AuthenticationController:getBearerToken',
+          // @ts-expect-error Waiting for @metamask/keyring-controller@17.2.0
           'AuthenticationController:getSessionProfile',
           'AuthenticationController:isSignedIn',
+          // @ts-expect-error Waiting for @metamask/keyring-controller@17.2.0
           'AuthenticationController:performSignOut',
+          // @ts-expect-error Waiting for @metamask/keyring-controller@17.2.0
           'AuthenticationController:performSignIn',
+          // @ts-expect-error Waiting for @metamask/keyring-controller@17.2.0
           'NotificationServicesController:disableNotificationServices',
+          // @ts-expect-error Waiting for @metamask/keyring-controller@17.2.0
           'NotificationServicesController:selectIsNotificationServicesEnabled',
         ],
         allowedEvents: ['KeyringController:unlock', 'KeyringController:lock'],
@@ -1156,7 +1162,6 @@ class Engine {
 
     const notificationServicesController =
       new NotificationServicesController.Controller({
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'NotificationServicesController',
           allowedActions: [
@@ -1332,6 +1337,7 @@ class Engine {
       keyringController,
       accountTrackerController,
       new AddressBookController({
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'AddressBookController',
           allowedActions: [],
