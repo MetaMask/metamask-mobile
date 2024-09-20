@@ -152,10 +152,14 @@ class NotificationsService {
   }
 
   onForegroundEvent = (observer: (event: Event) => void): (() => void) =>
-    notifee.onForegroundEvent(observer);
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    notifee.onForegroundEvent(observer as any);
 
   onBackgroundEvent = (observer: (event: Event) => Promise<void>) =>
-    notifee.onBackgroundEvent(observer);
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    notifee.onBackgroundEvent(observer as any);
 
   incrementBadgeCount = async (incrementBy?: number) => {
     notifee.incrementBadgeCount(incrementBy);
@@ -188,6 +192,7 @@ class NotificationsService {
 
   handleNotificationEvent = async ({
     type,
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'detail' does not exist on type 'Event &
     detail,
     callback,
   }: Event & {

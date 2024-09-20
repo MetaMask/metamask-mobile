@@ -5,7 +5,6 @@ import notifee, {
 } from '@notifee/react-native';
 
 import useNotificationHandler from './index';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
 jest.mock('../../../util/device');
 jest.mock('../../../core/NotificationManager', () => ({
@@ -27,9 +26,6 @@ jest.mock('@notifee/react-native', () => ({
 }));
 
 const mockNavigate = jest.fn();
-const mockNavigation = {
-  navigate: mockNavigate,
-} as unknown as NavigationProp<ParamListBase>;
 
 const mockNotificationEvent = (event: NotifeeEvent) => ({
   type: event.type,
@@ -49,9 +45,7 @@ describe('useNotificationHandler', () => {
   });
 
   it('should handle notifications correctly', async () => {
-    const { waitFor } = renderHook(() =>
-      useNotificationHandler(mockNavigation),
-    );
+    const { waitFor } = renderHook(() => useNotificationHandler());
 
     await act(async () => {
       notifee.onForegroundEvent(() =>
@@ -75,9 +69,7 @@ describe('useNotificationHandler', () => {
   });
 
   it('should do nothing if the EventType is DISMISSED', async () => {
-    const { waitFor } = renderHook(() =>
-      useNotificationHandler(mockNavigation),
-    );
+    const { waitFor } = renderHook(() => useNotificationHandler());
 
     await act(async () => {
       notifee.onForegroundEvent(() =>
@@ -102,9 +94,7 @@ describe('useNotificationHandler', () => {
   });
 
   it('should do nothing if data.action is not tx', async () => {
-    const { waitFor } = renderHook(() =>
-      useNotificationHandler(mockNavigation),
-    );
+    const { waitFor } = renderHook(() => useNotificationHandler());
 
     await act(async () => {
       notifee.onForegroundEvent(() =>
@@ -131,9 +121,7 @@ describe('useNotificationHandler', () => {
   });
 
   it('handleOpenedNotification should do nothing if notification is null', async () => {
-    const { waitFor } = renderHook(() =>
-      useNotificationHandler(mockNavigation),
-    );
+    const { waitFor } = renderHook(() => useNotificationHandler());
 
     await act(async () => {
       notifee.onForegroundEvent(() =>
@@ -153,9 +141,7 @@ describe('useNotificationHandler', () => {
   });
 
   it('should navigate to the transaction view when the notification action is "tx"', async () => {
-    const { waitFor } = renderHook(() =>
-      useNotificationHandler(mockNavigation),
-    );
+    const { waitFor } = renderHook(() => useNotificationHandler());
 
     await act(async () => {
       notifee.onForegroundEvent(() =>
@@ -183,9 +169,7 @@ describe('useNotificationHandler', () => {
       OS: 'android',
     }));
 
-    const { waitFor } = renderHook(() =>
-      useNotificationHandler(mockNavigation),
-    );
+    const { waitFor } = renderHook(() => useNotificationHandler());
 
     await act(async () => {
       notifee.onForegroundEvent(() =>
