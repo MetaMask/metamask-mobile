@@ -87,15 +87,12 @@ export const useSwapConfirmedEvent = ({ trackSwaps }) => {
   const [transactionMetaIdsForListening, setTransactionMetaIdsForListening] =
     useState([]);
 
-  const addTransactionMetaIdForListening = useCallback(
-    (txMetaId) => {
-      setTransactionMetaIdsForListening((transactionMetaIdsForListening) => [
-        ...transactionMetaIdsForListening,
-        txMetaId,
-      ]);
-    },
-    [],
-  );
+  const addTransactionMetaIdForListening = useCallback((txMetaId) => {
+    setTransactionMetaIdsForListening((transactionMetaIdsForListening) => [
+      ...transactionMetaIdsForListening,
+      txMetaId,
+    ]);
+  }, []);
   const swapsTransactions = useSwapsTransactions();
 
   useEffect(() => {

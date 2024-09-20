@@ -1,10 +1,10 @@
 import { RootState } from '../reducers';
 import { selectAddressBook } from './addressBookController';
-import { AddressBookState } from '@metamask/address-book-controller';
+import { AddressBookControllerState } from '@metamask/address-book-controller';
 
 describe('selectAddressBook', () => {
   it('returns addressBook from state', () => {
-    const mockAddressBookState: AddressBookState = {
+    const mockAddressBookControllerState: AddressBookControllerState = {
       addressBook: {
         '0x1': {
           '0x123': {
@@ -21,13 +21,13 @@ describe('selectAddressBook', () => {
     const mockState = {
       engine: {
         backgroundState: {
-          AddressBookController: mockAddressBookState,
+          AddressBookController: mockAddressBookControllerState,
         },
       },
     };
 
     expect(selectAddressBook(mockState as RootState)).toEqual(
-      mockAddressBookState.addressBook,
+      mockAddressBookControllerState.addressBook,
     );
   });
 });

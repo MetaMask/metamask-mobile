@@ -34,7 +34,7 @@ import { store } from '../../store';
 import { regex } from '../../../app/util/regex';
 import Logger from '../../../app/util/Logger';
 import { InternalAccount } from '@metamask/keyring-api';
-import { AddressBookState } from '@metamask/address-book-controller';
+import { AddressBookControllerState } from '@metamask/address-book-controller';
 import { NetworkType, toChecksumHexAddress } from '@metamask/controller-utils';
 import { NetworkClientId, NetworkState } from '@metamask/network-controller';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
@@ -375,7 +375,7 @@ export function isValidHexAddress(
  */
 function checkIfAddressAlreadySaved(
   address: string,
-  addressBook: AddressBookState['addressBook'],
+  addressBook: AddressBookControllerState['addressBook'],
   chainId: Hex,
   internalAccounts: InternalAccount[],
 ) {
@@ -420,7 +420,7 @@ function checkIfAddressAlreadySaved(
  */
 export async function validateAddressOrENS(
   toAccount: string,
-  addressBook: AddressBookState['addressBook'],
+  addressBook: AddressBookControllerState['addressBook'],
   internalAccounts: InternalAccount[],
   chainId: Hex,
 ) {

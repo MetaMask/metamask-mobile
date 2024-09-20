@@ -4026,14 +4026,14 @@
     immer "^9.0.6"
     uuid "^8.3.2"
 
-"@metamask/address-book-controller@^4.0.1":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/address-book-controller/-/address-book-controller-4.0.1.tgz#78a841e97b7db0058e6796590eb07444c750d13f"
-  integrity sha512-ooQRuPP5Tm/vLvajwhZdmEoAGEx9/z2UyjvAZwY0AgEe1XK2ry6XbNHV/NH/9l559G+dwMXtM/oybt6d7yiy9Q==
+"@metamask/address-book-controller@^6.0.1":
+  version "6.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/address-book-controller/-/address-book-controller-6.0.1.tgz#39e432f24e71b019bc600b39c813500b2e950f22"
+  integrity sha512-t/fQ6ha/f5RfJRFUkkm9uWYSGdVcvF0LbJ+TzpJ9Jn0fENnZg6sdVxJd2orCwpHFic9gRPKBB0DMXObdjcVqrw==
   dependencies:
-    "@metamask/base-controller" "^5.0.1"
-    "@metamask/controller-utils" "^9.0.1"
-    "@metamask/utils" "^8.3.0"
+    "@metamask/base-controller" "^7.0.1"
+    "@metamask/controller-utils" "^11.3.0"
+    "@metamask/utils" "^9.1.0"
 
 "@metamask/approval-controller@^6.0.2":
   version "6.0.2"
@@ -5044,11 +5044,6 @@
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/react-native-search-api/-/react-native-search-api-1.0.1.tgz#b3a2069ff851b88e1fe64b86f1fab7088a4daceb"
   integrity sha512-ceCzyRZDZM0lpQSNUiFpo16nysTDIMUhkdyUcvBbkpiSUnYV+SjVMxYVn2Q+h7P9tce8wrb6zoxdlfK5BXtbAQ==
-
-"@metamask/react-native-splash-screen@^3.2.0":
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/react-native-splash-screen/-/react-native-splash-screen-3.2.0.tgz#06a6547c143b088e47af40eacea9ac6657ac937f"
-  integrity sha512-V8Cn0MXe9jdaUli/DK3PoJ71tx7k3IW2v2slqflvNstvHiO3MpCtdylsYIyu+tiPwI2JiyLRzLK8s02/3jxk6g==
 
 "@metamask/react-native-webview@^14.0.3":
   version "14.0.3"
