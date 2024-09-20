@@ -5500,7 +5500,7 @@
     readable-web-to-node-stream "^3.0.2"
     tar-stream "^3.1.7"
 
-"@metamask/snaps-controllers@^9.8.0":
+"@metamask/snaps-controllers@^9.4.0":
   version "9.8.0"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-9.8.0.tgz#576de64fcaec7d393cc5c39f7d94dec068f3e2bf"
   integrity sha512-Ey5bHhCsODF7NIkFvr3773ZYrxhbErLE1M12AUBIiLo7p5h/h8nWY+ilObQjTj3Au58oQ5QNYK1juvHMogFgdA==
