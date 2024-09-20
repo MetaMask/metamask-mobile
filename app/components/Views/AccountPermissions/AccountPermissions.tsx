@@ -239,45 +239,51 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const handleConnect = useCallback(() => {
     try {
       setIsLoading(true);
-      // Function to normalize Ethereum addresses using checksum
-      const normalizeAddresses = (addresses: string[]) =>
-        addresses.map((address) => toChecksumHexAddress(address));
-
-      // Retrieve the list of permitted accounts for the given hostname
-      const permittedAccounts = getPermittedAccountsByHostname(
-        permittedAccountsList,
-        hostname,
-      );
-
-      // Normalize permitted accounts and selected addresses to checksummed format
-      const normalizedPermittedAccounts = normalizeAddresses(permittedAccounts);
-      const normalizedSelectedAddresses = normalizeAddresses(selectedAddresses);
-
       let newActiveAddress;
-
-      if (
-        normalizedPermittedAccounts.length > normalizedSelectedAddresses.length
-      ) {
-        // Accounts have been removed
-
-        // Identify the accounts that have been removed
-        const removedAccounts = normalizedPermittedAccounts.filter(
-          (accountId) => !normalizedSelectedAddresses.includes(accountId),
-        );
-
-        // Remove the permitted accounts that have been deselected
-        const remainingAddresses = removePermittedAccounts(
-          hostname,
-          removedAccounts,
-        );
-
-        // Set the new active address to the first account in the updated list
-        newActiveAddress = remainingAddresses[0];
-      } else {
-        // Accounts have been added
-
-        // Add the newly selected addresses to the permitted accounts
+      if (!isMutichainVersion1Enabled) {
         newActiveAddress = addPermittedAccounts(hostname, selectedAddresses);
+      } else {
+        // Function to normalize Ethereum addresses using checksum
+        const normalizeAddresses = (addresses: string[]) =>
+          addresses.map((address) => toChecksumHexAddress(address));
+
+        // Retrieve the list of permitted accounts for the given hostname
+        const permittedAccounts = getPermittedAccountsByHostname(
+          permittedAccountsList,
+          hostname,
+        );
+
+        // Normalize permitted accounts and selected addresses to checksummed format
+        const normalizedPermittedAccounts =
+          normalizeAddresses(permittedAccounts);
+        const normalizedSelectedAddresses =
+          normalizeAddresses(selectedAddresses);
+
+        if (
+          normalizedPermittedAccounts.length >
+          normalizedSelectedAddresses.length
+        ) {
+          // Accounts have been removed
+
+          // Identify the accounts that have been removed
+          const removedAccounts = normalizedPermittedAccounts.filter(
+            (accountId) => !normalizedSelectedAddresses.includes(accountId),
+          );
+
+          // Remove the permitted accounts that have been deselected
+          const remainingAddresses = removePermittedAccounts(
+            hostname,
+            removedAccounts,
+          );
+
+          // Set the new active address to the first account in the updated list
+          newActiveAddress = remainingAddresses[0];
+        } else {
+          // Accounts have been added
+
+          // Add the newly selected addresses to the permitted accounts
+          newActiveAddress = addPermittedAccounts(hostname, selectedAddresses);
+        }
       }
 
       const activeAccountName = getAccountNameWithENS({
@@ -285,6 +291,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         accounts,
         ensByAccountAddress,
       });
+
       const connectedAccountLength = selectedAddresses.length;
       let labelOptions: ToastOptions['labelOptions'] = [];
       if (connectedAccountLength > 1) {
