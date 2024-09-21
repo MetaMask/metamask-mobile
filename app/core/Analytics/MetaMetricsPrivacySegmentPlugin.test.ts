@@ -1,22 +1,18 @@
 jest.mock('@segment/analytics-react-native', () => ({
-  Plugin: class Plugin {
-    type = 'utility';
-    analytics: SegmentClient | undefined;
-
-    configure(analytics: SegmentClient) {
-      this.analytics = analytics;
-    }
-
-    execute(event: SegmentEvent) {
-      return event;
-    }
-  },
   PluginType: {
     enrichment: 'enrichment',
+    utility: 'utility',
   },
   EventType: {
     TrackEvent: 'track',
     IdentifyEvent: 'identify',
+  },
+  Plugin: class Plugin {
+    type = 'utility';
+    analytics: SegmentClient | undefined;
+    configure(analytics: SegmentClient) {
+      this.analytics = analytics;
+    }
   },
 }));
 
@@ -30,7 +26,6 @@ import {
   UserTraits,
   EventType,
   SegmentClient,
-  SegmentEvent,
 } from '@segment/analytics-react-native';
 
 class MockSegmentClient {
