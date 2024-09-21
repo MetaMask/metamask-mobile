@@ -7,7 +7,6 @@ import {
   View,
   ActivityIndicator,
   Keyboard,
-  Platform,
   Linking,
 } from 'react-native';
 import StorageWrapper from '../../../../store/storage-wrapper';
@@ -56,7 +55,6 @@ import {
 import {
   selectIpfsGateway,
   selectIsIpfsGatewayEnabled,
-  selectIsMultiAccountBalancesEnabled,
   selectDisplayNftMedia,
   selectUseNftDetection,
   selectShowIncomingTransactionNetworks,
@@ -64,11 +62,7 @@ import {
   selectUseSafeChainsListValidation,
   selectUseTransactionSimulations,
 } from '../../../../selectors/preferencesController';
-import {
-  SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
-  SECURITY_PRIVACY_VIEW_ID,
-} from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { SECURITY_PRIVACY_VIEW_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
 import ipfsGateways from '../../../../util/ipfs-gateways.json';
 import SelectComponent from '../../../UI/SelectComponent';
 import { timeoutFetch } from '../../../../util/general';
@@ -82,7 +76,6 @@ import {
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../../util/navigation/navUtils';
 import {
-  BATCH_BALANCE_REQUESTS_SECTION,
   BIOMETRY_CHOICE_STRING,
   CLEAR_BROWSER_HISTORY_SECTION,
   DISPLAY_SAFE_CHAINS_LIST_VALIDATION,
@@ -132,6 +125,8 @@ import { RootState } from '../../../../reducers';
 import { EtherscanSupportedHexChainId } from '@metamask/preferences-controller';
 import { useDisableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
+import BatchAccountBalanceSettings from '../BatchAccountBalanceSettings';
+
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -210,9 +205,6 @@ const Settings: React.FC = () => {
     (state: any) => state.user.seedphraseBackedUp,
   );
   const type = useSelector(selectProviderType);
-  const isMultiAccountBalancesEnabled = useSelector(
-    selectIsMultiAccountBalancesEnabled,
-  );
   const ipfsGateway = useSelector(selectIpfsGateway);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
   const myNetworks = ETHERSCAN_SUPPORTED_NETWORKS;
@@ -502,48 +494,6 @@ const Settings: React.FC = () => {
     </View>
   );
 
-  const toggleIsMultiAccountBalancesEnabled = (
-    multiAccountBalancesEnabled: boolean,
-  ) => {
-    const { PreferencesController } = Engine.context;
-    PreferencesController.setIsMultiAccountBalancesEnabled(
-      multiAccountBalancesEnabled,
-    );
-  };
-
-  const renderMultiAccountBalancesSection = () => (
-    <View style={styles.halfSetting} testID={BATCH_BALANCE_REQUESTS_SECTION}>
-      <View style={styles.titleContainer}>
-        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-          {strings('app_settings.batch_balance_requests_title')}
-        </Text>
-        <View style={styles.switchElement}>
-          <Switch
-            value={isMultiAccountBalancesEnabled}
-            onValueChange={toggleIsMultiAccountBalancesEnabled}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={theme.brandColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-            {...generateTestId(
-              Platform,
-              SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
-            )}
-          />
-        </View>
-      </View>
-      <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
-        style={styles.desc}
-      >
-        {strings('app_settings.batch_balance_requests_description')}
-      </Text>
-    </View>
-  );
   const toggleEnableIncomingTransactions = (
     hexChainId: EtherscanSupportedHexChainId,
     value: boolean,
@@ -1142,7 +1092,7 @@ const Settings: React.FC = () => {
         >
           {strings('app_settings.transactions_subheading')}
         </Text>
-        {renderMultiAccountBalancesSection()}
+        <BatchAccountBalanceSettings />
         {renderShowIncomingTransactions()}
         {renderHistoryModal()}
         {renderUseTransactionSimulations()}
