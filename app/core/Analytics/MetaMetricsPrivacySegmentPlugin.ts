@@ -45,7 +45,9 @@ class MetaMetricsPrivacySegmentPlugin extends Plugin {
       return event;
     }
 
-    event.properties?.anonymous && (event.userId = METAMETRICS_ANONYMOUS_ID);
+    if (event.properties?.anonymous) {
+      event.userId = METAMETRICS_ANONYMOUS_ID;
+    }
     // We remove the anonymous property from the event properties once we have read it
     // so that it is not sent to Segment
     delete event.properties?.anonymous;
