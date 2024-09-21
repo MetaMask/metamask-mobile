@@ -2,7 +2,9 @@
 // eslint-disable-next-line import/no-commonjs
 module.exports = {
   dependencies: {
-    ...{ 'react-native-flipper': { platforms: { ios: null } } },
+    ...(process.env.NO_FLIPPER
+      ? { 'react-native-flipper': { platforms: { ios: null } } }
+      : {}),
     'react-native-aes-crypto-forked': {
       platforms: {
         ios: null, // disable Android platform, other platforms will still autolink if provided
