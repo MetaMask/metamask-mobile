@@ -1274,7 +1274,6 @@ class Engine {
           'KeyringController:lock',
           'KeyringController:unlock',
           'AccountsController:accountAdded',
-          // @ts-expect-error Waiting for @metamask/keyring-controller@17.2.0
           'AccountsController:accountRenamed',
         ],
       }),
