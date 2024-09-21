@@ -867,6 +867,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
+                export NO_FLIPPER=1
                 NO_FLIPPER=1 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:build
       # - save-cocoapods-cache@1: {}
       # - save-cache@1:
@@ -954,6 +955,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
+                export NO_FLIPPER=1
                 NO_FLIPPER=1 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
       - custom-test-results-export@1:
           is_always_run: true
