@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import { typography } from '@metamask/design-tokens';
+import isUrl from 'is-url';
 import {
   fontStyles,
   colors as staticColors,
@@ -186,6 +187,12 @@ const createStyles = (colors) =>
       flexGrow: 1,
       flexShrink: 1,
     },
+    heading: {
+      fontSize: 16,
+      paddingVertical: 12,
+      color: colors.text.default,
+      ...fontStyles.bold,
+    },
     label: {
       fontSize: 14,
       paddingVertical: 12,
@@ -359,6 +366,7 @@ export class NetworkSettings extends PureComponent {
     rpcUrlFrom: undefined,
     rpcNameForm: undefined,
     rpcUrls: [],
+    blockExplorerUrls: [],
     selectedRpcEndpointIndex: 0,
     blockExplorerUrl: undefined,
     nickname: undefined,
@@ -387,7 +395,13 @@ export class NetworkSettings extends PureComponent {
     showMultiRpcAddModal: {
       isVisible: false,
     },
+    showMultiBlockExplorerAddModal: {
+      isVisible: false,
+    },
     showAddRpcForm: {
+      isVisible: false,
+    },
+    showAddBlockExplorerForm: {
       isVisible: false,
     },
   };
@@ -398,7 +412,9 @@ export class NetworkSettings extends PureComponent {
   inputSymbol = React.createRef();
   inputBlockExplorerURL = React.createRef();
   rpcAddMenuSheetRef = React.createRef();
+  addBlockExplorerMenuSheetRef = React.createRef();
   rpcAddFormSheetRef = React.createRef();
+  blockExplorerAddFormSheetRef = React.createRef();
 
   getOtherNetworks = () => allNetworks.slice(1);
 
@@ -432,7 +448,6 @@ export class NetworkSettings extends PureComponent {
   };
 
   componentDidMount = () => {
-    console.log('componentDidMount ---');
     this.updateNavBar();
     const { route, networkConfigurations } = this.props;
 
@@ -447,16 +462,23 @@ export class NetworkSettings extends PureComponent {
       editable,
       rpcUrl,
       rpcUrls,
+      blockExplorerUrls,
       rpcName,
       selectedRpcEndpointIndex;
     // If no navigation param, user clicked on add network
     if (networkTypeOrRpcUrl) {
       if (allNetworks.find((net) => networkTypeOrRpcUrl === net)) {
-        blockExplorerUrl = getEtherscanBaseUrl(networkTypeOrRpcUrl);
+        // https://lineascan.build
+        // https://etherscan.io
+        // blockExplorerUrl = getEtherscanBaseUrl(networkTypeOrRpcUrl);
         const networkInformation = Networks[networkTypeOrRpcUrl];
         nickname = networkInformation.name;
         chainId = networkInformation.chainId.toString();
         editable = false;
+        console.log(
+          'networkConfigurations?.[chainId]?.rpcEndpoints ...',
+          networkConfigurations?.[chainId]?.rpcEndpoints,
+        );
         rpcUrl =
           networkConfigurations?.[chainId]?.rpcEndpoints[
             networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
@@ -469,6 +491,7 @@ export class NetworkSettings extends PureComponent {
             networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
           ]?.name;
         rpcUrls = networkConfigurations?.[chainId]?.rpcEndpoints;
+        blockExplorerUrls = networkConfigurations?.[chainId]?.blockExplorerUrls;
 
         ticker = ![
           NETWORKS_CHAIN_ID.LINEA_GOERLI,
@@ -494,8 +517,12 @@ export class NetworkSettings extends PureComponent {
           ];
         ticker = networkConfiguration.nativeCurrency;
         editable = true;
-        rpcUrl = networkTypeOrRpcUrl;
+        rpcUrl =
+          networkConfigurations?.[chainId]?.rpcEndpoints[
+            networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
+          ]?.url;
         rpcUrls = networkConfiguration?.rpcEndpoints;
+        blockExplorerUrls = networkConfiguration?.blockExplorerUrls;
         rpcName =
           networkConfiguration?.rpcEndpoints[
             networkConfiguration?.defaultBlockExplorerUrlIndex
@@ -510,11 +537,13 @@ export class NetworkSettings extends PureComponent {
         chainId +
         ticker +
         editable +
-        rpcUrls;
+        rpcUrls +
+        blockExplorerUrls;
       this.setState({
         rpcUrl,
         rpcName,
         rpcUrls,
+        blockExplorerUrls,
         selectedRpcEndpointIndex,
         blockExplorerUrl,
         nickname,
@@ -526,6 +555,8 @@ export class NetworkSettings extends PureComponent {
     } else {
       this.setState({ addMode: true });
     }
+
+    console.log('rpcUrl **********', rpcUrl);
 
     setTimeout(() => {
       this.setState({
@@ -685,7 +716,7 @@ export class NetworkSettings extends PureComponent {
     chainId,
     nickname,
     ticker,
-    blockExplorerUrl,
+    blockExplorerUrls,
     rpcUrls,
     isNetworkExists,
     isCustomMainnet,
@@ -712,11 +743,10 @@ export class NetworkSettings extends PureComponent {
       );
 
       console.log('existingNetwork -----', existingNetwork);
-      console.log('blockExplorerUrl -----', blockExplorerUrl);
+      console.log('blockExplorerUrls -----', blockExplorerUrls);
 
       const networkConfig = {
-        // todo: add multi block explorer feature
-        blockExplorerUrls: [],
+        blockExplorerUrls,
         chainId,
         rpcEndpoints: rpcUrls,
         nativeCurrency: ticker,
@@ -725,8 +755,8 @@ export class NetworkSettings extends PureComponent {
           indexRpc === -1 || indexRpc > rpcUrls.length - 1
             ? rpcUrls.length - 1
             : indexRpc,
-        // todo: add multi block explorer feature
-        defaultBlockExplorerUrlIndex: undefined,
+        defaultBlockExplorerUrlIndex:
+          blockExplorerUrls.length > 0 ? blockExplorerUrls : undefined,
       };
 
       await NetworkController.updateNetwork(
@@ -762,12 +792,11 @@ export class NetworkSettings extends PureComponent {
   addRpcUrl = async () => {
     console.log('HERE 1 ----------->');
 
-    const { NetworkController, CurrencyRateController } = Engine.context;
     const {
       rpcUrl,
       chainId: stateChainId,
       nickname,
-      blockExplorerUrl,
+      blockExplorerUrls,
       editable,
       enableAction,
       rpcUrls,
@@ -821,7 +850,7 @@ export class NetworkSettings extends PureComponent {
       chainId = `0x${parseInt(chainId, 10).toString(16)}`;
     }
 
-    console.log('HERE 6 ----------->');
+    console.log('HERE 6 ----------->', rpcUrl, rpcUrls);
 
     if (!(await this.validateChainIdOnSubmit(formChainId, chainId, rpcUrl))) {
       return;
@@ -829,26 +858,22 @@ export class NetworkSettings extends PureComponent {
     console.log('HERE 7 ----------->');
 
     if (this.validateRpcUrl()) {
-      try {
-        await this.handleNetworkUpdate(
-          rpcUrl,
-          chainId,
-          nickname,
-          ticker,
-          blockExplorerUrl,
-          rpcUrls,
-          isNetworkExists,
-          isCustomMainnet,
-          shouldNetworkSwitchPopToWallet,
-          navigation,
-          nativeToken,
-          networkType,
-          networkUrl,
-          showNetworkOnboarding,
-        );
-      } catch (err) {
-        console.log('ERR ----', err);
-      }
+      await this.handleNetworkUpdate(
+        rpcUrl,
+        chainId,
+        nickname,
+        ticker,
+        blockExplorerUrls,
+        rpcUrls,
+        isNetworkExists,
+        isCustomMainnet,
+        shouldNetworkSwitchPopToWallet,
+        navigation,
+        nativeToken,
+        networkType,
+        networkUrl,
+        showNetworkOnboarding,
+      );
     }
   };
 
@@ -1168,7 +1193,26 @@ export class NetworkSettings extends PureComponent {
     this.getCurrentState();
   };
 
+  onBlockExplorerItemAdd = async (url) => {
+    if (!url) {
+      return;
+    }
+
+    await this.setState((prevState) => ({
+      blockExplorerUrls: [...prevState.blockExplorerUrls, url],
+    }));
+
+    await this.setState({
+      blockExplorerUrl: url,
+    });
+
+    this.closeAddBlockExplorerRpcForm();
+    this.closeBlockExplorerModal();
+    this.getCurrentState();
+  };
+
   onRpcUrlChange = async (url) => {
+    const { addMode } = this.state;
     await this.setState({
       rpcUrl: url,
       validatedRpcURL: false,
@@ -1179,12 +1223,15 @@ export class NetworkSettings extends PureComponent {
     });
 
     this.validateName();
-    this.validateChainId();
+    if (addMode) {
+      this.validateChainId();
+    }
     this.validateSymbol();
     this.getCurrentState();
   };
 
   onRpcUrlChangeWithName = async (url, name) => {
+    const { addMode } = this.state;
     await this.setState({
       rpcUrl: url,
       validatedRpcURL: false,
@@ -1199,17 +1246,52 @@ export class NetworkSettings extends PureComponent {
     });
 
     this.validateName();
-    this.validateChainId();
+    if (addMode) {
+      this.validateChainId();
+    }
+    this.validateSymbol();
+    this.getCurrentState();
+  };
+
+  onBlockExplorerUrlChange = async (url) => {
+    const { addMode } = this.state;
+    await this.setState({
+      blockExplorerUrl: url,
+    });
+
+    this.validateName();
+    if (addMode) {
+      this.validateChainId();
+    }
     this.validateSymbol();
     this.getCurrentState();
   };
 
   onRpcUrlDelete = async (url) => {
+    const { addMode } = this.state;
     await this.setState((prevState) => ({
       rpcUrls: prevState.rpcUrls.filter((rpcUrl) => rpcUrl.url !== url),
     }));
     this.validateName();
-    this.validateChainId();
+    if (addMode) {
+      this.validateChainId();
+    }
+    this.validateSymbol();
+    this.getCurrentState();
+  };
+
+  onBlockExplorerUrlDelete = async (url) => {
+    const { addMode } = this.state;
+    await this.setState((prevState) => ({
+      blockExplorerUrls: prevState.blockExplorerUrls.filter(
+        (explorerUrl) => explorerUrl !== url,
+      ),
+    }));
+    this.validateName();
+    if (addMode) {
+      this.validateChainId();
+    }
+    this.validateRpcUrl();
     this.validateSymbol();
     this.getCurrentState();
   };
@@ -1309,6 +1391,16 @@ export class NetworkSettings extends PureComponent {
     this.rpcAddFormSheetRef.current?.onCloseBottomSheet();
   };
 
+  openAddBlockExplorerForm = () => {
+    this.setState({ showAddBlockExplorerForm: { isVisible: true } });
+    this.blockExplorerAddFormSheetRef.current?.onOpenBottomSheet();
+  };
+
+  closeAddBlockExplorerRpcForm = () => {
+    this.setState({ showAddBlockExplorerForm: { isVisible: false } });
+    this.blockExplorerAddFormSheetRef.current?.onCloseBottomSheet();
+  };
+
   closeRpcModal = () => {
     this.setState({ showMultiRpcAddModal: { isVisible: false } });
     this.rpcAddMenuSheetRef.current?.onCloseBottomSheet();
@@ -1319,11 +1411,27 @@ export class NetworkSettings extends PureComponent {
     this.rpcAddMenuSheetRef.current?.onOpenBottomSheet();
   };
 
+  openBlockExplorerModal = () => {
+    this.setState({ showMultiBlockExplorerAddModal: { isVisible: true } });
+    this.addBlockExplorerMenuSheetRef.current?.onOpenBottomSheet();
+  };
+
+  closeBlockExplorerModal = () => {
+    this.setState({ showMultiBlockExplorerAddModal: { isVisible: false } });
+    this.addBlockExplorerMenuSheetRef.current?.onCloseBottomSheet();
+  };
+
   switchToMainnet = () => {
     const { NetworkController, CurrencyRateController } = Engine.context;
+    const { networkConfigurations } = this.props;
+
+    const { networkClientId } =
+      networkConfigurations?.rpcEndpoints?.[
+        networkConfigurations.defaultRpcEndpointIndex
+      ] ?? {};
 
     CurrencyRateController.updateExchangeRate(NetworksTicker.mainnet);
-    NetworkController.setProviderType(MAINNET);
+    NetworkController.setActiveNetwork(networkClientId);
 
     setTimeout(async () => {
       await updateIncomingTransactions();
@@ -1383,6 +1491,7 @@ export class NetworkSettings extends PureComponent {
     const {
       rpcUrl,
       rpcUrls,
+      blockExplorerUrls,
       blockExplorerUrl,
       nickname,
       chainId,
@@ -1400,7 +1509,9 @@ export class NetworkSettings extends PureComponent {
       isRpcUrlFieldFocused,
       isChainIdFieldFocused,
       showMultiRpcAddModal,
+      showMultiBlockExplorerAddModal,
       showAddRpcForm,
+      showAddBlockExplorerForm,
       rpcUrlForm,
       rpcNameForm,
       rpcName,
@@ -1603,7 +1714,7 @@ export class NetworkSettings extends PureComponent {
               <Button
                 size={ButtonSize.Lg}
                 variant={ButtonVariants.Primary}
-                onPress={this.toggleNetworkDetailsModal}
+                onPress={this.addRpcUrl}
                 testID={NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON}
                 style={styles.button}
                 label={strings('app_settings.network_save')}
@@ -1728,7 +1839,6 @@ export class NetworkSettings extends PureComponent {
             <Text style={styles.label}>
               {strings('app_settings.network_rpc_url_label')}
             </Text>
-            {console.log('rpcName -----', rpcName)}
             {isNetworkUiRedesignEnabled() ? (
               <View style={styles.rpcUrlInput}>
                 <Cell
@@ -1845,22 +1955,38 @@ export class NetworkSettings extends PureComponent {
             <Text style={styles.label}>
               {strings('app_settings.network_block_explorer_label')}
             </Text>
-            <TextInput
-              ref={this.inputBlockExplorerURL}
-              style={inputStyle}
-              autoCapitalize={'none'}
-              autoCorrect={false}
-              value={blockExplorerUrl}
-              editable={editable}
-              onChangeText={this.onBlockExplorerUrlChange}
-              placeholder={strings(
-                'app_settings.network_block_explorer_placeholder',
-              )}
-              testID={NetworksViewSelectorsIDs.BLOCK_EXPLORER_INPUT}
-              placeholderTextColor={colors.text.muted}
-              onSubmitEditing={this.toggleNetworkDetailsModal}
-              keyboardAppearance={themeAppearance}
-            />
+
+            {isNetworkUiRedesignEnabled() ? (
+              <View style={styles.rpcUrlInput}>
+                <Cell
+                  key={rpcUrl}
+                  variant={CellVariant.SelectWithMenu}
+                  title={blockExplorerUrl}
+                  isSelected={false}
+                  withAvatar={false}
+                  onPress={this.openBlockExplorerModal}
+                  buttonIcon={IconName.ArrowDown}
+                  onButtonClick={() => this.openBlockExplorerModal()}
+                />
+              </View>
+            ) : (
+              <TextInput
+                ref={this.inputBlockExplorerURL}
+                style={inputStyle}
+                autoCapitalize={'none'}
+                autoCorrect={false}
+                value={blockExplorerUrl}
+                editable={editable}
+                onChangeText={this.onBlockExplorerUrlChange}
+                placeholder={strings(
+                  'app_settings.network_block_explorer_placeholder',
+                )}
+                testID={NetworksViewSelectorsIDs.BLOCK_EXPLORER_INPUT}
+                placeholderTextColor={colors.text.muted}
+                onSubmitEditing={this.toggleNetworkDetailsModal}
+                keyboardAppearance={themeAppearance}
+              />
+            )}
           </View>
           <View style={styles.bottomSection}>
             {isCustomMainnet ? (
@@ -1893,7 +2019,7 @@ export class NetworkSettings extends PureComponent {
                 this.openRpcModal();
               }}
             >
-              <Text variant={TextVariant.HeadingMD}>
+              <Text style={styles.heading}>
                 {strings('app_settings.add_rpc_url')}
               </Text>
             </BottomSheetHeader>
@@ -1958,7 +2084,112 @@ export class NetworkSettings extends PureComponent {
             </View>
           </BottomSheet>
         ) : null}
-
+        {showAddBlockExplorerForm.isVisible ? (
+          <BottomSheet
+            ref={this.blockExplorerAddFormSheetRef}
+            onClose={this.closeAddBlockExplorerRpcForm}
+            style={styles.rpcMenu}
+            shouldNavigateBack={false}
+            // isFullscreen
+          >
+            <BottomSheetHeader
+              onBack={() => {
+                this.closeAddBlockExplorerRpcForm();
+                this.openBlockExplorerModal();
+              }}
+            >
+              <Text style={styles.heading}>
+                {strings('app_settings.add_block_explorer_url')}
+              </Text>
+            </BottomSheetHeader>
+            <View style={styles.rpcMenu}>
+              <Text style={styles.label}>
+                {strings('app_settings.network_block_explorer_label')}
+              </Text>
+              <TextInput
+                ref={this.inputBlockExplorerURL}
+                style={inputStyle}
+                autoCapitalize={'none'}
+                autoCorrect={false}
+                onChangeText={this.onBlockExplorerUrlChange}
+                placeholder={strings(
+                  'app_settings.network_block_explorer_placeholder',
+                )}
+                testID={NetworksViewSelectorsIDs.BLOCK_EXPLORER_INPUT}
+                placeholderTextColor={colors.text.muted}
+                onSubmitEditing={this.toggleNetworkDetailsModal}
+                keyboardAppearance={themeAppearance}
+              />
+              {blockExplorerUrl && !isUrl(blockExplorerUrl) && (
+                <View
+                  style={
+                    isNetworkUiRedesignEnabled()
+                      ? styles.newWarningContainer
+                      : styles.warningContainer
+                  }
+                >
+                  <Text style={styles.warningText}>
+                    {strings('app_settings.invalid_block_explorer_url')}
+                  </Text>
+                </View>
+              )}
+              <View style={styles.addRpcNameButton}>
+                <ButtonPrimary
+                  label={strings('app_settings.add_rpc_url')}
+                  size={ButtonSize.Lg}
+                  onPress={() => {
+                    // todo salim here
+                    this.onBlockExplorerItemAdd(blockExplorerUrl);
+                  }}
+                  width={ButtonWidthTypes.Full}
+                  labelTextVariant={TextVariant.DisplayMD}
+                  isDisabled={!blockExplorerUrl || !isUrl(blockExplorerUrl)}
+                />
+              </View>
+            </View>
+          </BottomSheet>
+        ) : null}
+        {showMultiBlockExplorerAddModal.isVisible ? (
+          <BottomSheet
+            ref={this.addBlockExplorerMenuSheetRef}
+            onClose={this.closeBlockExplorerModal}
+            style={styles.rpcMenu}
+            shouldNavigateBack={false}
+          >
+            <View>
+              {blockExplorerUrls.map((url) => (
+                <Cell
+                  key={url}
+                  variant={CellVariant.SelectWithMenu}
+                  title={url}
+                  withAvatar={false}
+                  isSelected={blockExplorerUrl === url}
+                  onPress={async () => {
+                    await this.onBlockExplorerUrlChange(url);
+                  }}
+                  showButtonIcon={blockExplorerUrl !== url}
+                  buttonIcon={IconName.Trash}
+                  onButtonClick={async () => {
+                    await this.onBlockExplorerUrlDelete(url);
+                  }}
+                />
+              ))}
+              <View style={styles.addRpcButton}>
+                <ButtonLink
+                  label={strings('app_settings.add_block_explorer_url')}
+                  endIconName={IconName.Add}
+                  size={ButtonSize.Lg}
+                  onPress={() => {
+                    this.openAddBlockExplorerForm();
+                    this.closeBlockExplorerModal();
+                  }}
+                  width={ButtonWidthTypes.Auto}
+                  labelTextVariant={TextVariant.DisplayMD}
+                />
+              </View>
+            </View>
+          </BottomSheet>
+        ) : null}
         {showMultiRpcAddModal.isVisible ? (
           <BottomSheet
             ref={this.rpcAddMenuSheetRef}
