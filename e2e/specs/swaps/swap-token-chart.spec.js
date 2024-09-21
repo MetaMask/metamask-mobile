@@ -84,6 +84,7 @@ describe(Regression('Swap from Token view'), () => {
     }
     await device.enableSynchronization();
     await TestHelpers.delay(5000);
+    await TokenOverview.tapBackButton();
     await TabBarComponent.tapActivity();
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(ActivitiesView.swapActivity('LINK', 'DAI'));
