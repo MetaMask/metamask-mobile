@@ -1,14 +1,24 @@
 import React from 'react';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import QRAccountDisplay from './index';
 import { fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import backgroundState from '../../../util/test/initial-background-state.json';
 import ClipboardManager from '../../../core/ClipboardManager';
+import { mockNetworkState } from '../../../util/test/network';
 
 const initialState = {
   engine: {
     backgroundState: {
       ...backgroundState,
+      NetworkController: {
+        ...mockNetworkState({
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+          chainId: CHAIN_IDS.MAINNET,
+        }),
+      },
     },
   },
 };

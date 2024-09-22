@@ -1,8 +1,11 @@
 import React from 'react';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import AccountApproval from '.';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+import { mockNetworkState } from '../../../util/test/network';
+import { RpcEndpointType } from '@metamask/network-controller';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -40,9 +43,24 @@ const mockInitialState = {
           },
         },
       },
+      NetworkController: {
+        ...mockNetworkState({
+          id: 'mainnet',
+          nickname: 'Ethereum',
+          ticker: 'ETH',
+          chainId: CHAIN_IDS.MAINNET,
+          type: RpcEndpointType.Infura,
+        }),
+      },
     },
   },
 };
+
+jest.mock('../../../store', () => ({
+  store: {
+    getState: () => mockInitialState,
+  },
+}));
 
 describe('AccountApproval', () => {
   it('should render correctly', () => {

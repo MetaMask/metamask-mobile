@@ -16,6 +16,7 @@ export const mockNetworkState = (
     rpcUrl?: string;
     nickname?: string;
     ticker?: string;
+    type?: RpcEndpointType;
     blockExplorerUrl?: string;
     metadata?: NetworkMetadata;
   }[]
@@ -45,7 +46,7 @@ export const mockNetworkState = (
       rpcEndpoints: [
         {
           networkClientId: network.id ?? uuidv4(),
-          type: RpcEndpointType.Custom,
+          type: network.type ?? RpcEndpointType.Custom,
           url: rpc,
         },
       ],

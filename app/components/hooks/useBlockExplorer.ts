@@ -17,11 +17,11 @@ const useBlockExplorer = () => {
 
   const toBlockExplorer = useCallback(
     (address: string) => {
-      const { type, rpcUrl } = providerConfig;
+      const { type, chainId } = providerConfig;
       let accountLink: string;
       if (type === RPC) {
         const blockExplorer =
-          findBlockExplorerForRpc(rpcUrl, networkConfigurations) ||
+          findBlockExplorerForRpc(chainId, networkConfigurations) ||
           NO_RPC_BLOCK_EXPLORER;
         accountLink = `${blockExplorer}/address/${address}`;
       } else {

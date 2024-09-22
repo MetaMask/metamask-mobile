@@ -120,6 +120,7 @@ export function renderAccountName(
   address: string,
   internalAccounts: InternalAccount[],
 ) {
+  console.log('MMMMMM ++++++', store.getState());
   const chainId = selectChainId(store.getState());
   address = toChecksumHexAddress(address);
   const account = internalAccounts.find((acc) =>

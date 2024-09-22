@@ -1,9 +1,10 @@
-import { NetworkController } from '@metamask/network-controller';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../constants/navigation/Routes';
 import { backgroundState } from '../../util/test/initial-root-state';
 import { renderHookWithProvider } from '../../util/test/renderWithProvider';
 import useBlockExplorer from './useBlockExplorer';
+import { mockNetworkState } from '../../util/test/network';
 
 const mockInitialState = {
   settings: {},
@@ -11,26 +12,14 @@ const mockInitialState = {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
-        networkConfigurations: {
-          linea_goerli: {
-            chainId: '0xe704',
-            id: 'linea_goerli',
-            nickname: 'Linea Goerli',
-            rpcPrefs: { blockExplorerUrl: 'https://goerli.lineascan.build' },
-            rpcUrl: 'https://linea-goerli.infura.io/v3',
-            ticker: 'LINEA',
-          },
-        },
-        networksMetadata: {
-          linea_goerli: {
-            EIPS: { '1559': true },
-            status: 'available',
-          },
-          mainnet: { EIPS: { '1559': true }, status: 'available' },
-        },
-        providerConfig: { chainId: '0x1', ticker: 'ETH', type: 'mainnet' },
-        selectedNetworkClientId: 'linea_goerli',
-      } as unknown as NetworkController['state'],
+        ...mockNetworkState({
+          chainId: CHAIN_IDS.LINEA_GOERLI,
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+          blockExplorerUrl: 'https://goerli.lineascan.build',
+        }),
+      },
     },
   },
 };

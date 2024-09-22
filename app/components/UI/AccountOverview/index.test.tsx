@@ -1,4 +1,5 @@
 import React from 'react';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import AccountOverview from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -8,6 +9,7 @@ import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_1,
 } from '../../../util/test/accountsControllerTestUtils';
+import { mockNetworkState } from '../../../util/test/network';
 
 const mockedEngine = Engine;
 
@@ -38,9 +40,23 @@ const mockInitialState = {
         selectedAddress: MOCK_ADDRESS_1,
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      NetworkController: {
+        ...mockNetworkState({
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+          chainId: CHAIN_IDS.MAINNET,
+        }),
+      },
     },
   },
 };
+
+jest.mock('../../../store', () => ({
+  store: {
+    getState: () => mockInitialState,
+  },
+}));
 
 describe('AccountOverview', () => {
   it('should render correctly', () => {

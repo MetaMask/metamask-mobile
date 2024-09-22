@@ -1,4 +1,5 @@
 import React from 'react';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import AccountInfoCard from './';
 import renderWithProvider, {
   DeepPartial,
@@ -10,6 +11,7 @@ import {
 } from '../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../reducers';
 import { RpcEndpointType } from '@metamask/network-controller';
+import { mockNetworkState } from '../../../util/test/network';
 
 jest.mock('../../../core/Engine', () => ({
   resetState: jest.fn(),
@@ -49,24 +51,13 @@ const mockInitialState: DeepPartial<RootState> = {
         },
       },
       NetworkController: {
-        selectedNetworkClientId: 'sepolia',
-        networksMetadata: {},
-        networkConfigurationsByChainId: {
-          '0xaa36a7': {
-            blockExplorerUrls: [],
-            chainId: '0xaa36a7',
-            defaultRpcEndpointIndex: 0,
-            name: 'sepolia',
-            nativeCurrency: 'ETH',
-            rpcEndpoints: [
-              {
-                networkClientId: 'mainnet',
-                type: RpcEndpointType.Custom,
-                url: 'http://localhost/v3/',
-              },
-            ],
-          },
-        },
+        ...mockNetworkState({
+          chainId: CHAIN_IDS.SEPOLIA,
+          id: 'mainnet',
+          nickname: 'Sepolia',
+          ticker: 'SepoliaETH',
+          type: RpcEndpointType.Infura,
+        }),
       },
       TokenBalancesController: {
         contractBalances: {},
@@ -77,6 +68,12 @@ const mockInitialState: DeepPartial<RootState> = {
     origin: 'https://metamask.io',
   },
 };
+
+jest.mock('../../../store', () => ({
+  store: {
+    getState: () => mockInitialState,
+  },
+}));
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
