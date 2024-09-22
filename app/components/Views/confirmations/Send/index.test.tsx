@@ -11,12 +11,14 @@ import {
   DeepPartial,
   renderScreen,
 } from '../../../../util/test/renderWithProvider';
+import { RpcEndpointType } from '@metamask/network-controller';
 
 const mockedNetworkControllerState = mockNetworkState({
   chainId: CHAIN_IDS.MAINNET,
   id: 'mainnet',
-  nickname: 'Ethereum Mainnet',
+  nickname: 'Ethereum Main Network',
   ticker: 'ETH',
+  type: RpcEndpointType.Infura,
 });
 
 const initialState: DeepPartial<RootState> = {
@@ -182,6 +184,12 @@ jest.mock('../../../../core/Engine', () => ({
         ...mockedNetworkControllerState,
       },
     },
+  },
+}));
+
+jest.mock('../../../store', () => ({
+  store: {
+    getState: () => initialState,
   },
 }));
 

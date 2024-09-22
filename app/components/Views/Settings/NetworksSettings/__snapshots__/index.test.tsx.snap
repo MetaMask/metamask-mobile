@@ -597,6 +597,23 @@ exports[`NetworksSettings should render correctly 1`] = `
                               </Text>
                             </TouchableOpacity>
                           </View>
+                          <View
+                            testID="custom-networks-list"
+                          >
+                            <Text
+                              style={
+                                {
+                                  "color": "#141618",
+                                  "fontFamily": "EuclidCircularB-Bold",
+                                  "fontSize": 14,
+                                  "fontWeight": "600",
+                                  "paddingVertical": 12,
+                                }
+                              }
+                            >
+                              Custom networks
+                            </Text>
+                          </View>
                           <Text
                             style={
                               {

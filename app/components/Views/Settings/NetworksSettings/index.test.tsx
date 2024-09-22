@@ -5,16 +5,17 @@ import { mockNetworkState } from '../../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { RpcEndpointType } from '@metamask/network-controller';
 
-const initialState = {
+const mockInitialState = {
+  settings: {},
   engine: {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
         ...mockNetworkState({
-          chainId: CHAIN_IDS.MAINNET,
           id: 'mainnet',
-          nickname: 'Sepolia',
-          ticker: 'SepoliaETH',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+          chainId: CHAIN_IDS.MAINNET,
           type: RpcEndpointType.Infura,
         }),
       },
@@ -22,13 +23,19 @@ const initialState = {
   },
 };
 
+jest.mock('../../../../store', () => ({
+  store: {
+    getState: () => mockInitialState,
+  },
+}));
+
 describe('NetworksSettings', () => {
   it('should render correctly', () => {
     const { toJSON } = renderScreen(
       NetworksSettings,
       { name: 'Network Settings' },
       {
-        state: initialState,
+        state: mockInitialState,
       },
     );
     expect(toJSON()).toMatchSnapshot();

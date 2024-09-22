@@ -11,6 +11,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
 import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { RpcEndpointType } from '@metamask/network-controller';
 
 const mockInitialState: DeepPartial<RootState> = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
@@ -33,6 +34,7 @@ const mockInitialState: DeepPartial<RootState> = {
           id: 'mainnet',
           nickname: 'Ethereum Mainnet',
           ticker: 'ETH',
+          type: RpcEndpointType.Infura,
         }),
       },
     },

@@ -122,6 +122,7 @@ export function renderAccountName(
 ) {
   console.log('MMMMMM ++++++', store.getState());
   const chainId = selectChainId(store.getState());
+  console.log('CHAIN_ID ----', chainId);
   address = toChecksumHexAddress(address);
   const account = internalAccounts.find((acc) =>
     toLowerCaseEquals(acc.address, address),
