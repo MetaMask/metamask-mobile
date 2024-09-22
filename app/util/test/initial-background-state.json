@@ -57,7 +57,22 @@
     }
   },
   "NetworkController": {
-    "networkConfigurations": {},
+    "networkConfigurationsByChainId": {
+      "0x1": {
+        "blockExplorerUrls": [],
+        "chainId": "0x1",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Mainnet",
+        "nativeCurrency": "ETH",
+        "rpcEndpoints": [
+          {
+            "networkClientId": "mainnet",
+            "type": "infura",
+            "url": "https://mainnet.infura.io/v3/{infuraProjectId}"
+          }
+        ]
+      }
+    },
     "networksMetadata": {
       "mainnet": {
         "EIPS": {},
