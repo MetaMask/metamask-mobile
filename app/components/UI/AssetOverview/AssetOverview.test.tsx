@@ -1,14 +1,15 @@
 import React from 'react';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import AssetOverview from './AssetOverview';
 import { zeroAddress } from 'ethereumjs-util';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { NetworkController } from '@metamask/network-controller';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_2,
 } from '../../../util/test/accountsControllerTestUtils';
 import { fireEvent } from '@testing-library/react-native';
+import { mockNetworkState } from '../../../util/test/network';
 
 const MOCK_CHAIN_ID = '0x1';
 
@@ -27,10 +28,13 @@ const mockInitialState = {
         },
       },
       NetworkController: {
-        providerConfig: {
-          chainId: MOCK_CHAIN_ID,
-        },
-      } as unknown as NetworkController['state'],
+        ...mockNetworkState({
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+          chainId: CHAIN_IDS.MAINNET,
+        }),
+      },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       AccountTrackerController: {
         accountsByChainId: {

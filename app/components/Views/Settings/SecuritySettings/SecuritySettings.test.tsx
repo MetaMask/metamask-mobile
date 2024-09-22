@@ -1,4 +1,5 @@
 import React from 'react';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 import SecuritySettings from './SecuritySettings';
@@ -24,6 +25,8 @@ import {
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
+import { mockNetworkState } from '../../../../util/test/network';
+import { RpcEndpointType } from '@metamask/network-controller';
 
 const initialState = {
   privacy: { approvedHosts: {} },
@@ -34,6 +37,15 @@ const initialState = {
     backgroundState: {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      NetworkController: {
+        ...mockNetworkState({
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+          chainId: CHAIN_IDS.MAINNET,
+          type: RpcEndpointType.Infura,
+        }),
+      },
     },
   },
   security: {

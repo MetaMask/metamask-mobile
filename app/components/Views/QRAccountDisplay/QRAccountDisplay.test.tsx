@@ -7,7 +7,7 @@ import backgroundState from '../../../util/test/initial-background-state.json';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { mockNetworkState } from '../../../util/test/network';
 
-const initialState = {
+const mockInitialState = {
   engine: {
     backgroundState: {
       ...backgroundState,
@@ -22,6 +22,12 @@ const initialState = {
     },
   },
 };
+
+jest.mock('../../../store', () => ({
+  store: {
+    getState: () => mockInitialState,
+  },
+}));
 
 const ACCOUNT = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
 
@@ -48,7 +54,7 @@ describe('QRAccountDisplay', () => {
       TestWrapper,
       { name: 'QRAccountDisplay' },
       // @ts-expect-error initialBackgroundState throws error
-      { state: initialState },
+      { state: mockInitialState },
     );
     expect(toJSON()).toMatchSnapshot();
   });
@@ -58,7 +64,7 @@ describe('QRAccountDisplay', () => {
       TestWrapper,
       { name: 'QRAccountDisplay' },
       // @ts-expect-error initialBackgroundState throws error
-      { state: initialState },
+      { state: mockInitialState },
     );
 
     const copyButton = getByTestId('qr-account-display-copy-button');

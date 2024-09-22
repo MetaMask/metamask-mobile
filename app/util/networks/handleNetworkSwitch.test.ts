@@ -12,14 +12,14 @@ jest.mock('../../core/Engine', () => ({
       updateExchangeRate: jest.fn(),
     },
     NetworkController: {
-      getNetworkClientById: jest.fn().mockReturnValue({
-        configuration: {
-          chainId: '0x1',
-          rpcUrl: 'https://mainnet.infura.io/v3',
-          ticker: 'ETH',
-          type: 'custom',
-        },
-      }),
+      // getNetworkClientById: jest.fn().mockReturnValue({
+      //   configuration: {
+      //     chainId: '0x1',
+      //     rpcUrl: 'https://mainnet.infura.io/v3',
+      //     ticker: 'ETH',
+      //     type: 'custom',
+      //   },
+      // }),
       setActiveNetwork: jest.fn(),
       setProviderType: jest.fn(),
     },
@@ -40,12 +40,28 @@ function setupGetStateMock() {
           backgroundState: {
             NetworkController: {
               selectedNetworkClientId: 'networkId1',
-              networkConfigurations: {
-                networkId1: {
-                  rpcUrl: 'custom-testnet-rpc-url',
-                  chainId: '0x53a',
-                  ticker: 'TEST',
-                  nickname: 'Testnet',
+              // networkConfigurations: {
+              //   networkId1: {
+              //     rpcUrl: 'custom-testnet-rpc-url',
+              //     chainId: '0x53a',
+              //     ticker: 'TEST',
+              //     nickname: 'Testnet',
+              //   },
+              // },
+              networkConfigurationsByChainId: {
+                '0x53a': {
+                  blockExplorerUrls: [],
+                  chainId: 'networkId1',
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Mainnet',
+                  nativeCurrency: 'TEST',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'networkId1',
+                      type: 'infura',
+                      url: 'custom-testnet-rpc-url',
+                    },
+                  ],
                 },
               },
               networksMetadata: {
@@ -87,16 +103,16 @@ describe('useHandleNetworkSwitch', () => {
   });
 
   it('does nothing if the chain ID matches the current global chain ID', () => {
-    (
-      Engine.context.NetworkController.getNetworkClientById as jest.Mock
-    ).mockReturnValue({
-      configuration: {
-        chainId: '0x1',
-        rpcUrl: 'https://mainnet.infura.io/v3',
-        ticker: 'ETH',
-        type: 'custom',
-      },
-    });
+    // (
+    //   Engine.context.NetworkController.getNetworkClientById as jest.Mock
+    // ).mockReturnValue({
+    //   configuration: {
+    //     chainId: '0x1',
+    //     rpcUrl: 'https://mainnet.infura.io/v3',
+    //     ticker: 'ETH',
+    //     type: 'custom',
+    //   },
+    // });
 
     setupGetStateMock();
 
@@ -123,16 +139,16 @@ describe('useHandleNetworkSwitch', () => {
   });
 
   it('switches to a custom network', () => {
-    (
-      Engine.context.NetworkController.getNetworkClientById as jest.Mock
-    ).mockReturnValue({
-      configuration: {
-        chainId: '0x1',
-        rpcUrl: 'https://mainnet.infura.io/v3',
-        ticker: 'ETH',
-        type: 'custom',
-      },
-    });
+    // (
+    //   Engine.context.NetworkController.getNetworkClientById as jest.Mock
+    // ).mockReturnValue({
+    //   configuration: {
+    //     chainId: '0x1',
+    //     rpcUrl: 'https://mainnet.infura.io/v3',
+    //     ticker: 'ETH',
+    //     type: 'custom',
+    //   },
+    // });
 
     setupGetStateMock();
 

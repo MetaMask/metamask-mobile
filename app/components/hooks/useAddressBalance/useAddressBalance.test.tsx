@@ -1,4 +1,6 @@
 import React from 'react';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { RpcEndpointType } from '@metamask/network-controller';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { renderHook } from '@testing-library/react-native';
@@ -9,6 +11,8 @@ import useAddressBalance from './useAddressBalance';
 import backgroundState from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 import { BN } from 'ethereumjs-util';
+import { mockNetworkState } from '../../../util/test/network';
+
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
 
@@ -32,6 +36,15 @@ const mockInitialState = {
             balance: '0x5',
           },
         },
+      },
+      NetworkController: {
+        ...mockNetworkState({
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+          chainId: CHAIN_IDS.MAINNET,
+          type: RpcEndpointType.Infura,
+        }),
       },
       TokenBalancesController: {
         contractBalances: {
