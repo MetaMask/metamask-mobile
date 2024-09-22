@@ -101,6 +101,7 @@ import ButtonIcon, {
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import ButtonLink from '../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import ButtonPrimary from '../../../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
+import { RpcEndpointType } from '@metamask/network-controller';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -451,6 +452,8 @@ export class NetworkSettings extends PureComponent {
     this.updateNavBar();
     const { route, networkConfigurations } = this.props;
 
+    console.log('networkConfigurations ----', networkConfigurations);
+
     const isCustomMainnet = route.params?.isCustomMainnet;
     const networkTypeOrRpcUrl = route.params?.network;
 
@@ -471,14 +474,15 @@ export class NetworkSettings extends PureComponent {
         // https://lineascan.build
         // https://etherscan.io
         // blockExplorerUrl = getEtherscanBaseUrl(networkTypeOrRpcUrl);
+
         const networkInformation = Networks[networkTypeOrRpcUrl];
         nickname = networkInformation.name;
         chainId = networkInformation.chainId.toString();
         editable = false;
-        console.log(
-          'networkConfigurations?.[chainId]?.rpcEndpoints ...',
-          networkConfigurations?.[chainId]?.rpcEndpoints,
-        );
+        blockExplorerUrl =
+          networkConfigurations?.[chainId]?.blockExplorerUrls[
+            networkConfigurations?.[chainId]?.defaultBlockExplorerUrlIndex
+          ];
         rpcUrl =
           networkConfigurations?.[chainId]?.rpcEndpoints[
             networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
@@ -686,6 +690,7 @@ export class NetworkSettings extends PureComponent {
     return isNetworkUiRedesignEnabled() && chainIdExists;
   };
 
+  // TOD: Handle existing rpc
   checkIfNetworkExists = async (rpcUrl) => {
     const checkCustomNetworks = Object.values(
       this.props.networkConfigurations,
@@ -711,11 +716,23 @@ export class NetworkSettings extends PureComponent {
     return [];
   };
 
+  checkIfNetworkNotExistsByChainId = async (chainId) => {
+    console.log(
+      'JE SUIS PASSE PAR LA !!!!!',
+      chainId,
+      this.props.networkConfigurations,
+    );
+    return Object.values(this.props.networkConfigurations).filter(
+      (item) => item.chainId !== chainId,
+    );
+  };
+
   handleNetworkUpdate = async (
     rpcUrl,
     chainId,
     nickname,
     ticker,
+    blockExplorerUrl,
     blockExplorerUrls,
     rpcUrls,
     isNetworkExists,
@@ -737,13 +754,18 @@ export class NetworkSettings extends PureComponent {
     CurrencyRateController.updateExchangeRate(ticker);
     const existingNetwork = this.props.networkConfigurations[chainId];
 
+    console.log('isNetworkExists ----', isNetworkExists);
     if (isNetworkExists.length === 0) {
-      const indexRpc = existingNetwork.rpcEndpoints.findIndex(
-        ({ url }) => url === rpcUrl,
+      const indexRpc = rpcUrls.findIndex(({ url }) => url === rpcUrl);
+
+      const blockExplorerIndex = blockExplorerUrls.findIndex(
+        (url) => url === blockExplorerUrl,
       );
 
-      console.log('existingNetwork -----', existingNetwork);
-      console.log('blockExplorerUrls -----', blockExplorerUrls);
+      console.log(
+        'defaultRpcEndpointIndex !!!!!!!!!! -----',
+        blockExplorerIndex,
+      );
 
       const networkConfig = {
         blockExplorerUrls,
@@ -751,12 +773,13 @@ export class NetworkSettings extends PureComponent {
         rpcEndpoints: rpcUrls,
         nativeCurrency: ticker,
         name: nickname,
-        defaultRpcEndpointIndex:
-          indexRpc === -1 || indexRpc > rpcUrls.length - 1
-            ? rpcUrls.length - 1
-            : indexRpc,
+        // i don't like it
+        defaultRpcEndpointIndex: indexRpc,
+        // indexRpc === -1 || indexRpc > rpcUrls.length - 1
+        //   ? rpcUrls.length - 1
+        //   : indexRpc,
         defaultBlockExplorerUrlIndex:
-          blockExplorerUrls.length > 0 ? blockExplorerUrls : undefined,
+          blockExplorerIndex !== -1 ? blockExplorerIndex : undefined,
       };
 
       await NetworkController.updateNetwork(
@@ -764,21 +787,50 @@ export class NetworkSettings extends PureComponent {
         networkConfig,
         existingNetwork.chainId === chainId
           ? {
-              replacementSelectedRpcEndpointIndex:
-                indexRpc === -1 || indexRpc > rpcUrls.length - 1
-                  ? rpcUrls.length - 1
-                  : indexRpc,
+              // replacementSelectedRpcEndpointIndex:
+              //   indexRpc === -1 || indexRpc > rpcUrls.length - 1
+              //     ? rpcUrls.length - 1
+              //     : indexRpc,
+              replacementSelectedRpcEndpointIndex: indexRpc,
             }
           : undefined,
       );
+    } else {
+      console.log('ADD_NETWORK_CASE -------->');
+
+      const blockExplorerIndex = blockExplorerUrls.findIndex(
+        (url) => url === blockExplorerUrl,
+      );
+
+      const addedNetwork = await NetworkController.addNetwork({
+        chainId,
+        blockExplorerUrls,
+        defaultRpcEndpointIndex: 0,
+        defaultBlockExplorerUrlIndex: blockExplorerIndex ?? undefined,
+        name: nickname,
+        nativeCurrency: ticker,
+        rpcEndpoints: [
+          {
+            url: rpcUrl,
+            name: nickname,
+            type: RpcEndpointType.Custom,
+          },
+        ],
+      });
+
+      const { networkClientId } =
+        addedNetwork?.rpcEndpoints?.[addedNetwork.defaultRpcEndpointIndex] ??
+        {};
+
+      await NetworkController.setActiveNetwork(networkClientId);
+      this.props.showNetworkOnboardingAction({
+        networkUrl,
+        networkType,
+        nativeToken,
+        showNetworkOnboarding,
+      });
     }
 
-    this.props.showNetworkOnboardingAction({
-      networkUrl,
-      networkType,
-      nativeToken,
-      showNetworkOnboarding,
-    });
     isCustomMainnet
       ? navigation.navigate('OptinMetrics')
       : shouldNetworkSwitchPopToWallet
@@ -797,9 +849,11 @@ export class NetworkSettings extends PureComponent {
       chainId: stateChainId,
       nickname,
       blockExplorerUrls,
+      blockExplorerUrl,
       editable,
       enableAction,
       rpcUrls,
+      addMode,
     } = this.state;
 
     console.log('HERE 2 ----------->');
@@ -824,12 +878,17 @@ export class NetworkSettings extends PureComponent {
     if (isCtaDisabled) {
       return;
     }
-    console.log('HERE 5 ----------->');
+    console.log('HERE 5 editable ----------->', editable);
 
     // Conditionally check existence of network (Only check in Add Mode)
-    const isNetworkExists = editable
-      ? []
-      : await this.checkIfNetworkExists(rpcUrl);
+    let isNetworkExists;
+    if (isNetworkUiRedesignEnabled()) {
+      isNetworkExists = addMode
+        ? await this.checkIfNetworkNotExistsByChainId(stateChainId)
+        : [];
+    } else {
+      isNetworkExists = editable ? [] : await this.checkIfNetworkExists(rpcUrl);
+    }
 
     const isOnboarded = getIsNetworkOnboarded(
       stateChainId,
@@ -858,22 +917,27 @@ export class NetworkSettings extends PureComponent {
     console.log('HERE 7 ----------->');
 
     if (this.validateRpcUrl()) {
-      await this.handleNetworkUpdate(
-        rpcUrl,
-        chainId,
-        nickname,
-        ticker,
-        blockExplorerUrls,
-        rpcUrls,
-        isNetworkExists,
-        isCustomMainnet,
-        shouldNetworkSwitchPopToWallet,
-        navigation,
-        nativeToken,
-        networkType,
-        networkUrl,
-        showNetworkOnboarding,
-      );
+      try {
+        await this.handleNetworkUpdate(
+          rpcUrl,
+          chainId,
+          nickname,
+          ticker,
+          blockExplorerUrl,
+          blockExplorerUrls,
+          rpcUrls,
+          isNetworkExists,
+          isCustomMainnet,
+          shouldNetworkSwitchPopToWallet,
+          navigation,
+          nativeToken,
+          networkType,
+          networkUrl,
+          showNetworkOnboarding,
+        );
+      } catch (err) {
+        console.log('error ----', err);
+      }
     }
   };
 
@@ -1230,7 +1294,8 @@ export class NetworkSettings extends PureComponent {
     this.getCurrentState();
   };
 
-  onRpcUrlChangeWithName = async (url, name) => {
+  onRpcUrlChangeWithName = async (url, name, type) => {
+    const nameToUse = name ?? type;
     const { addMode } = this.state;
     await this.setState({
       rpcUrl: url,
@@ -1242,7 +1307,7 @@ export class NetworkSettings extends PureComponent {
     });
 
     await this.setState({
-      rpcName: name,
+      rpcName: nameToUse,
     });
 
     this.validateName();
@@ -2190,6 +2255,7 @@ export class NetworkSettings extends PureComponent {
             </View>
           </BottomSheet>
         ) : null}
+        {console.log('rpcUrls -----', rpcUrls)}
         {showMultiRpcAddModal.isVisible ? (
           <BottomSheet
             ref={this.rpcAddMenuSheetRef}
@@ -2207,7 +2273,7 @@ export class NetworkSettings extends PureComponent {
                   withAvatar={false}
                   isSelected={rpcUrl === url}
                   onPress={async () => {
-                    await this.onRpcUrlChangeWithName(url, name);
+                    await this.onRpcUrlChangeWithName(url, name, type);
                     this.closeRpcModal();
                   }}
                   showButtonIcon={rpcUrl !== url}
@@ -2216,7 +2282,7 @@ export class NetworkSettings extends PureComponent {
                     await this.onRpcUrlDelete(url);
                   }}
                   onTextClick={async () => {
-                    await this.onRpcUrlChangeWithName(url, name);
+                    await this.onRpcUrlChangeWithName(url, name, type);
                     this.closeRpcModal();
                   }}
                 />
