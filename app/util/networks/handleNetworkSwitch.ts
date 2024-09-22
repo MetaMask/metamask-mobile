@@ -35,14 +35,10 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
     return;
   }
 
-  console.log('AFTER HERE ----', switchToChainId);
-
   const entry = Object.entries(networkConfigurations).find(
     ([, { chainId: configChainId }]) =>
       configChainId === toHex(switchToChainId),
   );
-
-  console.log('ENTRY ----', entry);
 
   if (entry) {
     const [
@@ -62,11 +58,7 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
     return nickname;
   }
 
-  console.log('switchToChainId ----', switchToChainId);
-
   const networkType = getNetworkTypeById(switchToChainId);
-
-  console.log('networkType ----', networkType);
 
   if (networkType) {
     currencyRateController.updateExchangeRate('ETH');
