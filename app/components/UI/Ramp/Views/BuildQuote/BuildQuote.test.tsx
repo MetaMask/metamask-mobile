@@ -25,6 +25,7 @@ import { toTokenMinimalUnit } from '../../../../../util/number';
 import { RampType } from '../../../../../reducers/fiatOrders/types';
 import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
+import { mockNetworkState } from '../../../../../util/test/network';
 
 const getByRoleButton = (name?: string | RegExp) =>
   screen.getByRole('button', { name });
@@ -257,6 +258,25 @@ jest.mock('../../hooks/useIntentAmount');
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../util/navigation/navUtils'),
   useParams: jest.fn(() => mockUseParamsValues),
+}));
+
+jest.mock('../../../store', () => ({
+  store: {
+    getState: () => ({
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            ...mockNetworkState({
+              chainId: '0x1',
+              id: 'Mainnet',
+              nickname: 'Mainnet',
+              ticker: 'ETH',
+            }),
+          },
+        },
+      },
+    }),
+  },
 }));
 
 jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
