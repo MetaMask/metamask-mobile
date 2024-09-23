@@ -5,9 +5,6 @@ import React, {
   useCallback,
   useContext,
 } from 'react';
-import notifee, {
-  EventType,
-} from '@notifee/react-native';
 
 import {
   ActivityIndicator,
@@ -29,7 +26,6 @@ import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
 import RampOrders from '../../UI/Ramp';
-import Routes from '../../../constants/navigation/Routes';
 import {
   showTransactionNotification,
   hideCurrentNotification,
