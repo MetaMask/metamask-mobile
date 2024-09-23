@@ -5,8 +5,8 @@ jest.mock('../core/Engine', () => ({
   context: {
     PhishingController: {
       maybeUpdateState: jest.fn(),
-      test: jest.fn((url: string) => {
-        if (url === 'phishing.com') return { result: true };
+      test: jest.fn((origin: string) => {
+        if (origin === 'http://phishing.com') return { result: true };
         return { result: false };
       }),
     },
