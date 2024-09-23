@@ -60,7 +60,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
         asset={asset}
         mainBalance={mainBalance}
         balance={secondaryBalance}
-        onPress={() => navigation.navigate('AssetDetails')}
+        onPress={() => !asset.isETH && navigation.navigate('AssetDetails')}
       >
         <BadgeWrapper
           style={styles.badgeWrapper}
