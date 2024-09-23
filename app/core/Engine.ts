@@ -276,10 +276,6 @@ interface TestOrigin {
 }
 
 type PhishingControllerActions = MaybeUpdateState | TestOrigin;
-type AuthenticationControllerActions = AuthenticationController.AllowedActions;
-type UserStorageControllerActions = UserStorageController.AllowedActions;
-type NotificationsServicesControllerActions =
-  NotificationServicesController.AllowedActions;
 
 type SnapsGlobalActions =
   | SnapControllerActions
@@ -315,9 +311,9 @@ type GlobalActions =
   | LoggingControllerActions
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalActions
-  | AuthenticationControllerActions
-  | UserStorageControllerActions
-  | NotificationsServicesControllerActions
+  | AuthenticationController.Actions
+  | UserStorageController.Actions
+  | NotificationServicesController.Actions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | PreferencesControllerActions
@@ -337,12 +333,6 @@ type GlobalEvents =
   // | NftControllerEvents
   // TODO: uncomment once `SwapsController` is upgraded to V2
   // | SwapsControllerEvents
-  // TODO: uncomment once `Events` type is added to `AuthenticationController`
-  // | AuthenticationController.Events
-  // TODO: uncomment once `Events` type is added to `UserStorageController`
-  // | UserStorageController.Events
-  // TODO: uncomment once `Events` type is added to `NotificationServicesPushController`
-  // | NotificationsServicesPushController.Events
   | AddressBookControllerEvents
   | ApprovalControllerEvents
   | CurrencyRateControllerEvents
@@ -352,6 +342,9 @@ type GlobalEvents =
   | PermissionControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalEvents
+  | AuthenticationController.Events
+  | UserStorageController.Events
+  | NotificationServicesController.Events
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -405,7 +398,7 @@ export type EngineState = {
   PPOMController: PPOMState;
   AccountsController: AccountsControllerState;
   SelectedNetworkController: SelectedNetworkControllerState;
-}
+};
 
 /**
  * All mobile controllers, keyed by name
@@ -1731,11 +1724,13 @@ class Engine {
           'AccountsController:stateChange',
           'AddressBookController:stateChange',
           'ApprovalController:stateChange',
+          'AuthenticationController:stateChange',
           'CurrencyRateController:stateChange',
           'GasFeeController:stateChange',
           'KeyringController:stateChange',
           'LoggingController:stateChange',
           'NetworkController:stateChange',
+          'NotificationServicesController:stateChange',
           'PermissionController:stateChange',
           'PreferencesController:stateChange',
           'SignatureController:stateChange',
@@ -1745,20 +1740,15 @@ class Engine {
           'TokenListController:stateChange',
           'TokensController:stateChange',
           'TransactionController:stateChange',
+          'UserStorageController:stateChange',
 
           /**
            * V1/V2 controllers incorrectly defined with a `messagingSystem` that is missing its `stateChange` event.
            * These `stateChange` events must be included in the datamodel's events allowlist.
            */
-          // TODO: Remove `ts-expect-error` directive once `AuthenticationController` is upgraded to a version that fixes its `messagingSystem` and `stateChange` event.
-          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
-          'AuthenticationController:stateChange',
           // TODO: Remove `ts-expect-error` directive once `NftController` is upgraded to a version that fixes its `messagingSystem` and `stateChange` event.
           // @ts-expect-error BaseControllerV1, has `messagingSystem` but as private field, messenger defined without `stateChange` event type
           'NftController:stateChange',
-          // TODO: Remove `ts-expect-error` directive once `NotificationServicesController` is upgraded to a version that fixes its `messagingSystem` and `stateChange` event.
-          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
-          'NotificationServicesController:stateChange',
           // TODO: Remove `ts-expect-error` directive once `PhishingController` is upgraded to a version that fixes its `messagingSystem` and `stateChange` event.
           // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
           'PhishingController:stateChange',
@@ -1768,9 +1758,7 @@ class Engine {
           // TODO: Remove `ts-expect-error` directive once `SnapsRegistry` is upgraded to a version that fixes its `messagingSystem` and `stateChange` event.
           // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
           'SnapsRegistry:stateChange',
-          // TODO: Remove `ts-expect-error` directive once `UserStorageController` is upgraded to a version that fixes its `messagingSystem` and `stateChange` event.
-          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
-          'UserStorageController:stateChange',
+
           /**
            * V1 controllers that should be excluded from the datamodel's events allowlist for now.
            * For each of the following, an error will be logged to the console - "Error: Event missing from allow list: ExampleController:stateChange"
