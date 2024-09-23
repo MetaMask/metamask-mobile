@@ -178,7 +178,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     ? prefixUrlWithProtocol(hostname)
     : domainTitle;
 
-  const isAllowedUrl = useCallback((url: string) => {
+  const isAllowedUrl = useCallback((origin: string) => {
     const { PhishingController } = Engine.context;
 
     // Update phishing configuration if it is out-of-date
@@ -186,17 +186,14 @@ const AccountConnect = (props: AccountConnectProps) => {
     // down network requests. The configuration is updated for the next request.
     PhishingController.maybeUpdateState();
 
-    const phishingControllerTestResult = PhishingController.test(url);
+    const phishingControllerTestResult = PhishingController.test(origin);
 
     return !phishingControllerTestResult.result;
   }, []);
 
   useEffect(() => {
     const url = dappUrl || channelIdOrHostname || '';
-
-    const cleanUrl = url.replace(/^https?:\/\//, '');
-
-    const isAllowed = isAllowedUrl(cleanUrl);
+    const isAllowed = isAllowedUrl(url);
 
     if (!isAllowed) {
       setBlockedUrl(dappUrl);
