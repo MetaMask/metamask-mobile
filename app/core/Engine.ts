@@ -271,9 +271,6 @@ interface TestOrigin {
 
 type PhishingControllerActions = MaybeUpdateState | TestOrigin;
 type AuthenticationControllerActions = AuthenticationController.AllowedActions;
-// TODO - add back UserStorageControllerActions
-// This union uses some keyring controller actions that are not currently available in mobile
-// Waiting for @metamask/keyring-controller@17.2.0
 type UserStorageControllerActions = UserStorageController.AllowedActions;
 type NotificationsServicesControllerActions =
   NotificationServicesController.AllowedActions;
