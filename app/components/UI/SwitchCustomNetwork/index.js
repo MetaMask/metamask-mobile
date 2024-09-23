@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import StyledButton from '../StyledButton';
 import { StyleSheet, View } from 'react-native';
@@ -8,8 +8,14 @@ import Device from '../../../util/device';
 import Text from '../../Base/Text';
 import { useTheme } from '../../../util/theme';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
-import { isMutichainVersion1Enabled } from '../../../util/networks';
+import {
+  isMutichainVersion1Enabled,
+  getDecimalChainId,
+} from '../../../util/networks';
 import PermissionSummary from '../PermissionsSummary';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -90,11 +96,26 @@ const SwitchCustomNetwork = ({
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const { trackEvent } = useMetrics();
+
+  const { networkName } = useNetworkInfo(
+    new URL(currentPageInformation.url).hostname,
+  );
+  const trackingData = {
+    chain_id: getDecimalChainId(customNetworkInformation.chain_id),
+    from_network: networkName,
+    to_network: customNetworkInformation.chainName,
+  };
+
+  useEffect(() => {
+    trackEvent(MetaMetricsEvents.NETWORK_SWITCH_REQUESTED, trackingData);
+  }, [trackEvent, trackingData]);
 
   /**
    * Calls onConfirm callback and analytics to track connect confirmed event
    */
   const confirm = () => {
+    trackEvent(MetaMetricsEvents.NETWORK_SWITCH_CONFIRM_PRESSED, trackingData);
     onConfirm && onConfirm();
   };
 

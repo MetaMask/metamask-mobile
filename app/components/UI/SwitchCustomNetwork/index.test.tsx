@@ -7,6 +7,7 @@ describe('SwitchCustomNetwork', () => {
     const { toJSON } = renderWithProvider(
       <SwitchCustomNetwork
         customNetworkInformation={{ chainName: '', chainId: '' }}
+        currentPageInformation={{ url: 'https://app.uniswap.org/' }}
       />,
     );
     expect(toJSON()).toMatchSnapshot();
