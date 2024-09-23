@@ -1,5 +1,7 @@
 import React from 'react';
 import { shallow } from 'enzyme';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { RpcEndpointType } from '@metamask/network-controller';
 import TypedSign from '.';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
@@ -15,6 +17,7 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import { MetaMetrics } from '../../../../../core/Analytics';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals/SigningModal.selectors';
+import { mockNetworkState } from '../../../../../util/test/network';
 
 jest.mock('../../../../../core/Analytics/MetaMetrics');
 
@@ -73,6 +76,15 @@ const initialState = {
     backgroundState: {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      NetworkController: {
+        ...mockNetworkState({
+          chainId: CHAIN_IDS.MAINNET,
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+          type: RpcEndpointType.Infura,
+        }),
+      },
     },
   },
   signatureRequest: {
@@ -87,6 +99,25 @@ const initialState = {
 };
 
 const store = mockStore(initialState);
+
+jest.mock('../../../../../store', () => ({
+  store: {
+    getState: () => ({
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            ...mockNetworkState({
+              chainId: '0x1',
+              id: 'Mainnet',
+              nickname: 'Mainnet',
+              ticker: 'ETH',
+            }),
+          },
+        },
+      },
+    }),
+  },
+}));
 
 function createWrapper({
   origin = messageParamsMock.origin,
@@ -371,7 +402,7 @@ describe('TypedSign', () => {
       expect(lastMockCall[1]).toEqual({
         account_type: 'Metamask',
         dapp_host_name: 'N/A',
-        chain_id: undefined,
+        chain_id: '1',
         signature_type: undefined,
         version: 'N/A',
         security_alert_response: 'Benign',
@@ -412,7 +443,7 @@ describe('TypedSign', () => {
       expect(lastMockCall[1]).toEqual({
         account_type: 'Metamask',
         dapp_host_name: 'N/A',
-        chain_id: undefined,
+        chain_id: '1',
         version: 'N/A',
         signature_type: undefined,
         security_alert_response: 'Benign',

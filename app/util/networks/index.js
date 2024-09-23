@@ -302,18 +302,24 @@ export function toggleUseSafeChainsListValidation(value) {
 /**
  * Returns custom block explorer for specific rpcTarget
  *
- * @param {string} chainId
+ * @param {string} providerRpcTarget
  * @param {object} networkConfigurations
  */
-export function findBlockExplorerForRpc(chainId, networkConfigurations) {
+export function findBlockExplorerForRpc(
+  providerRpcTarget,
+  networkConfigurations,
+) {
   const networkConfiguration = Object.values(networkConfigurations).find(
-    ({ chainId: networkId }) => compareRpcUrls(networkId, chainId),
+    ({ rpcEndpoints }) =>
+      rpcEndpoints?.some(({ url }) => url === providerRpcTarget),
   );
+
   if (networkConfiguration) {
     return networkConfiguration?.blockExplorerUrls[
       networkConfiguration?.defaultBlockExplorerUrlIndex
     ];
   }
+
   return undefined;
 }
 

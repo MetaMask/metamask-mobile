@@ -17,16 +17,21 @@ const useBlockExplorer = () => {
 
   const toBlockExplorer = useCallback(
     (address: string) => {
-      const { type, chainId } = providerConfig;
+      const { type, rpcUrl } = providerConfig;
       let accountLink: string;
-      if (type === RPC) {
+      if (type === RPC && rpcUrl) {
         const blockExplorer =
-          findBlockExplorerForRpc(chainId, networkConfigurations) ||
+          findBlockExplorerForRpc(rpcUrl, networkConfigurations) ||
           NO_RPC_BLOCK_EXPLORER;
+
+        // Ensure blockExplorer is defined (NO_RPC_BLOCK_EXPLORER provides a fallback if undefined)
         accountLink = `${blockExplorer}/address/${address}`;
       } else {
+        // If it's not RPC, fallback to getEtherscanAddressUrl
         accountLink = getEtherscanAddressUrl(type, address);
       }
+
+      // Navigate to the WebView screen with the constructed URL
       navigation.navigate(Routes.WEBVIEW.MAIN, {
         screen: Routes.WEBVIEW.SIMPLE,
         params: {

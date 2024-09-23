@@ -5,6 +5,7 @@ import initialRootState, {
 } from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
 import { userInitialState } from '../../reducers/user';
+import { NetworkController } from '@metamask/network-controller';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -60,6 +61,9 @@ describe('Migration #23', () => {
         engine: {
           backgroundState: {
             AddressBookController: null,
+            NetworkController: {
+              networkConfigurations: {},
+            },
           },
         },
       }),
@@ -72,6 +76,9 @@ describe('Migration #23', () => {
         engine: {
           backgroundState: {
             AddressBookController: { addressBook: null },
+            NetworkController: {
+              networkConfigurations: {},
+            },
           },
         },
       }),
@@ -83,6 +90,9 @@ describe('Migration #23', () => {
         engine: {
           backgroundState: {
             AddressBookController: { addressBook: { 1337: null } },
+            NetworkController: {
+              networkConfigurations: {},
+            },
           },
         },
       }),
@@ -99,6 +109,9 @@ describe('Migration #23', () => {
                 1337: { '0x0000000000000000000000000000000000000001': {} },
               },
             },
+            NetworkController: {
+              networkConfigurations: {},
+            },
           },
         },
       }),
@@ -109,6 +122,13 @@ describe('Migration #23', () => {
     {
       state: merge({}, initialRootState, {
         user: null,
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurations: {},
+            },
+          },
+        },
       }),
       errorMessage: "Migration 23: Invalid user state: 'object'",
       scenario: 'user state is invalid',
@@ -403,6 +423,9 @@ describe('Migration #23', () => {
             },
             // The entry for 10 has been removed because it had no local matches
           },
+        },
+        NetworkController: {
+          networkConfigurations: {},
         },
       }),
     );

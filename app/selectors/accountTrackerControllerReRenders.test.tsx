@@ -54,17 +54,28 @@ jest.mock('../core/Engine', () => ({
   state: {
     NetworkController: {
       selectedNetworkClientId: 'mainnet',
-      networksMetadata: {},
-      networkConfigurations: {
+      networksMetadata: {
         mainnet: {
-          id: 'mainnet',
-          rpcUrl: 'https://mainnet.infura.io/v3',
-          chainId: MOCK_CHAIN_ID,
-          ticker: 'ETH',
-          nickname: 'Sepolia network',
-          rpcPrefs: {
-            blockExplorerUrl: 'https://etherscan.com',
+          status: 'available',
+          EIPS: {
+            '1559': true,
           },
+        },
+      },
+      networkConfigurationsByChainId: {
+        '0x1': {
+          blockExplorerUrls: ['https://etherscan.com'],
+          chainId: '0x1',
+          defaultRpcEndpointIndex: 0,
+          name: 'Mainnet',
+          nativeCurrency: 'ETH',
+          rpcEndpoints: [
+            {
+              networkClientId: 'mainnet',
+              type: 'infura',
+              url: 'https://mainnet.infura.io/v3',
+            },
+          ],
         },
       },
     } as Partial<NetworkController['state']>,
@@ -140,17 +151,42 @@ describe('selectAccountBalanceByChainId', () => {
         backgroundState: {
           NetworkController: {
             selectedNetworkClientId: 'mainnet',
-            networksMetadata: {},
-            networkConfigurations: {
+            networksMetadata: {
               mainnet: {
-                id: 'mainnet',
-                rpcUrl: 'https://mainnet.infura.io/v3',
-                chainId: MOCK_CHAIN_ID,
-                ticker: 'ETH',
-                nickname: 'Sepolia network',
-                rpcPrefs: {
-                  blockExplorerUrl: 'https://etherscan.com',
+                status: 'available',
+                EIPS: {
+                  '1559': true,
                 },
+              },
+            },
+            networkConfigurationsByChainId: {
+              '0x1': {
+                blockExplorerUrls: ['https://etherscan.com'],
+                chainId: '0x1',
+                defaultRpcEndpointIndex: 0,
+                name: 'Sepolia network',
+                nativeCurrency: 'ETH',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'mainnet',
+                    type: 'infura',
+                    url: 'https://mainnet.infura.io/v3',
+                  },
+                ],
+              },
+              '0x38': {
+                blockExplorerUrls: [],
+                chainId: '0x38',
+                defaultRpcEndpointIndex: 0,
+                name: 'Binance',
+                nativeCurrency: 'BNB',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'binance',
+                    type: 'custom',
+                    url: 'https://binance.infura.io/v3',
+                  },
+                ],
               },
             },
           } as Partial<NetworkController['state']>,
@@ -187,21 +223,9 @@ describe('selectAccountBalanceByChainId', () => {
     expect(result?.balance).toBe(MOCK_BALANCE);
   });
 
-  // TODO HERE ::::
   it('returns undefined when chain ID is undefined', () => {
     initialState.engine.backgroundState.NetworkController.selectedNetworkClientId =
-      MOCK_CHAIN_ID_2;
-
-    (
-      Engine.context.NetworkController.getNetworkClientById as jest.Mock
-    ).mockReturnValue({
-      configuration: {
-        chainId: undefined,
-        rpcUrl: 'https://linea-goerli.infura.io/v3',
-        ticker: 'LINEA',
-        type: 'custom',
-      },
-    });
+      'binance';
 
     const result = selectAccountBalanceByChainId(initialState);
     expect(result).toBeUndefined();
@@ -264,16 +288,16 @@ describe('selectAccountBalanceByChainId', () => {
 
       Engine.state.NetworkController.selectedNetworkClientId = MOCK_CHAIN_ID_2;
 
-      (
-        Engine.context.NetworkController.getNetworkClientById as jest.Mock
-      ).mockReturnValue({
-        configuration: {
-          chainId: MOCK_CHAIN_ID_2,
-          rpcUrl: 'https://mainnet.infura.io/v3',
-          ticker: 'ETH',
-          type: 'custom',
-        },
-      });
+      // (
+      //   Engine.context.NetworkController.getNetworkClientById as jest.Mock
+      // ).mockReturnValue({
+      //   configuration: {
+      //     chainId: MOCK_CHAIN_ID_2,
+      //     rpcUrl: 'https://mainnet.infura.io/v3',
+      //     ticker: 'ETH',
+      //     type: 'custom',
+      //   },
+      // });
 
       act(() => {
         store.dispatch({

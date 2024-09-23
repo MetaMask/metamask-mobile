@@ -10,10 +10,9 @@ import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 import { Hex } from '@metamask/utils';
 import {
   NetworkClientType,
-  NetworkState,
   RpcEndpointType,
 } from '@metamask/network-controller';
-import { NETWORKS_CHAIN_ID } from 'app/constants/network';
+import { NETWORKS_CHAIN_ID } from '../../constants/network';
 
 const CHAIN_ID_MOCK = '0x1';
 
@@ -36,24 +35,6 @@ jest.mock('../../core/Engine', () => ({
     PPOMController: {
       usePPOM: jest.fn(),
     },
-    // NetworkController: {
-    //   state: {
-    //     selectedNetworkClientId: 'mainnet',
-    //     networksMetadata: {},
-    //     networkConfigurations: {
-    //       mainnet: {
-    //         id: 'mainnet',
-    //         rpcUrl: 'https://mainnet.infura.io/v3',
-    //         chainId: CHAIN_ID_MOCK,
-    //         ticker: 'ETH',
-    //         nickname: 'Sepolia network',
-    //         rpcPrefs: {
-    //           blockExplorerUrl: 'https://etherscan.com',
-    //         },
-    //       },
-    //     },
-    //   },
-    // },
     AccountsController: {
       state: {
         internalAccounts: { accounts: [] },
