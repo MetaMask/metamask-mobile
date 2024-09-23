@@ -49,6 +49,26 @@ const createStyles = () =>
     },
   });
 
+const ModalTextBlock = ({
+  heading,
+  body,
+  bodyColor = TextColor.Alternative,
+}: {
+  heading: string;
+  body: string;
+  bodyColor?: TextColor;
+}) => {
+  const styles = createStyles();
+  return (
+    <View style={styles.textContainer}>
+      <Text variant={TextVariant.BodyMDMedium}>{heading}</Text>
+      <Text variant={TextVariant.BodyMD} color={bodyColor}>
+        {body}
+      </Text>
+    </View>
+  );
+};
+
 const LearnMoreModal = () => {
   const styles = createStyles();
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -71,31 +91,19 @@ const LearnMoreModal = () => {
             {strings('stake.stake_eth_and_earn')}
           </Text>
         </View>
-        <View style={styles.textContainer}>
-          <Text variant={TextVariant.BodyMDMedium}>
-            {strings('stake.stake_any_amount_of_eth')}
-          </Text>
 
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {strings('stake.no_minimum_required')}
-          </Text>
-        </View>
-        <View style={styles.textContainer}>
-          <Text variant={TextVariant.BodyMDMedium}>
-            {strings('stake.earn_eth_rewards')}
-          </Text>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {strings('stake.earn_eth_rewards_description')}
-          </Text>
-        </View>
-        <View style={styles.textContainer}>
-          <Text variant={TextVariant.BodyMDMedium}>
-            {strings('stake.flexible_unstaking')}
-          </Text>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {strings('stake.flexible_unstaking_description')}
-          </Text>
-        </View>
+        <ModalTextBlock
+          heading={strings('stake.stake_any_amount_of_eth')}
+          body={strings('stake.no_minimum_required')}
+        />
+        <ModalTextBlock
+          heading={strings('stake.earn_eth_rewards')}
+          body={strings('stake.earn_eth_rewards_description')}
+        />
+        <ModalTextBlock
+          heading={strings('stake.flexible_unstaking')}
+          body={strings('stake.flexible_unstaking_description')}
+        />
         <View style={styles.textContainer}>
           <Text
             variant={TextVariant.BodySM}
