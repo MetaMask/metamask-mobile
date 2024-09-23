@@ -340,7 +340,7 @@
 				0FD509E0336BF221F6527B24 /* (null) in Frameworks */,
 				D45BF85DECACCB74EDCBE88A /* (null) in Frameworks */,
 				B638844E306CAE9147B52C85 /* (null) in Frameworks */,
-				C04C74B31F332995642F655F /* libPods-MetaMask.a in Frameworks */,
+				ED2E8FE6D71BE9319F3B27D3 /* libPods-MetaMask.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
