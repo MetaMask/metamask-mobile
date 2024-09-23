@@ -16,7 +16,7 @@ import {
 import { selectTicker } from '../../../selectors/networkController';
 import { fontStyles } from '../../../styles/common';
 import {
-  getLabelTextByKeyring,
+  getAccountLabelTextByKeyring,
   renderAccountName,
   renderShortAddress,
   safeToChecksumAddress,
@@ -153,7 +153,7 @@ class AccountInfoCard extends PureComponent {
     } = this.props;
 
     const fromAddress = safeToChecksumAddress(rawFromAddress);
-    const accountLabelTag = getLabelTextByKeyring(fromAddress);
+    const accountLabelTag = getAccountLabelTextByKeyring(fromAddress);
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     const weiBalance = accounts?.[fromAddress]?.balance

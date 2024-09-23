@@ -236,7 +236,7 @@ export function isExternalHardwareAccount(address: string) {
  * @param {String} address - String corresponding to an address
  * @returns {String} - Returns address's i18n label text
  */
-export function getLabelTextByKeyring(address: string) {
+export function getAccountLabelTextByKeyring(address: string) {
   if (!address) return null;
   const keyring = getKeyringByAddress(address);
   if (keyring) {

@@ -16,7 +16,7 @@ import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon
 import { ButtonIconSizes } from '../../../component-library/components/Buttons/ButtonIcon';
 import Routes from '../../../constants/navigation/Routes';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { getLabelTextByKeyring } from '../../../util/address';
+import { getAccountLabelTextByKeyring } from '../../../util/address';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import useEnsNameByAddress from '../../../components/hooks/useEnsNameByAddress';
 import Logger from '../../../util/Logger';
@@ -81,7 +81,7 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
           navigate(...createAccountSelectorNavDetails({}));
         }}
         accountTypeLabel={
-          getLabelTextByKeyring(selectedAccount?.address) || undefined
+          getAccountLabelTextByKeyring(selectedAccount?.address) || undefined
         }
         showAddress={false}
         cellAccountContainerStyle={styles.account}
