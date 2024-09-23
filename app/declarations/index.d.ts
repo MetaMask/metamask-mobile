@@ -6,18 +6,9 @@ declare module '@metamask/react-native-payments/lib/js/__mocks__';
 
 declare module 'react-native-fade-in-image';
 
-declare module 'react-native-minimizer';
+declare module 'react-native-fast-crypto';
 
-declare module 'react-native-fast-crypto' {
-  const scrypt: (
-    password: string,
-    salt: Uint8Array,
-    N: number,
-    r: number,
-    p: number,
-    size: number,
-  ) => Promise<Uint8Array>;
-}
+declare module 'react-native-minimizer';
 
 declare module 'xhr2';
 declare module 'react-native-scrollable-tab-view/DefaultTabBar' {
