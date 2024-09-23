@@ -1,11 +1,6 @@
 /* eslint-disable no-console */
 import Performance from './Performance';
 import performance from 'react-native-performance';
-import { isTest } from '../../util/test/utils';
-
-// Extend the global object for __DEV__
-// eslint-disable-next-line @typescript-eslint/no-shadow
-declare const global: { __DEV__: boolean };
 
 // Mock react-native-performance
 jest.mock('react-native-performance', () => {
