@@ -110,7 +110,7 @@ import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAs
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { useIsFocused } from '@react-navigation/native';
 import handleWebViewFocus from '../../../util/browser/webViewFocus';
-import { isTest } from '../../../util/test/utils.js';
+import { isTest } from '../../../util/test/utils.ts';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
