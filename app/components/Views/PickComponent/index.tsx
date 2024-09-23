@@ -1,11 +1,11 @@
 import React, { PureComponent } from 'react';
-import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 import { baseStyles } from '../../../styles/common';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import RadioButton from '../../../component-library/components/RadioButton/RadioButton';
+import { Theme } from '@metamask/design-tokens';
 
-const createStyles = (colors) =>
+const createStyles = (_colors: Theme['colors']) =>
   StyleSheet.create({
     root: {
       ...baseStyles.flexGrow,
@@ -16,36 +16,38 @@ const createStyles = (colors) =>
     },
   });
 
+interface PickComponentProps {
+  /**
+   * Callback to pick an option
+   */
+  pick?: (value: string) => void;
+  /**
+   * Text to first option
+   */
+  textFirst: string;
+  /**
+   * Value of first option
+   */
+  valueFirst: string;
+  /**
+   * Text to second option
+   */
+  textSecond: string;
+  /**
+   * Value of second option
+   */
+  valueSecond: string;
+  /**
+   * Current selected value
+   */
+  selectedValue: string;
+}
+
 /**
- * Componets that allows to select clicking two options
+ * Component that allows to select clicking two options
  */
-export default class PickComponent extends PureComponent {
-  static propTypes = {
-    /**
-     * Callback to pick an option
-     */
-    pick: PropTypes.func,
-    /**
-     * Text to first option
-     */
-    textFirst: PropTypes.string,
-    /**
-     * Value of first option
-     */
-    valueFirst: PropTypes.string,
-    /**
-     * Text to second option
-     */
-    textSecond: PropTypes.string,
-    /**
-     * Value of second option
-     */
-    valueSecond: PropTypes.string,
-    /**
-     * Current selected value
-     */
-    selectedValue: PropTypes.string,
-  };
+export default class PickComponent extends PureComponent<PickComponentProps> {
+  static contextType = ThemeContext;
 
   pickFirst = () => {
     const { pick, valueFirst } = this.props;
@@ -83,5 +85,3 @@ export default class PickComponent extends PureComponent {
     );
   };
 }
-
-PickComponent.contextType = ThemeContext;
