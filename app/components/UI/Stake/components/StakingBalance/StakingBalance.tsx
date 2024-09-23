@@ -27,6 +27,7 @@ import { getStakesApiResponse } from './StakingBalance.types';
 import { TokenI } from '../../../../UI/Tokens/types';
 import { getDaysAndHoursRemaining } from '../../../../../util/date';
 import { filterExitRequests } from './utils';
+import { BN } from 'ethereumjs-util';
 
 // TODO: Replace mock data when connecting to backend.
 const MOCK_STAKED_ETH_ASSET = {
@@ -106,10 +107,12 @@ const StakingBalance = () => {
       renderFromWei(
         claimableRequests.reduce(
           (acc, { withdrawalTimestamp, claimedAssets }) =>
-            !!withdrawalTimestamp && Number(withdrawalTimestamp) === 0
-              ? acc + Number(claimedAssets)
+            !!withdrawalTimestamp &&
+            Number(withdrawalTimestamp) === 0 &&
+            !!claimedAssets
+              ? acc.add(new BN(claimedAssets))
               : acc,
-          0,
+          new BN(0),
         ),
       ),
     [claimableRequests],
