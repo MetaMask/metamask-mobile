@@ -97,16 +97,6 @@ stages:
     workflows:
       - deploy_android_to_store: {}
       - deploy_ios_to_store: {}
-  build_ios_release_with_sourcemaps:
-    envs:
-      - SENTRY_DISABLE_AUTO_UPLOAD: false
-    after_run:
-      - build_ios_release: {}
-  build_android_release_with_sourcemaps:
-    envs:
-      - SENTRY_DISABLE_AUTO_UPLOAD: false
-    after_run:
-      - build_android_release: {}
   create_ios_release:
     workflows:
       - build_ios_release: {}
@@ -1007,6 +997,16 @@ workflows:
           inputs:
             - abort_on_fail: 'yes'
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+  build_ios_release_with_sourcemaps:
+    envs:
+      - SENTRY_DISABLE_AUTO_UPLOAD: false
+    after_run:
+      - build_ios_release: {}
+  build_android_release_with_sourcemaps:
+    envs:
+      - SENTRY_DISABLE_AUTO_UPLOAD: false
+    after_run:
+      - build_android_release: {}
   build_android_release:
     before_run:
       - code_setup
