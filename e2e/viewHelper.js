@@ -72,6 +72,8 @@ have to have all these workarounds in the tests
 export const importWalletWithRecoveryPhrase = async () => {
   // tap on import seed phrase button
   await Assertions.checkIfVisible(OnboardingCarouselView.container);
+  await EnableDeviceNotificationsAlert.isVisible();
+  await EnableDeviceNotificationsAlert.tapNoThanks();
   await OnboardingCarouselView.tapOnGetStartedButton();
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
@@ -103,6 +105,8 @@ export const CreateNewWallet = async () => {
   //'should create new wallet'
 
   // tap on import seed phrase button
+  await EnableDeviceNotificationsAlert.isVisible();
+  await EnableDeviceNotificationsAlert.tapNoThanks();
   await OnboardingCarouselView.tapOnGetStartedButton();
   await OnboardingView.tapCreateWallet();
 
