@@ -1,4 +1,4 @@
-import { NetworkState, RpcEndpointType } from '@metamask/network-controller';
+import { NetworkState } from '@metamask/network-controller';
 import {
   isENS,
   renderSlightlyLongAddress,
@@ -13,39 +13,8 @@ import {
   isHardwareAccount,
   resemblesAddress,
   getKeyringByAddress,
-  getLabelTextByAddress,
+  getLabelTextByKeyring,
 } from '.';
-import {
-  mockHDKeyringAddress,
-  mockQrKeyringAddress,
-  mockSimpleKeyringAddress,
-} from '../test/keyringControllerTestUtils';
-
-const snapAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
-
-jest.mock('../../core/Engine', () => {
-  const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
-  const { MOCK_KEYRING_CONTROLLER_STATE } = jest.requireActual(
-    '../test/keyringControllerTestUtils',
-  );
-  return {
-    context: {
-      KeyringController: {
-        ...MOCK_KEYRING_CONTROLLER_STATE,
-        state: {
-          keyrings: [
-            ...MOCK_KEYRING_CONTROLLER_STATE.state.keyrings,
-            {
-              accounts: [snapAddress],
-              index: 0,
-              type: KeyringTypes.snap,
-            },
-          ],
-        },
-      },
-    },
-  };
-});
 
 describe('isENS', () => {
   it('should return false by default', () => {
@@ -200,30 +169,19 @@ describe('getAddress', () => {
 });
 
 describe('shouldShowBlockExplorer', () => {
-  const networkConfigurations: NetworkState['networkConfigurationsByChainId'] =
-    {
-      '0x1': {
-        blockExplorerUrls: [],
-        chainId: '0x1',
-        defaultRpcEndpointIndex: 0,
-        name: 'Main Ethereum Network',
-        nativeCurrency: 'USD',
-        rpcEndpoints: [
-          {
-            networkClientId: 'networkId1',
-            type: RpcEndpointType.Custom,
-            url: 'https://mainnet.infura.io/v3/123',
-          },
-        ],
-      },
-    };
+  const networkConfigurations: NetworkState['networkConfigurations'] = {
+    networkId1: {
+      id: 'networkId1',
+      chainId: '0x1',
+      nickname: 'Main Ethereum Network',
+      ticker: 'USD',
+      rpcUrl: 'https://mainnet.infura.io/v3/123',
+    },
+  };
 
   it('returns true if provider type is not rpc', () => {
     const providerType = 'mainnet';
-
-    const providerRpcTarget = networkConfigurations['0x1'].rpcEndpoints.find(
-      ({ networkClientId }) => networkClientId === 'networkId1',
-    )?.url as string;
+    const providerRpcTarget = networkConfigurations.networkId1.rpcUrl;
 
     const result = shouldShowBlockExplorer(
       providerType,
@@ -236,14 +194,9 @@ describe('shouldShowBlockExplorer', () => {
 
   it('returns block explorer URL if defined', () => {
     const providerType = 'rpc';
-    const providerRpcTarget = networkConfigurations['0x1'].rpcEndpoints.find(
-      ({ networkClientId }) => networkClientId === 'networkId1',
-    )?.url as string;
-
+    const providerRpcTarget = networkConfigurations.networkId1.rpcUrl;
     const blockExplorerUrl = 'https://rpc.testnet.fantom.network';
-
-    networkConfigurations['0x1'].blockExplorerUrls = [blockExplorerUrl];
-    networkConfigurations['0x1'].defaultBlockExplorerUrlIndex = 0;
+    networkConfigurations.networkId1.rpcPrefs = { blockExplorerUrl };
 
     const result = shouldShowBlockExplorer(
       providerType,
@@ -256,12 +209,8 @@ describe('shouldShowBlockExplorer', () => {
 
   it('returns undefined if block explorer URL is not defined', () => {
     const providerType = 'rpc';
-
-    const providerRpcTarget = networkConfigurations['0x1'].rpcEndpoints.find(
-      ({ networkClientId }) => networkClientId === 'networkId1',
-    )?.url as string;
-
-    networkConfigurations['0x1'].blockExplorerUrls = [];
+    const providerRpcTarget = networkConfigurations.networkId1.rpcUrl;
+    networkConfigurations.networkId1.rpcPrefs = undefined;
 
     const result = shouldShowBlockExplorer(
       providerType,
@@ -283,13 +232,19 @@ describe('isQRHardwareAccount', () => {
   });
 
   it('should return false if address is from keyring type simple', () => {
-    expect(isQRHardwareAccount(mockSimpleKeyringAddress)).toBeFalsy();
+    expect(
+      isQRHardwareAccount('0xd018538C87232FF95acbCe4870629b75640a78E7'),
+    ).toBeFalsy();
   });
   it('should return false if address is from keyring type hd', () => {
-    expect(isQRHardwareAccount(mockHDKeyringAddress)).toBeFalsy();
+    expect(
+      isQRHardwareAccount('0x71C7656EC7ab88b098defB751B7401B5f6d8976F'),
+    ).toBeFalsy();
   });
   it('should return true if address is from keyring type qr', () => {
-    expect(isQRHardwareAccount(mockQrKeyringAddress)).toBeTruthy();
+    expect(
+      isQRHardwareAccount('0xB374Ca013934e498e5baD3409147F34E6c462389'),
+    ).toBeTruthy();
   });
 });
 describe('getKeyringByAddress', () => {
@@ -302,7 +257,9 @@ describe('getKeyringByAddress', () => {
     expect(getKeyringByAddress('ens.eth')).toBeUndefined();
   });
   it('should return address if found', () => {
-    expect(getKeyringByAddress(mockQrKeyringAddress)).not.toBe(undefined);
+    expect(
+      getKeyringByAddress('0xB374Ca013934e498e5baD3409147F34E6c462389'),
+    ).not.toBe(undefined);
   });
   it('should return null if address not found', () => {
     expect(
@@ -312,7 +269,9 @@ describe('getKeyringByAddress', () => {
 });
 describe('isHardwareAccount,', () => {
   it('should return true if account is a QR keyring', () => {
-    expect(isHardwareAccount(mockQrKeyringAddress)).toBeTruthy();
+    expect(
+      isHardwareAccount('0xB374Ca013934e498e5baD3409147F34E6c462389'),
+    ).toBeTruthy();
   });
 
   it('should return false if account is not a hardware keyring', () => {
@@ -321,36 +280,26 @@ describe('isHardwareAccount,', () => {
     ).toBeFalsy();
   });
 });
-describe('getLabelTextByAddress,', () => {
-  beforeEach(() => {
-    jest.resetAllMocks();
-  });
-
+describe('getLabelTextByKeyring,', () => {
   it('should return accounts.qr_hardware if account is a QR keyring', () => {
-    expect(getLabelTextByAddress(mockQrKeyringAddress)).toBe(
-      'accounts.qr_hardware',
-    );
+    expect(
+      getLabelTextByKeyring('0xB374Ca013934e498e5baD3409147F34E6c462389'),
+    ).toBe('accounts.qr_hardware');
   });
 
   it('should return KeyringTypes.simple if address is a imported account', () => {
-    expect(getLabelTextByAddress(mockSimpleKeyringAddress)).toBe(
-      'accounts.imported',
-    );
-  });
-
-  it('returns "Snaps (beta)" if account is a Snap keyring', () => {
-    expect(getLabelTextByAddress(snapAddress)).toBe(
-      'accounts.snap_account_tag',
-    );
+    expect(
+      getLabelTextByKeyring('0xd018538C87232FF95acbCe4870629b75640a78E7'),
+    ).toBe('accounts.imported');
   });
 
   it('should return null if address is empty', () => {
-    expect(getLabelTextByAddress('')).toBe(null);
+    expect(getLabelTextByKeyring('')).toBe(null);
   });
 
   it('should return null if account not found', () => {
     expect(
-      getLabelTextByAddress('0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278'),
+      getLabelTextByKeyring('0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278'),
     ).toBe(null);
   });
 });
@@ -363,13 +312,19 @@ describe('getAddressAccountType', () => {
     );
   });
   it('should return QR if address is from a keyring type qr', () => {
-    expect(getAddressAccountType(mockQrKeyringAddress)).toBe('QR');
+    expect(
+      getAddressAccountType('0xB374Ca013934e498e5baD3409147F34E6c462389'),
+    ).toBe('QR');
   });
   it('should return imported if address is from a keyring type simple', () => {
-    expect(getAddressAccountType(mockSimpleKeyringAddress)).toBe('Imported');
+    expect(
+      getAddressAccountType('0xd018538C87232FF95acbCe4870629b75640a78E7'),
+    ).toBe('Imported');
   });
   it('should return MetaMask if address is not qr or simple', () => {
-    expect(getAddressAccountType(mockHDKeyringAddress)).toBe('MetaMask');
+    expect(
+      getAddressAccountType('0x71C7656EC7ab88b098defB751B7401B5f6d8976F'),
+    ).toBe('MetaMask');
   });
 });
 describe('resemblesAddress', () => {
@@ -382,6 +337,8 @@ describe('resemblesAddress', () => {
     expect(resemblesAddress('address-stub-1')).toBeFalsy();
   });
   it('should return true if address resemble an eth address', () => {
-    expect(resemblesAddress(mockHDKeyringAddress)).toBeTruthy();
+    expect(
+      resemblesAddress('0x71C7656EC7ab88b098defB751B7401B5f6d8976F'),
+    ).toBeTruthy();
   });
 });

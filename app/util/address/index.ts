@@ -39,9 +39,7 @@ import { NetworkType, toChecksumHexAddress } from '@metamask/controller-utils';
 import { NetworkClientId, NetworkState } from '@metamask/network-controller';
 import {
   AccountImportStrategy,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   KeyringTypes,
-  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import { Hex, isHexString } from '@metamask/utils';
 
@@ -233,12 +231,12 @@ export function isExternalHardwareAccount(address: string) {
 }
 
 /**
- * gets i18n account label tag text based on address
+ * gets i18n account label tag text based on keyring type
  *
  * @param {String} address - String corresponding to an address
  * @returns {String} - Returns address's i18n label text
  */
-export function getLabelTextByAddress(address: string) {
+export function getLabelTextByKeyring(address: string) {
   if (!address) return null;
   const keyring = getKeyringByAddress(address);
   if (keyring) {
@@ -249,10 +247,8 @@ export function getLabelTextByAddress(address: string) {
         return 'accounts.qr_hardware';
       case ExtendedKeyringTypes.simple:
         return 'accounts.imported';
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       case KeyringTypes.snap:
         return 'accounts.snap_account_tag';
-      ///: END:ONLY_INCLUDE_IF
     }
   }
   return null;
@@ -635,7 +631,7 @@ export const getTokenDecimal = async (
 export const shouldShowBlockExplorer = (
   providerType: NetworkType,
   providerRpcTarget: string,
-  networkConfigurations: NetworkState['networkConfigurationsByChainId'],
+  networkConfigurations: NetworkState['networkConfigurations'],
 ) => {
   if (providerType === RPC) {
     return findBlockExplorerForRpc(providerRpcTarget, networkConfigurations);
