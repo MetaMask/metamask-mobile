@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`OnboardingSuccess should render correctly 1`] = `
+exports[`OnboardingSuccess should render correctly and handle onDone 1`] = `
 <RCTScrollView
   style={
     {
@@ -194,6 +194,7 @@ Change these at any time.
         accessibilityRole="button"
         accessible={true}
         activeOpacity={1}
+        onPress={[MockFunction]}
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={
