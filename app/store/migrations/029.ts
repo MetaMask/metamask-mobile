@@ -4,7 +4,6 @@ import { regex } from '../../../app/util/regex';
 
 //@ts-expect-error - This error is expected, but ethereumjs-util exports this function
 import { isHexString } from 'ethereumjs-util';
-import { NetworkState } from '@metamask/network-controller';
 import { TransactionParams } from '@metamask/transaction-controller';
 import { captureException } from '@sentry/react-native';
 import {
@@ -63,8 +62,9 @@ export default async function migrate(stateAsync: unknown) {
   }
 
   const networkControllerState = state.engine.backgroundState.NetworkController;
-  const newNetworkControllerState = state.engine.backgroundState
-    .NetworkController as any;
+  const newNetworkControllerState =
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    state.engine.backgroundState.NetworkController as any;
 
   if (!isObject(networkControllerState)) {
     captureException(

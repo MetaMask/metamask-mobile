@@ -44,7 +44,6 @@ const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
     store.getState().engine.backgroundState.NetworkController;
 
-  console.log('IM HERE 2 -------');
   const { networkId } = store.getState().inpageProvider;
 
   return networksMetadata?.[selectedNetworkClientId].status !==

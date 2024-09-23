@@ -91,7 +91,6 @@ const NetworkVerificationInfo = ({
 
   useEffect(() => setAlerts(alertsFromProps), [alertsFromProps]);
 
-  console.log('IM HERE 2 ----------');
   const networkImageSource = useMemo(
     () =>
       //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional

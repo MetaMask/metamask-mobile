@@ -11,7 +11,6 @@ export const selectNetworkName = createSelector(
     getNetworkNameFromProviderConfig(providerConfig),
 );
 
-console.log('IM HERE 8 ----------');
 export const selectNetworkImageSource = createSelector(
   selectProviderConfig,
   (providerConfig: ProviderConfig) =>

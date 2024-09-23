@@ -7,10 +7,8 @@ const selectApprovalControllerState = (state: RootState) =>
 
 export const selectPendingApprovals = createSelector(
   selectApprovalControllerState,
-  (approvalControllerState: ApprovalControllerState) => {
-    console.log('SALIM -----', approvalControllerState?.pendingApprovals);
-    return approvalControllerState?.pendingApprovals;
-  },
+  (approvalControllerState: ApprovalControllerState) =>
+    approvalControllerState?.pendingApprovals,
 );
 
 export const selectApprovalFlows = createSelector(

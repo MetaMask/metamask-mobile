@@ -31,8 +31,6 @@ export const selectProviderConfig = createDeepEqualSelector(
     const networkConfigurationsByChainId =
       networkControllerState?.networkConfigurationsByChainId;
 
-    // console.log('PPPPPPP *********', networkControllerState);
-
     for (const network of Object.values(networkConfigurationsByChainId)) {
       for (const rpcEndpoint of network.rpcEndpoints) {
         if (rpcEndpoint.networkClientId === selectedNetworkClientId) {

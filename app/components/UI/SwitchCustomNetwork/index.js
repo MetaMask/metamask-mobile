@@ -128,7 +128,6 @@ const SwitchCustomNetwork = ({
           </Text>
         )}
       </Text>
-      {console.log('HERE ++++++++++', customNetworkInformation)}
       {type === 'switch' ? (
         <View style={styles.networkContainer}>
           <View style={styles.networkBadge}>

@@ -185,13 +185,8 @@ export const getOrders = createSelector(
   selectedAddressSelector,
   chainIdSelector,
   (orders, selectedAddress, chainId) => {
-    console.log('orders -----', orders);
-    console.log('selectedAddress -----', selectedAddress);
-    console.log('chainId -----', chainId);
-
     const chainIdHex = toHex(chainId); // Convert chainId to hex format for comparison
     return orders.filter((order) => {
-      console.log('Order -----', order);
       const orderNetworkHex = toHex(order.network); // Convert order network to hex format
       return (
         !order.excludeFromPurchases &&

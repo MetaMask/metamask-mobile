@@ -149,7 +149,6 @@ export const makeSelectNetworkImageSource = () =>
 export const makeSelectChainId = () =>
   createSelector(
     [
-      selectNetworkConfigurations,
       selectProviderChainId,
       makeSelectDomainNetworkClientId(),
       selectNetworkClientId,
@@ -157,7 +156,6 @@ export const makeSelectChainId = () =>
       (_: RootState, hostname?: string) => hostname,
     ],
     (
-      networkConfigurations,
       providerChainId,
       domainNetworkClientId,
       globalNetworkClientId,

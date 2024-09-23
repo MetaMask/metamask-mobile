@@ -351,8 +351,6 @@ const wallet_addEthereumChain = async ({
 
     await waitForInteraction();
 
-    console.log('requestData ++++++++++++++++', requestData);
-
     await requestUserApproval({
       type: 'SWITCH_ETHEREUM_CHAIN',
       requestData: { ...requestData, type: 'new' },

@@ -192,7 +192,6 @@ const NetworkSelector = () => {
 
   // The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
   const onNetworkChange = (type: InfuraNetworkType, chainId: `0x${string}`) => {
-    console.log('CLICK 2 ....', chainId);
     const {
       NetworkController,
       CurrencyRateController,
@@ -238,7 +237,6 @@ const NetworkSelector = () => {
   };
 
   const onSetRpcTarget = async (rpcTarget: string) => {
-    console.log('CLICK ....');
     const {
       CurrencyRateController,
       NetworkController,
