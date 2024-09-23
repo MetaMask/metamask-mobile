@@ -265,9 +265,10 @@ function setupGlobalState({
           NetworkController: {
             selectedNetworkClientId: selectedNetworkClientId || '',
             networksMetadata: networksMetadata || {},
+            networkConfigurationsByChainId:
+              networkConfigurationsByChainId || {},
           },
           PreferencesController: selectedAddress ? { selectedAddress } : {},
-          networkConfigurationsByChainId: networkConfigurationsByChainId || {},
         },
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

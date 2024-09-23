@@ -14,13 +14,8 @@ export interface ProviderConfig {
   type: string;
 }
 
-const selectNetworkControllerState = (state: RootState) => {
-  console.log(
-    'IM HERE ******',
-    state?.engine?.backgroundState?.NetworkController,
-  );
-  return state?.engine?.backgroundState?.NetworkController;
-};
+const selectNetworkControllerState = (state: RootState) =>
+  state?.engine?.backgroundState?.NetworkController;
 
 export const selectSelectedNetworkClientId = createSelector(
   selectNetworkControllerState,

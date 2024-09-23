@@ -260,25 +260,6 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(() => mockUseParamsValues),
 }));
 
-jest.mock('../../../store', () => ({
-  store: {
-    getState: () => ({
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            ...mockNetworkState({
-              chainId: '0x1',
-              id: 'Mainnet',
-              nickname: 'Mainnet',
-              ticker: 'ETH',
-            }),
-          },
-        },
-      },
-    }),
-  },
-}));
-
 jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 describe('BuildQuote View', () => {
