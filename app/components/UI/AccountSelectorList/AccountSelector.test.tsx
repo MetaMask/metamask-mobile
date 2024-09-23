@@ -10,12 +10,12 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { regex } from '../../../../app/util/regex';
 import {
   createMockAccountsControllerState,
-  expectedUuid,
-  internalAccount1,
+  createMockAccountsControllerStateWithSnap,
+  MOCK_ADDRESS_1,
+  MOCK_ADDRESS_2,
 } from '../../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { AccountsControllerState } from '@metamask/accounts-controller';
 
 const BUSINESS_ACCOUNT = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const PERSONAL_ACCOUNT = '0xd018538C87232FF95acbCe4870629b75640a78E7';
@@ -206,24 +206,10 @@ describe('AccountSelectorList', () => {
     });
   });
   it('renders "Snaps (beta)" tag for Snap accounts', async () => {
-    const mockAccountsWithSnap: AccountsControllerState = {
-      ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-      internalAccounts: {
-        ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
-        accounts: {
-          ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
-          [expectedUuid]: {
-            ...internalAccount1,
-            metadata: {
-              ...internalAccount1.metadata,
-              keyring: {
-                type: 'Snap Keyring',
-              },
-            },
-          },
-        },
-      },
-    };
+    const mockAccountsWithSnap = createMockAccountsControllerStateWithSnap([
+      MOCK_ADDRESS_1,
+      MOCK_ADDRESS_2,
+    ]);
 
     const stateWithSnapAccount = {
       ...initialState,
