@@ -1,11 +1,11 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import Modal from 'react-native-modal';
 import { baseStyles } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
+import { Theme } from '@metamask/design-tokens';
 
-const createStyles = (colors) =>
+const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     modal: {
       margin: 0,
@@ -26,6 +26,25 @@ const createStyles = (colors) =>
     },
   });
 
+interface BlockingActionModalProps {
+  /**
+   * Whether modal is shown
+   */
+  modalVisible: boolean;
+  /**
+   * Whether a spinner is shown
+   */
+  isLoadingAction: boolean;
+  /**
+   * Content to display above the action buttons
+   */
+  children: React.ReactNode;
+  /**
+   * Callback function when modal animation is completed
+   */
+  onAnimationCompleted?: () => void;
+}
+
 /**
  * View that renders an action modal
  */
@@ -34,7 +53,7 @@ export default function BlockingActionModal({
   modalVisible,
   isLoadingAction,
   onAnimationCompleted,
-}) {
+}: BlockingActionModalProps) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -58,20 +77,3 @@ export default function BlockingActionModal({
     </Modal>
   );
 }
-
-BlockingActionModal.propTypes = {
-  /**
-   * Whether modal is shown
-   */
-  modalVisible: PropTypes.bool,
-  /**
-   * Whether a spinner is shown
-   */
-  isLoadingAction: PropTypes.bool,
-  /**
-   * Content to display above the action buttons
-   */
-  children: PropTypes.node,
-
-  onAnimationCompleted: PropTypes.func,
-};
