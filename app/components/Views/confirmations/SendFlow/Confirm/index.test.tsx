@@ -1,6 +1,5 @@
 import React from 'react';
 import { ConnectedComponent } from 'react-redux';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { waitFor } from '@testing-library/react-native';
 import Confirm from '.';
 import {
@@ -190,7 +189,7 @@ describe('Confirm', () => {
         backgroundState: {
           NetworkController: {
             ...mockNetworkState({
-              chainId: CHAIN_IDS.MAINNET,
+              chainId: '0x1',
               id: '1',
               nickname: 'Ethereum Main Network',
               ticker: 'ETH',

@@ -1,5 +1,4 @@
 import React from 'react';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import AssetOverview from './AssetOverview';
 import { zeroAddress } from 'ethereumjs-util';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -32,7 +31,7 @@ const mockInitialState = {
           id: 'mainnet',
           nickname: 'Ethereum Mainnet',
           ticker: 'ETH',
-          chainId: CHAIN_IDS.MAINNET,
+          chainId: '0x1',
         }),
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,

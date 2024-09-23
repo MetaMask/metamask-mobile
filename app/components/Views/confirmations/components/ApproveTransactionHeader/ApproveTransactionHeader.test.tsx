@@ -9,7 +9,6 @@ import { APPROVAL_TAG_URL_ORIGIN_PILL } from '../../../../UI/ApprovalTagUrl';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../../../reducers';
 import { mockNetworkState } from '../../../../../util/test/network';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { RpcEndpointType } from '@metamask/network-controller';
 
 const MOCK_ADDRESS_1 = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
@@ -51,7 +50,7 @@ const mockInitialState: DeepPartial<RootState> = {
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       NetworkController: {
         ...mockNetworkState({
-          chainId: CHAIN_IDS.SEPOLIA,
+          chainId: '0xaa36a7',
           id: 'sepolia',
           nickname: 'Sepolia',
           ticker: 'ETH',

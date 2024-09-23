@@ -1,6 +1,5 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { RpcEndpointType } from '@metamask/network-controller';
 import TypedSign from '.';
 import { Provider } from 'react-redux';
@@ -78,7 +77,7 @@ const initialState = {
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       NetworkController: {
         ...mockNetworkState({
-          chainId: CHAIN_IDS.MAINNET,
+          chainId: '0x1',
           id: 'mainnet',
           nickname: 'Ethereum Mainnet',
           ticker: 'ETH',

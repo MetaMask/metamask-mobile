@@ -1,5 +1,4 @@
 import { cloneDeep } from 'lodash';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { RpcEndpointType } from '@metamask/network-controller';
 import ReceiveRequest from './';
 import { renderScreen } from '../../../util/test/renderWithProvider';
@@ -16,7 +15,7 @@ const initialState = {
           id: 'mainnet',
           nickname: 'Ethereum',
           ticker: 'ETH',
-          chainId: CHAIN_IDS.MAINNET,
+          chainId: '0x1',
           type: RpcEndpointType.Infura,
         }),
       },
@@ -60,7 +59,7 @@ describe('ReceiveRequest', () => {
   it('render with different ticker matches snapshot', () => {
     const state = cloneDeep(initialState);
     state.engine.backgroundState.NetworkController.networkConfigurationsByChainId[
-      CHAIN_IDS.MAINNET
+      '0x1'
     ].nativeCurrency = 'DIFF';
     const { toJSON } = renderScreen(
       ReceiveRequest,

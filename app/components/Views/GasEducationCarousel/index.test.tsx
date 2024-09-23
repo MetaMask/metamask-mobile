@@ -1,5 +1,4 @@
 import React from 'react';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import GasEducationCarousel from '.';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -15,7 +14,7 @@ const mockInitialState: DeepPartial<RootState> = {
           id: 'mainnet',
           nickname: 'Ethereum Mainnet',
           ticker: 'ETH',
-          chainId: CHAIN_IDS.MAINNET,
+          chainId: '0x1',
         }),
       },
     },

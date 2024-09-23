@@ -57,7 +57,7 @@ export const mockedEngine = {
       },
       state: {
         ...mockNetworkState({
-          chainId: CHAIN_IDS.MAINNET,
+          chainId: '0x1',
           id: 'mainnet',
           nickname: 'Ethereum Mainnet',
           ticker: 'ETH',

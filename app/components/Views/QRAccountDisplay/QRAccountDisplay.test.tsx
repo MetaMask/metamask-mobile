@@ -1,5 +1,4 @@
 import React from 'react';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import QRAccountDisplay from './index';
 import { fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
@@ -16,7 +15,7 @@ const mockInitialState = {
           id: 'mainnet',
           nickname: 'Ethereum Mainnet',
           ticker: 'ETH',
-          chainId: CHAIN_IDS.MAINNET,
+          chainId: '0x1',
         }),
       },
     },

@@ -1,4 +1,3 @@
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import Send from '.';
 import { RootState } from '../../../../reducers';
 import { MOCK_KEYRING_CONTROLLER } from '../../../../selectors/keyringController/testUtils';
@@ -15,7 +14,7 @@ import { RpcEndpointType } from '@metamask/network-controller';
 import { store } from '../../../../store';
 
 const mockedNetworkControllerState = mockNetworkState({
-  chainId: CHAIN_IDS.MAINNET,
+  chainId: '0x1',
   id: 'mainnet',
   nickname: 'Ethereum Main Network',
   ticker: 'ETH',
@@ -188,12 +187,6 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-// jest.mock('../../../store', () => ({
-//   store: {
-//     getState: () => initialState,
-//   },
-// }));
-
 describe('Accounts', () => {
   it('should render correctly', () => {
     (store.getState as jest.Mock).mockReturnValue({
@@ -201,7 +194,7 @@ describe('Accounts', () => {
         backgroundState: {
           NetworkController: {
             ...mockNetworkState({
-              chainId: CHAIN_IDS.SEPOLIA,
+              chainId: '0xaa36a7',
               id: '1',
               nickname: 'Sepolia',
               ticker: 'ETH',

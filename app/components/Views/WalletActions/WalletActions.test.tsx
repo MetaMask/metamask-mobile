@@ -10,9 +10,7 @@ import { WalletActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
 import { mockNetworkState } from '../../../util/test/network';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { RpcEndpointType } from '@metamask/network-controller';
-import { store } from '../../../store';
 
 const mockInitialState: DeepPartial<RootState> = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
@@ -31,7 +29,7 @@ const mockInitialState: DeepPartial<RootState> = {
       ...backgroundState,
       NetworkController: {
         ...mockNetworkState({
-          chainId: CHAIN_IDS.MAINNET,
+          chainId: '0x1',
           id: 'mainnet',
           nickname: 'Ethereum Mainnet',
           ticker: 'ETH',
@@ -119,7 +117,7 @@ describe('WalletActions', () => {
           ...backgroundState,
           NetworkController: {
             ...mockNetworkState({
-              chainId: CHAIN_IDS.SEPOLIA,
+              chainId: '0xaa36a7',
               id: 'sepolia',
               nickname: 'Sepolia',
               ticker: 'ETH',
@@ -165,7 +163,7 @@ describe('WalletActions', () => {
           ...backgroundState,
           NetworkController: {
             ...mockNetworkState({
-              chainId: CHAIN_IDS.SEPOLIA,
+              chainId: '0xaa36a7',
               id: 'sepolia',
               nickname: 'Sepolia',
               ticker: 'ETH',

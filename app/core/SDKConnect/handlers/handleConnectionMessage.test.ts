@@ -20,7 +20,6 @@ import { createMockInternalAccount } from '../../../util/test/accountsController
 import { AccountsController } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { mockNetworkState } from '../../../util/test/network';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { NETWORKS_CHAIN_ID } from '../../../../app/constants/network';
 
 jest.mock('../../Engine');
@@ -110,7 +109,7 @@ describe('handleConnectionMessage', () => {
         }),
         state: {
           ...mockNetworkState({
-            chainId: CHAIN_IDS.MAINNET,
+            chainId: '0x1',
             id: 'mainnet',
             nickname: 'Ethereum Mainnet',
             ticker: 'ETH',

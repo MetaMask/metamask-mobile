@@ -1,4 +1,3 @@
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../constants/navigation/Routes';
 import { backgroundState } from '../../util/test/initial-root-state';
@@ -13,7 +12,7 @@ const mockInitialState = {
       ...backgroundState,
       NetworkController: {
         ...mockNetworkState({
-          chainId: CHAIN_IDS.LINEA_GOERLI,
+          chainId: '0xe704',
           id: 'mainnet',
           nickname: 'Ethereum Mainnet',
           ticker: 'ETH',

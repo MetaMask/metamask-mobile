@@ -1,4 +1,3 @@
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { RpcEndpointType } from '@metamask/network-controller';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -54,7 +53,7 @@ describe('selectAccountBalanceByChainId', () => {
               id: 'sepolia',
               nickname: 'Sepolia',
               ticker: 'ETH',
-              chainId: CHAIN_IDS.SEPOLIA,
+              chainId: '0xaa36a7',
               type: RpcEndpointType.Infura,
             }),
           },

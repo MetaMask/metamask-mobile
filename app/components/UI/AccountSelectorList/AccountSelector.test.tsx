@@ -10,7 +10,6 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { regex } from '../../../../app/util/regex';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../../util/test/network';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const BUSINESS_ACCOUNT = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const PERSONAL_ACCOUNT = '0xd018538C87232FF95acbCe4870629b75640a78E7';
@@ -37,7 +36,7 @@ const initialState = {
           id: 'mainnet',
           nickname: 'Ethereum Mainnet',
           ticker: 'ETH',
-          chainId: CHAIN_IDS.MAINNET,
+          chainId: '0x1',
         }),
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,

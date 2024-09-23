@@ -1,5 +1,4 @@
 import React from 'react';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import AccountApproval from '.';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -48,7 +47,7 @@ const mockInitialState = {
           id: 'mainnet',
           nickname: 'Ethereum',
           ticker: 'ETH',
-          chainId: CHAIN_IDS.MAINNET,
+          chainId: '0x1',
           type: RpcEndpointType.Infura,
         }),
       },

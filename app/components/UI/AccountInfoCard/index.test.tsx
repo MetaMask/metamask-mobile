@@ -1,5 +1,4 @@
 import React from 'react';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import AccountInfoCard from './';
 import renderWithProvider, {
   DeepPartial,
@@ -52,7 +51,7 @@ const mockInitialState: DeepPartial<RootState> = {
       },
       NetworkController: {
         ...mockNetworkState({
-          chainId: CHAIN_IDS.SEPOLIA,
+          chainId: '0xaa36a7',
           id: 'mainnet',
           nickname: 'Sepolia',
           ticker: 'SepoliaETH',

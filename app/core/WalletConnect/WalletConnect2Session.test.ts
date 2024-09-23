@@ -1,5 +1,4 @@
 import { RpcEndpointType } from '@metamask/network-controller';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import WalletConnect2Session from './WalletConnect2Session';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -10,7 +9,6 @@ import { SessionTypes } from '@walletconnect/types';
 import { store } from '../../store';
 import Engine from '../Engine';
 import { mockNetworkState } from '../../util/test/network';
-import { backgroundState } from 'app/util/test/initial-root-state';
 
 jest.mock('../AppConstants', () => ({
   WALLET_CONNECT: {
@@ -159,7 +157,7 @@ describe('WalletConnect2Session', () => {
         backgroundState: {
           NetworkController: {
             ...mockNetworkState({
-              chainId: CHAIN_IDS.SEPOLIA,
+              chainId: '0xaa36a7',
               id: '1',
               nickname: 'Sepolia',
               ticker: 'ETH',

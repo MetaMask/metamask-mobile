@@ -9,7 +9,6 @@ import Engine from '../../../core/Engine';
 import { fireEvent } from '@testing-library/react-native';
 import { RootState } from 'app/reducers';
 import { mockNetworkState } from '../../../util/test/network';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const setUseNftDetectionSpy = jest.spyOn(
   Engine.context.PreferencesController,
@@ -37,7 +36,7 @@ const initialState = {
       },
       NetworkController: {
         ...mockNetworkState({
-          chainId: CHAIN_IDS.MAINNET,
+          chainId: '0x1',
           id: 'mainnet',
           nickname: 'Ethereum Mainnet',
           ticker: 'ETH',
@@ -77,7 +76,7 @@ describe('NFT Auto detection modal', () => {
           },
           NetworkController: {
             ...mockNetworkState({
-              chainId: CHAIN_IDS.MAINNET,
+              chainId: '0x1',
               id: 'mainnet',
               nickname: 'Ethereum Mainnet',
               ticker: 'ETH',

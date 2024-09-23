@@ -2,7 +2,6 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { shallow } from 'enzyme';
 import configureMockStore from 'redux-mock-store';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { RpcEndpointType } from '@metamask/network-controller';
 
 import renderWithProvider, {
@@ -47,7 +46,7 @@ const mockInitialState: DeepPartial<RootState> = {
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       ...mockNetworkState({
-        chainId: CHAIN_IDS.MAINNET,
+        chainId: '0x1',
         id: 'Mainnet',
         nickname: 'Mainnet',
         ticker: 'ETH',

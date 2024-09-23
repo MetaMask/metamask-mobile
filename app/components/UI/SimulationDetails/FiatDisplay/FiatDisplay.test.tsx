@@ -7,7 +7,6 @@ import { IndividualFiatDisplay, TotalFiatDisplay } from './FiatDisplay';
 import { FIAT_UNAVAILABLE } from '../types';
 import useFiatFormatter from './useFiatFormatter';
 import { mockNetworkState } from '../../../../util/test/network';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.mock('./useFiatFormatter');
 
@@ -22,7 +21,7 @@ const mockStateWithTestnet = merge({}, mockInitialState, {
     backgroundState: {
       NetworkController: {
         ...mockNetworkState({
-          chainId: CHAIN_IDS.SEPOLIA,
+          chainId: '0xaa36a7',
           id: 'sepolia',
           nickname: 'Sepolia',
           ticker: 'ETH',

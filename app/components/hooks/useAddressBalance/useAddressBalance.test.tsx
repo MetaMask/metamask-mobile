@@ -1,5 +1,4 @@
 import React from 'react';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { RpcEndpointType } from '@metamask/network-controller';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
@@ -42,7 +41,7 @@ const mockInitialState = {
           id: 'mainnet',
           nickname: 'Ethereum Mainnet',
           ticker: 'ETH',
-          chainId: CHAIN_IDS.MAINNET,
+          chainId: '0x1',
           type: RpcEndpointType.Infura,
         }),
       },

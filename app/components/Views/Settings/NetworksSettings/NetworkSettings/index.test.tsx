@@ -1,6 +1,5 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { RpcEndpointType } from '@metamask/network-controller';
 import { NetworkSettings } from './'; // Import the undecorated component
 import configureMockStore from 'redux-mock-store';
@@ -30,7 +29,7 @@ const initialState = {
       id: 'mainnet',
       nickname: 'Ethereum Mainnet',
       ticker: 'ETH',
-      chainId: CHAIN_IDS.MAINNET,
+      chainId: '0x1',
       type: RpcEndpointType.Infura,
     }),
   },

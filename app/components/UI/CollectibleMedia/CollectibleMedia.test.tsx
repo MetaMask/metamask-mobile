@@ -1,5 +1,4 @@
 import React from 'react';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 import CollectibleMedia from './CollectibleMedia';
 
@@ -13,7 +12,7 @@ const mockInitialState = {
       ...backgroundState,
       NetworkController: {
         ...mockNetworkState({
-          chainId: CHAIN_IDS.MAINNET,
+          chainId: '0x1',
           id: 'mainnet',
           nickname: 'Ethereum Mainnet',
           ticker: 'ETH',
