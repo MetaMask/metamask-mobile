@@ -7,7 +7,7 @@ import { isTest } from '../../util/test/utils';
  * Service for measuring app performance
  */
 
-async function setPerformanceValues(appStartTime: any) {
+async function setPerformanceValues(appStartTime: number) {
   await StorageWrapper.setItem('appStartTime', appStartTime.toString());
 }
 
