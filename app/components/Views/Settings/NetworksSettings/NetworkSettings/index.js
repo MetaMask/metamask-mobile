@@ -470,70 +470,77 @@ export class NetworkSettings extends PureComponent {
       selectedRpcEndpointIndex;
     // If no navigation param, user clicked on add network
     if (networkTypeOrRpcUrl) {
-      if (allNetworks.find((net) => networkTypeOrRpcUrl === net)) {
-        // https://lineascan.build
-        // https://etherscan.io
-        // blockExplorerUrl = getEtherscanBaseUrl(networkTypeOrRpcUrl);
+      console.log('IF ---------', networkConfigurations);
+      // if (allNetworks.find((net) => networkTypeOrRpcUrl === net)) {
+      //   // https://lineascan.build
+      //   // https://etherscan.io
+      //   // blockExplorerUrl = getEtherscanBaseUrl(networkTypeOrRpcUrl);
 
-        const networkInformation = Networks[networkTypeOrRpcUrl];
-        nickname = networkInformation.name;
-        chainId = networkInformation.chainId.toString();
-        editable = false;
-        blockExplorerUrl =
-          networkConfigurations?.[chainId]?.blockExplorerUrls[
-            networkConfigurations?.[chainId]?.defaultBlockExplorerUrlIndex
-          ];
-        rpcUrl =
-          networkConfigurations?.[chainId]?.rpcEndpoints[
-            networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
-          ]?.url;
-        rpcName =
-          networkConfigurations?.[chainId]?.rpcEndpoints[
-            networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
-          ]?.type ??
-          networkConfigurations?.[chainId]?.rpcEndpoints[
-            networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
-          ]?.name;
-        rpcUrls = networkConfigurations?.[chainId]?.rpcEndpoints;
-        blockExplorerUrls = networkConfigurations?.[chainId]?.blockExplorerUrls;
+      //   const networkInformation = Networks[networkTypeOrRpcUrl];
+      //   chainId = networkInformation.chainId.toString();
+      //   console.log('IF INSIDE IF ---------', chainId);
+      //   console.log('IF INSIDE IF 222 ---------', networkInformation);
 
-        ticker = ![
-          NETWORKS_CHAIN_ID.LINEA_GOERLI,
-          NETWORKS_CHAIN_ID.LINEA_SEPOLIA,
-        ].includes(networkInformation.chainId.toString())
-          ? strings('unit.eth')
-          : 'LineaETH';
-        // Override values if UI is updating custom mainnet RPC URL.
-        if (isCustomMainnet) {
-          nickname = DEFAULT_MAINNET_CUSTOM_NAME;
-          rpcUrl = this.getCustomMainnetRPCURL();
-        }
-      } else {
-        const networkConfiguration = Object.values(networkConfigurations).find(
-          ({ rpcEndpoints, defaultRpcEndpointIndex }) =>
-            rpcEndpoints[defaultRpcEndpointIndex].url === networkTypeOrRpcUrl,
-        );
-        nickname = networkConfiguration.name;
-        chainId = networkConfiguration.chainId;
-        blockExplorerUrl =
-          networkConfiguration?.blockExplorerUrls[
-            networkConfiguration?.defaultBlockExplorerUrlIndex
-          ];
-        ticker = networkConfiguration.nativeCurrency;
-        editable = true;
-        rpcUrl =
-          networkConfigurations?.[chainId]?.rpcEndpoints[
-            networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
-          ]?.url;
-        rpcUrls = networkConfiguration?.rpcEndpoints;
-        blockExplorerUrls = networkConfiguration?.blockExplorerUrls;
-        rpcName =
-          networkConfiguration?.rpcEndpoints[
-            networkConfiguration?.defaultBlockExplorerUrlIndex
-          ]?.name;
+      //   nickname = networkConfigurations?.[chainId]?.name;
+      //   console.log('nickname ------', networkConfigurations);
+      //   editable = false;
+      //   console.log('networkConfigurations here ------', networkConfigurations);
+      //   blockExplorerUrl =
+      //     networkConfigurations?.[chainId]?.blockExplorerUrls[
+      //       networkConfigurations?.[chainId]?.defaultBlockExplorerUrlIndex
+      //     ];
+      //   console.log('blockExplorerUrl -----', blockExplorerUrl);
+      //   rpcUrl =
+      //     networkConfigurations?.[chainId]?.rpcEndpoints[
+      //       networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
+      //     ]?.url;
+      //   console.log('RpcUrl ----', rpcUrl);
+      //   rpcName =
+      //     networkConfigurations?.[chainId]?.rpcEndpoints[
+      //       networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
+      //     ]?.type ??
+      //     networkConfigurations?.[chainId]?.rpcEndpoints[
+      //       networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
+      //     ]?.name;
+      //   rpcUrls = networkConfigurations?.[chainId]?.rpcEndpoints;
+      //   blockExplorerUrls = networkConfigurations?.[chainId]?.blockExplorerUrls;
 
-        selectedRpcEndpointIndex = networkConfiguration.defaultRpcEndpointIndex;
-      }
+      //   ticker = networkConfigurations?.[chainId]?.nativeCurrency;
+      // }
+
+      // else {
+      console.log('ELSE -------', networkTypeOrRpcUrl);
+      const networkConfiguration = Object.values(networkConfigurations).find(
+        ({ rpcEndpoints, defaultRpcEndpointIndex }) =>
+          rpcEndpoints[defaultRpcEndpointIndex].url === networkTypeOrRpcUrl ||
+          rpcEndpoints[defaultRpcEndpointIndex].networkClientId ===
+            networkTypeOrRpcUrl,
+      );
+      console.log('networkConfiguration ----', networkConfiguration);
+      nickname = networkConfiguration?.name;
+      chainId = networkConfiguration?.chainId;
+      blockExplorerUrl =
+        networkConfiguration?.blockExplorerUrls[
+          networkConfiguration?.defaultBlockExplorerUrlIndex
+        ];
+      ticker = networkConfiguration?.nativeCurrency;
+      editable = true;
+      rpcUrl =
+        networkConfigurations?.[chainId]?.rpcEndpoints[
+          networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
+        ]?.url;
+      rpcUrls = networkConfiguration?.rpcEndpoints;
+      blockExplorerUrls = networkConfiguration?.blockExplorerUrls;
+      rpcName =
+        networkConfiguration?.rpcEndpoints[
+          networkConfiguration?.defaultBlockExplorerUrlIndex
+        ]?.name;
+
+      selectedRpcEndpointIndex = networkConfiguration?.defaultRpcEndpointIndex;
+      // }
+
+      console.log('rpcUrl ********** 1111 ', rpcUrl);
+
       const initialState =
         rpcUrl +
         blockExplorerUrl +
@@ -994,7 +1001,9 @@ export class NetworkSettings extends PureComponent {
    * Validates that chain id is a valid integer number, setting a warningChainId if is invalid
    */
   validateChainId = async () => {
+    console.log('VALIDATE CHAIN ID --------->');
     const { chainId, rpcUrl, editable } = this.state;
+    console.log('VALIDATE CHAIN ID --------->', this.state);
 
     const isChainIdExists = await this.checkIfChainIdExists(chainId);
     const isNetworkExists = await this.checkIfNetworkExists(rpcUrl);
@@ -1276,6 +1285,7 @@ export class NetworkSettings extends PureComponent {
   };
 
   onRpcUrlChange = async (url) => {
+    console.log('IM HERE JJJJJJJJJ --------->');
     const { addMode } = this.state;
     await this.setState({
       rpcUrl: url,
