@@ -707,7 +707,9 @@ describe('getRpcMethodMiddleware', () => {
           params: [mockTransactionParameters],
         };
 
+        console.log('request ----', request);
         const response = await callMiddleware({ middleware, request });
+        console.log('response ----', response);
 
         expect((response as JsonRpcFailure).error).toBeUndefined();
         expect((response as JsonRpcSuccess<string>).result).toBe('fake-hash');
