@@ -1,6 +1,5 @@
 'use strict';
 
-import EnableDeviceNotificationsAlert from './pages/EnableDeviceNotificationsAlert';
 import EnableAutomaticSecurityChecksView from './pages/EnableAutomaticSecurityChecksView';
 import ImportWalletView from './pages/Onboarding/ImportWalletView';
 import MetaMetricsOptIn from './pages/Onboarding/MetaMetricsOptInView';
@@ -72,8 +71,6 @@ have to have all these workarounds in the tests
 export const importWalletWithRecoveryPhrase = async () => {
   // tap on import seed phrase button
   await Assertions.checkIfVisible(OnboardingCarouselView.container);
-  await EnableDeviceNotificationsAlert.isVisible();
-  await EnableDeviceNotificationsAlert.tapNoThanks();
   await OnboardingCarouselView.tapOnGetStartedButton();
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
@@ -90,8 +87,6 @@ export const importWalletWithRecoveryPhrase = async () => {
   //'Should dismiss Enable device Notifications checks alert'
   await TestHelpers.delay(3500);
   await OnboardingSuccessView.tapDone();
-  await EnableDeviceNotificationsAlert.isVisible();
-  await EnableDeviceNotificationsAlert.tapNoThanks();
   // Should dismiss Automatic Security checks screen
   await EnableAutomaticSecurityChecksView.isVisible();
   await EnableAutomaticSecurityChecksView.tapNoThanks();
@@ -105,8 +100,6 @@ export const CreateNewWallet = async () => {
   //'should create new wallet'
 
   // tap on import seed phrase button
-  await EnableDeviceNotificationsAlert.isVisible();
-  await EnableDeviceNotificationsAlert.tapNoThanks();
   await OnboardingCarouselView.tapOnGetStartedButton();
   await OnboardingView.tapCreateWallet();
 
@@ -132,8 +125,6 @@ export const CreateNewWallet = async () => {
   //'Should dismiss Enable device Notifications checks alert'
   await TestHelpers.delay(3500);
   await OnboardingSuccessView.tapDone();
-  await EnableDeviceNotificationsAlert.isVisible();
-  await EnableDeviceNotificationsAlert.tapNoThanks();
   //'Should dismiss Automatic Security checks screen'
   await EnableAutomaticSecurityChecksView.isVisible();
   await EnableAutomaticSecurityChecksView.tapNoThanks();
