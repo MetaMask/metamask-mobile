@@ -1036,7 +1036,7 @@
           "snap_getBip32PublicKey": "{{protocol}}에 대한 공개 키 보기",
           "snap_getBip44Entropy": "{{protocol}} 계정과 자산을 관리합니다",
           "snap_getEntropy": "이 Snap에 대해 고유한 키를 임의로 파생합니다",
-          "endowment:keyring": "소유:keyring",
+          "endowment:keyring": "Allow requests for adding and controlling Ethereum accounts",
           "wallet_snap": "{{otherSnapName}}에 연결",
           "endowment:webassembly": "WebAssembly 지원",
           "endowment:ethereum-provider": "이더리움 공급자에 액세스",
@@ -1044,7 +1044,8 @@
           "snap_getLocale": "원하는 언어 보기",
           "endowment:caveat:transaction-origin": "트랜잭션을 추천하는 웹사이트 출처 보기",
           "endowment:extend-runtime": "실행 시간 연장",
-          "snap_dialog": "사용자 지정 대화 상자 표시"
+          "snap_dialog": "사용자 지정 대화 상자 표시",
+          "snap_manageAccounts": "Add and control Ethereum accounts"
         }
       }
     },
