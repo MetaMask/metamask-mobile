@@ -81,6 +81,20 @@ jest.mock('../core/Engine', () => ({
           blockExplorerUrls: [],
           chainId: '0x2',
           defaultRpcEndpointIndex: 0,
+          name: 'Test Network',
+          nativeCurrency: 'TST',
+          rpcEndpoints: [
+            {
+              networkClientId: 'testNetwork',
+              type: 'custom',
+              url: 'https://test.mainnet.io',
+            },
+          ],
+        },
+        '0x38': {
+          blockExplorerUrls: [],
+          chainId: '0x38',
+          defaultRpcEndpointIndex: 0,
           name: 'Binance',
           nativeCurrency: 'BNB',
           rpcEndpoints: [
@@ -192,6 +206,20 @@ describe('selectAccountBalanceByChainId', () => {
                 blockExplorerUrls: [],
                 chainId: '0x2',
                 defaultRpcEndpointIndex: 0,
+                name: 'Test Network',
+                nativeCurrency: 'TST',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'testNetwork',
+                    type: 'custom',
+                    url: 'https://test.mainnet.io',
+                  },
+                ],
+              },
+              '0x38': {
+                blockExplorerUrls: [],
+                chainId: '0x38',
+                defaultRpcEndpointIndex: 0,
                 name: 'Binance',
                 nativeCurrency: 'BNB',
                 rpcEndpoints: [
@@ -300,7 +328,7 @@ describe('selectAccountBalanceByChainId', () => {
       expect(getByText(`Balance ${MOCK_BALANCE}`)).toBeDefined();
       mockRenderCall.mockReset();
 
-      Engine.state.NetworkController.selectedNetworkClientId = 'binance';
+      Engine.state.NetworkController.selectedNetworkClientId = 'testNetwork';
 
       act(() => {
         store.dispatch({
