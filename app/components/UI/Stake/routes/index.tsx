@@ -1,7 +1,7 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import StakeInputView from '../Views/InputView/StakeInputView';
-import LearnMoreTooltip from '../components/LearnMoreTooltip';
+import LearnMoreModal from '../components/LearnMoreModal';
 import Routes from '../../../../constants/navigation/Routes';
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -29,7 +29,7 @@ const StakeModalStack = () => (
   >
     <ModalStack.Screen
       name={Routes.STAKE.MODAL.LEARN_MORE}
-      component={LearnMoreTooltip}
+      component={LearnMoreModal}
       options={{ headerShown: false }}
     />
   </ModalStack.Navigator>

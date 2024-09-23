@@ -48,7 +48,7 @@ const createStyles = () =>
     },
   });
 
-const LearnMoreTooltip = () => {
+const LearnMoreModal = () => {
   const styles = createStyles();
   const sheetRef = useRef<BottomSheetRef>(null);
 
@@ -136,4 +136,4 @@ const LearnMoreTooltip = () => {
   );
 };
 
-export default LearnMoreTooltip;
+export default LearnMoreModal;
