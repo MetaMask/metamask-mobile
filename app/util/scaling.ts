@@ -1,4 +1,4 @@
-import { Dimensions, PixelRatio } from 'react-native';
+import { Dimensions, PixelRatio, ScaledSize } from 'react-native';
 
 //baseModel 0
 const IPHONE_6_WIDTH = 375;
@@ -12,7 +12,12 @@ const IPHONE_11_PRO_HEIGHT = 812;
 const IPHONE_11_PRO_MAX_WIDTH = 414;
 const IPHONE_11_PRO_MAX_HEIGHT = 896;
 
-const getBaseModel = (baseModel) => {
+interface BaseModelDimensions {
+  width: number;
+  height: number;
+}
+
+const getBaseModel = (baseModel: number): BaseModelDimensions => {
   if (baseModel === 1) {
     return { width: IPHONE_11_PRO_WIDTH, height: IPHONE_11_PRO_HEIGHT };
   } else if (baseModel === 2) {
@@ -22,8 +27,13 @@ const getBaseModel = (baseModel) => {
   return { width: IPHONE_6_WIDTH, height: IPHONE_6_HEIGHT };
 };
 
-const _getSizes = (scaleVertical, baseModel) => {
-  const { width, height } = Dimensions.get('window');
+interface Sizes {
+  currSize: number;
+  baseScreenSize: number;
+}
+
+const _getSizes = (scaleVertical: boolean, baseModel: number): Sizes => {
+  const { width, height }: ScaledSize = Dimensions.get('window');
   const CURR_WIDTH = width < height ? width : height;
   const CURR_HEIGHT = height > width ? height : width;
 
@@ -38,17 +48,25 @@ const _getSizes = (scaleVertical, baseModel) => {
   return { currSize, baseScreenSize };
 };
 
+interface ScaleOptions {
+  factor?: number;
+  scaleVertical?: boolean;
+  scaleUp?: boolean;
+  baseSize?: number;
+  baseModel: number | undefined;
+}
+
 const scale = (
-  size,
+  size: number,
   {
     factor = 1,
     scaleVertical = false,
     scaleUp = false,
-    baseSize = undefined,
+    baseSize,
     baseModel,
-  } = {},
-) => {
-  const { currSize, baseScreenSize } = _getSizes(scaleVertical, baseModel);
+  }: ScaleOptions = {} as ScaleOptions,
+): number => {
+  const { currSize, baseScreenSize } = _getSizes(scaleVertical, baseModel ?? 0);
   const sizeScaled = ((baseSize || currSize) / baseScreenSize) * size;
 
   if (sizeScaled <= size || scaleUp) {
@@ -58,7 +76,7 @@ const scale = (
   return size;
 };
 
-const scaleVertical = (size, options) =>
-  scale(size, { scaleVertical: true, ...options });
+const scaleVertical = (size: number, options: Partial<ScaleOptions> = {}): number =>
+  scale(size, { scaleVertical: true, baseModel: options.baseModel ?? 0, ...options });
 
 export default { scale, scaleVertical, IPHONE_6_WIDTH, IPHONE_6_HEIGHT };
