@@ -6,6 +6,7 @@ import OnboardingSuccess from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { useSelector } from 'react-redux';
 import { selectProviderConfig } from '../../../selectors/networkController';
+import Button from '../../../component-library/components/Buttons/Button/Button';
 
 // Define ProviderConfig type
 interface ProviderConfig {
@@ -40,13 +41,25 @@ const mockProviderConfig: ProviderConfig = {
 };
 
 describe('OnboardingSuccess', () => {
-  it('should render correctly', () => {
+  it('should render correctly and handle onDone', () => {
     (useSelector as jest.Mock).mockImplementation((selector: typeof selectProviderConfig) => {
       if (selector === selectProviderConfig) return mockProviderConfig;
     });
-    const { toJSON } = renderWithProvider(
-      <OnboardingSuccess onDone={jest.fn()} backedUpSRP={false} noSRP={false} />,
+    const mockOnDone = jest.fn();
+    const { getByTestId, toJSON } = renderWithProvider(
+      <OnboardingSuccess onDone={mockOnDone} backedUpSRP={false} noSRP={false} />,
     );
+
+    // Snapshot test
     expect(toJSON()).toMatchSnapshot();
+
+    const doneButton = getByTestId('onboarding-success-done-button');
+    expect(doneButton).toBeTruthy();
+
+    // Simulate button press
+    doneButton.props.onPress();
+
+    // Check if mockOnDone was called
+    expect(mockOnDone).toHaveBeenCalledTimes(1);
   });
 });
