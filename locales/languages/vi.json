@@ -1036,7 +1036,7 @@
           "snap_getBip32PublicKey": "Xem khóa công khai của bạn cho {{protocol}}",
           "snap_getBip44Entropy": "Kiểm soát các tài khoản và tài sản {{protocol}} của bạn",
           "snap_getEntropy": "Lấy các khóa tùy ý duy nhất cho Snap này",
-          "endowment:keyring": "endowment:keyring",
+          "endowment:keyring": "Allow requests for adding and controlling Ethereum accounts",
           "wallet_snap": "Kết nối với {{otherSnapName}}",
           "endowment:webassembly": "Hỗ trợ dành cho WebAssembly",
           "endowment:ethereum-provider": "Truy cập nhà cung cấp Ethereum",
@@ -1044,7 +1044,8 @@
           "snap_getLocale": "Xem ngôn ngữ ưa thích của bạn",
           "endowment:caveat:transaction-origin": "Xem nguồn gốc của các trang web đề xuất giao dịch",
           "endowment:extend-runtime": "Kéo dài thời gian thực hiện",
-          "snap_dialog": "Hiển thị hộp thoại tùy chỉnh"
+          "snap_dialog": "Hiển thị hộp thoại tùy chỉnh",
+          "snap_manageAccounts": "Add and control Ethereum accounts"
         }
       }
     },

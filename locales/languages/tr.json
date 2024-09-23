@@ -1036,7 +1036,7 @@
           "snap_getBip32PublicKey": "{{protocol}} için genel anahtarınızı görüntüle",
           "snap_getBip44Entropy": "{{protocol}} hesaplarınızı ve varlıklarınızı kontrol et",
           "snap_getEntropy": "Bu snap için eşsiz rastgele anahtarları türet",
-          "endowment:keyring": "endowment:keyring",
+          "endowment:keyring": "Allow requests for adding and controlling Ethereum accounts",
           "wallet_snap": "{{otherSnapName}} adlı snap'e bağlan",
           "endowment:webassembly": "WebAssembly desteği",
           "endowment:ethereum-provider": "Ethereum sağlayıcısına erişim sağla",
@@ -1044,7 +1044,8 @@
           "snap_getLocale": "Tercih ettiğiniz dili görüntüle",
           "endowment:caveat:transaction-origin": "İşlem öneren web sitelerinin kökenlerini gör",
           "endowment:extend-runtime": "Çalışma süresini uzat",
-          "snap_dialog": "Özel iletişim kutuları görüntüle"
+          "snap_dialog": "Özel iletişim kutuları görüntüle",
+          "snap_manageAccounts": "Add and control Ethereum accounts"
         }
       }
     },
