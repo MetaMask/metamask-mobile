@@ -1735,6 +1735,7 @@ class Engine {
           'PreferencesController:stateChange',
           'SignatureController:stateChange',
           'SnapController:stateChange',
+          'SnapsRegistry:stateChange',
           'SubjectMetadataController:stateChange',
           'TokenBalancesController:stateChange',
           'TokenListController:stateChange',
@@ -1755,9 +1756,6 @@ class Engine {
           // TODO: Remove `ts-expect-error` directive once `PPOMController` is upgraded to a version that fixes its `messagingSystem` and `stateChange` event.
           // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
           'PPOMController:stateChange',
-          // TODO: Remove `ts-expect-error` directive once `SnapsRegistry` is upgraded to a version that fixes its `messagingSystem` and `stateChange` event.
-          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
-          'SnapsRegistry:stateChange',
 
           /**
            * V1 controllers that should be excluded from the datamodel's events allowlist for now.
