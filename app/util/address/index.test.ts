@@ -15,6 +15,34 @@ import {
   getKeyringByAddress,
   getAccountLabelTextByKeyring,
 } from '.';
+import mockedEngine from '../../core/__mocks__/MockedEngine';
+import { MOCK_KEYRING_CONTROLLER_STATE } from '../test/keyringControllerTestUtils';
+import Engine from '../../core/Engine';
+
+const snapAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+
+const mockKeyringControllerState = {
+  KeyringController: {
+    ...MOCK_KEYRING_CONTROLLER_STATE,
+    state: {
+      ...MOCK_KEYRING_CONTROLLER_STATE.state,
+      keyrings: [
+        ...MOCK_KEYRING_CONTROLLER_STATE.state.keyrings,
+        {
+          accounts: [snapAddress],
+          index: 0,
+          type: 'Snap Keyring',
+        },
+      ],
+    },
+  },
+};
+
+jest.mock('../../core/Engine', () => ({
+  context: {
+    KeyringController: mockKeyringControllerState,
+  },
+}));
 
 describe('isENS', () => {
   it('should return false by default', () => {
@@ -281,6 +309,10 @@ describe('isHardwareAccount,', () => {
   });
 });
 describe('getAccountLabelTextByKeyring,', () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
+  });
+
   it('should return accounts.qr_hardware if account is a QR keyring', () => {
     expect(
       getAccountLabelTextByKeyring(
@@ -295,6 +327,12 @@ describe('getAccountLabelTextByKeyring,', () => {
         '0xd018538C87232FF95acbCe4870629b75640a78E7',
       ),
     ).toBe('accounts.imported');
+  });
+
+  it('should return "Snaps (beta)" if account is a Snap keyring', () => {
+    expect(getAccountLabelTextByKeyring(snapAddress)).toBe(
+      'accounts.snap_account_tag',
+    );
   });
 
   it('should return null if address is empty', () => {
