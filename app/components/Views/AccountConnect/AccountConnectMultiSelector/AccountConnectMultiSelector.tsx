@@ -52,8 +52,9 @@ const AccountConnectMultiSelector = ({
   connection,
   onBack,
   screenTitle,
+  isRenderedAsBottomSheet = true,
 }: AccountConnectMultiSelectorProps) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
   const [screen, setScreen] = useState<AccountConnectMultiSelectorScreens>(
     AccountConnectMultiSelectorScreens.AccountMultiSelector,
