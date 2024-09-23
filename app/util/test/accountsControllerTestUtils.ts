@@ -99,3 +99,30 @@ export function createMockAccountsControllerState(
     },
   };
 }
+
+export function createMockAccountsControllerStateWithSnap(
+  addresses: string[],
+  snapAccountIndex: number = 0,
+): AccountsControllerState {
+  if (addresses.length === 0) {
+    throw new Error('At least one address is required');
+  }
+
+  if (snapAccountIndex < 0 || snapAccountIndex >= addresses.length) {
+    throw new Error('Invalid snapAccountIndex');
+  }
+
+  const state = createMockAccountsControllerState(
+    addresses,
+    addresses[snapAccountIndex],
+  );
+
+  const snapAccountUuid = createMockUuidFromAddress(
+    addresses[snapAccountIndex].toLowerCase(),
+  );
+  state.internalAccounts.accounts[snapAccountUuid].metadata.keyring = {
+    type: 'Snap Keyring',
+  };
+
+  return state;
+}
