@@ -1,4 +1,3 @@
-/* eslint-disable import/no-commonjs */
 import Through from 'through2';
 import ObjectMultiplex from '@metamask/object-multiplex';
 import pump from 'pump';
