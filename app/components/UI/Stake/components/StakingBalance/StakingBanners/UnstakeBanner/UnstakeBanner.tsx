@@ -4,8 +4,16 @@ import Banner, {
   BannerVariant,
 } from '../../../../../../../component-library/components/Banners/Banner';
 import Text from '../../../../../../../component-library/components/Texts/Text';
-import { UnstakingBannerProps } from './UnstakeBanner.types';
 import { renderUnstakingTimeRemaining } from './utils';
+import { BannerProps } from '../../../../../../../component-library/components/Banners/Banner/Banner.types';
+
+export type UnstakingBannerProps = Pick<BannerProps, 'style'> & {
+  timeRemaining: {
+    days: number;
+    hours: number;
+  };
+  amountEth: string;
+};
 
 const UnstakingBanner = ({
   timeRemaining,
