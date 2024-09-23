@@ -34,12 +34,12 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 describe('StakingBalance', () => {
-  it('should render and match snapshot', () => {
+  it('render matches snapshot', () => {
     render(StakingBalance);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('should redirect to StakeInputView when the stake button is clicked', () => {
+  it('redirects to StakeInputView on stake button click', () => {
     render(StakingBalance);
 
     fireEvent.press(screen.getByText(strings('stake.stake_more')));

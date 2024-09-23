@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`StakingBalance should render and match snapshot 1`] = `
+exports[`StakingBalance renders matches snapshot 1`] = `
 <View
   style={
     {
