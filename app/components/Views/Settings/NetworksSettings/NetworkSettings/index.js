@@ -1314,11 +1314,6 @@ export class NetworkSettings extends PureComponent {
     });
   };
 
-  onBlockExplorerUrlChange = async (blockExplorerUrl) => {
-    await this.setState({ blockExplorerUrl });
-    this.getCurrentState();
-  };
-
   onNameFocused = () => {
     this.setState({ isNameFieldFocused: true });
   };

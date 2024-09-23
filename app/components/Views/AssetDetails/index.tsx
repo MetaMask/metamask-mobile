@@ -139,7 +139,6 @@ const AssetDetails = (props: Props) => {
          * removes goerli from provider config types
          */
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        // todo check this later
         (Networks as any)[providerConfig?.type ?? RpcEndpointType.Custom]
           ?.name || { ...Networks.rpc, color: null }.name;
     }

@@ -36,7 +36,6 @@ import {
 import {
   selectChainId,
   selectNetworkClientId,
-  selectProviderConfig,
   selectProviderType,
   selectRpcUrl,
   selectTicker,

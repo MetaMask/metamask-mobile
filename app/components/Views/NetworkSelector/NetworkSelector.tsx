@@ -30,7 +30,6 @@ import { useSelector } from 'react-redux';
 import {
   selectNetworkConfigurations,
   selectProviderConfig,
-  ProviderConfig,
 } from '../../../selectors/networkController';
 import { selectShowTestNetworks } from '../../../selectors/preferencesController';
 import Networks, {
@@ -40,7 +39,6 @@ import Networks, {
   isTestNet,
   getNetworkImageSource,
   isMainNet,
-  isLineaMainnet,
 } from '../../../util/networks';
 import {
   LINEA_MAINNET,
