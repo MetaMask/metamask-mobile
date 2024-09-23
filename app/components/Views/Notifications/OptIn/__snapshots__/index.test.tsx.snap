@@ -9,7 +9,7 @@ exports[`OptIn should render correctly 1`] = `
         "backgroundColor": "#ffffff",
         "flex": 1,
         "paddingHorizontal": 16,
-        "paddingTop": 40,
+        "paddingTop": 60,
       }
     }
   >

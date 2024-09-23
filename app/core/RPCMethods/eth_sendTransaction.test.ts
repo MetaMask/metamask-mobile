@@ -20,9 +20,11 @@ jest.mock('../../core/Engine', () => ({
       usePPOM: jest.fn(),
     },
     NetworkController: {
-      state: {
-        providerConfig: { chainId: '0x1' },
-      },
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+        },
+      }),
     },
     AccountsController: {
       state: {
