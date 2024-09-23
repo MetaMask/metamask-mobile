@@ -57,7 +57,7 @@ const StakeInputView = () => {
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate) || 1;
 
-  const handleIconPress = () => {
+  const navigateToLearnMoreModal = () => {
     navigation.navigate('StakeModals', {
       screen: Routes.STAKE.MODAL.LEARN_MORE,
     });
@@ -226,7 +226,7 @@ const StakeInputView = () => {
       <View style={styles.rewardsRateContainer}>
         <EstimatedAnnualRewardsCard
           estimatedAnnualRewards={estimatedAnnualRewards}
-          onIconPress={handleIconPress}
+          onIconPress={navigateToLearnMoreModal}
         />
       </View>
       <QuickAmounts
