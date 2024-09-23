@@ -277,7 +277,5 @@ export default class TestHelpers {
       await device.reverseTcpPort(getFixturesServerPort());
       await device.reverseTcpPort(getLocalTestDappPort());
     }
-    // Avoid any test to fail on iOS device setup
-    await system.element(by.system.label('Allow')).tap();
   }
 }
