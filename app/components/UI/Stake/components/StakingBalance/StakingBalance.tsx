@@ -91,7 +91,7 @@ const MOCK_UNSTAKING_REQUESTS: getStakesApiResponse = {
   exchangeRate: '1.010838047020148468',
 };
 
-const filterExistRequests = (exitRequests: ExitRequestWithClaimedAssetInfo[]) =>
+const filterExitRequests = (exitRequests: ExitRequestWithClaimedAssetInfo[]) =>
   exitRequests.reduce<{
     unstakingRequests: ExitRequestWithClaimedAssetInfo[];
     claimableRequests: ExitRequestWithClaimedAssetInfo[];
@@ -120,7 +120,7 @@ const StakingBalance = () => {
   const [isGeoBlocked] = useState(true);
 
   const { unstakingRequests, claimableRequests } = useMemo(
-    () => filterExistRequests(MOCK_UNSTAKING_REQUESTS.accounts[0].exitRequests),
+    () => filterExitRequests(MOCK_UNSTAKING_REQUESTS.accounts[0].exitRequests),
     [],
   );
 
