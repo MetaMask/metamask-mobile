@@ -37,7 +37,10 @@ import { InternalAccount } from '@metamask/keyring-api';
 import { AddressBookControllerState } from '@metamask/address-book-controller';
 import { NetworkType, toChecksumHexAddress } from '@metamask/controller-utils';
 import { NetworkClientId, NetworkState } from '@metamask/network-controller';
-import { AccountImportStrategy } from '@metamask/keyring-controller';
+import {
+  AccountImportStrategy,
+  KeyringTypes,
+} from '@metamask/keyring-controller';
 import { Hex, isHexString } from '@metamask/utils';
 
 const {
@@ -228,12 +231,12 @@ export function isExternalHardwareAccount(address: string) {
 }
 
 /**
- * gets i18n account label tag text based on address
+ * gets i18n account label tag text based on keyring type
  *
  * @param {String} address - String corresponding to an address
  * @returns {String} - Returns address's i18n label text
  */
-export function getLabelTextByAddress(address: string) {
+export function getLabelTextByKeyring(address: string) {
   if (!address) return null;
   const keyring = getKeyringByAddress(address);
   if (keyring) {
@@ -244,6 +247,8 @@ export function getLabelTextByAddress(address: string) {
         return 'accounts.qr_hardware';
       case ExtendedKeyringTypes.simple:
         return 'accounts.imported';
+      case KeyringTypes.snap:
+        return 'accounts.snap_account_tag';
     }
   }
   return null;
