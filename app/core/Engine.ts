@@ -1734,6 +1734,7 @@ class Engine {
           'PermissionController:stateChange',
           'PreferencesController:stateChange',
           'SignatureController:stateChange',
+          'SmartTransactionsController:stateChange',
           'SnapController:stateChange',
           'SnapsRegistry:stateChange',
           'SubjectMetadataController:stateChange',
@@ -1764,8 +1765,6 @@ class Engine {
            */
           // TODO: uncomment once `AccountTrackerController` is migrated to V2 and the `stateChange` event is added to its `messagingSystem`.
           // 'AccountTrackerController:stateChange', // StaticIntervalPollingControllerV1, no `messagingSystem`
-          // TODO: uncomment once `SmartTransactionsController` is migrated to V2 and the `stateChange` event is added to its `messagingSystem`.
-          // 'SmartTransactionsController:stateChange', // StaticIntervalPollingControllerV1, no `messagingSystem`
           // TODO: uncomment once `SwapsController` is migrated to V2 and the `stateChange` event is added to its `messagingSystem`.
           // 'SwapsController:stateChange', // BaseControllerV1, no `messagingSystem`
           // TODO: uncomment once `TokenRatesController` is migrated to V2 and the `stateChange` event is added to its `messagingSystem`.
