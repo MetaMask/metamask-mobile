@@ -1036,7 +1036,7 @@
           "snap_getBip32PublicKey": "{{protocol}} के लिए अपनी पब्लिक की (key) देखें",
           "snap_getBip44Entropy": "अपने {{protocol}} अकाउंट्स और एसेट्स को कंट्रोल करें।",
           "snap_getEntropy": "इस Snap के लिए unique arbitrary कीज़ डिराइव करें।",
-          "endowment:keyring": "endowment:keyring",
+          "endowment:keyring": "Allow requests for adding and controlling Ethereum accounts",
           "wallet_snap": "{{otherSnapName}} से कनेक्ट करें",
           "endowment:webassembly": "WebAssembly के लिए सपोर्ट",
           "endowment:ethereum-provider": "Ethereum प्रोवाइडर को ऐक्सेस करें",
@@ -1044,7 +1044,8 @@
           "snap_getLocale": "अपनी पसंदीदा भाषा देखें",
           "endowment:caveat:transaction-origin": "ट्रांसेक्शन का सुझाव देने वाली वेबसाइटों के सोर्स देखें",
           "endowment:extend-runtime": "रनटाइम बढ़ाएं",
-          "snap_dialog": "कस्टम डायलॉग्स दिखाएं"
+          "snap_dialog": "कस्टम डायलॉग्स दिखाएं",
+          "snap_manageAccounts": "Add and control Ethereum accounts"
         }
       }
     },
