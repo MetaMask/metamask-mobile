@@ -15,7 +15,7 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 describe(SmokeAssets('Import NFT'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.getSystemElementByText('Allow').tap();
+
   });
 
   it('should add a collectible', async () => {

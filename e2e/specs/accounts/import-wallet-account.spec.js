@@ -1,6 +1,5 @@
 'use strict';
 import { SmokeAccounts } from '../../tags';
-import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import AccountListView from '../../pages/AccountListView';
@@ -17,7 +16,7 @@ describe(SmokeAccounts('Import account via private to wallet'), () => {
   beforeAll(async () => {
     jest.setTimeout(200000);
     await device.launchApp();
-    await TestHelpers.getSystemElementByText('Allow').tap();
+
   });
 
   it('should import wallet and go to the wallet view', async () => {

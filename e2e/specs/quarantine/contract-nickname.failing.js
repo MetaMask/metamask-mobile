@@ -43,7 +43,7 @@ describe('Adding Contract Nickname', () => {
 
   beforeEach(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.getSystemElementByText('Allow').tap();
+
   });
 
   it('should import via seed phrase and validate in settings', async () => {

@@ -13,7 +13,7 @@ describe(SmokeAccounts('Create wallet account'), () => {
   beforeAll(async () => {
     jest.setTimeout(200000);
     await device.launchApp();
-    await TestHelpers.getSystemElementByText('Allow').tap();
+
   });
 
   it('should import wallet and go to the wallet view', async () => {

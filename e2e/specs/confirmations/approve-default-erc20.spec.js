@@ -26,7 +26,7 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
     if (device.getPlatform() === 'android') {
       await TestHelpers.reverseServerPort();
     }
-    await TestHelpers.getSystemElementByText('Allow').tap();
+
   });
 
   it('approve default ERC20 token amount from a dapp', async () => {

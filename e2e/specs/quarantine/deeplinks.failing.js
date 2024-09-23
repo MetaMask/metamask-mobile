@@ -45,7 +45,7 @@ const validAccount = Accounts.getValidAccount();
 describe(Regression('Deep linking Tests'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.getSystemElementByText('Allow').tap();
+
   });
 
   it('should import wallet and go to the wallet view', async () => {

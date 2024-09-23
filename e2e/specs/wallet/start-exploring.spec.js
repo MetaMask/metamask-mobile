@@ -20,7 +20,6 @@ describe(SmokeCore('Start Exploring'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await device.launchApp();
-    await TestHelpers.getSystemElementByText('Allow').tap();
   });
 
   it('should show the onboarding screen', async () => {
