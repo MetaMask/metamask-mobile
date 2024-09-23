@@ -125,7 +125,7 @@ import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
-import AppStateEventListener, { AppStateEventProcessor } from '../../../core/AppStateEventListener';
+import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
