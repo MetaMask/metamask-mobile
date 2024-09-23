@@ -8,6 +8,12 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { selectProviderConfig } from '../../../selectors/networkController';
 
+// Define ProviderConfig type
+interface ProviderConfig {
+  type: string;
+  chainId: string;
+}
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
@@ -29,18 +35,18 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-const mockProviderConfig = {
+const mockProviderConfig: ProviderConfig = {
   type: 'mainnet',
   chainId: '1',
 };
 
 describe('OnboardingSuccess', () => {
   it('should render correctly', () => {
-    useSelector.mockImplementation((selector) => {
+    (useSelector as jest.Mock).mockImplementation((selector: typeof selectProviderConfig) => {
       if (selector === selectProviderConfig) return mockProviderConfig;
     });
     const { toJSON } = renderWithProvider(
-      <OnboardingSuccess navigation={useNavigation()} />,
+      <OnboardingSuccess onDone={jest.fn()} backedUpSRP={false} noSRP={false} />,
     );
     expect(toJSON()).toMatchSnapshot();
   });
