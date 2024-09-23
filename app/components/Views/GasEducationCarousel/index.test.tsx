@@ -1,8 +1,11 @@
 import React from 'react';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../util/test/renderWithProvider';
 import GasEducationCarousel from '.';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { mockNetworkState } from '../../../util/test/network';
+import { RootState } from '../../../reducers';
 
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
