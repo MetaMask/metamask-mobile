@@ -19,6 +19,7 @@ export interface DeeplinkUrlParams {
   message?: string;
   originatorInfo?: string;
   request?: string;
+  attributionId?: string;
   account?: string; // This is the format => "address@chainId"
 }
 
@@ -39,6 +40,7 @@ function extractURLParams(url: string) {
     originatorInfo: '',
     channelId: '',
     comm: '',
+    attributionId: '',
   };
 
   DevLogger.log(`extractParams:: urlObj`, urlObj);
