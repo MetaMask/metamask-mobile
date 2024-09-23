@@ -1036,7 +1036,7 @@
           "snap_getBip32PublicKey": "Δείτε το δημόσιο κλειδί σας για {{protocol}}",
           "snap_getBip44Entropy": "Ελέγξτε τους λογαριασμούς {{protocol}} και τα περιουσιακά σας στοιχεία",
           "snap_getEntropy": "Παραγωγή τυχαίων κλειδιών μοναδικών σε αυτό το snap",
-          "endowment:keyring": "endowment:keyring",
+          "endowment:keyring": "Allow requests for adding and controlling Ethereum accounts",
           "wallet_snap": "Σύνδεση με {{otherSnapName}}",
           "endowment:webassembly": "Υποστήριξη για WebAssembly",
           "endowment:ethereum-provider": "Πρόσβαση στον πάροχο Ethereum",
@@ -1044,7 +1044,8 @@
           "snap_getLocale": "Δείτε την προτιμώμενη γλώσσα σας",
           "endowment:caveat:transaction-origin": "Δείτε την προέλευση των ιστότοπων που προτείνουν συναλλαγές",
           "endowment:extend-runtime": "Επέκταση του χρόνου εκτέλεσης",
-          "snap_dialog": "Εμφάνιση προσαρμοσμένων διαλόγων"
+          "snap_dialog": "Εμφάνιση προσαρμοσμένων διαλόγων",
+          "snap_manageAccounts": "Add and control Ethereum accounts"
         }
       }
     },
