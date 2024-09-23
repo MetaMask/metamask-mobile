@@ -10,6 +10,13 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => mockNavigate,
+}));
+
 const mockDAI = {
   address: '0x6b175474e89094c44da98b954eedeac495271d0f',
   aggregators: ['Metamask', 'Coinmarketcap'],
