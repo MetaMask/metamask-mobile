@@ -14,7 +14,6 @@ import {
 
 } from '../util/notifications';
 
-import NotificationsService from '../util/notifications/services/NotificationService';
 import { safeToChecksumAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
 import { selectChainId } from '../selectors/networkController';
