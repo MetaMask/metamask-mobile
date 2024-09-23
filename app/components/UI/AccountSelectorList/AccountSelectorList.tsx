@@ -20,7 +20,7 @@ import AvatarGroup from '../../../component-library/components/Avatars/AvatarGro
 import {
   formatAddress,
   safeToChecksumAddress,
-  getLabelTextByKeyring,
+  getAccountLabelTextByKeyring,
 } from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
@@ -176,7 +176,7 @@ const AccountSelectorList = ({
       index,
     }) => {
       const shortAddress = formatAddress(address, 'short');
-      const tagLabel = getLabelTextByKeyring(address);
+      const tagLabel = getAccountLabelTextByKeyring(address);
       const ensName = ensByAccountAddress[address];
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;
