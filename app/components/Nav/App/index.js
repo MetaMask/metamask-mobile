@@ -726,11 +726,6 @@ const App = (props) => {
             headerShown: false,
           }}
         />
-        <Stack.Screen name="ImportPrivateKey" component={ImportPrivateKey} />
-        <Stack.Screen
-          name="ImportPrivateKeySuccess"
-          component={ImportPrivateKeySuccess}
-        />
         <Stack.Screen
           name={Routes.QR_SCANNER}
           component={QRScanner}
