@@ -14,7 +14,7 @@ import {
   selectNetworkName,
 } from '../../../selectors/networkInfos';
 import {
-  getLabelTextByKeyring,
+  getAccountLabelTextByKeyring,
   renderAccountName,
 } from '../../../util/address';
 import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
@@ -76,7 +76,7 @@ const AddressFrom = ({
 
   const networkImage = useSelector(selectNetworkImageSource);
 
-  const accountTypeLabel = getLabelTextByKeyring(activeAddress);
+  const accountTypeLabel = getAccountLabelTextByKeyring(activeAddress);
 
   return (
     <View style={styles.container}>
