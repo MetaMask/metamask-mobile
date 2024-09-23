@@ -23,12 +23,10 @@ import Banner, {
 } from '../../../../../component-library/components/Banners/Banner';
 import { strings } from '../../../../../../locales/i18n';
 import { renderFromWei } from '../../../../../util/number';
-import {
-  ExitRequestWithClaimedAssetInfo,
-  getStakesApiResponse,
-} from './StakingBalance.types';
+import { getStakesApiResponse } from './StakingBalance.types';
 import { TokenI } from '../../../../UI/Tokens/types';
 import { getDaysAndHoursRemaining } from '../../../../../util/date';
+import { filterExitRequests } from './utils';
 
 // TODO: Replace mock data when connecting to backend.
 const MOCK_STAKED_ETH_ASSET = {
@@ -90,27 +88,6 @@ const MOCK_UNSTAKING_REQUESTS: getStakesApiResponse = {
   ],
   exchangeRate: '1.010838047020148468',
 };
-
-const filterExitRequests = (exitRequests: ExitRequestWithClaimedAssetInfo[]) =>
-  exitRequests.reduce<{
-    unstakingRequests: ExitRequestWithClaimedAssetInfo[];
-    claimableRequests: ExitRequestWithClaimedAssetInfo[];
-  }>(
-    (acc, request) => {
-      const isClaimableRequest =
-        request?.withdrawalTimestamp &&
-        Number(request.withdrawalTimestamp) === 0;
-
-      if (isClaimableRequest) {
-        acc.claimableRequests.push(request);
-        return acc;
-      }
-
-      acc.unstakingRequests.push(request);
-      return acc;
-    },
-    { unstakingRequests: [], claimableRequests: [] },
-  );
 
 const StakingBalance = () => {
   const { styles } = useStyles(styleSheet, {});
