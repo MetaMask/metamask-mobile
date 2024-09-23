@@ -1,21 +1,3 @@
-jest.mock('@segment/analytics-react-native', () => ({
-  PluginType: {
-    enrichment: 'enrichment',
-    utility: 'utility',
-  },
-  EventType: {
-    TrackEvent: 'track',
-    IdentifyEvent: 'identify',
-  },
-  Plugin: class Plugin {
-    type = 'utility';
-    analytics: SegmentClient | undefined;
-    configure(analytics: SegmentClient) {
-      this.analytics = analytics;
-    }
-  },
-}));
-
 import MetaMetricsPrivacySegmentPlugin from './MetaMetricsPrivacySegmentPlugin';
 import METAMETRICS_ANONYMOUS_ID from './MetaMetrics.constants';
 
