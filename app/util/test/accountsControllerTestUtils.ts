@@ -1,7 +1,6 @@
 import { v4 as uuidV4 } from 'uuid';
 import { EthMethod, InternalAccount } from '@metamask/keyring-api';
 import { AccountsControllerState } from '@metamask/accounts-controller';
-import { KeyringTypes } from '@metamask/keyring-controller';
 
 export function createMockUuidFromAddress(address: string): string {
   const fakeShaFromAddress = Array.from(
@@ -122,7 +121,7 @@ export function createMockAccountsControllerStateWithSnap(
     addresses[snapAccountIndex].toLowerCase(),
   );
   state.internalAccounts.accounts[snapAccountUuid].metadata.keyring = {
-    type: KeyringTypes.snap,
+    type: 'Snap Keyring',
   };
 
   return state;

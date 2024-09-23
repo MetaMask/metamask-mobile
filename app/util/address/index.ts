@@ -247,8 +247,10 @@ export function getLabelTextByKeyring(address: string) {
         return 'accounts.qr_hardware';
       case ExtendedKeyringTypes.simple:
         return 'accounts.imported';
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       case KeyringTypes.snap:
         return 'accounts.snap_account_tag';
+      ///: END:ONLY_INCLUDE_IF
     }
   }
   return null;
