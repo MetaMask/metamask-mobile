@@ -4121,7 +4121,7 @@
     "@metamask/utils" "^9.1.0"
     immer "^9.0.6"
 
-"@metamask/base-controller@^7.0.0", "@metamask/base-controller@^7.0.1":
+"@metamask/base-controller@^7.0.1":
   version "7.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-7.0.1.tgz#78eef77c2cd980e1f86bd5077c229bbaa5fd2b9d"
   integrity sha512-U1strOKT4v/kSJ2h4tgn9iUVVuv5Ja64J+OR145ITHd4574FaUYVJR80/imn6WmCbo8B6AYwHwEovdZ5qLGSKw==
@@ -4178,7 +4178,7 @@
     eth-ens-namehash "^2.0.8"
     fast-deep-equal "^3.1.3"
 
-"@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.0.2", "@metamask/controller-utils@^11.1.0", "@metamask/controller-utils@^11.3.0":
+"@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.0.2", "@metamask/controller-utils@^11.3.0":
   version "11.3.0"
   resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-11.3.0.tgz#530fd22289f717b752b4a7b6e504e1f2911b30a4"
   integrity sha512-5b+Jg9sKKESzvQcuipHC1D7KSh98MVIi7hXQUk7iX+YVMl4KoKDv94Bl+li8g+jCBshMOV9bRMRh25/hdEvTZQ==
@@ -4634,7 +4634,7 @@
     "@metamask/controller-utils" "^9.0.1"
     uuid "^8.3.2"
 
-"@metamask/message-manager@^10.0.3", "@metamask/message-manager@^10.1.1":
+"@metamask/message-manager@^10.1.1":
   version "10.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/message-manager/-/message-manager-10.1.1.tgz#390acc4dff9f7c72aaf5c183397c872e53ae7f12"
   integrity sha512-VFFqEPKOyo59P79CP/vlPDpMng1a1mMHIaXuvEJYTOf/UOqeVpw77G5IHVfjuG+tZNlAQIHYp7sEmPkob+rzcA==
@@ -5113,14 +5113,14 @@
     "@metamask/swappable-obj-proxy" "^2.2.0"
     "@metamask/utils" "^8.3.0"
 
-"@metamask/signature-controller@^19.0.0":
-  version "19.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-19.0.0.tgz#87000a45e4e83bd3dc3e867f956b1b719c05b1f8"
-  integrity sha512-qXf1SZFySBh3aW3XCd5juHB3f7h15gq86mtiWJtjvEBpUn3XPQ+FmI9+sX0WwLHkWsWLew4HdbX06u1j8Og/Og==
+"@metamask/signature-controller@^19.1.0":
+  version "19.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-19.1.0.tgz#47c7435f51d3273fb5a0373f4ebdcfccb6d490a9"
+  integrity sha512-1rDKxV7HYoKZjBbqkeWLk3TLJJcl8cRgAkPTG8jMRIp7eYW2vUxo5nsiaJlBBHDV/fbjR12SbiawMjj93zD2DA==
   dependencies:
-    "@metamask/base-controller" "^7.0.0"
-    "@metamask/controller-utils" "^11.1.0"
-    "@metamask/message-manager" "^10.0.3"
+    "@metamask/base-controller" "^7.0.1"
+    "@metamask/controller-utils" "^11.3.0"
+    "@metamask/message-manager" "^10.1.1"
     "@metamask/utils" "^9.1.0"
     lodash "^4.17.21"
 
