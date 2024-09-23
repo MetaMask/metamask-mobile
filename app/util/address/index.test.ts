@@ -13,7 +13,7 @@ import {
   isHardwareAccount,
   resemblesAddress,
   getKeyringByAddress,
-  getLabelTextByAddress,
+  getLabelTextByKeyring,
 } from '.';
 
 describe('isENS', () => {
@@ -280,26 +280,26 @@ describe('isHardwareAccount,', () => {
     ).toBeFalsy();
   });
 });
-describe('getLabelTextByAddress,', () => {
+describe('getLabelTextByKeyring,', () => {
   it('should return accounts.qr_hardware if account is a QR keyring', () => {
     expect(
-      getLabelTextByAddress('0xB374Ca013934e498e5baD3409147F34E6c462389'),
+      getLabelTextByKeyring('0xB374Ca013934e498e5baD3409147F34E6c462389'),
     ).toBe('accounts.qr_hardware');
   });
 
   it('should return KeyringTypes.simple if address is a imported account', () => {
     expect(
-      getLabelTextByAddress('0xd018538C87232FF95acbCe4870629b75640a78E7'),
+      getLabelTextByKeyring('0xd018538C87232FF95acbCe4870629b75640a78E7'),
     ).toBe('accounts.imported');
   });
 
   it('should return null if address is empty', () => {
-    expect(getLabelTextByAddress('')).toBe(null);
+    expect(getLabelTextByKeyring('')).toBe(null);
   });
 
   it('should return null if account not found', () => {
     expect(
-      getLabelTextByAddress('0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278'),
+      getLabelTextByKeyring('0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278'),
     ).toBe(null);
   });
 });
