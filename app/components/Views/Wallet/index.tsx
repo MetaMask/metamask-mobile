@@ -408,9 +408,8 @@ const Wallet = ({
   useEffect(
     () => {
       requestAnimationFrame(async () => {
-        const { TokenDetectionController, AccountTrackerController } =
+        const { AccountTrackerController } =
           Engine.context;
-        TokenDetectionController.detectTokens();
         AccountTrackerController.refresh();
       });
     },
