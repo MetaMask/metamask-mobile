@@ -15,6 +15,7 @@ import Button, {
 } from '../../../../component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
+import { POOLED_STAKING_FAQ_URL } from '../constants';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -112,7 +113,7 @@ const LearnMoreModal = () => {
               navigation.navigate('Webview', {
                 screen: 'SimpleWebview',
                 params: {
-                  url: 'https://support.metamask.io/metamask-portfolio/move-crypto/stake/staking-pool/',
+                  url: POOLED_STAKING_FAQ_URL,
                 },
               });
             }} // Take to the faq page
