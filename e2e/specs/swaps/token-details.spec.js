@@ -1,5 +1,6 @@
 'use strict';
 import { SmokeSwaps } from '../../tags';
+import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
 import TokenOverview from '../../pages/TokenOverview';
 import {
@@ -12,6 +13,7 @@ describe(SmokeSwaps('Token Chart Tests'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await device.launchApp();
+    await TestHelpers.getSystemElementByText('Allow').tap();
   });
 
   it('should import wallet and go to the wallet view', async () => {

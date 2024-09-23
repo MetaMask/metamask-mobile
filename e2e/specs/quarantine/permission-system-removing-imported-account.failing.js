@@ -28,8 +28,9 @@ describe(
     'Permission System Test: Revoking accounts after connecting to a dapp',
   ),
   () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       jest.setTimeout(150000);
+      await TestHelpers.getSystemElementByText('Allow').tap();
     });
 
     it('should import wallet and go to the wallet view', async () => {
