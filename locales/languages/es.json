@@ -1036,7 +1036,7 @@
           "snap_getBip32PublicKey": "Ver su clave pública para {{protocol}}",
           "snap_getBip44Entropy": "Controle sus cuentas y activos de {{protocol}}",
           "snap_getEntropy": "Obtenga claves arbitrarias únicas para este snap",
-          "endowment:keyring": "endowment:keyring",
+          "endowment:keyring": "Allow requests for adding and controlling Ethereum accounts",
           "wallet_snap": "Conectar a {{otherSnapName}}",
           "endowment:webassembly": "Soporte para WebAssembly",
           "endowment:ethereum-provider": "Acceda al proveedor de Ethereum",
@@ -1044,7 +1044,8 @@
           "snap_getLocale": "Vea su idioma preferido",
           "endowment:caveat:transaction-origin": "Ver los orígenes de los sitios web que sugieren transacciones",
           "endowment:extend-runtime": "Extender el tiempo de ejecución",
-          "snap_dialog": "Mostrar diálogos personalizados"
+          "snap_dialog": "Mostrar diálogos personalizados",
+          "snap_manageAccounts": "Add and control Ethereum accounts"
         }
       }
     },

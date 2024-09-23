@@ -1036,7 +1036,7 @@
           "snap_getBip32PublicKey": "Lihat kunci publik untuk {{protocol}}",
           "snap_getBip44Entropy": "Kontrol akun dan aset {{protocol}}",
           "snap_getEntropy": "Dapatkan kunci arbitrer unik untuk Snap ini",
-          "endowment:keyring": "endowment:keyring",
+          "endowment:keyring": "Allow requests for adding and controlling Ethereum accounts",
           "wallet_snap": "Hubungkan ke {{otherSnapName}}",
           "endowment:webassembly": "Mendukung WebAssembly",
           "endowment:ethereum-provider": "Akses penyedia Ethereum",
@@ -1044,7 +1044,8 @@
           "snap_getLocale": "Lihat bahasa pilihan",
           "endowment:caveat:transaction-origin": "Lihat asal situs web yang mengirimkan transaksi",
           "endowment:extend-runtime": "Perpanjang waktu pengoperasian",
-          "snap_dialog": "Tampilkan dialog khusus"
+          "snap_dialog": "Tampilkan dialog khusus",
+          "snap_manageAccounts": "Add and control Ethereum accounts"
         }
       }
     },

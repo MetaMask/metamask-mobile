@@ -1036,7 +1036,7 @@
           "snap_getBip32PublicKey": "查看 {{protocol}} 的公钥",
           "snap_getBip44Entropy": "控制您的 {{protocol}} 账户和资产",
           "snap_getEntropy": "衍生特定于此 Snap 的随机密钥",
-          "endowment:keyring": "endowment:keyring",
+          "endowment:keyring": "Allow requests for adding and controlling Ethereum accounts",
           "wallet_snap": "连接 {{otherSnapName}}",
           "endowment:webassembly": "支持 WebAssembly",
           "endowment:ethereum-provider": "访问以太坊提供商",
@@ -1044,7 +1044,8 @@
           "snap_getLocale": "查看您的首选语言",
           "endowment:caveat:transaction-origin": "查看建议交易的网站来源",
           "endowment:extend-runtime": "延长运行时间",
-          "snap_dialog": "显示自定义对话"
+          "snap_dialog": "显示自定义对话",
+          "snap_manageAccounts": "Add and control Ethereum accounts"
         }
       }
     },
