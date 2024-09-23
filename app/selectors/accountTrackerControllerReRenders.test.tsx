@@ -77,6 +77,20 @@ jest.mock('../core/Engine', () => ({
             },
           ],
         },
+        '0x2': {
+          blockExplorerUrls: [],
+          chainId: '0x2',
+          defaultRpcEndpointIndex: 0,
+          name: 'Binance',
+          nativeCurrency: 'BNB',
+          rpcEndpoints: [
+            {
+              networkClientId: 'binance',
+              type: 'custom',
+              url: 'https://binance.infura.io/v3',
+            },
+          ],
+        },
       },
     } as Partial<NetworkController['state']>,
     AccountsController: {
@@ -174,9 +188,9 @@ describe('selectAccountBalanceByChainId', () => {
                   },
                 ],
               },
-              '0x38': {
+              '0x2': {
                 blockExplorerUrls: [],
-                chainId: '0x38',
+                chainId: '0x2',
                 defaultRpcEndpointIndex: 0,
                 name: 'Binance',
                 nativeCurrency: 'BNB',
@@ -286,7 +300,7 @@ describe('selectAccountBalanceByChainId', () => {
       expect(getByText(`Balance ${MOCK_BALANCE}`)).toBeDefined();
       mockRenderCall.mockReset();
 
-      Engine.state.NetworkController.selectedNetworkClientId = MOCK_CHAIN_ID_2;
+      Engine.state.NetworkController.selectedNetworkClientId = 'binance';
 
       act(() => {
         store.dispatch({
