@@ -1,5 +1,6 @@
 import cucumberJson from 'wdio-cucumberjs-json-reporter';
 import { Given, When, Then } from '@wdio/cucumber-framework';
+import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel';
 
 let startTimer;
 let stopTimer;
@@ -13,6 +14,20 @@ Then(/^the app should launch within "([^"]*)?" seconds$/, async (time) => {
   cucumberJson.attach(`Milliseconds: ${launchTime}`);
   await driver.pause(100);
 });
+
+Then(/^the app start time should not exceed "([^"]*)?" milliseconds$/, async (time) => {
+    await WelcomeScreen.isGetLaunchDurationDisplayed();
+
+    const launchDurationElement = await WelcomeScreen.getLaunchDuration();
+    const launchDurationString = await launchDurationElement.getText();
+
+    const launchDuration = Number(launchDurationString);
+    console.log(`MetaMask App Start Time is: ${launchDuration}`);
+    cucumberJson.attach(`App Start Time - Milliseconds: ${launchDuration}`);
+
+    await expect(launchDuration).toBeLessThan(Number(time));
+});
+
 
 Given(/^the app is launched$/, async () => {
   startTimer = new Date().getTime();

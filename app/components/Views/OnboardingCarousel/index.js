@@ -214,8 +214,7 @@ class OnboardingCarousel extends PureComponent {
   };
 
   render() {
-    const { currentTab, nativeLaunchDuration, jsBundleDuration, appStartTime } =
-      this.state;
+    const { currentTab, appStartTime } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
@@ -254,11 +253,16 @@ class OnboardingCarousel extends PureComponent {
                           {strings(`onboarding_carousel.title${key}`)}
                         </Text>
                         {isTest && (
-                          <>
-                            <Text style={styles.metricsData} testID={PerformanceRegressionSelectorIDs.APP_START_TIME_ID}>
-                              {appStartTime}
-                            </Text>
-                          </>
+                          // This Text component is used to grab the App Start Time for our E2E test
+                          // PerformanceRegressionTest.feature
+                          <Text
+                            style={styles.metricsData}
+                            testID={
+                              PerformanceRegressionSelectorIDs.APP_START_TIME_ID
+                            }
+                          >
+                            {appStartTime}
+                          </Text>
                         )}
                         <Text style={styles.subtitle}>
                           {strings(`onboarding_carousel.subtitle${key}`)}
