@@ -57,6 +57,8 @@
     }
   },
   "NetworkController": {
+    "selectedNetworkClientId": "mainnet",
+    "networksMetadata": { "mainnet": { "status": "unknown", "EIPS": {} } },
     "networkConfigurationsByChainId": {
       "0x1": {
         "blockExplorerUrls": [],
@@ -71,15 +73,78 @@
             "url": "https://mainnet.infura.io/v3/{infuraProjectId}"
           }
         ]
+      },
+      "0x5": {
+        "blockExplorerUrls": [],
+        "chainId": "0x5",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Goerli",
+        "nativeCurrency": "GoerliETH",
+        "rpcEndpoints": [
+          {
+            "networkClientId": "goerli",
+            "type": "infura",
+            "url": "https://goerli.infura.io/v3/{infuraProjectId}"
+          }
+        ]
+      },
+      "0xaa36a7": {
+        "blockExplorerUrls": [],
+        "chainId": "0xaa36a7",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Sepolia",
+        "nativeCurrency": "SepoliaETH",
+        "rpcEndpoints": [
+          {
+            "networkClientId": "sepolia",
+            "type": "infura",
+            "url": "https://sepolia.infura.io/v3/{infuraProjectId}"
+          }
+        ]
+      },
+      "0xe704": {
+        "blockExplorerUrls": [],
+        "chainId": "0xe704",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Linea Goerli",
+        "nativeCurrency": "LineaETH",
+        "rpcEndpoints": [
+          {
+            "networkClientId": "linea-goerli",
+            "type": "infura",
+            "url": "https://linea-goerli.infura.io/v3/{infuraProjectId}"
+          }
+        ]
+      },
+      "0xe705": {
+        "blockExplorerUrls": [],
+        "chainId": "0xe705",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Linea Sepolia",
+        "nativeCurrency": "LineaETH",
+        "rpcEndpoints": [
+          {
+            "networkClientId": "linea-sepolia",
+            "type": "infura",
+            "url": "https://linea-sepolia.infura.io/v3/{infuraProjectId}"
+          }
+        ]
+      },
+      "0xe708": {
+        "blockExplorerUrls": [],
+        "chainId": "0xe708",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Linea Mainnet",
+        "nativeCurrency": "ETH",
+        "rpcEndpoints": [
+          {
+            "networkClientId": "linea-mainnet",
+            "type": "infura",
+            "url": "https://linea-mainnet.infura.io/v3/{infuraProjectId}"
+          }
+        ]
       }
-    },
-    "networksMetadata": {
-      "mainnet": {
-        "EIPS": {},
-        "status": "unknown"
-      }
-    },
-    "selectedNetworkClientId": "mainnet"
+    }
   },
   "PhishingController": {
     "phishingLists": [],
