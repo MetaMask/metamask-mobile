@@ -1786,7 +1786,6 @@ class Engine {
     const {
       AccountTrackerController,
       AssetsContractController,
-      TokenDetectionController,
       NetworkController,
       SwapsController,
     } = this.context;
@@ -1808,7 +1807,6 @@ class Engine {
       ).configuration.chainId,
       pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
     });
-    TokenDetectionController.detectTokens();
     AccountTrackerController.refresh();
   }
 
