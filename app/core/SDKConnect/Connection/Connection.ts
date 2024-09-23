@@ -272,12 +272,15 @@ export class Connection extends EventEmitter2 {
   public connect({
     withKeyExchange,
     authorized,
+    rejected,
   }: {
     authorized: boolean;
+    rejected?: boolean;
     withKeyExchange: boolean;
   }) {
     return connect({
       instance: this,
+      rejected,
       withKeyExchange,
       authorized,
     });
@@ -314,7 +317,7 @@ export class Connection extends EventEmitter2 {
     this.trigger = trigger;
   }
 
-  disconnect({ terminate, context }: { terminate: boolean; context?: string }) {
+  disconnect({ terminate, context }: { terminate: boolean; context?: string }): Promise<boolean> {
     return disconnect({ instance: this, terminate, context });
   }
 
