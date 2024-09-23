@@ -1772,13 +1772,13 @@ class Engine {
         ],
       }),
     });
-    this.context = controllers.reduce<Partial<typeof this.context>>(
+    this.context = controllers.reduce<EngineContext>(
       (context, controller) => ({
         ...context,
         [controller.name]: controller,
       }),
-      {},
-    ) as typeof this.context;
+      {} as never,
+    );
 
     const { NftController: nfts } = this.context;
 
