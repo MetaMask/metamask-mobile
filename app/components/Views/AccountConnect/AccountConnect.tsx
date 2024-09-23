@@ -178,7 +178,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     ? prefixUrlWithProtocol(hostname)
     : domainTitle;
 
-  const isAllowedUrl = useCallback((origin: string) => {
+  const isAllowedOrigin = useCallback((origin: string) => {
     const { PhishingController } = Engine.context;
 
     // Update phishing configuration if it is out-of-date
@@ -193,13 +193,13 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   useEffect(() => {
     const url = dappUrl || channelIdOrHostname || '';
-    const isAllowed = isAllowedUrl(url);
+    const isAllowed = isAllowedOrigin(url);
 
     if (!isAllowed) {
       setBlockedUrl(dappUrl);
       setShowPhishingModal(true);
     }
-  }, [isAllowedUrl, dappUrl, channelIdOrHostname]);
+  }, [isAllowedOrigin, dappUrl, channelIdOrHostname]);
 
   const faviconSource = useFavicon(
     inappBrowserOrigin || (!isChannelId ? channelIdOrHostname : ''),

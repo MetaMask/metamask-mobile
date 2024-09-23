@@ -435,7 +435,7 @@ export const BrowserTab = (props) => {
   /**
    * Check if an origin is allowed
    */
-  const isAllowedUrl = useCallback((origin) => {
+  const isAllowedOrigin = useCallback((origin) => {
     const { PhishingController } = Engine.context;
 
     // Update phishing configuration if it is out-of-date
@@ -592,7 +592,7 @@ export const BrowserTab = (props) => {
         }
       }
 
-      if (isAllowedUrl(origin)) {
+      if (isAllowedOrigin(origin)) {
         if (initialCall || !firstUrlLoaded) {
           setInitialUrl(urlToGo);
           setFirstUrlLoaded(true);
@@ -616,7 +616,7 @@ export const BrowserTab = (props) => {
       handleNotAllowedUrl(urlToGo);
       return null;
     },
-    [firstUrlLoaded, handleIpfsContent, isAllowedUrl],
+    [firstUrlLoaded, handleIpfsContent, isAllowedOrigin],
   );
 
   /**
@@ -881,7 +881,7 @@ export const BrowserTab = (props) => {
     }
 
     // Cancel loading the page if we detect its a phishing page
-    if (!isAllowedUrl(origin)) {
+    if (!isAllowedOrigin(origin)) {
       handleNotAllowedUrl(url);
       return false;
     }
@@ -1088,7 +1088,7 @@ export const BrowserTab = (props) => {
       backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
 
     // Cancel loading the page if we detect its a phishing page
-    if (!isAllowedUrl(origin)) {
+    if (!isAllowedOrigin(origin)) {
       handleNotAllowedUrl(url);
       return false;
     }
