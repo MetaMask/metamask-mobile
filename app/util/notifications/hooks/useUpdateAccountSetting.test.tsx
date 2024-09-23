@@ -28,19 +28,15 @@ describe('useUpdateAccountSetting', () => {
 
   const arrangeHook = () => {
     const store = arrangeStore();
-    const hook = renderHook(
-      () => useUpdateAccountSetting('0x123', mockRefetchAccountSettings),
-      {
-        wrapper: ({ children }) => (
-          <Provider store={store}>{children}</Provider>
-        ),
-      },
-    );
+    const hook = renderHook(() => useUpdateAccountSetting('0x123', mockRefetchAccountSettings), {
+      wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
+    });
 
     return hook;
   };
 
   it('toggleAccount calls switchAccountNotifications with the correct params', async () => {
+
     const { result } = arrangeHook();
 
     await act(async () => {
@@ -68,3 +64,4 @@ describe('useUpdateAccountSetting', () => {
     expect(result.current.loading).toBe(false);
   });
 });
+

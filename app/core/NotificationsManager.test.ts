@@ -69,16 +69,15 @@ describe('NotificationManager', () => {
     expect(NotificationManager.getTransactionToView()).toBeTruthy();
   });
 
-  const selectedNotificationTypes: (keyof typeof NotificationTransactionTypes)[] =
-    [
-      'pending',
-      'pending_deposit',
-      'pending_withdrawal',
-      'success_withdrawal',
-      'success_deposit',
-      'error',
-      'cancelled',
-    ];
+  const selectedNotificationTypes: (keyof typeof NotificationTransactionTypes)[] = [
+    'pending',
+    'pending_deposit',
+    'pending_withdrawal',
+    'success_withdrawal',
+    'success_deposit',
+    'error',
+    'cancelled',
+  ];
   selectedNotificationTypes.forEach((type) => {
     it(`should construct title and message for ${type}`, () => {
       const { title, message } = constructTitleAndMessage({

@@ -1,7 +1,12 @@
 import { startSpan, startSpanManual, withScope } from '@sentry/react-native';
 
 import { Span } from '@sentry/types';
-import { endTrace, trace, TraceName, TRACES_CLEANUP_INTERVAL } from './trace';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TRACES_CLEANUP_INTERVAL,
+} from './trace';
 
 jest.mock('@sentry/react-native', () => ({
   withScope: jest.fn(),
