@@ -184,13 +184,22 @@ export const getOrders = createSelector(
   ordersSelector,
   selectedAddressSelector,
   chainIdSelector,
-  (orders, selectedAddress, chainId) =>
-    orders.filter(
-      (order) =>
+  (orders, selectedAddress, chainId) => {
+    console.log('orders -----', orders);
+    console.log('selectedAddress -----', selectedAddress);
+    console.log('chainId -----', chainId);
+
+    const chainIdHex = toHex(chainId); // Convert chainId to hex format for comparison
+    return orders.filter((order) => {
+      console.log('Order -----', order);
+      const orderNetworkHex = toHex(order.network); // Convert order network to hex format
+      return (
         !order.excludeFromPurchases &&
         order.account === selectedAddress &&
-        (order.network === chainId || isTestNet(toHex(chainId))),
-    ),
+        (orderNetworkHex === chainIdHex || isTestNet(chainIdHex))
+      );
+    });
+  },
 );
 
 export const getPendingOrders = createSelector(

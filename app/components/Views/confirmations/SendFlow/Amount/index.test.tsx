@@ -83,17 +83,28 @@ const initialState = {
       ...backgroundState,
       NetworkController: {
         selectedNetworkClientId: 'mainnet',
-        networksMetadata: {},
-        networkConfigurations: {
-          sepolia: {
-            id: 'mainnet',
-            rpcUrl: 'http://localhost/v3/',
-            chainId: '0x1',
-            ticker: 'ETH',
-            nickname: 'Sepolia network',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://etherscan.com',
+        networksMetadata: {
+          mainnet: {
+            status: 'available',
+            EIPS: {
+              '1559': true,
             },
+          },
+        },
+        networkConfigurationsByChainId: {
+          '0xaa36a7': {
+            blockExplorerUrls: ['https://etherscan.com'],
+            chainId: '0xaa36a7',
+            defaultRpcEndpointIndex: 0,
+            name: 'Sepolia',
+            nativeCurrency: 'ETH',
+            rpcEndpoints: [
+              {
+                networkClientId: 'sepolia',
+                type: 'Custom',
+                url: 'http://localhost/v3/',
+              },
+            ],
           },
         },
       },

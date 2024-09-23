@@ -288,17 +288,6 @@ describe('selectAccountBalanceByChainId', () => {
 
       Engine.state.NetworkController.selectedNetworkClientId = MOCK_CHAIN_ID_2;
 
-      // (
-      //   Engine.context.NetworkController.getNetworkClientById as jest.Mock
-      // ).mockReturnValue({
-      //   configuration: {
-      //     chainId: MOCK_CHAIN_ID_2,
-      //     rpcUrl: 'https://mainnet.infura.io/v3',
-      //     ticker: 'ETH',
-      //     type: 'custom',
-      //   },
-      // });
-
       act(() => {
         store.dispatch({
           type: 'UPDATE_BG_STATE',

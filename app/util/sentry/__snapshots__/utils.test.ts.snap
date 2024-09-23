@@ -71,7 +71,7 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
         "logs": "object",
       },
       "NetworkController": {
-        "networkConfigurations": "object",
+        "networkConfigurationsByChainId": "object",
         "networksMetadata": {
           "mainnet": {
             "EIPS": {

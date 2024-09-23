@@ -745,17 +745,26 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               selectedNetworkClientId: 'binance',
-              networksMetadata: {},
-              networkConfigurations: {
+              networksMetadata: {
                 binance: {
-                  id: 'binance',
-                  rpcUrl: 'https://binance.infura.io/v3',
+                  status: 'available',
+                  EIPS: {},
+                },
+              },
+              networkConfigurationsByChainId: {
+                '0x38': {
+                  blockExplorerUrls: ['https://etherscan.com'],
                   chainId: '0x38',
-                  ticker: 'BNB',
-                  nickname: 'Binance network',
-                  rpcPrefs: {
-                    blockExplorerUrl: 'https://etherscan.com',
-                  },
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Binance network',
+                  nativeCurrency: 'BNB',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'binance',
+                      type: 'Custom',
+                      url: 'https://binance.infura.io/v3',
+                    },
+                  ],
                 },
               },
             },
@@ -861,17 +870,26 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               selectedNetworkClientId: 'binance',
-              networksMetadata: {},
-              networkConfigurations: {
+              networksMetadata: {
                 binance: {
-                  id: 'binance',
-                  rpcUrl: 'https://mainnet.infura.io/v3',
+                  status: 'available',
+                  EIPS: {},
+                },
+              },
+              networkConfigurationsByChainId: {
+                '0x38': {
+                  blockExplorerUrls: ['https://etherscan.com'],
                   chainId: '0x38',
-                  ticker: 'BNB',
-                  nickname: 'Binance network',
-                  rpcPrefs: {
-                    blockExplorerUrl: 'https://etherscan.com',
-                  },
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Binance network',
+                  nativeCurrency: 'BNB',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'binance',
+                      type: 'Custom',
+                      url: 'https://binance.infura.io/v3',
+                    },
+                  ],
                 },
               },
             },
@@ -1187,17 +1205,26 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               selectedNetworkClientId: 'binance',
-              networksMetadata: {},
-              networkConfigurations: {
+              networksMetadata: {
                 binance: {
-                  id: 'binance',
-                  rpcUrl: 'https://binance.infura.io/v3',
+                  status: 'available',
+                  EIPS: {},
+                },
+              },
+              networkConfigurationsByChainId: {
+                '0x38': {
+                  blockExplorerUrls: ['https://etherscan.com'],
                   chainId: '0x38',
-                  ticker: 'BNB',
-                  nickname: 'Binance network',
-                  rpcPrefs: {
-                    blockExplorerUrl: 'https://etherscan.com',
-                  },
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Binance network',
+                  nativeCurrency: 'BNB',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'binance',
+                      type: 'Custom',
+                      url: 'https://binance.infura.io/v3',
+                    },
+                  ],
                 },
               },
             },
@@ -1383,17 +1410,26 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               selectedNetworkClientId: 'binance',
-              networksMetadata: {},
-              networkConfigurations: {
+              networksMetadata: {
                 binance: {
-                  id: 'binance',
-                  rpcUrl: 'https://binance.infura.io/v3',
+                  status: 'available',
+                  EIPS: {},
+                },
+              },
+              networkConfigurationsByChainId: {
+                '0x38': {
+                  blockExplorerUrls: ['https://etherscan.com'],
                   chainId: '0x38',
-                  ticker: 'BNB',
-                  nickname: 'Binance network',
-                  rpcPrefs: {
-                    blockExplorerUrl: 'https://etherscan.com',
-                  },
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Binance network',
+                  nativeCurrency: 'BNB',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'binance',
+                      type: 'Custom',
+                      url: 'https://binance.infura.io/v3',
+                    },
+                  ],
                 },
               },
             },
@@ -1548,17 +1584,26 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               selectedNetworkClientId: 'mainnet',
-              networksMetadata: {},
-              networkConfigurations: {
+              networksMetadata: {
                 mainnet: {
-                  id: 'mainnet',
-                  rpcUrl: 'https://mainnet.infura.io/v3',
+                  status: 'available',
+                  EIPS: {},
+                },
+              },
+              networkConfigurationsByChainId: {
+                '0x1': {
+                  blockExplorerUrls: ['https://etherscan.com'],
                   chainId: '0x1',
-                  ticker: 'ETH',
-                  nickname: 'Ethereum network',
-                  rpcPrefs: {
-                    blockExplorerUrl: 'https://etherscan.com',
-                  },
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Ethereum network',
+                  nativeCurrency: 'ETH',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'mainnet',
+                      type: 'Custom',
+                      url: 'https://mainnet.infura.io/v3',
+                    },
+                  ],
                 },
               },
             },
@@ -1619,17 +1664,26 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               selectedNetworkClientId: 'binance',
-              networksMetadata: {},
-              networkConfigurations: {
+              networksMetadata: {
                 binance: {
-                  id: 'binance',
-                  rpcUrl: 'https://binance.infura.io/v3',
+                  status: 'available',
+                  EIPS: {},
+                },
+              },
+              networkConfigurationsByChainId: {
+                '0x38': {
+                  blockExplorerUrls: ['https://bscscan.com'],
                   chainId: '0x38',
-                  ticker: 'BNB',
-                  nickname: 'Binance network',
-                  rpcPrefs: {
-                    blockExplorerUrl: 'https://bscscan.com',
-                  },
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Binance network',
+                  nativeCurrency: 'BNB',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'binance',
+                      type: 'Custom',
+                      url: 'https://binance.infura.io/v3',
+                    },
+                  ],
                 },
               },
             },
@@ -1782,17 +1836,26 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               selectedNetworkClientId: 'mainnet',
-              networksMetadata: {},
-              networkConfigurations: {
+              networksMetadata: {
                 mainnet: {
-                  id: 'mainnet',
-                  rpcUrl: 'https://mainnet.infura.io/v3',
+                  status: 'available',
+                  EIPS: {},
+                },
+              },
+              networkConfigurationsByChainId: {
+                '0x1': {
+                  blockExplorerUrls: ['https://etherscan.com'],
                   chainId: '0x1',
-                  ticker: 'ETH',
-                  nickname: 'Sepolia network',
-                  rpcPrefs: {
-                    blockExplorerUrl: 'https://etherscan.com',
-                  },
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Sepolia network',
+                  nativeCurrency: 'ETH',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'mainnet',
+                      type: 'Custom',
+                      url: 'https://mainnet.infura.io/v3',
+                    },
+                  ],
                 },
               },
             },
@@ -1808,17 +1871,26 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               selectedNetworkClientId: 'aurora',
-              networksMetadata: {},
-              networkConfigurations: {
+              networksMetadata: {
                 aurora: {
-                  id: 'aurora',
-                  rpcUrl: 'https://aurora.infura.io/v3',
+                  status: 'available',
+                  EIPS: {},
+                },
+              },
+              networkConfigurationsByChainId: {
+                '0x4e454152': {
+                  blockExplorerUrls: ['https://etherscan.com'],
                   chainId: '0x4e454152',
-                  ticker: 'ETH',
-                  nickname: 'Aurora Network',
-                  rpcPrefs: {
-                    blockExplorerUrl: 'https://etherscan.com',
-                  },
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Aurora Network',
+                  nativeCurrency: 'ETH',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'aurora',
+                      type: 'Custom',
+                      url: 'https://aurora.infura.io/v3',
+                    },
+                  ],
                 },
               },
             },
@@ -1834,17 +1906,26 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               selectedNetworkClientId: 'unknown-network',
-              networksMetadata: {},
-              networkConfigurations: {
+              networksMetadata: {
                 'unknown-network': {
-                  id: 'unknown-network',
-                  rpcUrl: 'https://unknown-network.infura.io/v3',
+                  status: 'available',
+                  EIPS: {},
+                },
+              },
+              networkConfigurationsByChainId: {
+                '0x36bbbe6d': {
+                  blockExplorerUrls: ['https://etherscan.com'],
                   chainId: '0x36bbbe6d',
-                  ticker: 'ETH',
-                  nickname: 'Unknown network',
-                  rpcPrefs: {
-                    blockExplorerUrl: 'https://etherscan.com',
-                  },
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Unknown network',
+                  nativeCurrency: 'ETH',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'unknown-network',
+                      type: 'Custom',
+                      url: 'https://unknown-network.infura.io/v3',
+                    },
+                  ],
                 },
               },
             },

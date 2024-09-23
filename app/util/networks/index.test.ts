@@ -38,8 +38,30 @@ jest.mock('./../../core/Engine', () => ({
       setActiveNetwork: () => jest.fn(),
       setProviderType: () => jest.fn(),
       state: {
-        providerConfig: {
-          chainId: '0x3',
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {
+          mainnet: {
+            status: 'available',
+            EIPS: {
+              '1559': true,
+            },
+          },
+        },
+        networkConfigurationsByChainId: {
+          '0x3': {
+            blockExplorerUrls: ['https://etherscan.com'],
+            chainId: '0x3',
+            defaultRpcEndpointIndex: 0,
+            name: 'Sepolia',
+            nativeCurrency: 'ETH',
+            rpcEndpoints: [
+              {
+                networkClientId: 'sepolia',
+                type: 'Custom',
+                url: 'http://localhost/v3/',
+              },
+            ],
+          },
         },
       },
     },
@@ -118,45 +140,67 @@ describe('network-utils', () => {
 
   describe('findBlockExplorerForRpc', () => {
     const networkConfigurationsMock = {
-      networkId1: {
-        chainId: '137',
-        nickname: 'Polygon Mainnet',
-        rpcPrefs: {
-          blockExplorerUrl: 'https://polygonscan.com',
-        },
-        rpcUrl: 'https://polygon-mainnet.infura.io/v3',
-        ticker: 'MATIC',
+      '0x89': {
+        blockExplorerUrls: ['https://polygonscan.com'],
+        chainId: '0x89',
+        defaultRpcEndpointIndex: 0,
+        name: 'Polygon Mainnet',
+        nativeCurrency: 'MATIC',
+        rpcEndpoints: [
+          {
+            networkClientId: 'polygon',
+            type: 'Custom',
+            url: 'https://polygon-mainnet.infura.io/v3',
+          },
+        ],
       },
-      networkId2: {
-        chainId: '56',
-        nickname: 'Binance Smart Chain',
-        rpcPrefs: {},
-        rpcUrl: 'https://bsc-dataseed.binance.org/',
-        ticker: 'BNB',
+      '0x38': {
+        blockExplorerUrls: [],
+        chainId: '0x38',
+        defaultRpcEndpointIndex: 0,
+        name: 'Binance Smart Chain',
+        nativeCurrency: 'BNB',
+        rpcEndpoints: [
+          {
+            networkClientId: 'bsc',
+            type: 'Custom',
+            url: 'https://bsc-dataseed.binance.org/',
+          },
+        ],
       },
-      networkId3: {
-        chainId: '10',
-        nickname: 'Optimism',
-        rpcPrefs: { blockExplorerUrl: 'https://optimistic.ethereum.io' },
-        rpcUrl: 'https://mainnet.optimism.io/',
-        ticker: 'ETH',
+      '0xa': {
+        blockExplorerUrls: ['https://optimistic.ethereum.io'],
+        chainId: '0xa',
+        defaultRpcEndpointIndex: 0,
+        name: 'Optimism',
+        nativeCurrency: 'ETH',
+        defaultBlockExplorerUrlIndex: 0,
+        rpcEndpoints: [
+          {
+            networkClientId: 'optimism',
+            type: 'Custom',
+            url: 'https://mainnet.optimism.io',
+          },
+        ],
       },
     };
 
-    it('should find the block explorer is it exists', () => {
-      const mockRpcUrl = networkConfigurationsMock.networkId3.rpcUrl;
+    it('should find the block explorer if it exists', () => {
+      const mockRpcUrl = networkConfigurationsMock['0xa'].rpcEndpoints[0].url;
       const expectedBlockExplorer =
-        networkConfigurationsMock.networkId3.rpcPrefs.blockExplorerUrl;
+        networkConfigurationsMock['0xa'].blockExplorerUrls[0];
       expect(
         findBlockExplorerForRpc(mockRpcUrl, networkConfigurationsMock),
       ).toBe(expectedBlockExplorer);
     });
+
     it('should return undefined if the block explorer does not exist', () => {
-      const mockRpcUrl = networkConfigurationsMock.networkId2.rpcUrl;
+      const mockRpcUrl = networkConfigurationsMock['0x38'].rpcEndpoints[0].url;
       expect(
         findBlockExplorerForRpc(mockRpcUrl, networkConfigurationsMock),
       ).toBe(undefined);
     });
+
     it('should return undefined if the RPC does not exist', () => {
       const mockRpcUrl = 'https://arb1.arbitrum.io/rpc';
       expect(
