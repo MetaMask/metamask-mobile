@@ -893,8 +893,6 @@ class Engine {
         this.controllerMessenger,
         'SnapController:updateSnapState',
       ),
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       maybeUpdatePhishingList: this.controllerMessenger.call.bind(
         this.controllerMessenger,
         'PhishingController:maybeUpdateState',
@@ -902,11 +900,7 @@ class Engine {
       isOnPhishingList: (origin: string) =>
         this.controllerMessenger.call<'PhishingController:testOrigin'>(
           'PhishingController:testOrigin',
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
           origin,
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
         ).result,
       showDialog: (
         origin: string,
