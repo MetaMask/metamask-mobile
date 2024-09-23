@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import Crypto from 'react-native-quick-crypto';
+import { scrypt } from 'react-native-fast-crypto';
 import {
   AccountTrackerController,
   AccountTrackerState,
@@ -1277,6 +1278,7 @@ class Engine {
           'AccountsController:accountRenamed',
         ],
       }),
+      nativeScryptCrypto: scrypt,
     });
 
     const notificationServicesController =
