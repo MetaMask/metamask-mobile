@@ -1,10 +1,14 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 import { useTheme } from '../../util/theme';
+import { Theme } from '@metamask/design-tokens';
 import { colors as importedColors } from '../../styles/common';
 
-const createStyles = (colors) =>
+interface ModalDraggerProps {
+  borderless?: boolean;
+}
+
+const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     draggerWrapper: {
       width: '100%',
@@ -25,7 +29,7 @@ const createStyles = (colors) =>
     },
   });
 
-function ModalDragger({ borderless }) {
+function ModalDragger({ borderless }: ModalDraggerProps) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -35,9 +39,5 @@ function ModalDragger({ borderless }) {
     </View>
   );
 }
-
-ModalDragger.propTypes = {
-  borderless: PropTypes.bool,
-};
 
 export default ModalDragger;
