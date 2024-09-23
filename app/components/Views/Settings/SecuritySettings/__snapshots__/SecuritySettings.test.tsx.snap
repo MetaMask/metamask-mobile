@@ -2006,7 +2006,6 @@ exports[`SecuritySettings should render correctly 1`] = `
             "marginTop": 16,
           }
         }
-        testID="nft-display-media-mode-section"
       >
         <View
           style={
@@ -2062,7 +2061,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   ],
                 ]
               }
-              testID="display-nft-toggle"
+              testID="nft-display-media-mode-section"
               thumbTintColor="#ffffff"
               tintColor="#bbc0c566"
               value={true}
@@ -2177,7 +2176,6 @@ exports[`SecuritySettings should render correctly 1`] = `
             "marginTop": 32,
           }
         }
-        testID="ipfs-gateway-section"
       >
         <View
           style={
@@ -2233,6 +2231,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   ],
                 ]
               }
+              testID="IPFS_GATEWAY_SECTION"
               thumbTintColor="#ffffff"
               tintColor="#bbc0c566"
               value={true}
