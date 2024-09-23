@@ -76,8 +76,8 @@ class NotificationsService {
   }
 
   async isDeviceNotificationEnabled() {
-    const permission = await this.requestPermission();
-    if (permission === 'authorized') {
+    const permission = await notifee.getNotificationSettings();
+    if (permission.authorizationStatus === AuthorizationStatus.AUTHORIZED) {
       store.dispatch({
         type: 'TOGGLE_DEVICE_NOTIFICATIONS',
         deviceNotificationEnabled: true,
@@ -182,6 +182,8 @@ class NotificationsService {
   setBadgeCount = async (count: number) => {
     notifee.setBadgeCount(count);
   };
+
+  getBadgeCount = async () => notifee.getBadgeCount();
 
   handleNotificationPress = async ({
     detail,
