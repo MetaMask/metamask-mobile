@@ -3,6 +3,7 @@ import {
   msToHours,
   toDateFormat,
   formatTimestampToYYYYMMDD,
+  getDaysAndHoursRemaining,
 } from '.';
 
 const TZ = 'America/Toronto';
@@ -72,5 +73,51 @@ describe('Date util :: formatTimestampToYYYYMMDD', () => {
     const testTimestamp = 1722432060;
     const date = new Date(testTimestamp * 1000).getTime();
     expect(formatTimestampToYYYYMMDD(date)).toEqual('2024-07-31');
+  });
+});
+
+describe('Date util :: getDaysAndHoursRemaining', () => {
+  // 2024-09-23 19:39:02
+  const MOCK_NOW = 1727120342806;
+
+  const mockDateNow = jest.spyOn(Date, 'now');
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterAll(() => {
+    jest.spyOn(Date, 'now').mockRestore();
+  });
+
+  it('returns time difference between timestamp and now', () => {
+    mockDateNow.mockImplementation(() => MOCK_NOW);
+
+    // 2024-09-23 16:53:35 UTC
+    const TIMESTAMP = 1727110415000;
+
+    const { days, hours } = getDaysAndHoursRemaining(Number(TIMESTAMP));
+
+    expect(days).toBe(0);
+    expect(hours).toBe(2);
+  });
+
+  it('returns correct value when timestamp and current time are identical', () => {
+    mockDateNow.mockImplementation(() => MOCK_NOW);
+
+    const { days, hours } = getDaysAndHoursRemaining(Number(MOCK_NOW));
+
+    expect(days).toBe(0);
+    expect(hours).toBe(0);
+  });
+
+  it('throws error if timestamp is in the future', () => {
+    const ONE_WEEK_AFTER_MOCK_NOW = 1727725142806;
+
+    mockDateNow.mockImplementation(() => MOCK_NOW);
+
+    expect(() => getDaysAndHoursRemaining(ONE_WEEK_AFTER_MOCK_NOW)).toThrow(
+      'timestamp must be in the past',
+    );
   });
 });

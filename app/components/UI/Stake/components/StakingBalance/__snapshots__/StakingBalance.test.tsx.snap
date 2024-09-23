@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`StakingBalance renders matches snapshot 1`] = `
+exports[`StakingBalance render matches snapshot 1`] = `
 <View
   style={
     {
@@ -599,67 +599,7 @@ exports[`StakingBalance renders matches snapshot 1`] = `
                                 }
                               }
                             >
-                              Unstaking 2.0 ETH in progress. Come back in 4 days and 2 hours to claim it.
-                            </Text>
-                          </View>
-                        </View>
-                        <View
-                          style={
-                            {
-                              "backgroundColor": "#0376c91a",
-                              "borderColor": "#0376c9",
-                              "borderLeftWidth": 4,
-                              "borderRadius": 4,
-                              "flexDirection": "row",
-                              "marginVertical": 8,
-                              "padding": 12,
-                              "paddingLeft": 8,
-                            }
-                          }
-                          testID="banneralert"
-                          variant="Alert"
-                        >
-                          <View
-                            style={
-                              {
-                                "marginRight": 8,
-                              }
-                            }
-                          >
-                            <SvgMock
-                              color="#0376c9"
-                              height={24}
-                              name="Info"
-                              style={
-                                {
-                                  "height": 24,
-                                  "width": 24,
-                                }
-                              }
-                              width={24}
-                            />
-                          </View>
-                          <View
-                            style={
-                              {
-                                "flex": 1,
-                              }
-                            }
-                          >
-                            <Text
-                              accessibilityRole="text"
-                              style={
-                                {
-                                  "color": "#141618",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
-                                  "fontWeight": "400",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 22,
-                                }
-                              }
-                            >
-                              Unstaking 0.51 ETH in progress. Come back in 1 day and 1 hour to claim it.
+                              Unstaking 0.0009 ETH in progress. Come back in 11 days to claim it.
                             </Text>
                           </View>
                         </View>
@@ -719,7 +659,7 @@ exports[`StakingBalance renders matches snapshot 1`] = `
                                 }
                               }
                             >
-                              You can claim 2.0 ETH. Once claimed, you'll get ETH back in your wallet.
+                              You can claim 0.00214 ETH. Once claimed, you'll get ETH back in your wallet.
                             </Text>
                             <Text
                               accessibilityRole="link"

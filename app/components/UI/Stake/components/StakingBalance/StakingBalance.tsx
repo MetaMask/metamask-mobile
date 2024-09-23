@@ -23,12 +23,12 @@ import Banner, {
 } from '../../../../../component-library/components/Banners/Banner';
 import { strings } from '../../../../../../locales/i18n';
 import { renderFromWei } from '../../../../../util/number';
-import { getUnstakingTimeDifference } from './StakingBanners/UnstakeBanner/utils';
 import {
   ExitRequestWithClaimedAssetInfo,
   getStakesApiResponse,
 } from './StakingBalance.types';
 import { TokenI } from '../../../../UI/Tokens/types';
+import { getDaysAndHoursRemaining } from '../../../../../util/date';
 
 // TODO: Replace mock data when connecting to backend.
 const MOCK_STAKED_ETH_ASSET = {
@@ -170,10 +170,11 @@ const StakingBalance = () => {
               <UnstakingBanner
                 key={positionTicket}
                 amountEth={renderFromWei(claimedAssets)}
-                timeRemaining={getUnstakingTimeDifference(
-                  Date.now(),
-                  Number(withdrawalTimestamp),
-                )}
+                timeRemaining={
+                  !Number(withdrawalTimestamp)
+                    ? { days: 11, hours: 0 } // default to 11 days.
+                    : getDaysAndHoursRemaining(Number(withdrawalTimestamp))
+                }
                 style={styles.bannerStyles}
               />
             ),
