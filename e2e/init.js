@@ -7,6 +7,6 @@ import Utilities from './utils/Utilities';
 beforeAll(async () => {
   device.appLaunchArgs.modify({
     detoxURLBlacklistRegex: Utilities.BlacklistURLs,
-    permissions: { notifications: 'NO' },
+    permissions: { notifications: 'YES' },
   });
 });

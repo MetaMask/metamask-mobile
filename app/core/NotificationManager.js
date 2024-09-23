@@ -256,11 +256,6 @@ class NotificationManager {
         }
         Promise.all(pollPromises);
 
-        Device.isIos() &&
-          setTimeout(() => {
-            NotificationsService.getAllPermissions(false);
-          }, 5000);
-
         // Prompt review
         ReviewManager.promptReview();
 
