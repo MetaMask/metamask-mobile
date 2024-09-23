@@ -9,9 +9,13 @@ import { isMutichainVersion1Enabled } from '../../../../util/networks';
  * Style sheet function for AccountConnectMultiSelector screen.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { theme: Theme }) => {
-  const { colors } = params.theme;
 
+const styleSheet = (params: {
+  theme: Theme;
+  vars: { isRenderedAsBottomSheet: boolean | undefined };
+}) => {
+  const { colors } = params.theme;
+  const { vars } = params;
   return StyleSheet.create({
     container: {
       height: '100%',
@@ -26,7 +30,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     ctaButtonsContainer: {
       marginTop: isMutichainVersion1Enabled ? 0 : 24,
-      marginBottom: 16,
+      marginBottom: vars.isRenderedAsBottomSheet ? 0 : 16,
     },
     connectOrUpdateButtonContainer: { flexDirection: 'row' },
     button: { flex: 1 },
