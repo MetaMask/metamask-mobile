@@ -1,10 +1,16 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, TouchableOpacityProps, GestureResponderEvent } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useTheme } from '../../util/theme';
+import { Theme } from '@metamask/design-tokens';
 
-const createStyles = (colors) =>
+interface SelectorButtonProps {
+  onPress: (event: GestureResponderEvent) => void;
+  disabled?: boolean;
+  children: React.ReactNode;
+}
+
+const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     container: {
       backgroundColor: colors.background.alternative,
@@ -23,7 +29,7 @@ const createStyles = (colors) =>
     },
   });
 
-function SelectorButton({ onPress, disabled, children, ...props }) {
+const SelectorButton: React.FC<SelectorButtonProps & TouchableOpacityProps> = ({ onPress, disabled, children, ...props }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -35,12 +41,6 @@ function SelectorButton({ onPress, disabled, children, ...props }) {
       </View>
     </TouchableOpacity>
   );
-}
-
-SelectorButton.propTypes = {
-  children: PropTypes.node,
-  onPress: PropTypes.func,
-  disabled: PropTypes.bool,
 };
 
 export default SelectorButton;
