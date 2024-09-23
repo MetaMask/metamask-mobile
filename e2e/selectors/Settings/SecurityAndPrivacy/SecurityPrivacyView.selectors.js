@@ -12,7 +12,6 @@ export const SecurityPrivacyViewSelectorsIDs = {
   SHOW_PRIVATE_KEY: 'show-private-key',
   BIOMETRICS_TOGGLE: 'biometrics-option',
   DEVICE_PASSCODE_TOGGLE: 'DevicePasscodeOption',
-  INCOMING_TRANSACTIONS: 'incoming-transactions-section',
 };
 
 export const SecurityPrivacyViewSelectorsText = {
