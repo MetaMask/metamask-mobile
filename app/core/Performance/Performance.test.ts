@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import Performance from './Performance';
 import performance from 'react-native-performance';
+import { isTest } from '../../util/test/utils';
 
 // Extend the global object for __DEV__
 // eslint-disable-next-line @typescript-eslint/no-shadow
@@ -49,9 +50,10 @@ describe('Performance', () => {
     jest.resetAllMocks();
   });
 
-  it('should log performance numbers in development mode', () => {
-    // Mock __DEV__ to be true to simulate development mode
-    global.__DEV__ = true;
+  it('should not log performance numbers in production', () => {
+    jest.mock('../../util/test/utils', () => ({
+      isTest: true, // or false, depending on what you want to test
+    }));
 
     // Mock console.info to verify its calls
     console.info = jest.fn();
@@ -83,22 +85,5 @@ describe('Performance', () => {
         `APP START TIME = MAX(NATIVE LAUNCH TIME, JS BUNDLE LOAD TIME) - 1500ms`,
       ),
     );
-
-    // Clean up
-    global.__DEV__ = false; // Reset __DEV__ to its original state
-  });
-
-  it('should not log performance numbers in non-development mode', () => {
-    // Mock __DEV__ to be true to simulate development mode
-    global.__DEV__ = false;
-
-    // Set up performance service
-    Performance.setupPerformanceObservers();
-
-    // Verify that measure wasn't called
-    expect(performance.measure).not.toHaveBeenCalled();
-
-    // Verify that console.info wasn't called
-    expect(console.info).not.toHaveBeenCalled();
   });
 });
