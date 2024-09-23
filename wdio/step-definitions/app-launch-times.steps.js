@@ -9,16 +9,6 @@ let stopTimer;
 let loginViewTime;
 let walletViewToAppearTime;
 let total;
-Then(/^the app should launch within "([^"]*)?" seconds$/, async (time) => {
-  stopTimer = new Date().getTime();
-  const launchTime = stopTimer - startTimer;
-  console.log(`The Launch time is: ${launchTime}`);
-
-  await expect(launchTime).toBeLessThan(time * 1000);
-  cucumberJson.attach(`Milliseconds: ${launchTime}`);
-  await driver.pause(100);
-});
-
 Then(/^the app start time should not exceed "([^"]*)?" milliseconds$/, async (time) => {
     await WelcomeScreen.isGetLaunchDurationDisplayed();
 

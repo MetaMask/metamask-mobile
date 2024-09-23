@@ -254,7 +254,7 @@ class OnboardingCarousel extends PureComponent {
                         </Text>
                         {isTest && (
                           // This Text component is used to grab the App Start Time for our E2E test
-                          // PerformanceRegressionTest.feature
+                          // ColdStartToOnboardingScreen.feature
                           <Text
                             style={styles.metricsData}
                             testID={
