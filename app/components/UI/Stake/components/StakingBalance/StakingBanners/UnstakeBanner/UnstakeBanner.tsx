@@ -4,20 +4,12 @@ import Banner, {
   BannerVariant,
 } from '../../../../../../../component-library/components/Banners/Banner';
 import Text from '../../../../../../../component-library/components/Texts/Text';
-import { strings } from '../../../../../../../../locales/i18n';
-import { BannerProps } from 'app/component-library/components/Banners/Banner/Banner.types';
-
-type UnstakingBannerProps = Pick<BannerProps, 'style'> & {
-  amountEth: string;
-  timeRemaining: {
-    days: number;
-    hours: number;
-  };
-};
+import { UnstakingBannerProps } from './UnstakeBanner.types';
+import { renderUnstakingTimeRemaining } from './utils';
 
 const UnstakingBanner = ({
-  amountEth,
   timeRemaining,
+  amountEth,
   style,
 }: UnstakingBannerProps) => (
   <Banner
@@ -25,17 +17,7 @@ const UnstakingBanner = ({
     variant={BannerVariant.Alert}
     style={style}
     description={
-      <Text>
-        {strings('stake.banner_text.unstaking_in_progress', {
-          amountEth,
-          daysUntilClaimable: timeRemaining.days,
-          daysCopy: strings('stake.day', { count: timeRemaining.days }),
-          hoursUntilClaimable: timeRemaining.hours,
-          hoursCopy: strings('stake.hour', {
-            count: timeRemaining.hours,
-          }),
-        })}
-      </Text>
+      <Text>{renderUnstakingTimeRemaining(timeRemaining, amountEth)}</Text>
     }
   />
 );

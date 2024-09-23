@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
@@ -22,6 +22,13 @@ import Banner, {
   BannerVariant,
 } from '../../../../../component-library/components/Banners/Banner';
 import { strings } from '../../../../../../locales/i18n';
+import { renderFromWei } from '../../../../../util/number';
+import { getUnstakingTimeDifference } from './StakingBanners/UnstakeBanner/utils';
+import {
+  ExitRequestWithClaimedAssetInfo,
+  getStakesApiResponse,
+} from './StakingBalance.types';
+import { TokenI } from '../../../../UI/Tokens/types';
 
 // TODO: Replace mock data when connecting to backend.
 const MOCK_STAKED_ETH_ASSET = {
@@ -29,41 +36,113 @@ const MOCK_STAKED_ETH_ASSET = {
   balanceFiat: '$13,292.20',
   name: 'Staked Ethereum',
   symbol: 'ETH',
-};
+} as TokenI;
 
 // TODO: Replace mock data when connecting to backend.
-const MOCK_UNSTAKING_REQUESTS = [
-  {
-    id: 1,
-    amountEth: '2.0',
-    timeRemaining: {
-      days: 4,
-      hours: 2,
+const MOCK_UNSTAKING_REQUESTS: getStakesApiResponse = {
+  accounts: [
+    {
+      account: '0x0123456789abcdef0123456789abcdef01234567',
+      lifetimeRewards: '43927049303048',
+      assets: '17913326707142320',
+      exitRequests: [
+        {
+          // Unstaking
+          positionTicket: '2153260738145148336740',
+          timestamp: '1727110415000',
+          totalShares: '989278156820374',
+          withdrawalTimestamp: null,
+          exitQueueIndex: '-1',
+          // claimedAssets: null,
+          claimedAssets: '900000000000000',
+          leftShares: null,
+        },
+        // Requests below are claimable.
+        {
+          positionTicket: '515964521392314631201',
+          timestamp: '1720539311000',
+          totalShares: '99473618267007',
+          withdrawalTimestamp: '0',
+          exitQueueIndex: '57',
+          claimedAssets: '100006626507361',
+          leftShares: '0',
+        },
+        {
+          positionTicket: '515964620865932898208',
+          timestamp: '1720541495000',
+          totalShares: '99473618267007',
+          withdrawalTimestamp: '0',
+          exitQueueIndex: '57',
+          claimedAssets: '100006626507361',
+          leftShares: '0',
+        },
+        {
+          positionTicket: '516604671289934191921',
+          timestamp: '1720607327000',
+          totalShares: '1929478758729790',
+          withdrawalTimestamp: '0',
+          exitQueueIndex: '58',
+          claimedAssets: '1939870510970987',
+          leftShares: '0',
+        },
+      ],
     },
-  },
-  // 1 day and hour to test singular copy (e.g. day vs. days)
-  {
-    id: 2,
-    amountEth: '0.51',
-    timeRemaining: {
-      days: 1,
-      hours: 1,
+  ],
+  exchangeRate: '1.010838047020148468',
+};
+
+const filterExistRequests = (exitRequests: ExitRequestWithClaimedAssetInfo[]) =>
+  exitRequests.reduce<{
+    unstakingRequests: ExitRequestWithClaimedAssetInfo[];
+    claimableRequests: ExitRequestWithClaimedAssetInfo[];
+  }>(
+    (acc, request) => {
+      const isClaimableRequest =
+        request?.withdrawalTimestamp &&
+        Number(request.withdrawalTimestamp) === 0;
+
+      if (isClaimableRequest) {
+        acc.claimableRequests.push(request);
+        return acc;
+      }
+
+      acc.unstakingRequests.push(request);
+      return acc;
     },
-  },
-];
+    { unstakingRequests: [], claimableRequests: [] },
+  );
 
 const StakingBalance = () => {
   const { styles } = useStyles(styleSheet, {});
 
   const networkName = useSelector(selectNetworkName);
 
-  const [hasClaimableEth] = useState(true);
   const [isGeoBlocked] = useState(true);
+
+  const { unstakingRequests, claimableRequests } = useMemo(
+    () => filterExistRequests(MOCK_UNSTAKING_REQUESTS.accounts[0].exitRequests),
+    [],
+  );
+
+  const claimableEth = useMemo(
+    () =>
+      renderFromWei(
+        claimableRequests.reduce(
+          (acc, { withdrawalTimestamp, claimedAssets }) =>
+            !!withdrawalTimestamp && Number(withdrawalTimestamp) === 0
+              ? acc + Number(claimedAssets)
+              : acc,
+          0,
+        ),
+      ),
+    [claimableRequests],
+  );
+
+  const hasClaimableEth = !!Number(claimableEth);
 
   return (
     <View>
       <AssetElement
-        //   @ts-expect-error Using mock data temporarily until we fetch it from the backend.
         asset={MOCK_STAKED_ETH_ASSET}
         mainBalance={MOCK_STAKED_ETH_ASSET.balance}
         balance={MOCK_STAKED_ETH_ASSET.balanceFiat}
@@ -85,16 +164,25 @@ const StakingBalance = () => {
         </Text>
       </AssetElement>
       <View style={styles.container}>
-        {MOCK_UNSTAKING_REQUESTS.map(({ id, amountEth, timeRemaining }) => (
-          <UnstakingBanner
-            key={id}
-            amountEth={amountEth}
-            timeRemaining={timeRemaining}
+        {unstakingRequests.map(
+          ({ positionTicket, claimedAssets, withdrawalTimestamp }) =>
+            claimedAssets && (
+              <UnstakingBanner
+                key={positionTicket}
+                amountEth={renderFromWei(claimedAssets)}
+                timeRemaining={getUnstakingTimeDifference(
+                  Date.now(),
+                  Number(withdrawalTimestamp),
+                )}
+                style={styles.bannerStyles}
+              />
+            ),
+        )}
+        {hasClaimableEth && (
+          <ClaimBanner
+            claimableAmount={claimableEth}
             style={styles.bannerStyles}
           />
-        ))}
-        {hasClaimableEth && (
-          <ClaimBanner claimableAmount="2.0" style={styles.bannerStyles} />
         )}
         {isGeoBlocked && (
           <Banner
