@@ -1024,7 +1024,6 @@ export function getWalletNavbarOptions(
     ),
     headerRight: () => (
       <View style={styles.leftButtonContainer}>
-
         <View style={styles.notificationsWrapper}>
           {isNotificationsFeatureEnabled() && (
             <ButtonIcon
@@ -1046,9 +1045,9 @@ export function getWalletNavbarOptions(
                     : themeColors.background.transparent,
                 },
               ]}
-            />)}
+            />
+          )}
         </View>
-
 
         <ButtonIcon
           iconColor={IconColor.Primary}
