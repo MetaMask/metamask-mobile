@@ -139,6 +139,7 @@ import {
   LoggingController,
   LoggingControllerState,
   LoggingControllerActions,
+  LoggingControllerEvents,
 } from '@metamask/logging-controller';
 import {
   LedgerKeyring,
@@ -325,6 +326,7 @@ type GlobalEvents =
   | SnapsGlobalEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
+  | LoggingControllerEvents
   | KeyringControllerEvents
   | PPOMControllerEvents
   | AccountsControllerEvents
