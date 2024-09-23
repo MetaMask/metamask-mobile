@@ -35,6 +35,7 @@ import QuickAmounts from '../../components/QuickAmounts';
 import useBalance from '../../hooks/useBalance';
 import styleSheet from './StakeInputView.styles';
 import EstimatedAnnualRewardsCard from '../../components/EstimatedAnnualRewardsCard';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const StakeInputView = () => {
   const navigation = useNavigation();
@@ -57,7 +58,9 @@ const StakeInputView = () => {
   const conversionRate = useSelector(selectConversionRate) || 1;
 
   const handleIconPress = () => {
-    navigation.navigate('StakeModals', { screen: 'LearnMore' });
+    navigation.navigate('StakeModals', {
+      screen: Routes.STAKE.MODAL.LEARN_MORE,
+    });
   };
 
   const balanceText = isEth
