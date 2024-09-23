@@ -114,20 +114,14 @@ const createStyles = (colors) =>
       marginHorizontal: 30,
     },
     metricsWrapper: {
-      // flexDirection: 'column',
-      // alignItems: 'center',
-      // justifyContent: 'center',
       flex: 1,
       marginTop: 12,
       marginBottom: 25,
     },
     metricsData: {
       fontSize: 10,
-      // lineHeight: 19,
       color: colors.text.alternative,
-      justifyContent: 'center',
       textAlign: 'center',
-      // ...fontStyles.normal,
     },
   });
 
@@ -158,8 +152,6 @@ class OnboardingCarousel extends PureComponent {
 
   state = {
     currentTab: 1,
-    nativeLaunchDuration: undefined,
-    jsBundleDuration: undefined,
     appStartTime: undefined,
   };
 
