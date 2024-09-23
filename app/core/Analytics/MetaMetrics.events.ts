@@ -36,6 +36,9 @@ const ONBOARDING_WIZARD_STEP_DESCRIPTION: { [key: number]: string } = {
  * Analytics Tracking Events
  */
 enum EVENT_NAME {
+  // App
+  APP_OPENED = 'App Opened',
+
   // Error
   ERROR = 'Error occurred',
   ERROR_SCREEN_VIEWED = 'Error Screen Viewed',
@@ -369,6 +372,13 @@ enum EVENT_NAME {
   ALL_NOTIFICATIONS = 'All Notifications',
   WALLET_NOTIFICATIONS = 'Wallet Notifications',
   ANNOUCEMENTS_NOTIFICATIONS = 'Annoucements Notifications',
+  NOTIFICATIONS_ACTIVATED = 'Notifications Activated',
+  NOTIFICATIONS_MENU_OPENED = 'Notifications Menu Opened',
+  NOTIFICATIONS_SETTINGS_UPDATED = 'Notifications Settings Updated',
+  NOTIFICATION_CLICKED = 'Notification Clicked',
+  NOTIFICATIONS_MARKED_ALL_AS_READ = 'Notifications Marked All as Read',
+  NOTIFICATION_DETAIL_CLICKED = 'Notification Detail Clicked',
+
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
 
@@ -432,6 +442,7 @@ enum ACTIONS {
 }
 
 const events = {
+  APP_OPENED: generateOpt(EVENT_NAME.APP_OPENED),
   ERROR: generateOpt(EVENT_NAME.ERROR),
   ERROR_SCREEN_VIEWED: generateOpt(EVENT_NAME.ERROR_SCREEN_VIEWED),
   APPROVAL_STARTED: generateOpt(EVENT_NAME.APPROVAL_STARTED),
@@ -830,6 +841,9 @@ const events = {
   // Edit account name
   ACCOUNT_RENAMED: generateOpt(EVENT_NAME.ACCOUNT_RENAMED),
 
+  // Settings
+  SETTINGS_UPDATED: generateOpt(EVENT_NAME.SETTINGS_UPDATED),
+
   // Experimental Settings
   SETTINGS_SECURITY_ALERTS_ENABLED: generateOpt(EVENT_NAME.SETTINGS_UPDATED),
 
@@ -865,6 +879,18 @@ const events = {
   ANNOUCEMENTS_NOTIFICATIONS: generateOpt(
     EVENT_NAME.ANNOUCEMENTS_NOTIFICATIONS,
     ACTIONS.SELECTS_ANNOUCEMENTS_NOTIFICATIONS,
+  ),
+  NOTIFICATIONS_ACTIVATED: generateOpt(EVENT_NAME.NOTIFICATIONS_ACTIVATED),
+  NOTIFICATIONS_MENU_OPENED: generateOpt(EVENT_NAME.NOTIFICATIONS_MENU_OPENED),
+  NOTIFICATIONS_SETTINGS_UPDATED: generateOpt(
+    EVENT_NAME.NOTIFICATIONS_SETTINGS_UPDATED,
+  ),
+  NOTIFICATION_CLICKED: generateOpt(EVENT_NAME.NOTIFICATION_CLICKED),
+  NOTIFICATIONS_MARKED_ALL_AS_READ: generateOpt(
+    EVENT_NAME.NOTIFICATIONS_MARKED_ALL_AS_READ,
+  ),
+  NOTIFICATION_DETAIL_CLICKED: generateOpt(
+    EVENT_NAME.NOTIFICATION_DETAIL_CLICKED,
   ),
   // Simulations
   INCOMPLETE_ASSET_DISPLAYED: generateOpt(
