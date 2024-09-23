@@ -4009,7 +4009,42 @@
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^9.0.0"
 
-"@metamask/accounts-controller@^14.0.0", "@metamask/accounts-controller@^17.2.0", "@metamask/accounts-controller@^18.1.0", "@metamask/accounts-controller@^18.2.1":
+"@metamask/accounts-controller@^14.0.0":
+  version "14.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-14.0.0.tgz#aea6004b66ff02f30eea2d1ed77a9820c1f0a6d2"
+  integrity sha512-vI79c/Va8ziso7LQnF2du411AQUXAfO2JwhNxGVBo3EHSKPAX0v0WTz+GF/1sTUIIuCuDaOsemH1kBj5nA+rwg==
+  dependencies:
+    "@ethereumjs/util" "^8.1.0"
+    "@metamask/base-controller" "^5.0.2"
+    "@metamask/eth-snap-keyring" "^4.0.0"
+    "@metamask/keyring-api" "^6.0.0"
+    "@metamask/snaps-sdk" "^4.0.1"
+    "@metamask/snaps-utils" "^7.1.0"
+    "@metamask/utils" "^8.3.0"
+    deepmerge "^4.2.2"
+    ethereum-cryptography "^2.1.2"
+    immer "^9.0.6"
+    uuid "^8.3.2"
+
+"@metamask/accounts-controller@^17.2.0":
+  version "17.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-17.2.0.tgz#b74918444a9d8e6e69b9b761dc58e64aac6b466c"
+  integrity sha512-hfdfRV7mxxnyG1tri3CatV63WWtwPkUSl0zTz7Mq3psSXqOFr+08f1Elw4sX7pP1V/rCxZKeotoluIjUeu1Q9Q==
+  dependencies:
+    "@ethereumjs/util" "^8.1.0"
+    "@metamask/base-controller" "^6.0.0"
+    "@metamask/eth-snap-keyring" "^4.3.1"
+    "@metamask/keyring-api" "^8.0.0"
+    "@metamask/keyring-controller" "^17.1.0"
+    "@metamask/snaps-sdk" "^4.2.0"
+    "@metamask/snaps-utils" "^7.4.0"
+    "@metamask/utils" "^8.3.0"
+    deepmerge "^4.2.2"
+    ethereum-cryptography "^2.1.2"
+    immer "^9.0.6"
+    uuid "^8.3.2"
+
+"@metamask/accounts-controller@^18.2.1":
   version "18.2.1"
   resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-18.2.1.tgz#8e4a842316e9b7bbd0409b36129f7123ba4a4c79"
   integrity sha512-BEvux+ZFpTOQa6HbRl7i7Tq24ztqrZIsX+H0ePh47lU+N8RWq1q0JCItV+zbsgdcYnwhtcMZTsp4jJPQwPe2og==
@@ -4365,7 +4400,7 @@
     ethereum-cryptography "^2.1.2"
     randombytes "^2.1.0"
 
-"@metamask/eth-snap-keyring@^4.3.3":
+"@metamask/eth-snap-keyring@^4.0.0", "@metamask/eth-snap-keyring@^4.3.1", "@metamask/eth-snap-keyring@^4.3.3":
   version "4.3.4"
   resolved "https://registry.yarnpkg.com/@metamask/eth-snap-keyring/-/eth-snap-keyring-4.3.4.tgz#78308770d421f6f3c9d24dba925acf87a54012e8"
   integrity sha512-y68ksrkwZJ7J5Edej+XvTDR04CwZs0BHjOVpJbnA/328P75Gs7jSHWqOE7DtziMbwpVsFlgBMTVFPsSyrh8Fmg==
@@ -4575,16 +4610,17 @@
     superstruct "^1.0.3"
     uuid "^9.0.1"
 
-"@metamask/keyring-api@^8.1.0":
-  version "8.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-8.1.0.tgz#e4157550189797fae89557c37315dc47d4c23bed"
-  integrity sha512-w/B1ulJvyxQBZoJMpSsHFtrL8kbdwFc2ryjEcAgMZ3V0PNyW2urY0f9v/majYAVkPhQcN1t0AUwv8NcOSigGqg==
+"@metamask/keyring-api@^8.0.0", "@metamask/keyring-api@^8.1.0":
+  version "8.1.1"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-8.1.1.tgz#1d35a56d251ab2619fc99dfe5568c4e3cfb733b9"
+  integrity sha512-J2uD7uEDpFB9JRk595bMCKkHGI/Xp5qCOO3/iF0y2LzrAftxtgPqBlGMCuU9OMAWMXPE0qkLXoE2MfrBJsar+w==
   dependencies:
     "@metamask/snaps-sdk" "^6.1.0"
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^9.1.0"
     "@types/uuid" "^9.0.8"
     bech32 "^2.0.0"
+    deepmerge "^4.2.2"
     uuid "^9.0.1"
 
 "@metamask/keyring-controller@^16.0.0", "@metamask/keyring-controller@^16.1.0":
@@ -4606,7 +4642,7 @@
     ethereumjs-wallet "^1.0.1"
     immer "^9.0.6"
 
-"@metamask/keyring-controller@^17.2.1":
+"@metamask/keyring-controller@^17.1.0", "@metamask/keyring-controller@^17.2.1":
   version "17.2.1"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-17.2.1.tgz#3625650e18b80af3f9a1227fc7ca106adf77f5f3"
   integrity sha512-9GDrP3jK5uM5e1mX/qHkvjuByAtkf7ZiJoeYRE5OIo0OAYFwMAeFw2JlIdWB+BR6CT8C0KEXo+Ne/5ZTn+HCqA==
@@ -5266,7 +5302,7 @@
     fast-xml-parser "^4.3.4"
     superstruct "^1.0.3"
 
-"@metamask/snaps-sdk@^4.2.0":
+"@metamask/snaps-sdk@^4.0.1", "@metamask/snaps-sdk@^4.2.0":
   version "4.4.2"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-sdk/-/snaps-sdk-4.4.2.tgz#6d7654ca3ecbcda5cd8689f49721c084241a4495"
   integrity sha512-V6d1kQdkCTYQ7Z3+ZVnMWjwsS2TRaKNnSRtSHgjATdSacW5d/1td2KbTs+1x1/cSe58ULKW1SBwRNy0i0c95hA==
@@ -5289,7 +5325,7 @@
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^9.2.1"
 
-"@metamask/snaps-utils@^7.7.0", "@metamask/snaps-utils@^7.8.0", "@metamask/snaps-utils@^7.8.1":
+"@metamask/snaps-utils@^7.1.0", "@metamask/snaps-utils@^7.4.0", "@metamask/snaps-utils@^7.7.0", "@metamask/snaps-utils@^7.8.0", "@metamask/snaps-utils@^7.8.1":
   version "7.8.1"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-utils/-/snaps-utils-7.8.1.tgz#d18f56ece8a1d4e9ff2e8e7645c3349cf08937bc"
   integrity sha512-v0xNoiWeJGHvtJqP0aU5dj+phqpV6vKCJoV5tNBXl8/AvMTaV2YL4SLO/z+PTo0RWZFplgAuuDsY254kAXi9Fw==
