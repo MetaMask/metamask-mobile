@@ -72,6 +72,7 @@ import AccountConnectSingleSelector from './AccountConnectSingleSelector';
 import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
 import { isMutichainVersion1Enabled } from '../../../util/networks';
+import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -559,6 +560,8 @@ const AccountConnect = (props: AccountConnectProps) => {
       onEdit: () => {
         setScreen(AccountConnectScreens.MultiConnectSelector);
       },
+      onEditNetworks: () =>
+        setScreen(AccountConnectScreens.MultiConnectNetworkSelector),
       onUserAction: setUserIntent,
       isAlreadyConnected: false,
     };
@@ -618,6 +621,20 @@ const AccountConnect = (props: AccountConnectProps) => {
     ],
   );
 
+  const renderMultiConnectNetworkSelectorScreen = useCallback(
+    () => (
+      <NetworkConnectMultiSelector
+        onSelectNetworkIds={setSelectedAddresses}
+        isLoading={isLoading}
+        onUserAction={setUserIntent}
+        urlWithProtocol={urlWithProtocol}
+        hostname={hostname}
+        onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
+      />
+    ),
+    [isLoading, urlWithProtocol, hostname],
+  );
+
   const renderPhishingModal = useCallback(
     () => (
       <Modal
@@ -664,6 +681,8 @@ const AccountConnect = (props: AccountConnectProps) => {
         return renderSingleConnectSelectorScreen();
       case AccountConnectScreens.MultiConnectSelector:
         return renderMultiConnectSelectorScreen();
+      case AccountConnectScreens.MultiConnectNetworkSelector:
+        return renderMultiConnectNetworkSelectorScreen();
     }
   }, [
     screen,
@@ -671,6 +690,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     renderPermissionsSummaryScreen,
     renderSingleConnectSelectorScreen,
     renderMultiConnectSelectorScreen,
+    renderMultiConnectNetworkSelectorScreen,
   ]);
 
   return (
