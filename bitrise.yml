@@ -1001,12 +1001,12 @@ workflows:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: false
     after_run:
-      - build_ios_release: {}
+      - build_ios_release
   build_android_release_with_sourcemaps:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: false
     after_run:
-      - build_android_release: {}
+      - build_android_release
   build_android_release:
     before_run:
       - code_setup
