@@ -194,7 +194,7 @@ exports[`Confirm should render correctly 1`] = `
                           "width": 5,
                         },
                         {
-                          "backgroundColor": "#3cc29e",
+                          "backgroundColor": "#f2f3f4",
                         },
                       ]
                     }

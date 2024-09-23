@@ -12,6 +12,7 @@ import {
   renderScreen,
 } from '../../../../util/test/renderWithProvider';
 import { RpcEndpointType } from '@metamask/network-controller';
+import { store } from '../../../../store';
 
 const mockedNetworkControllerState = mockNetworkState({
   chainId: CHAIN_IDS.MAINNET,
@@ -187,14 +188,29 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../store', () => ({
-  store: {
-    getState: () => initialState,
-  },
-}));
+// jest.mock('../../../store', () => ({
+//   store: {
+//     getState: () => initialState,
+//   },
+// }));
 
 describe('Accounts', () => {
   it('should render correctly', () => {
+    (store.getState as jest.Mock).mockReturnValue({
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.SEPOLIA,
+              id: '1',
+              nickname: 'Sepolia',
+              ticker: 'ETH',
+              type: RpcEndpointType.Infura,
+            }),
+          },
+        },
+      },
+    });
     const { toJSON } = renderScreen(
       Send,
       { name: 'Send' },

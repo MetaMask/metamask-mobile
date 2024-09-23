@@ -1,5 +1,6 @@
 import React from 'react';
 import { ConnectedComponent } from 'react-redux';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { waitFor } from '@testing-library/react-native';
 import Confirm from '.';
 import {
@@ -13,6 +14,8 @@ import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../../components/BlockaidBan
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../../../reducers';
 import { RpcEndpointType } from '@metamask/network-controller';
+import { mockNetworkState } from '../../../../../util/test/network';
+import { store } from '../../../../../store';
 
 const MOCK_ADDRESS = '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58';
 
@@ -41,7 +44,7 @@ const mockInitialState: DeepPartial<RootState> = {
             defaultRpcEndpointIndex: 0,
             blockExplorerUrls: ['https://etherscan.io'],
             defaultBlockExplorerUrlIndex: 0,
-            name: 'Ethereum Network Mainnet',
+            name: 'Ethereum Main Network',
             nativeCurrency: 'ETH',
           },
         },
@@ -178,6 +181,27 @@ function render(Component: React.ComponentType | ConnectedComponent<any, any>) {
 }
 
 describe('Confirm', () => {
+  beforeEach(() => {
+    (store.getState as jest.Mock).mockReturnValue({
+      inpageProvider: {
+        networkId: '1',
+      },
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.MAINNET,
+              id: '1',
+              nickname: 'Ethereum Main Network',
+              ticker: 'ETH',
+              type: RpcEndpointType.Infura,
+            }),
+          },
+        },
+      },
+    });
+  });
+
   it('should render correctly', async () => {
     const wrapper = render(Confirm);
     await waitFor(() => {

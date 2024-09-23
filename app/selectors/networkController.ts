@@ -14,10 +14,8 @@ export interface ProviderConfig {
   type: string;
 }
 
-const selectNetworkControllerState = (state: RootState) => {
-  console.log('state?.engine?.backgroundState?.NetworkController ----', state);
-  return state?.engine?.backgroundState?.NetworkController;
-};
+const selectNetworkControllerState = (state: RootState) =>
+  state?.engine?.backgroundState?.NetworkController;
 
 export const selectSelectedNetworkClientId = createSelector(
   selectNetworkControllerState,
@@ -33,7 +31,7 @@ export const selectProviderConfig = createDeepEqualSelector(
     const networkConfigurationsByChainId =
       networkControllerState?.networkConfigurationsByChainId;
 
-    console.log('PPPPPPP *********', networkControllerState);
+    // console.log('PPPPPPP *********', networkControllerState);
 
     for (const network of Object.values(networkConfigurationsByChainId)) {
       for (const rpcEndpoint of network.rpcEndpoints) {

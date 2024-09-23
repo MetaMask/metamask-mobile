@@ -12,6 +12,7 @@ import AppConstants from '../../../../../core/AppConstants';
 import { strings } from '../../../../../../locales/i18n';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
+import { mockNetworkState } from '../../../../../util/test/network';
 
 jest.mock('../../../../../components/hooks/useMetrics');
 jest.mock('../../../../../core/Engine', () => ({
@@ -53,7 +54,15 @@ const mockStore = configureMockStore();
 
 const initialState = {
   engine: {
-    backgroundState,
+    backgroundState: {
+      ...backgroundState,
+      ...mockNetworkState({
+        chainId: '0x1',
+        id: 'Mainnet',
+        nickname: 'Mainnet',
+        ticker: 'ETH',
+      }),
+    },
   },
 };
 
@@ -109,6 +118,25 @@ function createWrapper({
     </Provider>,
   ).find(PersonalSign);
 }
+
+jest.mock('../../../../../store', () => ({
+  store: {
+    getState: () => ({
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            ...mockNetworkState({
+              chainId: '0x1',
+              id: 'Mainnet',
+              nickname: 'Mainnet',
+              ticker: 'ETH',
+            }),
+          },
+        },
+      },
+    }),
+  },
+}));
 
 describe('PersonalSign', () => {
   it('should render correctly', () => {

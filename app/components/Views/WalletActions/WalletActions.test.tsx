@@ -12,6 +12,7 @@ import { RootState } from '../../../reducers';
 import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { RpcEndpointType } from '@metamask/network-controller';
+import { store } from '../../../store';
 
 const mockInitialState: DeepPartial<RootState> = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
@@ -158,7 +159,25 @@ describe('WalletActions', () => {
   });
 
   it('should call the onSend function when the Send button is pressed', () => {
-    const { getByTestId } = renderWithProvider(<WalletActions />);
+    const mockState: DeepPartial<RootState> = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          NetworkController: {
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.SEPOLIA,
+              id: 'sepolia',
+              nickname: 'Sepolia',
+              ticker: 'ETH',
+            }),
+          },
+        },
+      },
+    };
+
+    const { getByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockState,
+    });
 
     fireEvent.press(getByTestId(WalletActionsModalSelectorsIDs.SEND_BUTTON));
 
