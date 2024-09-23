@@ -16,7 +16,7 @@ import AvatarGroup from '../../../component-library/components/Avatars/AvatarGro
 import {
   formatAddress,
   safeToChecksumAddress,
-  getLabelTextByAddress,
+  getLabelTextByKeyring,
 } from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
@@ -157,10 +157,7 @@ const AccountSelectorList = ({
       index,
     }) => {
       const shortAddress = formatAddress(address, 'short');
-      let tagLabel = getLabelTextByAddress(address);
-      if (type === KeyringTypes.snap) {
-        tagLabel = 'accounts.snap_account_tag';
-      }
+      const tagLabel = getLabelTextByKeyring(address);
       const ensName = ensByAccountAddress[address];
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;

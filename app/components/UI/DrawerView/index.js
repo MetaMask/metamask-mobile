@@ -61,7 +61,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
 import { Authentication } from '../../../core/';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { getLabelTextByAddress } from '../../../util/address';
+import { getLabelTextByKeyring } from '../../../util/address';
 import {
   onboardNetworkAction,
   networkSwitched,
@@ -485,7 +485,7 @@ class DrawerView extends PureComponent {
   renderTag() {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-    const label = getLabelTextByAddress(this.selectedChecksummedAddress);
+    const label = getLabelTextByKeyring(this.selectedChecksummedAddress);
 
     return label ? (
       <View style={[styles.importedWrapper]}>
