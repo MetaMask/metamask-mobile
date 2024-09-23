@@ -6,7 +6,6 @@ import OnboardingSuccess from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { useSelector } from 'react-redux';
 import { selectProviderConfig } from '../../../selectors/networkController';
-import Button from '../../../component-library/components/Buttons/Button/Button';
 
 // Define ProviderConfig type
 interface ProviderConfig {
