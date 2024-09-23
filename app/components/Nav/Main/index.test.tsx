@@ -9,8 +9,10 @@ import { act } from '@testing-library/react-hooks';
 import { MetaMetricsEvents } from '../../hooks/useMetrics';
 import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
-import { Provider } from 'react-redux';
+import { Provider, useSelector } from 'react-redux';
 import configureStore from 'redux-mock-store';
+import { selectProviderConfig } from '../../../selectors/networkController';
+import { selectNetworkName } from '../../../selectors/networkInfos';
 
 const mockStore = configureStore([]);
 const store = mockStore({
@@ -58,6 +60,17 @@ const store = mockStore({
             },
           ],
         },
+        selectedInternalAccount: {
+          address: '0x0d8775f59023cbe76e541b6497bbed3cd21acbdc',
+        },
+      },
+
+      AccountTrackerController: {
+        accounts: {
+          '0x0d8775f59023cbe76e541b6497bbed3cd21acbdc': {
+            balance: '0x0',
+          },
+        },
       },
       TokenListController: {
         tokenList: {
@@ -73,6 +86,20 @@ const store = mockStore({
             },
           },
         },
+        contractBalances: {},
+      },
+      TokenBalancesController: {
+        contractBalances: {
+          address: '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95',
+          symbol: 'TST',
+          decimals: 4,
+        },
+      },
+      NftController: {
+        allNfts: [],
+      },
+      KeyringController: {
+        keyrings: [],
       },
       PreferencesController: {
         ipfsGateway: {},
@@ -84,6 +111,8 @@ const store = mockStore({
   },
   user: {
     backUpSeedphraseVisible: false,
+    passwordSet: true,
+    seedphraseBackedUp: true,
   },
   security: {
     hasUserSelectedAutomaticSecurityCheckOption: false,
@@ -91,12 +120,32 @@ const store = mockStore({
       isPinSet: true,
     },
   },
+  legalNotices: {
+    newPrivacyPolicyToastShownDate: null,
+    newPrivacyPolicyToastClickedOrClosed: false,
+  },
+  navigation: {
+    currentRoute: 'Home',
+  },
+  modals: {
+    networkModalVisible: false,
+    infoNetworkModalVisible: false,
+  },
+  wizard: {},
+  networkOnboarded: {
+    switchedNetwork: false,
+  },
 });
 
 jest.mock('../../../core/Engine.ts', () => ({
   controllerMessenger: {
     subscribeOnceIf: jest.fn(),
   },
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
 }));
 
 const TRANSACTION_META_ID_MOCK = '04541dc0-2e69-11ef-b995-33aef2c88d1e';
@@ -176,6 +225,15 @@ describe('Main', () => {
   });
 
   it('should render correctly', () => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectProviderConfig) {
+        return { chainId: '1' };
+      }
+      if (selector === selectNetworkName) {
+        return 'Mainnet';
+      }
+      return undefined;
+    });
     const MainAppContainer = () => (
       <Provider store={store}>
         <NavigationContainer>

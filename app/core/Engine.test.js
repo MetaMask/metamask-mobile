@@ -2,11 +2,32 @@ import Engine from './Engine';
 import { backgroundState } from '../util/test/initial-root-state';
 import { zeroAddress } from 'ethereumjs-util';
 import { createMockAccountsControllerState } from '../util/test/accountsControllerTestUtils';
+import { store } from '../store';
 
 jest.unmock('./Engine');
-jest.mock('../store', () => ({ store: { getState: jest.fn(() => ({})) } }));
+jest.mock('../store', () => ({
+  store: {
+    getState: jest.fn(),
+  },
+}));
+// jest.mock('@metamask/smart-transactions-controller', () => {
+//   return {
+//     SmartTransactionsController: jest.fn().mockImplementation(() => {
+//       return {
+//         onNetworkStateChange: jest.fn(),
+//       };
+//     }),
+//   };
+// });
 
 describe('Engine', () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
+    store.getState.mockReturnValue({
+      settings: { showFiatOnTestnets: true },
+    });
+  });
+
   it('should expose an API', () => {
     const engine = Engine.init({});
     expect(engine.context).toHaveProperty('AccountTrackerController');
