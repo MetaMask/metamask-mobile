@@ -1,17 +1,30 @@
 import { AppState, AppStateStatus } from 'react-native';
+import { Store } from 'redux';
+import { RootState } from '../reducers';
 import Logger from '../util/Logger';
 import { MetaMetrics, MetaMetricsEvents } from './Analytics';
 import { processAttribution } from './processAttribution';
 import DevLogger from './SDKConnect/utils/DevLogger';
 
-class AppStateEventListener {
+export class AppStateEventListener {
   private appStateSubscription: ReturnType<typeof AppState.addEventListener>;
   private currentDeeplink: string | null = null;
   private lastAppState: AppStateStatus = AppState.currentState;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private store: Store<RootState, any> | undefined;
+
   constructor() {
     this.lastAppState = AppState.currentState;
     this.appStateSubscription = AppState.addEventListener('change', this.handleAppStateChange);
+  }
+
+  init(store: Store) {
+    if(this.store) {
+      Logger.error(new Error('store is already initialized'));
+      throw new Error('store is already initialized');
+    }
+    this.store = store;
   }
 
   public setCurrentDeeplink(deeplink: string | null) {
@@ -32,9 +45,14 @@ class AppStateEventListener {
   };
 
   private processAppStateChange = () => {
+    if (!this.store) {
+      Logger.error(new Error('store is not initialized'));
+      return;
+    }
+
     try {
-      const attributionId = processAttribution(this.currentDeeplink);
-      DevLogger.log(`AppStateManager:: processAppStateChange:: sending event 'APP_OPENED' attributionId=${attributionId}`);
+      const attributionId = processAttribution({ currentDeeplink: this.currentDeeplink, store: this.store });
+        DevLogger.log(`AppStateManager:: processAppStateChange:: sending event 'APP_OPENED' attributionId=${attributionId}`);
       MetaMetrics.getInstance().trackEvent(
         MetaMetricsEvents.APP_OPENED,
         { attributionId },
@@ -50,4 +68,4 @@ class AppStateEventListener {
   }
 }
 
-export default AppStateEventListener;
+export const AppStateEventProcessor = new AppStateEventListener();

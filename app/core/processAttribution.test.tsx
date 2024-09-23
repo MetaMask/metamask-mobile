@@ -23,7 +23,7 @@ describe('processAttribution', () => {
       params: { attributionId: 'test123' },
     });
 
-    const result = processAttribution('metamask://connect?attributionId=test123');
+    const result = processAttribution({ currentDeeplink: 'metamask://connect?attributionId=test123', store });
     expect(result).toBe('test123');
   });
 
@@ -32,7 +32,7 @@ describe('processAttribution', () => {
       security: { dataCollectionForMarketing: false },
     });
 
-    const result = processAttribution('metamask://connect?attributionId=test123');
+    const result = processAttribution({ currentDeeplink: 'metamask://connect?attributionId=test123', store });
     expect(result).toBeUndefined();
   });
 
@@ -41,7 +41,7 @@ describe('processAttribution', () => {
       security: { dataCollectionForMarketing: true },
     });
 
-    const result = processAttribution(null);
+    const result = processAttribution({ currentDeeplink: null, store });
     expect(result).toBeUndefined();
   });
 
@@ -53,7 +53,7 @@ describe('processAttribution', () => {
       params: {},
     });
 
-    const result = processAttribution('metamask://connect');
+    const result = processAttribution({ currentDeeplink: 'metamask://connect', store });
     expect(result).toBeUndefined();
   });
 });

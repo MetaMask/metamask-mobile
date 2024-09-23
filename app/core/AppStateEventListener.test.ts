@@ -1,9 +1,9 @@
 import { AppState, AppStateStatus } from 'react-native';
-import { MetaMetrics, MetaMetricsEvents } from './Analytics';
 import { store } from '../store';
-import AppStateEventListener from './AppStateEventListener';
-import extractURLParams from './DeeplinkManager/ParseManager/extractURLParams';
 import Logger from '../util/Logger';
+import { MetaMetrics, MetaMetricsEvents } from './Analytics';
+import { AppStateEventListener } from './AppStateEventListener';
+import extractURLParams from './DeeplinkManager/ParseManager/extractURLParams';
 
 jest.mock('react-native', () => ({
   AppState: {
@@ -50,6 +50,7 @@ describe('AppStateEventListener', () => {
       return { remove: jest.fn() };
     });
     appStateManager = new AppStateEventListener();
+    appStateManager.init(store);
   });
 
   afterEach(() => {
@@ -58,6 +59,11 @@ describe('AppStateEventListener', () => {
 
   it('subscribes to AppState changes on instantiation', () => {
     expect(AppState.addEventListener).toHaveBeenCalledWith('change', expect.any(Function));
+  });
+
+  it('throws error if store is initialized more than once', () => {
+    expect(() => appStateManager.init(store)).toThrow('store is already initialized');
+    expect(Logger.error).toHaveBeenCalledWith(new Error('store is already initialized'));
   });
 
   it('tracks event when app becomes active and conditions are met', () => {
@@ -127,6 +133,7 @@ describe('AppStateEventListener', () => {
     (AppState.addEventListener as jest.Mock).mockReturnValue({ remove: mockRemove });
 
     appStateManager = new AppStateEventListener();
+    appStateManager.init(store);
     appStateManager.cleanup();
 
     expect(mockRemove).toHaveBeenCalled();
@@ -148,5 +155,14 @@ describe('AppStateEventListener', () => {
     jest.advanceTimersByTime(2000);
 
     expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('should handle undefined store gracefully', () => {
+    appStateManager = new AppStateEventListener();
+    mockAppStateListener('active');
+    jest.advanceTimersByTime(2000);
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+    expect(Logger.error).toHaveBeenCalledWith(new Error('store is not initialized'));
   });
 });
