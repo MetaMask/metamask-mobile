@@ -1,15 +1,10 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import NetworkFeeField from './NetworkFeeField';
-import { OnChainRawNotificationsWithNetworkFields } from '@metamask/notification-services-controller/dist/NotificationServicesController/types/on-chain-notification/index.mjs';
-import { type Notification, ModalFieldType } from '../../../../../util/notifications';
+import { ModalFieldType } from '../../../../../util/notifications';
+import { processNotification } from '@metamask/notification-services-controller/notification-services';
+import { createMockNotificationEthReceived } from '@metamask/notification-services-controller/notification-services/mocks';
 
-import { NotificationServicesController } from '@metamask/notification-services-controller';
-
-const {
-  Processors: { processNotification },
-  Mocks,
-} = NotificationServicesController;
 jest.mock('../../../../../util/notifications/methods/common', () => ({
   getNetworkFees: () =>
     Promise.resolve({
@@ -25,8 +20,8 @@ jest.mock('../../../../../util/notifications/methods/common', () => ({
 }));
 
 const MOCK_NOTIFICATION = processNotification(
-  Mocks.createMockNotificationEthReceived(),
-) as OnChainRawNotificationsWithNetworkFields;
+  createMockNotificationEthReceived(),
+);
 
 describe('NetworkFeeField', () => {
   const setIsCollapsed = jest.fn();
@@ -40,7 +35,6 @@ describe('NetworkFeeField', () => {
     const { toJSON } = render(
       <NetworkFeeField
         type={ModalFieldType.NETWORK_FEE}
-        {...MOCK_NOTIFICATION.data.network_fee}
         isCollapsed={isCollapsed}
         setIsCollapsed={setIsCollapsed}
         getNetworkFees={() =>
@@ -56,7 +50,7 @@ describe('NetworkFeeField', () => {
             chainId: '0x1',
           })
         }
-        notification={MOCK_NOTIFICATION as Notification}
+        notification={MOCK_NOTIFICATION}
       />,
     );
 
