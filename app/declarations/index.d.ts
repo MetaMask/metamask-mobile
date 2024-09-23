@@ -8,6 +8,9 @@ declare module 'react-native-fade-in-image';
 
 declare module 'react-native-fast-crypto';
 
+declare module 'through2';
+
+declare module 'pump';
 declare module 'react-native-minimizer';
 
 declare module 'xhr2';
