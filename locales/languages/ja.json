@@ -1036,7 +1036,7 @@
           "snap_getBip32PublicKey": "{{protocol}}の公開鍵の表示",
           "snap_getBip44Entropy": "{{protocol}}アカウントとアセットのコントロール",
           "snap_getEntropy": "このSnapに固有の任意のキーの導出",
-          "endowment:keyring": "endowment:keyring",
+          "endowment:keyring": "Allow requests for adding and controlling Ethereum accounts",
           "wallet_snap": "{{otherSnapName}}への接続",
           "endowment:webassembly": "WebAssemblyのサポート",
           "endowment:ethereum-provider": "イーサリアムプロバイダーへのアクセス",
@@ -1044,7 +1044,8 @@
           "snap_getLocale": "言語設定の表示",
           "endowment:caveat:transaction-origin": "トランザクションを提案しているWebサイトの提供元の確認",
           "endowment:extend-runtime": "ランタイムの延長",
-          "snap_dialog": "カスタムダイアログの表示"
+          "snap_dialog": "カスタムダイアログの表示",
+          "snap_manageAccounts": "Add and control Ethereum accounts"
         }
       }
     },
