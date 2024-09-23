@@ -2,7 +2,6 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { shallow } from 'enzyme';
 import configureMockStore from 'redux-mock-store';
-import Engine from '../../../core/Engine';
 
 import renderWithProvider, {
   DeepPartial,
@@ -52,7 +51,7 @@ jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
   isQRHardwareAccount: () => false,
 }));
-let mockGetERC20BalanceOf = jest.fn().mockReturnValue(0x0186a0);
+const mockGetERC20BalanceOf = jest.fn().mockReturnValue(0x0186a0);
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -121,6 +120,7 @@ describe('AccountFromToInfoCard', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <Provider store={store}>
+        {/* @ts-expect-error: Rest props are ignored for testing purposes */}
         <AccountFromToInfoCard transactionState={transactionState} />
       </Provider>,
     );
@@ -129,30 +129,16 @@ describe('AccountFromToInfoCard', () => {
 
   it('should match snapshot', async () => {
     const container = renderWithProvider(
+      //@ts-expect-error - Rest props are ignored for testing purposes
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
     expect(container).toMatchSnapshot();
   });
 
-  it('should render from address', async () => {
-    const { findByText } = renderWithProvider(
-      <AccountFromToInfoCard transactionState={transactionState} />,
-      { state: mockInitialState },
-    );
-    expect(await findByText('Account 1')).toBeDefined();
-  });
-
-  it('should render balance of from address', async () => {
-    const { findByText } = renderWithProvider(
-      <AccountFromToInfoCard transactionState={transactionState} />,
-      { state: mockInitialState },
-    );
-    expect(await findByText('Balance: < 0.00001 ETH')).toBeDefined();
-  });
-
   it('should render to account name', async () => {
     const { findByText } = renderWithProvider(
+      //@ts-expect-error - Rest props are ignored for testing purposes
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
@@ -161,6 +147,7 @@ describe('AccountFromToInfoCard', () => {
 
   it('should render to address', async () => {
     const { findByText } = renderWithProvider(
+      //@ts-expect-error - Rest props are ignored for testing purposes
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
@@ -187,9 +174,8 @@ describe('AccountFromToInfoCard', () => {
       transactionToName: '0xF4e8263979A89Dc357d7f9F79533Febc7f3e287B',
     };
     const { findByText } = renderWithProvider(
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      <AccountFromToInfoCard transactionState={NFTTransaction as any} />,
+      //@ts-expect-error - Rest props are ignored for testing purposes
+      <AccountFromToInfoCard transactionState={NFTTransaction} />,
       { state: mockInitialState },
     );
     expect(await findByText('0xF4e8...287B')).toBeDefined();
@@ -217,66 +203,11 @@ describe('AccountFromToInfoCard', () => {
       },
     };
     const { queryByText } = renderWithProvider(
+      //@ts-expect-error - Rest props are ignored for testing purposes
       <AccountFromToInfoCard transactionState={txState} />,
       { state: mockInitialState },
     );
     expect(await queryByText('test1.eth')).toBeDefined();
     expect(await queryByText('test3.eth')).toBeDefined();
-  });
-
-  describe('from account balance', () => {
-    const ERC20Transaction: Transaction = {
-      transactionFromName: 'a',
-      transactionToName: 'b',
-      selectedAsset: {
-        address: '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95',
-        decimals: 4,
-        image: 'https://metamask.github.io/test-dapp/metamask-fox.svg',
-        symbol: 'TST',
-        isETH: false,
-      },
-      transactionTo: '0x2f318c334780961fb129d2a6c30d0763d9a5c970',
-      transaction: {
-        data: '0xa9059cbb0000000000000000000000002f318c334780961fb129d2a6c30d0763d9a5c9700000000000000000000000000000000000000000000000000000000000003a98',
-        from: '0x519d2CE57898513F676a5C3b66496c3C394c9CC7',
-        to: '0x2f318c334780961fb129d2a6c30d0763d9a5c970',
-      },
-    };
-
-    beforeEach(() => {
-      jest.useFakeTimers();
-      mockGetERC20BalanceOf = jest.fn().mockReturnValue(0x0186a0);
-      Engine.context.AssetsContractController = {
-        getERC20BalanceOf: mockGetERC20BalanceOf,
-      } as Partial<AssetsContractController> as AssetsContractController;
-    });
-
-    it('should render balance from AssetsContractController.getERC20BalanceOf if selectedAddress is different from fromAddress', async () => {
-      const { findByText } = renderWithProvider(
-        <AccountFromToInfoCard transactionState={ERC20Transaction} />,
-        { state: mockInitialState },
-      );
-      expect(mockGetERC20BalanceOf).toHaveBeenCalled();
-      expect(await findByText('Balance: 10 TST')).toBeDefined();
-    });
-
-    it('should render balance from TokenBalancesController.contractBalances if selectedAddress is same as fromAddress', async () => {
-      const transaction = {
-        ...ERC20Transaction,
-        from: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
-        transaction: {
-          ...ERC20Transaction.transaction,
-          from: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
-        },
-      };
-      const { findByText } = renderWithProvider(
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        <AccountFromToInfoCard transactionState={transaction as any} />,
-        { state: mockInitialState },
-      );
-      expect(mockGetERC20BalanceOf).toBeCalledTimes(0);
-      expect(await findByText('Balance: 0.0005 TST')).toBeDefined();
-    });
   });
 });

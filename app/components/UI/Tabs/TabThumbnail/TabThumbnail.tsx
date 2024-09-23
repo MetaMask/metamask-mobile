@@ -6,7 +6,6 @@ import {
   View,
 } from 'react-native';
 import ElevatedView from 'react-native-elevated-view';
-import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Avatar, {
   AvatarSize,
@@ -25,10 +24,7 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import AppConstants from '../../../../core/AppConstants';
 import METAMASK_FOX from '../../../../images/fox.png';
-import {
-  selectNetworkName,
-  selectNetworkImageSource,
-} from '../../../../selectors/networkInfos';
+import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
 import { getHost } from '../../../../util/browser';
 import Device from '../../../../util/device';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
@@ -56,8 +52,7 @@ const TabThumbnail = ({
   const hostname = getHost(tab.url);
   const isHomepage = hostname === getHost(HOMEPAGE_URL);
   const selectedAccount = useSelectedAccount();
-  const networkName = useSelector(selectNetworkName);
-  const networkImageSource = useSelector(selectNetworkImageSource);
+  const { networkName, networkImageSource } = useNetworkInfo(hostname);
 
   return (
     <Container style={styles.checkWrapper} elevation={8}>

@@ -5,8 +5,6 @@
     "deceptive_request_title": "Ini adalah permintaan tipuan",
     "failed_title": "Permintaan mungkin tidak aman",
     "failed_description": "Karena terjadi kesalahan, permintaan ini tidak diverifikasi oleh penyedia keamanan. Lanjutkan dengan hati-hati.",
-    "loading_title": "Memeriksa peringatan keamanan...",
-    "loading_complete_title": "Tidak menerima peringatan. Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan.",
     "malicious_domain_description": "Anda berinteraksi dengan domain berbahaya. Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
     "other_description": "Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
     "raw_signature_farming_description": "Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
@@ -688,9 +686,8 @@
     "suggest_transactions": "Merekomendasikan transaksi untuk disetujui",
     "disconnect": "Memutus koneksi",
     "disconnect_all": "Putuskan semua koneksi",
-    "reconnect_notice": "Jika Anda memutus koneksi akun dari {{dappUrl}}, Anda harus menghubungkannya kembali agar dapat menggunakannya lagi.",
+    "reconnect_notice": "If you disconnect from {{dappUrl}}, you’ll need to reconnect your accounts and networks to use this site again.",
     "disconnect_all_accounts": "Memutus koneksi semua akun",
-    "disconnect_you_from": "Ini akan memutus koneksi dari {{dappUrl}}",
     "deceptive_site_ahead": "Situs yang menipu terdeteksi",
     "deceptive_site_desc": "Situs yang akan Anda kunjungi tidak aman. Penyerang dapat mengelabui Anda untuk melakukan sesuatu yang berbahaya.",
     "learn_more": "Selengkapnya",
@@ -815,24 +812,6 @@
     "show_fiat_on_testnets_modal_button": "Lanjutkan",
     "show_hex_data": "Tampilkan Data Hex",
     "show_hex_data_desc": "Pilih ini untuk menampilkan bidang data hex pada layar kirim.",
-    "toggleEthSignBannerDescription": "Anda berisiko terkena serangan pengelabuan. Lindungi diri dengan menonaktifkan eth_sign.",
-    "enable_eth_sign": "Permintaan eth_sign",
-    "enable_eth_sign_desc": "Jika Anda mengaktifkan pengaturan ini, Anda mungkin mendapatkan permintaan tanda tangan yang tidak dapat dibaca. Dengan menandatangani pesan yang Anda tidak pahami, Anda dapat berarti menyetujui memberikan dana dan NFT Anda.",
-    "enable_eth_sign_warning": "Anda berisiko terkena serangan phishing. Lindungi diri dengan menonaktifkan eth_sign.",
-    "toggleEthSignModalBannerText": "Jika Anda diminta mengaktifkan pengaturan ini,",
-    "toggleEthSignModalBannerBoldText": " Anda mungkin ditipu.",
-    "toggleEthSignModalCheckBox": "Saya memahami bahwa saya dapat kehilangan semua dana dan NFT jika mengaktifkan permintaan eth_sign.",
-    "toggleEthSignModalDescription": "Mengizinkan permintaan eth_sign dapat membuat Anda rentan terhadap serangan phishing. Selalu tinjau URL dan berhati-hatilah saat menandatangani pesan yang berisi kode.",
-    "toggleEthSignModalFormError": "Teks ini salah. Coba lagi.",
-    "toggleEthSignModalFormLabel": "Masukkan \"Saya hanya menandatangani yang saya pahami\" untuk melanjutkan",
-    "toggleEthSignModalFormValidation": "Saya hanya menandatangani yang saya pahami",
-    "toggleEthSignModalTitle": "Gunakan dengan risiko Anda sendiri",
-    "toggleEthSignModalEnable": "Aktifkan",
-    "toggleEthSignModalLearnMore": "Selengkapnya.",
-    "toggleEthSignOff": "(Direkomendasikan)",
-    "toggleEthSignOn": "(Tidak direkomendasikan)",
-    "toggleEthSignContinueButton": "Lanjutkan",
-    "toggleEthSignEnableButton": "Aktifkan",
     "show_custom_nonce": "Sesuaikan nonce transaksi",
     "custom_nonce_desc": "Aktifkan ini untuk mengubah nonce (nomor transaksi) di layar konfirmasi. Ini merupakan fitur lanjutan, gunakan dengan hati-hati.",
     "accounts_identicon_title": "Identikon Akun",
@@ -1086,7 +1065,12 @@
     "simulation_details_description": "Aktifkan ini untuk mengestimasikan perubahan saldo transaksi sebelum Anda mengonfirmasikannya. Ini tidak menjamin hasil akhir transaksi Anda. ",
     "simulation_details_learn_more": "Selengkapnya.",
     "aes_crypto_test_form_title": "Kripto AES - Formulir Uji",
-    "aes_crypto_test_form_description": "Bagian khusus dikembangkan untuk pengujian E2E. Apabila terlihat di aplikasi, laporkan ke dukungan MetaMask."
+    "aes_crypto_test_form_description": "Bagian khusus dikembangkan untuk pengujian E2E. Apabila terlihat di aplikasi, laporkan ke dukungan MetaMask.",
+    "developer_options": {
+      "title": "Developer Options",
+      "generate_trace_test": "Generate Trace Test",
+      "generate_trace_test_desc": "Generate a Developer Test Sentry trace."
+    }
   },
   "aes_crypto_test_form": {
     "generate_random_salt": "Buat Salt Acak",
@@ -1464,7 +1448,8 @@
     "hex_data_copied": "Data hex disalin ke papan klip",
     "invalid_recipient": "Penerima tidak valid",
     "invalid_recipient_description": "Periksa alamatnya dan pastikan sudah valid",
-    "swap_tokens": "Tukar token"
+    "swap_tokens": "Tukar token",
+    "fromWithColon": "From:"
   },
   "custom_gas": {
     "total": "Total",
@@ -1751,6 +1736,7 @@
     "continue": "Lanjutkan",
     "cancel": "Batal",
     "approve": "Setujui",
+    "update": "Update",
     "edit_network_details": "Edit detail jaringan",
     "malicious_network_warning": "Penyedia jaringan jahat dapat berbohong tentang status blockchain dan merekam aktivitas jaringan Anda. Hanya tambahkan jaringan kustom yang Anda percayai.",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
@@ -1758,10 +1744,12 @@
     "additional_network_information_title": "Informasi Jaringan Tambahan",
     "network_warning_desc": "Koneksi jaringan ini mengandalkan pihak ketiga. Koneksi ini mungkin kurang bisa diandalkan atau memungkinkan pihak ketiga melacak aktivitas.",
     "additonial_network_information_desc": "Beberapa jaringan ini mengandalkan pihak ketiga. Koneksi ini kurang dapat diandalkan atau memungkinkan pihak ketiga melacak aktivitas.",
+    "connect_more_networks": "Connect more networks",
     "learn_more": "Pelajari selengkapnya",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "Beralih ke jaringan",
     "switch": "Alihkan",
+    "select_all": "Select all",
     "new_network": "Jaringan baru ditambahkan",
     "network_name": "Jaringan {{networkName}}",
     "network_added": " kini tersedia di pemilih jaringan.",
@@ -1778,7 +1766,19 @@
     "show_test_networks": "Tampilkan jaringan pengujian",
     "deprecated_goerli": "Sehubungan dengan perubahan protokol Ethereum: Jaringan uji Goerli mungkin tidak dapat beroperasi dengan baik dan akan segera dihentikan.",
     "network_deprecated_title": "Jaringan ini tidak digunakan lagi",
-    "network_deprecated_description": "Jaringan yang Anda coba hubungkan tidak lagi didukung di Metamask."
+    "network_deprecated_description": "Jaringan yang Anda coba hubungkan tidak lagi didukung di Metamask.",
+    "edit_networks_title": "Edit networks"
+  },
+  "permissions": {
+    "title_this_site_wants_to": "This site wants to:",
+    "title_dapp_url_wants_to": "{{dappUrl}} wants to:",
+    "title_dapp_url_has_approval_to": "{{dappUrl}} has approval to:",
+    "use_enabled_networks": "Use your enabled networks",
+    "wants_to_see_your_accounts": "See your accounts and suggest transactions",
+    "requesting_for": "Requesting for ",
+    "manage_permissions": "Manage Permissions",
+    "edit": "Edit",
+    "cancel": "Cancel"
   },
   "select": {
     "cancel": "Batal",
@@ -1795,8 +1795,7 @@
     "message": "Pesan",
     "message_from": "Pesan dari",
     "learn_more": "Pelajari selengkapnya",
-    "read_more": "Baca selengkapnya",
-    "eth_sign_warning": "Menandatangani pesan ini bisa sangat berbahaya. Tanda tangan ini berpotensi melakukan operasi atas nama akun Anda, termasuk memberikan kendali penuh atas akun Anda dan semua asetnya kepada situs yang mengirim permintaan. Tanda tangani pesan ini hanya jika Anda merasa yakin atau sepenuhnya memercayai situs yang mengirim permintaan."
+    "read_more": "Baca selengkapnya"
   },
   "watch_asset_request": {
     "title": "Tambahkan Token yang Disarankan",
@@ -2043,6 +2042,8 @@
     "back_to_safety": "Kembali ke keamanan"
   },
   "notifications": {
+    "no_date": "Unknown",
+    "yesterday": "Yesterday",
     "staked": "Di-stake",
     "received": "Diterima",
     "unstaked": "Stake dibatalkan",
@@ -2118,6 +2119,8 @@
     "success_withdrawal_title": "Penarikan Selesai!",
     "error_title": "Ups! Terjadi kesalahan :/",
     "received_title": "Anda menerima {{amount}} {{assetType}}",
+    "default_message_title": "New transaction notification",
+    "default_message_description": "Tap to view this transaction",
     "received_payment_title": "Pembayaran instan diterima",
     "pending_message": "Menunggu konfirmasi",
     "pending_deposit_message": "Menunggu deposit selesai",
@@ -2133,12 +2136,12 @@
     "cancelled_message": "Ketuk untuk melihat transaksi ini",
     "received_message": "Ketuk untuk melihat transaksi ini",
     "received_payment_message": "Anda menerima {{amount}} DAI",
-    "prompt_title": "Aktifkan Pemberitahuan Push",
+    "prompt_title": "Receive Push Notifications",
     "notifications_enabled_error_title": "Terjadi kesalahan",
     "notifications_enabled_error_desc": "Kami tidak dapat mengaktifkan notifikasi. Coba lagi nanti.",
-    "prompt_desc": "Aktifkan pemberitahuan agar MetaMask dapat memberitahukan saat Anda menerima ETH atau saat transaksi Anda telah dikonfirmasi.",
-    "prompt_ok": "Ya",
-    "prompt_cancel": "Tidak, terima kasih",
+    "prompt_desc": "Turn on notifications from Settings to get important alerts on wallet activity and more.",
+    "prompt_ok": "Turn on",
+    "prompt_cancel": "Maybe later",
     "wc_connected_title": "Terhubung dengan {{title}}",
     "wc_signed_title": "Ditandatangani",
     "wc_sent_tx_title": "Mengirim transaksi",
@@ -2819,13 +2822,8 @@
   },
   "switch_custom_network": {
     "title_existing_network": "Situs ini ingin beralih jaringan",
-    "title_enabled_network": "Situs ini ingin:",
     "title_new_network": "Jaringan baru ditambahkan",
     "switch_warning": "Ini akan mengalihkan jaringan yang dipilih dalam MetaMask ke jaringan yang ditambahkan sebelumnya:",
-    "use_enabled_networks": "Menggunakan jaringan aktif",
-    "wants_to_see_your_accounts": "Melihat akun Anda dan menyarangkan transaksi",
-    "requesting_for": "Meminta untuk ",
-    "edit": "Edit",
     "add_network_and_give_dapp_permission_warning": "Anda menambahkan jaringan ini ke MetaMask dan memberikan {{dapp_origin}} izin untuk menggunakannya.",
     "available": "kini tersedia di pemilih jaringan.",
     "cancel": "Batal",
@@ -2917,7 +2915,7 @@
   },
   "transaction_review_eip1559": {
     "estimated_gas_fee": "Estimasi biaya gas",
-    "suggested_gas_fee": "%{origin} biaya gas yang disarankan",
+    "network_fee": "Network fee",
     "max_fee": "Biaya maks",
     "total": "Total",
     "max_amount": "Jumlah maks",
@@ -3157,6 +3155,7 @@
     "ledger_reminder_message_step_four": "4. Lokasi diaktifkan dengan menggunakan lokasi yang tepat",
     "ledger_reminder_message_step_four_Androidv12plus": "4. Perangkat terdekat diaktifkan",
     "ledger_reminder_message_step_five": "5. Jangan ganggu harus dinonaktifkan",
+    "blind_signing_message": "6. Enable \"blind signing\" on your Ledger device.",
     "available_devices": "Perangkat yang tersedia",
     "retry": "Coba lagi",
     "continue": "Lanjutkan",
@@ -3187,7 +3186,15 @@
     "how_to_install_eth_webview_title": "Cara menginstal Aplikasi Ethereum",
     "nonce_too_low": "Nonce terlalu rendah",
     "nonce_too_low_error": "Nonce yang ditetapkan terlalu rendah",
-    "select_accounts": "Pilih Akun"
+    "select_accounts": "Select an account",
+    "select_hd_path": "Select HD Path",
+    "select_hd_path_description": "If you don't see the accounts you expect, try switching the HD path or current selected network.",
+    "ledger_live_path": "Ledger Live",
+    "ledger_legacy_path": "Legacy(MEW/MyCrypto)",
+    "ledger_bip44_path": "BIP44(e.g. MetaMask, Trezor)",
+    "ledger_legacy_label": " (legacy)",
+    "blind_sign_error": "Blind signing error",
+    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings."
   },
   "account_actions": {
     "edit_name": "Edit nama akun",
@@ -3241,7 +3248,21 @@
     "error_description": "Instalasi {{snap}} gagal."
   },
   "stake": {
-    "stake": "Stake"
+    "stake": "Stake",
+    "stake_eth": "Stake ETH",
+    "your_earnings": "Your earnings",
+    "annual_rate": "Annual rate",
+    "lifetime_rewards": "Lifetime rewards",
+    "estimated_annual_earnings": "Estimated annual earnings",
+    "accessibility_labels": {
+      "stake_annual_rate_tooltip": "Annual rate tooltip"
+    },
+    "estimated_annual_rewards": "Estimated annual rewards",
+    "metamask_pool": "MetaMask Pool",
+    "enter_amount": "Enter amount",
+    "review": "Review",
+    "not_enough_eth": "Not enough ETH",
+    "balance": "Balance"
   },
   "default_settings": {
     "title": "Dompet Anda sudah siap",
@@ -3290,6 +3311,14 @@
     "title": "Kami telah melihat banyak permintaan"
   },
   "common": {
-    "please_wait": "Mohon tunggu"
+    "please_wait": "Mohon tunggu",
+    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
+    "disconnect": "Disconnect"
+  },
+  "tooltip_modal": {
+    "reward_rate": {
+      "title": "Reward rate",
+      "tooltip": "Expected yearly increase in the value of your stake, based on the reward rate over the past week."
+    }
   }
 }

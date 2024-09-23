@@ -132,7 +132,7 @@ stages:
       - android_e2e_build: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      # - run_ios_api_specs: {} flakiness in pipeline. Disabling for now
+      - run_ios_api_specs: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_assets_ios: {}
@@ -397,6 +397,9 @@ workflows:
 
                 >[!NOTE]
                 >- You can kick off another `${BITRISEIO_PIPELINE_TITLE}` on Bitrise by removing and re-applying the `Run Smoke E2E` label on the pull request
+
+                > [!TIP]
+                >- Check the [documentation](https://www.notion.so/metamask-consensys/Bitrise-Pipeline-Overview-43159500c43748a389556f0593e8834b#26052f2ea6e24f8c9cfdb57a7522dc1f) if you have any doubts on how to understand the failure on bitrise
 
                 <!-- BITRISE_TAG -->
                 <!-- BITRISE_FAIL_TAG -->
@@ -1494,16 +1497,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.30.0
+      VERSION_NAME: 7.31.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1410
+      VERSION_NUMBER: 1432
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.30.0
+      FLASK_VERSION_NAME: 7.31.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1410
+      FLASK_VERSION_NUMBER: 1432
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -1534,10 +1537,12 @@ meta:
     machine_type_id: g2-m1-max.5core
 trigger_map:
   - push_branch: release/*
-    pipeline: release_e2e_pipeline
+    pipeline: pr_regression_e2e_pipeline
   - push_branch: main
     pipeline: app_launch_times_pipeline
   - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline
+  - tag: 'v*.*.*-RC-*'
+    pipeline: release_e2e_pipeline

@@ -58,11 +58,6 @@
   },
   "NetworkController": {
     "networkConfigurations": {},
-    "providerConfig": {
-      "type": "mainnet",
-      "chainId": "0x1",
-      "ticker": "ETH"
-    },
     "networksMetadata": {
       "mainnet": {
         "EIPS": {},
@@ -133,26 +128,28 @@
   },
   "SmartTransactionsController": {
     "smartTransactionsState": {
-      "smartTransactions": {},
-      "userOptIn": false,
-      "userOptInV2": false,
+      "smartTransactions": {
+        "0x1": []
+      },
+      "userOptIn": null,
+      "userOptInV2": null,
       "fees": {
-        "approvalTxFees": false,
-        "tradeTxFees": false
+        "approvalTxFees": null,
+        "tradeTxFees": null
       },
       "liveness": true,
       "livenessByChainId": {
-        "mainnet": true,
-        "sepolia": true
+        "0x1": true,
+        "0xaa36a7": true
       },
       "feesByChainId": {
-        "mainnet": {
-          "approvalTxFees": false,
-          "tradeTxFees": false
+        "0x1": {
+          "approvalTxFees": null,
+          "tradeTxFees": null
         },
-        "sepolia": {
-          "approvalTxFees": false,
-          "tradeTxFees": false
+        "0xaa36a7": {
+          "approvalTxFees": null,
+          "tradeTxFees": null
         }
       }
     }
@@ -232,11 +229,12 @@
   "PermissionController": {
     "subjects": {}
   },
+  "SelectedNetworkController": {
+    "domains": {}
+  },
   "SignatureController": {
-    "unapprovedMsgs": {},
     "unapprovedPersonalMsgs": {},
     "unapprovedTypedMessages": {},
-    "unapprovedMsgCount": 0,
     "unapprovedPersonalMsgCount": 0,
     "unapprovedTypedMessagesCount": 0
   },

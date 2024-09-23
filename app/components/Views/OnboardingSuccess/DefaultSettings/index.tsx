@@ -18,11 +18,14 @@ import styles from './index.styles';
 import ProfileSyncingComponent from '../../../../components/UI/ProfileSyncing/ProfileSyncing';
 import { useSelector } from 'react-redux';
 import { selectIsProfileSyncingEnabled } from '../../../../selectors/notifications';
+import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
 import { enableProfileSyncing } from '../../../../actions/notification/helpers';
 import { RootState } from '../../../../reducers';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 
 const DefaultSettings = () => {
   const navigation = useNavigation();
+  const { trackEvent } = useMetrics();
   const isBasicFunctionalityEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
@@ -58,6 +61,13 @@ const DefaultSettings = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY,
     });
+    trackEvent(MetaMetricsEvents.SETTINGS_UPDATED, {
+      settings_group: 'onboarding_advanced_configuration',
+      settings_type: 'basic_functionality',
+      old_value: isBasicFunctionalityEnabled,
+      new_value: !isBasicFunctionalityEnabled,
+      was_profile_syncing_on: isProfileSyncingEnabled,
+    });
   };
 
   const handleLink = () => {
@@ -72,6 +82,12 @@ const DefaultSettings = () => {
     } else {
       await enableProfileSyncing();
     }
+    trackEvent(MetaMetricsEvents.SETTINGS_UPDATED, {
+      settings_group: 'onboarding_advanced_configuration',
+      settings_type: 'profile_syncing',
+      old_value: isProfileSyncingEnabled,
+      new_value: !isProfileSyncingEnabled,
+    });
   };
 
   return (
@@ -84,11 +100,13 @@ const DefaultSettings = () => {
         </Text>
       </Text>
       <BasicFunctionalityComponent handleSwitchToggle={handleSwitchToggle} />
-      <ProfileSyncingComponent
-        handleSwitchToggle={toggleProfileSyncing}
-        isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
-        isProfileSyncingEnabled={isProfileSyncingEnabled}
-      />
+      {isNotificationsFeatureEnabled() && (
+        <ProfileSyncingComponent
+          handleSwitchToggle={toggleProfileSyncing}
+          isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
+          isProfileSyncingEnabled={isProfileSyncingEnabled}
+        />
+      )}
       <ManageNetworksComponent />
     </ScrollView>
   );
