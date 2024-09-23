@@ -1230,17 +1230,13 @@ class Engine {
 
     const authenticationController = new AuthenticationController.Controller({
       state: initialState.AuthenticationController,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'AuthenticationController',
         allowedActions: [
           'KeyringController:getState',
-          'KeyringController:getAccounts',
-
           'SnapController:handleRequest',
-          'UserStorageController:enableProfileSyncing',
         ],
-        allowedEvents: ['KeyringController:unlock', 'KeyringController:lock'],
+        allowedEvents: ['KeyringController:lock', 'KeyringController:unlock'],
       }),
       metametrics: {
         agent: 'mobile',
@@ -1252,12 +1248,12 @@ class Engine {
     const userStorageController = new UserStorageController.Controller({
       getMetaMetricsState: () => MetaMetrics.getInstance().isEnabled(),
       state: initialState.UserStorageController,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'UserStorageController',
         allowedActions: [
-          'SnapController:handleRequest',
           'KeyringController:getState',
+          'KeyringController:addNewAccount',
+          'SnapController:handleRequest',
           'AuthenticationController:getBearerToken',
           'AuthenticationController:getSessionProfile',
           'AuthenticationController:isSignedIn',
@@ -1265,14 +1261,20 @@ class Engine {
           'AuthenticationController:performSignIn',
           'NotificationServicesController:disableNotificationServices',
           'NotificationServicesController:selectIsNotificationServicesEnabled',
+          'AccountsController:listAccounts',
+          'AccountsController:updateAccountMetadata',
         ],
-        allowedEvents: ['KeyringController:unlock', 'KeyringController:lock'],
+        allowedEvents: [
+          'KeyringController:lock',
+          'KeyringController:unlock',
+          'AccountsController:accountAdded',
+          'AccountsController:accountRenamed',
+        ],
       }),
     });
 
     const notificationServicesController =
       new NotificationServicesController.Controller({
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'NotificationServicesController',
           allowedActions: [
