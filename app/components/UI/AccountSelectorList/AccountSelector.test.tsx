@@ -236,10 +236,10 @@ describe('AccountSelectorList', () => {
       },
     };
 
-    const { findByText } = renderComponent(stateWithSnapAccount);
+    const { queryByText } = renderComponent(stateWithSnapAccount);
 
     await waitFor(async () => {
-      const snapTag = await findByText('Snaps (beta)');
+      const snapTag = await queryByText('Snaps (beta)');
       expect(snapTag).toBeDefined();
     });
   });
