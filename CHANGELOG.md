@@ -5,10 +5,8 @@
 ## 7.32.0 - Sep 19, 2024
 
 ### Added
-- [#11093](https://github.com/MetaMask/metamask-mobile/pull/11093): feat: 7.31.0 (#11093)
+
 - [#10294](https://github.com/MetaMask/metamask-mobile/pull/10294): feat: create redux slice for featureFlags (#10294)
-- [#11310](https://github.com/MetaMask/metamask-mobile/pull/11310): fix: quick fix on feature flag & notification state (#11310)
-- [#11200](https://github.com/MetaMask/metamask-mobile/pull/11200): fix: add feature flag on profile sync (#11200)
 - [#11314](https://github.com/MetaMask/metamask-mobile/pull/11314): feat: reject connection properly (#11314)
 - [#11132](https://github.com/MetaMask/metamask-mobile/pull/11132): feat: Add performance tracing infrastructure (#11132)
 - [#10061](https://github.com/MetaMask/metamask-mobile/pull/10061): feat: new receive flow (#10061)
@@ -17,9 +15,8 @@
 - [#10988](https://github.com/MetaMask/metamask-mobile/pull/10988): feat(2808): add a mocked UI checkbox list that will later allow adding the ability to edit network permission (#10988)
 - [#11168](https://github.com/MetaMask/metamask-mobile/pull/11168): feat: add pooled staking input flow screen (#11168)
 - [#10964](https://github.com/MetaMask/metamask-mobile/pull/10964): feat: build your earnings component stub in eth token details (#10964)
-- [#11117](https://github.com/MetaMask/metamask-mobile/pull/11117): fix: add feat flag (#11117)
 - [#11051](https://github.com/MetaMask/metamask-mobile/pull/11051): feat: add brand evo font files (#11051)
-- [#11285](https://github.com/MetaMask/metamask-mobile/pull/11285): Feat/notifications add analytics (#11285)
+- [#11285](https://github.com/MetaMask/metamask-mobile/pull/11285): feat: notifications add analytics (#11285)
 - [#10755](https://github.com/MetaMask/metamask-mobile/pull/10755): feat: ledger account selection screen add hd options to sync with extension (#10755)
 - [#11195](https://github.com/MetaMask/metamask-mobile/pull/11195): feat: add AppState dependency to load notifications (#11195)
 - [#11175](https://github.com/MetaMask/metamask-mobile/pull/11175): feat: add product announcements toggle (#11175)
@@ -51,7 +48,6 @@
 - [#11235](https://github.com/MetaMask/metamask-mobile/pull/11235): ci: avoid running release pipeline on every commit to the release branch (#11235)
 - [#11094](https://github.com/MetaMask/metamask-mobile/pull/11094): chore: chore/7.31.0-Changelog (#11094)
 - [#10788](https://github.com/MetaMask/metamask-mobile/pull/10788): chore: Add `@metamask/selected-network-controller` & integrate (#10788)
-- [#11084](https://github.com/MetaMask/metamask-mobile/pull/11084): fix: locks api spec version for api spec tests (#11084)
 - [#11122](https://github.com/MetaMask/metamask-mobile/pull/11122): test: e2e for auto-lock  (#11122)
 - [#11143](https://github.com/MetaMask/metamask-mobile/pull/11143): chore: bump react native webview to 14.0.3 version (#11143)
 - [#11284](https://github.com/MetaMask/metamask-mobile/pull/11284): chore: add notifications state awareness inapp badge (#11284)
@@ -64,12 +60,16 @@
 - [#10821](https://github.com/MetaMask/metamask-mobile/pull/10821): chore(deps): bump `accounts-controller` to v18.1.0 and `keyring-api` to v8.1.0 (#10821)
 
 ### Fixed
+- [#11117](https://github.com/MetaMask/metamask-mobile/pull/11117): fix: add feat flag (#11117)
+- [#11084](https://github.com/MetaMask/metamask-mobile/pull/11084): fix: locks api spec version for api spec tests (#11084)
+- [#11310](https://github.com/MetaMask/metamask-mobile/pull/11310): fix: quick fix on feature flag & notification state (#11310)
+- [#11200](https://github.com/MetaMask/metamask-mobile/pull/11200): fix: add feature flag on profile sync (#11200)
 - [#11302](https://github.com/MetaMask/metamask-mobile/pull/11302): fix: cp & resolve merge conflict (#11302)
 - [#11130](https://github.com/MetaMask/metamask-mobile/pull/11130): fix(action): add a workaround for known bots (#11130)
 - [#11173](https://github.com/MetaMask/metamask-mobile/pull/11173): fix: dset version (#11173)
 - [#10899](https://github.com/MetaMask/metamask-mobile/pull/10899): fix: Android crash when svgs use the &quot; html entity (#10899)
 - [#11126](https://github.com/MetaMask/metamask-mobile/pull/11126): fix: Skip sonar cloud gate in step instead (#11126)
-- [#11121](https://github.com/MetaMask/metamask-mobile/pull/11121): "fix: Add new job to verify ""All jobs pass"" job for required PR check (#11121)"
+- [#11121](https://github.com/MetaMask/metamask-mobile/pull/11121): fix: Add new job to verify ""All jobs pass"" job for required PR check (#11121)
 - [#11266](https://github.com/MetaMask/metamask-mobile/pull/11266): fix: notification permission flow (#11266)
 - [#11252](https://github.com/MetaMask/metamask-mobile/pull/11252): fix: notification permission request message (#11252)
 - [#11155](https://github.com/MetaMask/metamask-mobile/pull/11155): fix: android crashing on date formating Intl usage. (#11155)
