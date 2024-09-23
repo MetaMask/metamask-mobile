@@ -6,7 +6,7 @@ on:
       - main
     types:
       - closed
-
+    
 jobs:
   close-bug-report:
     runs-on: ubuntu-latest

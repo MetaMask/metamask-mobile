@@ -1,0 +1,7 @@
+{
+  "localhost": "localhost",
+  "defaultMockPort": 8000,
+  "urls": {
+    "suggestedGasApiMainnet": "'https://gas.api.cx.metamask.io/networks/1/suggestedGasFees'"
+  }
+}

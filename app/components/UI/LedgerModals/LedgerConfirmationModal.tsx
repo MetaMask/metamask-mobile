@@ -47,6 +47,8 @@ const LedgerConfirmationModal = ({
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { trackEvent } = useMetrics();
+  const [delayClose, setDelayClose] = useState(false);
+  const [completeClose, setCompleteClose] = useState(false);
   const [permissionErrorShown, setPermissionErrorShown] = useState(false);
   const {
     isSendingLedgerCommands,
@@ -115,6 +117,16 @@ const LedgerConfirmationModal = ({
   }, [hasBluetoothPermissions, bluetoothOn]);
 
   useEffect(() => {
+    if (isSendingLedgerCommands && !delayClose && !completeClose) {
+      setDelayClose(true);
+      setTimeout(() => {
+        setDelayClose(false);
+        setCompleteClose(true);
+      }, 2000);
+    }
+  }, [completeClose, delayClose, isSendingLedgerCommands]);
+
+  useEffect(() => {
     if (ledgerError) {
       switch (ledgerError) {
         case LedgerCommunicationErrors.FailedToOpenApp:
@@ -139,6 +151,12 @@ const LedgerConfirmationModal = ({
           setErrorDetails({
             title: strings('ledger.ledger_is_locked'),
             subtitle: strings('ledger.unlock_ledger_message'),
+          });
+          break;
+        case LedgerCommunicationErrors.BlindSignError:
+          setErrorDetails({
+            title: strings('ledger.blind_sign_error'),
+            subtitle: strings('ledger.blind_sign_error_message'),
           });
           break;
         case LedgerCommunicationErrors.UserRefusedConfirmation:
@@ -265,7 +283,7 @@ const LedgerConfirmationModal = ({
     );
   }
 
-  if (!isSendingLedgerCommands) {
+  if (!isSendingLedgerCommands || !completeClose) {
     return (
       <SafeAreaView style={styles.wrapper}>
         <View style={styles.contentWrapper}>

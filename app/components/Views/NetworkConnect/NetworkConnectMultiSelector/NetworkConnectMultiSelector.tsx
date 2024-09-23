@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useState } from 'react';
-import { Platform, View } from 'react-native';
+import { Platform, SafeAreaView, View } from 'react-native';
 
 // External dependencies.
 import { strings } from '../../../../../locales/i18n';
@@ -34,8 +34,9 @@ const NetworkConnectMultiSelector = ({
   urlWithProtocol,
   hostname,
   onBack,
+  isRenderedAsBottomSheet = true,
 }: NetworkConnectMultiSelectorProps) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
   const [selectedNetworkIds, setSelectedNetworkIds] = useState<string[]>([]);
 
@@ -185,19 +186,21 @@ const NetworkConnectMultiSelector = ({
 
   const renderNetworkConnectMultiSelector = useCallback(
     () => (
-      <View style={styles.bottomSheetContainer}>
-        <SheetHeader
-          title={strings('networks.edit_networks_title')}
-          onBack={onBack}
-        />
-        <View style={styles.bodyContainer}>{renderSelectAllCheckbox()}</View>
-        <NetworkSelectorList
-          networks={mockNetworks}
-          selectedNetworkIds={selectedNetworkIds}
-          onSelectNetwork={onSelectNetwork}
-        ></NetworkSelectorList>
-        <View style={styles.bodyContainer}>{renderCtaButtons()}</View>
-      </View>
+      <SafeAreaView>
+        <View style={styles.bottomSheetContainer}>
+          <SheetHeader
+            title={strings('networks.edit_networks_title')}
+            onBack={onBack}
+          />
+          <View style={styles.bodyContainer}>{renderSelectAllCheckbox()}</View>
+          <NetworkSelectorList
+            networks={mockNetworks}
+            selectedNetworkIds={selectedNetworkIds}
+            onSelectNetwork={onSelectNetwork}
+          ></NetworkSelectorList>
+          <View style={styles.bodyContainer}>{renderCtaButtons()}</View>
+        </View>
+      </SafeAreaView>
     ),
     [
       mockNetworks,

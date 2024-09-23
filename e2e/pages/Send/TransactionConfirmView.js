@@ -71,6 +71,12 @@ class TransactionConfirmationView {
     return Matchers.getElementByText(EditGasViewSelectorsText.ADVANCE_OPTIONS);
   }
 
+  get editPriorityModal() {
+    return Matchers.getElementByText(
+      TransactionConfirmViewSelectorsText.EDIT_PRIORITY_MODAL,
+    );
+  }
+
   async tapConfirmButton() {
     await Gestures.waitAndTap(this.confirmButton);
   }
@@ -79,10 +85,9 @@ class TransactionConfirmationView {
     await Gestures.waitAndTap(this.cancelButton);
   }
 
-  async tapEstimatedGasLink() {
+  async tapEstimatedGasLink(index = 0) {
     await Gestures.swipe(this.transactionAmount, 'up', 'fast');
-
-    await Gestures.waitAndTap(this.estimatedGasLink);
+    await Gestures.TapAtIndex(this.estimatedGasLink, index);
   }
 
   async tapLowPriorityGasOption() {

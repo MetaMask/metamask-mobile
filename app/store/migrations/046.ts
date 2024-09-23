@@ -1,11 +1,22 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
-import { NetworkState } from '@metamask/network-controller';
 import { NetworkType } from '@metamask/controller-utils';
 import { LINEA_SEPOLIA_BLOCK_EXPLORER } from '../../../app/constants/urls';
 import { ensureValidState } from './util';
 import { CHAINLIST_CURRENCY_SYMBOLS_MAP } from '../../constants/network';
+
+interface NetworkState {
+  providerConfig: {
+    chainId: string;
+    ticker: string;
+    type: string;
+    rpcPrefs: {
+      blockExplorerUrl: string;
+    };
+  };
+  selectedNetworkClientId: string;
+}
 
 export default function migrate(state: unknown) {
   if (!ensureValidState(state, 46)) {
