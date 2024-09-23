@@ -11,10 +11,11 @@ import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import Assertions from '../../utils/Assertions';
+import { Regression } from '../../tags';
 
 const AccountTwoText = 'Account 2';
 
-describe('Connecting to multiple dapps and revoking permission on one but staying connected to the other', () => {
+describe(Regression('Connecting to multiple dapps and revoking permission on one but staying connected to the other'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
