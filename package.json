@@ -156,7 +156,7 @@
     "@metamask/base-controller": "^7.0.1",
     "@metamask/composable-controller": "^9.0.0",
     "@metamask/contract-metadata": "^2.1.0",
-    "@metamask/controller-utils": "^10.0.0",
+    "@metamask/controller-utils": "^11.3.0",
     "@metamask/design-tokens": "^4.0.0",
     "@metamask/eth-ledger-bridge-keyring": "^4.1.0",
     "@metamask/eth-query": "^4.0.0",
