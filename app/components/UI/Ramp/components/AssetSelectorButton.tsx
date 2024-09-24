@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import Box from './Box';
 import CurrencyChevron from './CurrencyChevron';
 import ListItem from '../../../../component-library/components/List/ListItem';
