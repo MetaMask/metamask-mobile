@@ -77,8 +77,8 @@ describe('Date util :: formatTimestampToYYYYMMDD', () => {
 });
 
 describe('Date util :: getDaysAndHoursRemaining', () => {
-  // 2024-09-23 19:39:02
-  const MOCK_NOW = 1727120342806;
+  // 2024-09-24 19:19:41
+  const MOCK_NOW = 1727205581107;
 
   const mockDateNow = jest.spyOn(Date, 'now');
 
@@ -93,21 +93,40 @@ describe('Date util :: getDaysAndHoursRemaining', () => {
   it('returns time difference between timestamp and now', () => {
     mockDateNow.mockImplementation(() => MOCK_NOW);
 
-    // 2024-09-23 16:53:35 UTC
-    const TIMESTAMP = 1727110415000;
+    // 2024-09-29 23:54:41 (5 days, 4 hours, and 35 minutes after MOCK_NOW)
+    const TIMESTAMP = 1727654081107;
 
-    const { days, hours } = getTimeDifferenceFromNow(Number(TIMESTAMP));
+    const { days, hours, minutes } = getTimeDifferenceFromNow(
+      Number(TIMESTAMP),
+    );
 
-    expect(days).toBe(0);
-    expect(hours).toBe(2);
+    expect(days).toBe(5);
+    expect(hours).toBe(4);
+    expect(minutes).toBe(35);
   });
 
   it('returns correct value when timestamp and current time are identical', () => {
     mockDateNow.mockImplementation(() => MOCK_NOW);
 
-    const { days, hours } = getTimeDifferenceFromNow(Number(MOCK_NOW));
+    const { days, hours, minutes } = getTimeDifferenceFromNow(Number(MOCK_NOW));
 
     expect(days).toBe(0);
     expect(hours).toBe(0);
+    expect(minutes).toBe(0);
+  });
+
+  it('returns default value when timestamp passed in is in the past', () => {
+    // 2024-09-21 19:19:41 (3 days before MOCK_NOW)
+    const TIMESTAMP = 1726946381107;
+
+    mockDateNow.mockImplementation(() => MOCK_NOW);
+
+    const { days, hours, minutes } = getTimeDifferenceFromNow(
+      Number(TIMESTAMP),
+    );
+
+    expect(days).toBe(0);
+    expect(hours).toBe(0);
+    expect(minutes).toBe(0);
   });
 });
