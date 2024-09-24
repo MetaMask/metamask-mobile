@@ -15,7 +15,7 @@ for (const arg of args) {
     case '--build-ios':
       BUILD_IOS = true;
       continue;
-    case '--skip-ios':
+    case '--no-build-ios':
       BUILD_IOS = false;
       continue;
     case '--node':
