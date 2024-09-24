@@ -199,7 +199,7 @@
     "@metamask/transaction-controller": "^35.0.0",
     "@metamask/utils": "^9.2.1",
     "@ngraveio/bc-ur": "^1.1.6",
-    "@notifee/react-native": "^7.8.2",
+    "@notifee/react-native": "^9.0.0",
     "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-native-clipboard/clipboard": "1.8.4",
     "@react-native-community/blur": "^4.4.0",
@@ -208,8 +208,8 @@
     "@react-native-community/netinfo": "^9.5.0",
     "@react-native-community/slider": "^4.4.3",
     "@react-native-cookies/cookies": "^6.2.1",
-    "@react-native-firebase/app": "^20.1.0",
-    "@react-native-firebase/messaging": "^20.1.0",
+    "@react-native-firebase/app": "^20.5.0",
+    "@react-native-firebase/messaging": "^20.5.0",
     "@react-native-masked-view/masked-view": "^0.3.1",
     "@react-native-picker/picker": "^2.2.1",
     "@react-native/eslint-config": "^0.75.2",
@@ -591,7 +591,8 @@
       "@metamask/notification-services-controller>firebase>@firebase/firestore>@grpc/proto-loader>protobufjs": false,
       "@metamask/sdk-communication-layer>eciesjs>secp256k1": false,
       "detox>ws>utf-8-validate": false,
-      "ganache>@trufflesuite/uws-js-unofficial>utf-8-validate": false
+      "ganache>@trufflesuite/uws-js-unofficial>utf-8-validate": false,
+      "@react-native-firebase/app>firebase>@firebase/firestore>@grpc/proto-loader>protobufjs": false
     }
   },
   "packageManager": "yarn@1.22.22"
