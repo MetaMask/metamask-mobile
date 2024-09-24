@@ -489,7 +489,11 @@ exports[`AssetOverview should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#6a737d",
+                  "0": {
+                    "color": "#6a737d",
+                  },
+                  "1": undefined,
+                  "color": "#141618",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -584,7 +588,11 @@ exports[`AssetOverview should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#6a737d",
+                  "0": {
+                    "color": "#6a737d",
+                  },
+                  "1": undefined,
+                  "color": "#141618",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -679,7 +687,11 @@ exports[`AssetOverview should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#6a737d",
+                  "0": {
+                    "color": "#6a737d",
+                  },
+                  "1": undefined,
+                  "color": "#141618",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -774,7 +786,11 @@ exports[`AssetOverview should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#6a737d",
+                  "0": {
+                    "color": "#6a737d",
+                  },
+                  "1": undefined,
+                  "color": "#141618",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -869,7 +885,11 @@ exports[`AssetOverview should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#6a737d",
+                  "0": {
+                    "color": "#6a737d",
+                  },
+                  "1": undefined,
+                  "color": "#141618",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",

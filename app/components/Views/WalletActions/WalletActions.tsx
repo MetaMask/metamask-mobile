@@ -21,7 +21,6 @@ import useGoToBridge from '../../../components/UI/Bridge/utils/useGoToBridge';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
-import { strings } from '../../../../locales/i18n';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import WalletAction from '../../../components/UI/WalletAction';
 import { useStyles } from '../../../component-library/hooks';
@@ -39,6 +38,9 @@ import {
   createBuyNavigationDetails,
   createSellNavigationDetails,
 } from '../../UI/Ramp/routes/utils';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import { EthMethod } from '@metamask/keyring-api';
+import { WalletActionType } from '../../UI/WalletAction/WalletAction.types';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -53,6 +55,11 @@ const WalletActions = () => {
 
   const [isNetworkRampSupported] = useRampNetwork();
   const { trackEvent } = useMetrics();
+
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const canSignTransactions = selectedAccount?.methods?.includes(
+    EthMethod.SignTransaction,
+  );
 
   const onReceive = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
@@ -126,56 +133,52 @@ const WalletActions = () => {
       <View style={styles.actionsContainer}>
         {isNetworkRampSupported && (
           <WalletAction
-            actionTitle={strings('asset_overview.buy_button')}
-            actionDescription={strings('asset_overview.buy_description')}
+            actionType={WalletActionType.Buy}
             iconName={IconName.Add}
             iconSize={AvatarSize.Md}
             onPress={onBuy}
             iconStyle={styles.icon}
             actionID={WalletActionsModalSelectorsIDs.BUY_BUTTON}
+            disabled={!canSignTransactions}
           />
         )}
-
         {isNetworkRampSupported && (
           <WalletAction
-            actionTitle={strings('asset_overview.sell_button')}
-            actionDescription={strings('asset_overview.sell_description')}
+            actionType={WalletActionType.Sell}
             iconName={IconName.MinusBold}
             iconSize={AvatarSize.Md}
             onPress={onSell}
             iconStyle={styles.icon}
             actionID={WalletActionsModalSelectorsIDs.SELL_BUTTON}
+            disabled={!canSignTransactions}
           />
         )}
-
         {AppConstants.SWAPS.ACTIVE &&
           swapsIsLive &&
           isSwapsAllowed(chainId) && (
             <WalletAction
-              actionTitle={strings('asset_overview.swap')}
-              actionDescription={strings('asset_overview.swap_description')}
+              actionType={WalletActionType.Swap}
               iconName={IconName.SwapHorizontal}
               iconSize={AvatarSize.Md}
               onPress={goToSwaps}
               iconStyle={styles.icon}
               actionID={WalletActionsModalSelectorsIDs.SWAP_BUTTON}
+              disabled={!canSignTransactions}
             />
           )}
-
         {isBridgeAllowed(chainId) && (
           <WalletAction
-            actionTitle={strings('asset_overview.bridge')}
-            actionDescription={strings('asset_overview.bridge_description')}
+            actionType={WalletActionType.Bridge}
             iconName={IconName.Bridge}
             iconSize={AvatarSize.Md}
             onPress={goToBridge}
             iconStyle={styles.icon}
             actionID={WalletActionsModalSelectorsIDs.BRIDGE_BUTTON}
+            disabled={!canSignTransactions}
           />
         )}
         <WalletAction
-          actionTitle={strings('asset_overview.send_button')}
-          actionDescription={strings('asset_overview.send_description')}
+          actionType={WalletActionType.Send}
           iconName={IconName.Arrow2Right}
           iconSize={AvatarSize.Md}
           onPress={onSend}
@@ -184,10 +187,10 @@ const WalletActions = () => {
             ...styles.icon,
           }}
           actionID={WalletActionsModalSelectorsIDs.SEND_BUTTON}
+          disabled={!canSignTransactions}
         />
         <WalletAction
-          actionTitle={strings('asset_overview.receive_button')}
-          actionDescription={strings('asset_overview.receive_description')}
+          actionType={WalletActionType.Receive}
           iconName={IconName.Received}
           iconSize={AvatarSize.Md}
           onPress={onReceive}
