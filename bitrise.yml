@@ -1271,13 +1271,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                if [ "$SENTRY_DISABLE_AUTO_UPLOAD" = "true" ]; then
-                  echo "Skipping Sentry sourcemap creation and upload..."
-                  METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' SKIP_SENTRY_UPLOAD=true yarn build:ios:pre-release
-                else
-                  echo "Creating and uploading Sentry sourcemap..."
-                  METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
-                fi
+                METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
           title: iOS Sourcemaps & Build
           is_always_run: false
       - deploy-to-bitrise-io@2.2.3:
