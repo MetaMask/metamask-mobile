@@ -1243,6 +1243,7 @@ class Amount extends PureComponent {
       isNetworkBuyNativeTokenSupported,
       swapsIsLive,
       chainId,
+      ticker,
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
@@ -1346,11 +1347,20 @@ class Amount extends PureComponent {
               onPress={navigateToBuyOrSwaps}
               style={styles.errorBuyWrapper}
             >
-              <Text style={styles.error}>{amountError}</Text>
-              {isNetworkBuyNativeTokenSupported && selectedAsset.isETH && (
-                <Text style={[styles.error, styles.underline]}>
-                  {strings('transaction.buy_more')}
+              {isNetworkBuyNativeTokenSupported && selectedAsset.isETH ? (
+                <Text style={[styles.error]}>
+                  {strings('transaction.more_to_continue', {
+                    ticker: getTicker(ticker),
+                  })}
+                  {'\n'}
+                  <Text style={[styles.error, styles.underline]}>
+                    {strings('transaction.token_Marketplace')}
+                  </Text>
+                  {'\n'}
+                  {strings('transaction.you_can_also_send_funds')}
                 </Text>
+              ) : (
+                <Text style={styles.error}>{amountError}</Text>
               )}
 
               {isSwappable && (

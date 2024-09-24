@@ -666,7 +666,7 @@ class TransactionReviewInformation extends PureComponent {
     const errorPress = this.isTestNetwork() ? this.goToFaucet : this.buyEth;
     const errorLinkText = this.isTestNetwork()
       ? strings('transaction.go_to_faucet')
-      : strings('transaction.buy_more');
+      : strings('transaction.token_marketplace');
 
     const showFeeMarket =
       (!gasEstimateType ||
