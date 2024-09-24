@@ -13,7 +13,6 @@ describe(SmokeSwaps('Token Chart Tests'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await device.launchApp();
-
   });
 
   it('should import wallet and go to the wallet view', async () => {

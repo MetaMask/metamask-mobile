@@ -27,7 +27,6 @@ const validAccount = Accounts.getValidAccount();
 describe(Regression('Add custom default ETH Mainnet'), () => {
   beforeAll(async () => {
     await device.launchApp();
-
   });
 
   it('should navigate to edit custom default ETH Mainnet from Opt-In screen', async () => {

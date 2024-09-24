@@ -21,7 +21,6 @@ describe(SmokeCore('Send ERC Token'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await device.launchApp();
-
   });
 
   it('should import wallet and go to the wallet view', async () => {
