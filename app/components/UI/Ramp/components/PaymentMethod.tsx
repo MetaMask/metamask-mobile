@@ -2,7 +2,6 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import Box from './Box';
 import Feather from 'react-native-vector-icons/Feather';
-import Text from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
 import { strings } from '../../../../../locales/i18n';
 import { TimeDescriptions, timeToDescription } from '../utils';
@@ -11,10 +10,14 @@ import { Colors } from '../../../../util/theme/models';
 import PaymentMethodBadges from './PaymentMethodBadges';
 import { Payment } from '@consensys/on-ramp-sdk';
 import PaymentMethodIcon from './PaymentMethodIcon';
-// TODO: Convert into typescript and correctly type optionals
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ListItem = BaseListItem as any;
+import ListItem from '../../../../component-library/components/List/ListItem';
+import ListItemColumn, {
+  WidthType,
+} from '../../../../component-library/components/List/ListItemColumn';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../component-library/components/Texts/Text';
 
 interface Props {
   payment: Payment;
@@ -129,8 +132,8 @@ const PaymentMethod: React.FC<Props> = ({
 
   return (
     <Box onPress={onPress} highlighted={highlighted}>
-      <ListItem.Content>
-        <ListItem.Icon>
+      <ListItem style={{ padding: 0 }}>
+        <ListItemColumn>
           <View
             style={[styles.iconWrapper, compact && styles.compactIconWrapper]}
           >
@@ -141,39 +144,36 @@ const PaymentMethod: React.FC<Props> = ({
               style={styles.icon}
             />
           </View>
-        </ListItem.Icon>
-        <ListItem.Body>
-          <ListItem.Title>
-            <Text big primary bold>
-              {name}
-            </Text>
-          </ListItem.Title>
-          {detail ? (
-            <Text small blue>
-              {detail}
-            </Text>
+        </ListItemColumn>
+
+        <ListItemColumn widthType={WidthType.Fill}>
+          <Text variant={TextVariant.BodyLGMedium} style={{ marginBottom: 4 }}>
+            {name}
+          </Text>
+          {detail ? <Text color={TextColor.Primary}>{detail}</Text> : null}
+        </ListItemColumn>
+
+        <ListItemColumn>
+          {logo ? (
+            <View style={styles.cardIcons}>
+              <PaymentMethodBadges
+                style={styles.cardIcon}
+                logosByTheme={logo}
+              />
+            </View>
           ) : null}
-        </ListItem.Body>
-        {logo ? (
-          <ListItem.Amounts>
-            <ListItem.Amount>
-              <View style={styles.cardIcons}>
-                <PaymentMethodBadges
-                  style={styles.cardIcon}
-                  logosByTheme={logo}
-                />
-              </View>
-            </ListItem.Amount>
-          </ListItem.Amounts>
-        ) : null}
-      </ListItem.Content>
+        </ListItemColumn>
+      </ListItem>
 
       <View style={[styles.line, compact && styles.compactLine]} />
 
-      <Text primary small>
+      <Text variant={TextVariant.BodySM}>
         <Feather name="clock" /> {renderTime(time)} •{' '}
         {new Array(amountTier[1]).fill('').map((_, index) => (
-          <Text small muted={index >= amountTier[0]} key={index}>
+          <Text
+            key={index}
+            color={index >= amountTier[0] ? TextColor.Muted : TextColor.Default}
+          >
             $
           </Text>
         ))}{' '}
