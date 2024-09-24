@@ -83,11 +83,9 @@ export const importWalletWithRecoveryPhrase = async () => {
   await ImportWalletView.enterPassword(validAccount.password);
   await ImportWalletView.reEnterPassword(validAccount.password);
 
-
-  //'Should dismiss Enable device Notifications checks alert'
+  // Should dismiss Automatic Security checks screen
   await TestHelpers.delay(3500);
   await OnboardingSuccessView.tapDone();
-  // Should dismiss Automatic Security checks screen
   await EnableAutomaticSecurityChecksView.isVisible();
   await EnableAutomaticSecurityChecksView.tapNoThanks();
 
@@ -122,10 +120,9 @@ export const CreateNewWallet = async () => {
   await device.enableSynchronization();
   await Assertions.checkIfVisible(WalletView.container);
 
-  //'Should dismiss Enable device Notifications checks alert'
+  //'Should dismiss Automatic Security checks screen'
   await TestHelpers.delay(3500);
   await OnboardingSuccessView.tapDone();
-  //'Should dismiss Automatic Security checks screen'
   await EnableAutomaticSecurityChecksView.isVisible();
   await EnableAutomaticSecurityChecksView.tapNoThanks();
 

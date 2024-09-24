@@ -26,7 +26,10 @@ import Icon, {
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../constants/navigation/Routes';
-import NotificationsService from '../../../../util/notifications/services/NotificationService';
+import {
+  asyncAlert,
+  requestPushNotificationsPermission,
+} from '../../../../util/notifications';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 import { useMetrics } from '../../../hooks/useMetrics';
@@ -34,6 +37,7 @@ import {
   selectIsProfileSyncingEnabled,
   selectIsMetamaskNotificationsEnabled,
 } from '../../../../selectors/notifications';
+import { AuthorizationStatus } from '@notifee/react-native';
 
 interface Props {
   route: {
@@ -61,11 +65,18 @@ const BasicFunctionalityModal = ({ route }: Props) => {
   const { enableNotifications } = useEnableNotifications();
 
   const enableNotificationsFromModal = useCallback(async () => {
-    const { permission } = await NotificationsService.getAllPermissions(false);
-    if (permission !== 'authorized') {
-      return;
-    }
+    const nativeNotificationStatus = await requestPushNotificationsPermission(
+      asyncAlert,
+    );
+
+    if (nativeNotificationStatus?.authorizationStatus === AuthorizationStatus.AUTHORIZED) {
+      /**
+       * Although this is an async function, we are dispatching an action (firing & forget)
+       * to emulate optimistic UI.
+       *
+       */
       enableNotifications();
+    }
   }, [enableNotifications]);
 
   const closeBottomSheet = async () => {
