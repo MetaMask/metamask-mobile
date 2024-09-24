@@ -8,7 +8,7 @@ import Device from '../../../util/device';
 import Text from '../../Base/Text';
 import { useTheme } from '../../../util/theme';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
-import { isMutichainVersion1Enabled } from '../../../util/networks';
+import { isMultichainVersion1Enabled } from '../../../util/networks';
 import PermissionSummary from '../PermissionsSummary';
 
 const createStyles = (colors) =>
@@ -175,7 +175,7 @@ const SwitchCustomNetwork = ({
     />
   );
 
-  return isMutichainVersion1Enabled
+  return isMultichainVersion1Enabled
     ? renderPermissionSummary()
     : renderNetworkSwitchingNotice();
 };
