@@ -1439,7 +1439,7 @@
     "asset": "Asset",
     "balance": "Balance",
     "token_id": "Token ID",
-    "not_enough_for_gas": "You have 0 {{ticker}} in your account to pay for transaction fees. Buy some {{ticker}} or deposit from another account.",
+    "not_enough_for_gas": "You have 0 {{ticker}} in your account to pay for transaction fees.",
     "send": "Send",
     "confirm_with_qr_hardware": "Confirm with hardware wallet",
     "confirm_with_ledger_hardware": "Confirm with Ledger",
