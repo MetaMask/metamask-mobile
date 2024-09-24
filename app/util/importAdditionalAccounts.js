@@ -37,7 +37,7 @@ export default async () => {
       for (let i = 0; i < MAX; i++) {
         const [newAccount] = await primaryKeyring.addAccounts(1);
 
-        let newAccountBalance;
+        let newAccountBalance = ZERO_BALANCE;
         try {
           newAccountBalance = await getBalance(newAccount, ethQuery);
         } catch (error) {
@@ -45,7 +45,6 @@ export default async () => {
           // will not rollback the primary keyring, and accounts
           // created in previous loop iterations will remain in place.
           Logger.error(error);
-          newAccountBalance = ZERO_BALANCE;
         }
 
         if (newAccountBalance === ZERO_BALANCE) {
