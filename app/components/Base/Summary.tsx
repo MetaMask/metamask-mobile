@@ -1,9 +1,9 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
 import { useTheme } from '../../util/theme';
+import type { Theme as DesignTokenTheme } from '@metamask/design-tokens';
 
-const createStyles = (colors) =>
+const createStyles = (colors: DesignTokenTheme['colors']) =>
   StyleSheet.create({
     wrapper: {
       borderWidth: 1,
@@ -40,11 +40,33 @@ const useGetStyles = () => {
   return createStyles(colors);
 };
 
-const Summary = ({ style, ...props }) => {
+interface SummaryProps {
+  style?: StyleProp<ViewStyle>;
+}
+
+interface SummaryRowProps extends SummaryProps {
+  end?: boolean;
+  last?: boolean;
+}
+
+interface SummaryColProps extends SummaryProps {
+  end?: boolean;
+}
+
+interface SummarySeparatorProps extends SummaryProps {}
+
+interface SummaryComponent extends React.FC<SummaryProps> {
+  Row: React.FC<SummaryRowProps>;
+  Col: React.FC<SummaryColProps>;
+  Separator: React.FC<SummarySeparatorProps>;
+}
+
+const Summary: SummaryComponent = ({ style, ...props }) => {
   const styles = useGetStyles();
   return <View style={[styles.wrapper, style]} {...props} />;
 };
-const SummaryRow = ({ style, end, last, ...props }) => {
+
+const SummaryRow: React.FC<SummaryRowProps> = ({ style, end, last, ...props }) => {
   const styles = useGetStyles();
   return (
     <View
@@ -53,11 +75,13 @@ const SummaryRow = ({ style, end, last, ...props }) => {
     />
   );
 };
-const SummaryCol = ({ style, end, ...props }) => {
+
+const SummaryCol: React.FC<SummaryColProps> = ({ style, end, ...props }) => {
   const styles = useGetStyles();
   return <View style={[styles.col, end && styles.rowEnd, style]} {...props} />;
 };
-const SummarySeparator = ({ style, ...props }) => {
+
+const SummarySeparator: React.FC<SummarySeparatorProps> = ({ style, ...props }) => {
   const styles = useGetStyles();
   return <View style={[styles.separator, style]} {...props} />;
 };
@@ -65,34 +89,5 @@ const SummarySeparator = ({ style, ...props }) => {
 Summary.Row = SummaryRow;
 Summary.Col = SummaryCol;
 Summary.Separator = SummarySeparator;
+
 export default Summary;
-
-/**
- * Any other external style defined in props will be applied
- */
-const stylePropType = PropTypes.oneOfType([PropTypes.object, PropTypes.array]);
-
-Summary.propTypes = {
-  style: stylePropType,
-};
-SummaryRow.propTypes = {
-  style: stylePropType,
-  /**
-   * Aligns content to the end of the row
-   */
-  end: PropTypes.bool,
-  /**
-   * Add style to the last row of the summary
-   */
-  last: PropTypes.bool,
-};
-SummaryCol.propTypes = {
-  style: stylePropType,
-  /**
-   * Aligns content to the end of the row
-   */
-  end: PropTypes.bool,
-};
-SummarySeparator.propTypes = {
-  style: stylePropType,
-};
