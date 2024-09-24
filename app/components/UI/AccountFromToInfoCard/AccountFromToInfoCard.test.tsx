@@ -45,13 +45,6 @@ const mockInitialState: DeepPartial<RootState> = {
         },
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-      ...mockNetworkState({
-        chainId: '0x1',
-        id: 'Mainnet',
-        nickname: 'Mainnet',
-        ticker: 'ETH',
-        type: RpcEndpointType.Infura,
-      }),
     },
   },
 };
@@ -124,25 +117,6 @@ const transactionState: Transaction = {
   transactionToName: 'Account 2',
   transactionFromName: 'Account 1',
 };
-
-jest.mock('../../../store', () => ({
-  store: {
-    getState: () => ({
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            ...mockNetworkState({
-              chainId: '0x1',
-              id: 'Mainnet',
-              nickname: 'Mainnet',
-              ticker: 'ETH',
-            }),
-          },
-        },
-      },
-    }),
-  },
-}));
 
 describe('AccountFromToInfoCard', () => {
   it('should render correctly', () => {

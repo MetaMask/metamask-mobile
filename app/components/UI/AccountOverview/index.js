@@ -220,7 +220,6 @@ class AccountOverview extends PureComponent {
   componentDidMount = () => {
     const { internalAccounts, selectedAddress, onRef } = this.props;
     const accountLabel = renderAccountName(selectedAddress, internalAccounts);
-
     this.setState({ accountLabel });
     onRef && onRef(this);
     InteractionManager.runAfterInteractions(() => {
