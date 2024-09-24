@@ -3,7 +3,7 @@
  * a local blockchain instance ran by Ganache.
  */
 class GanacheContractAddressRegistry {
-  #addresses = {};
+  #addresses: Record<string, string> = {};
 
   /**
    * Store new contract address in key:value pair.
@@ -11,7 +11,7 @@ class GanacheContractAddressRegistry {
    * @param contractName
    * @param contractAddress
    */
-  storeNewContractAddress(contractName, contractAddress) {
+  storeNewContractAddress(contractName: string, contractAddress: string): void {
     this.#addresses[contractName] = contractAddress;
   }
 
@@ -20,7 +20,7 @@ class GanacheContractAddressRegistry {
    *
    * @param contractName
    */
-  getContractAddress(contractName) {
+  getContractAddress(contractName: string): string | undefined {
     return this.#addresses[contractName];
   }
 }
