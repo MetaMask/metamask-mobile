@@ -232,6 +232,14 @@ export function isExternalHardwareAccount(address: string) {
   return isHardwareAccount(address, [ExtendedKeyringTypes.ledger]);
 }
 
+function getInternalAccountByAddress(address: string): InternalAccount | null {
+  const { accounts } = Engine.context.AccountsController.state.internalAccounts;
+  const account = Object.values(accounts).find(
+    (a: InternalAccount) => a.address === address,
+  );
+  return account || null;
+}
+
 /**
  * gets i18n account label tag text based on the keyring type for that address
  *
@@ -240,18 +248,22 @@ export function isExternalHardwareAccount(address: string) {
  */
 export function getAccountLabelTextByKeyring(address: string) {
   if (!address) return null;
-  const keyring = getKeyringByAddress(address);
+  const internalAccount = getInternalAccountByAddress(address);
+  const keyring = internalAccount?.metadata.keyring;
   if (keyring) {
     switch (keyring.type) {
       case ExtendedKeyringTypes.ledger:
-        return 'accounts.ledger';
+        return strings('accounts.ledger');
       case ExtendedKeyringTypes.qr:
-        return 'accounts.qr_hardware';
+        return strings('accounts.qr_hardware');
       case ExtendedKeyringTypes.simple:
-        return 'accounts.imported';
+        return strings('accounts.imported');
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       case KeyringTypes.snap:
-        return 'accounts.snap_account_tag';
+        return (
+          internalAccount?.metadata.snap?.name ||
+          strings('account.snap_account_tag')
+        );
       ///: END:ONLY_INCLUDE_IF
     }
   }

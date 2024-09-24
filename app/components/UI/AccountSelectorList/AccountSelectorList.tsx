@@ -200,7 +200,7 @@ const AccountSelectorList = ({
             type: accountAvatarType,
             accountAddress: address,
           }}
-          tagLabel={tagLabel ? strings(tagLabel) : tagLabel}
+          tagLabel={tagLabel}
           disabled={isDisabled}
           style={cellStyle}
         >
