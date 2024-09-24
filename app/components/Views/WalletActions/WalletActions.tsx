@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { View } from 'react-native';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { useDispatch, useSelector } from 'react-redux';
@@ -57,8 +57,9 @@ const WalletActions = () => {
   const { trackEvent } = useMetrics();
 
   const selectedAccount = useSelector(selectSelectedInternalAccount);
-  const canSignTransactions = selectedAccount?.methods?.includes(
-    EthMethod.SignTransaction,
+  const canSignTransactions = useMemo(
+    () => selectedAccount?.methods?.includes(EthMethod.SignTransaction),
+    [selectedAccount],
   );
 
   const onReceive = () => {
