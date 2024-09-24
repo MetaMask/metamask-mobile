@@ -478,7 +478,11 @@ workflows:
         machine_type_id: elite-xl
     after_run:
       - wdio_android_e2e_test
-
+  run_testrail_update_automated_test_results:
+    steps:
+      - script:
+        title: Report Automated Test Results
+        run: node ./scripts/testrail/testrail.api.js
   ### Separating workflows so they run concurrently during smoke runs
   run_tag_smoke_accounts_ios:
     envs:
