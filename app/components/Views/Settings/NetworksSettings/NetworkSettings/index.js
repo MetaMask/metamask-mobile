@@ -861,7 +861,8 @@ export class NetworkSettings extends PureComponent {
       return;
     }
 
-    if (this.validateRpcUrl()) {
+    const isValidRpc = await this.validateRpcUrl();
+    if (isValidRpc) {
       await this.handleNetworkUpdate(
         rpcUrl,
         chainId,
