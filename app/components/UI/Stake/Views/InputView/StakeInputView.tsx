@@ -59,7 +59,7 @@ const StakeInputView = () => {
 
   const navigateToLearnMoreModal = () => {
     navigation.navigate('StakeModals', {
-      screen: Routes.STAKE.MODAL.LEARN_MORE,
+      screen: Routes.STAKING.MODALS.LEARN_MORE,
     });
   };
 

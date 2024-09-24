@@ -10,7 +10,7 @@ function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
     {
-      name: Routes.STAKE.STAKE,
+      name: Routes.STAKING.STAKE,
     },
     {
       state: {

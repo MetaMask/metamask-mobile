@@ -137,11 +137,11 @@ const Routes = {
     OPT_IN_STACK: 'OptInStack',
     DETAILS: 'NotificationsDetails',
   },
-  STAKE: {
+  STAKING: {
     STAKE: 'Stake',
     UNSTAKE: 'Unstake',
     CLAIM: 'Claim',
-    MODAL: {
+    MODALS: {
       LEARN_MORE: 'LearnMore',
     },
   },
