@@ -505,7 +505,7 @@ export class NetworkSettings extends PureComponent {
         blockExplorerUrls = networkConfiguration?.blockExplorerUrls;
         rpcName =
           networkConfiguration?.rpcEndpoints[
-            networkConfiguration?.defaultBlockExplorerUrlIndex
+            networkConfiguration?.defaultRpcEndpointIndex
           ]?.name;
 
         selectedRpcEndpointIndex =

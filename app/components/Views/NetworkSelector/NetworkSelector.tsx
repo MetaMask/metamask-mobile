@@ -547,7 +547,6 @@ const NetworkSelector = () => {
               onButtonClick={() => {
                 openModal(chainId, true, rpcUrl, false);
               }}
-              // TODO: Substitute with the new network controller's RPC array.
               onTextClick={() =>
                 openRpcModal({
                   rpcUrls: [hideKeyFromUrl(rpcUrl)],
@@ -589,6 +588,15 @@ const NetworkSelector = () => {
       >;
       const { name, imageSource, chainId } = TypedNetworks[networkType];
 
+      const networkConfiguration = Object.values(networkConfigurations).find(
+        ({ chainId: networkId }) => networkId === chainId,
+      );
+
+      const rpcUrl =
+        networkConfiguration?.rpcEndpoints?.[
+          networkConfiguration?.defaultRpcEndpointIndex
+        ].url ?? '';
+
       if (isNetworkUiRedesignEnabled() && isNoSearchResults(name)) return null;
 
       if (isNetworkUiRedesignEnabled()) {
@@ -596,6 +604,7 @@ const NetworkSelector = () => {
           <Cell
             key={chainId}
             variant={CellVariant.SelectWithMenu}
+            secondaryText={hideProtocolFromUrl(hideKeyFromUrl(rpcUrl))}
             title={name}
             avatarProps={{
               variant: AvatarVariant.Network,
@@ -610,6 +619,13 @@ const NetworkSelector = () => {
             onButtonClick={() => {
               openModal(chainId, false, networkType, true);
             }}
+            onTextClick={() =>
+              openRpcModal({
+                rpcUrls: [hideKeyFromUrl(rpcUrl)],
+                chainId,
+                networkName: name,
+              })
+            }
           />
         );
       }
