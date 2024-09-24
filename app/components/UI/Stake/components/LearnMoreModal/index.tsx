@@ -1,53 +1,24 @@
 import React, { useRef } from 'react';
-import { StyleSheet, View, Image } from 'react-native';
+import { View, Image } from 'react-native';
 import BottomSheet, {
   type BottomSheetRef,
-} from '../../../../component-library/components/BottomSheets/BottomSheet';
+} from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '../../../../../component-library/components/Texts/Text';
 import LearnMoreImage from '../components/images/LearnMoreEthBanner.png';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-} from '../../../../component-library/components/Buttons/Button';
+} from '../../../../../component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
-import { strings } from '../../../../../locales/i18n';
-import { POOLED_STAKING_FAQ_URL } from '../constants';
+import { strings } from '../../../../../../locales/i18n';
+import { POOLED_STAKING_FAQ_URL } from '../../constants';
+import createLearnMoreModalStyles from './LearnMoreModal.styles';
 
-const createStyles = () =>
-  StyleSheet.create({
-    container: {
-      paddingHorizontal: 24,
-      paddingTop: 24,
-    },
-    imageContainer: {
-      alignItems: 'center',
-      paddingBottom: 16,
-    },
-    bannerImage: {
-      width: '100%',
-      height: 200,
-      borderRadius: 12,
-    },
-    textContainer: {
-      paddingVertical: 8,
-    },
-    buttonContainer: {
-      flexDirection: 'row',
-      gap: 16,
-      paddingHorizontal: 16,
-      paddingTop: 16,
-    },
-    button: {
-      flex: 1,
-    },
-    italicText: {
-      fontStyle: 'italic',
-    },
-  });
+const styles = createLearnMoreModalStyles();
 
 const ModalTextBlock = ({
   heading,
@@ -57,20 +28,16 @@ const ModalTextBlock = ({
   heading: string;
   body: string;
   bodyColor?: TextColor;
-}) => {
-  const styles = createStyles();
-  return (
-    <View style={styles.textContainer}>
-      <Text variant={TextVariant.BodyMDMedium}>{heading}</Text>
-      <Text variant={TextVariant.BodyMD} color={bodyColor}>
-        {body}
-      </Text>
-    </View>
-  );
-};
+}) => (
+  <View style={styles.textContainer}>
+    <Text variant={TextVariant.BodyMDMedium}>{heading}</Text>
+    <Text variant={TextVariant.BodyMD} color={bodyColor}>
+      {body}
+    </Text>
+  </View>
+);
 
 const LearnMoreModal = () => {
-  const styles = createStyles();
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const navigation = useNavigation();
