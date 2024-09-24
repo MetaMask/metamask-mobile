@@ -157,7 +157,10 @@ const AccountSelectorList = ({
       index,
     }) => {
       const shortAddress = formatAddress(address, 'short');
-      const tagLabel = getLabelTextByAddress(address);
+      let tagLabel = getLabelTextByAddress(address);
+      if (type === KeyringTypes.snap) {
+        tagLabel = 'accounts.snap_account_tag';
+      }
       const ensName = ensByAccountAddress[address];
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;
