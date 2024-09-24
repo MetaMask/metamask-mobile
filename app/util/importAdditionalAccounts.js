@@ -40,12 +40,11 @@ export default async () => {
         ethQuery,
       );
       let i = 0;
+
       // seek out the first zero balance
       while (lastBalance !== ZERO_BALANCE && i < MAX) {
-        lastBalance = await getBalance(
-          await primaryKeyring.addAccounts(1),
-          ethQuery,
-        );
+        const [newAccount] = await primaryKeyring.addAccounts(1);
+        lastBalance = await getBalance(newAccount, ethQuery);
         i++;
       }
 
