@@ -152,7 +152,7 @@ export function createMockAccountsControllerStateWithSnap(
     addresses[snapAccountIndex].toLowerCase(),
   );
   state.internalAccounts.accounts[snapAccountUuid].metadata.keyring = {
-    type: 'Snap Keyring',
+    type: KeyringTypes.snap,
   };
 
   return state;
