@@ -10,7 +10,7 @@ import Text, {
 import { useStyles } from '../../../component-library/hooks';
 
 // Internal dependencies.
-import { WalletActionProps, walletActionStrings } from './WalletAction.types';
+import { WalletActionProps, walletActionDetails } from './WalletAction.types';
 import styleSheet from './WalletAction.styles';
 import Avatar, {
   AvatarVariant,
@@ -27,7 +27,7 @@ const WalletAction = ({
   disabled,
   ...props
 }: WalletActionProps) => {
-  const actionStrings = actionType ? walletActionStrings[actionType] : null;
+  const actionStrings = actionType ? walletActionDetails[actionType] : null;
   const actionTitle = actionStrings?.title ?? '';
   const actionDescription = disabled
     ? actionStrings?.disabledDescription
