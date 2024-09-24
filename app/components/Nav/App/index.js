@@ -14,6 +14,7 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
+import Engine from '../../../core/Engine';
 import Login from '../../Views/Login';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
 import DataCollectionModal from '../../Views/DataCollectionModal';
@@ -307,7 +308,7 @@ const VaultRecoveryFlow = () => (
 );
 
 const App = (props) => {
-  const { userLoggedIn } = props;
+  const { userLoggedIn, basicFunctionalityEnabled } = props;
   // FIXME: Remove this when the unit tests are resolved for rendering this component. This property is only used by unit tests at the moment. Tests break when this is removed.
   const supressRender = props?.route?.params?.supressRender;
   const [navigator, setNavigator] = useState(undefined);
@@ -538,6 +539,13 @@ const App = (props) => {
     });
   }, []);
 
+  useEffect(() => {
+    if (!basicFunctionalityEnabled) {
+      Engine.context.SnapController.stopSnap(
+        'npm:@metamask/message-signing-snap',
+      ).catch(console.error);
+    }
+  }, [basicFunctionalityEnabled]);
   const setNavigatorRef = (ref) => {
     if (!prevNavigator.current) {
       setNavigator(ref);
@@ -914,6 +922,7 @@ const App = (props) => {
 
 App.propTypes = {
   userLoggedIn: PropTypes.bool.isRequired,
+  basicFunctionalityEnabled: PropTypes.bool.isRequired,
   route: PropTypes.shape({
     params: PropTypes.shape({
       supressRender: PropTypes.bool,
@@ -923,6 +932,7 @@ App.propTypes = {
 
 const mapStateToProps = (state) => ({
   userLoggedIn: state.user.userLoggedIn,
+  basicFunctionalityEnabled: state.settings.basicFunctionalityEnabled,
 });
 
 export default connect(mapStateToProps)(App);
