@@ -9088,25 +9088,23 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                        "padding": 0,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "flex": 1,
+                                        }
                                       }
+                                      testID="listitemcolumn"
                                     >
                                       <TouchableOpacity
                                         accessibilityRole="button"
@@ -9122,51 +9120,18 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         onPress={[Function]}
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           adjustsFontSizeToFit={true}
                                           numberOfLines={1}
                                           style={
-                                            [
-                                              {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "fontFamily": "EuclidCircularB-Bold",
-                                                "fontWeight": "600",
-                                              },
-                                              undefined,
-                                              {
-                                                "color": "#141618",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              false,
-                                              undefined,
-                                              {
-                                                "color": "#141618",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "fontSize": 24,
-                                              },
-                                            ]
+                                            {
+                                              "color": "#141618",
+                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontSize": 24,
+                                              "fontWeight": "500",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 32,
+                                            }
                                           }
                                         >
                                           $
@@ -9175,18 +9140,22 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       </TouchableOpacity>
                                     </View>
                                     <View
+                                      accessible={false}
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "flex-end",
-                                            "flex": 0.6,
-                                          },
-                                          {
-                                            "flex": 0,
-                                            "marginLeft": 8,
-                                          },
-                                        ]
+                                        {
+                                          "width": 16,
+                                        }
                                       }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        {
+                                          "flex": 0,
+                                          "marginLeft": 8,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
                                     >
                                       <TouchableOpacity
                                         accessibilityRole="button"
@@ -12395,25 +12364,23 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                        "padding": 0,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "flex": 1,
+                                        }
                                       }
+                                      testID="listitemcolumn"
                                     >
                                       <TouchableOpacity
                                         accessibilityRole="button"
@@ -12429,51 +12396,18 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         onPress={[Function]}
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           adjustsFontSizeToFit={true}
                                           numberOfLines={1}
                                           style={
-                                            [
-                                              {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "fontFamily": "EuclidCircularB-Bold",
-                                                "fontWeight": "600",
-                                              },
-                                              undefined,
-                                              {
-                                                "color": "#141618",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              false,
-                                              undefined,
-                                              {
-                                                "color": "#141618",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "fontSize": 24,
-                                              },
-                                            ]
+                                            {
+                                              "color": "#141618",
+                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontSize": 24,
+                                              "fontWeight": "500",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 32,
+                                            }
                                           }
                                         >
                                           0 ETH
