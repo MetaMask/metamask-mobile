@@ -34,26 +34,19 @@ export default async () => {
   await KeyringController.withKeyring(
     { type: ExtendedKeyringTypes.hd },
     async (primaryKeyring) => {
-      const existingAccounts = await primaryKeyring.getAccounts();
-      let lastBalance = await getBalance(
-        existingAccounts[existingAccounts.length - 1],
-        ethQuery,
-      );
       let i = 0;
-
       // seek out the first zero balance
-      while (lastBalance !== ZERO_BALANCE && i < MAX) {
+      while (i < MAX) {
         const [newAccount] = await primaryKeyring.addAccounts(1);
-        lastBalance = await getBalance(newAccount, ethQuery);
-        i++;
-      }
+        const newAccountBalance = await getBalance(newAccount, ethQuery);
 
-      // remove extra zero balance account potentially created from seeking ahead
-      const currentAccounts = await primaryKeyring.getAccounts();
-      if (currentAccounts.length > 1 && lastBalance === ZERO_BALANCE) {
-        primaryKeyring.removeAccount(
-          currentAccounts[currentAccounts.length - 1],
-        );
+        if (newAccountBalance === ZERO_BALANCE) {
+          // remove extra zero balance account we just added and break the loop
+          primaryKeyring.removeAccount(newAccount);
+          break;
+        }
+
+        i++;
       }
     },
   );
