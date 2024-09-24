@@ -253,7 +253,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 echo "Gems being installed with bundler gem"
-                bundle install
+                bundle install --gemfile=ios/Gemfile
                 echo "Node $NODE_VERSION being installed"
 
                 set -e
