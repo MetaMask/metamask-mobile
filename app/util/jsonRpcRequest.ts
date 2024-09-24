@@ -26,7 +26,8 @@ export async function jsonRpcRequest(rpcUrl: string, rpcMethod: string, rpcParam
       'base64',
     );
     headers.Authorization = `Basic ${encodedAuth}`;
-    fetchUrl = `${origin}${pathname}${parsedUrl.query ? `?${parsedUrl.query}` : ''}`;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    fetchUrl = `${origin}${pathname}${(parsedUrl as any).search ? `${(parsedUrl as any).search}` : ''}`;
   }
 
   const jsonRpcResponse = await fetch(fetchUrl, {
