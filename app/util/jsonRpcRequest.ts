@@ -11,7 +11,7 @@ import { Buffer } from 'buffer';
  * @returns {Promise<unknown|undefined>} Returns the result of the RPC method call,
  * or throws an error in case of failure.
  */
-export async function jsonRpcRequest(rpcUrl: string, rpcMethod: string, rpcParams: unknown[] = []): Promise<unknown | undefined> {
+export async function jsonRpcRequest(rpcUrl: string, rpcMethod: string, rpcParams: unknown[] = []) {
   let fetchUrl = rpcUrl;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -19,15 +19,15 @@ export async function jsonRpcRequest(rpcUrl: string, rpcMethod: string, rpcParam
 
   // Convert basic auth URL component to Authorization header
   const parsedUrl = new ParsedURL(rpcUrl);
-  const { origin, pathname, username, password } = parsedUrl;
+  // @ts-expect-error Property 'search' does not exist on type 'URLParse<string>'.
+  const { origin, pathname, username, password, search } = parsedUrl;
   // URLs containing username and password needs special processing
   if (username && password) {
     const encodedAuth = Buffer.from(`${username}:${password}`).toString(
       'base64',
     );
     headers.Authorization = `Basic ${encodedAuth}`;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    fetchUrl = `${origin}${pathname}${(parsedUrl as any).search ? `${(parsedUrl as any).search}` : ''}`;
+    fetchUrl = `${origin}${pathname}${search}`;
   }
 
   const jsonRpcResponse = await fetch(fetchUrl, {
