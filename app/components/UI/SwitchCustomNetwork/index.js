@@ -101,14 +101,18 @@ const SwitchCustomNetwork = ({
   const { networkName } = useNetworkInfo(
     new URL(currentPageInformation.url).hostname,
   );
+
   const trackingData = {
-    chain_id: getDecimalChainId(customNetworkInformation.chain_id),
+    chain_id: getDecimalChainId(customNetworkInformation.chainId),
     from_network: networkName,
     to_network: customNetworkInformation.chainName,
   };
 
   useEffect(() => {
-    trackEvent(MetaMetricsEvents.NETWORK_SWITCH_REQUESTED, trackingData);
+    trackEvent(
+      MetaMetricsEvents.NETWORK_SWITCH_REQUESTED_AND_MODAL_SHOWN,
+      trackingData,
+    );
   }, [trackEvent, trackingData]);
 
   /**
