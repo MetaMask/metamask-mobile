@@ -33,7 +33,7 @@ import {
   removeNotificationById,
   removeNotVisibleNotifications,
 } from '../../../actions/notification';
-import { isNotificationsFeatureEnabled } from '../../../util/notifications';
+
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
@@ -67,7 +67,7 @@ import {
   selectNetworkImageSource,
 } from '../../../selectors/networkInfos';
 import { selectShowIncomingTransactionNetworks } from '../../../selectors/preferencesController';
-import NotificationsService from '../../../util/notifications/services/NotificationService';
+
 import useNotificationHandler from '../../../util/notifications/hooks';
 import {
   DEPRECATED_NETWORKS,
@@ -104,41 +104,16 @@ const Main = (props) => {
   const [showDeprecatedAlert, setShowDeprecatedAlert] = useState(true);
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const { handleNotificationPressed } = useNotificationHandler();
   const backgroundMode = useRef(false);
   const locale = useRef(I18n.locale);
   const removeConnectionStatusListener = useRef();
 
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
-
+  useNotificationHandler(props.navigation);
   useEnableAutomaticSecurityChecks();
   useMinimumVersions();
 
-  useEffect(() => {
-    if (!isNotificationsFeatureEnabled()) return;
 
-    const unsubscribeForegroundEvent = NotificationsService.onForegroundEvent(
-      async ({ type, detail }) => {
-        await NotificationsService.handleNotificationEvent({
-          type,
-          detail,
-          callback: handleNotificationPressed
-        });
-      }
-    );
-
-    NotificationsService.onBackgroundEvent(async ({ type, detail }) => {
-      await NotificationsService.handleNotificationEvent({
-        type,
-        detail,
-        callback: handleNotificationPressed
-      });
-    });
-
-    return () => {
-      unsubscribeForegroundEvent();
-    };
-  }, [handleNotificationPressed]);
 
 
   useEffect(() => {

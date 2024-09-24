@@ -21,7 +21,6 @@ const mockInitialState: DeepPartial<RootState> = {
       },
     },
   },
-/*************  ✨ Codeium Command 🌟  *************/
   };
 
   jest.mock('react-redux', () => ({

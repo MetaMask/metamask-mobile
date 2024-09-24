@@ -77,19 +77,15 @@ class NotificationsService {
 
   async isDeviceNotificationEnabled() {
     const permission = await notifee.getNotificationSettings();
-    if (permission.authorizationStatus === AuthorizationStatus.AUTHORIZED) {
-      store.dispatch({
-        type: 'TOGGLE_DEVICE_NOTIFICATIONS',
-        deviceNotificationEnabled: true,
-      });
-      return true;
-    }
+
+    const isAuthorized =
+      permission.authorizationStatus === AuthorizationStatus.AUTHORIZED;
 
     store.dispatch({
       type: 'TOGGLE_DEVICE_NOTIFICATIONS',
-      deviceNotificationEnabled: false,
+      deviceNotificationEnabled: isAuthorized,
     });
-    return false;
+    return isAuthorized;
   }
 
   defaultButtons = (resolve: (value: boolean) => void): AlertButton[] => [
