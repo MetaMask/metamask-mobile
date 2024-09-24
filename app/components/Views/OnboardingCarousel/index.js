@@ -197,13 +197,9 @@ class OnboardingCarousel extends PureComponent {
     this.updateNavBar();
   };
 
-  getJsBundleDuration = async () => {
-    return await StorageWrapper.getItem('jsBundleDuration');
-  };
+  getJsBundleDuration = async () => await StorageWrapper.getItem('jsBundleDuration');
 
-  getAppStartTime = async () => {
-    return await StorageWrapper.getItem('appStartTime');
-  };
+  getAppStartTime = async () => await StorageWrapper.getItem('appStartTime');
 
   render() {
     const { currentTab, appStartTime } = this.state;

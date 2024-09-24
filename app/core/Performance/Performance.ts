@@ -58,9 +58,9 @@ class Performance {
         );
         console.info(`-------------------------------------------------------`);
         console.info(`-------------------------------------------------------`);
-        
+
         setPerformanceValues(appStartTime);
-    
+
       }
     }).observe({ type: 'react-native-mark', buffered: true });
   };
