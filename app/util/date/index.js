@@ -1,5 +1,5 @@
 import { strings } from '../../../locales/i18n';
-import { HOUR } from '../../constants/time';
+import { MINUTE, HOUR, DAY } from '../../constants/time';
 
 export function toLocaleDateTime(timestamp) {
   const dateObj = new Date(timestamp);
@@ -64,23 +64,25 @@ export const formatTimestampToYYYYMMDD = (timestamp) => {
 };
 
 /**
- * Returns an object containing the difference in days and/or hours between a now and a timestamp.
+ * Returns an object containing the difference in days, hours, and minutes between a now and a future timestamp.
  *
- * @param {number} timestamp - The timestamp in the past to compare to now.
+ * @param {number} timestamp - The timestamp in the future to compare to now.
  *
- * @returns object with difference in amount of days and hours.
+ * @returns object with difference in amount of days, hours, and minutes. If timestamp is in the past, a default value of { days: 0, hours: 0, minutes: 0 } is returned.
  */
-export const getDaysAndHoursRemaining = (timestamp) => {
+export const getTimeDifferenceFromNow = (timestamp) => {
   const currentTime = Date.now();
 
-  if (timestamp > currentTime) throw new Error('timestamp must be in the past');
+  // Default when timestamp is in the past.
+  if (timestamp < currentTime) {
+    return { days: 0, hours: 0, minutes: 0 };
+  }
 
-  const differenceInMilliseconds = currentTime - timestamp;
+  const differenceInMilliseconds = timestamp - currentTime;
 
-  // Calculate the difference in days and hours
-  const differenceInHours = Math.floor(differenceInMilliseconds / HOUR);
-  const days = Math.floor(differenceInHours / 24);
-  const hours = differenceInHours % 24;
+  const days = Math.floor(differenceInMilliseconds / DAY);
+  const hours = Math.floor((differenceInMilliseconds % DAY) / HOUR);
+  const minutes = Math.floor((differenceInMilliseconds % HOUR) / MINUTE);
 
-  return { days, hours };
+  return { days, hours, minutes };
 };

@@ -3,7 +3,7 @@ import {
   msToHours,
   toDateFormat,
   formatTimestampToYYYYMMDD,
-  getDaysAndHoursRemaining,
+  getTimeDifferenceFromNow,
 } from '.';
 
 const TZ = 'America/Toronto';
@@ -96,7 +96,7 @@ describe('Date util :: getDaysAndHoursRemaining', () => {
     // 2024-09-23 16:53:35 UTC
     const TIMESTAMP = 1727110415000;
 
-    const { days, hours } = getDaysAndHoursRemaining(Number(TIMESTAMP));
+    const { days, hours } = getTimeDifferenceFromNow(Number(TIMESTAMP));
 
     expect(days).toBe(0);
     expect(hours).toBe(2);
@@ -105,19 +105,9 @@ describe('Date util :: getDaysAndHoursRemaining', () => {
   it('returns correct value when timestamp and current time are identical', () => {
     mockDateNow.mockImplementation(() => MOCK_NOW);
 
-    const { days, hours } = getDaysAndHoursRemaining(Number(MOCK_NOW));
+    const { days, hours } = getTimeDifferenceFromNow(Number(MOCK_NOW));
 
     expect(days).toBe(0);
     expect(hours).toBe(0);
-  });
-
-  it('throws error if timestamp is in the future', () => {
-    const ONE_WEEK_AFTER_MOCK_NOW = 1727725142806;
-
-    mockDateNow.mockImplementation(() => MOCK_NOW);
-
-    expect(() => getDaysAndHoursRemaining(ONE_WEEK_AFTER_MOCK_NOW)).toThrow(
-      'timestamp must be in the past',
-    );
   });
 });

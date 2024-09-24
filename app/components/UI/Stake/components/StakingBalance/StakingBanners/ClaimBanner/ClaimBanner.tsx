@@ -37,7 +37,6 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
           </Text>
           <Button
             variant={ButtonVariants.Link}
-            width={100}
             label={
               <Text
                 variant={TextVariant.BodyMDMedium}

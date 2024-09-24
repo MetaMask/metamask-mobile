@@ -11,6 +11,7 @@ export type UnstakingBannerProps = Pick<BannerProps, 'style'> & {
   timeRemaining: {
     days: number;
     hours: number;
+    minutes: number;
   };
   amountEth: string;
 };

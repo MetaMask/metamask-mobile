@@ -32,3 +32,7 @@ export interface getStakesApiResponse {
   accounts: StakeByAccount[];
   exchangeRate: string;
 }
+
+export interface UnstakingRequest extends ExitRequestWithClaimedAssetInfo {
+  assetsToDisplay: string;
+}

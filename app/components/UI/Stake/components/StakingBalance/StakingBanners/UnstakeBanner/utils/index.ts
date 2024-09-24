@@ -10,37 +10,47 @@ import { strings } from '../../../../../../../../../locales/i18n';
  * - Unstaking 0.0172 ETH in progress. Come back in 2 days and 3 hours. (days: 2, hours: 3).
  */
 export const renderUnstakingTimeRemaining = (
-  { days, hours }: { days: number; hours: number },
+  { days, hours, minutes }: { days: number; hours: number; minutes: number },
   amountEth: string,
 ) => {
-  if (!days && !hours)
+  if (!days && !hours && !minutes)
     return strings('stake.banner_text.unstaking_in_progress.default', {
       amountEth,
     });
 
-  let copy = strings('stake.banner_text.unstaking_in_progress.base', {
+  const baseCopy = strings('stake.banner_text.unstaking_in_progress.base', {
     amountEth,
   });
 
-  if (days && hours) {
-    copy = `${copy} ${days} ${strings('stake.day', { count: days })} ${strings(
-      'stake.banner_text.unstaking_in_progress.and',
-    )} ${hours} ${strings('stake.hour', { count: hours })} ${strings(
-      'stake.banner_text.unstaking_in_progress.to_claim_it',
-    )}`;
+  const minuteString = minutes
+    ? `${strings('stake.banner_text.approximately')} ${minutes} ${strings(
+        'stake.minute',
+        {
+          count: minutes,
+        },
+      )}`
+    : '';
+
+  const dayString = days
+    ? `${days} ${strings('stake.day', { count: days })}`
+    : '';
+
+  const hourString = hours
+    ? `${hours} ${strings('stake.hour', { count: hours })}`
+    : '';
+
+  const andString =
+    days && hours
+      ? ` ${strings('stake.banner_text.unstaking_in_progress.and')} `
+      : '';
+
+  const toClaimString = strings(
+    'stake.banner_text.unstaking_in_progress.to_claim_it',
+  );
+
+  if (!days && !hours && minutes) {
+    return `${baseCopy} ${minuteString} ${toClaimString}`.trim();
   }
 
-  if (days && !hours) {
-    copy = `${copy} ${days} ${strings('stake.day', { count: days })} ${strings(
-      'stake.banner_text.unstaking_in_progress.to_claim_it',
-    )}`;
-  }
-
-  if (hours && !days) {
-    copy = `${copy} ${hours} ${strings('stake.hour', {
-      count: hours,
-    })} ${strings('stake.banner_text.unstaking_in_progress.to_claim_it')}`;
-  }
-
-  return copy;
+  return `${baseCopy} ${dayString}${andString}${hourString} ${toClaimString}`.trim();
 };

@@ -25,9 +25,12 @@ import { strings } from '../../../../../../locales/i18n';
 import { renderFromWei } from '../../../../../util/number';
 import { getStakesApiResponse } from './StakingBalance.types';
 import { TokenI } from '../../../../UI/Tokens/types';
-import { getDaysAndHoursRemaining } from '../../../../../util/date';
+import { getTimeDifferenceFromNow } from '../../../../../util/date';
 import { filterExitRequests } from './utils';
 import { BN } from 'ethereumjs-util';
+import bn from 'bignumber.js';
+import { fixDisplayAmount } from '../../../../../util/value';
+import { multiplyValueByPowerOfTen } from '../../../../../util/bignumber';
 
 // TODO: Replace mock data when connecting to backend.
 const MOCK_STAKED_ETH_ASSET = {
@@ -52,8 +55,7 @@ const MOCK_UNSTAKING_REQUESTS: getStakesApiResponse = {
           totalShares: '989278156820374',
           withdrawalTimestamp: null,
           exitQueueIndex: '-1',
-          // claimedAssets: null,
-          claimedAssets: '900000000000000',
+          claimedAssets: null,
           leftShares: null,
         },
         // Requests below are claimable.
@@ -87,7 +89,7 @@ const MOCK_UNSTAKING_REQUESTS: getStakesApiResponse = {
       ],
     },
   ],
-  exchangeRate: '1.010838047020148468',
+  exchangeRate: '1.010906701603882254',
 };
 
 const StakingBalance = () => {
@@ -98,7 +100,11 @@ const StakingBalance = () => {
   const [isGeoBlocked] = useState(true);
 
   const { unstakingRequests, claimableRequests } = useMemo(
-    () => filterExitRequests(MOCK_UNSTAKING_REQUESTS.accounts[0].exitRequests),
+    () =>
+      filterExitRequests(
+        MOCK_UNSTAKING_REQUESTS.accounts[0].exitRequests,
+        MOCK_UNSTAKING_REQUESTS.exchangeRate,
+      ),
     [],
   );
 
@@ -109,7 +115,7 @@ const StakingBalance = () => {
           (acc, { withdrawalTimestamp, claimedAssets }) =>
             !!withdrawalTimestamp &&
             Number(withdrawalTimestamp) === 0 &&
-            !!claimedAssets
+            claimedAssets
               ? acc.add(new BN(claimedAssets))
               : acc,
           new BN(0),
@@ -145,15 +151,18 @@ const StakingBalance = () => {
       </AssetElement>
       <View style={styles.container}>
         {unstakingRequests.map(
-          ({ positionTicket, claimedAssets, withdrawalTimestamp }) =>
-            claimedAssets && (
+          ({ positionTicket, withdrawalTimestamp, assetsToDisplay }) =>
+            assetsToDisplay && (
               <UnstakingBanner
                 key={positionTicket}
-                amountEth={renderFromWei(claimedAssets)}
+                amountEth={fixDisplayAmount(
+                  multiplyValueByPowerOfTen(new bn(assetsToDisplay), -18),
+                  4,
+                )}
                 timeRemaining={
                   !Number(withdrawalTimestamp)
-                    ? { days: 11, hours: 0 } // default to 11 days.
-                    : getDaysAndHoursRemaining(Number(withdrawalTimestamp))
+                    ? { days: 11, hours: 0, minutes: 0 } // default to 11 days.
+                    : getTimeDifferenceFromNow(Number(withdrawalTimestamp))
                 }
                 style={styles.bannerStyles}
               />
