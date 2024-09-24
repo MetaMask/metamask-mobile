@@ -1,6 +1,7 @@
 import ParsedURL from 'url-parse';
 // eslint-disable-next-line import/no-nodejs-modules
 import { Buffer } from 'buffer';
+import { JsonRpcParams } from '@metamask/utils';
 
 /**
  * Makes a JSON RPC request to the given URL, with the given RPC method and params.
@@ -11,7 +12,7 @@ import { Buffer } from 'buffer';
  * @returns {Promise<unknown|undefined>} Returns the result of the RPC method call,
  * or throws an error in case of failure.
  */
-export async function jsonRpcRequest(rpcUrl: string, rpcMethod: string, rpcParams: unknown[] = []) {
+export async function jsonRpcRequest(rpcUrl: string, rpcMethod: string, rpcParams: JsonRpcParams = []) {
   let fetchUrl = rpcUrl;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
