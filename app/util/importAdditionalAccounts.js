@@ -34,8 +34,7 @@ export default async () => {
   await KeyringController.withKeyring(
     { type: ExtendedKeyringTypes.hd },
     async (primaryKeyring) => {
-      let i = 0;
-      while (i < MAX) {
+      for (let i = 0; i < MAX; i++) {
         const [newAccount] = await primaryKeyring.addAccounts(1);
 
         let newAccountBalance;
@@ -54,8 +53,6 @@ export default async () => {
           primaryKeyring.removeAccount(newAccount);
           break;
         }
-
-        i++;
       }
     },
   );
