@@ -76,7 +76,10 @@ export const JS_WINDOW_INFORMATION = `
 export const JS_DESELECT_TEXT = `if (window.getSelection) {window.getSelection().removeAllRanges();}
 else if (document.selection) {document.selection.empty();}`;
 
-export const JS_POST_MESSAGE_TO_PROVIDER = (message, origin) => `(function () {
+export const JS_POST_MESSAGE_TO_PROVIDER = (
+  message: object,
+  origin: string
+) => `(function () {
   try {
     window.postMessage(${JSON.stringify(message)}, '${origin}');
   } catch (e) {
@@ -84,7 +87,10 @@ export const JS_POST_MESSAGE_TO_PROVIDER = (message, origin) => `(function () {
   }
 })()`;
 
-export const JS_IFRAME_POST_MESSAGE_TO_PROVIDER = (message, origin) =>
+export const JS_IFRAME_POST_MESSAGE_TO_PROVIDER = (
+  _message: object,
+  _origin: string
+) =>
   `(function () {})()`;
 /** Disable sending messages to iframes for now
  *
@@ -93,7 +99,7 @@ export const JS_IFRAME_POST_MESSAGE_TO_PROVIDER = (message, origin) =>
   for (let frame of iframes){
 
       try {
-        frame.contentWindow.postMessage(${JSON.stringify(message)}, '${origin}');
+        frame.contentWindow.postMessage(${JSON.stringify(_message)}, '${_origin}');
       } catch (e) {
         //Nothing to do
       }
