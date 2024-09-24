@@ -4,7 +4,7 @@ import {
   FIXTURE_SERVER_PORT,
   isTest,
   testConfig,
-} from './app/util/test/utils.js';
+} from './app/util/test/utils.ts';
 import { LaunchArguments } from 'react-native-launch-arguments';
 
 // In a testing environment, assign the fixtureServerPort to use a deterministic port
