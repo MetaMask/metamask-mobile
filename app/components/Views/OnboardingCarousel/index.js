@@ -185,21 +185,13 @@ class OnboardingCarousel extends PureComponent {
   componentDidMount = async () => {
     this.updateNavBar();
     this.track(MetaMetricsEvents.ONBOARDING_WELCOME_MESSAGE_VIEWED);
-    const nativeLaunchDuration = await StorageWrapper.getItem(
-      'nativeLaunchDuration',
-    );
-    const jsBundleDuration = await StorageWrapper.getItem('jsBundleDuration');
     const appStartTime = await StorageWrapper.getItem('appStartTime');
-    this.setState({ nativeLaunchDuration, jsBundleDuration, appStartTime });
+    this.setState({ appStartTime });
   };
 
   componentDidUpdate = () => {
     this.updateNavBar();
   };
-
-  getJsBundleDuration = async () => await StorageWrapper.getItem('jsBundleDuration');
-
-  getAppStartTime = async () => await StorageWrapper.getItem('appStartTime');
 
   render() {
     const { currentTab, appStartTime } = this.state;
