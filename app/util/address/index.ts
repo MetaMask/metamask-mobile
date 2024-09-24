@@ -244,7 +244,7 @@ export function isExternalHardwareAccount(address: string) {
 }
 
 /**
- * gets i18n account label tag text based on keyring type
+ * gets i18n account label tag text based on the keyring type for that address
  *
  * @param {String} address - String corresponding to an address
  * @returns {String} - Returns address's i18n label text
