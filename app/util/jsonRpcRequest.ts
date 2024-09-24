@@ -11,21 +11,21 @@ import { Buffer } from 'buffer';
  * @returns {Promise<unknown|undefined>} Returns the result of the RPC method call,
  * or throws an error in case of failure.
  */
-export async function jsonRpcRequest(rpcUrl, rpcMethod, rpcParams = []) {
+export async function jsonRpcRequest(rpcUrl: string, rpcMethod: string, rpcParams: unknown[] = []): Promise<unknown | undefined> {
   let fetchUrl = rpcUrl;
-  const headers = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
 
   // Convert basic auth URL component to Authorization header
-  const { origin, pathname, username, password, search } = new URL(rpcUrl);
+  const { origin, pathname, username, password, query } = new URL(rpcUrl);
   // URLs containing username and password needs special processing
   if (username && password) {
     const encodedAuth = Buffer.from(`${username}:${password}`).toString(
       'base64',
     );
     headers.Authorization = `Basic ${encodedAuth}`;
-    fetchUrl = `${origin}${pathname}${search}`;
+    fetchUrl = `${origin}${pathname}${query ? `?${query}` : ''}`;
   }
 
   const jsonRpcResponse = await fetch(fetchUrl, {
