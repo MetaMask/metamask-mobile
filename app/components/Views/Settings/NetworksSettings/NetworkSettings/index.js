@@ -85,6 +85,7 @@ import { TextVariant } from '../../../../../component-library/components/Texts/T
 import ButtonLink from '../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import ButtonPrimary from '../../../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
 import { RpcEndpointType } from '@metamask/network-controller';
+import BottomSheetOverlay from '../../../../../component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetOverlay';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -1584,10 +1585,7 @@ export class NetworkSettings extends PureComponent {
 
     const isRPCEditable = isCustomMainnet || editable;
     const isActionDisabled =
-      !enableAction ||
-      // this.disabledByRpcUrl() ||
-      this.disabledByChainId() ||
-      this.disabledBySymbol();
+      !enableAction || this.disabledByChainId() || this.disabledBySymbol();
 
     const rpcActionStyle = isActionDisabled
       ? { ...styles.button, ...styles.disabledButton }
@@ -1787,6 +1785,7 @@ export class NetworkSettings extends PureComponent {
         style={styles.wrapper}
         testID={NetworksViewSelectorsIDs.CONTAINER}
       >
+        {/* <BottomSheetOverlay onPress={() => console.log('IM HERE ...')} /> */}
         <KeyboardAwareScrollView style={styles.informationCustomWrapper}>
           {!networkTypeOrRpcUrl ? (
             <WarningMessage
@@ -1846,11 +1845,6 @@ export class NetworkSettings extends PureComponent {
                 <Cell
                   key={rpcUrl}
                   variant={CellVariant.SelectWithMenu}
-                  // title={
-                  //   networkConfigurations?.[chainId]?.rpcEndpoints?.[
-                  //     networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
-                  //   ]?.name
-                  // }
                   title={rpcName}
                   secondaryText={
                     hideKeyFromUrl(rpcUrl) ??
@@ -2013,7 +2007,6 @@ export class NetworkSettings extends PureComponent {
             onClose={this.closeAddRpcForm}
             style={styles.rpcMenu}
             shouldNavigateBack={false}
-            // isFullscreen
           >
             <BottomSheetHeader
               onBack={() => {
@@ -2062,7 +2055,6 @@ export class NetworkSettings extends PureComponent {
                 style={inputErrorRpcStyle}
                 autoCapitalize={'none'}
                 autoCorrect={false}
-                // editable={isRPCEditable}
                 onChangeText={this.onRpcNameAdd}
                 onFocus={this.onRpcUrlFocused}
                 placeholder={strings('app_settings.network_rpc_placeholder')}
@@ -2092,7 +2084,6 @@ export class NetworkSettings extends PureComponent {
             onClose={this.closeAddBlockExplorerRpcForm}
             style={styles.rpcMenu}
             shouldNavigateBack={false}
-            // isFullscreen
           >
             <BottomSheetHeader
               onBack={() => {
@@ -2191,7 +2182,6 @@ export class NetworkSettings extends PureComponent {
             </View>
           </BottomSheet>
         ) : null}
-        {/* // TODO : refacto here */}
         {showMultiRpcAddModal.isVisible ? (
           <BottomSheet
             ref={this.rpcAddMenuSheetRef}
