@@ -174,7 +174,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     channelIdOrHostname,
   ]);
 
-  const urlWithProtocol = hostname
+  const urlWithProtocol = (hostname && !isUUID(hostname))
     ? prefixUrlWithProtocol(hostname)
     : domainTitle;
 
