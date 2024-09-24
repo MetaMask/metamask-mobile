@@ -22,7 +22,6 @@ import Networks, {
   getAllNetworks,
   getIsNetworkOnboarded,
 } from '../../../../../util/networks';
-import { getEtherscanBaseUrl } from '../../../../../util/etherscan';
 import Engine from '../../../../../core/Engine';
 import { isWebUri } from 'valid-url';
 import URL from 'url-parse';
@@ -37,13 +36,7 @@ import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { PopularList } from '../../../../../util/networks/customNetworks';
 import WarningMessage from '../../../confirmations/SendFlow/WarningMessage';
 import InfoModal from '../../../../UI/Swaps/components/InfoModal';
-import {
-  DEFAULT_MAINNET_CUSTOM_NAME,
-  MAINNET,
-  NETWORKS_CHAIN_ID,
-  PRIVATENETWORK,
-  RPC,
-} from '../../../../../constants/network';
+import { PRIVATENETWORK, RPC } from '../../../../../constants/network';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import { showNetworkOnboardingAction } from '../../../../../actions/onboardNetwork';
 import sanitizeUrl, {
@@ -86,19 +79,9 @@ import { isNetworkUiRedesignEnabled } from '../../../../../util/networks/isNetwo
 import Cell, {
   CellVariant,
 } from '../../../../../component-library/components/Cells/Cell';
-import { MAINNET_DEFAULT_RPC_URL } from '../../../../../constants/urls';
-import {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../../component-library/components/Avatars/Avatar';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
-import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
-import hideProtocolFromUrl from '../../../../../util/hideProtocolFromUrl';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import ButtonLink from '../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import ButtonPrimary from '../../../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
 import { RpcEndpointType } from '@metamask/network-controller';
@@ -309,8 +292,9 @@ const createStyles = (colors) =>
   });
 
 const allNetworks = getAllNetworks();
-const allNetworksblockExplorerUrl = (networkName) =>
-  `https://${networkName}.infura.io/v3/`;
+
+const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
+const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
 /**
  * Main view for app configurations
@@ -418,6 +402,11 @@ export class NetworkSettings extends PureComponent {
   blockExplorerAddFormSheetRef = React.createRef();
 
   getOtherNetworks = () => allNetworks.slice(1);
+
+  templateInfuraRpc = (endpoint) =>
+    endpoint.endsWith('{infuraProjectId}')
+      ? endpoint.replace('{infuraProjectId}', infuraProjectId ?? '')
+      : endpoint;
 
   updateNavBar = () => {
     const { navigation, route } = this.props;
@@ -622,7 +611,10 @@ export class NetworkSettings extends PureComponent {
     let providerError;
 
     try {
-      endpointChainId = await jsonRpcRequest(rpcUrl, 'eth_chainId');
+      endpointChainId = await jsonRpcRequest(
+        this.templateInfuraRpc(rpcUrl),
+        'eth_chainId',
+      );
     } catch (err) {
       Logger.error(err, 'Failed to fetch the chainId from the endpoint.');
       providerError = err;
@@ -1014,7 +1006,10 @@ export class NetworkSettings extends PureComponent {
     let endpointChainId;
     let providerError;
     try {
-      endpointChainId = await jsonRpcRequest(rpcUrl, 'eth_chainId');
+      endpointChainId = await jsonRpcRequest(
+        this.templateInfuraRpc(rpcUrl),
+        'eth_chainId',
+      );
     } catch (err) {
       Logger.error(err, 'Failed to fetch the chainId from the endpoint.');
       providerError = err;
@@ -2145,7 +2140,6 @@ export class NetworkSettings extends PureComponent {
                   label={strings('app_settings.add_rpc_url')}
                   size={ButtonSize.Lg}
                   onPress={() => {
-                    // todo salim here
                     this.onBlockExplorerItemAdd(blockExplorerUrl);
                   }}
                   width={ButtonWidthTypes.Full}
