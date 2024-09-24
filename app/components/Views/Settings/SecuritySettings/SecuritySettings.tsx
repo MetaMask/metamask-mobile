@@ -55,7 +55,6 @@ import {
 } from '../../../../selectors/networkController';
 import {
   selectIsMultiAccountBalancesEnabled,
-  selectUseNftDetection,
   selectShowIncomingTransactionNetworks,
   selectShowTestNetworks,
   selectUseSafeChainsListValidation,
@@ -79,7 +78,6 @@ import {
   BIOMETRY_CHOICE_STRING,
   CLEAR_BROWSER_HISTORY_SECTION,
   DISPLAY_SAFE_CHAINS_LIST_VALIDATION,
-  NFT_AUTO_DETECT_MODE_SECTION,
   PASSCODE_CHOICE_STRING,
   SDK_SECTION,
   USE_SAFE_CHAINS_LIST_VALIDATION,
@@ -110,7 +108,6 @@ import ProfileSyncingComponent from '../../../UI/ProfileSyncing/ProfileSyncing';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetrics } from '../../../../core/Analytics';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
-import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import {
   selectIsMetamaskNotificationsEnabled,
   selectIsProfileSyncingEnabled,
@@ -123,6 +120,7 @@ import { useDisableNotifications } from '../../../../util/notifications/hooks/us
 import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
 import DisplayNFTMediaSettings from '../../Settings/DisplayNFTMediaSettings';
 import IPFSGatewaySettings from '../../Settings/IPFSGatewaySettings';
+import AutoDetectNFTSettings from '../../Settings/AutoDetectNFTSettings';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -137,7 +135,7 @@ const Heading: React.FC<HeadingProps> = ({ children, first }) => {
 };
 
 const Settings: React.FC = () => {
-  const { trackEvent, isEnabled, addTraitsToUser } = useMetrics();
+  const { trackEvent, isEnabled } = useMetrics();
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
@@ -186,8 +184,6 @@ const Settings: React.FC = () => {
   const useTransactionSimulations = useSelector(
     selectUseTransactionSimulations,
   );
-
-  const useNftDetection = useSelector(selectUseNftDetection);
 
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
@@ -535,27 +531,6 @@ const Settings: React.FC = () => {
     </ActionModal>
   );
 
-  const toggleNftAutodetect = useCallback(
-    (value) => {
-      const { PreferencesController } = Engine.context;
-      if (value) {
-        PreferencesController.setDisplayNftMedia(value);
-      }
-      PreferencesController.setUseNftDetection(value);
-      const traits = {
-        [UserProfileProperty.NFT_AUTODETECTION]: value
-          ? UserProfileProperty.ON
-          : UserProfileProperty.OFF,
-      };
-      addTraitsToUser(traits);
-      trackEvent(MetaMetricsEvents.NFT_AUTO_DETECTION_ENABLED, {
-        ...traits,
-        location: 'app_settings',
-      });
-    },
-    [addTraitsToUser, trackEvent],
-  );
-
   const renderUseSafeChainsListValidation = useCallback(
     () => (
       <View style={styles.halfSetting} testID={USE_SAFE_CHAINS_LIST_VALIDATION}>
@@ -645,43 +620,6 @@ const Settings: React.FC = () => {
       </View>
     ),
     [colors, styles, useTransactionSimulations, theme.brandColors.white],
-  );
-
-  const renderAutoDetectNft = useCallback(
-    () => (
-      <View
-        style={styles.setting}
-        testID={NFT_AUTO_DETECT_MODE_SECTION}
-        ref={detectNftComponentRef}
-      >
-        <View style={styles.titleContainer}>
-          <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-            {strings('app_settings.nft_autodetect_mode')}
-          </Text>
-          <View style={styles.switchElement}>
-            <Switch
-              value={useNftDetection}
-              onValueChange={toggleNftAutodetect}
-              trackColor={{
-                true: colors.primary.default,
-                false: colors.border.muted,
-              }}
-              thumbColor={theme.brandColors.white}
-              style={styles.switch}
-              ios_backgroundColor={colors.border.muted}
-            />
-          </View>
-        </View>
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
-          style={styles.desc}
-        >
-          {strings('app_settings.autodetect_nft_desc')}
-        </Text>
-      </View>
-    ),
-    [colors, styles, useNftDetection, theme, toggleNftAutodetect],
   );
 
   const handleChangeText = (text: string) => setHintText(text);
@@ -1003,7 +941,11 @@ const Settings: React.FC = () => {
           {strings('app_settings.token_nft_ens_subheading')}
         </Text>
         <DisplayNFTMediaSettings />
-        {isMainnet && renderAutoDetectNft()}
+        {isMainnet && (
+          <View ref={detectNftComponentRef}>
+            <AutoDetectNFTSettings />
+          </View>
+        )}
         <IPFSGatewaySettings />
         <Text
           variant={TextVariant.BodyLGMedium}
