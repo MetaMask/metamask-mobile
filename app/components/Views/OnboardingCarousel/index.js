@@ -138,7 +138,7 @@ const carousel_images = [
 /**
  * View that is displayed to first time (new) users
  */
-class OnboardingCarousel extends PureComponent {
+export class OnboardingCarousel extends PureComponent {
   static propTypes = {
     /**
      * The navigator object
