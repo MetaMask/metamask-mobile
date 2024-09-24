@@ -8675,47 +8675,19 @@ exports[`BuildQuote View renders correctly 1`] = `
                                 </TouchableOpacity>
                               </View>
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
-                                      "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 30,
-                                      "fontWeight": "400",
-                                      "marginVertical": 2,
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    {
-                                      "color": "#141618",
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    {
-                                      "color": "#141618",
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    {
-                                      "marginVertical": 8,
-                                    },
-                                  ]
+                                  {
+                                    "color": "#141618",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                    "marginVertical": 8,
+                                  }
                                 }
+                                testID="label"
                               >
                                 You want to buy
                               </Text>
@@ -9080,47 +9052,19 @@ exports[`BuildQuote View renders correctly 1`] = `
                                 </Text>
                               </View>
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
-                                      "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 30,
-                                      "fontWeight": "400",
-                                      "marginVertical": 2,
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    {
-                                      "color": "#141618",
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    {
-                                      "color": "#141618",
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    {
-                                      "marginVertical": 8,
-                                    },
-                                  ]
+                                  {
+                                    "color": "#141618",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                    "marginVertical": 8,
+                                  }
                                 }
+                                testID="label"
                               >
                                 Amount
                               </Text>
@@ -9449,47 +9393,19 @@ exports[`BuildQuote View renders correctly 1`] = `
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
-                                    [
-                                      {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 30,
-                                        "fontWeight": "400",
-                                        "marginVertical": 2,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "color": "#141618",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "color": "#141618",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "marginVertical": 8,
-                                      },
-                                    ]
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "marginVertical": 8,
+                                    }
                                   }
+                                  testID="label"
                                 >
                                   Update payment method
                                 </Text>
@@ -12066,47 +11982,19 @@ exports[`BuildQuote View renders correctly 2`] = `
                                 </TouchableOpacity>
                               </View>
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
-                                      "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 30,
-                                      "fontWeight": "400",
-                                      "marginVertical": 2,
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    {
-                                      "color": "#141618",
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    {
-                                      "color": "#141618",
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    {
-                                      "marginVertical": 8,
-                                    },
-                                  ]
+                                  {
+                                    "color": "#141618",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                    "marginVertical": 8,
+                                  }
                                 }
+                                testID="label"
                               >
                                 You want to sell
                               </Text>
@@ -12471,47 +12359,19 @@ exports[`BuildQuote View renders correctly 2`] = `
                                 </Text>
                               </View>
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
-                                      "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 30,
-                                      "fontWeight": "400",
-                                      "marginVertical": 2,
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    {
-                                      "color": "#141618",
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    {
-                                      "color": "#141618",
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    {
-                                      "marginVertical": 8,
-                                    },
-                                  ]
+                                  {
+                                    "color": "#141618",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                    "marginVertical": 8,
+                                  }
                                 }
+                                testID="label"
                               >
                                 Amount
                               </Text>
@@ -12692,47 +12552,19 @@ exports[`BuildQuote View renders correctly 2`] = `
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
-                                    [
-                                      {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 30,
-                                        "fontWeight": "400",
-                                        "marginVertical": 2,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "color": "#141618",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "color": "#141618",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "marginVertical": 8,
-                                      },
-                                    ]
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "marginVertical": 8,
+                                    }
                                   }
+                                  testID="label"
                                 >
                                   Send your cash to
                                 </Text>

@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
-import Text from '../../../Base/Text';
+import Label from '../../../../component-library/components/Form/Label';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -57,11 +57,7 @@ const Box: React.FC<Props> = ({
   const styles = createStyles(colors);
   return (
     <>
-      {Boolean(label) && (
-        <Text black style={styles.label}>
-          {label}
-        </Text>
-      )}
+      {Boolean(label) && <Label style={styles.label}>{label}</Label>}
       <TouchableOpacity
         disabled={!onPress}
         onPress={onPress}
