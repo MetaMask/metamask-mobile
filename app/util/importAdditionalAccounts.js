@@ -3,7 +3,6 @@ import { BNToHex } from '../util/number';
 import Logger from '../util/Logger';
 import ExtendedKeyringTypes from '../../app/constants/keyringTypes';
 
-const HD_KEY_TREE_ERROR = 'MetamaskController - No HD Key Tree found';
 const ZERO_BALANCE = '0x0';
 const MAX = 20;
 
@@ -30,31 +29,33 @@ const getBalance = async (address, ethQuery) =>
  */
 export default async () => {
   const { KeyringController } = Engine.context;
-
   const ethQuery = Engine.getGlobalEthQuery();
-  let accounts = await KeyringController.getAccounts();
-  let lastBalance = await getBalance(accounts[accounts.length - 1], ethQuery);
 
-  const { keyrings } = KeyringController.state;
-  const filteredKeyrings = keyrings.filter(
-    (keyring) => keyring.type === ExtendedKeyringTypes.hd,
+  await KeyringController.withKeyring(
+    { type: ExtendedKeyringTypes.hd },
+    async (primaryKeyring) => {
+      const existingAccounts = await primaryKeyring.getAccounts();
+      let lastBalance = await getBalance(
+        existingAccounts[existingAccounts.length - 1],
+        ethQuery,
+      );
+      let i = 0;
+      // seek out the first zero balance
+      while (lastBalance !== ZERO_BALANCE && i < MAX) {
+        lastBalance = await getBalance(
+          await primaryKeyring.addAccounts(1),
+          ethQuery,
+        );
+        i++;
+      }
+
+      // remove extra zero balance account potentially created from seeking ahead
+      const currentAccounts = await primaryKeyring.getAccounts();
+      if (currentAccounts.length > 1 && lastBalance === ZERO_BALANCE) {
+        primaryKeyring.removeAccount(
+          currentAccounts[currentAccounts.length - 1],
+        );
+      }
+    },
   );
-  const primaryKeyring = filteredKeyrings[0];
-  if (!primaryKeyring) throw new Error(HD_KEY_TREE_ERROR);
-
-  let i = 0;
-  // seek out the first zero balance
-  while (lastBalance !== ZERO_BALANCE) {
-    if (i === MAX) break;
-    await KeyringController.addNewAccountWithoutUpdate(primaryKeyring);
-    accounts = await KeyringController.getAccounts();
-    lastBalance = await getBalance(accounts[accounts.length - 1], ethQuery);
-    i++;
-  }
-
-  // remove extra zero balance account potentially created from seeking ahead
-  if (accounts.length > 1 && lastBalance === ZERO_BALANCE) {
-    await KeyringController.removeAccount(accounts[accounts.length - 1]);
-    accounts = await KeyringController.getAccounts();
-  }
 };
