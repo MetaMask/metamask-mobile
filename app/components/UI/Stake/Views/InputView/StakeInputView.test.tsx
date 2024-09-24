@@ -127,5 +127,13 @@ describe('StakeInputView', () => {
       fireEvent.press(screen.getByText('4'));
       expect(screen.queryAllByText('Not enough ETH')).toHaveLength(2);
     });
+
+    it('navigates to Learn more modal when learn icon is pressed', () => {
+      render(StakeInputView);
+      fireEvent.press(screen.getByLabelText('Learn More Icon'));
+      expect(mockNavigate).toHaveBeenCalledWith('StakeModals', {
+        screen: Routes.STAKING.MODALS.LEARN_MORE,
+      });
+    });
   });
 });
