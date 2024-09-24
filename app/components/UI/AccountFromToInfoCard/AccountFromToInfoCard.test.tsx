@@ -2,7 +2,6 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { shallow } from 'enzyme';
 import configureMockStore from 'redux-mock-store';
-import { RpcEndpointType } from '@metamask/network-controller';
 
 import renderWithProvider, {
   DeepPartial,
@@ -14,7 +13,6 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../reducers';
 import { AssetsContractController } from '@metamask/assets-controllers';
-import { mockNetworkState } from '../../../util/test/network';
 
 const MOCK_ADDRESS_1 = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
 const MOCK_ADDRESS_2 = '0x519d2CE57898513F676a5C3b66496c3C394c9CC7';
