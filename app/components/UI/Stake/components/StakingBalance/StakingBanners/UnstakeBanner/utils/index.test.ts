@@ -6,7 +6,7 @@ describe('Unstake Banner Utils', () => {
 
     it('returns default text when days and hours = 0', () => {
       const result = renderUnstakingTimeRemaining(
-        { days: 0, hours: 0 },
+        { days: 0, hours: 0, minutes: 0 },
         MOCK_ETH_AMOUNT,
       );
 
@@ -17,7 +17,7 @@ describe('Unstake Banner Utils', () => {
 
     it('returns "day" only when days = 1 and hours = 0', () => {
       const result = renderUnstakingTimeRemaining(
-        { days: 1, hours: 0 },
+        { days: 1, hours: 0, minutes: 0 },
         MOCK_ETH_AMOUNT,
       );
 
@@ -28,7 +28,7 @@ describe('Unstake Banner Utils', () => {
 
     it('returns "days" only when days > 1 and hours = 0', () => {
       const result = renderUnstakingTimeRemaining(
-        { days: 2, hours: 0 },
+        { days: 2, hours: 0, minutes: 0 },
         MOCK_ETH_AMOUNT,
       );
 
@@ -39,7 +39,7 @@ describe('Unstake Banner Utils', () => {
 
     it('returns "hour" only when days = 0 and hours = 1', () => {
       const result = renderUnstakingTimeRemaining(
-        { days: 0, hours: 1 },
+        { days: 0, hours: 1, minutes: 0 },
         MOCK_ETH_AMOUNT,
       );
 
@@ -50,7 +50,7 @@ describe('Unstake Banner Utils', () => {
 
     it('returns "hours" only when days = 0 and hours > 1', () => {
       const result = renderUnstakingTimeRemaining(
-        { days: 0, hours: 2 },
+        { days: 0, hours: 2, minutes: 0 },
         MOCK_ETH_AMOUNT,
       );
 
@@ -61,7 +61,7 @@ describe('Unstake Banner Utils', () => {
 
     it('returns "day" and "hour" text when days and hours = 1', () => {
       const result = renderUnstakingTimeRemaining(
-        { days: 1, hours: 1 },
+        { days: 1, hours: 1, minutes: 0 },
         MOCK_ETH_AMOUNT,
       );
 
@@ -72,12 +72,34 @@ describe('Unstake Banner Utils', () => {
 
     it('returns "days" and "hours" text when days and hours > 1', () => {
       const result = renderUnstakingTimeRemaining(
-        { days: 5, hours: 2 },
+        { days: 5, hours: 2, minutes: 0 },
         MOCK_ETH_AMOUNT,
       );
 
       expect(result).toBe(
         `Unstaking ${MOCK_ETH_AMOUNT} ETH in progress. Come back in 5 days and 2 hours to claim it.`,
+      );
+    });
+
+    it('returns "minutes" if days and hours = 0', () => {
+      const result = renderUnstakingTimeRemaining(
+        { days: 0, hours: 0, minutes: 35 },
+        MOCK_ETH_AMOUNT,
+      );
+
+      expect(result).toBe(
+        `Unstaking ${MOCK_ETH_AMOUNT} ETH in progress. Come back in approximately 35 minutes to claim it.`,
+      );
+    });
+
+    it('return "minute" if days and hours = 0 and minutes = 1', () => {
+      const result = renderUnstakingTimeRemaining(
+        { days: 0, hours: 0, minutes: 1 },
+        MOCK_ETH_AMOUNT,
+      );
+
+      expect(result).toBe(
+        `Unstaking ${MOCK_ETH_AMOUNT} ETH in progress. Come back in approximately 1 minute to claim it.`,
       );
     });
   });

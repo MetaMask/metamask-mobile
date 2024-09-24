@@ -599,7 +599,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
                                 }
                               }
                             >
-                              Unstaking 0.0009 ETH in progress. Come back in 11 days to claim it.
+                              Unstaking 0.0010 ETH in progress. Come back in 11 days to claim it.
                             </Text>
                           </View>
                         </View>
@@ -679,7 +679,6 @@ exports[`StakingBalance render matches snapshot 1`] = `
                                 }
                               }
                               suppressHighlighting={true}
-                              width={100}
                             >
                               <Text
                                 accessibilityRole="text"
