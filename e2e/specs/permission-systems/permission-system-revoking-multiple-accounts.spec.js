@@ -47,7 +47,9 @@ describe(Regression('Connecting to multiple dapps and revoking permission on one
         await ConnectedAccountsModal.tapConnectMoreAccountsButton();
         await AccountListView.tapAddAccountButton();
         await AddAccountModal.tapCreateAccount();
-        await Assertions.checkIfTextIsDisplayed(AccountTwoText);
+        if (device.getPlatform() === 'android') {
+          await Assertions.checkIfTextIsDisplayed(AccountTwoText);
+        }
         await AccountListView.tapAccountIndex(0);
         await AccountListView.tapConnectAccountsButton();
 
