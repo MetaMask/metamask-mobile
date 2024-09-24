@@ -318,7 +318,7 @@ describe('getAccountLabelTextByKeyring,', () => {
     );
   });
 
-  it('should return "Snaps (beta)" if account is a Snap keyring', () => {
+  it('returns "Snaps (beta)" if account is a Snap keyring', () => {
     expect(getAccountLabelTextByKeyring(snapAddress)).toBe(
       'accounts.snap_account_tag',
     );
