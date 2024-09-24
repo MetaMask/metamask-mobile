@@ -1,4 +1,4 @@
-import URL from 'url-parse';
+import ParsedURL from 'url-parse';
 // eslint-disable-next-line import/no-nodejs-modules
 import { Buffer } from 'buffer';
 
@@ -18,14 +18,15 @@ export async function jsonRpcRequest(rpcUrl: string, rpcMethod: string, rpcParam
   };
 
   // Convert basic auth URL component to Authorization header
-  const { origin, pathname, username, password, query } = new URL(rpcUrl);
+  const parsedUrl = new ParsedURL(rpcUrl);
+  const { origin, pathname, username, password } = parsedUrl;
   // URLs containing username and password needs special processing
   if (username && password) {
     const encodedAuth = Buffer.from(`${username}:${password}`).toString(
       'base64',
     );
     headers.Authorization = `Basic ${encodedAuth}`;
-    fetchUrl = `${origin}${pathname}${query ? `?${query}` : ''}`;
+    fetchUrl = `${origin}${pathname}${parsedUrl.query ? `?${parsedUrl.query}` : ''}`;
   }
 
   const jsonRpcResponse = await fetch(fetchUrl, {
