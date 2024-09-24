@@ -452,7 +452,6 @@ export class NetworkSettings extends PureComponent {
     this.updateNavBar();
     const { route, networkConfigurations } = this.props;
 
-    const isCustomMainnet = route.params?.isCustomMainnet;
     const networkTypeOrRpcUrl = route.params?.network;
 
     // if network is main, don't show popular network
@@ -468,32 +467,60 @@ export class NetworkSettings extends PureComponent {
       selectedRpcEndpointIndex;
     // If no navigation param, user clicked on add network
     if (networkTypeOrRpcUrl) {
-      const networkConfiguration = Object.values(networkConfigurations).find(
-        ({ rpcEndpoints, defaultRpcEndpointIndex }) =>
-          rpcEndpoints[defaultRpcEndpointIndex].url === networkTypeOrRpcUrl ||
-          rpcEndpoints[defaultRpcEndpointIndex].networkClientId ===
-            networkTypeOrRpcUrl,
-      );
-      nickname = networkConfiguration?.name;
-      chainId = networkConfiguration?.chainId;
-      blockExplorerUrl =
-        networkConfiguration?.blockExplorerUrls[
-          networkConfiguration?.defaultBlockExplorerUrlIndex
-        ];
-      ticker = networkConfiguration?.nativeCurrency;
-      editable = true;
-      rpcUrl =
-        networkConfigurations?.[chainId]?.rpcEndpoints[
-          networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
-        ]?.url;
-      rpcUrls = networkConfiguration?.rpcEndpoints;
-      blockExplorerUrls = networkConfiguration?.blockExplorerUrls;
-      rpcName =
-        networkConfiguration?.rpcEndpoints[
-          networkConfiguration?.defaultBlockExplorerUrlIndex
-        ]?.name;
+      if (allNetworks.find((net) => networkTypeOrRpcUrl === net)) {
+        const networkInformation = Networks[networkTypeOrRpcUrl];
+        chainId = networkInformation.chainId.toString();
 
-      selectedRpcEndpointIndex = networkConfiguration?.defaultRpcEndpointIndex;
+        nickname = networkConfigurations?.[chainId]?.name;
+        editable = false;
+        blockExplorerUrl =
+          networkConfigurations?.[chainId]?.blockExplorerUrls[
+            networkConfigurations?.[chainId]?.defaultBlockExplorerUrlIndex
+          ];
+        rpcUrl =
+          networkConfigurations?.[chainId]?.rpcEndpoints[
+            networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
+          ]?.url;
+        rpcName =
+          networkConfigurations?.[chainId]?.rpcEndpoints[
+            networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
+          ]?.type ??
+          networkConfigurations?.[chainId]?.rpcEndpoints[
+            networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
+          ]?.name;
+        rpcUrls = networkConfigurations?.[chainId]?.rpcEndpoints;
+        blockExplorerUrls = networkConfigurations?.[chainId]?.blockExplorerUrls;
+
+        ticker = networkConfigurations?.[chainId]?.nativeCurrency;
+      } else {
+        const networkConfiguration = Object.values(networkConfigurations).find(
+          ({ rpcEndpoints, defaultRpcEndpointIndex }) =>
+            rpcEndpoints[defaultRpcEndpointIndex].url === networkTypeOrRpcUrl ||
+            rpcEndpoints[defaultRpcEndpointIndex].networkClientId ===
+              networkTypeOrRpcUrl,
+        );
+        nickname = networkConfiguration?.name;
+        chainId = networkConfiguration?.chainId;
+        blockExplorerUrl =
+          networkConfiguration?.blockExplorerUrls[
+            networkConfiguration?.defaultBlockExplorerUrlIndex
+          ];
+        ticker = networkConfiguration?.nativeCurrency;
+        editable = true;
+        rpcUrl =
+          networkConfigurations?.[chainId]?.rpcEndpoints[
+            networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
+          ]?.url;
+        rpcUrls = networkConfiguration?.rpcEndpoints;
+        blockExplorerUrls = networkConfiguration?.blockExplorerUrls;
+        rpcName =
+          networkConfiguration?.rpcEndpoints[
+            networkConfiguration?.defaultBlockExplorerUrlIndex
+          ]?.name;
+
+        selectedRpcEndpointIndex =
+          networkConfiguration?.defaultRpcEndpointIndex;
+      }
 
       const initialState =
         rpcUrl +
@@ -720,7 +747,6 @@ export class NetworkSettings extends PureComponent {
         rpcEndpoints: rpcUrls,
         nativeCurrency: ticker,
         name: nickname,
-        // i don't like it
         defaultRpcEndpointIndex: indexRpc,
         defaultBlockExplorerUrlIndex:
           blockExplorerIndex !== -1 ? blockExplorerIndex : undefined,
@@ -917,7 +943,6 @@ export class NetworkSettings extends PureComponent {
    */
   validateChainId = async () => {
     const { chainId, rpcUrl, editable } = this.state;
-
     const isChainIdExists = await this.checkIfChainIdExists(chainId);
     const isNetworkExists = await this.checkIfNetworkExists(rpcUrl);
 
@@ -2172,6 +2197,7 @@ export class NetworkSettings extends PureComponent {
             </View>
           </BottomSheet>
         ) : null}
+        {/* // TODO : refacto here */}
         {showMultiRpcAddModal.isVisible ? (
           <BottomSheet
             ref={this.rpcAddMenuSheetRef}

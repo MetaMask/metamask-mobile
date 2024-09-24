@@ -212,7 +212,7 @@ describe('NetworkSettings', () => {
     expect(rpcUrl).toBe('');
   });
 
-  it.only('should update state and call getCurrentState on RPC URL change', async () => {
+  it('should update state and call getCurrentState on RPC URL change', async () => {
     const SAMPLE_NETWORKSETTINGS_PROPS_2 = {
       route: {
         params: {
@@ -477,7 +477,37 @@ describe('NetworkSettings', () => {
     expect(wrapper.state('validatedChainId')).toBe(true);
   });
 
+  // here
   it('should update state and call getCurrentState on block explorer URL change', async () => {
+    const newProps = {
+      ...SAMPLE_NETWORKSETTINGS_PROPS,
+      networkConfigurations: {
+        '0x1': {
+          chainId: '0x1',
+          blockExplorerUrls: ['https://etherscan.io'],
+          defaultBlockExplorerUrlIndex: 0,
+          rpcEndpoints: [
+            {
+              url: 'https://rinkeby.infura.io/v3/YOUR-PROJECT-ID',
+              type: RpcEndpointType.Infura,
+            },
+          ],
+        },
+      },
+    };
+
+    wrapper = shallow(
+      <Provider store={store}>
+        <NetworkSettings {...newProps} />
+      </Provider>,
+    )
+      .find(NetworkSettings)
+      .dive();
+
+    wrapper.setState({
+      chainId: '0x1',
+    });
+
     const getCurrentStateSpy = jest.spyOn(
       wrapper.instance(),
       'getCurrentState',
