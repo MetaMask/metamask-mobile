@@ -17,7 +17,7 @@ describe('AssetElement', () => {
     balanceFiat: ' $1',
     logo: '',
     isETH: undefined,
-    balanceError: null,
+    hasBalanceError: false,
     decimals: 0,
     image: '',
   };

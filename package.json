@@ -152,7 +152,7 @@
     "@metamask/accounts-controller": "^18.2.1",
     "@metamask/address-book-controller": "^6.0.1",
     "@metamask/approval-controller": "^7.0.1",
-    "@metamask/assets-controllers": "^30.0.0",
+    "@metamask/assets-controllers": "^31.0.0",
     "@metamask/base-controller": "^7.0.1",
     "@metamask/composable-controller": "^3.0.0",
     "@metamask/contract-metadata": "^2.1.0",

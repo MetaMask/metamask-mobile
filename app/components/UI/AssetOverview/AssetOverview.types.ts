@@ -3,6 +3,6 @@ export interface Asset {
   decimals: number;
   name: string;
   symbol: string;
-  balanceError: boolean | undefined;
+  hasBalanceError: boolean;
   address: string;
 }

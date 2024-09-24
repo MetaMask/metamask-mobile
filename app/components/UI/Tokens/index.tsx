@@ -429,7 +429,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       }
     }
 
-    if (asset?.balanceError) {
+    if (asset?.hasBalanceError) {
       mainBalance = asset.symbol;
       secondaryBalance = strings('wallet.unable_to_load');
     }

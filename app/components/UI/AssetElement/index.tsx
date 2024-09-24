@@ -88,7 +88,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
         {balance && (
           <Text
             variant={
-              asset?.balanceError || asset.balanceFiat === TOKEN_RATE_UNDEFINED
+              asset?.hasBalanceError || asset.balanceFiat === TOKEN_RATE_UNDEFINED
                 ? TextVariant.BodySM
                 : TextVariant.BodyLGMedium
             }

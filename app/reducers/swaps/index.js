@@ -165,7 +165,7 @@ const swapsControllerAndUserTokens = createSelector(
   (swapsTokens, tokens) => {
     const values = [...(swapsTokens || []), ...(tokens || [])]
       .filter(Boolean)
-      .reduce((map, { balanceError, image, ...token }) => {
+      .reduce((map, { hasBalanceError, image, ...token }) => {
         const key = token.address.toLowerCase();
 
         if (!map.has(key)) {

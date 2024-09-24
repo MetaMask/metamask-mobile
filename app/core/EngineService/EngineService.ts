@@ -54,15 +54,19 @@ class EngineService {
         key: `${engine.context.AddressBookController.name}:stateChange`,
       },
       { name: 'AssetsContractController' },
-      { name: 'NftController' },
+      { name: 'NftController', key: 'NftController:stateChange' },
       {
         name: 'TokensController',
+        key: 'TokensController:stateChange',
       },
       {
         name: 'TokenDetectionController',
         key: `${engine.context.TokenDetectionController.name}:stateChange`,
       },
-      { name: 'NftDetectionController' },
+      {
+        name: 'NftDetectionController',
+        key: 'NftDetectionController:stateChange',
+      },
       {
         name: 'KeyringController',
         key: `${engine.context.KeyringController.name}:stateChange`,
