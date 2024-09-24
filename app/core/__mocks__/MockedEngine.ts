@@ -1,7 +1,7 @@
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { mockNetworkState } from '../../util/test/network';
 import { NetworkClientId } from '@metamask/network-controller';
 import Engine from '../../core/Engine';
+import { mainnetNetworkState } from '../../util/networks/constants';
 
 export const mockedEngine = {
   init: () => Engine.init({}),
@@ -55,12 +55,7 @@ export const mockedEngine = {
         };
       },
       state: {
-        ...mockNetworkState({
-          chainId: '0x1',
-          id: 'mainnet',
-          nickname: 'Ethereum Mainnet',
-          ticker: 'ETH',
-        }),
+        ...mainnetNetworkState,
       },
     },
   },

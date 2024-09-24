@@ -7,7 +7,7 @@ import { Provider } from 'react-redux';
 import { ThemeContext, mockTheme } from '../../../../../../app/util/theme';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { isNetworkUiRedesignEnabled } from '../../../../../util/networks/isNetworkUiRedesignEnabled';
-import { mockNetworkState } from '../../../../../util/test/network';
+import { mainnetNetworkState } from '../../../../../util/networks/constants';
 
 // Mock the entire module
 jest.mock('../../../../../util/networks/isNetworkUiRedesignEnabled', () => ({
@@ -25,13 +25,7 @@ const initialState = {
     networkOnboardedState: { '1': true },
   },
   NetworkController: {
-    ...mockNetworkState({
-      id: 'mainnet',
-      nickname: 'Ethereum Mainnet',
-      ticker: 'ETH',
-      chainId: '0x1',
-      type: RpcEndpointType.Infura,
-    }),
+    ...mainnetNetworkState,
   },
 };
 

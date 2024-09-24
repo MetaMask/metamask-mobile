@@ -4,19 +4,14 @@ import CollectibleMedia from './CollectibleMedia';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { mockNetworkState } from '../../../util/test/network';
+import { mainnetNetworkState } from '../../../util/networks/constants';
 
 const mockInitialState = {
   engine: {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
-        ...mockNetworkState({
-          chainId: '0x1',
-          id: 'mainnet',
-          nickname: 'Ethereum Mainnet',
-          ticker: 'ETH',
-        }),
+        ...mainnetNetworkState,
       },
     },
   },

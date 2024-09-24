@@ -24,8 +24,7 @@ import {
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
-import { mockNetworkState } from '../../../../util/test/network';
-import { RpcEndpointType } from '@metamask/network-controller';
+import { mainnetNetworkState } from '../../../../util/networks/constants';
 
 const initialState = {
   privacy: { approvedHosts: {} },
@@ -37,13 +36,7 @@ const initialState = {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       NetworkController: {
-        ...mockNetworkState({
-          id: 'mainnet',
-          nickname: 'Ethereum Mainnet',
-          ticker: 'ETH',
-          chainId: '0x1',
-          type: RpcEndpointType.Infura,
-        }),
+        ...mainnetNetworkState,
       },
     },
   },

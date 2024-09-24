@@ -8,7 +8,7 @@ import {
   MOCK_ADDRESS_2,
 } from '../../../util/test/accountsControllerTestUtils';
 import { fireEvent } from '@testing-library/react-native';
-import { mockNetworkState } from '../../../util/test/network';
+import { mainnetNetworkState } from '../../../util/networks/constants';
 
 const MOCK_CHAIN_ID = '0x1';
 
@@ -27,12 +27,7 @@ const mockInitialState = {
         },
       },
       NetworkController: {
-        ...mockNetworkState({
-          id: 'mainnet',
-          nickname: 'Ethereum Mainnet',
-          ticker: 'ETH',
-          chainId: '0x1',
-        }),
+        ...mainnetNetworkState,
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       AccountTrackerController: {

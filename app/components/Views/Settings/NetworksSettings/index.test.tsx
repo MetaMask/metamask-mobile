@@ -1,8 +1,7 @@
 import { renderScreen } from '../../../../util/test/renderWithProvider';
 import NetworksSettings from './';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import { mockNetworkState } from '../../../../util/test/network';
-import { RpcEndpointType } from '@metamask/network-controller';
+import { mainnetNetworkState } from '../../../../util/networks/constants';
 
 const mockInitialState = {
   settings: {},
@@ -10,13 +9,7 @@ const mockInitialState = {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
-        ...mockNetworkState({
-          id: 'mainnet',
-          nickname: 'Ethereum Mainnet',
-          ticker: 'ETH',
-          chainId: '0x1',
-          type: RpcEndpointType.Infura,
-        }),
+        ...mainnetNetworkState,
       },
     },
   },

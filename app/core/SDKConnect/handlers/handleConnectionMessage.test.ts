@@ -19,8 +19,8 @@ import handleSendMessage from './handleSendMessage';
 import { createMockInternalAccount } from '../../../util/test/accountsControllerTestUtils';
 import { AccountsController } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
-import { mockNetworkState } from '../../../util/test/network';
 import { NETWORKS_CHAIN_ID } from '../../../../app/constants/network';
+import { mainnetNetworkState } from '../../../util/networks/constants';
 
 jest.mock('../../Engine');
 jest.mock('@metamask/keyring-controller');
@@ -108,12 +108,7 @@ describe('handleConnectionMessage', () => {
           },
         }),
         state: {
-          ...mockNetworkState({
-            chainId: '0x1',
-            id: 'mainnet',
-            nickname: 'Ethereum Mainnet',
-            ticker: 'ETH',
-          }),
+          ...mainnetNetworkState,
         },
       } as unknown as NetworkController,
       AccountsController: {

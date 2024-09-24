@@ -22,7 +22,7 @@ import { RootState } from '../../../reducers';
 
 // Internal dependencies
 import WalletAccount from './WalletAccount';
-import { mockNetworkState } from '../../../util/test/network';
+import { mainnetNetworkState } from '../../../util/networks/constants';
 
 const MOCK_CHAIN_ID: Hex = '0x1';
 
@@ -45,12 +45,7 @@ const mockInitialState: DeepPartial<RootState> = {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       NetworkController: {
-        ...mockNetworkState({
-          chainId: '0x1',
-          id: 'mainnet',
-          nickname: 'Ethereum Mainnet',
-          ticker: 'ETH',
-        }),
+        ...mainnetNetworkState,
       },
     },
   },

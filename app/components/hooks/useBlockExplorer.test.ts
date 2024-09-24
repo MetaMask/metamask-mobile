@@ -3,7 +3,7 @@ import Routes from '../../constants/navigation/Routes';
 import { backgroundState } from '../../util/test/initial-root-state';
 import { renderHookWithProvider } from '../../util/test/renderWithProvider';
 import useBlockExplorer from './useBlockExplorer';
-import { mockNetworkState } from '../../util/test/network';
+import { lineaGoerliNetworkState } from '../../util/networks/constants';
 
 const mockInitialState = {
   settings: {},
@@ -11,13 +11,7 @@ const mockInitialState = {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
-        ...mockNetworkState({
-          chainId: '0xe704',
-          id: 'mainnet',
-          nickname: 'Ethereum Mainnet',
-          ticker: 'ETH',
-          blockExplorerUrl: 'https://goerli.lineascan.build',
-        }),
+        ...lineaGoerliNetworkState,
       },
     },
   },

@@ -10,7 +10,7 @@ import { WalletActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
 import { mockNetworkState } from '../../../util/test/network';
-import { RpcEndpointType } from '@metamask/network-controller';
+import { mainnetNetworkState } from '../../../util/networks/constants';
 
 const mockInitialState: DeepPartial<RootState> = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
@@ -28,13 +28,7 @@ const mockInitialState: DeepPartial<RootState> = {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
-        ...mockNetworkState({
-          chainId: '0x1',
-          id: 'mainnet',
-          nickname: 'Ethereum Mainnet',
-          ticker: 'ETH',
-          type: RpcEndpointType.Infura,
-        }),
+        ...mainnetNetworkState,
       },
     },
   },

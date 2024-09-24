@@ -8,7 +8,7 @@ import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
 import { fireEvent } from '@testing-library/react-native';
 import { RootState } from 'app/reducers';
-import { mockNetworkState } from '../../../util/test/network';
+import { mainnetNetworkState } from '../../../util/networks/constants';
 
 const setUseNftDetectionSpy = jest.spyOn(
   Engine.context.PreferencesController,
@@ -35,13 +35,7 @@ const initialState = {
         displayNftMedia: true,
       },
       NetworkController: {
-        ...mockNetworkState({
-          chainId: '0x1',
-          id: 'mainnet',
-          nickname: 'Ethereum Mainnet',
-          ticker: 'ETH',
-          blockExplorerUrl: 'https://goerli.lineascan.build',
-        }),
+        ...mainnetNetworkState,
       },
     },
   },
@@ -75,13 +69,7 @@ describe('NFT Auto detection modal', () => {
             displayNftMedia: false,
           },
           NetworkController: {
-            ...mockNetworkState({
-              chainId: '0x1',
-              id: 'mainnet',
-              nickname: 'Ethereum Mainnet',
-              ticker: 'ETH',
-              blockExplorerUrl: 'https://goerli.lineascan.build',
-            }),
+            ...mainnetNetworkState,
           },
         },
       },

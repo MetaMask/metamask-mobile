@@ -10,7 +10,7 @@ import useAddressBalance from './useAddressBalance';
 import backgroundState from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 import { BN } from 'ethereumjs-util';
-import { mockNetworkState } from '../../../util/test/network';
+import { mainnetNetworkState } from '../../../util/networks/constants';
 
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
@@ -37,13 +37,7 @@ const mockInitialState = {
         },
       },
       NetworkController: {
-        ...mockNetworkState({
-          id: 'mainnet',
-          nickname: 'Ethereum Mainnet',
-          ticker: 'ETH',
-          chainId: '0x1',
-          type: RpcEndpointType.Infura,
-        }),
+        ...mainnetNetworkState,
       },
       TokenBalancesController: {
         contractBalances: {

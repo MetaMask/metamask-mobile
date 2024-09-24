@@ -4,8 +4,8 @@ import renderWithProvider, {
 } from '../../../util/test/renderWithProvider';
 import GasEducationCarousel from '.';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { mockNetworkState } from '../../../util/test/network';
 import { RootState } from '../../../reducers';
+import { mainnetNetworkState } from '../../../util/networks/constants';
 
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
@@ -13,12 +13,7 @@ const mockInitialState: DeepPartial<RootState> = {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
-        ...mockNetworkState({
-          id: 'mainnet',
-          nickname: 'Ethereum Mainnet',
-          ticker: 'ETH',
-          chainId: '0x1',
-        }),
+        ...mainnetNetworkState,
       },
     },
   },
