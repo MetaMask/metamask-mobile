@@ -71,7 +71,7 @@ import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
 import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
-import { isMutichainVersion1Enabled } from '../../../util/networks';
+import { isMultichainVersion1Enabled } from '../../../util/networks';
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
 
 const createStyles = () =>
@@ -674,7 +674,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const renderConnectScreens = useCallback(() => {
     switch (screen) {
       case AccountConnectScreens.SingleConnect:
-        return isMutichainVersion1Enabled
+        return isMultichainVersion1Enabled
           ? renderPermissionsSummaryScreen()
           : renderSingleConnectScreen();
       case AccountConnectScreens.SingleConnectSelector:
