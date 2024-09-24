@@ -30,7 +30,7 @@ Install ruby version defined in the file `.ruby-version`
 Install [`bundler`](https://bundler.io/) gem to manage and install gems such as Cocoapods. The `bundle install` command, which is run during `yarn setup` handles installing gem versions as specified in the project's `GemFile`
 
 ```bash
-gem install bundler -v 2.5.8 && bundle install
+gem install bundler -v 2.5.8 && bundle install --gemfile=ios/Gemfile
 ```
 
 ### Xcode
