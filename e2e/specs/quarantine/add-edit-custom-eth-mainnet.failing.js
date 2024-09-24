@@ -1,5 +1,4 @@
 import { Regression } from '../../tags';
-import TestHelpers from '../../helpers';
 import OnboardingCarouselView from '../../pages/Onboarding/OnboardingCarouselView';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import Assertions from '../../utils/Assertions';

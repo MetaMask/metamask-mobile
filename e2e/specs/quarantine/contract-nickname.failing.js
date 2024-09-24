@@ -41,9 +41,8 @@ describe('Adding Contract Nickname', () => {
     validAccount = Accounts.getValidAccount();
   });
 
-  beforeEach(async () => {
+  beforeEach(() => {
     jest.setTimeout(150000);
-
   });
 
   it('should import via seed phrase and validate in settings', async () => {

@@ -43,9 +43,8 @@ const networkErrorBodyMessage =
 const validAccount = Accounts.getValidAccount();
 
 describe(Regression('Deep linking Tests'), () => {
-  beforeEach(async () => {
+  beforeEach(() => {
     jest.setTimeout(150000);
-
   });
 
   it('should import wallet and go to the wallet view', async () => {

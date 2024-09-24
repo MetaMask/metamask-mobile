@@ -1,6 +1,5 @@
 'use strict';
 import { SmokeAssets } from '../../tags';
-import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
 import AddCustomTokenView from '../../pages/AddCustomTokenView';
@@ -13,9 +12,8 @@ import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 
 describe(SmokeAssets('Import NFT'), () => {
-  beforeAll(async () => {
+  beforeAll(() => {
     jest.setTimeout(150000);
-
   });
 
   it('should add a collectible', async () => {

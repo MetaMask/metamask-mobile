@@ -7,9 +7,8 @@ import ImportWalletView from '../../pages/Onboarding/ImportWalletView';
 import Assertions from '../../utils/Assertions';
 
 describe('Term of service', () => {
-  beforeEach(async () => {
+  beforeEach(() => {
     jest.setTimeout(200000);
-
   });
 
   it('should displayed Term of Use when first launching app', async () => {

@@ -1,6 +1,5 @@
 'use strict';
 import { SmokeAccounts } from '../../tags';
-import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import AccountListView from '../../pages/AccountListView';

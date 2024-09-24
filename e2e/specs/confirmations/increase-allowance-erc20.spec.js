@@ -22,7 +22,6 @@ describe(SmokeConfirmations('ERC20 - Increase Allowance'), () => {
     if (device.getPlatform() === 'android') {
       await TestHelpers.reverseServerPort();
     }
-
   });
 
   it('from a dApp', async () => {
