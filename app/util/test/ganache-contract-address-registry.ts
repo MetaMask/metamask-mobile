@@ -11,7 +11,7 @@ class GanacheContractAddressRegistry {
    * @param contractName
    * @param contractAddress
    */
-  storeNewContractAddress(contractName: string, contractAddress: string): void {
+  storeNewContractAddress(contractName: string, contractAddress: string) {
     this.#addresses[contractName] = contractAddress;
   }
 
@@ -20,7 +20,7 @@ class GanacheContractAddressRegistry {
    *
    * @param contractName
    */
-  getContractAddress(contractName: string): string | undefined {
+  getContractAddress(contractName: string) {
     return this.#addresses[contractName];
   }
 }
