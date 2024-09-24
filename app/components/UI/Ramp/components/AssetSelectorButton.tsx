@@ -1,26 +1,14 @@
 import React, { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Box from './Box';
-
-import BaseListItem from '../../../Base/ListItem';
-import Text from '../../../Base/Text';
-
 import CurrencyChevron from './CurrencyChevron';
-
-// TODO: Convert into typescript and correctly type optionals
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ListItem = BaseListItem as any;
-
-const styles = StyleSheet.create({
-  name: {
-    fontSize: 16,
-  },
-  chevron: {
-    flex: 0,
-    marginLeft: 8,
-  },
-});
+import ListItem from '../../../../component-library/components/List/ListItem';
+import ListItemColumn, {
+  WidthType,
+} from '../../../../component-library/components/List/ListItemColumn';
+import Text, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 
 interface Props {
   label?: string;
@@ -44,23 +32,23 @@ const AssetSelectorButton: React.FC<Props> = ({
 }: Props) => (
   <Box label={label} onPress={onPress} highlighted={highlighted} {...props}>
     <View>
-      <ListItem.Content>
-        {Boolean(icon) && <ListItem.Icon>{icon}</ListItem.Icon>}
-        <ListItem.Body>
+      <ListItem style={{ padding: 0 }}>
+        {Boolean(icon) && <ListItemColumn>{icon}</ListItemColumn>}
+
+        <ListItemColumn widthType={WidthType.Fill}>
           <Text
-            black
-            bold
-            style={styles.name}
+            variant={TextVariant.BodyLGMedium}
             numberOfLines={1}
             adjustsFontSizeToFit
           >
             {assetName}
           </Text>
-        </ListItem.Body>
-        <ListItem.Amounts style={styles.chevron}>
+        </ListItemColumn>
+
+        <ListItemColumn>
           <CurrencyChevron currency={assetSymbol} />
-        </ListItem.Amounts>
-      </ListItem.Content>
+        </ListItemColumn>
+      </ListItem>
     </View>
   </Box>
 );
