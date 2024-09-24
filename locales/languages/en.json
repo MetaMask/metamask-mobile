@@ -417,6 +417,14 @@
     "add_tokens": "Import tokens",
     "are_you_sure_exit": "Are you sure you want to exit?",
     "search_information_not_saved": "Your search information will not be saved.",
+    "disabled_button": {
+      "buy": "Buying not supported for this account",
+      "sell": "Selling not supported for this account",
+      "swap": "Swapping not supported for this account",
+      "bridge": "Bridging not supported for this account",
+      "send": "Sending not supported for this account",
+      "action": "This action is not supported for this account"
+    },
     "import_token": "Would you like to import this token?",
     "tokens_detected_in_account": "{{tokenCount}} new {{tokensLabel}} found in this account",
     "token_toast": {
