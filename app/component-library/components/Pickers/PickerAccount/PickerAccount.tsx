@@ -51,7 +51,7 @@ const PickerAccount: React.ForwardRefRenderFunction<
       />
       <View style={styles.accountNameLabel}>
         <Text
-          variant={TextVariant.HeadingSMRegular}
+          variant={TextVariant.BodyMDMedium}
           testID={WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT}
         >
           {accountName}
