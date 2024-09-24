@@ -9,7 +9,7 @@ import Text from '../../Base/Text';
 import { useTheme } from '../../../util/theme';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 import {
-  isMutichainVersion1Enabled,
+  isMultichainVersion1Enabled,
   getDecimalChainId,
 } from '../../../util/networks';
 import PermissionSummary from '../PermissionsSummary';
@@ -200,7 +200,7 @@ const SwitchCustomNetwork = ({
     />
   );
 
-  return isMutichainVersion1Enabled
+  return isMultichainVersion1Enabled
     ? renderPermissionSummary()
     : renderNetworkSwitchingNotice();
 };

@@ -2,6 +2,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import isYesterday from 'dayjs/plugin/isYesterday';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
+import notifee from '@notifee/react-native';
 import localeData from 'dayjs/plugin/localeData';
 import { Web3Provider } from '@ethersproject/providers';
 import { toHex } from '@metamask/controller-utils';
@@ -470,3 +471,6 @@ export const getUsdAmount = (amount: string, decimals: string, usd: string) => {
 
   return formatAmount(numericAmount);
 };
+
+export const hasInitialNotification = async () =>
+  Boolean(await notifee.getInitialNotification());
