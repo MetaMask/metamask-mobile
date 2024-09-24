@@ -23,7 +23,7 @@ import Banner, {
 } from '../../../../../component-library/components/Banners/Banner';
 import { strings } from '../../../../../../locales/i18n';
 import { renderFromWei } from '../../../../../util/number';
-import { getStakesApiResponse } from './StakingBalance.types';
+import { GetStakesApiResponse } from './StakingBalance.types';
 import { TokenI } from '../../../../UI/Tokens/types';
 import { getTimeDifferenceFromNow } from '../../../../../util/date';
 import { filterExitRequests } from './utils';
@@ -41,7 +41,7 @@ const MOCK_STAKED_ETH_ASSET = {
 } as TokenI;
 
 // TODO: Replace mock data when connecting to backend.
-const MOCK_UNSTAKING_REQUESTS: getStakesApiResponse = {
+const MOCK_UNSTAKING_REQUESTS: GetStakesApiResponse = {
   accounts: [
     {
       account: '0x0123456789abcdef0123456789abcdef01234567',

@@ -29,7 +29,7 @@ export const filterExitRequests = (
 
       // determine current asset value of withdrawing or partially withdrawn request
       const assetsToDisplay = request.claimedAssets
-        ? new bn(request.leftShares || 0)
+        ? new bn(request.leftShares ?? 0)
             .multipliedBy(exchangeRate)
             .plus(request.claimedAssets)
         : new bn(request.totalShares).multipliedBy(exchangeRate);

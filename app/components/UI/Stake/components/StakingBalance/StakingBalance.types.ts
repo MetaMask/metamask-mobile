@@ -28,7 +28,7 @@ interface StakeByAccount {
   exitRequests: ExitRequestWithClaimedAssetInfo[];
 }
 
-export interface getStakesApiResponse {
+export interface GetStakesApiResponse {
   accounts: StakeByAccount[];
   exchangeRate: string;
 }
