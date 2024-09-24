@@ -74,6 +74,7 @@ import {
   TransactionController,
   TransactionControllerEvents,
   TransactionControllerState,
+  TransactionMeta,
 } from '@metamask/transaction-controller';
 import {
   GasFeeController,
@@ -240,8 +241,8 @@ import {
   MetaMetricsEventName,
 } from '@metamask/smart-transactions-controller/dist/constants';
 import {
-  getSmartTransactionMetricsProperties,
-  getSmartTransactionMetricsSensitiveProperties,
+  getSmartTransactionMetricsProperties as getSmartTransactionMetricsPropertiesType,
+  getSmartTransactionMetricsSensitiveProperties as getSmartTransactionMetricsSensitivePropertiesType,
 } from '@metamask/smart-transactions-controller/dist/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { snapKeyringBuilder } from './SnapKeyring';
@@ -250,7 +251,7 @@ import { keyringSnapPermissionsBuilder } from './SnapKeyring/keyringSnapsPermiss
 import { HandleSnapRequestArgs } from './Snaps/types';
 import { handleSnapRequest } from './Snaps/utils';
 ///: END:ONLY_INCLUDE_IF
-
+import { getSmartTransactionMetricsProperties } from '../util/smart-transactions';
 const NON_EMPTY = 'NON_EMPTY';
 
 const encryptor = new Encryptor({
@@ -1387,9 +1388,9 @@ class Engine {
       params: {
         event: MetaMetricsEventName;
         category: MetaMetricsEventCategory;
-        properties?: ReturnType<typeof getSmartTransactionMetricsProperties>;
+        properties?: ReturnType<typeof getSmartTransactionMetricsPropertiesType>;
         sensitiveProperties?: ReturnType<
-          typeof getSmartTransactionMetricsSensitiveProperties
+          typeof getSmartTransactionMetricsSensitivePropertiesType
         >;
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -1401,12 +1402,12 @@ class Engine {
 
       MetaMetrics.getInstance().trackEvent(
         {
-          category,
-          properties: {
-            name: event,
-          },
+          category: params.event,
         },
-        restParams,
+        {
+          properties: params.properties,
+          sensitiveProperties: params.sensitiveProperties,
+        }        
       );
     };
     this.smartTransactionsController = new SmartTransactionsController({
@@ -1746,8 +1747,50 @@ class Engine {
     this.startPolling();
     this.handleVaultBackup();
     this.transactionController.clearUnapprovedTransactions();
+    this._addTransactionControllerListeners();
 
     Engine.instance = this;
+  }
+
+  _handleTransactionFinalizedEvent = ( _transactionEventPayload: TransactionMeta, properties: object ) => {
+    MetaMetrics.getInstance().trackEvent(
+      MetaMetricsEvents.TRANSACTION_FINALIZED,
+      {
+        ...properties
+      }
+    )
+  }
+
+  _handleTransactionDropped = ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
+    const properties = { status: 'dropped' };
+    this._handleTransactionFinalizedEvent(transactionMeta, properties);
+  }
+
+  _handleTransactionConfirmed = (transactionEventPayload: TransactionMeta) => {
+    const properties = { status: 'confirmed' };
+    this._handleTransactionFinalizedEvent(transactionEventPayload, properties);
+  }
+
+  _handleTransactionFailed = (transactionEventPayload: any) => {
+    const properties = { status: 'failed' };
+    this._handleTransactionFinalizedEvent(transactionEventPayload, properties);
+  }
+
+  _addTransactionControllerListeners() {
+    this.controllerMessenger.subscribe(
+      'TransactionController:transactionDropped',
+      this._handleTransactionDropped,
+    );
+
+    this.controllerMessenger.subscribe(
+      'TransactionController:transactionConfirmed',
+      this._handleTransactionConfirmed,
+    );
+
+    this.controllerMessenger.subscribe(
+      'TransactionController:transactionFailed',
+      this._handleTransactionFailed,
+    );
   }
 
   handleVaultBackup() {
