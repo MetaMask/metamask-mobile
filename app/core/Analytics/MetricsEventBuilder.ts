@@ -1,28 +1,74 @@
-import { IMetaMetricsEvent } from './MetaMetrics.types';
-import { InteractionManager } from 'react-native';
-import { MetaMetrics } from './index';
+import {
+  IMetaMetricsEvent,
+  ITrackingEvent,
+  JsonMap,
+  isTrackingEvent,
+} from './MetaMetrics.types';
 
-type JsonValue =
-  | boolean
-  | number
-  | string
-  | null
-  | JsonValue[]
-  | JsonMap
-  | undefined;
+/**
+ * represents the event tracking object produced by the event builder
+ */
+class TrackingEvent implements ITrackingEvent {
+  readonly #name: string;
+  #properties: JsonMap;
+  #sensitiveProperties: JsonMap;
+  #saveDataRecording: boolean;
 
-interface JsonMap {
-  [key: string]: JsonValue;
+  constructor(event: IMetaMetricsEvent | ITrackingEvent) {
+    if (isTrackingEvent(event)) {
+      this.#name = event.name;
+      this.#properties = event.properties || {};
+      this.#sensitiveProperties = event.sensitiveProperties || {};
+      this.#saveDataRecording = event.saveDataRecording || true;
+    } else {
+      this.#name = event.category;
+      this.#properties = {};
+      this.#sensitiveProperties = {};
+      this.#saveDataRecording = true;
+    }
+  }
 
-  [index: number]: JsonValue;
-}
+  get name(): string {
+    return this.#name;
+  }
 
-interface ITrackingEvent {
-  event: IMetaMetricsEvent;
-  properties: JsonMap;
-  sensitiveProperties: JsonMap;
-  saveDataRecording: boolean;
-  track(): void;
+  get properties(): JsonMap {
+    return this.#properties;
+  }
+
+  set properties(properties: JsonMap) {
+    this.#properties = properties;
+  }
+
+  get sensitiveProperties(): JsonMap {
+    return this.#sensitiveProperties;
+  }
+
+  set sensitiveProperties(sensitiveProperties: JsonMap) {
+    this.#sensitiveProperties = sensitiveProperties;
+  }
+
+  get saveDataRecording(): boolean {
+    return this.#saveDataRecording;
+  }
+
+  set saveDataRecording(saveDataRecording: boolean) {
+    this.#saveDataRecording = saveDataRecording;
+  }
+
+  get isAnonymous(): boolean {
+    return !!(
+      this.#sensitiveProperties && Object.keys(this.#sensitiveProperties).length
+    );
+  }
+
+  get hasProperties(): boolean {
+    return !!(
+      (this.#properties && Object.keys(this.#properties).length) ||
+      (this.#sensitiveProperties &&
+        Object.keys(this.#sensitiveProperties).length)
+    );
+  }
 }
 
 /**
@@ -42,23 +88,17 @@ interface ITrackingEvent {
  *  .build().track();
  */
 class MetricsEventBuilder {
-  private readonly event: IMetaMetricsEvent;
-  private properties: JsonMap;
-  private sensitiveProperties: JsonMap;
-  private saveDataRecording: boolean;
+  readonly #trackingEvent: ITrackingEvent;
 
-  constructor(event: IMetaMetricsEvent) {
-    this.event = event;
-    this.properties = {};
-    this.sensitiveProperties = {};
-    this.saveDataRecording = true;
+  constructor(event: IMetaMetricsEvent | ITrackingEvent) {
+    this.#trackingEvent = new TrackingEvent(event);
   }
 
   /**
    * Create a new event builder
    * @param event the event for the builder to build
    */
-  static createEventBuilder(event: IMetaMetricsEvent) {
+  static createEventBuilder(event: IMetaMetricsEvent | ITrackingEvent) {
     return new MetricsEventBuilder(event);
   }
 
@@ -67,7 +107,11 @@ class MetricsEventBuilder {
    * @param properties a map of properties to add to the event
    */
   addProperties(properties: JsonMap) {
-    this.properties = Object.assign({}, this.properties, properties);
+    this.#trackingEvent.properties = Object.assign(
+      {},
+      this.#trackingEvent.properties,
+      properties,
+    );
     return this;
   }
 
@@ -76,11 +120,35 @@ class MetricsEventBuilder {
    * @param properties a map of properties to add to the event
    */
   addSensitiveProperties(properties: JsonMap) {
-    this.sensitiveProperties = Object.assign(
+    this.#trackingEvent.sensitiveProperties = Object.assign(
       {},
-      this.sensitiveProperties,
+      this.#trackingEvent.sensitiveProperties,
       properties,
     );
+    return this;
+  }
+
+  #removeProperties = (map: JsonMap, keys: string[]) => {
+    for (const key of keys) {
+      delete map[key];
+    }
+  };
+
+  /**
+   * Remove one or more non-anonymous properties from the event
+   * @param propNames an array of property names to remove from the event
+   */
+  removeProperties(propNames: string[]) {
+    this.#removeProperties(this.#trackingEvent.properties, propNames);
+    return this;
+  }
+
+  /**
+   * Remove one or more non-anonymous properties from the event
+   * @param propNames an array of property names to remove from the event
+   */
+  removeSensitiveProperties(propNames: string[]) {
+    this.#removeProperties(this.#trackingEvent.sensitiveProperties, propNames);
     return this;
   }
 
@@ -89,7 +157,7 @@ class MetricsEventBuilder {
    * @param saveDataRecording the value to set the flag to, default is true
    */
   setSaveDataRecording(saveDataRecording: boolean) {
-    this.saveDataRecording = saveDataRecording;
+    this.#trackingEvent.saveDataRecording = saveDataRecording;
     return this;
   }
 
@@ -97,21 +165,9 @@ class MetricsEventBuilder {
    * Build the event
    */
   build(): ITrackingEvent {
-    return {
-      event: this.event,
-      properties: this.properties,
-      sensitiveProperties: this.sensitiveProperties,
-      saveDataRecording: this.saveDataRecording,
-      track() {
-        InteractionManager.runAfterInteractions(async () => {
-          MetaMetrics.getInstance().trackEvent(this.event, {
-            ...this.properties,
-            ...this.sensitiveProperties,
-          });
-        });
-      },
-    };
+    return this.#trackingEvent;
   }
 }
 
-export default MetricsEventBuilder;
+export { MetricsEventBuilder };
+export type { ITrackingEvent };

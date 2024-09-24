@@ -1,9 +1,6 @@
-import { InteractionManager } from 'react-native';
-import { IMetaMetricsEvent, MetaMetrics } from '../../../core/Analytics';
 import { IUseMetricsHook } from './useMetrics.types';
-import { useCallback } from 'react';
-import { CombinedProperties } from '../../../core/Analytics/MetaMetrics.types';
-import MetricsEventBuilder from '../../../core/Analytics/MetricsEventBuilder';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { MetaMetrics } from '../../../core/Analytics';
 
 /**
  * Hook to use MetaMetrics
@@ -71,58 +68,19 @@ import MetricsEventBuilder from '../../../core/Analytics/MetricsEventBuilder';
  *   getMetaMetricsId,
  * } = useMetrics();
  */
-const useMetrics = (): IUseMetricsHook => {
-  /**
-   * Track an event - the regular way
-   *
-   * @param event - IMetaMetricsEvent event
-   * @param properties - Object containing any event relevant traits or properties (optional)
-   * @param saveDataRecording - param to skip saving the data recording flag (optional)
-   *
-   * @example
-   * const { trackEvent } = useMetrics();
-   * trackEvent(MetaMetricsEvents.ONBOARDING_STARTED);
-   *
-   * @example track with properties:
-   * const { trackEvent } = useMetrics();
-   * trackEvent(MetaMetricsEvents.BROWSER_SEARCH_USED, {
-   *       option_chosen: 'Browser Bottom Bar Menu',
-   *       number_of_tabs: undefined,
-   *     });
-   *
-   * @see MetaMetrics.trackEvent
-   */
-  const trackEvent = useCallback(
-    (
-      event: IMetaMetricsEvent,
-      properties: CombinedProperties = {},
-      saveDataRecording = true,
-    ) => {
-      InteractionManager.runAfterInteractions(async () => {
-        MetaMetrics.getInstance().trackEvent(
-          event,
-          properties,
-          saveDataRecording,
-        );
-      });
-    },
-    [],
-  );
-
-  return {
-    trackEvent,
-    enable: MetaMetrics.getInstance().enable,
-    addTraitsToUser: MetaMetrics.getInstance().addTraitsToUser,
-    createDataDeletionTask: MetaMetrics.getInstance().createDataDeletionTask,
-    checkDataDeleteStatus: MetaMetrics.getInstance().checkDataDeleteStatus,
-    getDeleteRegulationCreationDate:
-      MetaMetrics.getInstance().getDeleteRegulationCreationDate,
-    getDeleteRegulationId: MetaMetrics.getInstance().getDeleteRegulationId,
-    isDataRecorded: MetaMetrics.getInstance().isDataRecorded,
-    isEnabled: MetaMetrics.getInstance().isEnabled,
-    getMetaMetricsId: MetaMetrics.getInstance().getMetaMetricsId,
-    createEventBuilder: MetricsEventBuilder.createEventBuilder,
-  };
-};
+const useMetrics = (): IUseMetricsHook => ({
+  trackEvent: MetaMetrics.getInstance().trackEvent,
+  enable: MetaMetrics.getInstance().enable,
+  addTraitsToUser: MetaMetrics.getInstance().addTraitsToUser,
+  createDataDeletionTask: MetaMetrics.getInstance().createDataDeletionTask,
+  checkDataDeleteStatus: MetaMetrics.getInstance().checkDataDeleteStatus,
+  getDeleteRegulationCreationDate:
+    MetaMetrics.getInstance().getDeleteRegulationCreationDate,
+  getDeleteRegulationId: MetaMetrics.getInstance().getDeleteRegulationId,
+  isDataRecorded: MetaMetrics.getInstance().isDataRecorded,
+  isEnabled: MetaMetrics.getInstance().isEnabled,
+  getMetaMetricsId: MetaMetrics.getInstance().getMetaMetricsId,
+  createEventBuilder: MetricsEventBuilder.createEventBuilder,
+});
 
 export default useMetrics;

@@ -6,7 +6,10 @@ import {
   IDeleteRegulationStatus,
   IMetaMetricsEvent,
 } from '../../../core/Analytics/MetaMetrics.types';
-import MetricsEventBuilder from '../../../core/Analytics/MetricsEventBuilder';
+import {
+  MetricsEventBuilder,
+  ITrackingEvent,
+} from '../../../core/Analytics/MetricsEventBuilder';
 
 export const SourceType = {
   SDK: 'sdk',
@@ -22,11 +25,21 @@ export interface IUseMetricsHook {
   addTraitsToUser(userTraits: UserTraits): Promise<void>;
 
   /**
-   * @deprecated use {@link MetricsEventBuilder} instead
+   * @deprecated use {@link trackEvent(ITrackingEvent, boolean)}
    */
   trackEvent(
     event: IMetaMetricsEvent,
     properties?: CombinedProperties,
+    saveDataRecording?: boolean,
+  ): void;
+  /**
+   * track an event
+   * @param event - Analytics event build with {@link MetricsEventBuilder}
+   * @param saveDataRecording - param to skip saving the data recording flag (optional)
+   */
+  trackEvent(
+    // New signature
+    event: ITrackingEvent,
     saveDataRecording?: boolean,
   ): void;
   createDataDeletionTask(): Promise<IDeleteRegulationResponse>;
