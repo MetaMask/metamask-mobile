@@ -12,7 +12,7 @@ import TagUrl from '../../../../component-library/components/Tags/TagUrl';
 import PickerNetwork from '../../../../component-library/components/Pickers/PickerNetwork';
 import {
   getDecimalChainId,
-  isMutichainVersion1Enabled,
+  isMultichainVersion1Enabled,
 } from '../../../../util/networks';
 import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
@@ -148,10 +148,10 @@ const AccountPermissionsConnected = ({
 
   return (
     <>
-      {!isMutichainVersion1Enabled && (
+      {!isMultichainVersion1Enabled && (
         <SheetHeader title={strings('accounts.connected_accounts_title')} />
       )}
-      {isMutichainVersion1Enabled && (
+      {isMultichainVersion1Enabled && (
         <View style={styles.header}>
           <Avatar
             variant={AvatarVariant.Favicon}
@@ -163,7 +163,7 @@ const AccountPermissionsConnected = ({
         </View>
       )}
       <View style={styles.body}>
-        {!isMutichainVersion1Enabled && (
+        {!isMultichainVersion1Enabled && (
           <TagUrl
             imageSource={favicon}
             label={urlWithProtocol}
@@ -174,12 +174,12 @@ const AccountPermissionsConnected = ({
             iconName={secureIcon}
           />
         )}
-        {isMutichainVersion1Enabled && (
+        {isMultichainVersion1Enabled && (
           <Text style={styles.sectionTitle} variant={TextVariant.BodyMDMedium}>
             {strings('accounts.connected_accounts_title')}
           </Text>
         )}
-        {!isMutichainVersion1Enabled && (
+        {!isMultichainVersion1Enabled && (
           <PickerNetwork
             label={networkName}
             imageSource={networkImageSource}
@@ -198,7 +198,7 @@ const AccountPermissionsConnected = ({
         isRemoveAccountEnabled
       />
       {renderSheetAction()}
-      {isMutichainVersion1Enabled && (
+      {isMultichainVersion1Enabled && (
         <Button
           style={styles.managePermissionsButton}
           variant={ButtonVariants.Secondary}
