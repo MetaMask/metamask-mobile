@@ -7,7 +7,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import LearnMoreImage from '../components/images/LearnMoreEthBanner.png';
+import LearnMoreImage from '../images/LearnMoreEthBanner.png';
 import Button, {
   ButtonSize,
   ButtonVariants,
