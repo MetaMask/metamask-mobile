@@ -1,12 +1,13 @@
 import React, { useMemo, useState } from 'react';
-import PropTypes from 'prop-types';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import { useRatio } from '../utils';
 import Text from '../../../Base/Text';
 import { useTheme } from '../../../../util/theme';
+import BigNumber from 'bignumber.js';
+import { Theme } from '@metamask/design-tokens';
 
-const createStyles = (colors) =>
+const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     infoIcon: {
       fontSize: 12,
@@ -14,15 +15,29 @@ const createStyles = (colors) =>
       color: colors.primary.default,
     },
   });
+
+interface TokenInfo {
+  symbol: string;
+  decimals: number;
+}
+
+interface RatioProps {
+  sourceAmount: string;
+  sourceToken: TokenInfo;
+  destinationAmount: string;
+  destinationToken: TokenInfo;
+  boldSymbol?: boolean;
+}
+
 function Ratio({
   sourceAmount,
   sourceToken,
   destinationAmount,
   destinationToken,
   boldSymbol = false,
-}) {
+}: RatioProps) {
   /* Get the ratio between the assets given the selected quote*/
-  const [ratioAsSource, setRatioAsSource] = useState(true);
+  const [ratioAsSource, setRatioAsSource] = useState<boolean>(true);
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -39,14 +54,14 @@ function Ratio({
     sourceToken,
   ]);
 
-  const ratio = useRatio(
+  const ratio: BigNumber = useRatio(
     numerator?.amount,
     numerator?.decimals,
     denominator?.amount,
     denominator?.decimals,
   );
 
-  const handleRatioSwitch = () => setRatioAsSource((isSource) => !isSource);
+  const handleRatioSwitch = (): void => setRatioAsSource((isSource) => !isSource);
 
   return (
     <TouchableOpacity onPress={handleRatioSwitch}>
@@ -64,19 +79,5 @@ function Ratio({
     </TouchableOpacity>
   );
 }
-
-Ratio.propTypes = {
-  sourceAmount: PropTypes.string,
-  sourceToken: PropTypes.shape({
-    symbol: PropTypes.string,
-    decimals: PropTypes.number,
-  }),
-  destinationAmount: PropTypes.string,
-  destinationToken: PropTypes.shape({
-    symbol: PropTypes.string,
-    decimals: PropTypes.number,
-  }),
-  boldSymbol: PropTypes.bool,
-};
 
 export default Ratio;
