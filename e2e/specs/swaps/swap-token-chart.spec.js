@@ -22,6 +22,8 @@ import ActivitiesView from '../../pages/ActivitiesView';
 import DetailsModal from '../../pages/modals/DetailsModal';
 
 const fixtureServer = new FixtureServer();
+const sourceTokenSymbol = 'USDT';
+const destTokenSymbol = 'DAI';
 
 describe(Regression('Swap from Token view'), () => {
   const swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
@@ -47,7 +49,7 @@ describe(Regression('Swap from Token view'), () => {
     jest.setTimeout(150000);
   });
 
-  it('should complete a USDC to DAI swap from the token chart', async () => {
+  it('should complete a USDT to ETH swap from the token chart', async () => {
     await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
     await WalletView.tapOnToken('Ethereum');
@@ -58,15 +60,15 @@ describe(Regression('Swap from Token view'), () => {
     await Assertions.checkIfVisible(QuoteView.getQuotes);
     await QuoteView.tapOnSelectSourceToken();
     await QuoteView.tapSearchToken();
-    await QuoteView.typeSearchToken('LINK');
+    await QuoteView.typeSearchToken(sourceTokenSymbol);
     await TestHelpers.delay(1000);
-    await QuoteView.selectToken('LINK');
-    await QuoteView.enterSwapAmount('5');
+    await QuoteView.selectToken(sourceTokenSymbol);
+    await QuoteView.enterSwapAmount('10');
     await QuoteView.tapOnSelectDestToken();
     await QuoteView.tapSearchToken();
-    await QuoteView.typeSearchToken('DAI');
+    await QuoteView.typeSearchToken(destTokenSymbol);
     await TestHelpers.delay(1000);
-    await QuoteView.selectToken('DAI');
+    await QuoteView.selectToken(destTokenSymbol);
     await QuoteView.tapOnGetQuotes();
     await Assertions.checkIfVisible(SwapView.fetchingQuotes);
     await Assertions.checkIfVisible(SwapView.quoteSummary);
@@ -75,7 +77,7 @@ describe(Regression('Swap from Token view'), () => {
     await SwapView.swipeToSwap();
     try {
       await Assertions.checkIfVisible(
-        SwapView.swapCompleteLabel('LINK', 'DAI'),
+        SwapView.swapCompleteLabel(sourceTokenSymbol, destTokenSymbol),
         100000,
       );
     } catch (e) {
@@ -84,22 +86,23 @@ describe(Regression('Swap from Token view'), () => {
     }
     await device.enableSynchronization();
     await TestHelpers.delay(5000);
+    await TokenOverview.tapBackButton();
     await TabBarComponent.tapActivity();
     await Assertions.checkIfVisible(ActivitiesView.title);
-    await Assertions.checkIfVisible(ActivitiesView.swapActivity('LINK', 'DAI'));
-    await ActivitiesView.tapOnSwapActivity('LINK', 'DAI');
+    await Assertions.checkIfVisible(ActivitiesView.swapActivity(sourceTokenSymbol, destTokenSymbol));
+    await ActivitiesView.tapOnSwapActivity(sourceTokenSymbol, destTokenSymbol);
 
     try {
       await Assertions.checkIfVisible(DetailsModal.title);
     } catch (e) {
-      await ActivitiesView.tapOnSwapActivity('LINK', 'DAI');
+      await ActivitiesView.tapOnSwapActivity(sourceTokenSymbol, destTokenSymbol);
       await Assertions.checkIfVisible(DetailsModal.title);
     }
 
     await Assertions.checkIfVisible(DetailsModal.title);
     await Assertions.checkIfElementToHaveText(
       DetailsModal.title,
-      DetailsModal.generateExpectedTitle('LINK', 'DAI'),
+      DetailsModal.generateExpectedTitle(sourceTokenSymbol, destTokenSymbol),
     );
     await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
     await DetailsModal.tapOnCloseIcon();
