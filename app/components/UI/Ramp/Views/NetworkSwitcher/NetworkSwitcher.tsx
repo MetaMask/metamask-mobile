@@ -167,7 +167,6 @@ function NetworkSwitcher() {
           ] ?? {};
 
         CurrencyRateController.updateExchangeRate(ticker);
-        // TODO: fix it here setActiveNetwork
         NetworkController.setActiveNetwork(networkClientId);
         navigateToGetStarted();
       }
