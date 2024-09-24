@@ -505,7 +505,6 @@ export const getRpcMethodMiddleware = ({
       eth_coinbase: getEthAccounts,
       parity_defaultAccount: getEthAccounts,
       eth_sendTransaction: async () => {
-        // eslint-disable-next-line no-console
         checkTabActive();
 
         return RPCMethods.eth_sendTransaction({
@@ -826,7 +825,6 @@ export const getRpcMethodMiddleware = ({
        */
       metamask_logWeb3ShimUsage: () => (res.result = null),
       wallet_addEthereumChain: () => {
-        // eslint-disable-next-line no-console
         checkTabActive();
         return RPCMethods.wallet_addEthereumChain({
           req,
