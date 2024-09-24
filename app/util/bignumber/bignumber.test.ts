@@ -150,16 +150,16 @@ describe('bignumber utils', () => {
       const input = 393859854789998.4883;
       expect(multiplyValueByPowerOfTen(input, 0)).toEqual(new BigNumber(input));
 
-      // disabling no-loss-of-precision because excessively precise inputs are possible
-      // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
       expect(multiplyValueByPowerOfTen(input, 1)).toEqual(
-        new BigNumber('3938598547899984.883'),
+        // disabling no-loss-of-precision because excessively precise inputs are possible
+        // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
+        new BigNumber(3938598547899984.883),
       );
 
-      // disabling no-loss-of-precision because excessively precise inputs are possible
-      // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
       expect(multiplyValueByPowerOfTen(input, 2)).toEqual(
-        new BigNumber('39385985478999848.83'),
+        // disabling no-loss-of-precision because excessively precise inputs are possible
+        // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
+        new BigNumber(39385985478999848.83),
       );
 
       expect(multiplyValueByPowerOfTen(input, 10)).toEqual(
