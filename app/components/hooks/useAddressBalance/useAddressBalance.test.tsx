@@ -1,5 +1,4 @@
 import React from 'react';
-import { RpcEndpointType } from '@metamask/network-controller';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { renderHook } from '@testing-library/react-native';

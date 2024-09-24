@@ -5,7 +5,6 @@ import initialRootState, {
 } from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
 import { userInitialState } from '../../reducers/user';
-import { NetworkController } from '@metamask/network-controller';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
