@@ -25,6 +25,7 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { TokenI } from '../../Tokens/types';
+import { useNavigation } from '@react-navigation/native';
 import { isPooledStakingFeatureEnabled } from '../../Stake/constants';
 import StakingBalance from '../../Stake/components/StakingBalance/StakingBalance';
 
@@ -49,6 +50,7 @@ const NetworkBadgeSource = (chainId: string, ticker: string) => {
 
 const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
   const { styles } = useStyles(styleSheet, {});
+  const navigation = useNavigation();
   const networkName = useSelector(selectNetworkName);
   const chainId = useSelector(selectChainId);
 
@@ -61,6 +63,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
         asset={asset}
         mainBalance={mainBalance}
         balance={secondaryBalance}
+        onPress={() => !asset.isETH && navigation.navigate('AssetDetails')}
       >
         <BadgeWrapper
           style={styles.badgeWrapper}

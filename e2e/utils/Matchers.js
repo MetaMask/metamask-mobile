@@ -1,4 +1,4 @@
-import { web } from 'detox';
+import { web, system } from 'detox';
 
 /**
  * Utility class for matching (locating) UI elements
@@ -151,6 +151,17 @@ class Matchers {
  */
   static async getIdentifier(selectorString) {
     return by.id(selectorString);
+  }
+
+
+  /**
+   * Get system dialogs in the system-level (e.g. permissions, alerts, etc.), by text.
+   *
+   * @param {string} text - Match elements with the specified text
+   * @return {Promise<Detox.SystemElement>} - Resolves to the located element
+   */
+  static async getSystemElementByText(text) {
+    return system.element(by.system.label(text));
   }
 }
 
