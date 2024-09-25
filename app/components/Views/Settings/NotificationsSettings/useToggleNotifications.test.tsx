@@ -52,7 +52,7 @@ describe('useToggleNotifications', () => {
     );
   });
 
-  it('switches notifications off if notifications previously enabled', async () => {
+  it('switches notifications OFF if notifications previously enabled', async () => {
     const { result } = renderHook(() =>
       useToggleNotifications({
         navigation: mockNavigation,
