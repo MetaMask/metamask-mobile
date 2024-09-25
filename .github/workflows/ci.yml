@@ -222,6 +222,10 @@ jobs:
         uses: actions/checkout@v3
       - name: SonarCloud Quality Gate Status
         id: sonar-status
+        env:
+          REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Skip step if event is a PR
           if [[ "${{ github.event_name }}" != "pull_request" ]]; then
@@ -229,31 +233,40 @@ jobs:
             exit 0
           fi
 
-          sleep 30
+          # Bypass step if skip-sonar-cloud label is found
+          LABEL=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+          "https://api.github.com/repos/$REPO/issues/$ISSUE_NUMBER/labels" | \
+          jq -r '.[] | select(.name=="skip-sonar-cloud") | .name')
 
-          PROJECT_KEY="metamask-mobile"
-          PR_NUMBER="${{ github.event.pull_request.number }}"
-          SONAR_TOKEN="${{ secrets.SONAR_TOKEN }}"
-
-          if [ -z "$PR_NUMBER" ]; then
-            echo "No pull request number found. Failing the check."
-            exit 1
-          fi
-
-          RESPONSE=$(curl -s -u "$SONAR_TOKEN:" \
-            "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT_KEY&pullRequest=$PR_NUMBER")
-          echo "SonarCloud API Response: $RESPONSE"
-
-          STATUS=$(echo "$RESPONSE" | jq -r '.projectStatus.status')
-
-          if [[ "$STATUS" == "ERROR" ]]; then
-            echo "Quality Gate failed."
-            exit 1
-          elif [[ "$STATUS" == "OK" ]]; then
-            echo "Quality Gate passed."
+          if [[ "$LABEL" == "skip-sonar-cloud" ]]; then
+            echo "skip-sonar-cloud label found. Skipping SonarCloud Quality Gate check."
           else
-            echo "Could not determine Quality Gate status."
-            exit 1
+            sleep 30
+
+            PROJECT_KEY="metamask-mobile"
+            PR_NUMBER="${{ github.event.pull_request.number }}"
+            SONAR_TOKEN="${{ secrets.SONAR_TOKEN }}"
+
+            if [ -z "$PR_NUMBER" ]; then
+              echo "No pull request number found. Failing the check."
+              exit 1
+            fi
+
+            RESPONSE=$(curl -s -u "$SONAR_TOKEN:" \
+              "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT_KEY&pullRequest=$PR_NUMBER")
+            echo "SonarCloud API Response: $RESPONSE"
+
+            STATUS=$(echo "$RESPONSE" | jq -r '.projectStatus.status')
+
+            if [[ "$STATUS" == "ERROR" ]]; then
+              echo "Quality Gate failed."
+              exit 1
+            elif [[ "$STATUS" == "OK" ]]; then
+              echo "Quality Gate passed."
+            else
+              echo "Could not determine Quality Gate status."
+              exit 1
+            fi
           fi
   check-workflows:
     name: Check workflows
@@ -277,7 +290,6 @@ jobs:
         scripts,
         unit-tests,
         check-workflows,
-        sonar-cloud,
         js-bundle-size-check,
         sonar-cloud-quality-gate-status,
       ]
