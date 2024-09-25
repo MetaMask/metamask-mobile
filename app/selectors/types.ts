@@ -11,7 +11,7 @@ import {
 } from '@metamask/assets-controllers';
 import SwapsController from '@metamask/swaps-controller';
 import { NetworkState } from '@metamask/network-controller';
-import { AddressBookState } from '@metamask/address-book-controller';
+import { AddressBookControllerState } from '@metamask/address-book-controller';
 import { BaseState } from '@metamask/base-controller';
 import { KeyringControllerMemState } from '@metamask/keyring-controller';
 import { PreferencesState } from '@metamask/preferences-controller';
@@ -28,7 +28,7 @@ export interface EngineState {
   engine: {
     backgroundState: {
       AccountTrackerController: AccountTrackerState;
-      AddressBookController: AddressBookState;
+      AddressBookController: AddressBookControllerState;
       AssetsContractController: BaseState;
       NftController: NftState;
       TokenListController: TokenListState;

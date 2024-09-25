@@ -835,24 +835,6 @@
     "show_fiat_on_testnets_modal_button": "Continue",
     "show_hex_data": "Show Hex Data",
     "show_hex_data_desc": "Select this to show the hex data field on the send screen.",
-    "toggleEthSignBannerDescription": "You’re at risk for phishing attacks. Protect yourself by turning off eth_sign.",
-    "enable_eth_sign": "Eth_sign requests",
-    "enable_eth_sign_desc": "If you enable this setting, you might get signature requests that aren’t readable. By signing a message you don't understand, you could be agreeing to give away your funds and NFTs.",
-    "enable_eth_sign_warning": "You're at risk for phishing attacks. Protect yourself by turning off eth_sign.",
-    "toggleEthSignModalBannerText": "If you've been asked to turn this setting on,",
-    "toggleEthSignModalBannerBoldText": " you might be getting scammed.",
-    "toggleEthSignModalCheckBox": "I understand that I can lose all of my funds and NFTs if I enable eth_sign requests.",
-    "toggleEthSignModalDescription": "Allowing eth_sign requests can make you vulnerable to phishing attacks. Always review the URL and be careful when signing messages that contain code.",
-    "toggleEthSignModalFormError": "This text is incorrect. Try again.",
-    "toggleEthSignModalFormLabel": "Enter “I only sign what I understand” to continue",
-    "toggleEthSignModalFormValidation": "I only sign what I understand",
-    "toggleEthSignModalTitle": "Use at your own risk",
-    "toggleEthSignModalEnable": "Enable",
-    "toggleEthSignModalLearnMore": "Learn more.",
-    "toggleEthSignOff": "(Recommended)",
-    "toggleEthSignOn": "(Not recommended)",
-    "toggleEthSignContinueButton": "Continue",
-    "toggleEthSignEnableButton": "Enable",
     "show_custom_nonce": "Customize transaction nonce",
     "custom_nonce_desc": "Turn this on to change the nonce (transaction number) on confirmation screens. This is an advanced feature, use cautiously.",
     "accounts_identicon_title": "Account Identicon",
@@ -965,7 +947,7 @@
     "invalid_number_range": "Invalid number. Enter a number between 1 and %{maxSafeChainId}",
     "hide_zero_balance_tokens_title": "Hide Tokens Without Balance",
     "hide_zero_balance_tokens_desc": "Prevents tokens with no balance from displaying in your token listing.",
-    "token_detection_title": "Enhanced Token Detection",
+    "token_detection_title": "Autodetect tokens",
     "token_detection_description": "We use third-party APIs to detect and display new tokens sent to your wallet. Turn off if you don’t want the app to pull data from those services.",
     "theme_button_text": "Change Theme",
     "theme_title": "Theme ({{theme}})",
@@ -1077,7 +1059,7 @@
           "snap_getBip32PublicKey": "View your public key for {{protocol}}",
           "snap_getBip44Entropy": "Control your {{protocol}} accounts and assets",
           "snap_getEntropy": "Derive arbitrary keys unique to this snap",
-          "endowment:keyring": "endowment:keyring",
+          "endowment:keyring": "Allow requests for adding and controlling Ethereum accounts",
           "wallet_snap": "Connect to {{otherSnapName}}",
           "endowment:webassembly": "Support for WebAssembly",
           "endowment:ethereum-provider": "Access the Ethereum provider",
@@ -1085,7 +1067,8 @@
           "snap_getLocale": "See your preferred language",
           "endowment:caveat:transaction-origin": "See the origins of websites that suggest transactions",
           "endowment:extend-runtime": "Extend runtime",
-          "snap_dialog": "Display custom dialogs"
+          "snap_dialog": "Display custom dialogs",
+          "snap_manageAccounts": "Add and control Ethereum accounts"
         }
       }
     },
@@ -1106,7 +1089,12 @@
     "simulation_details_description": "Turn this on to estimate balance changes of transactions before you confirm them. This doesn't guarantee the final outcome of your transactions. ",
     "simulation_details_learn_more": "Learn more.",
     "aes_crypto_test_form_title": "AES Crypto - Test Form",
-    "aes_crypto_test_form_description": "Section exclusively developed for E2E testing. If this is visible in your app, please report it to MetaMask support."
+    "aes_crypto_test_form_description": "Section exclusively developed for E2E testing. If this is visible in your app, please report it to MetaMask support.",
+    "developer_options": {
+      "title": "Developer Options",
+      "generate_trace_test": "Generate Trace Test",
+      "generate_trace_test_desc": "Generate a Developer Test Sentry trace."
+    }
   },
   "aes_crypto_test_form": {
     "generate_random_salt": "Generate Random Salt",
@@ -1842,8 +1830,7 @@
     "message": "Message",
     "message_from": "Message from",
     "learn_more": "Learn more",
-    "read_more": "Read more",
-    "eth_sign_warning": "Signing this message can be dangerous. This signature could potentially perform any operation on your account's behalf, including granting complete control of your account and all of its assets to the requesting site. Only sign this message if you know what you're doing or completely trust the requesting site."
+    "read_more": "Read more"
   },
   "watch_asset_request": {
     "title": "Add Suggested Token",
@@ -2090,6 +2077,7 @@
     "back_to_safety": "Back to safety"
   },
   "notifications": {
+    "timeout": "Timeout",
     "no_date": "Unknown",
     "yesterday": "Yesterday",
     "staked": "Staked",
@@ -3243,7 +3231,6 @@
     "ledger_legacy_label": " (legacy)",
     "blind_sign_error": "Blind signing error",
     "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings."
-
   },
   "account_actions": {
     "edit_name": "Edit account name",
@@ -3299,6 +3286,10 @@
   "stake": {
     "stake": "Stake",
     "stake_eth": "Stake ETH",
+    "staked_ethereum": "Staked Ethereum",
+    "unstake": "Unstake",
+    "stake_more": "Stake more",
+    "claim": "Claim",
     "your_earnings": "Your earnings",
     "annual_rate": "Annual rate",
     "lifetime_rewards": "Lifetime rewards",
@@ -3311,7 +3302,34 @@
     "enter_amount": "Enter amount",
     "review": "Review",
     "not_enough_eth": "Not enough ETH",
-    "balance":"Balance"
+    "balance": "Balance",
+    "your_balance": "Your balance",
+    "day": {
+      "zero": "",
+      "one": "day",
+      "other": "days"
+    },
+    "hour": {
+      "zero": "",
+      "one": "hour",
+      "other": "hours"
+    },
+    "minute": {
+      "zero": "",
+      "one": "minute",
+      "other": "minutes"
+    },
+    "banner_text": {
+      "has_claimable_eth": "You can claim {{amountEth}} ETH. Once claimed, you'll get ETH back in your wallet.",
+      "unstaking_in_progress": {
+        "base": "Unstaking {{amountEth}} ETH in progress. Come back in",
+        "and": "and",
+        "to_claim_it": "to claim it.",
+        "default": "Unstaking {{amountEth}} ETH in progress. Come back later to claim it."
+      },
+      "geo_blocked": "You are located in a geographic location where unstaking or staking is not permitted.",
+      "approximately": "approximately"
+    }
   },
   "default_settings": {
     "title": "Your Wallet is ready",

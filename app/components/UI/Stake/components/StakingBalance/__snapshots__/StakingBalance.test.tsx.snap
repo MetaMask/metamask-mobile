@@ -1,0 +1,871 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`StakingBalance render matches snapshot 1`] = `
+<View
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
+  <RNCSafeAreaProvider
+    onInsetsChange={[Function]}
+    style={
+      [
+        {
+          "flex": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      collapsable={false}
+      pointerEvents="box-none"
+      style={
+        {
+          "zIndex": 1,
+        }
+      }
+    >
+      <View
+        accessibilityElementsHidden={false}
+        importantForAccessibility="auto"
+        onLayout={[Function]}
+        pointerEvents="box-none"
+        style={null}
+      >
+        <View
+          collapsable={false}
+          pointerEvents="box-none"
+          style={
+            {
+              "bottom": 0,
+              "left": 0,
+              "opacity": 1,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+              "zIndex": 0,
+            }
+          }
+        >
+          <View
+            collapsable={false}
+            style={
+              {
+                "backgroundColor": "rgb(255, 255, 255)",
+                "borderBottomColor": "rgb(216, 216, 216)",
+                "flex": 1,
+                "shadowColor": "rgb(216, 216, 216)",
+                "shadowOffset": {
+                  "height": 0.5,
+                  "width": 0,
+                },
+                "shadowOpacity": 0.85,
+                "shadowRadius": 0,
+              }
+            }
+          />
+        </View>
+        <View
+          collapsable={false}
+          pointerEvents="box-none"
+          style={
+            {
+              "height": 64,
+              "maxHeight": undefined,
+              "minHeight": undefined,
+              "opacity": undefined,
+              "transform": undefined,
+            }
+          }
+        >
+          <View
+            pointerEvents="none"
+            style={
+              {
+                "height": 20,
+              }
+            }
+          />
+          <View
+            pointerEvents="box-none"
+            style={
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "flexDirection": "row",
+                "justifyContent": "center",
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 16,
+                  "opacity": 1,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="header"
+                aria-level="1"
+                collapsable={false}
+                numberOfLines={1}
+                onLayout={[Function]}
+                style={
+                  {
+                    "color": "rgb(28, 28, 30)",
+                    "fontSize": 17,
+                    "fontWeight": "600",
+                  }
+                }
+              >
+                Asset
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+    <RNSScreenContainer
+      onLayout={[Function]}
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <RNSScreen
+        activityState={2}
+        collapsable={false}
+        gestureResponseDistance={
+          {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
+        pointerEvents="box-none"
+        style={
+          {
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+      >
+        <View
+          collapsable={false}
+          style={
+            {
+              "opacity": 1,
+            }
+          }
+        />
+        <View
+          accessibilityElementsHidden={false}
+          closing={false}
+          gestureVelocityImpact={0.3}
+          importantForAccessibility="auto"
+          onClose={[Function]}
+          onGestureBegin={[Function]}
+          onGestureCanceled={[Function]}
+          onGestureEnd={[Function]}
+          onOpen={[Function]}
+          onTransition={[Function]}
+          pointerEvents="box-none"
+          style={
+            [
+              {
+                "overflow": undefined,
+              },
+              {
+                "bottom": 0,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              },
+            ]
+          }
+          transitionSpec={
+            {
+              "close": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+              "open": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+            }
+          }
+        >
+          <View
+            collapsable={false}
+            needsOffscreenAlphaCompositing={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "flex": 1,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              onGestureHandlerEvent={[Function]}
+              onGestureHandlerStateChange={[Function]}
+              style={
+                {
+                  "flex": 1,
+                  "transform": [
+                    {
+                      "translateX": 0,
+                    },
+                    {
+                      "translateX": 0,
+                    },
+                  ],
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "rgb(242, 242, 242)",
+                    "bottom": 0,
+                    "left": 0,
+                    "position": "absolute",
+                    "shadowColor": "#000",
+                    "shadowOffset": {
+                      "height": 1,
+                      "width": -1,
+                    },
+                    "shadowOpacity": 0.3,
+                    "shadowRadius": 5,
+                    "top": 0,
+                    "width": 3,
+                  }
+                }
+              />
+              <View
+                style={
+                  [
+                    {
+                      "flex": 1,
+                      "overflow": "hidden",
+                    },
+                    [
+                      {
+                        "backgroundColor": "rgb(242, 242, 242)",
+                      },
+                      undefined,
+                    ],
+                  ]
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "flexDirection": "column-reverse",
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      {
+                        "flex": 1,
+                      }
+                    }
+                  >
+                    <View>
+                      <TouchableOpacity
+                        onLongPress={[Function]}
+                        onPress={[Function]}
+                        style={
+                          {
+                            "alignItems": "flex-start",
+                            "flex": 1,
+                            "flexDirection": "row",
+                            "paddingHorizontal": 15,
+                            "paddingVertical": 10,
+                          }
+                        }
+                        testID="asset-ETH"
+                      >
+                        <View
+                          onLayout={[Function]}
+                          style={
+                            {
+                              "alignSelf": "center",
+                              "position": "relative",
+                            }
+                          }
+                          testID="badge-wrapper-badge"
+                        >
+                          <View>
+                            <View
+                              useNativeDriver={true}
+                            >
+                              <Image
+                                fadeIn={true}
+                                onError={[Function]}
+                                onLoadEnd={[Function]}
+                                source={
+                                  {
+                                    "uri": undefined,
+                                  }
+                                }
+                                style={
+                                  [
+                                    {
+                                      "borderRadius": 12,
+                                      "height": 24,
+                                      "width": 24,
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    {
+                                      "borderRadius": 16,
+                                      "height": 32,
+                                      "overflow": "hidden",
+                                      "width": 32,
+                                    },
+                                  ]
+                                }
+                              />
+                              <View
+                                collapsable={false}
+                                style={
+                                  {
+                                    "bottom": 0,
+                                    "left": 0,
+                                    "opacity": 1,
+                                    "position": "absolute",
+                                    "right": 0,
+                                    "top": 0,
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    [
+                                      {
+                                        "borderRadius": 16,
+                                        "height": 32,
+                                        "overflow": "hidden",
+                                        "width": 32,
+                                      },
+                                      {
+                                        "backgroundColor": "#eee",
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                />
+                              </View>
+                            </View>
+                          </View>
+                          <View
+                            style={
+                              {
+                                "alignItems": "center",
+                                "aspectRatio": 1,
+                                "height": 0,
+                                "justifyContent": "center",
+                                "position": "absolute",
+                                "right": 0,
+                                "top": 0,
+                                "transform": [
+                                  {
+                                    "translateX": 0,
+                                  },
+                                  {
+                                    "translateY": -0,
+                                  },
+                                ],
+                              }
+                            }
+                          >
+                            <View
+                              onLayout={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "aspectRatio": 1,
+                                  "height": "50%",
+                                  "justifyContent": "center",
+                                  "maxHeight": 24,
+                                  "minHeight": 8,
+                                  "opacity": 0,
+                                }
+                              }
+                              testID="badgenetwork"
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#ffffff",
+                                    "borderRadius": 16,
+                                    "borderWidth": 2,
+                                    "height": 32,
+                                    "justifyContent": "center",
+                                    "overflow": "hidden",
+                                    "shadowColor": "#0000001a",
+                                    "shadowOffset": {
+                                      "height": 2,
+                                      "width": 0,
+                                    },
+                                    "shadowOpacity": 1,
+                                    "shadowRadius": 4,
+                                    "transform": [
+                                      {
+                                        "scale": 1,
+                                      },
+                                    ],
+                                    "width": 32,
+                                  }
+                                }
+                              >
+                                <Image
+                                  onError={[Function]}
+                                  resizeMode="contain"
+                                  source={
+                                    {
+                                      "uri": "MockImage",
+                                    }
+                                  }
+                                  style={
+                                    {
+                                      "height": 32,
+                                      "width": 32,
+                                    }
+                                  }
+                                  testID="network-avatar-image"
+                                />
+                              </View>
+                            </View>
+                          </View>
+                        </View>
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "alignSelf": "center",
+                              "color": "#141618",
+                              "flex": 1,
+                              "fontFamily": "EuclidCircularB-Medium",
+                              "fontSize": 16,
+                              "fontWeight": "500",
+                              "justifyContent": "center",
+                              "letterSpacing": 0,
+                              "lineHeight": 24,
+                              "marginLeft": 20,
+                            }
+                          }
+                        >
+                          Staked Ethereum
+                        </Text>
+                        <View
+                          style={
+                            {
+                              "alignItems": "flex-end",
+                              "alignSelf": "flex-end",
+                              "flex": 1,
+                            }
+                          }
+                        >
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Medium",
+                                "fontSize": 16,
+                                "fontWeight": "500",
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
+                          >
+                            $13,292.20
+                          </Text>
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#6a737d",
+                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontSize": 14,
+                                "fontWeight": "400",
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                                "paddingHorizontal": 0,
+                                "textTransform": "uppercase",
+                              }
+                            }
+                          >
+                            4.9999 ETH
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                      <View
+                        style={
+                          {
+                            "paddingHorizontal": 16,
+                          }
+                        }
+                      >
+                        <View
+                          style={
+                            {
+                              "backgroundColor": "#0376c91a",
+                              "borderColor": "#0376c9",
+                              "borderLeftWidth": 4,
+                              "borderRadius": 4,
+                              "flexDirection": "row",
+                              "marginVertical": 8,
+                              "padding": 12,
+                              "paddingLeft": 8,
+                            }
+                          }
+                          testID="banneralert"
+                          variant="Alert"
+                        >
+                          <View
+                            style={
+                              {
+                                "marginRight": 8,
+                              }
+                            }
+                          >
+                            <SvgMock
+                              color="#0376c9"
+                              height={24}
+                              name="Info"
+                              style={
+                                {
+                                  "height": 24,
+                                  "width": 24,
+                                }
+                              }
+                              width={24}
+                            />
+                          </View>
+                          <View
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#141618",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
+                                }
+                              }
+                            >
+                              Unstaking 0.0010 ETH in progress. Come back in 11 days to claim it.
+                            </Text>
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "backgroundColor": "#1c82341a",
+                              "borderColor": "#1c8234",
+                              "borderLeftWidth": 4,
+                              "borderRadius": 4,
+                              "flexDirection": "row",
+                              "marginVertical": 8,
+                              "padding": 12,
+                              "paddingLeft": 8,
+                            }
+                          }
+                          testID="banneralert"
+                          variant="Alert"
+                        >
+                          <View
+                            style={
+                              {
+                                "marginRight": 8,
+                              }
+                            }
+                          >
+                            <SvgMock
+                              color="#1c8234"
+                              height={24}
+                              name="Confirmation"
+                              style={
+                                {
+                                  "height": 24,
+                                  "width": 24,
+                                }
+                              }
+                              width={24}
+                            />
+                          </View>
+                          <View
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#141618",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
+                                }
+                              }
+                            >
+                              You can claim 0.00214 ETH. Once claimed, you'll get ETH back in your wallet.
+                            </Text>
+                            <Text
+                              accessibilityRole="link"
+                              accessible={true}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignSelf": "flex-start",
+                                  "backgroundColor": "transparent",
+                                  "color": "#141618",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
+                                }
+                              }
+                              suppressHighlighting={true}
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#0376c9",
+                                    "fontFamily": "EuclidCircularB-Medium",
+                                    "fontSize": 14,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                  }
+                                }
+                              >
+                                Claim
+                                 ETH
+                              </Text>
+                            </Text>
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "backgroundColor": "#bf52081a",
+                              "borderColor": "#bf5208",
+                              "borderLeftWidth": 4,
+                              "borderRadius": 4,
+                              "flexDirection": "row",
+                              "marginVertical": 8,
+                              "padding": 12,
+                              "paddingLeft": 8,
+                            }
+                          }
+                          testID="banneralert"
+                          variant="Alert"
+                        >
+                          <View
+                            style={
+                              {
+                                "marginRight": 8,
+                              }
+                            }
+                          >
+                            <SvgMock
+                              color="#bf5208"
+                              height={24}
+                              name="Danger"
+                              style={
+                                {
+                                  "height": 24,
+                                  "width": 24,
+                                }
+                              }
+                              width={24}
+                            />
+                          </View>
+                          <View
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#141618",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
+                                }
+                              }
+                            >
+                              You are located in a geographic location where unstaking or staking is not permitted.
+                            </Text>
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "paddingTop": 8,
+                            }
+                          }
+                        >
+                          <View
+                            style={
+                              {
+                                "flexDirection": "row",
+                                "gap": 8,
+                                "justifyContent": "space-between",
+                              }
+                            }
+                          >
+                            <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "flex-start",
+                                  "backgroundColor": "transparent",
+                                  "borderColor": "#0376c9",
+                                  "borderRadius": 20,
+                                  "borderWidth": 1,
+                                  "flex": 1,
+                                  "flexDirection": "row",
+                                  "height": 40,
+                                  "justifyContent": "center",
+                                  "paddingHorizontal": 16,
+                                }
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#0376c9",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                  }
+                                }
+                              >
+                                Unstake
+                              </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "flex-start",
+                                  "backgroundColor": "transparent",
+                                  "borderColor": "#0376c9",
+                                  "borderRadius": 20,
+                                  "borderWidth": 1,
+                                  "flex": 1,
+                                  "flexDirection": "row",
+                                  "height": 40,
+                                  "justifyContent": "center",
+                                  "paddingHorizontal": 16,
+                                }
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#0376c9",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                  }
+                                }
+                              >
+                                Stake more
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </RNSScreen>
+    </RNSScreenContainer>
+  </RNCSafeAreaProvider>
+</View>
+`;
