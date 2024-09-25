@@ -13,20 +13,20 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import Fuse from 'fuse.js';
 import { strings } from '../../../../../locales/i18n';
 import ScreenLayout from './ScreenLayout';
-
-import Text from '../../../Base/Text';
-import BaseListItem from '../../../Base/ListItem';
 import ModalDragger from '../../../Base/ModalDragger';
 import TokenIcon from '../../Swaps/components/TokenIcon';
 import { useTheme } from '../../../../util/theme';
 import { CryptoCurrency } from '@consensys/on-ramp-sdk';
 import { Colors } from '../../../../util/theme/models';
 import createModalStyles from './modals/Modal.styles';
-
-// TODO: Convert into typescript and correctly type optionals
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ListItem = BaseListItem as any;
+import ListItem from '../../../../component-library/components/List/ListItem';
+import ListItemColumn, {
+  WidthType,
+} from '../../../../component-library/components/List/ListItemColumn';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -120,24 +120,29 @@ function TokenSelectModal({
         onPress={() => onItemPress(item)}
       >
         <ListItem style={styles.listItem}>
-          <ListItem.Content>
-            <ListItem.Icon>
-              <TokenIcon medium icon={item.logo} symbol={item.symbol} />
-            </ListItem.Icon>
-            <ListItem.Body>
-              <ListItem.Title bold>{item.symbol}</ListItem.Title>
-              {Boolean(item.name) && <Text grey>{item.name}</Text>}
-            </ListItem.Body>
-            <ListItem.Amounts>
-              <ListItem.Amount>
-                <View style={styles.networkLabel}>
-                  <Text style={styles.networkLabelText}>
-                    {item.network.shortName}
-                  </Text>
-                </View>
-              </ListItem.Amount>
-            </ListItem.Amounts>
-          </ListItem.Content>
+          <ListItemColumn>
+            <TokenIcon medium icon={item.logo} symbol={item.symbol} />
+          </ListItemColumn>
+
+          <ListItemColumn widthType={WidthType.Fill}>
+            <Text variant={TextVariant.BodyLGMedium}>{item.symbol}</Text>
+            {Boolean(item.name) && (
+              <Text
+                variant={TextVariant.BodyLGMedium}
+                color={TextColor.Alternative}
+              >
+                {item.name}
+              </Text>
+            )}
+          </ListItemColumn>
+
+          <ListItemColumn>
+            <View style={styles.networkLabel}>
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+                {item.network.shortName}
+              </Text>
+            </View>
+          </ListItemColumn>
         </ListItem>
       </TouchableOpacity>
     ),
@@ -154,7 +159,7 @@ function TokenSelectModal({
   const renderEmptyList = useMemo(
     () => (
       <View style={modalStyles.emptyList}>
-        <Text>
+        <Text variant={TextVariant.BodyLGMedium}>
           {strings('fiat_on_ramp_aggregator.no_tokens_match', { searchString })}
         </Text>
       </View>
