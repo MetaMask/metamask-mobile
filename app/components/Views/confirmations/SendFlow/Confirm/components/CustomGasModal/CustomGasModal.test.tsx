@@ -1,7 +1,6 @@
 import React from 'react';
-
 import { fireEvent } from '@testing-library/react-native';
-
+import ThemeProvider from '../../../../../../../app/component-library/providers/ThemeProvider/ThemeProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import CustomGasModal from '.';
@@ -35,6 +34,22 @@ const mockInitialState = {
       ...backgroundState,
     },
   },
+};
+
+const renderWithTheme = (component) => {
+  return renderWithProvider(
+    <ThemeProvider>{component}</ThemeProvider>,
+    { state: mockInitialState },
+    false
+  );
+};
+
+const renderWithTheme = (component) => {
+  return renderWithProvider(
+    <ThemeProvider>{component}</ThemeProvider>,
+    { state: mockInitialState },
+    false
+  );
 };
 
 jest.mock('react-redux', () => ({

@@ -6,97 +6,86 @@ import BigNumber from 'bignumber.js';
 import { useTheme } from '../../util/theme';
 
 import type { Theme } from '../../util/theme/models';
-const createStyles = (colors: Theme['colors']) =>
-  StyleSheet.create({
-    labelContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: 14,
-      flexWrap: 'wrap',
-    },
-    rangeInputContainer: {
-      borderWidth: 1,
-      borderRadius: 6,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      height: 42,
-    },
-    rangeInputContainerError: {
-      borderColor: colors.error.default,
-    },
-    rangeInputContainerNormal: {
-      borderColor: colors.border.default,
-    },
-    input: {
-      height: 38,
-      minWidth: 10,
-      paddingRight: 6,
-    },
-    inputError: {
-      color: colors.error.default,
-    },
-    inputNormal: {
-      color: colors.text.default,
-    },
-    buttonContainerLeft: {
-      marginLeft: 17,
-      flex: 1,
-    },
-    buttonContainerRight: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'flex-end',
-      marginRight: 17,
-      flex: 1,
-    },
-    button: {
-      borderRadius: 100,
-      borderWidth: 2,
-      borderColor: colors.primary.default,
-      height: 20,
-      width: 20,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    buttonText: {
-      paddingTop: 1,
-      paddingLeft: 0.5,
-      color: colors.primary.default,
-    },
-    hitSlop: {
-      top: 10,
-      left: 10,
-      bottom: 10,
-      right: 10,
-    },
-    inputContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    errorContainer: {
-      marginTop: 8,
-      color: colors.error.default,
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    errorText: {
-      color: colors.text.default,
-    },
-    errorIcon: {
-      paddingRight: 4,
-      color: colors.error.default,
-    },
-    conversionEstimation: {
-      paddingLeft: 2,
-      marginRight: 14,
-      flex: 1,
-      textAlign: 'center',
-      fontSize: 11,
-    },
-  });
+import { useStyles } from '../../component-library/hooks';
+
+const styleSheet = ({ colors }: Theme) => StyleSheet.create({
+  labelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 14,
+    flexWrap: 'wrap',
+  },
+  rangeInputContainer: {
+    borderWidth: 1,
+    borderRadius: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    height: 42,
+  },
+  input: {
+    height: 38,
+    minWidth: 10,
+    paddingRight: 6,
+  },
+  buttonContainerLeft: {
+    marginLeft: 17,
+    flex: 1,
+  },
+  buttonContainerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginRight: 17,
+    flex: 1,
+  },
+  button: {
+    borderRadius: 100,
+    borderWidth: 2,
+    borderColor: colors.primary.default,
+    height: 20,
+    width: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: {
+    paddingTop: 1,
+    paddingLeft: 0.5,
+    color: colors.primary.default,
+  },
+  hitSlop: {
+    top: 10,
+    left: 10,
+    bottom: 10,
+    right: 10,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  errorContainer: {
+    marginTop: 8,
+    color: colors.error.default,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: colors.text.default,
+  },
+  errorIcon: {
+    paddingRight: 4,
+    color: colors.error.default,
+  },
+  conversionEstimation: {
+    paddingLeft: 2,
+    marginRight: 14,
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 11,
+  },
+});
 
 interface RangeInputProps {
   /**
@@ -161,7 +150,7 @@ const RangeInput: React.FC<RangeInputProps> = ({
   const textInput = useRef<TextInput | null>(null);
   const [errorState, setErrorState] = useState<string | undefined>();
   const { colors, themeAppearance } = useTheme();
-  const styles = createStyles(colors);
+  const { styles } = useStyles(styleSheet, { colors });
 
   const handleClickUnit = useCallback(() => {
     textInput?.current?.focus?.();
@@ -241,7 +230,7 @@ const RangeInput: React.FC<RangeInputProps> = ({
         </View>
         <View style={styles.inputContainer}>
           <TextInput
-            style={[styles.input, hasError ? styles.inputError : styles.inputNormal]}
+            style={[styles.input, hasError && styles.inputError]}
             onChangeText={changeValue}
             onBlur={checkLimits}
             value={value}
