@@ -294,6 +294,16 @@ describe('NetworkSwitcher View', () => {
     const polygonNetworkTest = screen.getByText('Polygon Mainnet');
     fireEvent.press(polygonNetworkTest);
     expect(
+      (Engine.context.NetworkController.setActiveNetwork as jest.Mock).mock
+        .calls,
+    ).toMatchInlineSnapshot(`
+      [
+        [
+          "networkId1",
+        ],
+      ]
+    `);
+    expect(
       (Engine.context.CurrencyRateController.updateExchangeRate as jest.Mock)
         .mock.calls,
     ).toMatchInlineSnapshot(`

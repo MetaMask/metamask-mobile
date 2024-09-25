@@ -3,12 +3,12 @@ import AssetOverview from './AssetOverview';
 import { zeroAddress } from 'ethereumjs-util';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
+import { NetworkController } from '@metamask/network-controller';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_2,
 } from '../../../util/test/accountsControllerTestUtils';
 import { fireEvent } from '@testing-library/react-native';
-import { mainnetNetworkState } from '../../../util/networks/constants';
 
 const MOCK_CHAIN_ID = '0x1';
 
@@ -27,8 +27,10 @@ const mockInitialState = {
         },
       },
       NetworkController: {
-        ...mainnetNetworkState,
-      },
+        providerConfig: {
+          chainId: MOCK_CHAIN_ID,
+        },
+      } as unknown as NetworkController['state'],
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       AccountTrackerController: {
         accountsByChainId: {

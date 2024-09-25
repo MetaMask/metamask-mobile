@@ -1,4 +1,5 @@
 import React from 'react';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 import CollectibleModal from './CollectibleModal';
 
@@ -11,7 +12,7 @@ import {
 } from '../../../selectors/preferencesController';
 import { useSelector } from 'react-redux';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
-import { mainnetNetworkState } from '../../../util/networks/constants';
+import { mockNetworkState } from '../../../util/test/network';
 
 const mockInitialState = {
   engine: {
@@ -19,7 +20,12 @@ const mockInitialState = {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       NetworkController: {
-        ...mainnetNetworkState,
+        ...mockNetworkState({
+          chainId: CHAIN_IDS.MAINNET,
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+        }),
       },
     },
   },

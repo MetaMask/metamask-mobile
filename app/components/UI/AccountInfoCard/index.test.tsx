@@ -68,12 +68,6 @@ const mockInitialState: DeepPartial<RootState> = {
   },
 };
 
-jest.mock('../../../store', () => ({
-  store: {
-    getState: () => mockInitialState,
-  },
-}));
-
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest

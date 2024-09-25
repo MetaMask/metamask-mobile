@@ -159,12 +159,13 @@ function NetworkSwitcher() {
       );
 
       if (entry) {
-        const [, { nativeCurrency: ticker }] = entry;
+        const [
+          ,
+          { nativeCurrency: ticker, rpcEndpoints, defaultRpcEndpointIndex },
+        ] = entry;
 
         const { networkClientId } =
-          networkConfiguration?.rpcEndpoints?.[
-            networkConfiguration.defaultRpcEndpointIndex
-          ] ?? {};
+          rpcEndpoints?.[defaultRpcEndpointIndex] ?? {};
 
         CurrencyRateController.updateExchangeRate(ticker);
         NetworkController.setActiveNetwork(networkClientId);

@@ -10,6 +10,7 @@ import { fireEvent } from '@testing-library/react-native';
 import { BN } from 'ethereumjs-util';
 import { RootState } from '../../../reducers';
 import { mockNetworkState } from '../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
@@ -75,7 +76,7 @@ const mockInitialState: DeepPartial<RootState> = {
       },
       NetworkController: {
         ...mockNetworkState({
-          chainId: '0xaa36a7',
+          chainId: CHAIN_IDS.SEPOLIA,
           id: 'sepolia',
           nickname: 'Sepolia',
           ticker: 'ETH',

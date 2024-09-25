@@ -40,8 +40,8 @@ import { selectNetworkConfigurations } from '../../../selectors/networkControlle
 import {
   NetworkConfiguration,
   RpcEndpointType,
+  AddNetworkFields,
 } from '@metamask/network-controller';
-import { AddNetworkFields } from '@metamask/network-controller/dist/NetworkController.cjs';
 
 export interface SafeChain {
   chainId: string;

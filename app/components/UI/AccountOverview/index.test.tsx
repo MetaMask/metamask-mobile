@@ -39,18 +39,9 @@ const mockInitialState = {
         selectedAddress: MOCK_ADDRESS_1,
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-      NetworkController: {
-        ...mainnetNetworkState,
-      },
     },
   },
 };
-
-jest.mock('../../../store', () => ({
-  store: {
-    getState: () => mockInitialState,
-  },
-}));
 
 describe('AccountOverview', () => {
   it('should render correctly', () => {
