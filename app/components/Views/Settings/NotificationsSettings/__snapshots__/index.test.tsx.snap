@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`NotificationsSettings should render correctly 1`] = `
+exports[`NotificationsSettings renders correctly 1`] = `
 <RCTScrollView
   style={
     {
