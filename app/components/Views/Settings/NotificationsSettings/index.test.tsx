@@ -1,18 +1,15 @@
-import React, { useCallback }  from 'react';
+import React, { useCallback } from 'react';
 import { renderHook, act } from '@testing-library/react-hooks';
-
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import NotificationsSettings from '.';
-
 import Routes from '../../../../constants/navigation/Routes';
 import { Props } from './NotificationsSettings.types';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
-// Mock store.getState
 let mockGetState: jest.Mock;
 jest.mock('../../../../store', () => {
   mockGetState = jest.fn();
@@ -73,7 +70,12 @@ describe('toggleNotificationsEnabled', () => {
     jest.clearAllMocks();
   });
 
-  const setup = (basicFunctionalityEnabled: boolean, isMetamaskNotificationsEnabled: boolean, isProfileSyncingEnabled: boolean) => renderHook(() =>
+  it('navigates to basic functionality screen if basic functionality is disabled', async () => {
+    const basicFunctionalityEnabled = false;
+    const isMetamaskNotificationsEnabled = false;
+    const isProfileSyncingEnabled = false;
+
+    const { result } = renderHook(() =>
       useCallback(async () => {
         if (!basicFunctionalityEnabled) {
           mockNavigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -103,9 +105,6 @@ describe('toggleNotificationsEnabled', () => {
       }, [])
     );
 
-  it('navigates to basic functionality screen if basic functionality is disabled', async () => {
-    const { result } = setup(false, false, false);
-
     await act(async () => {
       await result.current();
     });
@@ -119,7 +118,39 @@ describe('toggleNotificationsEnabled', () => {
   });
 
   it('switches notifications off if notifications previously enabled', async () => {
-    const { result } = setup(true, true, false);
+    const basicFunctionalityEnabled = true;
+    const isMetamaskNotificationsEnabled = true;
+    const isProfileSyncingEnabled = false;
+
+    const { result } = renderHook(() =>
+      useCallback(async () => {
+        if (!basicFunctionalityEnabled) {
+          mockNavigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.SHEET.BASIC_FUNCTIONALITY,
+            params: {
+              caller: Routes.SETTINGS.NOTIFICATIONS,
+            },
+          });
+        } else if (isMetamaskNotificationsEnabled) {
+          mockDisableNotifications();
+          mockSetUiNotificationStatus(false);
+        } else {
+          const { permission } = await NotificationsService.getAllPermissions(false);
+          if (permission !== 'authorized') {
+            return;
+          }
+
+          mockEnableNotifications();
+          mockSetUiNotificationStatus(true);
+        }
+        mockTrackEvent(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED, {
+          settings_type: 'notifications',
+          old_value: isMetamaskNotificationsEnabled,
+          new_value: !isMetamaskNotificationsEnabled,
+          was_profile_syncing_on: isMetamaskNotificationsEnabled ? true : isProfileSyncingEnabled,
+        });
+      }, [])
+    );
 
     await act(async () => {
       await result.current();
@@ -130,9 +161,41 @@ describe('toggleNotificationsEnabled', () => {
   });
 
   it('switches notifications ON if notifications previously disabled and permission is authorized', async () => {
+    const basicFunctionalityEnabled = true;
+    const isMetamaskNotificationsEnabled = false;
+    const isProfileSyncingEnabled = false;
+
     (NotificationsService.getAllPermissions as jest.Mock).mockResolvedValue({ permission: 'authorized' });
 
-    const { result } = setup(true, false, false);
+    const { result } = renderHook(() =>
+      useCallback(async () => {
+        if (!basicFunctionalityEnabled) {
+          mockNavigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.SHEET.BASIC_FUNCTIONALITY,
+            params: {
+              caller: Routes.SETTINGS.NOTIFICATIONS,
+            },
+          });
+        } else if (isMetamaskNotificationsEnabled) {
+          mockDisableNotifications();
+          mockSetUiNotificationStatus(false);
+        } else {
+          const { permission } = await NotificationsService.getAllPermissions(false);
+          if (permission !== 'authorized') {
+            return;
+          }
+
+          mockEnableNotifications();
+          mockSetUiNotificationStatus(true);
+        }
+        mockTrackEvent(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED, {
+          settings_type: 'notifications',
+          old_value: isMetamaskNotificationsEnabled,
+          new_value: !isMetamaskNotificationsEnabled,
+          was_profile_syncing_on: isMetamaskNotificationsEnabled ? true : isProfileSyncingEnabled,
+        });
+      }, [])
+    );
 
     await act(async () => {
       await result.current();
@@ -143,9 +206,41 @@ describe('toggleNotificationsEnabled', () => {
   });
 
   it('switches notifications off if device permission is not authorized', async () => {
+    const basicFunctionalityEnabled = true;
+    const isMetamaskNotificationsEnabled = false;
+    const isProfileSyncingEnabled = false;
+
     (NotificationsService.getAllPermissions as jest.Mock).mockResolvedValue({ permission: 'denied' });
 
-    const { result } = setup(true, false, false);
+    const { result } = renderHook(() =>
+      useCallback(async () => {
+        if (!basicFunctionalityEnabled) {
+          mockNavigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.SHEET.BASIC_FUNCTIONALITY,
+            params: {
+              caller: Routes.SETTINGS.NOTIFICATIONS,
+            },
+          });
+        } else if (isMetamaskNotificationsEnabled) {
+          mockDisableNotifications();
+          mockSetUiNotificationStatus(false);
+        } else {
+          const { permission } = await NotificationsService.getAllPermissions(false);
+          if (permission !== 'authorized') {
+            return;
+          }
+
+          mockEnableNotifications();
+          mockSetUiNotificationStatus(true);
+        }
+        mockTrackEvent(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED, {
+          settings_type: 'notifications',
+          old_value: isMetamaskNotificationsEnabled,
+          new_value: !isMetamaskNotificationsEnabled,
+          was_profile_syncing_on: isMetamaskNotificationsEnabled ? true : isProfileSyncingEnabled,
+        });
+      }, [])
+    );
 
     await act(async () => {
       await result.current();
@@ -156,9 +251,41 @@ describe('toggleNotificationsEnabled', () => {
   });
 
   it('tracks MetaMetrics event when notifications settings are updated', async () => {
+    const basicFunctionalityEnabled = true;
+    const isMetamaskNotificationsEnabled = false;
+    const isProfileSyncingEnabled = true;
+
     (NotificationsService.getAllPermissions as jest.Mock).mockResolvedValue({ permission: 'authorized' });
 
-    const { result } = setup(true, false, true);
+    const { result } = renderHook(() =>
+      useCallback(async () => {
+        if (!basicFunctionalityEnabled) {
+          mockNavigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.SHEET.BASIC_FUNCTIONALITY,
+            params: {
+              caller: Routes.SETTINGS.NOTIFICATIONS,
+            },
+          });
+        } else if (isMetamaskNotificationsEnabled) {
+          mockDisableNotifications();
+          mockSetUiNotificationStatus(false);
+        } else {
+          const { permission } = await NotificationsService.getAllPermissions(false);
+          if (permission !== 'authorized') {
+            return;
+          }
+
+          mockEnableNotifications();
+          mockSetUiNotificationStatus(true);
+        }
+        mockTrackEvent(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED, {
+          settings_type: 'notifications',
+          old_value: isMetamaskNotificationsEnabled,
+          new_value: !isMetamaskNotificationsEnabled,
+          was_profile_syncing_on: isMetamaskNotificationsEnabled ? true : isProfileSyncingEnabled,
+        });
+      }, [])
+    );
 
     await act(async () => {
       await result.current();
