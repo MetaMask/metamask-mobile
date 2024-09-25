@@ -144,29 +144,17 @@ class FixtureBuilder {
             NetworkController: {
               selectedNetworkClientId: 'mainnet',
               networksMetadata: {
-                goerli: {
-                  EIPS: {},
-                  status: 'unknown',
-                },
-                'linea-goerli': {
-                  EIPS: {},
-                  status: 'unknown',
-                },
-                'linea-sepolia': {
-                  EIPS: {},
-                  status: 'unknown',
-                },
-                'linea-mainnet': {
-                  EIPS: {},
-                  status: 'unknown',
-                },
                 mainnet: {
-                  EIPS: {},
-                  status: 'unknown',
+                  status: 'available',
+                  EIPS: {
+                    1559: true,
+                  },
                 },
-                sepolia: {
-                  EIPS: {},
-                  status: 'unknown',
+                networkId1: {
+                  status: 'available',
+                  EIPS: {
+                    1559: true,
+                  },
                 },
               },
               networkConfigurationsByChainId: {
@@ -186,7 +174,6 @@ class FixtureBuilder {
                   name: 'Ethereum Network Mainnet',
                   nativeCurrency: 'ETH',
                 },
-
                 '0x539': {
                   chainId: '0x539',
                   rpcEndpoints: [
