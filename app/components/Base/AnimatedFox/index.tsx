@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, { useEffect, useRef } from 'react';
-import { WebView } from '@metamask/react-native-webview';
+import { WebView } from 'react-native-webview';
 import {
   gyroscope,
   SensorTypes,
