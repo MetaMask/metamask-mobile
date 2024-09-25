@@ -42,7 +42,7 @@ describe('notificationChannels', () => {
     expect(uniqueTitles.size).toBe(titles.length);
   });
 
-  it('each channel must have unique subtitles ', () => {
+  it('channels have unique subtitles ', () => {
     const subtitles = notificationChannels.map((channel) => channel.subtitle);
     const uniqueSubtitles = new Set(subtitles);
     expect(uniqueSubtitles.size).toBe(subtitles.length);
