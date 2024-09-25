@@ -119,7 +119,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
   const { onClose, ticker, isTokenDetectionEnabled } = props;
   const type = useSelector(selectProviderType);
   const networkTicker = useSelector(selectTicker);
-  const chainId = useSelector(selectChainId) as `0x${string}`;
+  const chainId = useSelector(selectChainId);
   const rpcUrl = useSelector(selectRpcUrl);
 
   const { colors } = useTheme();
