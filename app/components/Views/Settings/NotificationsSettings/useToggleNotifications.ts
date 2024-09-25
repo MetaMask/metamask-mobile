@@ -10,8 +10,8 @@ interface Props {
   basicFunctionalityEnabled: boolean;
   isMetamaskNotificationsEnabled: boolean;
   isProfileSyncingEnabled: boolean | null;
-  disableNotifications: () => void;
-  enableNotifications: () => void;
+  disableNotifications: () => Promise<string | undefined>;
+  enableNotifications: () => Promise<string | undefined>;
   setUiNotificationStatus: (status: boolean) => void;
 }
 
