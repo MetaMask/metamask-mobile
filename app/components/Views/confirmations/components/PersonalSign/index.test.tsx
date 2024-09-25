@@ -12,7 +12,6 @@ import AppConstants from '../../../../../core/AppConstants';
 import { strings } from '../../../../../../locales/i18n';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
-import { mockNetworkState } from '../../../../../util/test/network';
 
 jest.mock('../../../../../components/hooks/useMetrics');
 jest.mock('../../../../../core/Engine', () => ({

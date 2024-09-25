@@ -184,17 +184,13 @@ export const getOrders = createSelector(
   ordersSelector,
   selectedAddressSelector,
   chainIdSelector,
-  (orders, selectedAddress, chainId) => {
-    const chainIdHex = toHex(chainId); // Convert chainId to hex format for comparison
-    return orders.filter((order) => {
-      const orderNetworkHex = toHex(order.network); // Convert order network to hex format
-      return (
+  (orders, selectedAddress, chainId) =>
+    orders.filter(
+      (order) =>
         !order.excludeFromPurchases &&
         order.account === selectedAddress &&
-        (orderNetworkHex === chainIdHex || isTestNet(chainIdHex))
-      );
-    });
-  },
+        (order.network === chainId || isTestNet(toHex(chainId))),
+    ),
 );
 
 export const getPendingOrders = createSelector(

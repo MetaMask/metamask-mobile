@@ -305,12 +305,11 @@ export function toggleUseSafeChainsListValidation(value) {
  * @param {object} networkConfigurations
  */
 export function findBlockExplorerForRpc(
-  providerRpcTarget,
+  rpcTargetUrl = undefined,
   networkConfigurations,
 ) {
   const networkConfiguration = Object.values(networkConfigurations).find(
-    ({ rpcEndpoints }) =>
-      rpcEndpoints?.some(({ url }) => url === providerRpcTarget),
+    ({ rpcEndpoints }) => rpcEndpoints?.some(({ url }) => url === rpcTargetUrl),
   );
 
   if (networkConfiguration) {

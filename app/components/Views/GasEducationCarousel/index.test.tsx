@@ -5,7 +5,7 @@ import renderWithProvider, {
 import GasEducationCarousel from '.';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
-import { mainnetNetworkState } from '../../../util/networks/constants';
+import { mockNetworkState } from '../../../util/test/network';
 
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
@@ -13,7 +13,13 @@ const mockInitialState: DeepPartial<RootState> = {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
-        ...mainnetNetworkState,
+        ...mockNetworkState({
+          chainId: '0x1',
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+          blockExplorerUrl: 'https://goerli.lineascan.build',
+        }),
       },
     },
   },

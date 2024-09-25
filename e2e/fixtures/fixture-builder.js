@@ -5,10 +5,6 @@ import { merge } from 'lodash';
 import { CustomNetworks, PopularNetworksList } from '../resources/networks.e2e';
 const DAPP_URL = 'localhost';
 
-/* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
-const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
-const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
-
 /**
  * FixtureBuilder class provides a fluent interface for building fixture data.
  */
@@ -179,7 +175,7 @@ class FixtureBuilder {
                   rpcEndpoints: [
                     {
                       networkClientId: 'mainnet',
-                      url: `https://mainnet.infura.io/v3/${infuraProjectId}`,
+                      url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
                       type: 'infura',
                       name: 'Ethereum Network default RPC',
                     },

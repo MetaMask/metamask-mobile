@@ -19,6 +19,23 @@ import {
   TokensState,
 } from '@metamask/assets-controllers';
 
+interface NetworkState {
+  selectedNetworkClientId: string;
+  networkConfigurations: Record<
+    string,
+    {
+      id: string;
+      rpcUrl: string;
+      chainId: string;
+      ticker: string;
+      nickname: string;
+      rpcPrefs: {
+        blockExplorerUrl: string;
+      };
+    }
+  >;
+}
+
 /**
  * Converting chain id on decimal format to hexadecimal format
  * Replacing rpcTarget property for the rpcUrl new property on providerConfig
@@ -62,9 +79,8 @@ export default async function migrate(stateAsync: unknown) {
   }
 
   const networkControllerState = state.engine.backgroundState.NetworkController;
-  const newNetworkControllerState =
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    state.engine.backgroundState.NetworkController as any;
+  const newNetworkControllerState = state.engine.backgroundState
+    .NetworkController as NetworkState;
 
   if (!isObject(networkControllerState)) {
     captureException(
