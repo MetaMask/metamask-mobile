@@ -129,8 +129,5 @@ const InfoModal: React.FC<InfoModalProps> = ({
     </Modal>
   );
 };
-  url: PropTypes.func,
-  testID: PropTypes.string,
-};
 
 export default InfoModal;
