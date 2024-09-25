@@ -669,6 +669,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
                               onPressOut={[Function]}
                               style={
                                 {
+                                  "alignSelf": "flex-start",
                                   "backgroundColor": "transparent",
                                   "color": "#141618",
                                   "fontFamily": "EuclidCircularB-Regular",
