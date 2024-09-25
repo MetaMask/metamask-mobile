@@ -464,8 +464,8 @@ workflows:
         machine_type_id: elite-xl
     envs:
       - PRODUCTION_APP_URL: 'bs://46f0542276828b691f56adec25ac81065b5abf73' # Last production's QA build
-      - PRODUCTION_BUILD_NAME: 7.30.0
-      - PRODUCTION_BUILD_NUMBER: 9999999999
+      - PRODUCTION_BUILD_NAME: 7.31.0
+      - PRODUCTION_BUILD_NUMBER: 1432
       - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
       - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_NAME ($PRODUCTION_BUILD_NUMBER)'
       - NEW_BUILD_STRING: 'MetaMask-QA v$VERSION_NAME ($VERSION_NUMBER)'
@@ -1506,16 +1506,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.30.0
+      VERSION_NAME: 7.31.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 9999999999
+      VERSION_NUMBER: 1432
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.30.0
+      FLASK_VERSION_NAME: 7.31.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 9999999999
+      FLASK_VERSION_NUMBER: 1432
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
