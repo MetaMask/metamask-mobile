@@ -395,7 +395,6 @@ const App = (props) => {
       });
   }, [handleDeeplink]);
 
-
   useEffect(() => {
     if (navigator) {
       // Initialize deep link manager

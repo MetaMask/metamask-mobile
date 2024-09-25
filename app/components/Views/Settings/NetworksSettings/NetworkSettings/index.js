@@ -119,6 +119,11 @@ const createStyles = (colors) =>
       flex: 1,
       paddingVertical: 12,
     },
+    scrollWrapperOverlay: {
+      flex: 1,
+      paddingVertical: 12,
+      opacity: 0.5,
+    },
     onboardingInput: {
       borderColor: staticColors.transparent,
       padding: 0,
@@ -574,6 +579,12 @@ export class NetworkSettings extends PureComponent {
     }
     return parseInt(chainId, 16).toString(10);
   }
+
+  isAnyModalVisible = () =>
+    this.state.showMultiRpcAddModal.isVisible ||
+    this.state.showMultiBlockExplorerAddModal.isVisible ||
+    this.state.showAddRpcForm.isVisible ||
+    this.state.showAddBlockExplorerForm.isVisible;
 
   validateRpcAndChainId = () => {
     const { rpcUrl, chainId } = this.state;
@@ -1786,19 +1797,24 @@ export class NetworkSettings extends PureComponent {
         style={styles.wrapper}
         testID={NetworksViewSelectorsIDs.CONTAINER}
       >
-        {/* <BottomSheetOverlay onPress={() => console.log('IM HERE ...')} /> */}
-        <KeyboardAwareScrollView style={styles.informationCustomWrapper}>
-          {!networkTypeOrRpcUrl ? (
-            <WarningMessage
-              style={
-                isNetworkUiRedesignEnabled()
-                  ? styles.newWarningContainer
-                  : styles.warningContainer
-              }
-              warningMessage={strings('networks.malicious_network_warning')}
-            />
-          ) : null}
-          <View style={styles.scrollWrapper}>
+        <KeyboardAwareScrollView
+          style={styles.informationCustomWrapper}
+          onTouchEnd={() => {
+            if (this.isAnyModalVisible()) {
+              this.closeAddBlockExplorerRpcForm();
+              this.closeAddRpcForm();
+              this.closeBlockExplorerModal();
+              this.closeRpcModal();
+            }
+          }}
+        >
+          <SafeAreaView
+            style={
+              this.isAnyModalVisible()
+                ? styles.scrollWrapperOverlay
+                : styles.scrollWrapper
+            }
+          >
             <Text style={styles.label}>
               {strings('app_settings.network_name_label')}
             </Text>
@@ -1984,7 +2000,7 @@ export class NetworkSettings extends PureComponent {
                 keyboardAppearance={themeAppearance}
               />
             )}
-          </View>
+          </SafeAreaView>
           <View style={styles.bottomSection}>
             {isCustomMainnet ? (
               <Button
@@ -2002,6 +2018,7 @@ export class NetworkSettings extends PureComponent {
             )}
           </View>
         </KeyboardAwareScrollView>
+
         {showAddRpcForm.isVisible ? (
           <BottomSheet
             ref={this.rpcAddFormSheetRef}
