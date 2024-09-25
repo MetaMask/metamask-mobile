@@ -13,12 +13,16 @@ import Button, {
 } from '../../../../../../../component-library/components/Buttons/Button';
 import useTooltipModal from '../../../../../../hooks/useTooltipModal';
 import { BannerProps } from '../../../../../../../component-library/components/Banners/Banner/Banner.types';
+import { useStyles } from '../../../../../../../component-library/hooks';
+import styleSheet from './ClaimBanner.styles';
 
 type StakeBannerProps = Pick<BannerProps, 'style'> & {
   claimableAmount: string;
 };
 
 const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
+  const { styles } = useStyles(styleSheet, {});
+
   const { openTooltipModal } = useTooltipModal();
 
   const onClaimPress = () => openTooltipModal('TODO', 'Connect to claim flow');
@@ -37,6 +41,7 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
           </Text>
           <Button
             variant={ButtonVariants.Link}
+            style={styles.claimButton}
             label={
               <Text
                 variant={TextVariant.BodyMDMedium}
