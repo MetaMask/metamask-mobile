@@ -18,10 +18,12 @@ describe('streams', () => {
         push: jest.fn(),
       };
       (Through.obj as jest.Mock).mockImplementation((callback) => {
+        // eslint-disable-next-line no-empty-function
         callback.call(mockThrough, '{"key":"value"}', null, () => {});
         return mockThrough;
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const stream = jsonParseStream();
       expect(Through.obj).toHaveBeenCalled();
       expect(mockThrough.push).toHaveBeenCalledWith({ key: 'value' });
@@ -35,10 +37,12 @@ describe('streams', () => {
         push: jest.fn(),
       };
       (Through.obj as jest.Mock).mockImplementation((callback) => {
+        // eslint-disable-next-line no-empty-function
         callback.call(mockThrough, { key: 'value' }, null, () => {});
         return mockThrough;
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const stream = jsonStringifyStream();
       expect(Through.obj).toHaveBeenCalled();
       expect(mockThrough.push).toHaveBeenCalledWith('{"key":"value"}');
@@ -52,6 +56,7 @@ describe('streams', () => {
       const mockMux = {} as NodeJS.ReadWriteStream;
 
       (ObjectMultiplex as jest.Mock).mockReturnValue(mockMux);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       (pump as jest.Mock).mockImplementation((stream1, stream2, stream3, callback) => {
         callback(null);
       });
@@ -74,6 +79,7 @@ describe('streams', () => {
       const mockError = new Error('Pump error');
 
       (ObjectMultiplex as jest.Mock).mockReturnValue(mockMux);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       (pump as jest.Mock).mockImplementation((stream1, stream2, stream3, callback) => {
         callback(mockError);
       });
