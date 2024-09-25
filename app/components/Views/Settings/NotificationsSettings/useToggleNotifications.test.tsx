@@ -98,7 +98,7 @@ describe('useToggleNotifications', () => {
     expect(mockSetUiNotificationStatus).toHaveBeenCalledWith(true);
   });
 
-  it('switches notifications off if device permission is not authorized', async () => {
+  it('switches notifications OFF if device permission is not authorized', async () => {
     (NotificationsService.getAllPermissions as jest.Mock).mockResolvedValue({
       permission: 'denied',
     });
