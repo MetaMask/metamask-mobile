@@ -10,10 +10,10 @@ VERSION_NUMBER="${3}"
 RELEASE_BRANCH_PREFIX="release/"
 SEMVER_VERSION="${NEW_VERSION}"
 
-if [[ -z $NEW_VERSION ]]; then
-  echo "Error: No new version specified."
-  exit 1
-fi
+# if [[ -z $NEW_VERSION ]]; then
+#   echo "Error: No new version specified."
+#   exit 1
+# fi
 
 RELEASE_BRANCH_NAME="${RELEASE_BRANCH_PREFIX}${NEW_VERSION}"
 CHANGELOG_BRANCH_NAME="chore/${NEW_VERSION}-Changelog"
@@ -21,32 +21,32 @@ CHANGELOG_BRANCH_NAME="chore/${NEW_VERSION}-Changelog"
 git config user.name metamaskbot
 git config user.email metamaskbot@users.noreply.github.com
 
-# echo "Checkout release branch"
-# git checkout "${RELEASE_BRANCH_NAME}"
+echo "Checkout release branch"
+git checkout "${RELEASE_BRANCH_NAME}"
 
-# echo "Checkout new chore branch"
-# git checkout -b "${CHANGELOG_BRANCH_NAME}"
+echo "Checkout new chore branch"
+git checkout -b "${CHANGELOG_BRANCH_NAME}"
 
 # #Generate version bump, changelog and test plan csv
 # yarn set-version
-node ./scripts/generate-rc-commits.mjs "${PREVIOUS_VERSION}" "${RELEASE_BRANCH_NAME}" 
-./scripts/changelog-csv.sh  "${RELEASE_BRANCH_NAME}" 
+# node ./scripts/generate-rc-commits.mjs "${PREVIOUS_VERSION}" "${RELEASE_BRANCH_NAME}" 
+# ./scripts/changelog-csv.sh  "${RELEASE_BRANCH_NAME}" 
 
-git add ./commits.csv
+# git add ./commits.csv
 
-if ! (git commit -am "updated changelog and generated feature test plan");
-then
-    echo "Error: No changes detected."
-    exit 1
-fi
+# if ! (git commit -am "updated changelog and generated feature test plan");
+# then
+#     echo "Error: No changes detected."
+#     exit 1
+# fi
 
-PR_BODY="This is PR updateds the change log for ${NEW_VERSION} and generates the test plan here [commit.csv](https://github.com/MetaMask/metamask-mobile/blob/${RELEASE_BRANCH_NAME}/commits.csv)"
+# PR_BODY="This is PR updateds the change log for ${NEW_VERSION} and generates the test plan here [commit.csv](https://github.com/MetaMask/metamask-mobile/blob/${RELEASE_BRANCH_NAME}/commits.csv)"
 
-git push --set-upstream origin "${CHANGELOG_BRANCH_NAME}"
+# git push --set-upstream origin "${CHANGELOG_BRANCH_NAME}"
 
-gh pr create \
-  --draft \
-  --title "chore: ${CHANGELOG_BRANCH_NAME}" \
-  --body "${PR_BODY}" \
-  --base "${RELEASE_BRANCH_NAME}" \
-  --head "${CHANGELOG_BRANCH_NAME}";
+# gh pr create \
+#   --draft \
+#   --title "chore: ${CHANGELOG_BRANCH_NAME}" \
+#   --body "${PR_BODY}" \
+#   --base "${RELEASE_BRANCH_NAME}" \
+#   --head "${CHANGELOG_BRANCH_NAME}";
