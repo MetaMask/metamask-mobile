@@ -26,6 +26,9 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import { TokenI } from '../../Tokens/types';
 import { useNavigation } from '@react-navigation/native';
+import { isPooledStakingFeatureEnabled } from '../../Stake/constants';
+import StakingBalance from '../../Stake/components/StakingBalance/StakingBalance';
+
 interface BalanceProps {
   asset: TokenI;
   mainBalance: string;
@@ -86,6 +89,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
           {asset.name || asset.symbol}
         </Text>
       </AssetElement>
+      {isPooledStakingFeatureEnabled() && asset?.isETH && <StakingBalance />}
     </View>
   );
 };
