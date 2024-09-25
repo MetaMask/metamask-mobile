@@ -37,11 +37,6 @@ export interface ListItemMultiSelectButtonProps
   onTextClick?: (() => void) | undefined;
 
   /**
-   * Optional property to add avatar
-   */
-  withAvatar?: boolean;
-
-  /**
    * Optional property to show icon
    */
   showButtonIcon?: boolean;

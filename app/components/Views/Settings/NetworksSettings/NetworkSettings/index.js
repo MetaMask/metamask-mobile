@@ -1873,7 +1873,6 @@ export class NetworkSettings extends PureComponent {
                     )
                   }
                   isSelected={false}
-                  withAvatar={false}
                   onPress={this.openRpcModal}
                   buttonIcon={IconName.ArrowDown}
                   onButtonClick={() => this.openRpcModal()}
@@ -1976,7 +1975,6 @@ export class NetworkSettings extends PureComponent {
                   variant={CellVariant.SelectWithMenu}
                   title={blockExplorerUrl}
                   isSelected={false}
-                  withAvatar={false}
                   onPress={this.openBlockExplorerModal}
                   buttonIcon={IconName.ArrowDown}
                   onButtonClick={() => this.openBlockExplorerModal()}
@@ -2172,7 +2170,6 @@ export class NetworkSettings extends PureComponent {
                   key={url}
                   variant={CellVariant.SelectWithMenu}
                   title={url}
-                  withAvatar={false}
                   isSelected={blockExplorerUrl === url}
                   onPress={async () => {
                     await this.onBlockExplorerUrlChange(url);
@@ -2214,7 +2211,6 @@ export class NetworkSettings extends PureComponent {
                   variant={CellVariant.SelectWithMenu}
                   title={name ?? type}
                   secondaryText={hideKeyFromUrl(url)}
-                  withAvatar={false}
                   isSelected={rpcUrl === url}
                   onPress={async () => {
                     await this.onRpcUrlChangeWithName(url, name, type);
