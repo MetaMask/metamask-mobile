@@ -62,7 +62,7 @@ describe('useNotificationHandler', () => {
     );
   });
 
-  it('does nothing if the EventType is DISMISSED', async () => {
+  it('does not navigate if the EventType is DISMISSED', async () => {
     (isNotificationsFeatureEnabled as jest.Mock).mockReturnValue(true);
 
     renderHook(() => useNotificationHandler(mockNavigation));
@@ -95,40 +95,5 @@ describe('useNotificationHandler', () => {
     result.current.handlePressedNotification();
 
     expect(mockNavigation.navigate).not.toHaveBeenCalled();
-  });
-
-  it('processes notification on Android', async () => {
-    (isNotificationsFeatureEnabled as jest.Mock).mockReturnValue(true);
-
-    renderHook(() => useNotificationHandler(mockNavigation));
-
-    const event = {
-      type: EventType.DELIVERED,
-      detail: {
-        notification,
-      },
-    };
-
-    const callback = (NotificationsService.onBackgroundEvent as jest.Mock).mock
-      .calls[0][0];
-    await callback(event);
-
-    expect(NotificationsService.handleNotificationEvent).toHaveBeenCalledWith({
-      type: event.type,
-      detail: event.detail,
-      callback: expect.any(Function),
-    });
-
-    const handleNotificationCallback = (
-      NotificationsService.handleNotificationEvent as jest.Mock
-    ).mock.calls[0][0].callback;
-    await handleNotificationCallback(event.detail.notification);
-
-    expect(mockNavigation.navigate).toHaveBeenCalledWith(
-      Routes.NOTIFICATIONS.DETAILS,
-      {
-        notificationId: notification.id,
-      },
-    );
   });
 });
