@@ -890,8 +890,7 @@ workflows:
       #       - paths: node_modules
   ios_e2e_test:
     before_run:
-      - setup
-      - prep_environment
+      - code_setup
       - install_detox
     after_run:
       - notify_failure

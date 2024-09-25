@@ -4,8 +4,6 @@
 echo "Installing detox-cli..."
 yarn global add detox-cli
 
-yarn add -D detox
-
 # Install applesimutils
 echo "Installing applesimutils..."
 brew tap wix/brew
