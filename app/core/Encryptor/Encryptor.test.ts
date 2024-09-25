@@ -219,6 +219,7 @@ describe('Encryptor', () => {
         false,
       );
 
+      // eslint-disable-next-line jest/valid-expect
       expect(async () => await encryptor.exportKey(key)).rejects.toThrow(
         'Key is not exportable',
       );
@@ -247,6 +248,7 @@ describe('Encryptor', () => {
       Buffer.from('').toString('base64'),
       Buffer.from('{ not: json }').toString('base64'),
     ])('does not import a bad serialized key: %s', async (badFormattedKey) => {
+      // eslint-disable-next-line jest/valid-expect
       expect(
         async () => await encryptor.importKey(badFormattedKey),
       ).rejects.toThrow('Invalid exported key serialization format');
@@ -289,6 +291,7 @@ describe('Encryptor', () => {
     ])(
       'does not import a bad structured key: %s',
       async (_, badStructuredKey) => {
+        // eslint-disable-next-line jest/valid-expect
         expect(
           async () => await encryptor.importKey(serializeKey(badStructuredKey)),
         ).rejects.toThrow('Invalid exported key structure');

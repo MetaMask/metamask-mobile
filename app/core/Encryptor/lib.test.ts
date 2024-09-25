@@ -29,6 +29,7 @@ describe('lib', () => {
       (_lib) => {
         const lib = getEncryptionLibrary(_lib);
 
+        // eslint-disable-next-line jest/valid-expect
         expect(
           async () =>
             await lib.deriveKey(mockPassword, mockSalt, {
@@ -57,6 +58,7 @@ describe('lib', () => {
     it('throws an error if when using forked lib with a different number of iterations than expected', () => {
       const lib = getEncryptionLibrary('random-lib');
 
+      // eslint-disable-next-line jest/valid-expect
       expect(
         async () =>
           await lib.deriveKey(
