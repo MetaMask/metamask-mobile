@@ -7,7 +7,7 @@ import Text from '../../../Base/Text';
 import Title from '../../../Base/Title';
 import { useTheme } from '../../../../util/theme';
 
-const createStyles = (colors, shadows) =>
+const createStyles = (colors: ThemeColors, shadows: ThemeShadows) =>
   StyleSheet.create({
     modalView: {
       backgroundColor: colors.background.default,
@@ -59,7 +59,7 @@ interface InfoModalProps {
   message?: string;
   propagateSwipe?: boolean;
   urlText?: string;
-  url: () => void;
+  url?: () => void;
   testID?: string;
 }
 
@@ -95,7 +95,7 @@ const InfoModal: React.FC<InfoModalProps> = ({
       <View style={styles.infoContainer}>
         <Text style={styles.messageLimit}>
           <Text>{message} </Text>
-          {urlText && (
+          {urlText && url && (
             <Text link onPress={url}>
               {urlText}
             </Text>
