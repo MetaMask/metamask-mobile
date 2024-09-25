@@ -9,7 +9,6 @@ import useAddressBalance from './useAddressBalance';
 import backgroundState from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 import { BN } from 'ethereumjs-util';
-
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
 

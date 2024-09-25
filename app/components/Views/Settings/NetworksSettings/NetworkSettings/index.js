@@ -18,7 +18,7 @@ import {
 import { getNavigationOptionsTitle } from '../../../../UI/Navbar';
 import { strings } from '../../../../../../locales/i18n';
 import Networks, {
-  isprivateConnection,
+  isPrivateConnection,
   getAllNetworks,
   getIsNetworkOnboarded,
 } from '../../../../../util/networks';
@@ -730,7 +730,7 @@ export class NetworkSettings extends PureComponent {
     const { NetworkController, CurrencyRateController } = Engine.context;
 
     const url = new URL(rpcUrl);
-    if (!isprivateConnection(url.hostname)) {
+    if (!isPrivateConnection(url.hostname)) {
       url.set('protocol', 'https:');
     }
 
@@ -925,7 +925,7 @@ export class NetworkSettings extends PureComponent {
       });
     }
     const url = new URL(rpcUrl);
-    const privateConnection = isprivateConnection(url.hostname);
+    const privateConnection = isPrivateConnection(url.hostname);
     if (!privateConnection && url.protocol === 'http:') {
       this.setState({
         warningRpcUrl: strings('app_settings.invalid_rpc_prefix'),

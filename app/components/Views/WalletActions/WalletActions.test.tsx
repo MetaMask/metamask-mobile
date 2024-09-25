@@ -25,7 +25,17 @@ const mockInitialState: DeepPartial<RootState> = {
     ],
   },
   engine: {
-    backgroundState,
+    backgroundState: {
+      ...backgroundState,
+      NetworkController: {
+        ...mockNetworkState({
+          chainId: CHAIN_IDS.MAINNET,
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+        }),
+      },
+    },
   },
 };
 

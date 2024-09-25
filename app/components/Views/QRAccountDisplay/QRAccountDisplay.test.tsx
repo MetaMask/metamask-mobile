@@ -7,7 +7,9 @@ import ClipboardManager from '../../../core/ClipboardManager';
 
 const initialState = {
   engine: {
-    backgroundState,
+    backgroundState: {
+      ...backgroundState,
+    },
   },
 };
 

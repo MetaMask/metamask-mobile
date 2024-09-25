@@ -76,6 +76,8 @@ describe('useTokenBalancesController()', () => {
     // starting from fresh store with the initial state
     testStore = createStore(testBalancesReducer, cloneDeep(mockInitialState));
 
+    // console.log('testStore', JSON.stringify(testStore.getState()));
+
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const Wrapper = ({ children }: any) => (

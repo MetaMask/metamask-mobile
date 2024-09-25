@@ -11,7 +11,6 @@ export const selectConversionRate = createSelector(
   selectCurrencyRateControllerState,
   selectChainId,
   selectTicker,
-  // TODO: Replace "any" with type
   (state: RootState) => state.settings.showFiatOnTestnets,
   (
     currencyRateControllerState: CurrencyRateState,

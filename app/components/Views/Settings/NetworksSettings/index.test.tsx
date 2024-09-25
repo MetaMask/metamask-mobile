@@ -2,8 +2,7 @@ import { renderScreen } from '../../../../util/test/renderWithProvider';
 import NetworksSettings from './';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 
-const mockInitialState = {
-  settings: {},
+const initialState = {
   engine: {
     backgroundState,
   },
@@ -15,7 +14,7 @@ describe('NetworksSettings', () => {
       NetworksSettings,
       { name: 'Network Settings' },
       {
-        state: mockInitialState,
+        state: initialState,
       },
     );
     expect(toJSON()).toMatchSnapshot();

@@ -23,15 +23,11 @@ const useBlockExplorer = () => {
         const blockExplorer =
           findBlockExplorerForRpc(rpcUrl, networkConfigurations) ||
           NO_RPC_BLOCK_EXPLORER;
-
-        // Ensure blockExplorer is defined (NO_RPC_BLOCK_EXPLORER provides a fallback if undefined)
         accountLink = `${blockExplorer}/address/${address}`;
       } else {
-        // If it's not RPC, fallback to getEtherscanAddressUrl
         accountLink = getEtherscanAddressUrl(type, address);
       }
 
-      // Navigate to the WebView screen with the constructed URL
       navigation.navigate(Routes.WEBVIEW.MAIN, {
         screen: Routes.WEBVIEW.SIMPLE,
         params: {

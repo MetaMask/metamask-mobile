@@ -10,7 +10,6 @@ import React, { useCallback, useRef, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { NetworkConfiguration } from '@metamask/network-controller';
 
 // External dependencies.
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
@@ -28,9 +27,9 @@ import BottomSheet, {
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useSelector } from 'react-redux';
 import {
-  ProviderConfig,
   selectNetworkConfigurations,
   selectProviderConfig,
+  ProviderConfig,
 } from '../../../selectors/networkController';
 import { selectShowTestNetworks } from '../../../selectors/preferencesController';
 import Networks, {
@@ -105,7 +104,6 @@ interface infuraNetwork {
 interface ShowConfirmDeleteModalState {
   isVisible: boolean;
   networkName: string;
-  entry?: [string, NetworkConfiguration & { id: string }];
   chainId?: `0x${string}`;
 }
 
@@ -160,7 +158,6 @@ const NetworkSelector = () => {
     useState<ShowConfirmDeleteModalState>({
       isVisible: false,
       networkName: '',
-      entry: undefined,
     });
 
   const [showNetworkMenuModal, setNetworkMenuModal] = useState({
@@ -242,21 +239,19 @@ const NetworkSelector = () => {
       SelectedNetworkController,
     } = Engine.context;
 
-    const entry = Object.entries(networkConfigurations).find(
-      ([, { rpcEndpoints }]) =>
+    const networkConfiguration = Object.values(networkConfigurations).find(
+      ({ rpcEndpoints }) =>
         rpcEndpoints.some(({ url }) => compareRpcUrls(url, rpcTarget)),
     );
 
-    if (entry) {
-      const [
+    if (networkConfiguration) {
+      const {
+        name: nickname,
         chainId,
-        {
-          name: nickname,
-          nativeCurrency: ticker,
-          rpcEndpoints,
-          defaultRpcEndpointIndex,
-        },
-      ] = entry;
+        nativeCurrency: ticker,
+        rpcEndpoints,
+        defaultRpcEndpointIndex,
+      } = networkConfiguration;
 
       const networkConfigurationId =
         NetworkController.findNetworkClientIdByChainId(
@@ -515,9 +510,7 @@ const NetworkSelector = () => {
         const rpcName = rpcEndpoints[defaultRpcEndpointIndex].name ?? '';
         const rpcUrl = rpcEndpoints[defaultRpcEndpointIndex].url;
 
-        const { name } = {
-          name: nickname || rpcName,
-        };
+        const name = nickname || rpcName;
 
         if (isNetworkUiRedesignEnabled() && isNoSearchResults(name))
           return null;
@@ -746,24 +739,22 @@ const NetworkSelector = () => {
     setSearchString('');
   };
 
-  const removeRpcUrl = (networkId: string) => {
-    const entry = Object.entries(networkConfigurations).find(
-      ([chainId]) => chainId === networkId,
+  const removeRpcUrl = (chainId: string) => {
+    const networkConfiguration = Object.values(networkConfigurations).find(
+      (config) => config.chainId === chainId,
     );
 
-    if (!entry) {
-      throw new Error(`Unable to find network with chain id ${networkId}`);
+    if (!networkConfiguration) {
+      throw new Error(`Unable to find network with chain id ${chainId}`);
     }
-
-    const [chainId, { name: nickname }] = entry;
 
     closeModal();
     closeRpcModal();
 
     setShowConfirmDeleteModal({
       isVisible: true,
-      networkName: nickname ?? '',
-      chainId: chainId as `0x${string}`,
+      networkName: networkConfiguration.name ?? '',
+      chainId: networkConfiguration.chainId as `0x${string}`,
     });
   };
 
@@ -776,7 +767,6 @@ const NetworkSelector = () => {
       setShowConfirmDeleteModal({
         isVisible: false,
         networkName: '',
-        entry: undefined,
       });
     }
   };

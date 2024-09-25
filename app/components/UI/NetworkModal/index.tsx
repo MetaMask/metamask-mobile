@@ -7,7 +7,7 @@ import NetworkDetails from './NetworkDetails';
 import NetworkAdded from './NetworkAdded';
 import Engine from '../../../core/Engine';
 import {
-  isprivateConnection,
+  isPrivateConnection,
   toggleUseSafeChainsListValidation,
 } from '../../../util/networks';
 import getDecimalChainId from '../../../util/networks/getDecimalChainId';
@@ -135,6 +135,7 @@ const NetworkModals = (props: NetworkProps) => {
     } else {
       Logger.log('MetaMetrics - Unable to capture custom network');
     }
+
     setNetworkAdded(isValidUrl);
   };
 
@@ -195,7 +196,7 @@ const NetworkModals = (props: NetworkProps) => {
   const closeModal = async () => {
     const { NetworkController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
-    !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
+    !isPrivateConnection(url.hostname) && url.set('protocol', 'https:');
 
     const existingNetwork = networkConfigurationByChainId[chainId];
 
@@ -315,7 +316,7 @@ const NetworkModals = (props: NetworkProps) => {
 
     CurrencyRateController.updateExchangeRate(ticker);
 
-    if (!isprivateConnection(url.hostname)) {
+    if (!isPrivateConnection(url.hostname)) {
       url.set('protocol', 'https:');
     }
 

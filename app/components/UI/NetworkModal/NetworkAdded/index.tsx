@@ -10,9 +10,6 @@ import { NetworkAddedModalSelectorsIDs } from '../../../../../e2e/selectors/Moda
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
-    base: {
-      padding: 16,
-    },
     buttonView: {
       flexDirection: 'row',
       paddingVertical: 16,
@@ -44,7 +41,7 @@ const NetworkAdded = (props: NetworkAddedProps) => {
   const styles = createStyles(colors);
 
   return (
-    <View style={styles.base}>
+    <View>
       <Text centered bold black big>
         {strings('networks.new_network')}
       </Text>
