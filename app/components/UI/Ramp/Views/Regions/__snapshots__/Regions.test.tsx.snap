@@ -7839,7 +7839,9 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                 }
                                               }
                                             >
-                                              <Text>
+                                              <Text
+                                                variant="sBodyLGMedium"
+                                              >
                                                 No region matches
                                               </Text>
                                             </View>
@@ -7916,141 +7918,85 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                 <TouchableOpacity
                                                   accessibilityRole="button"
                                                   accessible={true}
+                                                  disabled={false}
                                                   onPress={[Function]}
+                                                  style={
+                                                    {
+                                                      "backgroundColor": "#ffffff",
+                                                      "borderRadius": 4,
+                                                      "opacity": 1,
+                                                      "padding": 16,
+                                                      "paddingHorizontal": 24,
+                                                      "position": "relative",
+                                                    }
+                                                  }
                                                 >
                                                   <View
+                                                    accessibilityRole="none"
+                                                    accessible={true}
                                                     style={
-                                                      [
-                                                        {
-                                                          "padding": 15,
-                                                        },
-                                                        {
-                                                          "paddingHorizontal": 24,
-                                                        },
-                                                      ]
+                                                      {
+                                                        "alignItems": "center",
+                                                        "flexDirection": "row",
+                                                        "padding": 0,
+                                                      }
                                                     }
                                                   >
                                                     <View
                                                       style={
-                                                        [
-                                                          {
-                                                            "alignItems": "center",
-                                                            "flexDirection": "row",
-                                                          },
-                                                          undefined,
-                                                        ]
+                                                        {
+                                                          "flex": 1,
+                                                        }
                                                       }
+                                                      testID="listitemcolumn"
                                                     >
                                                       <View
                                                         style={
-                                                          [
-                                                            {
-                                                              "flex": 1,
-                                                            },
-                                                            undefined,
-                                                          ]
+                                                          {
+                                                            "alignItems": "center",
+                                                            "flexDirection": "row",
+                                                          }
                                                         }
                                                       >
                                                         <View
                                                           style={
                                                             {
-                                                              "alignItems": "center",
-                                                              "flexDirection": "row",
+                                                              "paddingRight": 16,
                                                             }
                                                           }
                                                         >
-                                                          <View
+                                                          <Text
+                                                            accessibilityRole="text"
                                                             style={
                                                               {
-                                                                "paddingRight": 16,
+                                                                "color": "#141618",
+                                                                "fontFamily": "EuclidCircularB-Regular",
+                                                                "fontSize": 14,
+                                                                "fontWeight": "400",
+                                                                "letterSpacing": 0,
+                                                                "lineHeight": 22,
                                                               }
                                                             }
                                                           >
-                                                            <Text
-                                                              style={
-                                                                [
-                                                                  {
-                                                                    "color": "#141618",
-                                                                    "fontFamily": "EuclidCircularB-Regular",
-                                                                    "fontSize": 30,
-                                                                    "fontWeight": "400",
-                                                                    "marginVertical": 2,
-                                                                  },
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                ]
+                                                            🇨🇱
+                                                          </Text>
+                                                        </View>
+                                                        <View>
+                                                          <Text
+                                                            accessibilityRole="text"
+                                                            style={
+                                                              {
+                                                                "color": "#141618",
+                                                                "fontFamily": "EuclidCircularB-Medium",
+                                                                "fontSize": 16,
+                                                                "fontWeight": "500",
+                                                                "letterSpacing": 0,
+                                                                "lineHeight": 24,
                                                               }
-                                                            >
-                                                              🇨🇱
-                                                            </Text>
-                                                          </View>
-                                                          <View>
-                                                            <Text
-                                                              style={
-                                                                [
-                                                                  {
-                                                                    "color": "#141618",
-                                                                    "fontFamily": "EuclidCircularB-Regular",
-                                                                    "fontSize": 30,
-                                                                    "fontWeight": "400",
-                                                                    "marginVertical": 2,
-                                                                  },
-                                                                  undefined,
-                                                                  undefined,
-                                                                  false,
-                                                                  undefined,
-                                                                  {
-                                                                    "color": "#141618",
-                                                                  },
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  {
-                                                                    "color": "#141618",
-                                                                  },
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                ]
-                                                              }
-                                                            >
-                                                              Chile
-                                                            </Text>
-                                                          </View>
+                                                            }
+                                                          >
+                                                            Chile
+                                                          </Text>
                                                         </View>
                                                       </View>
                                                     </View>
@@ -8075,141 +8021,85 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                               <TouchableOpacity
                                                 accessibilityRole="button"
                                                 accessible={true}
+                                                disabled={false}
                                                 onPress={[Function]}
+                                                style={
+                                                  {
+                                                    "backgroundColor": "#ffffff",
+                                                    "borderRadius": 4,
+                                                    "opacity": 1,
+                                                    "padding": 16,
+                                                    "paddingHorizontal": 24,
+                                                    "position": "relative",
+                                                  }
+                                                }
                                               >
                                                 <View
+                                                  accessibilityRole="none"
+                                                  accessible={true}
                                                   style={
-                                                    [
-                                                      {
-                                                        "padding": 15,
-                                                      },
-                                                      {
-                                                        "paddingHorizontal": 24,
-                                                      },
-                                                    ]
+                                                    {
+                                                      "alignItems": "center",
+                                                      "flexDirection": "row",
+                                                      "padding": 0,
+                                                    }
                                                   }
                                                 >
                                                   <View
                                                     style={
-                                                      [
-                                                        {
-                                                          "alignItems": "center",
-                                                          "flexDirection": "row",
-                                                        },
-                                                        undefined,
-                                                      ]
+                                                      {
+                                                        "flex": 1,
+                                                      }
                                                     }
+                                                    testID="listitemcolumn"
                                                   >
                                                     <View
                                                       style={
-                                                        [
-                                                          {
-                                                            "flex": 1,
-                                                          },
-                                                          undefined,
-                                                        ]
+                                                        {
+                                                          "alignItems": "center",
+                                                          "flexDirection": "row",
+                                                        }
                                                       }
                                                     >
                                                       <View
                                                         style={
                                                           {
-                                                            "alignItems": "center",
-                                                            "flexDirection": "row",
+                                                            "paddingRight": 16,
                                                           }
                                                         }
                                                       >
-                                                        <View
+                                                        <Text
+                                                          accessibilityRole="text"
                                                           style={
                                                             {
-                                                              "paddingRight": 16,
+                                                              "color": "#141618",
+                                                              "fontFamily": "EuclidCircularB-Regular",
+                                                              "fontSize": 14,
+                                                              "fontWeight": "400",
+                                                              "letterSpacing": 0,
+                                                              "lineHeight": 22,
                                                             }
                                                           }
                                                         >
-                                                          <Text
-                                                            style={
-                                                              [
-                                                                {
-                                                                  "color": "#141618",
-                                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                                  "fontSize": 30,
-                                                                  "fontWeight": "400",
-                                                                  "marginVertical": 2,
-                                                                },
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                              ]
+                                                          🇦🇷
+                                                        </Text>
+                                                      </View>
+                                                      <View>
+                                                        <Text
+                                                          accessibilityRole="text"
+                                                          style={
+                                                            {
+                                                              "color": "#141618",
+                                                              "fontFamily": "EuclidCircularB-Medium",
+                                                              "fontSize": 16,
+                                                              "fontWeight": "500",
+                                                              "letterSpacing": 0,
+                                                              "lineHeight": 24,
                                                             }
-                                                          >
-                                                            🇦🇷
-                                                          </Text>
-                                                        </View>
-                                                        <View>
-                                                          <Text
-                                                            style={
-                                                              [
-                                                                {
-                                                                  "color": "#141618",
-                                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                                  "fontSize": 30,
-                                                                  "fontWeight": "400",
-                                                                  "marginVertical": 2,
-                                                                },
-                                                                undefined,
-                                                                undefined,
-                                                                false,
-                                                                undefined,
-                                                                {
-                                                                  "color": "#141618",
-                                                                },
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                {
-                                                                  "color": "#141618",
-                                                                },
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                              ]
-                                                            }
-                                                          >
-                                                            Argentina
-                                                          </Text>
-                                                        </View>
+                                                          }
+                                                        >
+                                                          Argentina
+                                                        </Text>
                                                       </View>
                                                     </View>
                                                   </View>
