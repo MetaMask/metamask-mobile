@@ -5,7 +5,7 @@ import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import Text from '../../../Base/Text';
 import Title from '../../../Base/Title';
-import { useTheme } from '../../../../util/theme';
+import { useTheme, ThemeColors, ThemeShadows } from '../../../../util/theme';
 
 const createStyles = (colors: ThemeColors, shadows: ThemeShadows) =>
   StyleSheet.create({
