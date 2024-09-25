@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {
   View,
   StyleSheet,
@@ -72,11 +71,6 @@ function Loader({ error, onClose }: LoaderProps) {
     </View>
   );
 }
-
-Loader.propTypes = {
-  error: PropTypes.bool,
-  onClose: PropTypes.func,
-};
 
 Loader.defaultProps = {
   onError: () => null,
