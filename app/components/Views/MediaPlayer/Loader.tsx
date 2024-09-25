@@ -12,7 +12,7 @@ import AntIcon from 'react-native-vector-icons/AntDesign';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 
-const createStyles = (colors) =>
+const createStyles = (colors: unknown) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -40,7 +40,12 @@ const createStyles = (colors) =>
     },
   });
 
-function Loader({ error, onClose }) {
+interface LoaderProps {
+  error?: boolean;
+  onClose: () => void;
+}
+
+function Loader({ error, onClose }: LoaderProps) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
