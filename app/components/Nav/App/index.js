@@ -125,6 +125,7 @@ import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
+import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -317,6 +318,7 @@ const App = (props) => {
   const dispatch = useDispatch();
   const sdkInit = useRef();
   const [onboarded, setOnboarded] = useState(false);
+
   const triggerSetCurrentRoute = (route) => {
     dispatch(setCurrentRoute(route));
     if (route === 'Wallet' || route === 'BrowserView') {
@@ -369,6 +371,7 @@ const App = (props) => {
     const deeplink = params?.['+non_branch_link'] || uri || null;
     try {
       if (deeplink) {
+        AppStateEventProcessor.setCurrentDeeplink(deeplink);
         SharedDeeplinkManager.parse(deeplink, {
           origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
         });
@@ -392,6 +395,7 @@ const App = (props) => {
       });
   }, [handleDeeplink]);
 
+
   useEffect(() => {
     if (navigator) {
       // Initialize deep link manager
@@ -406,6 +410,7 @@ const App = (props) => {
         },
         dispatch,
       });
+
       if (!prevNavigator.current) {
         // Setup navigator with Sentry instrumentation
         routingInstrumentation.registerNavigationContainer(navigator);
