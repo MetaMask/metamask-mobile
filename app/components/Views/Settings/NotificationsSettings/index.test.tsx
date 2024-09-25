@@ -57,12 +57,6 @@ jest.mock('../../../../util/notifications/services/NotificationService', () => (
   getAllPermissions: jest.fn(),
 }));
 
-jest.mock('../../../../core/Analytics/MetaMetrics.events', () => ({
-  MetaMetricsEvents: {
-    NOTIFICATIONS_SETTINGS_UPDATED: 'NOTIFICATIONS_SETTINGS_UPDATED',
-  },
-}));
-
 const mockDisableNotifications = jest.fn();
 const mockEnableNotifications = jest.fn();
 const mockSetUiNotificationStatus = jest.fn();
@@ -109,7 +103,7 @@ describe('toggleNotificationsEnabled', () => {
       }, [])
     );
 
-  it('should navigate to basic functionality screen if basicFunctionalityEnabled is false', async () => {
+  it('navigates to basic functionality screen if basic functionality is disabled', async () => {
     const { result } = setup(false, false, false);
 
     await act(async () => {
@@ -124,7 +118,7 @@ describe('toggleNotificationsEnabled', () => {
     });
   });
 
-  it('should disable notifications if isMetamaskNotificationsEnabled is true', async () => {
+  it('switches notifications off if notifications previously enabled', async () => {
     const { result } = setup(true, true, false);
 
     await act(async () => {
@@ -135,7 +129,7 @@ describe('toggleNotificationsEnabled', () => {
     expect(mockSetUiNotificationStatus).toHaveBeenCalledWith(false);
   });
 
-  it('should enable notifications if isMetamaskNotificationsEnabled is false and permission is authorized', async () => {
+  it('switches notifications ON if notifications previously disabled and permission is authorized', async () => {
     (NotificationsService.getAllPermissions as jest.Mock).mockResolvedValue({ permission: 'authorized' });
 
     const { result } = setup(true, false, false);
@@ -148,7 +142,7 @@ describe('toggleNotificationsEnabled', () => {
     expect(mockSetUiNotificationStatus).toHaveBeenCalledWith(true);
   });
 
-  it('should not enable notifications if permission is not authorized', async () => {
+  it('switches notifications off if device permission is not authorized', async () => {
     (NotificationsService.getAllPermissions as jest.Mock).mockResolvedValue({ permission: 'denied' });
 
     const { result } = setup(true, false, false);
@@ -161,7 +155,7 @@ describe('toggleNotificationsEnabled', () => {
     expect(mockSetUiNotificationStatus).not.toHaveBeenCalled();
   });
 
-  it('should track event when notifications settings are updated', async () => {
+  it('tracks MetaMetrics event when notifications settings are updated', async () => {
     (NotificationsService.getAllPermissions as jest.Mock).mockResolvedValue({ permission: 'authorized' });
 
     const { result } = setup(true, false, true);
@@ -180,7 +174,7 @@ describe('toggleNotificationsEnabled', () => {
 });
 
 describe('NotificationsSettings', () => {
-  it('should render correctly', () => {
+  it('renders correctly', () => {
     mockGetState.mockImplementation(() => ({
       notifications: {},
     }));
@@ -200,7 +194,7 @@ describe('NotificationsSettings', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should toggle notifications and handle permission correctly', async () => {
+  it('toggles notifications and handle permission correctly', async () => {
     const isMetamaskNotificationsEnabled = true;
     const basicFunctionalityEnabled = true;
     const isProfileSyncingEnabled = true;
