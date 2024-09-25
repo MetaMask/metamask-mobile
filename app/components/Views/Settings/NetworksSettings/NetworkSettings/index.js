@@ -2174,7 +2174,6 @@ export class NetworkSettings extends PureComponent {
                   onPress={async () => {
                     await this.onBlockExplorerUrlChange(url);
                   }}
-                  showButtonIcon={blockExplorerUrl !== url}
                   buttonIcon={IconName.Trash}
                   onButtonClick={async () => {
                     await this.onBlockExplorerUrlDelete(url);
@@ -2216,7 +2215,6 @@ export class NetworkSettings extends PureComponent {
                     await this.onRpcUrlChangeWithName(url, name, type);
                     this.closeRpcModal();
                   }}
-                  showButtonIcon={rpcUrl !== url}
                   buttonIcon={IconName.Trash}
                   onButtonClick={async () => {
                     await this.onRpcUrlDelete(url);
