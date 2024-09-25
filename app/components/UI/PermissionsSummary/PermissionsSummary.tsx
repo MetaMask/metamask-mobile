@@ -47,6 +47,7 @@ const PermissionsSummary = ({
   showActionButtons = true,
   isAlreadyConnected = true,
   isRenderedAsBottomSheet = true,
+  isDisconnectAllShown = true,
 }: PermissionsSummaryProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
@@ -230,7 +231,7 @@ const PermissionsSummary = ({
   }
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={styles.safeArea}>
       <View style={styles.mainContainer}>
         <View>
           {renderHeader()}
@@ -249,7 +250,7 @@ const PermissionsSummary = ({
           {renderNetworkPermissionsRequestInfoCard()}
         </View>
         <View>
-          {isAlreadyConnected && (
+          {isAlreadyConnected && isDisconnectAllShown && (
             <View style={styles.disconnectAllContainer}>
               <Button
                 variant={ButtonVariants.Secondary}
