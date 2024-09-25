@@ -41,6 +41,10 @@ module.exports = {
       device: 'ios.simulator',
       app: 'ios.release',
     },
+    'ios.sim.qa': {
+      device: 'ios.simulator',
+      app: 'ios.qa',
+    },
     // because e2e run on debug mode in bitrise
     'android.emu.bitrise.debug': {
       device: 'android.bitrise.emulator',
@@ -91,6 +95,12 @@ module.exports = {
       binaryPath:
         'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app',
       build: "METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:ios:release:e2e",
+    },
+    'ios.qa': {
+      type: 'ios.app',
+      binaryPath:
+        'ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app',
+      build: "METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:ios:qa",
     },
     'android.bitrise.debug': {
       type: 'android.apk',
