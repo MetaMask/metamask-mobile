@@ -59,7 +59,7 @@ interface InfoModalProps {
   message?: string;
   propagateSwipe?: boolean;
   urlText?: string;
-  url: unknown;
+  url: () => void;
   testID?: string;
 }
 
