@@ -6,9 +6,10 @@ import BigNumber from 'bignumber.js';
 import { useTheme } from '../../util/theme';
 
 import type { Theme } from '../../util/theme/models';
+import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
 import { useStyles } from '../../component-library/hooks';
 
-const styleSheet = ({ colors }: Theme) => StyleSheet.create({
+const styleSheet = ({ theme, vars }: { theme: Theme; vars: { colors: ThemeColors } }) => StyleSheet.create({
   labelContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -24,10 +25,19 @@ const styleSheet = ({ colors }: Theme) => StyleSheet.create({
     justifyContent: 'space-between',
     height: 42,
   },
+  rangeInputContainerNormal: {
+    borderColor: vars.colors.border.default,
+  },
+  rangeInputContainerError: {
+    borderColor: vars.colors.error.default,
+  },
   input: {
     height: 38,
     minWidth: 10,
     paddingRight: 6,
+  },
+  inputError: {
+    color: vars.colors.error.default,
   },
   buttonContainerLeft: {
     marginLeft: 17,
@@ -43,7 +53,7 @@ const styleSheet = ({ colors }: Theme) => StyleSheet.create({
   button: {
     borderRadius: 100,
     borderWidth: 2,
-    borderColor: colors.primary.default,
+    borderColor: vars.colors.primary.default,
     height: 20,
     width: 20,
     alignItems: 'center',
@@ -52,7 +62,7 @@ const styleSheet = ({ colors }: Theme) => StyleSheet.create({
   buttonText: {
     paddingTop: 1,
     paddingLeft: 0.5,
-    color: colors.primary.default,
+    color: vars.colors.primary.default,
   },
   hitSlop: {
     top: 10,
@@ -67,16 +77,16 @@ const styleSheet = ({ colors }: Theme) => StyleSheet.create({
   },
   errorContainer: {
     marginTop: 8,
-    color: colors.error.default,
+    color: vars.colors.error.default,
     flexDirection: 'row',
     alignItems: 'center',
   },
   errorText: {
-    color: colors.text.default,
+    color: vars.colors.text.default,
   },
   errorIcon: {
     paddingRight: 4,
-    color: colors.error.default,
+    color: vars.colors.error.default,
   },
   conversionEstimation: {
     paddingLeft: 2,

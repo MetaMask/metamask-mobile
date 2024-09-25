@@ -325,15 +325,19 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                 </View>
                 <View
                   style={
-                    {
-                      "alignItems": "center",
-                      "borderColor": "#bbc0c5",
-                      "borderRadius": 6,
-                      "borderWidth": 1,
-                      "flexDirection": "row",
-                      "height": 42,
-                      "justifyContent": "space-between",
-                    }
+                    [
+                      {
+                        "alignItems": "center",
+                        "borderRadius": 6,
+                        "borderWidth": 1,
+                        "flexDirection": "row",
+                        "height": 42,
+                        "justifyContent": "space-between",
+                      },
+                      {
+                        "borderColor": "#d73847",
+                      },
+                    ]
                   }
                 >
                   <View
@@ -407,12 +411,16 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       onBlur={[Function]}
                       onChangeText={[Function]}
                       style={
-                        {
-                          "color": "#141618",
-                          "height": 38,
-                          "minWidth": 10,
-                          "paddingRight": 6,
-                        }
+                        [
+                          {
+                            "height": 38,
+                            "minWidth": 10,
+                            "paddingRight": 6,
+                          },
+                          {
+                            "color": "#d73847",
+                          },
+                        ]
                       }
                       value="21000"
                     />
@@ -701,15 +709,19 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                 </View>
                 <View
                   style={
-                    {
-                      "alignItems": "center",
-                      "borderColor": "#bbc0c5",
-                      "borderRadius": 6,
-                      "borderWidth": 1,
-                      "flexDirection": "row",
-                      "height": 42,
-                      "justifyContent": "space-between",
-                    }
+                    [
+                      {
+                        "alignItems": "center",
+                        "borderRadius": 6,
+                        "borderWidth": 1,
+                        "flexDirection": "row",
+                        "height": 42,
+                        "justifyContent": "space-between",
+                      },
+                      {
+                        "borderColor": "#bbc0c5",
+                      },
+                    ]
                   }
                 >
                   <View
@@ -783,12 +795,14 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       onBlur={[Function]}
                       onChangeText={[Function]}
                       style={
-                        {
-                          "color": "#141618",
-                          "height": 38,
-                          "minWidth": 10,
-                          "paddingRight": 6,
-                        }
+                        [
+                          {
+                            "height": 38,
+                            "minWidth": 10,
+                            "paddingRight": 6,
+                          },
+                          false,
+                        ]
                       }
                       value="10"
                     />
