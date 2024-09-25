@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import StyledButton from '../StyledButton';
 import { StyleSheet, View } from 'react-native';
@@ -102,11 +102,14 @@ const SwitchCustomNetwork = ({
     new URL(currentPageInformation.url).hostname,
   );
 
-  const trackingData = {
-    chain_id: getDecimalChainId(customNetworkInformation.chainId),
-    from_network: networkName,
-    to_network: customNetworkInformation.chainName,
-  };
+  const trackingData = useMemo(
+    () => ({
+      chain_id: getDecimalChainId(customNetworkInformation.chainId),
+      from_network: networkName,
+      to_network: customNetworkInformation.chainName,
+    }),
+    [customNetworkInformation, networkName],
+  );
 
   useEffect(() => {
     trackEvent(
