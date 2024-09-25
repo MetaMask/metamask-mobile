@@ -173,6 +173,7 @@ const SwitchCustomNetwork = ({
       onCancel={onCancel}
       onConfirm={onConfirm}
       isDisconnectAllShown={false}
+      isNetworkSwitch
     />
   );
 
