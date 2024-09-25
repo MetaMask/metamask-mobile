@@ -486,8 +486,6 @@ exports[`Network Selector renders correctly 1`] = `
                                   accessible={true}
                                   style={
                                     {
-                                      "alignItems": "center",
-                                      "flexDirection": "row",
                                       "padding": 0,
                                     }
                                   }
@@ -497,6 +495,7 @@ exports[`Network Selector renders correctly 1`] = `
                                       {
                                         "alignItems": "center",
                                         "flexDirection": "row",
+                                        "padding": 0,
                                       }
                                     }
                                   >
@@ -504,59 +503,68 @@ exports[`Network Selector renders correctly 1`] = `
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderRadius": 16,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "marginRight": 16,
-                                          "overflow": "hidden",
-                                          "width": 32,
+                                          "flexDirection": "row",
                                         }
                                       }
-                                      testID="cellbase-avatar"
                                     >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={
-                                          {
-                                            "uri": "MockImage",
-                                          }
-                                        }
+                                      <View
                                         style={
                                           {
+                                            "alignItems": "center",
+                                            "backgroundColor": "#ffffff",
+                                            "borderRadius": 16,
                                             "height": 32,
+                                            "justifyContent": "center",
+                                            "marginRight": 16,
+                                            "overflow": "hidden",
                                             "width": 32,
                                           }
                                         }
-                                        testID="network-avatar-image"
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        {
-                                          "alignItems": "flex-start",
-                                          "flex": 1,
-                                        }
-                                      }
-                                    >
-                                      <Text
-                                        accessibilityRole="text"
-                                        numberOfLines={1}
+                                        testID="cellbase-avatar"
+                                      >
+                                        <Image
+                                          onError={[Function]}
+                                          resizeMode="contain"
+                                          source={
+                                            {
+                                              "uri": "MockImage",
+                                            }
+                                          }
+                                          style={
+                                            {
+                                              "height": 32,
+                                              "width": 32,
+                                            }
+                                          }
+                                          testID="network-avatar-image"
+                                        />
+                                      </View>
+                                      <View
                                         style={
                                           {
-                                            "color": "#141618",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 16,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
+                                            "alignItems": "flex-start",
+                                            "flex": 1,
                                           }
                                         }
-                                        testID="cellbase-avatar-title"
                                       >
-                                        Ethereum Main Network
-                                      </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          numberOfLines={1}
+                                          style={
+                                            {
+                                              "color": "#141618",
+                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontSize": 16,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                          testID="cellbase-avatar-title"
+                                        >
+                                          Ethereum Main Network
+                                        </Text>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>
@@ -607,102 +615,6 @@ exports[`Network Selector renders correctly 1`] = `
                                   accessible={true}
                                   style={
                                     {
-                                      "alignItems": "center",
-                                      "flexDirection": "row",
-                                      "padding": 0,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "flexDirection": "row",
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderRadius": 16,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "marginRight": 16,
-                                          "overflow": "hidden",
-                                          "width": 32,
-                                        }
-                                      }
-                                      testID="cellbase-avatar"
-                                    >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={
-                                          {
-                                            "uri": "MockImage",
-                                          }
-                                        }
-                                        style={
-                                          {
-                                            "height": 32,
-                                            "width": 32,
-                                          }
-                                        }
-                                        testID="network-avatar-image"
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        {
-                                          "alignItems": "flex-start",
-                                          "flex": 1,
-                                        }
-                                      }
-                                    >
-                                      <Text
-                                        accessibilityRole="text"
-                                        numberOfLines={1}
-                                        style={
-                                          {
-                                            "color": "#141618",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 16,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
-                                        }
-                                        testID="cellbase-avatar-title"
-                                      >
-                                        Linea Main Network
-                                      </Text>
-                                    </View>
-                                  </View>
-                                </View>
-                              </TouchableOpacity>
-                              <TouchableOpacity
-                                disabled={false}
-                                onPress={[Function]}
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderRadius": 4,
-                                    "opacity": 1,
-                                    "padding": 16,
-                                    "position": "relative",
-                                  }
-                                }
-                                testID="cellselect"
-                              >
-                                <View
-                                  accessibilityRole="none"
-                                  accessible={true}
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "flexDirection": "row",
                                       "padding": 0,
                                     }
                                   }
@@ -712,68 +624,75 @@ exports[`Network Selector renders correctly 1`] = `
                                       {
                                         "alignItems": "center",
                                         "flexDirection": "row",
+                                        "padding": 0,
                                       }
                                     }
                                   >
                                     <View
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderRadius": 16,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "marginRight": 16,
-                                          "overflow": "hidden",
-                                          "width": 32,
+                                          "flexDirection": "row",
                                         }
                                       }
-                                      testID="cellbase-avatar"
                                     >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={
+                                      <View
+                                        style={
                                           {
-                                            "default": {
+                                            "alignItems": "center",
+                                            "backgroundColor": "#ffffff",
+                                            "borderRadius": 16,
+                                            "height": 32,
+                                            "justifyContent": "center",
+                                            "marginRight": 16,
+                                            "overflow": "hidden",
+                                            "width": 32,
+                                          }
+                                        }
+                                        testID="cellbase-avatar"
+                                      >
+                                        <Image
+                                          onError={[Function]}
+                                          resizeMode="contain"
+                                          source={
+                                            {
                                               "uri": "MockImage",
-                                            },
+                                            }
                                           }
-                                        }
+                                          style={
+                                            {
+                                              "height": 32,
+                                              "width": 32,
+                                            }
+                                          }
+                                          testID="network-avatar-image"
+                                        />
+                                      </View>
+                                      <View
                                         style={
                                           {
-                                            "height": 32,
-                                            "width": 32,
+                                            "alignItems": "flex-start",
+                                            "flex": 1,
                                           }
                                         }
-                                        testID="network-avatar-image"
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        {
-                                          "alignItems": "flex-start",
-                                          "flex": 1,
-                                        }
-                                      }
-                                    >
-                                      <Text
-                                        accessibilityRole="text"
-                                        numberOfLines={1}
-                                        style={
-                                          {
-                                            "color": "#141618",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 16,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
-                                        }
-                                        testID="cellbase-avatar-title"
                                       >
-                                        Avalanche Mainnet C-Chain
-                                      </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          numberOfLines={1}
+                                          style={
+                                            {
+                                              "color": "#141618",
+                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontSize": 16,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                          testID="cellbase-avatar-title"
+                                        >
+                                          Linea Main Network
+                                        </Text>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>
@@ -798,8 +717,6 @@ exports[`Network Selector renders correctly 1`] = `
                                   accessible={true}
                                   style={
                                     {
-                                      "alignItems": "center",
-                                      "flexDirection": "row",
                                       "padding": 0,
                                     }
                                   }
@@ -809,6 +726,7 @@ exports[`Network Selector renders correctly 1`] = `
                                       {
                                         "alignItems": "center",
                                         "flexDirection": "row",
+                                        "padding": 0,
                                       }
                                     }
                                   >
@@ -816,61 +734,70 @@ exports[`Network Selector renders correctly 1`] = `
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderRadius": 16,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "marginRight": 16,
-                                          "overflow": "hidden",
-                                          "width": 32,
+                                          "flexDirection": "row",
                                         }
                                       }
-                                      testID="cellbase-avatar"
                                     >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={
-                                          {
-                                            "default": {
-                                              "uri": "MockImage",
-                                            },
-                                          }
-                                        }
+                                      <View
                                         style={
                                           {
+                                            "alignItems": "center",
+                                            "backgroundColor": "#ffffff",
+                                            "borderRadius": 16,
                                             "height": 32,
+                                            "justifyContent": "center",
+                                            "marginRight": 16,
+                                            "overflow": "hidden",
                                             "width": 32,
                                           }
                                         }
-                                        testID="network-avatar-image"
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        {
-                                          "alignItems": "flex-start",
-                                          "flex": 1,
-                                        }
-                                      }
-                                    >
-                                      <Text
-                                        accessibilityRole="text"
-                                        numberOfLines={1}
+                                        testID="cellbase-avatar"
+                                      >
+                                        <Image
+                                          onError={[Function]}
+                                          resizeMode="contain"
+                                          source={
+                                            {
+                                              "default": {
+                                                "uri": "MockImage",
+                                              },
+                                            }
+                                          }
+                                          style={
+                                            {
+                                              "height": 32,
+                                              "width": 32,
+                                            }
+                                          }
+                                          testID="network-avatar-image"
+                                        />
+                                      </View>
+                                      <View
                                         style={
                                           {
-                                            "color": "#141618",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 16,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
+                                            "alignItems": "flex-start",
+                                            "flex": 1,
                                           }
                                         }
-                                        testID="cellbase-avatar-title"
                                       >
-                                        Polygon Mainnet
-                                      </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          numberOfLines={1}
+                                          style={
+                                            {
+                                              "color": "#141618",
+                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontSize": 16,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                          testID="cellbase-avatar-title"
+                                        >
+                                          Avalanche Mainnet C-Chain
+                                        </Text>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>
@@ -895,8 +822,6 @@ exports[`Network Selector renders correctly 1`] = `
                                   accessible={true}
                                   style={
                                     {
-                                      "alignItems": "center",
-                                      "flexDirection": "row",
                                       "padding": 0,
                                     }
                                   }
@@ -906,6 +831,7 @@ exports[`Network Selector renders correctly 1`] = `
                                       {
                                         "alignItems": "center",
                                         "flexDirection": "row",
+                                        "padding": 0,
                                       }
                                     }
                                   >
@@ -913,61 +839,70 @@ exports[`Network Selector renders correctly 1`] = `
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderRadius": 16,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "marginRight": 16,
-                                          "overflow": "hidden",
-                                          "width": 32,
+                                          "flexDirection": "row",
                                         }
                                       }
-                                      testID="cellbase-avatar"
                                     >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={
-                                          {
-                                            "default": {
-                                              "uri": "MockImage",
-                                            },
-                                          }
-                                        }
+                                      <View
                                         style={
                                           {
+                                            "alignItems": "center",
+                                            "backgroundColor": "#ffffff",
+                                            "borderRadius": 16,
                                             "height": 32,
+                                            "justifyContent": "center",
+                                            "marginRight": 16,
+                                            "overflow": "hidden",
                                             "width": 32,
                                           }
                                         }
-                                        testID="network-avatar-image"
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        {
-                                          "alignItems": "flex-start",
-                                          "flex": 1,
-                                        }
-                                      }
-                                    >
-                                      <Text
-                                        accessibilityRole="text"
-                                        numberOfLines={1}
+                                        testID="cellbase-avatar"
+                                      >
+                                        <Image
+                                          onError={[Function]}
+                                          resizeMode="contain"
+                                          source={
+                                            {
+                                              "default": {
+                                                "uri": "MockImage",
+                                              },
+                                            }
+                                          }
+                                          style={
+                                            {
+                                              "height": 32,
+                                              "width": 32,
+                                            }
+                                          }
+                                          testID="network-avatar-image"
+                                        />
+                                      </View>
+                                      <View
                                         style={
                                           {
-                                            "color": "#141618",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 16,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
+                                            "alignItems": "flex-start",
+                                            "flex": 1,
                                           }
                                         }
-                                        testID="cellbase-avatar-title"
                                       >
-                                        Optimism
-                                      </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          numberOfLines={1}
+                                          style={
+                                            {
+                                              "color": "#141618",
+                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontSize": 16,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                          testID="cellbase-avatar-title"
+                                        >
+                                          Polygon Mainnet
+                                        </Text>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>
@@ -992,8 +927,6 @@ exports[`Network Selector renders correctly 1`] = `
                                   accessible={true}
                                   style={
                                     {
-                                      "alignItems": "center",
-                                      "flexDirection": "row",
                                       "padding": 0,
                                     }
                                   }
@@ -1003,6 +936,7 @@ exports[`Network Selector renders correctly 1`] = `
                                       {
                                         "alignItems": "center",
                                         "flexDirection": "row",
+                                        "padding": 0,
                                       }
                                     }
                                   >
@@ -1010,59 +944,173 @@ exports[`Network Selector renders correctly 1`] = `
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#f2f4f6",
-                                          "borderRadius": 16,
-                                          "borderWidth": 1,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "marginRight": 16,
-                                          "overflow": "hidden",
-                                          "width": 32,
+                                          "flexDirection": "row",
                                         }
                                       }
-                                      testID="cellbase-avatar"
                                     >
-                                      <Text
-                                        accessibilityRole="text"
+                                      <View
                                         style={
                                           {
-                                            "color": "#141618",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 16,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
+                                            "alignItems": "center",
+                                            "backgroundColor": "#ffffff",
+                                            "borderRadius": 16,
+                                            "height": 32,
+                                            "justifyContent": "center",
+                                            "marginRight": 16,
+                                            "overflow": "hidden",
+                                            "width": 32,
+                                          }
+                                        }
+                                        testID="cellbase-avatar"
+                                      >
+                                        <Image
+                                          onError={[Function]}
+                                          resizeMode="contain"
+                                          source={
+                                            {
+                                              "default": {
+                                                "uri": "MockImage",
+                                              },
+                                            }
+                                          }
+                                          style={
+                                            {
+                                              "height": 32,
+                                              "width": 32,
+                                            }
+                                          }
+                                          testID="network-avatar-image"
+                                        />
+                                      </View>
+                                      <View
+                                        style={
+                                          {
+                                            "alignItems": "flex-start",
+                                            "flex": 1,
                                           }
                                         }
                                       >
-                                        G
-                                      </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          numberOfLines={1}
+                                          style={
+                                            {
+                                              "color": "#141618",
+                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontSize": 16,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                          testID="cellbase-avatar-title"
+                                        >
+                                          Optimism
+                                        </Text>
+                                      </View>
                                     </View>
+                                  </View>
+                                </View>
+                              </TouchableOpacity>
+                              <TouchableOpacity
+                                disabled={false}
+                                onPress={[Function]}
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#ffffff",
+                                    "borderRadius": 4,
+                                    "opacity": 1,
+                                    "padding": 16,
+                                    "position": "relative",
+                                  }
+                                }
+                                testID="cellselect"
+                              >
+                                <View
+                                  accessibilityRole="none"
+                                  accessible={true}
+                                  style={
+                                    {
+                                      "padding": 0,
+                                    }
+                                  }
+                                >
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                        "padding": 0,
+                                      }
+                                    }
+                                  >
                                     <View
                                       style={
                                         {
-                                          "alignItems": "flex-start",
-                                          "flex": 1,
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
                                         }
                                       }
                                     >
-                                      <Text
-                                        accessibilityRole="text"
-                                        numberOfLines={1}
+                                      <View
                                         style={
                                           {
-                                            "color": "#141618",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 16,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
+                                            "alignItems": "center",
+                                            "backgroundColor": "#f2f4f6",
+                                            "borderRadius": 16,
+                                            "borderWidth": 1,
+                                            "height": 32,
+                                            "justifyContent": "center",
+                                            "marginRight": 16,
+                                            "overflow": "hidden",
+                                            "width": 32,
                                           }
                                         }
-                                        testID="cellbase-avatar-title"
+                                        testID="cellbase-avatar"
                                       >
-                                        Gnosis Chain
-                                      </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#141618",
+                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontSize": 16,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          G
+                                        </Text>
+                                      </View>
+                                      <View
+                                        style={
+                                          {
+                                            "alignItems": "flex-start",
+                                            "flex": 1,
+                                          }
+                                        }
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          numberOfLines={1}
+                                          style={
+                                            {
+                                              "color": "#141618",
+                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontSize": 16,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                          testID="cellbase-avatar-title"
+                                        >
+                                          Gnosis Chain
+                                        </Text>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>

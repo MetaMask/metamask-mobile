@@ -5,7 +5,6 @@ exports[`ListItemMultiSelect should render snapshot correctly 1`] = `
   disabled={false}
   style={
     {
-      "alignItems": "flex-start",
       "backgroundColor": "#ffffff",
       "borderRadius": 4,
       "opacity": 1,
@@ -18,50 +17,58 @@ exports[`ListItemMultiSelect should render snapshot correctly 1`] = `
     accessible={true}
     style={
       {
-        "alignItems": "center",
-        "flexDirection": "row",
         "padding": 0,
       }
     }
   >
-    <TouchableOpacity
-      disabled={false}
+    <View
       style={
         {
           "alignItems": "center",
           "flexDirection": "row",
-          "height": 24,
-          "marginRight": -8,
-          "opacity": 1,
+          "padding": 0,
         }
       }
     >
-      <View
-        accessibilityRole="checkbox"
+      <TouchableOpacity
+        disabled={false}
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#ffffff",
-            "borderColor": "#141618",
-            "borderRadius": 4,
-            "borderWidth": 2,
-            "height": 20,
-            "justifyContent": "center",
-            "width": 20,
+            "flexDirection": "row",
+            "height": 24,
+            "marginRight": -8,
+            "opacity": 1,
           }
         }
-      />
-    </TouchableOpacity>
-    <View
-      accessible={false}
-      style={
-        {
-          "width": 16,
+      >
+        <View
+          accessibilityRole="checkbox"
+          style={
+            {
+              "alignItems": "center",
+              "backgroundColor": "#ffffff",
+              "borderColor": "#141618",
+              "borderRadius": 4,
+              "borderWidth": 2,
+              "height": 20,
+              "justifyContent": "center",
+              "width": 20,
+            }
+          }
+        />
+      </TouchableOpacity>
+      <View
+        accessible={false}
+        style={
+          {
+            "width": 16,
+          }
         }
-      }
-      testID="listitem-gap"
-    />
-    <View />
+        testID="listitem-gap"
+      />
+      <View />
+    </View>
   </View>
 </TouchableOpacity>
 `;

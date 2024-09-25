@@ -18,13 +18,21 @@ exports[`ListItemSelect should render snapshot correctly 1`] = `
     accessible={true}
     style={
       {
-        "alignItems": "center",
-        "flexDirection": "row",
         "padding": 0,
       }
     }
   >
-    <View />
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "padding": 0,
+        }
+      }
+    >
+      <View />
+    </View>
   </View>
 </TouchableOpacity>
 `;
