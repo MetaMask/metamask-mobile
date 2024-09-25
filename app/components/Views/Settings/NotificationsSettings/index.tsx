@@ -31,7 +31,6 @@ import {
   selectIsProfileSyncingEnabled,
 } from '../../../../selectors/notifications';
 
-import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import Routes from '../../../../constants/navigation/Routes';
 
 import ButtonIcon, {
@@ -51,6 +50,7 @@ import AppConstants from '../../../../core/AppConstants';
 import notificationsRows from './notificationsRows';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import { useToggleNotifications } from './useToggleNotifications';
 
 interface MainNotificationSettingsProps extends Props {
   toggleNotificationsEnabled: () => void;
@@ -103,6 +103,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   const { accounts } = useAccounts();
   const { trackEvent } = useMetrics();
   const theme = useTheme();
+
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
@@ -171,47 +172,15 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
    * it will request the push notifications permission and enable the notifications
    * if the permission is granted.
    */
-  const toggleNotificationsEnabled = useCallback(async () => {
-    if (!basicFunctionalityEnabled) {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.BASIC_FUNCTIONALITY,
-        params: {
-          caller: Routes.SETTINGS.NOTIFICATIONS,
-        },
-      });
-    } else if (isMetamaskNotificationsEnabled) {
-      disableNotifications();
-      setUiNotificationStatus(false);
-    } else {
-      const { permission } = await NotificationsService.getAllPermissions(false);
-      if (permission !== 'authorized') {
-        return;
-      }
-
-        /**
-         * Although this is an async function, we are dispatching an action (firing & forget)
-         * to emulate optimistic UI.
-         */
-        enableNotifications();
-        setUiNotificationStatus(true);
-    }
-    trackEvent(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED, {
-      settings_type: 'notifications',
-      old_value: isMetamaskNotificationsEnabled,
-      new_value: !isMetamaskNotificationsEnabled,
-      was_profile_syncing_on: isMetamaskNotificationsEnabled
-        ? true
-        : isProfileSyncingEnabled,
-    });
-  }, [
+  const { toggleNotificationsEnabled } = useToggleNotifications({
+    navigation,
     basicFunctionalityEnabled,
+    isMetamaskNotificationsEnabled,
+    isProfileSyncingEnabled,
     disableNotifications,
     enableNotifications,
-    isMetamaskNotificationsEnabled,
-    navigation,
-    trackEvent,
-    isProfileSyncingEnabled,
-  ]);
+    setUiNotificationStatus,
+  });
 
   const toggleCustomNotificationsEnabled = useCallback(async () => {
     setPlatformAnnouncementsState(!platformAnnouncementsState);
