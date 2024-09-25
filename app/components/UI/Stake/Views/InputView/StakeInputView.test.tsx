@@ -130,7 +130,7 @@ describe('StakeInputView', () => {
 
     it('navigates to Learn more modal when learn icon is pressed', () => {
       render(StakeInputView);
-      fireEvent.press(screen.getByLabelText('Learn More Icon'));
+      fireEvent.press(screen.getByLabelText('Learn More'));
       expect(mockNavigate).toHaveBeenCalledWith('StakeModals', {
         screen: Routes.STAKING.MODALS.LEARN_MORE,
       });

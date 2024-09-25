@@ -615,7 +615,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                   MetaMask Pool
                                 </Text>
                                 <TouchableOpacity
-                                  accessibilityLabel="Learn More Icon"
+                                  accessibilityLabel="Learn More"
                                   onPress={[Function]}
                                 >
                                   <SvgMock

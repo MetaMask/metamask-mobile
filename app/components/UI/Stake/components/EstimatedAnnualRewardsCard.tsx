@@ -61,7 +61,7 @@ const EstimatedAnnualRewardsCard = ({
           </Text>
           <TouchableOpacity
             onPress={onIconPress}
-            accessibilityLabel="Learn More Icon"
+            accessibilityLabel="Learn More"
           >
             <Icon name={IconName.Question} color={IconColor.Alternative} />
           </TouchableOpacity>
