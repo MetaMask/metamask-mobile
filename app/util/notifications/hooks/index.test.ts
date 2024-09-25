@@ -74,7 +74,7 @@ describe('useNotificationHandler', () => {
     jest.clearAllMocks();
   });
 
-  it('should navigate to NOTIFICATIONS.DETAILS if notification is pressed', async () => {
+  it('navigates to NOTIFICATIONS.DETAILS if notification is pressed', async () => {
     const { result } = renderHook(() => useNotificationHandler(mockNavigation));
 
     await result.current.handlePressedNotification(notification);
@@ -87,7 +87,7 @@ describe('useNotificationHandler', () => {
     );
   });
 
-  it('should handle notifications correctly', async () => {
+  it('handles notifications correctly', async () => {
     const { waitFor } = renderHook(() =>
       useNotificationHandler(mockNavigation),
     );
@@ -113,7 +113,7 @@ describe('useNotificationHandler', () => {
     });
   });
 
-  it('should do nothing if the EventType is DISMISSED', async () => {
+  it('does nothing if the EventType is DISMISSED', async () => {
     const { waitFor } = renderHook(() =>
       useNotificationHandler(mockNavigation),
     );
@@ -140,7 +140,7 @@ describe('useNotificationHandler', () => {
     });
   });
 
-  it('should do nothing if data.action is not tx', async () => {
+  it('does nothing if data.action is not tx', async () => {
     const { waitFor } = renderHook(() =>
       useNotificationHandler(mockNavigation),
     );
@@ -169,7 +169,7 @@ describe('useNotificationHandler', () => {
     });
   });
 
-  it('handleOpenedNotification should do nothing if notification is null', async () => {
+  it('handleOpenedNotification does nothing if notification is null', async () => {
     const { waitFor } = renderHook(() =>
       useNotificationHandler(mockNavigation),
     );
@@ -191,7 +191,7 @@ describe('useNotificationHandler', () => {
     });
   });
 
-  it('should navigate to the transaction view when the notification action is "tx"', async () => {
+  it('navigates to the transaction view when the notification action is "tx"', async () => {
     const { waitFor } = renderHook(() =>
       useNotificationHandler(mockNavigation),
     );
@@ -217,7 +217,7 @@ describe('useNotificationHandler', () => {
     });
   }, 10000);
 
-  it('should process notification on Android', async () => {
+  it('processes notification on Android', async () => {
     jest.doMock('react-native/Libraries/Utilities/Platform', () => ({
       OS: 'android',
     }));

@@ -6,11 +6,11 @@ import {
 } from './androidChannels';
 
 describe('notificationChannels', () => {
-  it('should have two channels', () => {
+  it('notificationChannels should contain two channels', () => {
     expect(notificationChannels).toHaveLength(2);
   });
 
-  it('should have the correct properties for the first channel', () => {
+  it('first channel should matches the correct properties for DEFAULT_NOTIFICATION_CHANNEL_ID', () => {
     const firstChannel: MetaMaskAndroidChannel = notificationChannels[0];
     expect(firstChannel).toEqual({
       id: ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
@@ -23,7 +23,7 @@ describe('notificationChannels', () => {
     });
   });
 
-  it('should have the correct properties for the second channel', () => {
+  it('second channel should have the correct properties for DEFAULT_NOTIFICATION_CHANNEL_ID', () => {
     const secondChannel: MetaMaskAndroidChannel = notificationChannels[1];
     expect(secondChannel).toEqual({
       id: ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
@@ -36,13 +36,13 @@ describe('notificationChannels', () => {
     });
   });
 
-  it('should have unique titles for each channel', () => {
+  it('each channel must have unique titles', () => {
     const titles = notificationChannels.map((channel) => channel.title);
     const uniqueTitles = new Set(titles);
     expect(uniqueTitles.size).toBe(titles.length);
   });
 
-  it('should have unique subtitles for each channel', () => {
+  it('each channel must have unique subtitles ', () => {
     const subtitles = notificationChannels.map((channel) => channel.subtitle);
     const uniqueSubtitles = new Set(subtitles);
     expect(uniqueSubtitles.size).toBe(subtitles.length);
