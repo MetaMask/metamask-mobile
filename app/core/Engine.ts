@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import Crypto from 'react-native-quick-crypto';
+import { scrypt } from 'react-native-fast-crypto';
 import {
   AccountTrackerController,
   AccountTrackerState,
@@ -138,6 +139,7 @@ import {
   LoggingController,
   LoggingControllerState,
   LoggingControllerActions,
+  LoggingControllerEvents,
 } from '@metamask/logging-controller';
 import {
   LedgerKeyring,
@@ -324,6 +326,7 @@ type GlobalEvents =
   | SnapsGlobalEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
+  | LoggingControllerEvents
   | KeyringControllerEvents
   | PPOMControllerEvents
   | AccountsControllerEvents
@@ -630,7 +633,6 @@ class Engine {
     );
 
     const loggingController = new LoggingController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted<
         'LoggingController',
         never,
@@ -1230,7 +1232,6 @@ class Engine {
 
     const authenticationController = new AuthenticationController.Controller({
       state: initialState.AuthenticationController,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'AuthenticationController',
         allowedActions: [
@@ -1275,7 +1276,6 @@ class Engine {
         },
       },
       state: initialState.UserStorageController,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'UserStorageController',
         allowedActions: [
@@ -1292,22 +1292,18 @@ class Engine {
           'AccountsController:listAccounts',
           'AccountsController:updateAccountMetadata',
         ],
-<<<<<<< HEAD
         allowedEvents: [
           'KeyringController:unlock',
           'KeyringController:lock',
           'AccountsController:accountAdded',
           'AccountsController:accountRenamed',
         ],
-=======
-        allowedEvents: ['KeyringController:unlock', 'KeyringController:lock'],
->>>>>>> main
       }),
+      nativeScryptCrypto: scrypt,
     });
 
     const notificationServicesController =
       new NotificationServicesController.Controller({
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'NotificationServicesController',
           allowedActions: [
@@ -1629,7 +1625,6 @@ class Engine {
       permissionController,
       selectedNetworkController,
       new SignatureController({
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'SignatureController',
           allowedActions: [
@@ -1831,7 +1826,6 @@ class Engine {
     const {
       AccountTrackerController,
       AssetsContractController,
-      TokenDetectionController,
       NetworkController,
       SwapsController,
     } = this.context;
@@ -1853,7 +1847,6 @@ class Engine {
       ).configuration.chainId,
       pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
     });
-    TokenDetectionController.detectTokens();
     AccountTrackerController.refresh();
   }
 
