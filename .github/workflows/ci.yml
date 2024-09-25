@@ -290,7 +290,6 @@ jobs:
         scripts,
         unit-tests,
         check-workflows,
-        sonar-cloud,
         js-bundle-size-check,
         sonar-cloud-quality-gate-status,
       ]
