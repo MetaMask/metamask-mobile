@@ -930,7 +930,7 @@ const Settings: React.FC = () => {
 
           if (!Object.keys(myNetworks).includes(chainId)) return null;
 
-          const rpcUrl = rpcEndpoints[defaultRpcEndpointIndex].url;
+          const rpcUrl = rpcEndpoints?.[defaultRpcEndpointIndex]?.url;
           const { name } = { name: nickname || rpcUrl };
           //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
           const image = getNetworkImageSource({ chainId: chainId?.toString() });

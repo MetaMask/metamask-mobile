@@ -1,3 +1,4 @@
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import Send from '.';
 import { RootState } from '../../../../reducers';
 import { MOCK_KEYRING_CONTROLLER } from '../../../../selectors/keyringController/testUtils';
@@ -10,15 +11,12 @@ import {
   DeepPartial,
   renderScreen,
 } from '../../../../util/test/renderWithProvider';
-import { RpcEndpointType } from '@metamask/network-controller';
-import { store } from '../../../../store';
 
 const mockedNetworkControllerState = mockNetworkState({
-  chainId: '0x1',
+  chainId: CHAIN_IDS.MAINNET,
   id: 'mainnet',
-  nickname: 'Ethereum Main Network',
+  nickname: 'Ethereum Mainnet',
   ticker: 'ETH',
-  type: RpcEndpointType.Infura,
 });
 
 const initialState: DeepPartial<RootState> = {
@@ -189,21 +187,6 @@ jest.mock('../../../../core/Engine', () => ({
 
 describe('Accounts', () => {
   it('should render correctly', () => {
-    (store.getState as jest.Mock).mockReturnValue({
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            ...mockNetworkState({
-              chainId: '0xaa36a7',
-              id: '1',
-              nickname: 'Sepolia',
-              ticker: 'ETH',
-              type: RpcEndpointType.Infura,
-            }),
-          },
-        },
-      },
-    });
     const { toJSON } = renderScreen(
       Send,
       { name: 'Send' },

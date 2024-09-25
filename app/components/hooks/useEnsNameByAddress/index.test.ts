@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import useEnsNameByAddress from '.';
-import { mainnetNetworkState } from '../../../util/networks/constants';
+import { mockNetworkState } from '../../../util/test/network';
 
 const MOCK_CHAIN_ID = '0x1';
 
@@ -12,7 +12,13 @@ const MOCK_STORE_STATE = {
   engine: {
     backgroundState: {
       NetworkController: {
-        ...mainnetNetworkState,
+        ...mockNetworkState({
+          chainId: '0x1',
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+          blockExplorerUrl: 'https://goerli.lineascan.build',
+        }),
       },
     },
   },

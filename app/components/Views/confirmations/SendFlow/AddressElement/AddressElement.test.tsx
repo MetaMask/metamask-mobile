@@ -4,11 +4,17 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import AddressElement from '.';
 import { renderShortAddress } from '../../../../../util/address';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { mainnetNetworkState } from '../../../../../util/networks/constants';
+import { mockNetworkState } from '../../../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.unmock('react-redux');
 
-const mockedNetworkControllerState = mainnetNetworkState;
+const mockedNetworkControllerState = mockNetworkState({
+  chainId: CHAIN_IDS.MAINNET,
+  id: 'mainnet',
+  nickname: 'Ethereum Mainnet',
+  ticker: 'ETH',
+});
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {

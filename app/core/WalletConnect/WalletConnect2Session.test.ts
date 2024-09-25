@@ -1,4 +1,3 @@
-import { RpcEndpointType } from '@metamask/network-controller';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import WalletConnect2Session from './WalletConnect2Session';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -8,7 +7,6 @@ import { NavigationContainerRef } from '@react-navigation/native';
 import { SessionTypes } from '@walletconnect/types';
 import { store } from '../../store';
 import Engine from '../Engine';
-import { mockNetworkState } from '../../util/test/network';
 
 jest.mock('../AppConstants', () => ({
   WALLET_CONNECT: {
@@ -152,19 +150,6 @@ describe('WalletConnect2Session', () => {
     (store.getState as jest.Mock).mockReturnValue({
       inpageProvider: {
         networkId: '1',
-      },
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            ...mockNetworkState({
-              chainId: '0xaa36a7',
-              id: '1',
-              nickname: 'Sepolia',
-              ticker: 'ETH',
-              type: RpcEndpointType.Infura,
-            }),
-          },
-        },
       },
     });
 

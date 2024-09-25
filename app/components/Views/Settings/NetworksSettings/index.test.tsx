@@ -1,25 +1,13 @@
 import { renderScreen } from '../../../../util/test/renderWithProvider';
 import NetworksSettings from './';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import { mainnetNetworkState } from '../../../../util/networks/constants';
 
 const mockInitialState = {
   settings: {},
   engine: {
-    backgroundState: {
-      ...backgroundState,
-      NetworkController: {
-        ...mainnetNetworkState,
-      },
-    },
+    backgroundState,
   },
 };
-
-jest.mock('../../../../store', () => ({
-  store: {
-    getState: () => mockInitialState,
-  },
-}));
 
 describe('NetworksSettings', () => {
   it('should render correctly', () => {

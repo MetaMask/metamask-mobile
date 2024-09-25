@@ -69,7 +69,6 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
   } = NetworkController.getNetworkClientById(
     NetworkController.state?.selectedNetworkClientId,
   );
-
   const isConfirmationMethod = CONFIRMATION_METHODS.includes(req.method);
   const isSupportedChain = await isChainSupported(chainId);
   const isBlockaidFeatEnabled = await isBlockaidFeatureEnabled();

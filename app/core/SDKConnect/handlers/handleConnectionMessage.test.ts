@@ -20,7 +20,7 @@ import { createMockInternalAccount } from '../../../util/test/accountsController
 import { AccountsController } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { NETWORKS_CHAIN_ID } from '../../../../app/constants/network';
-import { mainnetNetworkState } from '../../../util/networks/constants';
+import { mockNetworkState } from '../../../util/test/network';
 
 jest.mock('../../Engine');
 jest.mock('@metamask/keyring-controller');
@@ -108,7 +108,13 @@ describe('handleConnectionMessage', () => {
           },
         }),
         state: {
-          ...mainnetNetworkState,
+          ...mockNetworkState({
+            chainId: '0x1',
+            id: 'mainnet',
+            nickname: 'Ethereum Mainnet',
+            ticker: 'ETH',
+            blockExplorerUrl: 'https://goerli.lineascan.build',
+          }),
         },
       } as unknown as NetworkController,
       AccountsController: {

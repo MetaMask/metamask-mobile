@@ -1,6 +1,5 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import { RpcEndpointType } from '@metamask/network-controller';
 import TypedSign from '.';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
@@ -16,7 +15,6 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import { MetaMetrics } from '../../../../../core/Analytics';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals/SigningModal.selectors';
-import { mockNetworkState } from '../../../../../util/test/network';
 
 jest.mock('../../../../../core/Analytics/MetaMetrics');
 
@@ -75,15 +73,6 @@ const initialState = {
     backgroundState: {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-      NetworkController: {
-        ...mockNetworkState({
-          chainId: '0x1',
-          id: 'mainnet',
-          nickname: 'Ethereum Mainnet',
-          ticker: 'ETH',
-          type: RpcEndpointType.Infura,
-        }),
-      },
     },
   },
   signatureRequest: {
@@ -98,25 +87,6 @@ const initialState = {
 };
 
 const store = mockStore(initialState);
-
-jest.mock('../../../../../store', () => ({
-  store: {
-    getState: () => ({
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            ...mockNetworkState({
-              chainId: '0x1',
-              id: 'Mainnet',
-              nickname: 'Mainnet',
-              ticker: 'ETH',
-            }),
-          },
-        },
-      },
-    }),
-  },
-}));
 
 function createWrapper({
   origin = messageParamsMock.origin,

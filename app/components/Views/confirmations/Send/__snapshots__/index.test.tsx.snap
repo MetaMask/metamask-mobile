@@ -196,7 +196,7 @@ exports[`Accounts should render correctly 1`] = `
                           "width": 5,
                         },
                         {
-                          "backgroundColor": "#3cc29e",
+                          "backgroundColor": "#f2f3f4",
                         },
                       ]
                     }
@@ -215,7 +215,7 @@ exports[`Accounts should render correctly 1`] = `
                       }
                     }
                   >
-                    Ethereum Main Network
+                    Ethereum Mainnet
                   </Text>
                 </View>
               </TouchableOpacity>

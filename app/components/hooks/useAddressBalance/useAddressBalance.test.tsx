@@ -9,7 +9,6 @@ import useAddressBalance from './useAddressBalance';
 import backgroundState from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 import { BN } from 'ethereumjs-util';
-import { mainnetNetworkState } from '../../../util/networks/constants';
 
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
@@ -34,9 +33,6 @@ const mockInitialState = {
             balance: '0x5',
           },
         },
-      },
-      NetworkController: {
-        ...mainnetNetworkState,
       },
       TokenBalancesController: {
         contractBalances: {

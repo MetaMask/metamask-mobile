@@ -13,8 +13,6 @@ import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../../components/BlockaidBan
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../../../reducers';
 import { RpcEndpointType } from '@metamask/network-controller';
-import { mockNetworkState } from '../../../../../util/test/network';
-import { store } from '../../../../../store';
 
 const MOCK_ADDRESS = '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58';
 
@@ -180,27 +178,6 @@ function render(Component: React.ComponentType | ConnectedComponent<any, any>) {
 }
 
 describe('Confirm', () => {
-  beforeEach(() => {
-    (store.getState as jest.Mock).mockReturnValue({
-      inpageProvider: {
-        networkId: '1',
-      },
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            ...mockNetworkState({
-              chainId: '0x1',
-              id: '1',
-              nickname: 'Ethereum Main Network',
-              ticker: 'ETH',
-              type: RpcEndpointType.Infura,
-            }),
-          },
-        },
-      },
-    });
-  });
-
   it('should render correctly', async () => {
     const wrapper = render(Confirm);
     await waitFor(() => {

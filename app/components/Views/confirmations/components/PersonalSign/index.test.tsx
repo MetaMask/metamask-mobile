@@ -54,15 +54,7 @@ const mockStore = configureMockStore();
 
 const initialState = {
   engine: {
-    backgroundState: {
-      ...backgroundState,
-      ...mockNetworkState({
-        chainId: '0x1',
-        id: 'Mainnet',
-        nickname: 'Mainnet',
-        ticker: 'ETH',
-      }),
-    },
+    backgroundState,
   },
 };
 
@@ -118,25 +110,6 @@ function createWrapper({
     </Provider>,
   ).find(PersonalSign);
 }
-
-jest.mock('../../../../../store', () => ({
-  store: {
-    getState: () => ({
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            ...mockNetworkState({
-              chainId: '0x1',
-              id: 'Mainnet',
-              nickname: 'Mainnet',
-              ticker: 'ETH',
-            }),
-          },
-        },
-      },
-    }),
-  },
-}));
 
 describe('PersonalSign', () => {
   it('should render correctly', () => {
