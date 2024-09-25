@@ -2284,4 +2284,9 @@ export default {
     assertEngineExists(instance);
     return instance.getGlobalEthQuery();
   },
+
+  getSnapKeyring: () => {
+    assertEngineExists(instance);
+    return instance.getSnapKeyring();
+  },
 };
