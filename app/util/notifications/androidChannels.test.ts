@@ -6,7 +6,7 @@ import {
 } from './androidChannels';
 
 describe('notificationChannels', () => {
-  it('notificationChannels should contain two channels', () => {
+  it('contains two channels', () => {
     expect(notificationChannels).toHaveLength(2);
   });
 
