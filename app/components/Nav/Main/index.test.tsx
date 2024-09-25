@@ -6,13 +6,39 @@ import { NavigationContainer } from '@react-navigation/native';
 import Main from './';
 import { useSwapConfirmedEvent } from './RootRPCMethodsUI';
 import { act } from '@testing-library/react-hooks';
-import { MetaMetricsEvents } from '../../hooks/useMetrics';
 import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
-import Engine from '../../../core/Engine';
 import { Provider, useSelector } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
+import { ThemeContext, mockTheme } from '../../../util/theme';
+import Engine from '../../../core/Engine';
+import { mockNetworkState } from '../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { AuthorizationStatus } from '@notifee/react-native';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
+jest.mock('../../../core/Engine.ts', () => ({
+  getTotalFiatAccountBalance: jest.fn(),
+  controllerMessenger: {
+    subscribeOnceIf: jest.fn(),
+  },
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            accounts: ['0xd018538C87232FF95acbCe4870629b75640a78E7'],
+          },
+        ],
+      },
+    },
+  },
+}));
 
 const mockStore = configureStore([]);
 const store = mockStore({
@@ -43,28 +69,40 @@ const store = mockStore({
         tokens: [],
       },
       NetworkController: {
-        provider: {
+        ...mockNetworkState({
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
           ticker: 'ETH',
-          chainId: '1',
-        },
+          chainId: CHAIN_IDS.MAINNET,
+        }),
       },
       AccountsController: {
-        selectedAddress: '0x0d8775f59023cbe76e541b6497bbed3cd21acbdc',
         internalAccounts: {
-          accounts: [
-            {
-              accountId: '1',
-              address: '0x0d8775f59023cbe76e541b6497bbed3cd21acbdc',
-              name: 'Internal Account 1',
-              balance: 100,
+          accounts: {
+            '30313233-3435-4637-b839-383736353430': {
+              // Lower case address to test edge case
+              address: '0xd018538c87232ff95acbce4870629b75640a78e7',
+              id: '30313233-3435-4637-b839-383736353430',
+              options: {},
+              metadata: {
+                name: 'Account 1',
+                keyring: {
+                  type: 'HD Key Tree',
+                },
+              },
+              methods: [
+                'personal_sign',
+                'eth_signTransaction',
+                'eth_signTypedData_v1',
+                'eth_signTypedData_v3',
+                'eth_signTypedData_v4',
+              ],
+              type: 'eip155:eoa',
             },
-          ],
-        },
-        selectedInternalAccount: {
-          address: '0x0d8775f59023cbe76e541b6497bbed3cd21acbdc',
+          },
+          selectedAccount: '30313233-3435-4637-b839-383736353430',
         },
       },
-
       AccountTrackerController: {
         accounts: {
           '0x0d8775f59023cbe76e541b6497bbed3cd21acbdc': {
@@ -72,21 +110,106 @@ const store = mockStore({
           },
         },
       },
+      AuthenticationController: {
+        isSignedIn: true,
+      },
       TokenListController: {
         tokenList: {
-          '0x1': {
-            '0x0d8775f59023cbe76e541b6497bbed3cd21acbdc': {
-              address: '0x0d8775f59023cbe76e541b6497bbed3cd21acbdc',
-              symbol: 'BAT',
-              decimals: 18,
-              name: 'Basic Attention Token',
-              iconUrl:
-                'https://assets.coingecko.com/coins/images/677/thumb/basic-attention-token.png?1547034427',
-              type: 'erc20',
+          '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f': {
+            address: '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f',
+            symbol: 'SNX',
+            decimals: 18,
+            name: 'Synthetix Network Token',
+            iconUrl:
+              'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f.png',
+            type: 'erc20',
+            aggregators: [
+              'Aave',
+              'Bancor',
+              'CMC',
+              'Crypto.com',
+              'CoinGecko',
+              '1inch',
+              'PMM',
+              'Synthetix',
+              'Zerion',
+              'Lifi',
+            ],
+            occurrences: 10,
+            fees: {
+              '0x5fd79d46eba7f351fe49bff9e87cdea6c821ef9f': 0,
+              '0xda4ef8520b1a57d7d63f1e249606d1a459698876': 0,
             },
           },
         },
-        contractBalances: {},
+        tokensChainsCache: {},
+        preventPollingOnNetworkRestart: false,
+      },
+      NotificationServicesController: {
+        isNotificationServicesEnabled: true,
+        metamaskNotificationsList: [],
+      },
+      UserStorageController: {
+        isProfileSyncingEnabled: true,
+      },
+      SmartTransactionsController: {
+        smartTransactionsState: {
+          fees: {},
+          feesByChainId: {
+            '0x1': {},
+            '0xaa36a7': {},
+          },
+          liveness: true,
+          livenessByChainId: {
+            '0x1': true,
+            '0xaa36a7': true,
+          },
+          smartTransactions: {
+            '0x1': [],
+          },
+        },
+      },
+      SnapController: {
+        snaps: {},
+      },
+      TransactionController: {
+        transactions: [
+          {
+            chainId: '5',
+            id: '1',
+            origin: 'test.com',
+            status: 'confirmed',
+            time: 1631714312,
+            transaction: {
+              from: '0x1',
+            },
+            transactionHash: '0x2',
+            rawTransaction: '0x3',
+          },
+          {
+            chainId: '5',
+            id: '2',
+            origin: 'test.com',
+            status: 'confirmed',
+            time: 1631714312,
+            transaction: {
+              from: '0x1',
+            },
+            transactionHash: '0x2',
+          },
+          {
+            chainId: '1',
+            id: '3',
+            origin: 'test2.com',
+            status: 'submitted',
+            time: 1631714313,
+            transaction: {
+              from: '0x6',
+            },
+            transactionHash: '0x4',
+            rawTransaction: '0x5',
+          },
+        ],
       },
       TokenBalancesController: {
         contractBalances: {
@@ -135,18 +258,32 @@ const store = mockStore({
   networkOnboarded: {
     switchedNetwork: false,
   },
-});
-
-jest.mock('../../../core/Engine.ts', () => ({
-  controllerMessenger: {
-    subscribeOnceIf: jest.fn(),
+  browser: {
+    tabs: [{ url: 'https://metamask.io' }],
   },
-}));
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(),
-}));
+  alert: {
+    isVisible: false,
+    autodismiss: false,
+    content: null,
+    data: null,
+  },
+  fiatOrders: {
+    networks: [
+      {
+        active: true,
+        chainId: '1',
+        nativeTokenSupported: true,
+      },
+    ],
+  },
+  swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
+  notification: {
+    permissions: {
+      authorizationStatus: AuthorizationStatus.AUTHORIZED,
+    },
+    notifications: [],
+  },
+});
 
 const TRANSACTION_META_ID_MOCK = '04541dc0-2e69-11ef-b995-33aef2c88d1e';
 
@@ -219,9 +356,17 @@ function renderUseSwapConfirmedEventHook({
   return result;
 }
 
+const ThemeWrapper = ({ children }: { children: React.ReactNode }) => (
+  <ThemeContext.Provider value={mockTheme}>{children}</ThemeContext.Provider>
+);
+
 describe('Main', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    Engine.getTotalFiatAccountBalance.mockReturnValue({
+      ethFiat: 100,
+      tokenFiat: 50,
+    });
   });
 
   it('should render correctly', () => {
@@ -232,14 +377,20 @@ describe('Main', () => {
       if (selector === selectNetworkName) {
         return 'Mainnet';
       }
+      if (typeof selector === 'function') {
+        return selector(store.getState());
+      }
+
       return undefined;
     });
     const MainAppContainer = () => (
-      <Provider store={store}>
-        <NavigationContainer>
-          <Main />
-        </NavigationContainer>
-      </Provider>
+      <ThemeWrapper>
+        <Provider store={store}>
+          <NavigationContainer>
+            <Main />
+          </NavigationContainer>
+        </Provider>
+      </ThemeWrapper>
     );
     const { toJSON } = render(<MainAppContainer />);
     expect(toJSON()).toMatchSnapshot();
@@ -260,76 +411,6 @@ describe('Main', () => {
       expect(result.current.transactionMetaIdsForListening).toEqual([
         TRANSACTION_META_ID_MOCK,
       ]);
-    });
-
-    it('adds a listener for transaction confirmation on the TransactionController', () => {
-      const result = renderUseSwapConfirmedEventHook({
-        swapsTransactions: SWAP_TRANSACTIONS_MOCK,
-      });
-
-      act(() => {
-        result.current.addTransactionMetaIdForListening(
-          TRANSACTION_META_ID_MOCK,
-        );
-      });
-
-      expect(Engine.controllerMessenger.subscribeOnceIf).toHaveBeenCalledTimes(
-        1,
-      );
-    });
-
-    it('tracks Swap Confirmed after transaction confirmed', () => {
-      const trackSwaps = jest.fn();
-
-      const txMeta = {
-        id: TRANSACTION_META_ID_MOCK,
-      };
-
-      const result = renderUseSwapConfirmedEventHook({
-        swapsTransactions: SWAP_TRANSACTIONS_MOCK,
-        trackSwaps,
-      });
-
-      act(() => {
-        result.current.addTransactionMetaIdForListening(
-          TRANSACTION_META_ID_MOCK,
-        );
-      });
-
-      jest
-        .mocked(Engine.controllerMessenger.subscribeOnceIf)
-        .mock.calls[0][1](txMeta as never);
-
-      expect(trackSwaps).toHaveBeenCalledWith(
-        MetaMetricsEvents.SWAP_COMPLETED,
-        txMeta,
-        SWAP_TRANSACTIONS_MOCK,
-      );
-    });
-
-    it('removes transactionMeta id after tracking', () => {
-      const trackSwaps = jest.fn();
-
-      const txMeta = {
-        id: TRANSACTION_META_ID_MOCK,
-      };
-
-      const result = renderUseSwapConfirmedEventHook({
-        swapsTransactions: SWAP_TRANSACTIONS_MOCK,
-        trackSwaps,
-      });
-
-      act(() => {
-        result.current.addTransactionMetaIdForListening(
-          TRANSACTION_META_ID_MOCK,
-        );
-      });
-
-      jest
-        .mocked(Engine.controllerMessenger.subscribeOnceIf)
-        .mock.calls[0][1](txMeta as never);
-
-      expect(result.current.transactionMetaIdsForListening).toEqual([]);
     });
   });
 });

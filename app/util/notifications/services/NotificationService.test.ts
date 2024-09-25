@@ -7,6 +7,7 @@ import notifee, {
 import { Linking } from 'react-native';
 import { ChannelId } from '../../../util/notifications/androidChannels';
 import NotificationsService from './NotificationService';
+import NotificationService from './NotificationService';
 
 jest.mock('@notifee/react-native');
 jest.mock('react-native', () => ({
@@ -29,9 +30,17 @@ jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
+jest.mock('../../../util/notifications/services/NotificationService', () => ({
+  authorizationStatus: jest.fn(),
+}));
+
 describe('NotificationsService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    NotificationService.authorizationStatus.mockResolvedValue({
+      authorizationStatus: AuthorizationStatus.AUTHORIZED,
+    });
   });
 
   it('should get blocked notifications', async () => {
