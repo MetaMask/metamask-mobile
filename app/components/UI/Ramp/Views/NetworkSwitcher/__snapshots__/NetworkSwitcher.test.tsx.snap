@@ -8253,53 +8253,28 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
-                                    [
-                                      {
+                                    {
+                                      "0": {
                                         "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 30,
-                                        "fontWeight": "400",
-                                        "marginVertical": 2,
+                                        "fontFamily": "EuclidCircularB-Bold",
+                                        "fontSize": 18,
+                                        "fontWeight": "600",
+                                        "marginVertical": 3,
                                       },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      [
-                                        {
-                                          "color": "#141618",
-                                          "fontFamily": "EuclidCircularB-Bold",
-                                          "fontSize": 18,
-                                          "fontWeight": "600",
-                                          "marginVertical": 3,
-                                        },
-                                        {
-                                          "textAlign": "center",
-                                        },
-                                        undefined,
-                                        undefined,
-                                      ],
-                                    ]
+                                      "1": {
+                                        "textAlign": "center",
+                                      },
+                                      "2": undefined,
+                                      "3": undefined,
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
                                   }
                                 >
                                   Error
@@ -8937,53 +8912,28 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
-                                    [
-                                      {
+                                    {
+                                      "0": {
                                         "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 30,
-                                        "fontWeight": "400",
-                                        "marginVertical": 2,
+                                        "fontFamily": "EuclidCircularB-Bold",
+                                        "fontSize": 18,
+                                        "fontWeight": "600",
+                                        "marginVertical": 3,
                                       },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      [
-                                        {
-                                          "color": "#141618",
-                                          "fontFamily": "EuclidCircularB-Bold",
-                                          "fontSize": 18,
-                                          "fontWeight": "600",
-                                          "marginVertical": 3,
-                                        },
-                                        {
-                                          "textAlign": "center",
-                                        },
-                                        undefined,
-                                        undefined,
-                                      ],
-                                    ]
+                                      "1": {
+                                        "textAlign": "center",
+                                      },
+                                      "2": undefined,
+                                      "3": undefined,
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
                                   }
                                 >
                                   Error
@@ -9621,53 +9571,28 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
-                                    [
-                                      {
+                                    {
+                                      "0": {
                                         "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 30,
-                                        "fontWeight": "400",
-                                        "marginVertical": 2,
+                                        "fontFamily": "EuclidCircularB-Bold",
+                                        "fontSize": 18,
+                                        "fontWeight": "600",
+                                        "marginVertical": 3,
                                       },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      [
-                                        {
-                                          "color": "#141618",
-                                          "fontFamily": "EuclidCircularB-Bold",
-                                          "fontSize": 18,
-                                          "fontWeight": "600",
-                                          "marginVertical": 3,
-                                        },
-                                        {
-                                          "textAlign": "center",
-                                        },
-                                        undefined,
-                                        undefined,
-                                      ],
-                                    ]
+                                      "1": {
+                                        "textAlign": "center",
+                                      },
+                                      "2": undefined,
+                                      "3": undefined,
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
                                   }
                                 >
                                   Error

@@ -17,9 +17,7 @@ import Animated, {
 import { QuoteResponse, SellQuoteResponse } from '@consensys/on-ramp-sdk';
 import { ProviderEnvironmentTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import Box from '../Box';
-import Text from '../../../../Base/Text';
 import Title from '../../../../Base/Title';
-import BaseListItem from '../../../../Base/ListItem';
 import StyledButton from '../../../StyledButton';
 import {
   renderFiat,
@@ -29,17 +27,19 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import ApplePayButton from '../../containers/ApplePayButton';
 import RemoteImage from '../../../../Base/RemoteImage';
-
 import TagColored from '../../../../../component-library/components-temp/TagColored';
 import Row from '../Row';
 import styleSheet from './Quote.styles';
 import { useStyles } from '../../../../../component-library/hooks';
 import { isBuyQuote } from '../../utils';
 import { RampType } from '../../types';
-// TODO: Convert into typescript and correctly type optionals
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ListItem = BaseListItem as any;
+import ListItem from '../../../../../component-library/components/List/ListItem';
+import ListItemColumn, {
+  WidthType,
+} from '../../../../../component-library/components/List/ListItemColumn';
+import Text, {
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 
 interface Props {
   quote: QuoteResponse | SellQuoteResponse;
@@ -122,15 +122,17 @@ const Quote: React.FC<Props> = ({
         accessible={!highlighted}
         accessibilityLabel={quote.provider?.name}
       >
+        {/* TODO: Modify this with new listItem */}
         {previouslyUsedProvider ? (
-          <ListItem.Date>
+          <ListItem style={{ padding: 0 }}>
             <TagColored>
               {strings('fiat_on_ramp_aggregator.previously_used')}
             </TagColored>
-          </ListItem.Date>
+          </ListItem>
         ) : null}
-        <ListItem.Content>
-          <ListItem.Body>
+
+        <ListItem style={{ padding: 0 }}>
+          <ListItemColumn widthType={WidthType.Fill}>
             <TouchableOpacity
               onPress={highlighted ? showInfo : undefined}
               disabled={!highlighted}
@@ -155,13 +157,13 @@ const Quote: React.FC<Props> = ({
                 )}
               </View>
             </TouchableOpacity>
-          </ListItem.Body>
-        </ListItem.Content>
+          </ListItemColumn>
+        </ListItem>
 
         <Row last>
-          <ListItem.Content>
-            <ListItem.Body>
-              <Text big primary bold>
+          <ListItem style={{ padding: 0 }}>
+            <ListItemColumn widthType={WidthType.Fill}>
+              <Text variant={TextVariant.BodyLGMedium}>
                 {isBuyQuote(quote, rampType) ? (
                   <>
                     {renderFromTokenMinimalUnit(
@@ -177,9 +179,10 @@ const Quote: React.FC<Props> = ({
                   `≈ ${renderFiat(amountOut, fiatCode, fiat?.decimals)}`
                 )}
               </Text>
-            </ListItem.Body>
-            <ListItem.Amounts>
-              <Text big primary right>
+            </ListItemColumn>
+
+            <ListItemColumn>
+              <Text variant={TextVariant.BodyLGMedium}>
                 {isBuyQuote(quote, rampType) ? (
                   <>
                     ≈ {fiatSymbol}{' '}
@@ -202,8 +205,8 @@ const Quote: React.FC<Props> = ({
                   </>
                 )}
               </Text>
-            </ListItem.Amounts>
-          </ListItem.Content>
+            </ListItemColumn>
+          </ListItem>
         </Row>
 
         <Animated.View

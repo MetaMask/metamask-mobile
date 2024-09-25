@@ -1,8 +1,7 @@
 import React from 'react';
-import Text from '../Text/Text';
 import { useTheme } from '../../../util/theme';
 import styles from './Title.styles';
-
+import Text from '../../../component-library/components/Texts/Text';
 interface TitleProps extends React.ComponentPropsWithoutRef<typeof Text> {
   centered?: boolean;
   hero?: boolean;

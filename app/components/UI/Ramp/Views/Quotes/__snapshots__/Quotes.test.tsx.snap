@@ -1169,53 +1169,28 @@ exports[`Quotes renders animation on first fetching 1`] = `
                               }
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
+                                  {
+                                    "0": {
                                       "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 30,
-                                      "fontWeight": "400",
-                                      "marginVertical": 2,
+                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontSize": 18,
+                                      "fontWeight": "600",
+                                      "marginVertical": 3,
                                     },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    [
-                                      {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Bold",
-                                        "fontSize": 18,
-                                        "fontWeight": "600",
-                                        "marginVertical": 3,
-                                      },
-                                      {
-                                        "textAlign": "center",
-                                      },
-                                      undefined,
-                                      undefined,
-                                    ],
-                                  ]
+                                    "1": {
+                                      "textAlign": "center",
+                                    },
+                                    "2": undefined,
+                                    "3": undefined,
+                                    "color": "#141618",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                  }
                                 }
                               >
                                 Fetching quotes
@@ -3689,25 +3664,23 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                         }
                                       >
                                         <View
+                                          accessibilityRole="none"
+                                          accessible={true}
                                           style={
-                                            [
-                                              {
-                                                "alignItems": "center",
-                                                "flexDirection": "row",
-                                              },
-                                              undefined,
-                                            ]
+                                            {
+                                              "alignItems": "center",
+                                              "flexDirection": "row",
+                                              "padding": 0,
+                                            }
                                           }
                                         >
                                           <View
                                             style={
-                                              [
-                                                {
-                                                  "flex": 1,
-                                                },
-                                                undefined,
-                                              ]
+                                              {
+                                                "flex": 1,
+                                              }
                                             }
+                                            testID="listitemcolumn"
                                           >
                                             <TouchableOpacity
                                               accessibilityHint="Shows provider details"
@@ -3779,68 +3752,35 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                           }
                                         >
                                           <View
+                                            accessibilityRole="none"
+                                            accessible={true}
                                             style={
-                                              [
-                                                {
-                                                  "alignItems": "center",
-                                                  "flexDirection": "row",
-                                                },
-                                                undefined,
-                                              ]
+                                              {
+                                                "alignItems": "center",
+                                                "flexDirection": "row",
+                                                "padding": 0,
+                                              }
                                             }
                                           >
                                             <View
                                               style={
-                                                [
-                                                  {
-                                                    "flex": 1,
-                                                  },
-                                                  undefined,
-                                                ]
+                                                {
+                                                  "flex": 1,
+                                                }
                                               }
+                                              testID="listitemcolumn"
                                             >
                                               <Text
+                                                accessibilityRole="text"
                                                 style={
-                                                  [
-                                                    {
-                                                      "color": "#141618",
-                                                      "fontFamily": "EuclidCircularB-Regular",
-                                                      "fontSize": 30,
-                                                      "fontWeight": "400",
-                                                      "marginVertical": 2,
-                                                    },
-                                                    undefined,
-                                                    undefined,
-                                                    {
-                                                      "fontFamily": "EuclidCircularB-Bold",
-                                                      "fontWeight": "600",
-                                                    },
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    {
-                                                      "color": "#141618",
-                                                    },
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    {
-                                                      "fontSize": 16,
-                                                    },
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                  ]
+                                                  {
+                                                    "color": "#141618",
+                                                    "fontFamily": "EuclidCircularB-Medium",
+                                                    "fontSize": 16,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                  }
                                                 }
                                               >
                                                 0.01714
@@ -3849,57 +3789,33 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                               </Text>
                                             </View>
                                             <View
+                                              accessible={false}
                                               style={
-                                                [
-                                                  {
-                                                    "alignItems": "flex-end",
-                                                    "flex": 0.6,
-                                                  },
-                                                  undefined,
-                                                ]
+                                                {
+                                                  "width": 16,
+                                                }
                                               }
+                                              testID="listitem-gap"
+                                            />
+                                            <View
+                                              style={
+                                                {
+                                                  "flex": -1,
+                                                }
+                                              }
+                                              testID="listitemcolumn"
                                             >
                                               <Text
+                                                accessibilityRole="text"
                                                 style={
-                                                  [
-                                                    {
-                                                      "color": "#141618",
-                                                      "fontFamily": "EuclidCircularB-Regular",
-                                                      "fontSize": 30,
-                                                      "fontWeight": "400",
-                                                      "marginVertical": 2,
-                                                    },
-                                                    undefined,
-                                                    {
-                                                      "textAlign": "right",
-                                                    },
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    {
-                                                      "color": "#141618",
-                                                    },
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    {
-                                                      "fontSize": 16,
-                                                    },
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                  ]
+                                                  {
+                                                    "color": "#141618",
+                                                    "fontFamily": "EuclidCircularB-Medium",
+                                                    "fontSize": 16,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                  }
                                                 }
                                               >
                                                 ≈ 
@@ -4030,25 +3946,23 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                         }
                                       >
                                         <View
+                                          accessibilityRole="none"
+                                          accessible={true}
                                           style={
-                                            [
-                                              {
-                                                "alignItems": "center",
-                                                "flexDirection": "row",
-                                              },
-                                              undefined,
-                                            ]
+                                            {
+                                              "alignItems": "center",
+                                              "flexDirection": "row",
+                                              "padding": 0,
+                                            }
                                           }
                                         >
                                           <View
                                             style={
-                                              [
-                                                {
-                                                  "flex": 1,
-                                                },
-                                                undefined,
-                                              ]
+                                              {
+                                                "flex": 1,
+                                              }
                                             }
+                                            testID="listitemcolumn"
                                           >
                                             <TouchableOpacity
                                               accessibilityHint="Shows provider details"
@@ -4119,68 +4033,35 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                           }
                                         >
                                           <View
+                                            accessibilityRole="none"
+                                            accessible={true}
                                             style={
-                                              [
-                                                {
-                                                  "alignItems": "center",
-                                                  "flexDirection": "row",
-                                                },
-                                                undefined,
-                                              ]
+                                              {
+                                                "alignItems": "center",
+                                                "flexDirection": "row",
+                                                "padding": 0,
+                                              }
                                             }
                                           >
                                             <View
                                               style={
-                                                [
-                                                  {
-                                                    "flex": 1,
-                                                  },
-                                                  undefined,
-                                                ]
+                                                {
+                                                  "flex": 1,
+                                                }
                                               }
+                                              testID="listitemcolumn"
                                             >
                                               <Text
+                                                accessibilityRole="text"
                                                 style={
-                                                  [
-                                                    {
-                                                      "color": "#141618",
-                                                      "fontFamily": "EuclidCircularB-Regular",
-                                                      "fontSize": 30,
-                                                      "fontWeight": "400",
-                                                      "marginVertical": 2,
-                                                    },
-                                                    undefined,
-                                                    undefined,
-                                                    {
-                                                      "fontFamily": "EuclidCircularB-Bold",
-                                                      "fontWeight": "600",
-                                                    },
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    {
-                                                      "color": "#141618",
-                                                    },
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    {
-                                                      "fontSize": 16,
-                                                    },
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                  ]
+                                                  {
+                                                    "color": "#141618",
+                                                    "fontFamily": "EuclidCircularB-Medium",
+                                                    "fontSize": 16,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                  }
                                                 }
                                               >
                                                 0.0162
@@ -4189,57 +4070,33 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                               </Text>
                                             </View>
                                             <View
+                                              accessible={false}
                                               style={
-                                                [
-                                                  {
-                                                    "alignItems": "flex-end",
-                                                    "flex": 0.6,
-                                                  },
-                                                  undefined,
-                                                ]
+                                                {
+                                                  "width": 16,
+                                                }
                                               }
+                                              testID="listitem-gap"
+                                            />
+                                            <View
+                                              style={
+                                                {
+                                                  "flex": -1,
+                                                }
+                                              }
+                                              testID="listitemcolumn"
                                             >
                                               <Text
+                                                accessibilityRole="text"
                                                 style={
-                                                  [
-                                                    {
-                                                      "color": "#141618",
-                                                      "fontFamily": "EuclidCircularB-Regular",
-                                                      "fontSize": 30,
-                                                      "fontWeight": "400",
-                                                      "marginVertical": 2,
-                                                    },
-                                                    undefined,
-                                                    {
-                                                      "textAlign": "right",
-                                                    },
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    {
-                                                      "color": "#141618",
-                                                    },
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    {
-                                                      "fontSize": 16,
-                                                    },
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                  ]
+                                                  {
+                                                    "color": "#141618",
+                                                    "fontFamily": "EuclidCircularB-Medium",
+                                                    "fontSize": 16,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                  }
                                                 }
                                               >
                                                 ≈ 
@@ -5319,25 +5176,23 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                               }
                                             >
                                               <View
+                                                accessibilityRole="none"
+                                                accessible={true}
                                                 style={
-                                                  [
-                                                    {
-                                                      "alignItems": "center",
-                                                      "flexDirection": "row",
-                                                    },
-                                                    undefined,
-                                                  ]
+                                                  {
+                                                    "alignItems": "center",
+                                                    "flexDirection": "row",
+                                                    "padding": 0,
+                                                  }
                                                 }
                                               >
                                                 <View
                                                   style={
-                                                    [
-                                                      {
-                                                        "flex": 1,
-                                                      },
-                                                      undefined,
-                                                    ]
+                                                    {
+                                                      "flex": 1,
+                                                    }
                                                   }
+                                                  testID="listitemcolumn"
                                                 >
                                                   <TouchableOpacity
                                                     accessibilityHint="Shows provider details"
@@ -5409,68 +5264,35 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                 }
                                               >
                                                 <View
+                                                  accessibilityRole="none"
+                                                  accessible={true}
                                                   style={
-                                                    [
-                                                      {
-                                                        "alignItems": "center",
-                                                        "flexDirection": "row",
-                                                      },
-                                                      undefined,
-                                                    ]
+                                                    {
+                                                      "alignItems": "center",
+                                                      "flexDirection": "row",
+                                                      "padding": 0,
+                                                    }
                                                   }
                                                 >
                                                   <View
                                                     style={
-                                                      [
-                                                        {
-                                                          "flex": 1,
-                                                        },
-                                                        undefined,
-                                                      ]
+                                                      {
+                                                        "flex": 1,
+                                                      }
                                                     }
+                                                    testID="listitemcolumn"
                                                   >
                                                     <Text
+                                                      accessibilityRole="text"
                                                       style={
-                                                        [
-                                                          {
-                                                            "color": "#141618",
-                                                            "fontFamily": "EuclidCircularB-Regular",
-                                                            "fontSize": 30,
-                                                            "fontWeight": "400",
-                                                            "marginVertical": 2,
-                                                          },
-                                                          undefined,
-                                                          undefined,
-                                                          {
-                                                            "fontFamily": "EuclidCircularB-Bold",
-                                                            "fontWeight": "600",
-                                                          },
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          {
-                                                            "color": "#141618",
-                                                          },
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          {
-                                                            "fontSize": 16,
-                                                          },
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                        ]
+                                                        {
+                                                          "color": "#141618",
+                                                          "fontFamily": "EuclidCircularB-Medium",
+                                                          "fontSize": 16,
+                                                          "fontWeight": "500",
+                                                          "letterSpacing": 0,
+                                                          "lineHeight": 24,
+                                                        }
                                                       }
                                                     >
                                                       0.01714
@@ -5479,57 +5301,33 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                     </Text>
                                                   </View>
                                                   <View
+                                                    accessible={false}
                                                     style={
-                                                      [
-                                                        {
-                                                          "alignItems": "flex-end",
-                                                          "flex": 0.6,
-                                                        },
-                                                        undefined,
-                                                      ]
+                                                      {
+                                                        "width": 16,
+                                                      }
                                                     }
+                                                    testID="listitem-gap"
+                                                  />
+                                                  <View
+                                                    style={
+                                                      {
+                                                        "flex": -1,
+                                                      }
+                                                    }
+                                                    testID="listitemcolumn"
                                                   >
                                                     <Text
+                                                      accessibilityRole="text"
                                                       style={
-                                                        [
-                                                          {
-                                                            "color": "#141618",
-                                                            "fontFamily": "EuclidCircularB-Regular",
-                                                            "fontSize": 30,
-                                                            "fontWeight": "400",
-                                                            "marginVertical": 2,
-                                                          },
-                                                          undefined,
-                                                          {
-                                                            "textAlign": "right",
-                                                          },
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          {
-                                                            "color": "#141618",
-                                                          },
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          {
-                                                            "fontSize": 16,
-                                                          },
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                        ]
+                                                        {
+                                                          "color": "#141618",
+                                                          "fontFamily": "EuclidCircularB-Medium",
+                                                          "fontSize": 16,
+                                                          "fontWeight": "500",
+                                                          "letterSpacing": 0,
+                                                          "lineHeight": 24,
+                                                        }
                                                       }
                                                     >
                                                       ≈ 
@@ -5660,25 +5458,23 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                               }
                                             >
                                               <View
+                                                accessibilityRole="none"
+                                                accessible={true}
                                                 style={
-                                                  [
-                                                    {
-                                                      "alignItems": "center",
-                                                      "flexDirection": "row",
-                                                    },
-                                                    undefined,
-                                                  ]
+                                                  {
+                                                    "alignItems": "center",
+                                                    "flexDirection": "row",
+                                                    "padding": 0,
+                                                  }
                                                 }
                                               >
                                                 <View
                                                   style={
-                                                    [
-                                                      {
-                                                        "flex": 1,
-                                                      },
-                                                      undefined,
-                                                    ]
+                                                    {
+                                                      "flex": 1,
+                                                    }
                                                   }
+                                                  testID="listitemcolumn"
                                                 >
                                                   <TouchableOpacity
                                                     accessibilityHint="Shows provider details"
@@ -5749,68 +5545,35 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                 }
                                               >
                                                 <View
+                                                  accessibilityRole="none"
+                                                  accessible={true}
                                                   style={
-                                                    [
-                                                      {
-                                                        "alignItems": "center",
-                                                        "flexDirection": "row",
-                                                      },
-                                                      undefined,
-                                                    ]
+                                                    {
+                                                      "alignItems": "center",
+                                                      "flexDirection": "row",
+                                                      "padding": 0,
+                                                    }
                                                   }
                                                 >
                                                   <View
                                                     style={
-                                                      [
-                                                        {
-                                                          "flex": 1,
-                                                        },
-                                                        undefined,
-                                                      ]
+                                                      {
+                                                        "flex": 1,
+                                                      }
                                                     }
+                                                    testID="listitemcolumn"
                                                   >
                                                     <Text
+                                                      accessibilityRole="text"
                                                       style={
-                                                        [
-                                                          {
-                                                            "color": "#141618",
-                                                            "fontFamily": "EuclidCircularB-Regular",
-                                                            "fontSize": 30,
-                                                            "fontWeight": "400",
-                                                            "marginVertical": 2,
-                                                          },
-                                                          undefined,
-                                                          undefined,
-                                                          {
-                                                            "fontFamily": "EuclidCircularB-Bold",
-                                                            "fontWeight": "600",
-                                                          },
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          {
-                                                            "color": "#141618",
-                                                          },
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          {
-                                                            "fontSize": 16,
-                                                          },
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                        ]
+                                                        {
+                                                          "color": "#141618",
+                                                          "fontFamily": "EuclidCircularB-Medium",
+                                                          "fontSize": 16,
+                                                          "fontWeight": "500",
+                                                          "letterSpacing": 0,
+                                                          "lineHeight": 24,
+                                                        }
                                                       }
                                                     >
                                                       0.0162
@@ -5819,57 +5582,33 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                     </Text>
                                                   </View>
                                                   <View
+                                                    accessible={false}
                                                     style={
-                                                      [
-                                                        {
-                                                          "alignItems": "flex-end",
-                                                          "flex": 0.6,
-                                                        },
-                                                        undefined,
-                                                      ]
+                                                      {
+                                                        "width": 16,
+                                                      }
                                                     }
+                                                    testID="listitem-gap"
+                                                  />
+                                                  <View
+                                                    style={
+                                                      {
+                                                        "flex": -1,
+                                                      }
+                                                    }
+                                                    testID="listitemcolumn"
                                                   >
                                                     <Text
+                                                      accessibilityRole="text"
                                                       style={
-                                                        [
-                                                          {
-                                                            "color": "#141618",
-                                                            "fontFamily": "EuclidCircularB-Regular",
-                                                            "fontSize": 30,
-                                                            "fontWeight": "400",
-                                                            "marginVertical": 2,
-                                                          },
-                                                          undefined,
-                                                          {
-                                                            "textAlign": "right",
-                                                          },
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          {
-                                                            "color": "#141618",
-                                                          },
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          {
-                                                            "fontSize": 16,
-                                                          },
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                        ]
+                                                        {
+                                                          "color": "#141618",
+                                                          "fontFamily": "EuclidCircularB-Medium",
+                                                          "fontSize": 16,
+                                                          "fontWeight": "500",
+                                                          "letterSpacing": 0,
+                                                          "lineHeight": 24,
+                                                        }
                                                       }
                                                     >
                                                       ≈ 
@@ -6028,25 +5767,23 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                               }
                                             >
                                               <View
+                                                accessibilityRole="none"
+                                                accessible={true}
                                                 style={
-                                                  [
-                                                    {
-                                                      "alignItems": "center",
-                                                      "flexDirection": "row",
-                                                    },
-                                                    undefined,
-                                                  ]
+                                                  {
+                                                    "alignItems": "center",
+                                                    "flexDirection": "row",
+                                                    "padding": 0,
+                                                  }
                                                 }
                                               >
                                                 <View
                                                   style={
-                                                    [
-                                                      {
-                                                        "flex": 1,
-                                                      },
-                                                      undefined,
-                                                    ]
+                                                    {
+                                                      "flex": 1,
+                                                    }
                                                   }
+                                                  testID="listitemcolumn"
                                                 >
                                                   <TouchableOpacity
                                                     accessibilityHint="Shows provider details"
@@ -6117,68 +5854,35 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                 }
                                               >
                                                 <View
+                                                  accessibilityRole="none"
+                                                  accessible={true}
                                                   style={
-                                                    [
-                                                      {
-                                                        "alignItems": "center",
-                                                        "flexDirection": "row",
-                                                      },
-                                                      undefined,
-                                                    ]
+                                                    {
+                                                      "alignItems": "center",
+                                                      "flexDirection": "row",
+                                                      "padding": 0,
+                                                    }
                                                   }
                                                 >
                                                   <View
                                                     style={
-                                                      [
-                                                        {
-                                                          "flex": 1,
-                                                        },
-                                                        undefined,
-                                                      ]
+                                                      {
+                                                        "flex": 1,
+                                                      }
                                                     }
+                                                    testID="listitemcolumn"
                                                   >
                                                     <Text
+                                                      accessibilityRole="text"
                                                       style={
-                                                        [
-                                                          {
-                                                            "color": "#141618",
-                                                            "fontFamily": "EuclidCircularB-Regular",
-                                                            "fontSize": 30,
-                                                            "fontWeight": "400",
-                                                            "marginVertical": 2,
-                                                          },
-                                                          undefined,
-                                                          undefined,
-                                                          {
-                                                            "fontFamily": "EuclidCircularB-Bold",
-                                                            "fontWeight": "600",
-                                                          },
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          {
-                                                            "color": "#141618",
-                                                          },
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          {
-                                                            "fontSize": 16,
-                                                          },
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                        ]
+                                                        {
+                                                          "color": "#141618",
+                                                          "fontFamily": "EuclidCircularB-Medium",
+                                                          "fontSize": 16,
+                                                          "fontWeight": "500",
+                                                          "letterSpacing": 0,
+                                                          "lineHeight": 24,
+                                                        }
                                                       }
                                                     >
                                                       0.01591
@@ -6187,57 +5891,33 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                     </Text>
                                                   </View>
                                                   <View
+                                                    accessible={false}
                                                     style={
-                                                      [
-                                                        {
-                                                          "alignItems": "flex-end",
-                                                          "flex": 0.6,
-                                                        },
-                                                        undefined,
-                                                      ]
+                                                      {
+                                                        "width": 16,
+                                                      }
                                                     }
+                                                    testID="listitem-gap"
+                                                  />
+                                                  <View
+                                                    style={
+                                                      {
+                                                        "flex": -1,
+                                                      }
+                                                    }
+                                                    testID="listitemcolumn"
                                                   >
                                                     <Text
+                                                      accessibilityRole="text"
                                                       style={
-                                                        [
-                                                          {
-                                                            "color": "#141618",
-                                                            "fontFamily": "EuclidCircularB-Regular",
-                                                            "fontSize": 30,
-                                                            "fontWeight": "400",
-                                                            "marginVertical": 2,
-                                                          },
-                                                          undefined,
-                                                          {
-                                                            "textAlign": "right",
-                                                          },
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          {
-                                                            "color": "#141618",
-                                                          },
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          {
-                                                            "fontSize": 16,
-                                                          },
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                          undefined,
-                                                        ]
+                                                        {
+                                                          "color": "#141618",
+                                                          "fontFamily": "EuclidCircularB-Medium",
+                                                          "fontSize": 16,
+                                                          "fontWeight": "500",
+                                                          "letterSpacing": 0,
+                                                          "lineHeight": 24,
+                                                        }
                                                       }
                                                     >
                                                       ≈ 
@@ -6959,53 +6639,28 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
-                                    [
-                                      {
+                                    {
+                                      "0": {
                                         "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 30,
-                                        "fontWeight": "400",
-                                        "marginVertical": 2,
+                                        "fontFamily": "EuclidCircularB-Bold",
+                                        "fontSize": 18,
+                                        "fontWeight": "600",
+                                        "marginVertical": 3,
                                       },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      [
-                                        {
-                                          "color": "#141618",
-                                          "fontFamily": "EuclidCircularB-Bold",
-                                          "fontSize": 18,
-                                          "fontWeight": "600",
-                                          "marginVertical": 3,
-                                        },
-                                        {
-                                          "textAlign": "center",
-                                        },
-                                        undefined,
-                                        undefined,
-                                      ],
-                                    ]
+                                      "1": {
+                                        "textAlign": "center",
+                                      },
+                                      "2": undefined,
+                                      "3": undefined,
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
                                   }
                                 >
                                   No providers available
@@ -7752,53 +7407,28 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
-                                    [
-                                      {
+                                    {
+                                      "0": {
                                         "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 30,
-                                        "fontWeight": "400",
-                                        "marginVertical": 2,
+                                        "fontFamily": "EuclidCircularB-Bold",
+                                        "fontSize": 18,
+                                        "fontWeight": "600",
+                                        "marginVertical": 3,
                                       },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      [
-                                        {
-                                          "color": "#141618",
-                                          "fontFamily": "EuclidCircularB-Bold",
-                                          "fontSize": 18,
-                                          "fontWeight": "600",
-                                          "marginVertical": 3,
-                                        },
-                                        {
-                                          "textAlign": "center",
-                                        },
-                                        undefined,
-                                        undefined,
-                                      ],
-                                    ]
+                                      "1": {
+                                        "textAlign": "center",
+                                      },
+                                      "2": undefined,
+                                      "3": undefined,
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
                                   }
                                 >
                                   Error
@@ -8545,53 +8175,28 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
-                                    [
-                                      {
+                                    {
+                                      "0": {
                                         "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 30,
-                                        "fontWeight": "400",
-                                        "marginVertical": 2,
+                                        "fontFamily": "EuclidCircularB-Bold",
+                                        "fontSize": 18,
+                                        "fontWeight": "600",
+                                        "marginVertical": 3,
                                       },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      [
-                                        {
-                                          "color": "#141618",
-                                          "fontFamily": "EuclidCircularB-Bold",
-                                          "fontSize": 18,
-                                          "fontWeight": "600",
-                                          "marginVertical": 3,
-                                        },
-                                        {
-                                          "textAlign": "center",
-                                        },
-                                        undefined,
-                                        undefined,
-                                      ],
-                                    ]
+                                      "1": {
+                                        "textAlign": "center",
+                                      },
+                                      "2": undefined,
+                                      "3": undefined,
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
                                   }
                                 >
                                   Oops, something went wrong
@@ -9338,53 +8943,28 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
-                                    [
-                                      {
+                                    {
+                                      "0": {
                                         "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 30,
-                                        "fontWeight": "400",
-                                        "marginVertical": 2,
+                                        "fontFamily": "EuclidCircularB-Bold",
+                                        "fontSize": 18,
+                                        "fontWeight": "600",
+                                        "marginVertical": 3,
                                       },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      [
-                                        {
-                                          "color": "#141618",
-                                          "fontFamily": "EuclidCircularB-Bold",
-                                          "fontSize": 18,
-                                          "fontWeight": "600",
-                                          "marginVertical": 3,
-                                        },
-                                        {
-                                          "textAlign": "center",
-                                        },
-                                        undefined,
-                                        undefined,
-                                      ],
-                                    ]
+                                      "1": {
+                                        "textAlign": "center",
+                                      },
+                                      "2": undefined,
+                                      "3": undefined,
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
                                   }
                                 >
                                   Quotes timeout
