@@ -12,20 +12,20 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import Fuse from 'fuse.js';
 import { strings } from '../../../../../../locales/i18n';
 import ScreenLayout from '../ScreenLayout';
-
-import Text from '../../../../Base/Text';
-import BaseListItem from '../../../../Base/ListItem';
 import ModalDragger from '../../../../Base/ModalDragger';
 import { useTheme } from '../../../../../util/theme';
 import { FiatCurrency } from '@consensys/on-ramp-sdk';
 import createModalStyles from './Modal.styles';
+import ListItem from '../../../../../component-library/components/List/ListItem';
+import ListItemColumn, {
+  WidthType,
+} from '../../../../../component-library/components/List/ListItemColumn';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 
 const MAX_TOKENS_RESULTS = 20;
-
-// TODO: Convert into typescript and correctly type
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ListItem = BaseListItem as any;
 
 const Separator = () => {
   const { colors } = useTheme();
@@ -101,12 +101,15 @@ function FiatSelectModal({
         accessible
       >
         <ListItem style={styles.listItem}>
-          <ListItem.Content>
-            <ListItem.Body>
-              <ListItem.Title>{item.name}</ListItem.Title>
-              <Text grey>{item.symbol}</Text>
-            </ListItem.Body>
-          </ListItem.Content>
+          <ListItemColumn widthType={WidthType.Fill}>
+            <Text>{item.name}</Text>
+            <Text
+              variant={TextVariant.BodyLGMedium}
+              color={TextColor.Alternative}
+            >
+              {item.symbol}
+            </Text>
+          </ListItemColumn>
         </ListItem>
       </TouchableOpacity>
     ),
@@ -118,10 +121,10 @@ function FiatSelectModal({
   const renderEmptyList = useMemo(
     () => (
       <View style={styles.emptyList}>
-        <Text>
+        <Text variant={TextVariant.BodyLGMedium}>
           {strings('fiat_on_ramp_aggregator.no_currency_match', {
             searchString,
-          })}
+          })}{' '}
         </Text>
       </View>
     ),
