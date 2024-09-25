@@ -51,7 +51,19 @@ const createStyles = (colors, shadows) =>
     },
   });
 
-function InfoModal({
+interface InfoModalProps {
+  title?: React.ReactNode;
+  body?: React.ReactNode;
+  isVisible: boolean;
+  toggleModal: () => void;
+  message?: string;
+  propagateSwipe?: boolean;
+  urlText?: string;
+  url: unknown;
+  testID?: string;
+}
+
+const InfoModal: React.FC<InfoModalProps> = ({
   title,
   body,
   isVisible,
@@ -61,7 +73,7 @@ function InfoModal({
   urlText,
   url,
   testID,
-}) {
+}) => {
   const { colors, shadows } = useTheme();
   const styles = createStyles(colors, shadows);
 
@@ -116,15 +128,7 @@ function InfoModal({
       </SafeAreaView>
     </Modal>
   );
-}
-InfoModal.propTypes = {
-  isVisible: PropTypes.bool,
-  title: PropTypes.node,
-  body: PropTypes.node,
-  toggleModal: PropTypes.func,
-  propagateSwipe: PropTypes.bool,
-  message: PropTypes.string,
-  urlText: PropTypes.string,
+};
   url: PropTypes.func,
   testID: PropTypes.string,
 };
