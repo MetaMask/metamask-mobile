@@ -1,4 +1,5 @@
 import { NotificationTransactionTypes } from '../util/notifications';
+
 import NotificationManager, {
   constructTitleAndMessage,
 } from './NotificationManager';
@@ -44,6 +45,26 @@ describe('NotificationManager', () => {
     expect(notificationManager._backgroundMode).toBe(true);
   });
 
+  it('calling NotificationManager in _failedCallback mode should call _showNotification', () => {
+    notificationManager._failedCallback({
+      id: 1,
+      txParams: {
+        nonce: 1,
+      },
+    });
+    expect(notificationManager._showNotification).toBeInstanceOf(Function);
+  });
+
+  it('calling NotificationManager onMessageReceived', () => {
+    notificationManager.onMessageReceived({
+      data: {
+        title: 'title',
+        shortDescription: 'shortDescription',
+      },
+    });
+    expect(notificationManager.onMessageReceived).toBeInstanceOf(Function);
+  });
+
   it('calling NotificationManager in background mode OFF should be falsy', () => {
     notificationManager._handleAppStateChange('active');
     expect(notificationManager._backgroundMode).toBe(false);
@@ -69,15 +90,16 @@ describe('NotificationManager', () => {
     expect(NotificationManager.getTransactionToView()).toBeTruthy();
   });
 
-  const selectedNotificationTypes: (keyof typeof NotificationTransactionTypes)[] = [
-    'pending',
-    'pending_deposit',
-    'pending_withdrawal',
-    'success_withdrawal',
-    'success_deposit',
-    'error',
-    'cancelled',
-  ];
+  const selectedNotificationTypes: (keyof typeof NotificationTransactionTypes)[] =
+    [
+      'pending',
+      'pending_deposit',
+      'pending_withdrawal',
+      'success_withdrawal',
+      'success_deposit',
+      'error',
+      'cancelled',
+    ];
   selectedNotificationTypes.forEach((type) => {
     it(`should construct title and message for ${type}`, () => {
       const { title, message } = constructTitleAndMessage({

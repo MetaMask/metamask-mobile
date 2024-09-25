@@ -34,7 +34,7 @@ import {
 } from './AccountConnectMultiSelector.types';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
-import { isMutichainVersion1Enabled } from '../../../../util/networks';
+import { isMultichainVersion1Enabled } from '../../../../util/networks';
 import Checkbox from '../../../../component-library/components/Checkbox';
 
 const AccountConnectMultiSelector = ({
@@ -93,7 +93,7 @@ const AccountConnectMultiSelector = ({
   const renderSelectAllButton = useCallback(
     () =>
       Boolean(accounts.length) &&
-      !isMutichainVersion1Enabled && (
+      !isMultichainVersion1Enabled && (
         <Button
           variant={ButtonVariants.Link}
           onPress={() => {
@@ -117,7 +117,7 @@ const AccountConnectMultiSelector = ({
   const renderUnselectAllButton = useCallback(
     () =>
       Boolean(accounts.length) &&
-      !isMutichainVersion1Enabled && (
+      !isMultichainVersion1Enabled && (
         <Button
           variant={ButtonVariants.Link}
           onPress={() => {
@@ -188,7 +188,7 @@ const AccountConnectMultiSelector = ({
     return (
       <View style={styles.ctaButtonsContainer}>
         <View style={styles.connectOrUpdateButtonContainer}>
-          {!isMutichainVersion1Enabled && (
+          {!isMultichainVersion1Enabled && (
             <Button
               variant={ButtonVariants.Secondary}
               label={strings('accounts.cancel')}
@@ -197,14 +197,14 @@ const AccountConnectMultiSelector = ({
               style={styles.button}
             />
           )}
-          {!isMutichainVersion1Enabled && (
+          {!isMultichainVersion1Enabled && (
             <View style={styles.buttonSeparator} />
           )}
           {areAnyAccountsSelected && (
             <Button
               variant={ButtonVariants.Primary}
               label={strings(
-                isMutichainVersion1Enabled
+                isMultichainVersion1Enabled
                   ? 'app_settings.fiat_on_ramp.update'
                   : 'accounts.connect_with_count',
                 {
@@ -227,7 +227,7 @@ const AccountConnectMultiSelector = ({
             />
           )}
         </View>
-        {isMutichainVersion1Enabled && areNoAccountsSelected && (
+        {isMultichainVersion1Enabled && areNoAccountsSelected && (
           <View style={styles.disconnectAllContainer}>
             <View style={styles.helpTextContainer}>
               <HelpText severity={HelpTextSeverity.Error}>
@@ -269,14 +269,14 @@ const AccountConnectMultiSelector = ({
         <View style={styles.container}>
           <SheetHeader
             title={
-              isMutichainVersion1Enabled
+              isMultichainVersion1Enabled
                 ? screenTitle
                 : strings('accounts.connect_accounts_title')
             }
             onBack={onBack}
           />
           <View style={styles.body}>
-            {!isMutichainVersion1Enabled && (
+            {!isMultichainVersion1Enabled && (
               <TagUrl
                 imageSource={favicon}
                 label={urlWithProtocol}
@@ -284,11 +284,11 @@ const AccountConnectMultiSelector = ({
               />
             )}
             <Text style={styles.description}>
-              {isMutichainVersion1Enabled
+              {isMultichainVersion1Enabled
                 ? strings('accounts.select_accounts_description')
                 : strings('accounts.connect_description')}
             </Text>
-            {isMutichainVersion1Enabled && renderSelectAllCheckbox()}
+            {isMultichainVersion1Enabled && renderSelectAllCheckbox()}
             {areAllAccountsSelected
               ? renderUnselectAllButton()
               : renderSelectAllButton()}

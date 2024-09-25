@@ -53,7 +53,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { RootState } from '../../../reducers';
-import { isMutichainVersion1Enabled } from '../../../util/networks';
+import { isMultichainVersion1Enabled } from '../../../util/networks';
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
 import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
 
@@ -152,7 +152,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       };
 
       toastRef?.current?.showToast(
-        isMutichainVersion1Enabled ? networkToastProps : plainToastProps,
+        isMultichainVersion1Enabled ? networkToastProps : plainToastProps,
       );
 
       previousPermittedAccounts.current = permittedAccountsByHostname.length;

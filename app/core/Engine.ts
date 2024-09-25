@@ -141,6 +141,7 @@ import {
   LoggingController,
   LoggingControllerState,
   LoggingControllerActions,
+  LoggingControllerEvents,
 } from '@metamask/logging-controller';
 import {
   LedgerKeyring,
@@ -316,6 +317,7 @@ type GlobalEvents =
   | SnapsGlobalEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
+  | LoggingControllerEvents
   | KeyringControllerEvents
   | PPOMControllerEvents
   | AccountsControllerEvents
@@ -622,7 +624,6 @@ class Engine {
     );
 
     const loggingController = new LoggingController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted<
         'LoggingController',
         never,
@@ -1585,7 +1586,6 @@ class Engine {
       permissionController,
       selectedNetworkController,
       new SignatureController({
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'SignatureController',
           allowedActions: [
