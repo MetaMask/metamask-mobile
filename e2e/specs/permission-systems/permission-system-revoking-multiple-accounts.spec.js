@@ -6,12 +6,16 @@ import TabBarComponent from '../../pages/TabBarComponent';
 import ToastModal from '../../pages/modals/ToastModal';
 import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
+import AddAccountModal from '../../pages/modals/AddAccountModal';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import Assertions from '../../utils/Assertions';
+import { Regression } from '../../tags';
 
-describe('Connecting to multiple dapps and revoking permission on one but staying connected to the other', () => {
+const AccountTwoText = 'Account 2';
+
+describe(Regression('Connecting to multiple dapps and revoking permission on one but staying connected to the other'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
@@ -42,10 +46,12 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
         await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
         await ConnectedAccountsModal.tapConnectMoreAccountsButton();
         await AccountListView.tapAddAccountButton();
-        await AccountListView.tapCreateAccountButton();
-        await AccountListView.isAccount2VisibleAtIndex(0);
+        await AddAccountModal.tapCreateAccount();
+        if (device.getPlatform() === 'android') {
+          await Assertions.checkIfTextIsDisplayed(AccountTwoText);
+        }
         await AccountListView.tapAccountIndex(0);
-        await AccountListView.connectAccountsButton();
+        await AccountListView.tapConnectAccountsButton();
 
         // should revoke accounts
         await Browser.tapNetworkAvatarButtonOnBrowser();
