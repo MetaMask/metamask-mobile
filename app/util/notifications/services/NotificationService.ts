@@ -47,13 +47,10 @@ class NotificationsService {
         return map;
       }, new Map<ChannelId, boolean>());
     } catch (e) {
-      if (e instanceof Error) {
-        Logger.error(e, strings('notifications.error_checking_permission'));
-      } else {
-        Logger.error(
-          new Error(strings('notifications.error_checking_permission')),
-        );
-      }
+      Logger.error(
+        e as Error,
+        strings('notifications.error_checking_permission'),
+      );
       return new Map<ChannelId, boolean>();
     }
   }
@@ -135,13 +132,10 @@ class NotificationsService {
         strings('notifications.prompt_desc'),
       );
     } catch (e) {
-      if (e instanceof Error) {
-        Logger.error(e, strings('notifications.error_checking_permission'));
-      } else {
-        Logger.error(
-          new Error(strings('notifications.error_checking_permission')),
-        );
-      }
+      Logger.error(
+        e as Error,
+        strings('notifications.error_checking_permission'),
+      );
     }
   }
   openSystemSettings() {
