@@ -52,7 +52,6 @@ const CellSelectWithMenu = ({
           size={DEFAULT_CELLBASE_AVATAR_SIZE}
           {...avatarProps}
         />
-
         <View style={styles.cellBaseInfo}>
           <Text
             numberOfLines={1}
