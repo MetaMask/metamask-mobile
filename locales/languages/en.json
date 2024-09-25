@@ -2078,6 +2078,7 @@
     "back_to_safety": "Back to safety"
   },
   "notifications": {
+    "timeout": "Timeout",
     "no_date": "Unknown",
     "yesterday": "Yesterday",
     "staked": "Staked",
@@ -3231,7 +3232,6 @@
     "ledger_legacy_label": " (legacy)",
     "blind_sign_error": "Blind signing error",
     "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings."
-
   },
   "account_actions": {
     "edit_name": "Edit account name",
@@ -3299,7 +3299,7 @@
     "enter_amount": "Enter amount",
     "review": "Review",
     "not_enough_eth": "Not enough ETH",
-    "balance":"Balance"
+    "balance": "Balance"
   },
   "default_settings": {
     "title": "Your Wallet is ready",
