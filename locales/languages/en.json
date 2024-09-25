@@ -1059,13 +1059,29 @@
       "snap_settings": {
         "remove_snap_section_title": "Remove Snap",
         "remove_snap_section_description": "This action will delete the snap, its data, and its granted permissions.",
-        "remove_button_label": "Remove {{snapName}}"
+        "remove_button_label": "Remove {{snapName}}",
+        "remove_account_snap_warning": {
+          "title": "Remove Snap",
+          "description": "Removing this Snap removes these accounts from MetaMask:",
+          "remove_account_snap_alert_description_1": "Type ",
+          "remove_account_snap_alert_description_2": " to confirm you want to remove this snap:",
+          "banner_title": "Be sure you can access any accounts created by this Snap on your own before removing it",
+          "cancel_button": "Cancel",
+          "continue_button": "Continue",
+          "remove_snap_button": "Remove Snap",
+          "remove_snap_error": "Failed to remove {{snapName}}",
+          "remove_snap_success": "{{snapName}} removed"
+        }
       },
       "snap_details": {
         "install_date": "Installed on {{date}}",
         "install_origin": "Install Origin",
         "enabled": "Enabled",
         "version": "Version"
+      },
+      "keyring_account_list_item": {
+        "account_name": "Account name",
+        "public_address": "Public Address"
       },
       "snap_permissions": {
         "approved_date": "Approved on {{date}}",
