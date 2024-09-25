@@ -30,7 +30,7 @@ import { filterExitRequests } from './utils';
 import { BN } from 'ethereumjs-util';
 import bn from 'bignumber.js';
 import { fixDisplayAmount } from '../../utils/value';
-import { multiplyValueByPowerOfTen } from '../../../../../util/bignumber';
+import { multiplyValueByPowerOfTen } from '../../utils/bignumber';
 
 // TODO: Replace mock data when connecting to backend.
 const MOCK_STAKED_ETH_ASSET = {

@@ -1,10 +1,5 @@
 import BigNumber from 'bignumber.js';
-import {
-  getPowerOfTen,
-  bnOne,
-  getValueAsBn,
-  bnZero,
-} from '../../../../../util/bignumber';
+import { getPowerOfTen, bnOne, getValueAsBn, bnZero } from '../bignumber';
 
 // Determine if a value is equal to or above an evaluated `exponent`, or equal to or below its evaluated inverse
 export const isEqualOrGreaterOrderOfMagnitude = (
