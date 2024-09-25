@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, waitFor } from '@testing-library/react-native';
+import { render, waitFor, fireEvent, act } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import OnboardingCarousel from './index';
@@ -7,15 +7,18 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import { OnboardingCarouselSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingCarousel.selectors';
 import { PerformanceRegressionSelectorIDs } from '../../../../e2e/selectors/PerformanceRegression.selectors';
 
+jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
+jest.mock('../../../util/test/utils', () => ({
+  isTest: true,
+}));
+
 const mockStore = configureStore([]);
 const store = mockStore({});
+
 const mockNavigation = {
   navigate: jest.fn(),
   setOptions: jest.fn(),
 };
-jest.mock('../../../util/test/utils', () => ({
-  isTest: true,
-}));
 
 describe('OnboardingCarousel', () => {
   it('should render the component', () => {
