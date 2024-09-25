@@ -26,7 +26,7 @@ describe('notificationChannels', () => {
   it('second channel should have the correct properties for DEFAULT_NOTIFICATION_CHANNEL_ID', () => {
     const secondChannel: MetaMaskAndroidChannel = notificationChannels[1];
     expect(secondChannel).toEqual({
-      id: ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
+      id: ChannelId.ANNOUNCEMENT_NOTIFICATION_CHANNEL_ID,
       name: 'MetaMask Announcement',
       lights: false,
       vibration: false,
