@@ -10,7 +10,7 @@ describe('notificationChannels', () => {
     expect(notificationChannels).toHaveLength(2);
   });
 
-  it('first channel should matches the correct properties for DEFAULT_NOTIFICATION_CHANNEL_ID', () => {
+  it('first channel has DEFAULT_NOTIFICATION_CHANNEL_ID', () => {
     const firstChannel: MetaMaskAndroidChannel = notificationChannels[0];
     expect(firstChannel).toEqual({
       id: ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
