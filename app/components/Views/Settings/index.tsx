@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { StyleSheet, ScrollView, Alert } from 'react-native';
-import { useNavigation, CommonActions } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import SettingsDrawer from '../../UI/SettingsDrawer';
 import { getSettingsNavigationOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
@@ -18,7 +18,7 @@ import { TextColor } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isTest } from '../../../util/test/utils';
-import { isMutichainVersion1Enabled } from '../../../util/networks';
+import { isMultichainVersion1Enabled } from '../../../util/networks';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -42,9 +42,6 @@ const Settings = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.user.seedphraseBackedUp,
   );
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const passwordSet = useSelector((state: any) => state.user.passwordSet);
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
@@ -103,6 +100,10 @@ const Settings = () => {
     navigation.navigate('ContactsSettings');
   };
 
+  const onPressDeveloperOptions = () => {
+    navigation.navigate('DeveloperOptions');
+  };
+
   const goToManagePermissions = () => {
     navigation.navigate('PermissionsManager');
   };
@@ -140,20 +141,7 @@ const Settings = () => {
   };
 
   const onPressLock = async () => {
-    await Authentication.lockApp();
-    if (!passwordSet) {
-      navigation.navigate('OnboardingRootNav', {
-        screen: Routes.ONBOARDING.NAV,
-        params: { screen: 'Onboarding' },
-      });
-    } else {
-      // TODO: Consolidate navigation action for locking app
-      const resetAction = CommonActions.reset({
-        index: 0,
-        routes: [{ name: Routes.ONBOARDING.LOGIN, params: { locked: true } }],
-      });
-      navigation.dispatch(resetAction);
-    }
+    await Authentication.lockApp({ locked: true });
   };
 
   const lock = () => {
@@ -214,7 +202,7 @@ const Settings = () => {
           testID={SettingsViewSelectorsIDs.NOTIFICATIONS}
         />
       )}
-      {isMutichainVersion1Enabled && (
+      {isMultichainVersion1Enabled && (
         <SettingsDrawer
           description={strings('app_settings.permissions_desc')}
           onPress={goToManagePermissions}
@@ -280,6 +268,12 @@ const Settings = () => {
         onPress={onPressInfo}
         testID={SettingsViewSelectorsIDs.ABOUT_METAMASK}
       />
+      {process.env.MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS === 'true' && (
+        <SettingsDrawer
+          title={strings('app_settings.developer_options.title')}
+          onPress={onPressDeveloperOptions}
+        />
+      )}
       <SettingsDrawer
         title={strings('app_settings.request_feature')}
         onPress={submitFeedback}

@@ -50,6 +50,8 @@ export const MM_ETHERSCAN_URL = 'https://etherscamdb.info/domain/meta-mask.com';
 export const LINEA_GOERLI_BLOCK_EXPLORER = 'https://goerli.lineascan.build';
 export const LINEA_SEPOLIA_BLOCK_EXPLORER = 'https://sepolia.lineascan.build';
 export const LINEA_MAINNET_BLOCK_EXPLORER = 'https://lineascan.build';
+export const MAINNET_BLOCK_EXPLORER = 'https://etherscan.com';
+export const SEPOLIA_BLOCK_EXPLORER = 'https://sepolia.etherscan.io';
 
 // Rpcs
 export const MAINNET_DEFAULT_RPC_URL = `https://mainnet.infura.io/v3/${infuraProjectId}`;

@@ -14,7 +14,6 @@ import { connect, ConnectedProps } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { showAlert } from '../../../actions/alert';
-import { toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { protectWalletModalVisible } from '../../../actions/user';
 import Routes from '../../../constants/navigation/Routes';
@@ -451,10 +450,8 @@ const mapStateToProps = (state: RootState) => ({
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   showAlert: ((config) => dispatch(showAlert(config))) as typeof showAlert,
   protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
-  newAssetTransaction: (
-    selectedAsset: $FIXME, // unused prop
-  ) => dispatch(newAssetTransaction(selectedAsset)),
-  toggleReceiveModal: (asset: $FIXME) => dispatch(toggleReceiveModal(asset)),
+  newAssetTransaction: (selectedAsset: $FIXME) =>
+    dispatch(newAssetTransaction(selectedAsset)),
 });
 
 AccountOverview.contextType = ThemeContext;

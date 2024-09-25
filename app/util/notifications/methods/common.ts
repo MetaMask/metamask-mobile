@@ -1,12 +1,11 @@
+import dayjs, { Dayjs } from 'dayjs';
+import isYesterday from 'dayjs/plugin/isYesterday';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
+import notifee from '@notifee/react-native';
+import localeData from 'dayjs/plugin/localeData';
 import { Web3Provider } from '@ethersproject/providers';
 import { toHex } from '@metamask/controller-utils';
-import {
-  format,
-  isSameDay,
-  isSameYear,
-  subDays,
-  formatRelative,
-} from 'date-fns';
 import BigNumber from 'bignumber.js';
 import { NotificationServicesController } from '@metamask/notification-services-controller';
 import Engine from '../../../core/Engine';
@@ -19,19 +18,24 @@ import images from '../../../images/image-icons';
 import CHAIN_SCANS_URLS from '../constants/urls';
 import I18n, { strings } from '../../../../locales/i18n';
 
+// Extend dayjs with the plugins
+dayjs.extend(isYesterday);
+dayjs.extend(localeData);
+dayjs.extend(relativeTime);
+
 const { UI } = NotificationServicesController;
 
-/**
- * Checks if a date is "yesterday" from the current date
- *
- * @param currentDate
- * @param dateToCheck
- * @returns boolean if dates were "yesterday"
- */
-const isYesterday = (currentDate: Date, dateToCheck: Date) => {
-  const yesterday = subDays(currentDate, 1);
-  return isSameDay(yesterday, dateToCheck);
-};
+export function formatRelative(
+  date: Dayjs,
+  currentDate: Dayjs,
+  locale: string = 'en',
+): string {
+  dayjs.locale(locale);
+  if (date.from(currentDate) === 'a day ago') {
+    return strings('notifications.yesterday');
+  }
+  return date.from(currentDate);
+}
 
 /**
  * Formats a given date into different formats based on how much time has elapsed since that date.
@@ -39,31 +43,34 @@ const isYesterday = (currentDate: Date, dateToCheck: Date) => {
  * @param date - The date to be formatted.
  * @returns The formatted date.
  */
-export function formatMenuItemDate(date?: Date): string {
+export function formatMenuItemDate(date?: Date, locale: string = 'en'): string {
   if (!date) {
     return strings('notifications.no_date');
   }
+  const currentDate = dayjs();
+  const dayjsDate = dayjs(date);
 
-  const currentDate = new Date();
+  dayjs.locale(locale);
 
   // E.g. 12:21
-  if (isSameDay(currentDate, date)) {
-    return format(date, 'HH:mm');
+  if (dayjsDate.isSame(currentDate, 'day')) {
+    return dayjsDate.format('HH:mm');
   }
 
   // E.g. Yesterday
-  if (isYesterday(currentDate, date)) {
-    return formatRelative(date, currentDate, { locale: I18n.locale });
+  if (dayjs().add(-1, 'day').isYesterday()) {
+    return formatRelative(dayjsDate, currentDate, I18n.locale);
   }
 
   // E.g. 21 Oct
-  if (isSameYear(currentDate, date)) {
-    return format(date, 'd MMM');
+  if (dayjsDate.isSame(currentDate, 'year')) {
+    return dayjsDate.format('D MMM');
   }
 
   // E.g. 21 Oct 2022
-  return format(date, 'd MMM yyyy');
+  return dayjsDate.format('D MMM YYYY');
 }
+
 /**
  * Generates a unique key based on the provided text, index, and a random string.
  *
@@ -464,3 +471,13 @@ export const getUsdAmount = (amount: string, decimals: string, usd: string) => {
 
   return formatAmount(numericAmount);
 };
+
+export const hasInitialNotification = async () =>
+  Boolean(await notifee.getInitialNotification());
+
+export function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error(strings('notifications.timeout'))), ms),
+  );
+  return Promise.race([promise, timeout]);
+}

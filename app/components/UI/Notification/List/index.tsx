@@ -1,6 +1,6 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
-import notifee from '@notifee/react-native';
+import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import { ActivityIndicator, FlatList, FlatListProps, View } from 'react-native';
 import ScrollableTabView, {
   DefaultTabBar,
@@ -16,8 +16,11 @@ import {
 } from '../../../../util/notifications/notification-states';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { Notification } from '../../../../util/notifications';
-import { useMarkNotificationAsRead } from '../../../../util/notifications/hooks/useNotifications';
+import { Notification, TRIGGER_TYPES } from '../../../../util/notifications';
+import {
+  useListNotifications,
+  useMarkNotificationAsRead,
+} from '../../../../util/notifications/hooks/useNotifications';
 import { useMetrics } from '../../../hooks/useMetrics';
 import Empty from '../Empty';
 import { NotificationMenuItem } from '../NotificationMenuItem';
@@ -56,7 +59,7 @@ function Loading() {
 function NotificationsListItem(props: NotificationsListItemProps) {
   const { styles } = useStyles();
   const { markNotificationAsRead } = useMarkNotificationAsRead();
-
+  const { trackEvent } = useMetrics();
   const onNotificationClick = useCallback(
     (item: Notification) => {
       markNotificationAsRead([
@@ -72,15 +75,24 @@ function NotificationsListItem(props: NotificationsListItemProps) {
         });
       }
 
-      notifee.getBadgeCount().then((count) => {
+      NotificationsService.getBadgeCount().then((count) => {
         if (count > 0) {
-          notifee.setBadgeCount(count - 1);
+          NotificationsService.decrementBadgeCount(count - 1);
         } else {
-          notifee.setBadgeCount(0);
+          NotificationsService.setBadgeCount(0);
         }
       });
+
+      trackEvent(MetaMetricsEvents.NOTIFICATION_CLICKED, {
+        notification_id: item.id,
+        notification_type: item.type,
+        ...(item.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT
+          ? { chain_id: item?.chain_id }
+          : {}),
+        previously_read: item.isRead,
+      });
     },
-    [markNotificationAsRead, props.navigation],
+    [markNotificationAsRead, props.navigation, trackEvent],
   );
 
   const menuItemState = useMemo(() => {
@@ -113,7 +125,7 @@ function useNotificationListProps(props: {
   navigation: NavigationProp<ParamListBase>;
 }) {
   const { styles } = useStyles();
-
+  const { listNotifications, isLoading } = useListNotifications();
   const getListProps = useCallback(
     (data: Notification[], tabLabel?: string) => {
       const listProps: FlatListProps<Notification> = {
@@ -132,6 +144,8 @@ function useNotificationListProps(props: {
             navigation={props.navigation}
           />
         ),
+        onRefresh: async () => await listNotifications(),
+        refreshing: isLoading,
         initialNumToRender: 10,
         maxToRenderPerBatch: 2,
         onEndReachedThreshold: 0.5,
@@ -139,7 +153,7 @@ function useNotificationListProps(props: {
 
       return { ...listProps, tabLabel: tabLabel ?? '' };
     },
-    [props.navigation, styles.list],
+    [isLoading, listNotifications, props.navigation, styles.list],
   );
 
   return getListProps;

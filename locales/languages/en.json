@@ -5,8 +5,6 @@
     "deceptive_request_title": "This is a deceptive request",
     "failed_title": "Request may not be safe",
     "failed_description": "Because of an error, this request was not verified by the security provider. Proceed with caution.",
-    "loading_title": "Checking for security alerts...",
-    "loading_complete_title": "No alerts received. Always do your own due diligence before approving requests.",
     "malicious_domain_description": "You're interacting with a malicious domain. If you approve this request, you might lose your assets.",
     "other_description": "If you approve this request, you might lose your assets.",
     "raw_signature_farming_description": "If you approve this request, you might lose your assets.",
@@ -837,24 +835,6 @@
     "show_fiat_on_testnets_modal_button": "Continue",
     "show_hex_data": "Show Hex Data",
     "show_hex_data_desc": "Select this to show the hex data field on the send screen.",
-    "toggleEthSignBannerDescription": "You’re at risk for phishing attacks. Protect yourself by turning off eth_sign.",
-    "enable_eth_sign": "Eth_sign requests",
-    "enable_eth_sign_desc": "If you enable this setting, you might get signature requests that aren’t readable. By signing a message you don't understand, you could be agreeing to give away your funds and NFTs.",
-    "enable_eth_sign_warning": "You're at risk for phishing attacks. Protect yourself by turning off eth_sign.",
-    "toggleEthSignModalBannerText": "If you've been asked to turn this setting on,",
-    "toggleEthSignModalBannerBoldText": " you might be getting scammed.",
-    "toggleEthSignModalCheckBox": "I understand that I can lose all of my funds and NFTs if I enable eth_sign requests.",
-    "toggleEthSignModalDescription": "Allowing eth_sign requests can make you vulnerable to phishing attacks. Always review the URL and be careful when signing messages that contain code.",
-    "toggleEthSignModalFormError": "This text is incorrect. Try again.",
-    "toggleEthSignModalFormLabel": "Enter “I only sign what I understand” to continue",
-    "toggleEthSignModalFormValidation": "I only sign what I understand",
-    "toggleEthSignModalTitle": "Use at your own risk",
-    "toggleEthSignModalEnable": "Enable",
-    "toggleEthSignModalLearnMore": "Learn more.",
-    "toggleEthSignOff": "(Recommended)",
-    "toggleEthSignOn": "(Not recommended)",
-    "toggleEthSignContinueButton": "Continue",
-    "toggleEthSignEnableButton": "Enable",
     "show_custom_nonce": "Customize transaction nonce",
     "custom_nonce_desc": "Turn this on to change the nonce (transaction number) on confirmation screens. This is an advanced feature, use cautiously.",
     "accounts_identicon_title": "Account Identicon",
@@ -967,7 +947,7 @@
     "invalid_number_range": "Invalid number. Enter a number between 1 and %{maxSafeChainId}",
     "hide_zero_balance_tokens_title": "Hide Tokens Without Balance",
     "hide_zero_balance_tokens_desc": "Prevents tokens with no balance from displaying in your token listing.",
-    "token_detection_title": "Enhanced Token Detection",
+    "token_detection_title": "Autodetect tokens",
     "token_detection_description": "We use third-party APIs to detect and display new tokens sent to your wallet. Turn off if you don’t want the app to pull data from those services.",
     "theme_button_text": "Change Theme",
     "theme_title": "Theme ({{theme}})",
@@ -1079,7 +1059,7 @@
           "snap_getBip32PublicKey": "View your public key for {{protocol}}",
           "snap_getBip44Entropy": "Control your {{protocol}} accounts and assets",
           "snap_getEntropy": "Derive arbitrary keys unique to this snap",
-          "endowment:keyring": "endowment:keyring",
+          "endowment:keyring": "Allow requests for adding and controlling Ethereum accounts",
           "wallet_snap": "Connect to {{otherSnapName}}",
           "endowment:webassembly": "Support for WebAssembly",
           "endowment:ethereum-provider": "Access the Ethereum provider",
@@ -1087,7 +1067,8 @@
           "snap_getLocale": "See your preferred language",
           "endowment:caveat:transaction-origin": "See the origins of websites that suggest transactions",
           "endowment:extend-runtime": "Extend runtime",
-          "snap_dialog": "Display custom dialogs"
+          "snap_dialog": "Display custom dialogs",
+          "snap_manageAccounts": "Add and control Ethereum accounts"
         }
       }
     },
@@ -1108,7 +1089,12 @@
     "simulation_details_description": "Turn this on to estimate balance changes of transactions before you confirm them. This doesn't guarantee the final outcome of your transactions. ",
     "simulation_details_learn_more": "Learn more.",
     "aes_crypto_test_form_title": "AES Crypto - Test Form",
-    "aes_crypto_test_form_description": "Section exclusively developed for E2E testing. If this is visible in your app, please report it to MetaMask support."
+    "aes_crypto_test_form_description": "Section exclusively developed for E2E testing. If this is visible in your app, please report it to MetaMask support.",
+    "developer_options": {
+      "title": "Developer Options",
+      "generate_trace_test": "Generate Trace Test",
+      "generate_trace_test_desc": "Generate a Developer Test Sentry trace."
+    }
   },
   "aes_crypto_test_form": {
     "generate_random_salt": "Generate Random Salt",
@@ -1818,6 +1804,17 @@
     "edit": "Edit",
     "cancel": "Cancel"
   },
+  "permissions": {
+    "title_this_site_wants_to": "This site wants to:",
+    "title_dapp_url_wants_to": "{{dappUrl}} wants to:",
+    "title_dapp_url_has_approval_to": "{{dappUrl}} has approval to:",
+    "use_enabled_networks": "Use your enabled networks",
+    "wants_to_see_your_accounts": "See your accounts and suggest transactions",
+    "requesting_for": "Requesting for ",
+    "manage_permissions": "Manage Permissions",
+    "edit": "Edit",
+    "cancel": "Cancel"
+  },
   "select": {
     "cancel": "Cancel",
     "done": "Done"
@@ -1833,8 +1830,7 @@
     "message": "Message",
     "message_from": "Message from",
     "learn_more": "Learn more",
-    "read_more": "Read more",
-    "eth_sign_warning": "Signing this message can be dangerous. This signature could potentially perform any operation on your account's behalf, including granting complete control of your account and all of its assets to the requesting site. Only sign this message if you know what you're doing or completely trust the requesting site."
+    "read_more": "Read more"
   },
   "watch_asset_request": {
     "title": "Add Suggested Token",
@@ -2081,6 +2077,9 @@
     "back_to_safety": "Back to safety"
   },
   "notifications": {
+    "timeout": "Timeout",
+    "no_date": "Unknown",
+    "yesterday": "Yesterday",
     "staked": "Staked",
     "received": "Received",
     "unstaked": "Unstaked",
@@ -2173,12 +2172,12 @@
     "cancelled_message": "Tap to view this transaction",
     "received_message": "Tap to view this transaction",
     "received_payment_message": "You received {{amount}} DAI",
-    "prompt_title": "Enable Push Notifications",
+    "prompt_title": "Receive Push Notifications",
     "notifications_enabled_error_title": "Something went wrong",
     "notifications_enabled_error_desc": "We couldn't enable notifications. Please try again later.",
-    "prompt_desc": "Enable notifications so MetaMask can let you know when you've received ETH or when your transactions have been confirmed.",
-    "prompt_ok": "Yes",
-    "prompt_cancel": "No, thanks",
+    "prompt_desc": "Turn on notifications from Settings to get important alerts on wallet activity and more.",
+    "prompt_ok": "Turn on",
+    "prompt_cancel": "Maybe later",
     "wc_connected_title": "Connected to {{title}}",
     "wc_signed_title": "Signed",
     "wc_sent_tx_title": "Sent transaction",
@@ -3192,6 +3191,7 @@
     "ledger_reminder_message_step_four": "4. Location is enabled with use precise location on",
     "ledger_reminder_message_step_four_Androidv12plus": "4. Nearby devices is enabled",
     "ledger_reminder_message_step_five": "5. Do not disturb must be turned off",
+    "blind_signing_message": "6. Enable \"blind signing\" on your Ledger device.",
     "available_devices": "Available devices",
     "retry": "Retry",
     "continue": "Continue",
@@ -3228,7 +3228,9 @@
     "ledger_live_path": "Ledger Live",
     "ledger_legacy_path": "Legacy(MEW/MyCrypto)",
     "ledger_bip44_path": "BIP44(e.g. MetaMask, Trezor)",
-    "ledger_legacy_label": " (legacy)"
+    "ledger_legacy_label": " (legacy)",
+    "blind_sign_error": "Blind signing error",
+    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings."
   },
   "account_actions": {
     "edit_name": "Edit account name",
@@ -3282,7 +3284,52 @@
     "error_description": "Installation of {{snap}} failed."
   },
   "stake": {
-    "stake": "Stake"
+    "stake": "Stake",
+    "stake_eth": "Stake ETH",
+    "staked_ethereum": "Staked Ethereum",
+    "unstake": "Unstake",
+    "stake_more": "Stake more",
+    "claim": "Claim",
+    "your_earnings": "Your earnings",
+    "annual_rate": "Annual rate",
+    "lifetime_rewards": "Lifetime rewards",
+    "estimated_annual_earnings": "Estimated annual earnings",
+    "accessibility_labels": {
+      "stake_annual_rate_tooltip": "Annual rate tooltip"
+    },
+    "estimated_annual_rewards": "Estimated annual rewards",
+    "metamask_pool": "MetaMask Pool",
+    "enter_amount": "Enter amount",
+    "review": "Review",
+    "not_enough_eth": "Not enough ETH",
+    "balance": "Balance",
+    "your_balance": "Your balance",
+    "day": {
+      "zero": "",
+      "one": "day",
+      "other": "days"
+    },
+    "hour": {
+      "zero": "",
+      "one": "hour",
+      "other": "hours"
+    },
+    "minute": {
+      "zero": "",
+      "one": "minute",
+      "other": "minutes"
+    },
+    "banner_text": {
+      "has_claimable_eth": "You can claim {{amountEth}} ETH. Once claimed, you'll get ETH back in your wallet.",
+      "unstaking_in_progress": {
+        "base": "Unstaking {{amountEth}} ETH in progress. Come back in",
+        "and": "and",
+        "to_claim_it": "to claim it.",
+        "default": "Unstaking {{amountEth}} ETH in progress. Come back later to claim it."
+      },
+      "geo_blocked": "You are located in a geographic location where unstaking or staking is not permitted.",
+      "approximately": "approximately"
+    }
   },
   "default_settings": {
     "title": "Your Wallet is ready",
@@ -3334,15 +3381,6 @@
     "please_wait": "Please wait",
     "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
     "disconnect": "Disconnect"
-  },
-  "staking": {
-    "your_earnings": "Your earnings",
-    "annual_rate": "Annual rate",
-    "lifetime_rewards": "Lifetime rewards",
-    "estimated_annual_earnings": "Est. annual earnings",
-    "accessibility_labels": {
-      "stake_annual_rate_tooltip": "Annual rate tooltip"
-    }
   },
   "tooltip_modal": {
     "reward_rate": {
