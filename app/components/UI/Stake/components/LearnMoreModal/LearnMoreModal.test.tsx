@@ -25,23 +25,9 @@ describe('LearnMoreModal', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly with headings and text blocks', () => {
-    renderLearnMoreModal();
-    // Verifying that the main content is rendered
-    expect(screen.getByText(strings('stake.stake_eth_and_earn'))).toBeTruthy();
-    expect(
-      screen.getByText(strings('stake.stake_any_amount_of_eth')),
-    ).toBeTruthy();
-    expect(screen.getByText(strings('stake.no_minimum_required'))).toBeTruthy();
-    expect(screen.getByText(strings('stake.earn_eth_rewards'))).toBeTruthy();
-    expect(
-      screen.getByText(strings('stake.earn_eth_rewards_description')),
-    ).toBeTruthy();
-    expect(screen.getByText(strings('stake.flexible_unstaking'))).toBeTruthy();
-    expect(
-      screen.getByText(strings('stake.flexible_unstaking_description')),
-    ).toBeTruthy();
-    expect(screen.getByText(strings('stake.disclaimer'))).toBeTruthy();
+  it('render matches snapshot', () => {
+    const { toJSON } = renderLearnMoreModal();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('navigates to FAQ page when "Learn More" button is pressed', () => {
@@ -54,10 +40,5 @@ describe('LearnMoreModal', () => {
       screen: 'SimpleWebview',
       params: { url: POOLED_STAKING_FAQ_URL },
     });
-  });
-
-  it('render matches snapshot', () => {
-    const { toJSON } = renderLearnMoreModal();
-    expect(toJSON()).toMatchSnapshot();
   });
 });
