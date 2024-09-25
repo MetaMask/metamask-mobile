@@ -29,7 +29,7 @@ import { getTimeDifferenceFromNow } from '../../../../../util/date';
 import { filterExitRequests } from './utils';
 import { BN } from 'ethereumjs-util';
 import bn from 'bignumber.js';
-import { fixDisplayAmount } from '../../../../../util/value';
+import { fixDisplayAmount } from '../../utils/value';
 import { multiplyValueByPowerOfTen } from '../../../../../util/bignumber';
 
 // TODO: Replace mock data when connecting to backend.
