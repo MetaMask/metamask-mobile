@@ -17,7 +17,8 @@ import { VerticalAlignment, ListItemStyleSheetVars } from './ListItem.types';
  */
 const styleSheet = (params: { theme: Theme; vars: ListItemStyleSheetVars }) => {
   const { vars } = params;
-  const { style, verticalAlignment } = vars;
+  const { style, verticalAlignment, topAccessoryGap, bottomAccessoryGap } =
+    vars;
   let alignItems;
   switch (verticalAlignment) {
     case VerticalAlignment.Center:
@@ -35,11 +36,22 @@ const styleSheet = (params: { theme: Theme; vars: ListItemStyleSheetVars }) => {
     base: Object.assign(
       {
         padding: 16,
+      } as ViewStyle,
+      style,
+    ) as ViewStyle,
+    item: Object.assign(
+      {
         flexDirection: 'row',
         alignItems,
       } as ViewStyle,
       style,
     ) as ViewStyle,
+    topAccessory: {
+      marginBottom: topAccessoryGap ?? 0,
+    },
+    bottomAccessory: {
+      marginTop: bottomAccessoryGap ?? 0,
+    },
   });
 };
 
