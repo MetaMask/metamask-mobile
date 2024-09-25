@@ -112,12 +112,8 @@ const StakingBalance = () => {
     () =>
       renderFromWei(
         claimableRequests.reduce(
-          (acc, { withdrawalTimestamp, claimedAssets }) =>
-            !!withdrawalTimestamp &&
-            Number(withdrawalTimestamp) === 0 &&
-            claimedAssets
-              ? acc.add(new BN(claimedAssets))
-              : acc,
+          (acc, { claimedAssets }) =>
+            claimedAssets ? acc.add(new BN(claimedAssets)) : acc,
           new BN(0),
         ),
       ),
