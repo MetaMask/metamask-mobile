@@ -53,7 +53,7 @@ jest.mock('../../../../util/notifications/services/NotificationService', () => (
 const setOptions = jest.fn();
 
 describe('NotificationsSettings', () => {
-  it('renders correctly', () => {
+  it('render matches snapshot', () => {
     mockGetState.mockImplementation(() => ({
       notifications: {},
     }));
