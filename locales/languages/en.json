@@ -947,7 +947,7 @@
     "invalid_number_range": "Invalid number. Enter a number between 1 and %{maxSafeChainId}",
     "hide_zero_balance_tokens_title": "Hide Tokens Without Balance",
     "hide_zero_balance_tokens_desc": "Prevents tokens with no balance from displaying in your token listing.",
-    "token_detection_title": "Enhanced Token Detection",
+    "token_detection_title": "Autodetect tokens",
     "token_detection_description": "We use third-party APIs to detect and display new tokens sent to your wallet. Turn off if you don’t want the app to pull data from those services.",
     "theme_button_text": "Change Theme",
     "theme_title": "Theme ({{theme}})",
@@ -2077,6 +2077,7 @@
     "back_to_safety": "Back to safety"
   },
   "notifications": {
+    "timeout": "Timeout",
     "no_date": "Unknown",
     "yesterday": "Yesterday",
     "staked": "Staked",
@@ -3230,7 +3231,6 @@
     "ledger_legacy_label": " (legacy)",
     "blind_sign_error": "Blind signing error",
     "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings."
-
   },
   "account_actions": {
     "edit_name": "Edit account name",
