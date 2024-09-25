@@ -42,24 +42,9 @@ const mockInitialState = {
           },
         },
       },
-      NetworkController: {
-        ...mockNetworkState({
-          id: 'mainnet',
-          nickname: 'Ethereum',
-          ticker: 'ETH',
-          chainId: '0x1',
-          type: RpcEndpointType.Infura,
-        }),
-      },
     },
   },
 };
-
-jest.mock('../../../store', () => ({
-  store: {
-    getState: () => mockInitialState,
-  },
-}));
 
 describe('AccountApproval', () => {
   it('should render correctly', () => {
