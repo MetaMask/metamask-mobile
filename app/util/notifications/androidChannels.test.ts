@@ -36,7 +36,7 @@ describe('notificationChannels', () => {
     });
   });
 
-  it('each channel must have unique titles', () => {
+  it('channels have unique titles', () => {
     const titles = notificationChannels.map((channel) => channel.title);
     const uniqueTitles = new Set(titles);
     expect(uniqueTitles.size).toBe(titles.length);
