@@ -1,50 +1,29 @@
-import { renderHook, act } from '@testing-library/react-hooks';
-import notifee, {
-  EventType,
-  Event as NotifeeEvent,
-} from '@notifee/react-native';
-
-import useNotificationHandler from './index';
+import { renderHook } from '@testing-library/react-hooks';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import NotificationsService from '../../../util/notifications/services/NotificationService';
 import Routes from '../../../constants/navigation/Routes';
-import { Notification } from '../../../util/notifications/types';
-import { TRIGGER_TYPES } from '../constants';
+import { isNotificationsFeatureEnabled } from '../../../util/notifications';
+import useNotificationHandler from '.';
+import { EventType } from '@notifee/react-native';
+import { INotification } from '@metamask/notification-services-controller/dist/NotificationServicesController/index.cjs';
 
-jest.mock('../../../util/device');
-jest.mock('../../../core/NotificationManager', () => ({
-  setTransactionToView: jest.fn(),
-}));
-jest.mock('@notifee/react-native', () => ({
-  setBadgeCount: jest.fn(),
-  decrementBadgeCount: jest.fn(),
+jest.mock('../../../util/notifications/services/NotificationService', () => ({
   onForegroundEvent: jest.fn(),
-  createChannel: jest.fn(),
-  EventType: {
-    DISMISSED: 'dismissed',
-    DELIVERED: 'delivered',
-    PRESS: 'press',
-  },
-  AndroidImportance: {
-    HIGH: 'high',
-  },
+  onBackgroundEvent: jest.fn(),
+  handleNotificationEvent: jest.fn(),
 }));
 
-jest.mock('../../../core/NotificationManager', () => ({
-  setTransactionToView: jest.fn(),
+jest.mock('../../../util/notifications', () => ({
+  isNotificationsFeatureEnabled: jest.fn(),
 }));
 
-jest.mock('../../../util/device', () => ({
-  isAndroid: jest.fn(),
-}));
-
-const mockNavigate = jest.fn();
 const mockNavigation = {
-  navigate: mockNavigate,
+  navigate: jest.fn(),
 } as unknown as NavigationProp<ParamListBase>;
 
 const notification = {
   id: 1,
-  type: TRIGGER_TYPES.ERC1155_RECEIVED,
+  type: 'metamask_swap_completed',
   data: {
     id: 1,
     trigger_id: '1',
@@ -55,19 +34,13 @@ const notification = {
     unread: false,
     created_at: '',
     address: '',
-    type: TRIGGER_TYPES.ERC1155_RECEIVED,
+    type: 'metamask_swap_completed',
     data: {},
     createdAt: '',
     isRead: false,
+    action: 'no-tx',
   },
-} as unknown as Notification;
-
-const mockNotificationEvent = (event: NotifeeEvent) => ({
-  type: event.type,
-  detail: {
-    notification,
-  },
-});
+} as unknown as INotification;
 
 describe('useNotificationHandler', () => {
   beforeEach(() => {
@@ -75,9 +48,11 @@ describe('useNotificationHandler', () => {
   });
 
   it('navigates to NOTIFICATIONS.DETAILS if notification is pressed', async () => {
+    (isNotificationsFeatureEnabled as jest.Mock).mockReturnValue(true);
+
     const { result } = renderHook(() => useNotificationHandler(mockNavigation));
 
-    await result.current.handlePressedNotification(notification);
+    result.current.handlePressedNotification(notification);
 
     expect(mockNavigation.navigate).toHaveBeenCalledWith(
       Routes.NOTIFICATIONS.DETAILS,
@@ -87,163 +62,73 @@ describe('useNotificationHandler', () => {
     );
   });
 
-  it('handles notifications correctly', async () => {
-    const { waitFor } = renderHook(() =>
-      useNotificationHandler(mockNavigation),
-    );
-
-    await act(async () => {
-      notifee.onForegroundEvent(() =>
-        mockNotificationEvent({
-          type: EventType.PRESS,
-          detail: {
-            notification: {
-              body: 'notificationTest',
-              data: {
-                action: 'tx',
-                id: '123',
-              },
-            },
-          },
-        }),
-      );
-      await waitFor(() => {
-        expect(notifee.onForegroundEvent).toHaveBeenCalled();
-      });
-    });
-  });
-
   it('does nothing if the EventType is DISMISSED', async () => {
-    const { waitFor } = renderHook(() =>
-      useNotificationHandler(mockNavigation),
-    );
+    (isNotificationsFeatureEnabled as jest.Mock).mockReturnValue(true);
 
-    await act(async () => {
-      notifee.onForegroundEvent(() =>
-        mockNotificationEvent({
-          type: EventType.DISMISSED,
-          detail: {
-            notification: {
-              body: 'notificationTest',
-              data: {
-                action: 'tx',
-                id: '123',
-              },
-            },
-          },
-        }),
-      );
+    renderHook(() => useNotificationHandler(mockNavigation));
 
-      await waitFor(() => {
-        expect(notifee.onForegroundEvent).toHaveBeenCalled();
-      });
+    const event = {
+      type: EventType.DISMISSED,
+      detail: {
+        notification,
+      },
+    };
+
+    const callback = (NotificationsService.onForegroundEvent as jest.Mock).mock
+      .calls[0][0];
+    await callback(event);
+
+    expect(NotificationsService.handleNotificationEvent).toHaveBeenCalledWith({
+      type: event.type,
+      detail: event.detail,
+      callback: expect.any(Function),
     });
-  });
 
-  it('does nothing if data.action is not tx', async () => {
-    const { waitFor } = renderHook(() =>
-      useNotificationHandler(mockNavigation),
-    );
-
-    await act(async () => {
-      notifee.onForegroundEvent(() =>
-        mockNotificationEvent({
-          type: EventType.DELIVERED,
-          detail: {
-            notification: {
-              body: 'notificationTest',
-              data: {
-                action: 'no-tx',
-                id: '123',
-              },
-            },
-          },
-        }),
-      );
-
-      await waitFor(() => {
-        expect(notifee.onForegroundEvent).toHaveBeenCalled();
-      });
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
+    expect(mockNavigation.navigate).not.toHaveBeenCalled();
   });
 
   it('handleOpenedNotification does nothing if notification is null', async () => {
-    const { waitFor } = renderHook(() =>
-      useNotificationHandler(mockNavigation),
-    );
+    (isNotificationsFeatureEnabled as jest.Mock).mockReturnValue(true);
 
-    await act(async () => {
-      notifee.onForegroundEvent(() =>
-        mockNotificationEvent({
-          type: EventType.DELIVERED,
-          detail: {
-            notification: undefined,
-          },
-        }),
-      );
-      await waitFor(() => {
-        expect(notifee.onForegroundEvent).toHaveBeenCalled();
-      });
+    const { result } = renderHook(() => useNotificationHandler(mockNavigation));
 
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
+    result.current.handlePressedNotification();
+
+    expect(mockNavigation.navigate).not.toHaveBeenCalled();
   });
 
-  it('navigates to the transaction view when the notification action is "tx"', async () => {
-    const { waitFor } = renderHook(() =>
-      useNotificationHandler(mockNavigation),
-    );
-
-    await act(async () => {
-      notifee.onForegroundEvent(() =>
-        mockNotificationEvent({
-          type: EventType.DELIVERED,
-          detail: {
-            notification: {
-              body: 'notificationTest',
-              data: {
-                action: 'tx',
-                id: '123',
-              },
-            },
-          },
-        }),
-      );
-      await waitFor(() => {
-        expect(notifee.onForegroundEvent).toHaveBeenCalled();
-      });
-    });
-  }, 10000);
-
   it('processes notification on Android', async () => {
-    jest.doMock('react-native/Libraries/Utilities/Platform', () => ({
-      OS: 'android',
-    }));
+    (isNotificationsFeatureEnabled as jest.Mock).mockReturnValue(true);
 
-    const { waitFor } = renderHook(() =>
-      useNotificationHandler(mockNavigation),
-    );
+    renderHook(() => useNotificationHandler(mockNavigation));
 
-    await act(async () => {
-      notifee.onForegroundEvent(() =>
-        mockNotificationEvent({
-          type: EventType.PRESS,
-          detail: {
-            notification: {
-              body: 'notificationTest',
-              data: {
-                action: 'tx',
-                id: '123',
-              },
-            },
-          },
-        }),
-      );
-      await waitFor(() => {
-        expect(notifee.onForegroundEvent).toHaveBeenCalled();
-      });
+    const event = {
+      type: EventType.DELIVERED,
+      detail: {
+        notification,
+      },
+    };
+
+    const callback = (NotificationsService.onBackgroundEvent as jest.Mock).mock
+      .calls[0][0];
+    await callback(event);
+
+    expect(NotificationsService.handleNotificationEvent).toHaveBeenCalledWith({
+      type: event.type,
+      detail: event.detail,
+      callback: expect.any(Function),
     });
+
+    const handleNotificationCallback = (
+      NotificationsService.handleNotificationEvent as jest.Mock
+    ).mock.calls[0][0].callback;
+    await handleNotificationCallback(event.detail.notification);
+
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(
+      Routes.NOTIFICATIONS.DETAILS,
+      {
+        notificationId: notification.id,
+      },
+    );
   });
 });
