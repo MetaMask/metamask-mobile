@@ -90,7 +90,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
   const styles = createStyles(colors);
 
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
-  const chainId = useSelector(selectChainId) as `0x${string}`;
+  const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
 
   const setFocusState = useCallback(

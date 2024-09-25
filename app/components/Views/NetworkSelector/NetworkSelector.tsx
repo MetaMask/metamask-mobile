@@ -28,6 +28,7 @@ import BottomSheet, {
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useSelector } from 'react-redux';
 import {
+  ProviderConfig,
   selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../selectors/networkController';
@@ -129,7 +130,7 @@ const NetworkSelector = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
 
-  const providerConfig = useSelector(selectProviderConfig);
+  const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const route =
@@ -263,7 +264,6 @@ const NetworkSelector = () => {
         );
 
       if (domainIsConnectedDapp && process.env.MULTICHAIN_V1) {
-        // todo: check with the author
         SelectedNetworkController.setNetworkClientIdForDomain(
           origin,
           networkConfigurationId,

@@ -680,7 +680,6 @@ export class NetworkSettings extends PureComponent {
     return isNetworkUiRedesignEnabled() && chainIdExists;
   };
 
-  // TOD: Handle existing rpc
   checkIfNetworkExists = async (rpcUrl) => {
     const checkCustomNetworks = Object.values(
       this.props.networkConfigurations,
@@ -830,10 +829,7 @@ export class NetworkSettings extends PureComponent {
       route.params?.shouldNetworkSwitchPopToWallet ?? true;
     // Check if CTA is disabled
     const isCtaDisabled =
-      !enableAction ||
-      // this.disabledByRpcUrl() ||
-      this.disabledByChainId() ||
-      this.disabledBySymbol();
+      !enableAction || this.disabledByChainId() || this.disabledBySymbol();
 
     if (isCtaDisabled) {
       return;
@@ -2017,7 +2013,7 @@ export class NetworkSettings extends PureComponent {
           </View>
         </KeyboardAwareScrollView>
 
-        {showAddRpcForm.isVisible ? (
+        {isNetworkUiRedesignEnabled() && showAddRpcForm.isVisible ? (
           <BottomSheet
             ref={this.rpcAddFormSheetRef}
             onClose={this.closeAddRpcForm}
@@ -2094,7 +2090,7 @@ export class NetworkSettings extends PureComponent {
             </View>
           </BottomSheet>
         ) : null}
-        {showAddBlockExplorerForm.isVisible ? (
+        {isNetworkUiRedesignEnabled() && showAddBlockExplorerForm.isVisible ? (
           <BottomSheet
             ref={this.blockExplorerAddFormSheetRef}
             onClose={this.closeAddBlockExplorerRpcForm}
@@ -2157,7 +2153,8 @@ export class NetworkSettings extends PureComponent {
             </View>
           </BottomSheet>
         ) : null}
-        {showMultiBlockExplorerAddModal.isVisible ? (
+        {isNetworkUiRedesignEnabled() &&
+        showMultiBlockExplorerAddModal.isVisible ? (
           <BottomSheet
             ref={this.addBlockExplorerMenuSheetRef}
             onClose={this.closeBlockExplorerModal}
@@ -2196,7 +2193,7 @@ export class NetworkSettings extends PureComponent {
             </View>
           </BottomSheet>
         ) : null}
-        {showMultiRpcAddModal.isVisible ? (
+        {isNetworkUiRedesignEnabled() && showMultiRpcAddModal.isVisible ? (
           <BottomSheet
             ref={this.rpcAddMenuSheetRef}
             onClose={this.closeRpcModal}

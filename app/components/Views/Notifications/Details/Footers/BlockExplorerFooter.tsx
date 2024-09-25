@@ -32,7 +32,6 @@ export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {
     const hexChainId = toHex(props.chainId);
     return Object.values(networkConfigurations).find(
       (networkConfig) => networkConfig.chainId === hexChainId,
-      // todo : fix the multi block explorer
     )?.blockExplorerUrls?.[0];
   }, [networkConfigurations, props.chainId]);
 

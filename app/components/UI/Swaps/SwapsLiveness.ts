@@ -16,7 +16,7 @@ const POLLING_FREQUENCY = AppConstants.SWAPS.LIVENESS_POLLING_FREQUENCY;
 
 function SwapLiveness() {
   const isLive = useSelector(swapsLivenessSelector);
-  const chainId = useSelector(selectChainId) as `0x${string}`;
+  const chainId = useSelector(selectChainId);
   const dispatch = useDispatch();
   const setLiveness = useCallback(
     (_chainId, featureFlags) => {

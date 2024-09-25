@@ -4,24 +4,12 @@ import { fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import backgroundState from '../../../util/test/initial-background-state.json';
 import ClipboardManager from '../../../core/ClipboardManager';
-import { mainnetNetworkState } from '../../../util/networks/constants';
 
-const mockInitialState = {
+const initialState = {
   engine: {
-    backgroundState: {
-      ...backgroundState,
-      NetworkController: {
-        ...mainnetNetworkState,
-      },
-    },
+    backgroundState,
   },
 };
-
-jest.mock('../../../store', () => ({
-  store: {
-    getState: () => mockInitialState,
-  },
-}));
 
 const ACCOUNT = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
 
@@ -48,7 +36,7 @@ describe('QRAccountDisplay', () => {
       TestWrapper,
       { name: 'QRAccountDisplay' },
       // @ts-expect-error initialBackgroundState throws error
-      { state: mockInitialState },
+      { state: initialState },
     );
     expect(toJSON()).toMatchSnapshot();
   });
@@ -58,7 +46,7 @@ describe('QRAccountDisplay', () => {
       TestWrapper,
       { name: 'QRAccountDisplay' },
       // @ts-expect-error initialBackgroundState throws error
-      { state: mockInitialState },
+      { state: initialState },
     );
 
     const copyButton = getByTestId('qr-account-display-copy-button');

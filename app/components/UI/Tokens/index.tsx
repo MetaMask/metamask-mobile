@@ -141,8 +141,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
   const networkName = useSelector(selectNetworkName);
   const rpcUrl = useSelector(selectRpcUrl);
-  const type = useSelector(selectProviderType) as string;
-  const chainId = useSelector(selectChainId) as `0x${string}`;
+  const type = useSelector(selectProviderType);
+  const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
   const networkClientId = useSelector(selectNetworkClientId);
   const currentCurrency = useSelector(selectCurrentCurrency);

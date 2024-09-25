@@ -8,7 +8,6 @@ import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
 import { fireEvent } from '@testing-library/react-native';
 import { RootState } from 'app/reducers';
-import { mainnetNetworkState } from '../../../util/networks/constants';
 
 const setUseNftDetectionSpy = jest.spyOn(
   Engine.context.PreferencesController,
@@ -33,9 +32,6 @@ const initialState = {
     backgroundState: {
       PreferencesController: {
         displayNftMedia: true,
-      },
-      NetworkController: {
-        ...mainnetNetworkState,
       },
     },
   },
@@ -67,9 +63,6 @@ describe('NFT Auto detection modal', () => {
         backgroundState: {
           PreferencesController: {
             displayNftMedia: false,
-          },
-          NetworkController: {
-            ...mainnetNetworkState,
           },
         },
       },

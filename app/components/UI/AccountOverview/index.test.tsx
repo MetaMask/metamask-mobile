@@ -8,7 +8,6 @@ import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_1,
 } from '../../../util/test/accountsControllerTestUtils';
-import { mainnetNetworkState } from '../../../util/networks/constants';
 
 const mockedEngine = Engine;
 
