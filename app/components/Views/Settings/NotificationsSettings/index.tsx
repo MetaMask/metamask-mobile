@@ -41,7 +41,6 @@ import ButtonIcon, {
 import Button, {
   ButtonSize,
   ButtonVariants,
-  ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 
 import SessionHeader from './sectionHeader';
@@ -234,11 +233,11 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     Linking.openURL(AppConstants.URLS.PROFILE_SYNC);
   };
 
-  const onPressResetNotifications = () => {
+  const onPressResetNotifications = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.RESET_NOTIFICATIONS,
     });
-  }
+  },[navigation]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -283,8 +282,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     ],
   );
 
-  const renderResetNotificationsBtn = useCallback(() => {
-    return (
+  const renderResetNotificationsBtn = useCallback(() => (
         <Button
           variant={ButtonVariants.Primary}
           label={strings('app_settings.reset_notifications')}
@@ -292,8 +290,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           onPress={onPressResetNotifications}
           style={styles.button}
         />
-    )
-  }, [onPressResetNotifications]);
+    ), [onPressResetNotifications, styles.button]);
 
   return (
     <ScrollView style={styles.wrapper}>
