@@ -1,84 +1,192 @@
-import {
-  DeepPartial,
-  renderScreen,
-} from '../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import App from './';
-import { MetaMetrics } from '../../../core/Analytics';
-import { waitFor } from '@testing-library/react-native';
-import { RootState } from '../../../reducers';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+/* eslint-disable import/no-nodejs-modules */
+import React from 'react';
+import { shallow } from 'enzyme';
+// eslint-disable-next-line import/named
+import { NavigationContainer } from '@react-navigation/native';
+import Main from './';
+import { useSwapConfirmedEvent } from './RootRPCMethodsUI';
+import { act } from '@testing-library/react-hooks';
+import { MetaMetricsEvents } from '../../hooks/useMetrics';
+import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
+import Engine from '../../../core/Engine';
 
-const initialState: DeepPartial<RootState> = {
-  user: {
-    userLoggedIn: true,
+jest.mock('../../../core/Engine.ts', () => ({
+  controllerMessenger: {
+    subscribeOnceIf: jest.fn(),
   },
-  engine: {
-    backgroundState,
-  },
-};
-
-jest.mock('../../../core/Analytics/MetaMetrics');
-
-const mockMetrics = {
-  configure: jest.fn(),
-  addTraitsToUser: jest.fn(),
-};
-
-// Need to mock this module since it uses store.getState, which interferes with the mocks from this test file.
-jest.mock(
-  '../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData',
-  () => jest.fn().mockReturnValue({ userProp: 'User value' }),
-);
-
-jest.mock(
-  '../../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData',
-  () => jest.fn().mockReturnValue({ deviceProp: 'Device value' }),
-);
-
-(MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
-
-// // Mock the useMetrics hook
-// jest.mock('../../../components/hooks/useMetrics', () => ({
-//   useMetrics: jest.fn(),
-// }));
-
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  ...jest.requireActual('../../../components/hooks/useMetrics'),
-  withMetricsAwareness: jest.fn(),
 }));
 
-describe('App', () => {
+const TRANSACTION_META_ID_MOCK = '04541dc0-2e69-11ef-b995-33aef2c88d1e';
+
+const SWAP_TRANSACTIONS_MOCK = {
+  [TRANSACTION_META_ID_MOCK]: {
+    action: 'swap',
+    analytics: {
+      available_quotes: 5,
+      best_quote_source: 'oneInchV5',
+      chain_id: '1',
+      custom_slippage: false,
+      network_fees_ETH: '0.00337',
+      network_fees_USD: '$12.04',
+      other_quote_selected: false,
+      request_type: 'Order',
+      token_from: 'ETH',
+      token_from_amount: '0.001254',
+      token_to: 'USDC',
+      token_to_amount: '4.440771',
+    },
+    destinationAmount: '4440771',
+    destinationToken: {
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      decimals: 6,
+    },
+    paramsForAnalytics: {
+      approvalTransactionMetaId: {},
+      ethAccountBalance: '0xedfffbea734a07',
+      gasEstimate: '0x33024',
+      sentAt: '0x66732203',
+    },
+    sourceAmount: '1254000000000000',
+    sourceAmountInFiat: '$4.47',
+    sourceToken: {
+      address: '0x0000000000000000000000000000000000000000',
+      decimals: 18,
+    },
+  },
+};
+
+function renderUseSwapConfirmedEventHook({
+  swapsTransactions,
+  trackSwaps,
+}: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  swapsTransactions: any;
+  trackSwaps?: jest.Func;
+}) {
+  const finalTrackSwaps = trackSwaps || jest.fn();
+
+  const { result } = renderHookWithProvider(
+    () =>
+      useSwapConfirmedEvent({
+        trackSwaps: finalTrackSwaps,
+      }),
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              //@ts-expect-error - swaps transactions is something we do not have implemented on TransacitonController yet
+              swapsTransactions,
+            },
+          },
+        },
+      },
+    },
+  );
+
+  return result;
+}
+
+describe('Main', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    (useMetrics as jest.Mock).mockReturnValue({
-      isEnabled: jest.fn().mockReturnValue(true),
-    });
+    jest.resetAllMocks();
   });
 
-  it('renders according to latest snapshot', () => {
-    const { toJSON } = renderScreen(
-      App,
-      { name: 'App' },
-      { state: initialState },
-      { supressRender: true },
+  it('should render correctly', () => {
+    const MainAppContainer = () => (
+      <NavigationContainer>
+        <Main />
+      </NavigationContainer>
     );
-    expect(toJSON()).toMatchSnapshot();
+    const wrapper = shallow(<MainAppContainer />);
+    expect(wrapper).toMatchSnapshot();
   });
 
-  it('configures MetaMetrics instance and identifies user on startup', async () => {
-    renderScreen(
-      App,
-      { name: 'App' },
-      { state: initialState },
-      { supressRender: true },
-    );
-    await waitFor(() => {
-      expect(mockMetrics.configure).toHaveBeenCalledTimes(1);
-      expect(mockMetrics.addTraitsToUser).toHaveBeenNthCalledWith(1, {
-        deviceProp: 'Device value',
-        userProp: 'User value',
+  describe('useSwapConfirmedEvent', () => {
+    it('queues transactionMeta ids correctly', () => {
+      const result = renderUseSwapConfirmedEventHook({
+        swapsTransactions: {},
       });
+
+      act(() => {
+        result.current.addTransactionMetaIdForListening(
+          TRANSACTION_META_ID_MOCK,
+        );
+      });
+
+      expect(result.current.transactionMetaIdsForListening).toEqual([
+        TRANSACTION_META_ID_MOCK,
+      ]);
+    });
+
+    it('adds a listener for transaction confirmation on the TransactionController', () => {
+      const result = renderUseSwapConfirmedEventHook({
+        swapsTransactions: SWAP_TRANSACTIONS_MOCK,
+      });
+
+      act(() => {
+        result.current.addTransactionMetaIdForListening(
+          TRANSACTION_META_ID_MOCK,
+        );
+      });
+
+      expect(Engine.controllerMessenger.subscribeOnceIf).toHaveBeenCalledTimes(
+        1,
+      );
+    });
+
+    it('tracks Swap Confirmed after transaction confirmed', () => {
+      const trackSwaps = jest.fn();
+
+      const txMeta = {
+        id: TRANSACTION_META_ID_MOCK,
+      };
+
+      const result = renderUseSwapConfirmedEventHook({
+        swapsTransactions: SWAP_TRANSACTIONS_MOCK,
+        trackSwaps,
+      });
+
+      act(() => {
+        result.current.addTransactionMetaIdForListening(
+          TRANSACTION_META_ID_MOCK,
+        );
+      });
+
+      jest
+        .mocked(Engine.controllerMessenger.subscribeOnceIf)
+        .mock.calls[0][1](txMeta as never);
+
+      expect(trackSwaps).toHaveBeenCalledWith(
+        MetaMetricsEvents.SWAP_COMPLETED,
+        txMeta,
+        SWAP_TRANSACTIONS_MOCK,
+      );
+    });
+
+    it('removes transactionMeta id after tracking', () => {
+      const trackSwaps = jest.fn();
+
+      const txMeta = {
+        id: TRANSACTION_META_ID_MOCK,
+      };
+
+      const result = renderUseSwapConfirmedEventHook({
+        swapsTransactions: SWAP_TRANSACTIONS_MOCK,
+        trackSwaps,
+      });
+
+      act(() => {
+        result.current.addTransactionMetaIdForListening(
+          TRANSACTION_META_ID_MOCK,
+        );
+      });
+
+      jest
+        .mocked(Engine.controllerMessenger.subscribeOnceIf)
+        .mock.calls[0][1](txMeta as never);
+
+      expect(result.current.transactionMetaIdsForListening).toEqual([]);
     });
   });
 });
