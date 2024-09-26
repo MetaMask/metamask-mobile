@@ -419,7 +419,6 @@ workflows:
           title: Unit Test
           is_always_run: false
       - script@1:
-          title: 'Report Automated Test Results'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
