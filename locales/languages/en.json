@@ -3304,6 +3304,11 @@
     "not_enough_eth": "Not enough ETH",
     "balance": "Balance",
     "your_balance": "Your balance",
+    "stake_eth_and_earn": "Stake ETH and earn",
+    "stake_your_eth_cta": {
+      "base": "Stake your ETH with MetaMask Pool and earn",
+      "annually": "annually."
+    },
     "day": {
       "zero": "",
       "one": "day",
