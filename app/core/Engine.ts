@@ -591,12 +591,10 @@ class Engine {
         allowedActions: [
           `${approvalController.name}:addRequest`,
           `${networkController.name}:getNetworkClientById`,
-          'NftController:getState',
         ],
         allowedEvents: [
           'PreferencesController:stateChange',
           'NetworkController:networkDidChange',
-          'NftController:stateChange',
         ],
       }),
 
