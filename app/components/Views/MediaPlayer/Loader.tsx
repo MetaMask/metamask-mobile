@@ -10,7 +10,7 @@ import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
-import { Theme } from '../../../util/theme/models';
+import { Theme } from '@metamask/design-tokens';
 
 const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
