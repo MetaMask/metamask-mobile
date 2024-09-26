@@ -7,6 +7,7 @@ import App from './';
 import { MetaMetrics } from '../../../core/Analytics';
 import { waitFor } from '@testing-library/react-native';
 import { RootState } from '../../../reducers';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const initialState: DeepPartial<RootState> = {
   user: {
@@ -37,9 +38,22 @@ jest.mock(
 
 (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
 
+// // Mock the useMetrics hook
+// jest.mock('../../../components/hooks/useMetrics', () => ({
+//   useMetrics: jest.fn(),
+// }));
+
+jest.mock('../../../components/hooks/useMetrics', () => ({
+  ...jest.requireActual('../../../components/hooks/useMetrics'),
+  withMetricsAwareness: jest.fn(),
+}));
+
 describe('App', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (useMetrics as jest.Mock).mockReturnValue({
+      isEnabled: jest.fn().mockReturnValue(true),
+    });
   });
 
   it('renders according to latest snapshot', () => {

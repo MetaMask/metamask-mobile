@@ -1,12 +1,11 @@
-// @ts-nocheck
 import React from 'react';
-import { render, act, waitFor } from '@testing-library/react-native';
+import { render, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import TransactionsView from './index';
 
 jest.mock('@react-navigation/compat', () => ({
-  withNavigation: (component: React.ReactNode) => component,
+  withNavigation: (component) => component,
 }));
 jest.mock('../../../store', () => ({
   store: {
@@ -24,7 +23,7 @@ jest.mock('react', () => ({
 const mockStore = configureStore([]);
 
 describe('TransactionsView', () => {
-  let store: ReturnType<typeof mockStore>;
+  let store;
   const initialState = {
     engine: {
       backgroundState: {
@@ -67,12 +66,12 @@ describe('TransactionsView', () => {
     },
   };
 
-  let mockSetLoading: jest.Mock;
+  let mockSetLoading;
 
   beforeEach(() => {
     store = mockStore(initialState);
     mockSetLoading = jest.fn();
-    (React.useState as jest.Mock).mockImplementation((initialState) => [
+    React.useState.mockImplementation((initialState) => [
       initialState,
       mockSetLoading,
     ]);
@@ -130,11 +129,8 @@ describe('TransactionsView', () => {
   it('handles loading state', async () => {
     mockLoading = true;
 
-    (React.useState as jest.Mock).mockImplementation(() => [
-      mockLoading,
-      mockSetLoading,
-    ]);
-    const { getByTestId, rerender } = render(
+    React.useState.mockImplementation(() => [mockLoading, mockSetLoading]);
+    const { getByTestId } = render(
       <Provider store={store}>
         <TransactionsView />
       </Provider>,
