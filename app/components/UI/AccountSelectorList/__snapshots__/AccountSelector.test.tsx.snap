@@ -560,36 +560,6 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
               >
                 0xd018...78E7
               </Text>
-              <View
-                style={
-                  {
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "#bbc0c5",
-                    "borderRadius": 10,
-                    "borderWidth": 1,
-                    "height": 24,
-                    "justifyContent": "center",
-                    "marginTop": 4,
-                    "paddingHorizontal": 4,
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                    }
-                  }
-                >
-                  Imported
-                </Text>
-              </View>
             </View>
             <View
               style={
@@ -1147,36 +1117,6 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
               >
                 0xd018...78E7
               </Text>
-              <View
-                style={
-                  {
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "#bbc0c5",
-                    "borderRadius": 10,
-                    "borderWidth": 1,
-                    "height": 24,
-                    "justifyContent": "center",
-                    "marginTop": 4,
-                    "paddingHorizontal": 4,
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                    }
-                  }
-                >
-                  Imported
-                </Text>
-              </View>
             </View>
             <View
               style={
@@ -1759,36 +1699,6 @@ exports[`AccountSelectorList renders correctly 1`] = `
               >
                 0xd018...78E7
               </Text>
-              <View
-                style={
-                  {
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "#bbc0c5",
-                    "borderRadius": 10,
-                    "borderWidth": 1,
-                    "height": 24,
-                    "justifyContent": "center",
-                    "marginTop": 4,
-                    "paddingHorizontal": 4,
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                    }
-                  }
-                >
-                  Imported
-                </Text>
-              </View>
             </View>
             <View
               style={
@@ -2157,36 +2067,6 @@ exports[`AccountSelectorList should render all accounts but only the balance for
               >
                 0xd018...78E7
               </Text>
-              <View
-                style={
-                  {
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "#bbc0c5",
-                    "borderRadius": 10,
-                    "borderWidth": 1,
-                    "height": 24,
-                    "justifyContent": "center",
-                    "marginTop": 4,
-                    "paddingHorizontal": 4,
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                    }
-                  }
-                >
-                  Imported
-                </Text>
-              </View>
             </View>
           </View>
         </View>
