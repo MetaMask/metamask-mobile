@@ -1,5 +1,5 @@
 import { BN } from 'ethereumjs-util';
-import { validateTokenTransaction } from './validation';
+import { validateSufficientBalance, validateSufficientTokenBalance } from './validation';
 import { renderFromWei, hexToBN } from '../../../../../util/number';
 import {
   getTicker,
@@ -21,25 +21,19 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn(),
 }));
 
-describe('validateTokenTransaction', () => {
-  it('return an error message if weiBalance is less than totalTransactionValue', () => {
-    const transaction = { data: '0x' };
+describe('validateSufficientBalance', () => {
+  it('returns an error message if weiBalance is less than totalTransactionValue', () => {
     const weiBalance = new BN('1000');
     const totalTransactionValue = new BN('2000');
-    const contractBalances = { '0x123': '1000' };
-    const selectedAsset = { address: '0x123', decimals: '18', symbol: 'TOKEN' };
     const ticker = 'TOKEN';
 
     (renderFromWei as jest.Mock).mockReturnValue('1');
     (getTicker as jest.Mock).mockReturnValue('TOKEN');
     (strings as jest.Mock).mockReturnValue('Insufficient amount');
 
-    const result = validateTokenTransaction(
-      transaction,
+    const result = validateSufficientBalance(
       weiBalance,
       totalTransactionValue,
-      contractBalances,
-      selectedAsset,
       ticker,
     );
 
@@ -54,25 +48,35 @@ describe('validateTokenTransaction', () => {
     });
   });
 
-  it('return an error message if tokenBalance is less than weiInput', () => {
-    const transaction = { data: '0x' };
+  it('returns undefined if weiBalance is sufficient', () => {
     const weiBalance = new BN('2000');
     const totalTransactionValue = new BN('1000');
+    const ticker = 'TOKEN';
+
+    const result = validateSufficientBalance(
+      weiBalance,
+      totalTransactionValue,
+      ticker,
+    );
+
+    expect(result).toBeUndefined();
+  });
+});
+
+describe('validateSufficientTokenBalance', () => {
+  it('returns an error message if tokenBalance is less than weiInput', () => {
+    const transaction = { data: '0x' };
     const contractBalances = { '0x123': '1000' };
     const selectedAsset = { address: '0x123', decimals: '18', symbol: 'TOKEN' };
-    const ticker = 'TOKEN';
 
     (decodeTransferData as jest.Mock).mockReturnValue([null, null, '5000']);
     (hexToBN as jest.Mock).mockImplementation((value) => new BN(value));
     (strings as jest.Mock).mockReturnValue('Insufficient tokens');
 
-    const result = validateTokenTransaction(
+    const result = validateSufficientTokenBalance(
       transaction,
-      weiBalance,
-      totalTransactionValue,
       contractBalances,
       selectedAsset,
-      ticker,
     );
 
     expect(result).toBe('Insufficient tokens');
@@ -86,24 +90,18 @@ describe('validateTokenTransaction', () => {
     });
   });
 
-  it('return undefined if weiBalance and tokenBalance are sufficient', () => {
+  it('returns undefined if tokenBalance is sufficient', () => {
     const transaction = { data: '0x' };
-    const weiBalance = new BN('2000');
-    const totalTransactionValue = new BN('1000');
     const contractBalances = { '0x123': '5000' };
     const selectedAsset = { address: '0x123', decimals: '18', symbol: 'TOKEN' };
-    const ticker = 'TOKEN';
 
     (decodeTransferData as jest.Mock).mockReturnValue([null, null, '1000']);
     (hexToBN as jest.Mock).mockImplementation((value) => new BN(value));
 
-    const result = validateTokenTransaction(
+    const result = validateSufficientTokenBalance(
       transaction,
-      weiBalance,
-      totalTransactionValue,
       contractBalances,
       selectedAsset,
-      ticker,
     );
 
     expect(result).toBeUndefined();

@@ -120,13 +120,15 @@ import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartT
 import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
 import { TransactionConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/TransactionConfirmView.selectors.js';
-import { selectTransactionMetrics } from '../../../../../core/redux/slices/transactionMetrics';
+import {
+  selectTransactionMetrics,
+  updateTransactionMetrics,
+} from '../../../../../core/redux/slices/transactionMetrics';
 import SimulationDetails from '../../../../UI/SimulationDetails/SimulationDetails';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 import {
-  generateInsufficientBalanceMessage,
-  validateBalance,
-  validateTokenTransaction,
+  validateSufficientTokenBalance,
+  validateSufficientBalance,
 } from './validation';
 import { buildTransactionParams } from '../../../../../util/confirmation/transactions';
 
@@ -264,6 +266,10 @@ class Confirm extends PureComponent {
      * Object containing the transaction simulation data
      */
     transactionSimulationData: PropTypes.object,
+    /**
+     * Update transaction metrics
+     */
+    updateTransactionMetrics: PropTypes.func,
     /**
      * Indicates whether the transaction simulations feature is enabled
      */
@@ -765,10 +771,7 @@ class Confirm extends PureComponent {
   };
 
   /**
-   * Validates crypto value only
-   * Independent of current internalPrimaryCurrencyIsCrypto
-   *
-   * @param {string} - Crypto value
+   * Validates transaction balances
    * @returns - Whether there is an error with the amount
    */
   validateAmount = ({ transaction, total }) => {
@@ -780,7 +783,10 @@ class Confirm extends PureComponent {
       transactionState: {
         transaction: { value },
       },
+      updateTransactionMetrics,
     } = this.props;
+    const { transactionMeta } = this.state;
+    const { id: transactionId } = transactionMeta;
 
     const selectedAddress = transaction?.from;
     const weiBalance = hexToBN(accounts[selectedAddress].balance);
@@ -790,24 +796,34 @@ class Confirm extends PureComponent {
       return strings('transaction.invalid_amount');
     }
 
-    if (selectedAsset.isETH || selectedAsset.tokenId) {
-      if (!validateBalance(weiBalance, totalTransactionValue)) {
-        return undefined;
-      }
-      return generateInsufficientBalanceMessage(
-        weiBalance,
-        totalTransactionValue,
-        ticker,
-      );
-    }
-    return validateTokenTransaction(
-      transaction,
+    const insufficientBalanceMessage = validateSufficientBalance(
       weiBalance,
       totalTransactionValue,
-      contractBalances,
-      selectedAsset,
       ticker,
     );
+
+    if (insufficientBalanceMessage) {
+      updateTransactionMetrics({
+        transactionId,
+        params: {
+          properties: {
+            alert_triggered: ['insufficient_funds_for_gas'],
+          },
+        },
+      });
+    }
+
+    if (selectedAsset.isETH || selectedAsset.tokenId) {
+      return insufficientBalanceMessage;
+    }
+
+    const insufficientTokenBalanceMessage = validateSufficientTokenBalance(
+      transaction,
+      contractBalances,
+      selectedAsset,
+    );
+
+    return insufficientBalanceMessage || insufficientTokenBalanceMessage;
   };
 
   setError = (errorMessage) => {
@@ -1510,6 +1526,8 @@ const mapDispatchToProps = (dispatch) => ({
   removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>
     dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible)),
   showAlert: (config) => dispatch(showAlert(config)),
+  updateTransactionMetrics: ({ transactionId, params }) =>
+    dispatch(updateTransactionMetrics({ transactionId, params })),
 });
 
 export default connect(

@@ -28,24 +28,13 @@ export const generateInsufficientBalanceMessage = (
 export const validateBalance = (weiBalance: BN, transactionValue: BN) =>
   !weiBalance.gte(transactionValue);
 
-export const validateTokenTransaction = (
+export const validateSufficientTokenBalance = (
   transaction: {
     data: string;
   },
-  weiBalance: BN,
-  totalTransactionValue: BN,
   contractBalances: { [key: string]: string },
   selectedAsset: SelectedAsset,
-  ticker: string,
 ) => {
-  if (validateBalance(weiBalance, totalTransactionValue)) {
-    return generateInsufficientBalanceMessage(
-      weiBalance,
-      totalTransactionValue,
-      ticker,
-    );
-  }
-
   const [, , amount] = decodeTransferData('transfer', transaction.data);
   const tokenBalance = hexToBN(contractBalances[selectedAsset.address]);
   const weiInput = hexToBN(amount);
@@ -56,5 +45,20 @@ export const validateTokenTransaction = (
     });
   }
 
+  return undefined;
+};
+
+export const validateSufficientBalance = (
+  weiBalance: BN,
+  totalTransactionValue: BN,
+  ticker: string,
+) => {
+  if (validateBalance(weiBalance, totalTransactionValue)) {
+    return generateInsufficientBalanceMessage(
+      weiBalance,
+      totalTransactionValue,
+      ticker,
+    );
+  }
   return undefined;
 };
