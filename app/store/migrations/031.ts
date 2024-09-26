@@ -3,7 +3,7 @@ import { captureException } from '@sentry/react-native';
 import {
   TokenListState,
   TokenRatesState,
-  TokensState,
+  TokensControllerState,
 } from '@metamask/assets-controllers';
 import { toHex } from '@metamask/controller-utils';
 //@ts-expect-error - This error is expected, but ethereumjs-util exports this function
@@ -157,7 +157,7 @@ export default async function migrate(stateAsync: unknown) {
   const tokensControllerState =
     state?.engine?.backgroundState?.TokensController;
   const newTokensControllerState = state?.engine?.backgroundState
-    ?.TokensController as TokensState;
+    ?.TokensController as TokensControllerState;
 
   if (!isObject(tokensControllerState)) {
     captureException(

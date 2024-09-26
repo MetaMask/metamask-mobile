@@ -2,11 +2,11 @@ import {
   AccountTrackerState,
   CurrencyRateState,
   NftDetectionController,
-  NftState,
+  NftControllerState,
   TokenDetectionController,
   TokenListState,
   TokenRatesState,
-  TokensState,
+  TokensControllerState,
   TokenBalancesControllerState,
 } from '@metamask/assets-controllers';
 import SwapsController from '@metamask/swaps-controller';
@@ -30,7 +30,7 @@ export interface EngineState {
       AccountTrackerController: AccountTrackerState;
       AddressBookController: AddressBookControllerState;
       AssetsContractController: BaseState;
-      NftController: NftState;
+      NftController: NftControllerState;
       TokenListController: TokenListState;
       CurrencyRateController: CurrencyRateState;
       KeyringController: KeyringControllerMemState;
@@ -46,7 +46,7 @@ export interface EngineState {
       SnapController: SnapController;
       ///: END:ONLY_INCLUDE_IF
       GasFeeController: GasFeeController;
-      TokensController: TokensState;
+      TokensController: TokensControllerState;
       TokenDetectionController: TokenDetectionController;
       NftDetectionController: NftDetectionController;
       ApprovalController: ApprovalControllerState;
