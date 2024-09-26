@@ -13,7 +13,7 @@ import {
   isHardwareAccount,
   resemblesAddress,
   getKeyringByAddress,
-  getAccountLabelTextByKeyring,
+  getAccountLabelTextByAddress,
 } from '.';
 import {
   mockHDKeyringAddress,
@@ -301,36 +301,36 @@ describe('isHardwareAccount,', () => {
     ).toBeFalsy();
   });
 });
-describe('getAccountLabelTextByKeyring,', () => {
+describe('getAccountLabelTextByAddress,', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
 
   it('should return accounts.qr_hardware if account is a QR keyring', () => {
-    expect(getAccountLabelTextByKeyring(mockQrKeyringAddress)).toBe(
+    expect(getAccountLabelTextByAddress(mockQrKeyringAddress)).toBe(
       'accounts.qr_hardware',
     );
   });
 
   it('should return KeyringTypes.simple if address is a imported account', () => {
-    expect(getAccountLabelTextByKeyring(mockSimpleKeyringAddress)).toBe(
+    expect(getAccountLabelTextByAddress(mockSimpleKeyringAddress)).toBe(
       'accounts.imported',
     );
   });
 
   it('returns "Snaps (beta)" if account is a Snap keyring', () => {
-    expect(getAccountLabelTextByKeyring(snapAddress)).toBe(
+    expect(getAccountLabelTextByAddress(snapAddress)).toBe(
       'accounts.snap_account_tag',
     );
   });
 
   it('should return null if address is empty', () => {
-    expect(getAccountLabelTextByKeyring('')).toBe(null);
+    expect(getAccountLabelTextByAddress('')).toBe(null);
   });
 
   it('should return null if account not found', () => {
     expect(
-      getAccountLabelTextByKeyring(
+      getAccountLabelTextByAddress(
         '0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278',
       ),
     ).toBe(null);

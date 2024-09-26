@@ -28,7 +28,7 @@ import Text, {
 import { useStyles } from '../../../../component-library/hooks';
 import {
   formatAddress,
-  getAccountLabelTextByKeyring,
+  getAccountLabelTextByAddress,
 } from '../../../../util/address';
 import { AccountConnectScreens } from '../AccountConnect.types';
 
@@ -135,7 +135,7 @@ const AccountConnectSingle = ({
     if (!defaultSelectedAccount) return null;
     const { name, address, balanceError } = defaultSelectedAccount;
     const shortAddress = formatAddress(address, 'short');
-    const tagLabel = getAccountLabelTextByKeyring(address);
+    const tagLabel = getAccountLabelTextByAddress(address);
 
     return (
       <Cell

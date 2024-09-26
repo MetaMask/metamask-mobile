@@ -9,7 +9,7 @@ import {
   renderShortAddress,
   renderSlightlyLongAddress,
   isENS,
-  getAccountLabelTextByKeyring,
+  getAccountLabelTextByAddress,
 } from '../../../util/address';
 import { strings } from '../../../../locales/i18n';
 import { hasZeroWidthPoints } from '../../../util/confusables';
@@ -252,7 +252,7 @@ export const AddressTo = (props) => {
     isFromAddressBook = false,
     layout = 'horizontal',
   } = props;
-  const accountLabel = getAccountLabelTextByKeyring(toSelectedAddress);
+  const accountLabel = getAccountLabelTextByAddress(toSelectedAddress);
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors, layout);
 
@@ -582,7 +582,7 @@ export const AddressFrom = (props) => {
     fromAccountAddress,
     layout = 'horizontal',
   } = props;
-  const accountLabel = getAccountLabelTextByKeyring(fromAccountAddress);
+  const accountLabel = getAccountLabelTextByAddress(fromAccountAddress);
   const { colors } = useTheme();
   const styles = createStyles(colors, layout);
 

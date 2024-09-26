@@ -15,7 +15,7 @@ import {
   selectNetworkName,
 } from '../../../../../selectors/networkInfos';
 import {
-  getAccountLabelTextByKeyring,
+  getAccountLabelTextByAddress,
   renderAccountName,
 } from '../../../../../util/address';
 import useAddressBalance from '../../../../hooks/useAddressBalance/useAddressBalance';
@@ -70,7 +70,7 @@ const ApproveTransactionHeader = ({
 
   const networkImage = useSelector(selectNetworkImageSource);
 
-  const accountTypeLabel = getAccountLabelTextByKeyring(activeAddress);
+  const accountTypeLabel = getAccountLabelTextByAddress(activeAddress);
 
   return (
     <View style={styles.transactionHeader}>
