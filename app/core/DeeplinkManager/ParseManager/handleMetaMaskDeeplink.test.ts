@@ -358,6 +358,8 @@ describe('handleMetaMaskProtocol', () => {
         context: 'deeplink_scheme',
         otherPublicKey: params.pubkey,
         protocolVersion: 1,
+        originatorInfo: undefined,
+        rpc: undefined,
         sdkConnect: {
           getConnections: mockGetConnections,
           connectToChannel: mockConnectToChannel,
@@ -365,6 +367,11 @@ describe('handleMetaMaskProtocol', () => {
           reconnect: mockReconnect,
           getApprovedHosts: mockGetApprovedHosts,
           bindAndroidSDK: mockBindAndroidSDK,
+          state: {
+            navigation: {
+              navigate: mockNavigate,
+            },
+          },
         },
       });
     });
