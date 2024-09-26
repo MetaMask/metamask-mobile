@@ -585,13 +585,13 @@ workflows:
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
-      - script@1:
-          title: Install CCache & symlink
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                sudo apt update
-                sudo apt install ccache -y
+      # - script@1:
+      #     title: Install CCache & symlink
+      #     inputs:
+      #       - content: |-
+      #           #!/usr/bin/env bash
+      #           sudo apt update
+      #           sudo apt install ccache -y
       # - restore-cache@2:
       #     title: Restore CCache
       #     inputs:
@@ -828,18 +828,18 @@ workflows:
                 envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
                 brew tap wix/brew
           title: Set Env Path for caching deps
-      - script@1:
-          title: Install CCache & symlink
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                brew install ccache with HOMEBREW_NO_DEPENDENTS_CHECK=1
-                ln -s $(which ccache) /usr/local/bin/gcc
-                ln -s $(which ccache) /usr/local/bin/g++
-                ln -s $(which ccache) /usr/local/bin/cc
-                ln -s $(which ccache) /usr/local/bin/c++
-                ln -s $(which ccache) /usr/local/bin/clang
-                ln -s $(which ccache) /usr/local/bin/clang++
+      # - script@1:
+      #     title: Install CCache & symlink
+      #     inputs:
+      #       - content: |-
+      #           #!/usr/bin/env bash
+      #           brew install ccache with HOMEBREW_NO_DEPENDENTS_CHECK=1
+      #           ln -s $(which ccache) /usr/local/bin/gcc
+      #           ln -s $(which ccache) /usr/local/bin/g++
+      #           ln -s $(which ccache) /usr/local/bin/cc
+      #           ln -s $(which ccache) /usr/local/bin/c++
+      #           ln -s $(which ccache) /usr/local/bin/clang
+      #           ln -s $(which ccache) /usr/local/bin/clang++
       # - restore-cache@2:
       #     title: Restore CCache
       #     inputs:
