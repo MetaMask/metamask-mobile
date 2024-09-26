@@ -2,6 +2,7 @@ import { AndroidChannel, AndroidImportance } from '@notifee/react-native';
 
 export enum ChannelId {
   DEFAULT_NOTIFICATION_CHANNEL_ID = 'DEFAULT_NOTIFICATION_CHANNEL_ID',
+  ANNOUNCEMENT_NOTIFICATION_CHANNEL_ID = 'ANNOUNCEMENT_NOTIFICATION_CHANNEL_ID',
 }
 
 export interface MetaMaskAndroidChannel extends AndroidChannel {
@@ -21,7 +22,7 @@ export const notificationChannels = [
     subtitle: 'Transaction Complete',
   } as MetaMaskAndroidChannel,
   {
-    id: ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
+    id: ChannelId.ANNOUNCEMENT_NOTIFICATION_CHANNEL_ID,
     name: 'MetaMask Announcement',
     lights: false,
     vibration: false,
