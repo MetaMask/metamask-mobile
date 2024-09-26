@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View, InteractionManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import Transactions from '../../UI/Transactions';
 import {
   TX_UNAPPROVED,
@@ -50,10 +50,6 @@ interface Transaction {
   insertImportTime?: boolean;
 }
 
-interface Token {
-  address: string;
-}
-
 const TransactionsView: React.FC = () => {
   const navigation = useNavigation();
 
@@ -89,8 +85,8 @@ const TransactionsView: React.FC = () => {
       let accountAddedTimeInsertPointFound = false;
       const addedAccountTime = selectedInternalAccount?.metadata.importTime;
 
-      const submittedTxs: Transaction[] = [];
-      const confirmedTxs: Transaction[] = [];
+      const submitTsx: Transaction[] = [];
+      const confirmTxs: Transaction[] = [];
       const submittedNonces: string[] = [];
 
       const allTransactionsSorted = sortTransactions(transactions).filter(
@@ -98,7 +94,7 @@ const TransactionsView: React.FC = () => {
           self.findIndex((_tx) => _tx.id === tx.id) === index,
       );
 
-      const allTransactions = allTransactionsSorted.filter((tx) => {
+      const tempTransactions = allTransactionsSorted.filter((tx) => {
         const filter = filterByAddressAndNetwork(
           tx,
           tokens,
@@ -121,23 +117,23 @@ const TransactionsView: React.FC = () => {
           case TX_SIGNED:
           case TX_UNAPPROVED:
           case TX_PENDING:
-            submittedTxs.push(tx);
+            submitTsx.push(tx);
             return false;
           case TX_CONFIRMED:
-            confirmedTxs.push(tx);
+            confirmTxs.push(tx);
             break;
         }
 
         return filter;
       });
 
-      const submittedTxsFiltered = submittedTxs.filter(({ txParams }) => {
+      const submittedTxsFiltered = submitTsx.filter(({ txParams }) => {
         const { from, nonce } = txParams;
         if (!toLowerCaseEquals(from, selectedAddress)) {
           return false;
         }
         const alreadySubmitted = submittedNonces.includes(nonce);
-        const alreadyConfirmed = confirmedTxs.find(
+        const alreadyConfirmed = confirmTxs.find(
           (tx) =>
             toLowerCaseEquals(
               safeToChecksumAddress(tx.txParams.from),
@@ -151,13 +147,13 @@ const TransactionsView: React.FC = () => {
         return !alreadySubmitted;
       });
 
-      if (!accountAddedTimeInsertPointFound && allTransactions.length) {
-        allTransactions[allTransactions.length - 1].insertImportTime = true;
+      if (!accountAddedTimeInsertPointFound && tempTransactions.length) {
+        tempTransactions[tempTransactions.length - 1].insertImportTime = true;
       }
 
-      setAllTransactions(allTransactions);
+      setAllTransactions(tempTransactions);
       setSubmittedTxs(submittedTxsFiltered);
-      setConfirmedTxs(confirmedTxs);
+      setConfirmedTxs(confirmTxs);
       setLoading(false);
     },
     [transactions, selectedInternalAccount, selectedAddress, tokens, chainId],
