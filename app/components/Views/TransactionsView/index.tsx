@@ -31,7 +31,7 @@ import {
   filterByAddressAndNetwork,
   sortTransactions,
 } from '../../../util/activity';
-import Engine from '../../../core/Engine';
+import { store } from '../../../store';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -111,8 +111,8 @@ const TransactionsView: React.FC = () => {
 
         tx.insertImportTime = addAccountTimeFlagFilter(
           tx,
-          addedAccountTime ?? {},
-          accountAddedTimeInsertPointFound,
+          (addedAccountTime ?? {}) as object,
+          { found: accountAddedTimeInsertPointFound },
         );
         if (tx.insertImportTime) accountAddedTimeInsertPointFound = true;
 
@@ -166,7 +166,7 @@ const TransactionsView: React.FC = () => {
   useEffect(() => {
     setLoading(true);
     InteractionManager.runAfterInteractions(() => {
-      const { networkId } = Engine.state.inpageProvider;
+      const { networkId } = store.getState().inpageProvider;
       filterTransactions(networkId);
     });
   }, [filterTransactions]);
