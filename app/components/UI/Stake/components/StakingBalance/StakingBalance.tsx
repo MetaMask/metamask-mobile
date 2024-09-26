@@ -101,7 +101,9 @@ const StakingBalance = () => {
 
   const networkName = useSelector(selectNetworkName);
 
-  const [isGeoBlocked] = useState(true);
+  const [isGeoBlocked] = useState(false);
+  const [hasStakedPositions] = useState(true);
+  const [balanceEth] = useState('4.9999 ETH');
 
   const { unstakingRequests, claimableRequests } = useMemo(
     () =>
@@ -128,65 +130,76 @@ const StakingBalance = () => {
 
   return (
     <View>
-      <AssetElement
-        asset={MOCK_STAKED_ETH_ASSET}
-        mainBalance={MOCK_STAKED_ETH_ASSET.balance}
-        balance={MOCK_STAKED_ETH_ASSET.balanceFiat}
-      >
-        <BadgeWrapper
-          style={styles.badgeWrapper}
-          badgeElement={
-            <Badge
-              variant={BadgeVariant.Network}
-              imageSource={images.ETHEREUM}
-              name={networkName}
-            />
-          }
+      {!!balanceEth && !isGeoBlocked && (
+        <AssetElement
+          asset={MOCK_STAKED_ETH_ASSET}
+          mainBalance={MOCK_STAKED_ETH_ASSET.balance}
+          balance={MOCK_STAKED_ETH_ASSET.balanceFiat}
         >
-          <NetworkMainAssetLogo style={styles.ethLogo} />
-        </BadgeWrapper>
-        <Text style={styles.balances} variant={TextVariant.BodyLGMedium}>
-          {MOCK_STAKED_ETH_ASSET.name || MOCK_STAKED_ETH_ASSET.symbol}
-        </Text>
-      </AssetElement>
-      <View style={styles.container}>
-        {unstakingRequests.map(
-          ({ positionTicket, withdrawalTimestamp, assetsToDisplay }) =>
-            assetsToDisplay && (
-              <UnstakingBanner
-                key={positionTicket}
-                amountEth={fixDisplayAmount(
-                  multiplyValueByPowerOfTen(new bn(assetsToDisplay), -18),
-                  4,
-                )}
-                timeRemaining={
-                  !Number(withdrawalTimestamp)
-                    ? { days: 11, hours: 0, minutes: 0 } // default to 11 days.
-                    : getTimeDifferenceFromNow(Number(withdrawalTimestamp))
-                }
-                style={styles.bannerStyles}
+          <BadgeWrapper
+            style={styles.badgeWrapper}
+            badgeElement={
+              <Badge
+                variant={BadgeVariant.Network}
+                imageSource={images.ETHEREUM}
+                name={networkName}
               />
-            ),
-        )}
-        {hasClaimableEth && (
-          <ClaimBanner
-            claimableAmount={claimableEth}
-            style={styles.bannerStyles}
-          />
-        )}
-        {isGeoBlocked && (
+            }
+          >
+            <NetworkMainAssetLogo style={styles.ethLogo} />
+          </BadgeWrapper>
+          <Text style={styles.balances} variant={TextVariant.BodyLGMedium}>
+            {MOCK_STAKED_ETH_ASSET.name || MOCK_STAKED_ETH_ASSET.symbol}
+          </Text>
+        </AssetElement>
+      )}
+
+      <View style={styles.container}>
+        {isGeoBlocked ? (
           <Banner
             variant={BannerVariant.Alert}
             severity={BannerAlertSeverity.Warning}
             description={strings('stake.banner_text.geo_blocked')}
             style={styles.bannerStyles}
           />
+        ) : (
+          <>
+            {unstakingRequests.map(
+              ({ positionTicket, withdrawalTimestamp, assetsToDisplay }) =>
+                assetsToDisplay && (
+                  <UnstakingBanner
+                    key={positionTicket}
+                    amountEth={fixDisplayAmount(
+                      multiplyValueByPowerOfTen(new bn(assetsToDisplay), -18),
+                      4,
+                    )}
+                    timeRemaining={
+                      !Number(withdrawalTimestamp)
+                        ? { days: 11, hours: 0, minutes: 0 } // default to 11 days.
+                        : getTimeDifferenceFromNow(Number(withdrawalTimestamp))
+                    }
+                    style={styles.bannerStyles}
+                  />
+                ),
+            )}
+
+            {hasClaimableEth && (
+              <ClaimBanner
+                claimableAmount={claimableEth}
+                style={styles.bannerStyles}
+              />
+            )}
+
+            {hasStakedPositions && (
+              <StakingCta
+                style={styles.stakingCta}
+                estimatedRewardRate={MOCK_REWARD_RATE}
+              />
+            )}
+
+            <StakingButtons style={styles.buttonsContainer} />
+          </>
         )}
-        <StakingCta
-          style={styles.stakingCta}
-          estimatedRewardRate={MOCK_REWARD_RATE}
-        />
-        <StakingButtons style={styles.buttonsContainer} />
       </View>
     </View>
   );
