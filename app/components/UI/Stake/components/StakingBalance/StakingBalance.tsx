@@ -186,10 +186,7 @@ const StakingBalance = () => {
           style={styles.stakingCta}
           estimatedRewardRate={MOCK_REWARD_RATE}
         />
-        {/* TODO: Pass styles directly to StakingButtons instead of wrapping in a View */}
-        <View style={styles.buttonsContainer}>
-          <StakingButtons />
-        </View>
+        <StakingButtons style={styles.buttonsContainer} />
       </View>
     </View>
   );

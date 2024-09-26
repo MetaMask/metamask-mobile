@@ -763,41 +763,142 @@ exports[`StakingBalance render matches snapshot 1`] = `
                         <View
                           style={
                             {
-                              "paddingTop": 8,
+                              "paddingBottom": 8,
                             }
                           }
                         >
+                          <Text
+                            style={
+                              [
+                                {
+                                  "color": "#141618",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 30,
+                                  "fontWeight": "400",
+                                  "marginVertical": 2,
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                [
+                                  {
+                                    "color": "#141618",
+                                    "fontFamily": "EuclidCircularB-Bold",
+                                    "fontSize": 18,
+                                    "fontWeight": "600",
+                                    "marginVertical": 3,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "fontFamily": "Euclid Circular B",
+                                    "fontSize": 16,
+                                    "fontWeight": "700",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                    "marginVertical": 0,
+                                    "paddingBottom": 16,
+                                    "paddingTop": 14,
+                                  },
+                                ],
+                              ]
+                            }
+                          >
+                            Stake ETH and earn
+                          </Text>
                           <View
                             style={
                               {
                                 "flexDirection": "row",
-                                "gap": 8,
-                                "justifyContent": "space-between",
+                                "flexWrap": "wrap",
                               }
                             }
                           >
-                            <TouchableOpacity
-                              accessibilityRole="button"
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#141618",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
+                                }
+                              }
+                            >
+                              Stake your ETH with MetaMask Pool and earn
+                               
+                            </Text>
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#1c8234",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
+                                }
+                              }
+                            >
+                              2.6%
+                            </Text>
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#141618",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
+                                }
+                              }
+                            >
+                              annually.
+                               
+                            </Text>
+                            <Text
+                              accessibilityRole="link"
                               accessible={true}
-                              activeOpacity={1}
                               onPress={[Function]}
                               onPressIn={[Function]}
                               onPressOut={[Function]}
                               style={
                                 {
-                                  "alignItems": "center",
-                                  "alignSelf": "flex-start",
                                   "backgroundColor": "transparent",
-                                  "borderColor": "#0376c9",
-                                  "borderRadius": 20,
-                                  "borderWidth": 1,
-                                  "flex": 1,
-                                  "flexDirection": "row",
-                                  "height": 40,
-                                  "justifyContent": "center",
-                                  "paddingHorizontal": 16,
+                                  "color": "#141618",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
                                 }
                               }
+                              suppressHighlighting={true}
                             >
                               <Text
                                 accessibilityRole="text"
@@ -812,49 +913,103 @@ exports[`StakingBalance render matches snapshot 1`] = `
                                   }
                                 }
                               >
-                                Unstake
+                                Learn more.
                               </Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                              accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "alignSelf": "flex-start",
-                                  "backgroundColor": "transparent",
-                                  "borderColor": "#0376c9",
-                                  "borderRadius": 20,
-                                  "borderWidth": 1,
-                                  "flex": 1,
-                                  "flexDirection": "row",
-                                  "height": 40,
-                                  "justifyContent": "center",
-                                  "paddingHorizontal": 16,
-                                }
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#0376c9",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 14,
-                                    "fontWeight": "400",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
-                                  }
-                                }
-                              >
-                                Stake more
-                              </Text>
-                            </TouchableOpacity>
+                            </Text>
                           </View>
+                        </View>
+                        <View
+                          style={
+                            [
+                              {
+                                "flexDirection": "row",
+                                "gap": 8,
+                                "justifyContent": "space-between",
+                              },
+                              {
+                                "paddingTop": 8,
+                              },
+                            ]
+                          }
+                        >
+                          <TouchableOpacity
+                            accessibilityRole="button"
+                            accessible={true}
+                            activeOpacity={1}
+                            onPress={[Function]}
+                            onPressIn={[Function]}
+                            onPressOut={[Function]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "flex-start",
+                                "backgroundColor": "transparent",
+                                "borderColor": "#0376c9",
+                                "borderRadius": 20,
+                                "borderWidth": 1,
+                                "flex": 1,
+                                "flexDirection": "row",
+                                "height": 40,
+                                "justifyContent": "center",
+                                "paddingHorizontal": 16,
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#0376c9",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
+                                }
+                              }
+                            >
+                              Unstake
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            accessibilityRole="button"
+                            accessible={true}
+                            activeOpacity={1}
+                            onPress={[Function]}
+                            onPressIn={[Function]}
+                            onPressOut={[Function]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "flex-start",
+                                "backgroundColor": "transparent",
+                                "borderColor": "#0376c9",
+                                "borderRadius": 20,
+                                "borderWidth": 1,
+                                "flex": 1,
+                                "flexDirection": "row",
+                                "height": 40,
+                                "justifyContent": "center",
+                                "paddingHorizontal": 16,
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#0376c9",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
+                                }
+                              }
+                            >
+                              Stake more
+                            </Text>
+                          </TouchableOpacity>
                         </View>
                       </View>
                     </View>
