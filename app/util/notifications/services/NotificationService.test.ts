@@ -7,9 +7,40 @@ import notifee, {
 import { Linking } from 'react-native';
 import { ChannelId } from '../../../util/notifications/androidChannels';
 import NotificationsService from './NotificationService';
-import NotificationService from './NotificationService';
 
-jest.mock('@notifee/react-native');
+jest.mock('@notifee/react-native', () => ({
+  getNotificationSettings: jest.fn(),
+  getChannels: jest.fn(),
+  requestPermission: jest.fn(),
+  cancelTriggerNotification: jest.fn(),
+  createChannel: jest.fn(),
+  onForegroundEvent: jest.fn(),
+  onBackgroundEvent: jest.fn(),
+  incrementBadgeCount: jest.fn(),
+  decrementBadgeCount: jest.fn(),
+  setBadgeCount: jest.fn(),
+  getBadgeCount: jest.fn(),
+  getInitialNotification: jest.fn(),
+  openNotificationSettings: jest.fn(),
+  AndroidImportance: {
+    DEFAULT: 'default',
+    HIGH: 'high',
+    LOW: 'low',
+    MIN: 'min',
+    NONE: 'none',
+  },
+  AuthorizationStatus: {
+    AUTHORIZED: 'authorized',
+    DENIED: 'denied',
+    NOT_DETERMINED: 'not_determined',
+    PROVISIONAL: 'provisional',
+  },
+  EventType: {
+    DELIVERED: 'delivered',
+    PRESS: 'press',
+    DISMISSED: 'dismissed',
+  },
+}));
 jest.mock('react-native', () => ({
   Linking: { openSettings: jest.fn() },
   Platform: { OS: 'ios' },
@@ -30,17 +61,9 @@ jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-jest.mock('../../../util/notifications/services/NotificationService', () => ({
-  authorizationStatus: jest.fn(),
-}));
-
 describe('NotificationsService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-
-    NotificationService.authorizationStatus.mockResolvedValue({
-      authorizationStatus: AuthorizationStatus.AUTHORIZED,
-    });
   });
 
   it('should get blocked notifications', async () => {
@@ -92,16 +115,23 @@ describe('NotificationsService', () => {
     expect(notifee.createChannel).toHaveBeenCalledWith(channel);
   });
 
-  it.concurrent(
-    'should return authorized from getAllPermissions',
-    async () => {
-      const result = await NotificationsService.getAllPermissions();
-      expect(result.permission).toBe('authorized');
-    },
-    10000,
-  );
+  it('should return authorized from getAllPermissions', async () => {
+    (notifee.requestPermission as jest.Mock).mockResolvedValue({
+      authorizationStatus: AuthorizationStatus.AUTHORIZED,
+    });
+    (notifee.getNotificationSettings as jest.Mock).mockResolvedValue({
+      authorizationStatus: AuthorizationStatus.AUTHORIZED,
+    });
+    (notifee.getChannels as jest.Mock).mockResolvedValue([]);
 
-  it('should return authorized from requestPermission ', async () => {
+    const result = await NotificationsService.getAllPermissions();
+    expect(result.permission).toBe('authorized');
+  });
+
+  it('should return authorized from requestPermission', async () => {
+    (notifee.requestPermission as jest.Mock).mockResolvedValue({
+      authorizationStatus: AuthorizationStatus.AUTHORIZED,
+    });
     const result = await NotificationsService.requestPermission();
     expect(result).toBe('authorized');
   });
@@ -127,7 +157,7 @@ describe('NotificationsService', () => {
       callback,
     });
 
-    expect(NotificationsService.incrementBadgeCount).toBeInstanceOf(Function);
+    expect(notifee.incrementBadgeCount).toHaveBeenCalledWith(1);
 
     await NotificationsService.handleNotificationEvent({
       type: EventType.PRESS,
@@ -139,9 +169,7 @@ describe('NotificationsService', () => {
       callback,
     });
 
-    expect(NotificationsService.decrementBadgeCount).toBeInstanceOf(Function);
-    expect(NotificationsService.cancelTriggerNotification).toBeInstanceOf(
-      Function,
-    );
+    expect(notifee.decrementBadgeCount).toHaveBeenCalledWith(1);
+    expect(notifee.cancelTriggerNotification).toHaveBeenCalledWith('123');
   });
 });
