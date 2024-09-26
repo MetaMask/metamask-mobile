@@ -1,0 +1,13 @@
+diff --git a/node_modules/@metamask/assets-controllers/node_modules/@metamask/preferences-controller/dist/types/PreferencesController.d.ts b/node_modules/@metamask/assets-controllers/node_modules/@metamask/preferences-controller/dist/types/PreferencesController.d.ts
+index ddf6eb4..e8dac6d 100644
+--- a/node_modules/@metamask/assets-controllers/node_modules/@metamask/preferences-controller/dist/types/PreferencesController.d.ts
++++ b/node_modules/@metamask/assets-controllers/node_modules/@metamask/preferences-controller/dist/types/PreferencesController.d.ts
+@@ -65,7 +65,7 @@ export type PreferencesState = {
+     /**
+      * Controls whether the OpenSea API is used
+      */
+-    openSeaEnabled: boolean;
++    displayNftMedia: boolean;
+     /**
+      * Controls whether "security alerts" are enabled
+      */
