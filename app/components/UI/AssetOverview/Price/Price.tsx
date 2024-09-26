@@ -11,6 +11,7 @@ import { useStyles } from '../../../../component-library/hooks';
 import { toDateFormat } from '../../../../util/date';
 import { addCurrencySymbol } from '../../../../util/number';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import Title from '../../../Base/Title';
@@ -80,7 +81,11 @@ const Price = ({
     <>
       <View style={styles.wrapper}>
         {asset.name ? (
-          <Text variant={TextVariant.HeadingMD} style={styles.name}>
+          <Text
+            variant={TextVariant.BodyMDMedium}
+            style={styles.name}
+            color={TextColor.Alternative}
+          >
             {asset.name} ({asset.symbol})
           </Text>
         ) : (
@@ -132,7 +137,13 @@ const Price = ({
               {addCurrencySymbol(diff, currentCurrency, true)} (
               {diff > 0 ? '+' : ''}
               {diff === 0 ? '0' : ((diff / comparePrice) * 100).toFixed(2)}
-              %) <Text style={styles.priceDiffDateText}>{date}</Text>
+              %){' '}
+              <Text
+                style={styles.priceDiffDateText}
+                color={TextColor.Alternative}
+              >
+                {date}
+              </Text>
             </Text>
           ) : null}
         </Text>
