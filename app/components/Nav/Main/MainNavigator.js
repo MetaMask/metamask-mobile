@@ -89,7 +89,7 @@ import NftDetails from '../../Views/NftDetails';
 import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
-import StakeInputView from '../../UI/Stake/Views/InputView/StakeInputView';
+import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -694,16 +694,6 @@ const Swaps = () => (
   </Stack.Navigator>
 );
 
-const Stake = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name="Stake"
-      component={StakeInputView}
-      options={StakeInputView.navigationOptions}
-    />
-  </Stack.Navigator>
-);
-
 const SetPasswordFlow = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -808,7 +798,12 @@ const MainNavigator = () => (
       {() => <RampRoutes rampType={RampType.SELL} />}
     </Stack.Screen>
     <Stack.Screen name="Swaps" component={Swaps} />
-    <Stack.Screen name="Stake" component={Stake} />
+    <Stack.Screen name="StakeScreens" component={StakeScreenStack} />
+    <Stack.Screen
+      name="StakeModals"
+      component={StakeModalStack}
+      options={clearStackNavigatorOptions}
+    />
     <Stack.Screen
       name="SetPasswordFlow"
       component={SetPasswordFlow}
