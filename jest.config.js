@@ -8,6 +8,8 @@ process.env.MM_FOX_CODE = 'EXAMPLE_FOX_CODE';
 process.env.SECURITY_ALERTS_API_ENABLED = 'true';
 process.env.SECURITY_ALERTS_API_URL = 'https://example.com';
 
+process.env.REDESIGNED_SIGNATURE_REQUEST = 'true';
+
 process.env.LAUNCH_DARKLY_URL =
   'https://client-config.dev-api.cx.metamask.io/v1';
 
