@@ -113,9 +113,6 @@ const Main = (props) => {
   useEnableAutomaticSecurityChecks();
   useMinimumVersions();
 
-
-
-
   useEffect(() => {
     if (DEPRECATED_NETWORKS.includes(props.chainId)) {
       setShowDeprecatedAlert(true);
@@ -268,7 +265,6 @@ const Main = (props) => {
       initForceReload();
       return;
     }
-
   });
 
   // Remove all notifications that aren't visible

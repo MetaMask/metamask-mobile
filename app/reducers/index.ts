@@ -21,7 +21,7 @@ import infuraAvailabilityReducer from './infuraAvailability';
 import collectiblesReducer from './collectibles';
 import navigationReducer from './navigation';
 import networkOnboardReducer from './networkSelector';
-import securityReducer from './security';
+import securityReducer, { SecurityState } from './security';
 import { combineReducers, Reducer } from 'redux';
 import experimentalSettingsReducer from './experimentalSettings';
 import { EngineState } from '../core/Engine';
@@ -107,7 +107,7 @@ export interface RootState {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   networkOnboarded: any;
-  security: StateFromReducer<typeof securityReducer>;
+  security: SecurityState;
   sdk: StateFromReducer<typeof sdkReducer>;
   // The experimentalSettings reducer is TypeScript but not yet a valid reducer
   // TODO: Replace "any" with type
