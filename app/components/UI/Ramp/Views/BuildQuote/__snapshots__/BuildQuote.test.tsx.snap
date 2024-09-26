@@ -2798,7 +2798,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       style={
                                         [
                                           {
-                                            "alignItems": "center",
+                                            "alignSelf": "center",
                                             "flexDirection": "row",
                                             "marginRight": 15,
                                           },
@@ -4404,7 +4404,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       style={
                                         [
                                           {
-                                            "alignItems": "center",
+                                            "alignSelf": "center",
                                             "flexDirection": "row",
                                             "marginRight": 15,
                                           },
@@ -6010,7 +6010,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       style={
                                         [
                                           {
-                                            "alignItems": "center",
+                                            "alignSelf": "center",
                                             "flexDirection": "row",
                                             "marginRight": 15,
                                           },
@@ -7616,7 +7616,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       style={
                                         [
                                           {
-                                            "alignItems": "center",
+                                            "alignSelf": "center",
                                             "flexDirection": "row",
                                             "marginRight": 15,
                                           },
@@ -8756,7 +8756,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         style={
                                           [
                                             {
-                                              "alignItems": "center",
+                                              "alignSelf": "center",
                                               "flexDirection": "row",
                                               "marginRight": 15,
                                             },
@@ -9530,7 +9530,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           style={
                                             [
                                               {
-                                                "alignItems": "center",
+                                                "alignSelf": "center",
                                                 "flexDirection": "row",
                                                 "marginRight": 15,
                                               },
@@ -12147,7 +12147,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         style={
                                           [
                                             {
-                                              "alignItems": "center",
+                                              "alignSelf": "center",
                                               "flexDirection": "row",
                                               "marginRight": 15,
                                             },
@@ -12773,7 +12773,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                           style={
                                             [
                                               {
-                                                "alignItems": "center",
+                                                "alignSelf": "center",
                                                 "flexDirection": "row",
                                                 "marginRight": 15,
                                               },

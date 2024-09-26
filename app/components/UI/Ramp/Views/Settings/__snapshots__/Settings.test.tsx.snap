@@ -473,7 +473,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         style={
                                           [
                                             {
-                                              "alignItems": "center",
+                                              "alignSelf": "center",
                                               "flexDirection": "row",
                                               "marginRight": 15,
                                             },
@@ -1620,7 +1620,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         style={
                                           [
                                             {
-                                              "alignItems": "center",
+                                              "alignSelf": "center",
                                               "flexDirection": "row",
                                               "marginRight": 15,
                                             },
@@ -2339,7 +2339,7 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                         style={
                                           [
                                             {
-                                              "alignItems": "center",
+                                              "alignSelf": "center",
                                               "flexDirection": "row",
                                               "marginRight": 15,
                                             },
@@ -2883,7 +2883,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                         style={
                                           [
                                             {
-                                              "alignItems": "center",
+                                              "alignSelf": "center",
                                               "flexDirection": "row",
                                               "marginRight": 15,
                                             },
@@ -3465,7 +3465,7 @@ exports[`Settings renders correctly 1`] = `
                                         style={
                                           [
                                             {
-                                              "alignItems": "center",
+                                              "alignSelf": "center",
                                               "flexDirection": "row",
                                               "marginRight": 15,
                                             },
@@ -4047,7 +4047,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         style={
                                           [
                                             {
-                                              "alignItems": "center",
+                                              "alignSelf": "center",
                                               "flexDirection": "row",
                                               "marginRight": 15,
                                             },
