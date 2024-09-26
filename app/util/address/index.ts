@@ -232,6 +232,12 @@ export function isExternalHardwareAccount(address: string) {
   return isHardwareAccount(address, [ExtendedKeyringTypes.ledger]);
 }
 
+/**
+ * gets the internal account by address
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {InternalAccount | null} - Returns the internal account by address
+ */
 function getInternalAccountByAddress(address: string): InternalAccount | null {
   const { accounts } = Engine.context.AccountsController.state.internalAccounts;
   const account = Object.values(accounts).find(
