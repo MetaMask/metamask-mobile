@@ -12,7 +12,7 @@ import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 
 describe(SmokeAssets('Import NFT'), () => {
-  beforeAll(async () => {
+  beforeAll(() => {
     jest.setTimeout(150000);
   });
 

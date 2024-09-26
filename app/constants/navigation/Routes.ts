@@ -137,9 +137,13 @@ const Routes = {
     OPT_IN_STACK: 'OptInStack',
     DETAILS: 'NotificationsDetails',
   },
-  STAKE: {
+  STAKING: {
     STAKE: 'Stake',
     UNSTAKE: 'Unstake',
+    CLAIM: 'Claim',
+    MODALS: {
+      LEARN_MORE: 'LearnMore',
+    },
   },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {
