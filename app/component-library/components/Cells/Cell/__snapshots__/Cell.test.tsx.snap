@@ -292,7 +292,6 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
         {
           "alignItems": "center",
           "flexDirection": "row",
-          "padding": 0,
         }
       }
     >
@@ -605,7 +604,6 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
         {
           "alignItems": "center",
           "flexDirection": "row",
-          "padding": 0,
         }
       }
     >

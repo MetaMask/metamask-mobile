@@ -26,10 +26,7 @@ exports[`SelectButtonBase should render snapshot correctly 1`] = `
       style={
         {
           "alignItems": "center",
-          "flex": 1,
           "flexDirection": "row",
-          "marginRight": 8,
-          "padding": 0,
         }
       }
     >

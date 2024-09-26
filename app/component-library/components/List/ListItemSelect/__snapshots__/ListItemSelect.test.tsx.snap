@@ -27,7 +27,6 @@ exports[`ListItemSelect should render snapshot correctly 1`] = `
         {
           "alignItems": "center",
           "flexDirection": "row",
-          "padding": 0,
         }
       }
     >

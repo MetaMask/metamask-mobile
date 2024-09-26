@@ -24,15 +24,7 @@ exports[`TagBase should render TagBase 1`] = `
     style={
       {
         "alignItems": "center",
-        "alignSelf": "flex-start",
-        "backgroundColor": "#ffffff",
-        "borderColor": "#bbc0c5",
-        "borderRadius": 999,
-        "borderWidth": 0,
-        "color": "#141618",
         "flexDirection": "row",
-        "paddingHorizontal": 8,
-        "paddingVertical": 2,
       }
     }
   >

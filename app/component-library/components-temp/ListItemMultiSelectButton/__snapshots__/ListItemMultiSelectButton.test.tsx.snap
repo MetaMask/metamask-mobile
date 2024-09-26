@@ -43,13 +43,8 @@ exports[`ListItemMultiSelectButton should render correctly with default props 1`
       <View
         style={
           {
-            "alignItems": "flex-start",
-            "flexDirection": "column",
-            "paddingBottom": 0,
-            "paddingLeft": 0,
-            "paddingRight": 0,
-            "paddingTop": 0,
-            "zIndex": 2,
+            "alignItems": "center",
+            "flexDirection": "row",
           }
         }
       >

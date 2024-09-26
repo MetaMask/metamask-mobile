@@ -495,7 +495,6 @@ exports[`Network Selector renders correctly 1`] = `
                                       {
                                         "alignItems": "center",
                                         "flexDirection": "row",
-                                        "padding": 0,
                                       }
                                     }
                                   >
@@ -624,7 +623,6 @@ exports[`Network Selector renders correctly 1`] = `
                                       {
                                         "alignItems": "center",
                                         "flexDirection": "row",
-                                        "padding": 0,
                                       }
                                     }
                                   >
@@ -726,7 +724,6 @@ exports[`Network Selector renders correctly 1`] = `
                                       {
                                         "alignItems": "center",
                                         "flexDirection": "row",
-                                        "padding": 0,
                                       }
                                     }
                                   >
@@ -831,7 +828,6 @@ exports[`Network Selector renders correctly 1`] = `
                                       {
                                         "alignItems": "center",
                                         "flexDirection": "row",
-                                        "padding": 0,
                                       }
                                     }
                                   >
@@ -936,7 +932,6 @@ exports[`Network Selector renders correctly 1`] = `
                                       {
                                         "alignItems": "center",
                                         "flexDirection": "row",
-                                        "padding": 0,
                                       }
                                     }
                                   >
@@ -1041,7 +1036,6 @@ exports[`Network Selector renders correctly 1`] = `
                                       {
                                         "alignItems": "center",
                                         "flexDirection": "row",
-                                        "padding": 0,
                                       }
                                     }
                                   >

@@ -28,7 +28,6 @@ exports[`SelectOption should render snapshot correctly 1`] = `
         {
           "alignItems": "center",
           "flexDirection": "row",
-          "padding": 0,
         }
       }
     >
@@ -46,7 +45,6 @@ exports[`SelectOption should render snapshot correctly 1`] = `
             {
               "alignItems": "center",
               "flexDirection": "row",
-              "padding": 0,
             }
           }
         >

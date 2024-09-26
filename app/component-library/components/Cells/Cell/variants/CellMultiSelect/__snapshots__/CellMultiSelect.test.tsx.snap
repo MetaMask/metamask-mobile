@@ -27,7 +27,6 @@ exports[`CellMultiSelect should render default settings correctly 1`] = `
         {
           "alignItems": "center",
           "flexDirection": "row",
-          "padding": 0,
         }
       }
     >
