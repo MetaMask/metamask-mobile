@@ -1625,6 +1625,7 @@ export class Engine {
           swapsUtils.LINEA_CHAIN_ID,
           swapsUtils.BASE_CHAIN_ID,
         ],
+        // @ts-expect-error TODO: Resolve new typing for restricted controller messenger
         messenger: this.controllerMessenger.getRestricted({
           name: 'SwapsController',
           // TODO: allow these internal calls once GasFeeController
@@ -1937,8 +1938,10 @@ export class Engine {
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
 
-    SwapsController.setProvider(provider, {
-      chainId: NetworkController.state?.providerConfig?.chainId,
+    SwapsController.setProvider(provider as any, {
+      chainId: NetworkController.getNetworkClientById(
+        NetworkController?.state.selectedNetworkClientId,
+      ).configuration.chainId,
       pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
     });
     AccountTrackerController.refresh();
