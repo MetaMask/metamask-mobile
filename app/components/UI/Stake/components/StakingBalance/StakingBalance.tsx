@@ -23,78 +23,23 @@ import Banner, {
 } from '../../../../../component-library/components/Banners/Banner';
 import { strings } from '../../../../../../locales/i18n';
 import { renderFromWei } from '../../../../../util/number';
-import { GetStakesApiResponse } from './StakingBalance.types';
-import { TokenI } from '../../../../UI/Tokens/types';
 import { getTimeDifferenceFromNow } from '../../../../../util/date';
 import { filterExitRequests } from './utils';
 import { BN } from 'ethereumjs-util';
 import bn from 'bignumber.js';
-import { fixDisplayAmount } from '../../utils/value';
+import {
+  CommonPercentageInputUnits,
+  fixDisplayAmount,
+  formatPercent,
+  PercentageOutputFormat,
+} from '../../utils/value';
 import { multiplyValueByPowerOfTen } from '../../utils/bignumber';
 import StakingCta from './StakingCta/StakingCta';
-
-// TODO: Replace mock data when connecting to backend.
-const MOCK_STAKED_ETH_ASSET = {
-  balance: '4.9999 ETH',
-  balanceFiat: '$13,292.20',
-  name: 'Staked Ethereum',
-  symbol: 'ETH',
-} as TokenI;
-
-// TODO: Replace mock data when connecting to backend.
-const MOCK_UNSTAKING_REQUESTS: GetStakesApiResponse = {
-  accounts: [
-    {
-      account: '0x0123456789abcdef0123456789abcdef01234567',
-      lifetimeRewards: '43927049303048',
-      assets: '17913326707142320',
-      exitRequests: [
-        {
-          // Unstaking
-          positionTicket: '2153260738145148336740',
-          timestamp: '1727110415000',
-          totalShares: '989278156820374',
-          withdrawalTimestamp: null,
-          exitQueueIndex: '-1',
-          claimedAssets: null,
-          leftShares: null,
-        },
-        // Requests below are claimable.
-        {
-          positionTicket: '515964521392314631201',
-          timestamp: '1720539311000',
-          totalShares: '99473618267007',
-          withdrawalTimestamp: '0',
-          exitQueueIndex: '57',
-          claimedAssets: '100006626507361',
-          leftShares: '0',
-        },
-        {
-          positionTicket: '515964620865932898208',
-          timestamp: '1720541495000',
-          totalShares: '99473618267007',
-          withdrawalTimestamp: '0',
-          exitQueueIndex: '57',
-          claimedAssets: '100006626507361',
-          leftShares: '0',
-        },
-        {
-          positionTicket: '516604671289934191921',
-          timestamp: '1720607327000',
-          totalShares: '1929478758729790',
-          withdrawalTimestamp: '0',
-          exitQueueIndex: '58',
-          claimedAssets: '1939870510970987',
-          leftShares: '0',
-        },
-      ],
-    },
-  ],
-  exchangeRate: '1.010906701603882254',
-};
-
-// TODO: See if this data is available yet. If not, mock backend response.
-const MOCK_REWARD_RATE = '2.6%';
+import {
+  MOCK_GET_POOLED_STAKES_API_RESPONSE,
+  MOCK_GET_VAULT_RESPONSE,
+  MOCK_STAKED_ETH_ASSET,
+} from './mockData';
 
 const StakingBalance = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -108,8 +53,8 @@ const StakingBalance = () => {
   const { unstakingRequests, claimableRequests } = useMemo(
     () =>
       filterExitRequests(
-        MOCK_UNSTAKING_REQUESTS.accounts[0].exitRequests,
-        MOCK_UNSTAKING_REQUESTS.exchangeRate,
+        MOCK_GET_POOLED_STAKES_API_RESPONSE.accounts[0].exitRequests,
+        MOCK_GET_POOLED_STAKES_API_RESPONSE.exchangeRate,
       ),
     [],
   );
@@ -193,7 +138,14 @@ const StakingBalance = () => {
             {!hasStakedPositions && (
               <StakingCta
                 style={styles.stakingCta}
-                estimatedRewardRate={MOCK_REWARD_RATE}
+                estimatedRewardRate={formatPercent(
+                  MOCK_GET_VAULT_RESPONSE.apy,
+                  {
+                    inputFormat: CommonPercentageInputUnits.PERCENTAGE,
+                    outputFormat: PercentageOutputFormat.PERCENT_SIGN,
+                    fixed: 1,
+                  },
+                )}
               />
             )}
 

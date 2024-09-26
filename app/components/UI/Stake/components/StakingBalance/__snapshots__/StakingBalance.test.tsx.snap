@@ -803,7 +803,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
                                 }
                               }
                             >
-                              2.6%
+                              2.9%
                             </Text>
                             <Text
                               accessibilityRole="text"
