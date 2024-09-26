@@ -18,8 +18,8 @@ const SignatureApproval = () => {
 
   useAsyncResult(async () => await endTrace({
       name: TraceName.NotificationDisplay,
-      id: approvalRequest?.requestData.requestId,
-    }), [approvalRequest?.requestData.requestId]);
+      id: approvalRequest?.requestData?.requestId,
+    }), [approvalRequest?.requestData?.requestId]);
 
   const messageParams =
     approvalRequest &&
