@@ -189,6 +189,34 @@ class FixtureBuilder {
                   name: 'Localhost',
                   nativeCurrency: 'ETH',
                 },
+                '0xaa36a7': {
+                  blockExplorerUrls: [],
+                  chainId: '0xaa36a7',
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Sepolia',
+                  nativeCurrency: 'SepoliaETH',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'sepolia',
+                      type: 'infura',
+                      url: 'https://sepolia.infura.io/v3/{infuraProjectId}',
+                    },
+                  ],
+                },
+                '0xe705': {
+                  blockExplorerUrls: [],
+                  chainId: '0xe705',
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Linea Sepolia',
+                  nativeCurrency: 'LineaETH',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'linea-sepolia',
+                      type: 'infura',
+                      url: 'https://linea-sepolia.infura.io/v3/{infuraProjectId}',
+                    },
+                  ],
+                },
               },
             },
             PhishingController: {
@@ -813,12 +841,19 @@ class FixtureBuilder {
 
   withPopularNetworks() {
     const fixtures = this.fixture.state.engine.backgroundState;
-    const networkConfigurationsByChainId = {}; // Object to store network configurations
+    const networkConfigurationsByChainId = {
+      ...fixtures.NetworkController.networkConfigurationsByChainId,
+    }; // Object to store network configurations
 
     // Loop through each network in PopularNetworksList
     for (const key in PopularNetworksList) {
       const network = PopularNetworksList[key];
-      const { rpcTarget, chainId, ticker, nickname } = network.providerConfig;
+      const {
+        rpcUrl: rpcTarget,
+        chainId,
+        ticker,
+        nickname,
+      } = network.providerConfig;
 
       // Generate a unique key for the new network client ID
       const newNetworkClientId = `networkClientId${
