@@ -9,7 +9,7 @@ import { JsonMap } from '@segment/analytics-react-native';
  * @param saveOnboardingEvent - function to store onboarding event before optin
  */
 const trackOnboarding = (
-  event: IMetaMetricsEvent,  
+  event: IMetaMetricsEvent,
   properties: JsonMap = {},
   saveOnboardingEvent?: (event: IMetaMetricsEvent) => {
     event: IMetaMetricsEvent;
