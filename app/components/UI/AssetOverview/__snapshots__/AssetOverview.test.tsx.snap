@@ -443,7 +443,9 @@ exports[`AssetOverview should render correctly 1`] = `
                   "lineHeight": 24,
                 }
               }
-            />
+            >
+              Buy
+            </Text>
             <Text
               accessibilityRole="text"
               style={
@@ -460,7 +462,9 @@ exports[`AssetOverview should render correctly 1`] = `
                   "lineHeight": 22,
                 }
               }
-            />
+            >
+              Buy crypto with cash
+            </Text>
           </View>
         </TouchableOpacity>
         <Text
@@ -542,7 +546,9 @@ exports[`AssetOverview should render correctly 1`] = `
                   "lineHeight": 24,
                 }
               }
-            />
+            >
+              Swap
+            </Text>
             <Text
               accessibilityRole="text"
               style={
@@ -559,7 +565,9 @@ exports[`AssetOverview should render correctly 1`] = `
                   "lineHeight": 22,
                 }
               }
-            />
+            >
+              Exchange between tokens
+            </Text>
           </View>
         </TouchableOpacity>
         <Text
@@ -641,7 +649,9 @@ exports[`AssetOverview should render correctly 1`] = `
                   "lineHeight": 24,
                 }
               }
-            />
+            >
+              Bridge
+            </Text>
             <Text
               accessibilityRole="text"
               style={
@@ -658,7 +668,9 @@ exports[`AssetOverview should render correctly 1`] = `
                   "lineHeight": 22,
                 }
               }
-            />
+            >
+              Transfer tokens between networks
+            </Text>
           </View>
         </TouchableOpacity>
         <Text
@@ -740,7 +752,9 @@ exports[`AssetOverview should render correctly 1`] = `
                   "lineHeight": 24,
                 }
               }
-            />
+            >
+              Send
+            </Text>
             <Text
               accessibilityRole="text"
               style={
@@ -757,7 +771,9 @@ exports[`AssetOverview should render correctly 1`] = `
                   "lineHeight": 22,
                 }
               }
-            />
+            >
+              Send crypto to any account
+            </Text>
           </View>
         </TouchableOpacity>
         <Text
@@ -839,7 +855,9 @@ exports[`AssetOverview should render correctly 1`] = `
                   "lineHeight": 24,
                 }
               }
-            />
+            >
+              Receive
+            </Text>
             <Text
               accessibilityRole="text"
               style={
@@ -856,7 +874,9 @@ exports[`AssetOverview should render correctly 1`] = `
                   "lineHeight": 22,
                 }
               }
-            />
+            >
+              Receive crypto
+            </Text>
           </View>
         </TouchableOpacity>
         <Text
