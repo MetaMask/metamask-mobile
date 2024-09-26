@@ -96,6 +96,9 @@ def common_target_logic
   # use_frameworks!
 	pod 'Permission-BluetoothPeripheral', :path => '../node_modules/react-native-permissions/ios/BluetoothPeripheral'
   pod 'GzipSwift'
+
+  # Pod for fixing react-native-quick-crypto issue: https://github.com/margelo/react-native-quick-crypto/issues/244
+  pod "OpenSSL-Universal", "= 1.1.1100"
 end
 
 target 'MetaMask' do
