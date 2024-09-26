@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from 'react';
 import { render, act, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
