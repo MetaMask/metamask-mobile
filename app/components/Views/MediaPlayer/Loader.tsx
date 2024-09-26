@@ -42,10 +42,10 @@ const createStyles = (colors: Theme['colors']) =>
 
 interface LoaderProps {
   error?: boolean;
-  onClose: () => void;
+  onClose?: () => void;
 }
 
-function Loader({ error, onClose }: LoaderProps) {
+function Loader({ error = false, onClose = () => null }: LoaderProps) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -71,9 +71,5 @@ function Loader({ error, onClose }: LoaderProps) {
     </View>
   );
 }
-
-Loader.defaultProps = {
-  onError: () => null,
-};
 
 export default Loader;
