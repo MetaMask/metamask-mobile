@@ -102,7 +102,7 @@ const StakingBalance = () => {
   const networkName = useSelector(selectNetworkName);
 
   const [isGeoBlocked] = useState(false);
-  const [hasStakedPositions] = useState(true);
+  const [hasStakedPositions] = useState(false);
   const [balanceEth] = useState('4.9999 ETH');
 
   const { unstakingRequests, claimableRequests } = useMemo(
@@ -130,7 +130,7 @@ const StakingBalance = () => {
 
   return (
     <View>
-      {!!balanceEth && !isGeoBlocked && (
+      {Boolean(balanceEth) && !isGeoBlocked && (
         <AssetElement
           asset={MOCK_STAKED_ETH_ASSET}
           mainBalance={MOCK_STAKED_ETH_ASSET.balance}
@@ -190,7 +190,7 @@ const StakingBalance = () => {
               />
             )}
 
-            {hasStakedPositions && (
+            {!hasStakedPositions && (
               <StakingCta
                 style={styles.stakingCta}
                 estimatedRewardRate={MOCK_REWARD_RATE}
