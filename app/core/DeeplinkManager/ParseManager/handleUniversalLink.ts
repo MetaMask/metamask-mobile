@@ -64,7 +64,6 @@ function handleUniversalLink({
         }  else {
           Minimizer.goBack();
         }
-        Minimizer.goBack();
       } else if (params.channelId) {
         const protocolVersion = parseInt(params.v ?? '1', 10);
 
