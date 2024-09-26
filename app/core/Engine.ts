@@ -657,13 +657,14 @@ class Engine {
       state: initialState.AccountsController ?? defaultAccountsControllerState,
     });
     const tokensController = new TokensController({
-      //
       chainId: networkController.getNetworkClientById(
         networkController?.state.selectedNetworkClientId,
       ).configuration.chainId,
       selectedAddress: preferencesController.state.selectedAddress,
+      // @ts-expect-error TODO: Resolve provider type mismatch
       provider: networkController.getProviderAndBlockTracker().provider,
       state: initialState.TokensController,
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'TokensController',
         allowedActions: [
@@ -1488,6 +1489,7 @@ class Engine {
       }),
 
       new NftDetectionController({
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'NftDetectionController',
           allowedEvents: [
