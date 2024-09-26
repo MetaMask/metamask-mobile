@@ -43,11 +43,18 @@ const createStyles = (colors: Theme['colors']) =>
 interface LoaderProps {
   error?: boolean;
   onClose?: () => void;
+  onError?: () => void;
 }
 
-function Loader({ error = false, onClose = () => null }: LoaderProps) {
+function Loader({ error = false, onClose = () => null, onError = () => null }: LoaderProps) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+
+  React.useEffect(() => {
+    if (error) {
+      onError();
+    }
+  }, [error, onError]);
 
   return (
     <View style={styles.container}>
