@@ -22,7 +22,7 @@ import {
   isDefaultAccountName,
 } from '../../../util/ENSUtils';
 import {
-  getAccountLabelTextByAddress,
+  getLabelTextByAddress,
   renderAccountName,
 } from '../../../util/address';
 import Device from '../../../util/device';
@@ -339,7 +339,7 @@ class AccountOverview extends PureComponent {
     if (!address) return null;
     const { accountLabelEditable, accountLabel, ens } = this.state;
 
-    const accountLabelTag = getAccountLabelTextByAddress(address);
+    const accountLabelTag = getLabelTextByAddress(address);
 
     return (
       <View ref={this.scrollViewContainer} collapsable={false}>
