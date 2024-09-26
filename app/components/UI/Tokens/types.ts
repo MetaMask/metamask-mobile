@@ -12,7 +12,7 @@ export interface TokensI {
 export interface TokenI {
   address: string;
   aggregators: string[];
-  hasBalanceError: boolean;
+  hasBalanceError?: boolean;
   decimals: number;
   image: string;
   name: string;
