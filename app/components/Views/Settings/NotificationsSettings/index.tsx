@@ -37,6 +37,13 @@ import Routes from '../../../../constants/navigation/Routes';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../component-library/components/Buttons/ButtonIcon';
+
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../component-library/components/Buttons/Button';
+
 import SessionHeader from './sectionHeader';
 import {
   useDisableNotifications,
@@ -227,6 +234,12 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     Linking.openURL(AppConstants.URLS.PROFILE_SYNC);
   };
 
+  const onPressResetNotifications = () => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.RESET_NOTIFICATIONS,
+    });
+  }
+
   useEffect(() => {
     navigation.setOptions(
       getNavigationOptionsTitle(
@@ -270,6 +283,18 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     ],
   );
 
+  const renderResetNotificationsBtn = useCallback(() => {
+    return (
+        <Button
+          variant={ButtonVariants.Primary}
+          label={strings('app_settings.reset_notifications')}
+          size={ButtonSize.Md}
+          onPress={onPressResetNotifications}
+          style={styles.button}
+        />
+    )
+  }, [onPressResetNotifications]);
+
   return (
     <ScrollView style={styles.wrapper}>
       <MainNotificationSettings
@@ -309,6 +334,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           />
 
           {renderAccounts()}
+          {renderResetNotificationsBtn()}
         </>
       )}
       <SwitchLoadingModal
