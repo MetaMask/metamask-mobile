@@ -124,7 +124,7 @@ function FiatSelectModal({
         <Text variant={TextVariant.BodyLGMedium}>
           {strings('fiat_on_ramp_aggregator.no_currency_match', {
             searchString,
-          })}{' '}
+          })}
         </Text>
       </View>
     ),
