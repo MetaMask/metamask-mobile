@@ -36,7 +36,7 @@ import Modal from 'react-native-modal';
 import Box from '../Ramp/components/Box';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import Routes from '../../../constants/navigation/Routes';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/ImportTokenView.selectors';
+import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
 import { TOKEN_TITLE } from '../../../components/Views/AddAsset/AddAsset.constants';
 
 const RenderBalance = (asset: {

@@ -14,7 +14,7 @@ import AssetIcon from '../AssetIcon';
 import { useSelector } from 'react-redux';
 import { selectNetworkImageSource } from '../../../selectors/networkInfos';
 import { strings } from '../../../../locales/i18n';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/ImportTokenView.selectors';
+import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
 
 interface Props {
   /**

@@ -1,7 +1,7 @@
 import {
   ImportTokenViewSelectorsIDs,
   ImportTokenViewSelectorsText
-} from '../../../selectors/ImportTokenView.selectors';
+} from '../../../selectors/wallet/ImportTokenView.selectors';
 import Matchers from '../../../utils/Matchers';
 import Gestures from '../../../utils/Gestures';
 

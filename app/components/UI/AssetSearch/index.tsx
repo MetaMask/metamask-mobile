@@ -13,7 +13,7 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { useSelector } from 'react-redux';
 import { TokenListToken } from '@metamask/assets-controllers';
 import { useTheme } from '../../../util/theme';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/ImportTokenView.selectors';
+import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
 import { TokenViewSelectors } from '../../../../e2e/selectors/AddTokenView.selectors';
 import { selectTokenListArray } from '../../../selectors/tokenListController';
 import Icon, {

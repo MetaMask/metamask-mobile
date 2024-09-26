@@ -4,7 +4,7 @@ import {
 } from './testIDs/Screens/TokenOverviewScreen.testIds.js';
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
-import { ImportTokenViewSelectorsIDs } from '../../e2e/selectors/ImportTokenView.selectors';
+import { ImportTokenViewSelectorsIDs } from '../../e2e/selectors/wallet/ImportTokenView.selectors';
 
 class TokenOverviewScreen {
   get tokenAssetOverview() {

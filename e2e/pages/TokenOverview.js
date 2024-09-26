@@ -6,7 +6,7 @@ import {
   TOKEN_OVERVIEW_BUY_BUTTON,
   TOKEN_OVERVIEW_SWAP_BUTTON,
 } from '../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
-import { ImportTokenViewSelectorsIDs } from '../selectors/ImportTokenView.selectors';
+import { ImportTokenViewSelectorsIDs } from '../selectors/wallet/ImportTokenView.selectors';
 import enContent from '../../locales/languages/en.json';
 
 const chartTimePeriod = [
