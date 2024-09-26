@@ -1,6 +1,5 @@
 import React from 'react';
 import { waitFor } from '@testing-library/react-native';
-import configureStore from 'redux-mock-store';
 import OnboardingCarousel from './';
 import { PerformanceRegressionSelectorIDs } from '../../../../e2e/selectors/PerformanceRegression.selectors';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -9,9 +8,6 @@ jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 jest.mock('../../../util/test/utils', () => ({
   isTest: true,
 }));
-
-const mockStore = configureStore([]);
-const store = mockStore({});
 
 const mockNavigation = {
   navigate: jest.fn(),

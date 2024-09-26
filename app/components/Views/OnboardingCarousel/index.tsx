@@ -189,17 +189,17 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
   const initialize = async () => {
     updateNavBar();
     track(MetaMetricsEvents.ONBOARDING_WELCOME_MESSAGE_VIEWED);
-    const appStartTime = await StorageWrapper.getItem('appStartTime');
-    setAppStartTime(appStartTime);
+    const newAppStartTime = await StorageWrapper.getItem('appStartTime');
+    setAppStartTime(newAppStartTime);
   };
 
   useEffect(() => {
     initialize();
-  }, []);
+  }, [initialize]);
 
   useEffect(() => {
     updateNavBar();
-  }, [colors]);
+  }, [colors,updateNavBar]);
 
   return (
     <View
@@ -292,7 +292,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
     </View>
   );
 };
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapDispatchToProps = (dispatch: any) => ({
   saveOnboardingEvent: (...eventArgs: any[]) =>
     dispatch(saveOnboardingEvent(eventArgs)),
