@@ -28,7 +28,7 @@ async function reconnect({
   if (existingConnection?.remote.isReady()) {
     DevLogger.log(`SDKConnect::reconnect[${context}] - already ready - ignore`);
     if (trigger) {
-      instance.state.connected[channelId].setTrigger('deeplink');
+      instance.state.connected[channelId].setTrigger(trigger);
     }
     instance.updateSDKLoadingState({ channelId, loading: false });
 
@@ -82,22 +82,7 @@ async function reconnect({
   if (connecting && trigger !== 'deeplink') {
     // Prioritize deeplinks -- interrup other connection attempts.
     interruptReason = 'already connecting';
-  } else if (connecting && trigger === 'deeplink') {
-    // Keep comment for future reference in case android issue re-surface
-    // special case on android where the socket was not updated
-    // if (Platform.OS === 'android') {
-    //   interruptReason = 'already connecting';
-    // } else {
-    //   console.warn(`Priotity to deeplink - overwrite previous connection`);
-    //   instance.removeChannel(channelId, true);
-    // }
-
-    // issue can happen during dev because bundle takes too long to load via metro.
-    // should not happen but keeping it for reference / debug purpose.
-    console.warn(`BUNDLE WARNING: Already connecting --- Priotity to deeplink`);
-    // instance.removeChannel({ channelId, sendTerminate: true });
-  }
-  if (!instance.state.connections[channelId]) {
+  } else  if (!instance.state.connections[channelId]) {
     interruptReason = 'no connection';
   }
 

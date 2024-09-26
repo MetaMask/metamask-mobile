@@ -1,12 +1,11 @@
 import { KeyringController } from '@metamask/keyring-controller';
-import Engine from '../../../core/Engine';
 import { AppState } from 'react-native';
+import Engine from '../../../core/Engine';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
 import {
-  wait,
   waitForCondition,
-  waitForKeychainUnlocked,
+  waitForKeychainUnlocked
 } from '../utils/wait.util';
 
 async function postInit(instance: SDKConnect, callback?: () => void) {
@@ -47,8 +46,7 @@ async function postInit(instance: SDKConnect, callback?: () => void) {
     instance._handleAppState.bind(instance),
   );
 
-  // Add delay to pioritize reconnecting from deeplink because it contains the updated connection info (channel dapp public key)
-  await wait(3000);
+  DevLogger.log(`SDKConnect::postInit() - keychain unlocked -- wait for reconnectAll`);
   await instance.reconnectAll();
 
   instance.state._postInitialized = true;

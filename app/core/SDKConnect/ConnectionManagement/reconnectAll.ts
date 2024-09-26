@@ -1,4 +1,3 @@
-import AppConstants from '../../../../app/core/AppConstants';
 import Logger from '../../../util/Logger';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
@@ -16,15 +15,13 @@ async function reconnectAll(instance: SDKConnect) {
   const channelIds = Object.keys(instance.state.connections);
 
   channelIds.forEach((channelId) => {
-    // Only reconnects to type 'qrcode' connections.
     const connection = instance.state.connections[channelId];
-    DevLogger.log(
-      `SDKConnect::reconnectAll - reconnecting to ${channelId} origin=${connection.origin} relayPersistence=${connection.relayPersistence} protocolVersion=${connection.protocolVersion}`,
-    );
     if (
-      connection.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE ||
       connection.relayPersistence
     ) {
+      DevLogger.log(
+        `SDKConnect::reconnectAll - reconnecting to ${channelId} origin=${connection.origin} relayPersistence=${connection.relayPersistence} protocolVersion=${connection.protocolVersion}`,
+      );
       instance
         .reconnect({
           channelId,
@@ -40,6 +37,10 @@ async function reconnectAll(instance: SDKConnect) {
             `SDKConnect::reconnectAll error reconnecting to ${channelId}`,
           );
         });
+    } else {
+      DevLogger.log(
+        `SDKConnect::reconnectAll -- SKIP MISSING relayPersistence -- ${channelId} origin=${connection.origin} relayPersistence=${connection.relayPersistence} protocolVersion=${connection.protocolVersion}`,
+      );
     }
   });
   instance.state.reconnected = true;

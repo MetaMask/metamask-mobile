@@ -203,7 +203,7 @@ export const handleConnectionMessage = async ({
       fn: async () => {
         const accounts = await getPermittedAccounts(connection.channelId);
         DevLogger.log(
-          `handleDeeplink::waitForAsyncCondition accounts`,
+          `handleConnectionMessage::waitForAsyncCondition channelId=${connection.channelId} accounts`,
           accounts,
         );
         return accounts.length > 0;

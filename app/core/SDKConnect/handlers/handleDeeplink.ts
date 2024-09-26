@@ -7,9 +7,10 @@ import AppConstants from '../../AppConstants';
 import Engine from '../../Engine';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
-import { waitForCondition } from '../utils/wait.util';
+import { waitForCondition, waitForKeychainUnlocked } from '../utils/wait.util';
 import handleConnectionMessage from './handleConnectionMessage';
 import { Platform } from 'react-native';
+import { KeyringController } from '@metamask/keyring-controller';
 
 const QRCODE_PARAM_PATTERN = '&t=q';
 
@@ -49,6 +50,17 @@ const handleDeeplink = async ({
   }
 
   DevLogger.log(`handleDeeplink:: origin=${origin} url=${url}`);
+
+  // Wait for keychain to be unlocked before handling rpc calls.
+  const keyringController = (
+    Engine.context as { KeyringController: KeyringController }
+  ).KeyringController;
+
+  await waitForKeychainUnlocked({
+    keyringController,
+    context: 'connection::on_message',
+  });
+
   // Detect if origin matches qrcode param
   // SDKs should all add the type of intended use in the qrcode so it can be used correctly when scaning with the camera
   // does url contains t=d (deelink) or t=q (qrcode)
@@ -72,12 +84,12 @@ const handleDeeplink = async ({
 
   try {
     if (channelExists) {
-      if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
-        // Automatically re-approve hosts.
-        sdkConnect.revalidateChannel({
-          channelId,
-        });
+      if(sdkConnect.state.connecting[channelId]) {
+        // skip reconnect if connecting
+        DevLogger.log(`handleDeeplink:: channel=${channelId} is connecting --- SKIP reconnect`);
+        return;
       }
+
       await sdkConnect.reconnect({
         channelId,
         otherPublicKey,
@@ -115,9 +127,6 @@ const handleDeeplink = async ({
           connection,
           engine: Engine,
         });
-      } else {
-        // network call to connect to channel
-        sdkConnect.updateSDKLoadingState({ channelId, loading: true });
       }
     } else {
       const trigger =
