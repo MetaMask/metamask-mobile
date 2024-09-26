@@ -301,7 +301,10 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
 type AppDispatch = Dispatch<OnboardingActionTypes>;
 
 const mapDispatchToProps = (dispatch: AppDispatch) => ({
-  saveOnboardingEvent: (...eventArgs: any[]) => dispatch(SaveEvent(eventArgs)),
+  saveOnboardingEvent: (...eventArgs: [IMetaMetricsEvent]) => {
+    const [event] = eventArgs;
+    return dispatch(SaveEvent(event))
+  },
 });
 
 export default connect(null, mapDispatchToProps)(OnboardingCarousel);
