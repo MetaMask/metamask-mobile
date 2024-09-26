@@ -72,9 +72,7 @@ function renderUseSwapConfirmedEventHook({
       state: {
         engine: {
           backgroundState: {
-            TransactionController: {
-              swapsTransactions,
-            },
+            TransactionController: {},
           },
         },
       },
