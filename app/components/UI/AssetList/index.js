@@ -80,7 +80,6 @@ export default class AssetList extends PureComponent {
               containerStyle={styles.item}
               onPress={() => handleSelectAsset(searchResults[i])} // eslint-disable-line
               key={i}
-              testID={ImportTokenViewSelectorsIDs.CONTAINER}
             >
               <View style={styles.assetListElement}>
                 <AssetIcon address={address} logo={iconUrl} />

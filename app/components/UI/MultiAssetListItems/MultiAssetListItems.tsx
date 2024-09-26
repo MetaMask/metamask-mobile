@@ -83,7 +83,7 @@ const MultiAssetListItems = ({
             style={styles.base}
             key={i}
             onPress={() => handleSelectAsset(searchResults[i])}
-            testID={ImportTokenViewSelectorsIDs.CONTAINER}
+            testID={ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT}
           >
             <View style={styles.Icon}>
               <BadgeWrapper
