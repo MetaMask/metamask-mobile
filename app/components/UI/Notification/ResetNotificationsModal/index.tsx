@@ -24,6 +24,7 @@ import Icon, {
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useResetNotificationsStorageKey } from '../../../../util/notifications/hooks/useNotifications';
 
 const ResetNotificationsModal = () => {
   const { trackEvent } = useMetrics();
@@ -31,10 +32,12 @@ const ResetNotificationsModal = () => {
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isChecked, setIsChecked] = React.useState(false);
+  const { resetNotificationsStorageKey } = useResetNotificationsStorageKey();
 
-  // TODO: Handle errror/loading states from enabling/disabling profile syncing
+
   const closeBottomSheet = () => {
     bottomSheetRef.current?.onCloseBottomSheet(async () => {
+      await resetNotificationsStorageKey();
       trackEvent(MetaMetricsEvents.NOTIFICATION_STORAGE_KEY_DELETED, {
         settings_type: 'reset_notifications_storage_key',
       });

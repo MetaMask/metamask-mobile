@@ -764,7 +764,7 @@
     "enabling_notifications": "Enabling notifications...",
     "disabling_notifications": "Disabling notifications...",
     "reset_notifications_title": "Reset notifications",
-    "reset_notifications_description": "Resetting notifications, means you're deleting all your notification history. Are you sure you want to do this?",
+    "reset_notifications_description": "Resetting notifications, means you're overwritting your notifications storage keys and resetting all your notification history. Are you sure you want to do this?",
     "reset_notifications": "Reset notifications",
     "enabling_profile_sync": "Enabling profile syncing...",
     "disabling_profile_sync": "Disabling profile syncing...",
