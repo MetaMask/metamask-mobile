@@ -14,7 +14,7 @@ jest.mock('../../util/trace', () => ({
 }));
 
 describe('createTracingMiddleware', () => {
-  let request: any;
+  let request: JsonRpcRequest<unknown> & { traceContext?: unknown };
   beforeEach(() => {
     jest.clearAllMocks();
     request = { ...REQUEST_MOCK };
@@ -22,7 +22,6 @@ describe('createTracingMiddleware', () => {
 
   it('adds trace context to request if method is send transaction', async () => {
     await createTracingMiddleware()(request, RESPONSE_MOCK, NEXT_MOCK);
-    console.log({ request });
     expect(request.traceContext).toBeDefined();
   });
 

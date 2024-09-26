@@ -16,12 +16,10 @@ const SignatureApproval = () => {
     });
   }, [onConfirm]);
 
-  useAsyncResult(async () => {
-    return await endTrace({
+  useAsyncResult(async () => await endTrace({
       name: TraceName.NotificationDisplay,
       id: approvalRequest?.requestData.requestId,
-    });
-  }, [approvalRequest?.requestData.requestId]);
+    }), [approvalRequest?.requestData.requestId]);
 
   const messageParams =
     approvalRequest &&
