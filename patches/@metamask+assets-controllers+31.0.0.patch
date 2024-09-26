@@ -1016,3 +1016,16 @@ index 52bb3ac..b291078 100644
  export default TokenBalancesController;
  //# sourceMappingURL=TokenBalancesController.d.ts.map
 \ No newline at end of file
+diff --git a/node_modules/@metamask/assets-controllers/dist/types/index.d.ts b/node_modules/@metamask/assets-controllers/dist/types/index.d.ts
+index bf96db8..f6eb1ea 100644
+--- a/node_modules/@metamask/assets-controllers/dist/types/index.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/types/index.d.ts
+@@ -5,7 +5,7 @@ export type { NftControllerState, NftControllerMessenger, NftControllerActions,
+ export { getDefaultNftControllerState, NftController } from './NftController';
+ export type { NftDetectionControllerMessenger, ApiNft, ApiNftContract, ApiNftLastSale, ApiNftCreator, ReservoirResponse, TokensResponse, BlockaidResultType, Blockaid, Market, TokenResponse, TopBid, LastSale, FeeBreakdown, Attributes, Collection, Royalties, Ownership, FloorAsk, Price, Metadata, } from './NftDetectionController';
+ export { NftDetectionController } from './NftDetectionController';
+-export type { TokenBalancesControllerMessenger, TokenBalancesControllerActions, TokenBalancesControllerGetStateAction, TokenBalancesControllerEvents, TokenBalancesControllerStateChangeEvent, } from './TokenBalancesController';
++export type { TokenBalancesControllerMessenger, TokenBalancesControllerActions, TokenBalancesControllerGetStateAction, TokenBalancesControllerEvents, TokenBalancesControllerStateChangeEvent, TokenBalancesControllerState, } from './TokenBalancesController';
+ export { TokenBalancesController } from './TokenBalancesController';
+ export type { TokenDetectionControllerMessenger, TokenDetectionControllerActions, TokenDetectionControllerGetStateAction, TokenDetectionControllerEvents, TokenDetectionControllerStateChangeEvent, } from './TokenDetectionController';
+ export { TokenDetectionController } from './TokenDetectionController';
