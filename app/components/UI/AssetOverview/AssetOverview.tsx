@@ -45,7 +45,7 @@ import Routes from '../../../constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
 import useGoToBridge from '../Bridge/utils/useGoToBridge';
-import { swapsUtils } from '@metamask/swaps-controller';
+import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -97,12 +97,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const { SwapsController } = Engine.context as {
+    const { SwapsController: SwapsControllerFromEngine } = Engine.context as {
       SwapsController: SwapsController;
     };
     const fetchTokenWithCache = async () => {
       try {
-        await SwapsController.fetchTokenWithCache();
+        await SwapsControllerFromEngine.fetchTokenWithCache();
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
