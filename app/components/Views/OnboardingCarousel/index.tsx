@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import {
   Text,
   View,
@@ -8,6 +8,8 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
+import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { MetaMetricsEvents, IMetaMetricsEvent } from '../../../core/Analytics';
 import StyledButton from '../../UI/StyledButton';
 import { fontStyles, baseStyles } from '../../../styles/common';
@@ -17,7 +19,6 @@ import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import Device from '../../../util/device';
-import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { connect } from 'react-redux';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { WELCOME_SCREEN_CAROUSEL_TITLE_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WelcomeScreen.testIds';
@@ -28,6 +29,11 @@ import { isTest } from '../../../util/test/utils';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { PerformanceRegressionSelectorIDs } from '../../../../e2e/selectors/PerformanceRegression.selectors';
 import { JsonMap } from '@segment/analytics-react-native';
+import { Dispatch } from 'redux';
+import {
+  saveOnboardingEvent as SaveEvent,
+  OnboardingActionTypes,
+} from '../../../actions/onboarding';
 
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;
@@ -36,7 +42,7 @@ const DEVICE_WIDTH = Dimensions.get('window').width;
 
 const IMG_PADDING = Device.isIphoneX() ? 100 : Device.isIphone5S() ? 180 : 220;
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     scroll: {
       flexGrow: 1,
@@ -136,8 +142,11 @@ const carousel_images = [
 ];
 
 interface OnboardingCarouselProps {
-  navigation: any;
-  saveOnboardingEvent: (...eventArgs: any[]) => void;
+  navigation: NavigationProp<ParamListBase>;
+  saveOnboardingEvent: (event: IMetaMetricsEvent) => {
+    event: IMetaMetricsEvent;
+    type: string;
+  };
 }
 
 /**
@@ -155,16 +164,12 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
   const colors = themeContext.colors || mockTheme.colors;
   const styles = createStyles(colors);
 
-  const track = (
-    event: IMetaMetricsEvent,
-    properties: JsonMap = {},
-    saveOnboardingEvent?: (event: IMetaMetricsEvent) => {
-      event: IMetaMetricsEvent;
-      type: string;
+  const track = useCallback(
+    (event: IMetaMetricsEvent, properties: JsonMap = {}) => {
+      trackOnboarding(event, properties, saveOnboardingEvent);
     },
-  ) => {
-    trackOnboarding(event, properties, saveOnboardingEvent);
-  };
+    [saveOnboardingEvent],
+  );
 
   const onPressGetStarted = () => {
     navigation.navigate('Onboarding');
@@ -182,16 +187,16 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
     });
   };
 
-  const updateNavBar = () => {
+  const updateNavBar = useCallback(() => {
     navigation.setOptions(getTransparentOnboardingNavbarOptions(colors));
-  };
+  }, [navigation, colors]);
 
-  const initialize = async () => {
+  const initialize = useCallback(async () => {
     updateNavBar();
     track(MetaMetricsEvents.ONBOARDING_WELCOME_MESSAGE_VIEWED);
     const newAppStartTime = await StorageWrapper.getItem('appStartTime');
     setAppStartTime(newAppStartTime);
-  };
+  }, [updateNavBar, track]);
 
   useEffect(() => {
     initialize();
@@ -199,7 +204,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
 
   useEffect(() => {
     updateNavBar();
-  }, [colors,updateNavBar]);
+  }, [colors, updateNavBar]);
 
   return (
     <View
@@ -292,10 +297,11 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
     </View>
   );
 };
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mapDispatchToProps = (dispatch: any) => ({
-  saveOnboardingEvent: (...eventArgs: any[]) =>
-    dispatch(saveOnboardingEvent(eventArgs)),
+
+type AppDispatch = Dispatch<OnboardingActionTypes>;
+
+const mapDispatchToProps = (dispatch: AppDispatch) => ({
+  saveOnboardingEvent: (...eventArgs: any[]) => dispatch(SaveEvent(eventArgs)),
 });
 
 export default connect(null, mapDispatchToProps)(OnboardingCarousel);
