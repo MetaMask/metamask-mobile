@@ -2,7 +2,7 @@
 import { SmokeAssets } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
-import ImportNFTView from '../../pages/ImportNFTView';
+import ImportNFTView from '../../pages/wallet/ImportNFTFlow/ImportNFTView';
 import { loginToApp } from '../../viewHelper';
 import {
   withFixtures,

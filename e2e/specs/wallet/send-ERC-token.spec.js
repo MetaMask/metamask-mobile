@@ -9,8 +9,8 @@ import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import TokenOverview from '../../pages/TokenOverview';
-import ConfirmAddAssetView from '../../pages/ImportTokenFlow/ConfirmAddAsset';
-import ImportTokensView from '../../pages/ImportTokenFlow/ImportTokensView';
+import ConfirmAddAssetView from '../../pages/wallet/ImportTokenFlow/ConfirmAddAsset';
+import ImportTokensView from '../../pages/wallet/ImportTokenFlow/ImportTokensView';
 import Assertions from '../../utils/Assertions';
 import { CustomNetworks } from '../../resources/networks.e2e';
 

@@ -1,10 +1,10 @@
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../../utils/Matchers';
+import Gestures from '../../../utils/Gestures';
 import {
   ImportTokenViewSelectorsIDs,
   ImportTokenViewSelectorsText,
-} from '../../selectors/ImportTokenView.selectors';
-import TestHelpers from '../../helpers';
+} from '../../../selectors/ImportTokenView.selectors';
+import TestHelpers from '../../../helpers';
 
 class ImportTokensView {
   get searchTokenResult() {

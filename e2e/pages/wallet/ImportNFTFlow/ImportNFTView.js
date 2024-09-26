@@ -1,6 +1,6 @@
-import Matchers from '../utils/Matchers';
-import Gestures from '../utils/Gestures';
-import { NFTImportScreenSelectorsIDs } from '../selectors/ImportNFTView.selectors';
+import Matchers from '../../../utils/Matchers';
+import Gestures from '../../../utils/Gestures';
+import { NFTImportScreenSelectorsIDs } from '../../../selectors/ImportNFTView.selectors';
 
 class ImportNFTView {
   get container() {

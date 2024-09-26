@@ -2,8 +2,7 @@
 import { SmokeAssets } from '../../tags';
 import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
-import ImportTokensView from '../../pages/ImportTokenFlow/ImportTokensView';
-import CommonView from '../../pages/CommonView';
+import ImportTokensView from '../../pages/wallet/ImportTokenFlow/ImportTokensView';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   loadFixture,
@@ -13,7 +12,7 @@ import {
 import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
 import { loginToApp } from '../../viewHelper';
-import ConfirmAddAssetView from '../../pages/ImportTokenFlow/ConfirmAddAsset';
+import ConfirmAddAssetView from '../../pages/wallet/ImportTokenFlow/ConfirmAddAsset';
 import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
