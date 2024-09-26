@@ -39,6 +39,7 @@ import { NetworkStatus } from '@metamask/network-controller';
 import { NETWORK_ID_LOADING } from '../redux/slices/inpageProvider';
 import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMethodMiddleware';
 import createLegacyMethodMiddleware from '../RPCMethods/createLegacyMethodMiddleware';
+import createTracingMiddleware from '../createTracingMiddleware';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -435,6 +436,9 @@ export class BackgroundBridge extends EventEmitter {
           await getPermittedAccounts(this.isMMSDK ? this.channelId : origin),
       }),
     );
+
+    // Sentry tracing middleware
+    engine.push(createTracingMiddleware());
 
     // Append PermissionController middleware
     engine.push(
