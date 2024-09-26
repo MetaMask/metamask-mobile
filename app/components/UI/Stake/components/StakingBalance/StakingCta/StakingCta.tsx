@@ -40,7 +40,7 @@ const StakingCta = ({ estimatedRewardRate, style }: StakingCtaProps) => {
           {nonBreakingSpace}
         </Text>
         <Button
-          label={'Learn more.'}
+          label={strings('stake.learn_more')}
           variant={ButtonVariants.Link}
           onPress={onLearnMorePress}
         />

@@ -3334,7 +3334,8 @@
       },
       "geo_blocked": "You are located in a geographic location where unstaking or staking is not permitted.",
       "approximately": "approximately"
-    }
+    },
+    "learn_more": "Learn more."
   },
   "default_settings": {
     "title": "Your Wallet is ready",
