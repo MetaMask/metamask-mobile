@@ -31,6 +31,7 @@ import { BN } from 'ethereumjs-util';
 import bn from 'bignumber.js';
 import { fixDisplayAmount } from '../../utils/value';
 import { multiplyValueByPowerOfTen } from '../../utils/bignumber';
+import StakingCta from './StakingCta/StakingCta';
 
 // TODO: Replace mock data when connecting to backend.
 const MOCK_STAKED_ETH_ASSET = {
@@ -91,6 +92,9 @@ const MOCK_UNSTAKING_REQUESTS: GetStakesApiResponse = {
   ],
   exchangeRate: '1.010906701603882254',
 };
+
+// TODO: See if this data is available yet. If not, mock backend response.
+const MOCK_REWARD_RATE = '2.6%';
 
 const StakingBalance = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -178,6 +182,11 @@ const StakingBalance = () => {
             style={styles.bannerStyles}
           />
         )}
+        <StakingCta
+          style={styles.stakingCta}
+          estimatedRewardRate={MOCK_REWARD_RATE}
+        />
+        {/* TODO: Pass styles directly to StakingButtons instead of wrapping in a View */}
         <View style={styles.buttonsContainer}>
           <StakingButtons />
         </View>
