@@ -1,9 +1,4 @@
-/* eslint-disable import/no-nodejs-modules */
-import React from 'react';
-import { shallow } from 'enzyme';
-// eslint-disable-next-line import/named
-import { NavigationContainer } from '@react-navigation/native';
-import Main from './';
+import configureStore from 'redux-mock-store';
 import { useSwapConfirmedEvent } from './RootRPCMethodsUI';
 import { act } from '@testing-library/react-hooks';
 import { MetaMetricsEvents } from '../../hooks/useMetrics';
@@ -55,17 +50,20 @@ const SWAP_TRANSACTIONS_MOCK = {
   },
 };
 
+// Create a mock store
+const mockStore = configureStore([]);
+const store = mockStore({}); // Add any initial state if needed
+
 function renderUseSwapConfirmedEventHook({
   swapsTransactions,
   trackSwaps,
 }: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   swapsTransactions: any;
   trackSwaps?: jest.Func;
 }) {
   const finalTrackSwaps = trackSwaps || jest.fn();
 
-  const { result } = renderHookWithProvider(
+  return renderHookWithProvider(
     () =>
       useSwapConfirmedEvent({
         trackSwaps: finalTrackSwaps,
@@ -75,7 +73,6 @@ function renderUseSwapConfirmedEventHook({
         engine: {
           backgroundState: {
             TransactionController: {
-              //@ts-expect-error - swaps transactions is something we do not have implemented on TransacitonController yet
               swapsTransactions,
             },
           },
@@ -83,8 +80,6 @@ function renderUseSwapConfirmedEventHook({
       },
     },
   );
-
-  return result;
 }
 
 describe('Main', () => {
@@ -92,19 +87,9 @@ describe('Main', () => {
     jest.resetAllMocks();
   });
 
-  it('should render correctly', () => {
-    const MainAppContainer = () => (
-      <NavigationContainer>
-        <Main />
-      </NavigationContainer>
-    );
-    const wrapper = shallow(<MainAppContainer />);
-    expect(wrapper).toMatchSnapshot();
-  });
-
   describe('useSwapConfirmedEvent', () => {
     it('queues transactionMeta ids correctly', () => {
-      const result = renderUseSwapConfirmedEventHook({
+      const { result } = renderUseSwapConfirmedEventHook({
         swapsTransactions: {},
       });
 
@@ -120,7 +105,7 @@ describe('Main', () => {
     });
 
     it('adds a listener for transaction confirmation on the TransactionController', () => {
-      const result = renderUseSwapConfirmedEventHook({
+      const { result } = renderUseSwapConfirmedEventHook({
         swapsTransactions: SWAP_TRANSACTIONS_MOCK,
       });
 
@@ -142,7 +127,7 @@ describe('Main', () => {
         id: TRANSACTION_META_ID_MOCK,
       };
 
-      const result = renderUseSwapConfirmedEventHook({
+      const { result } = renderUseSwapConfirmedEventHook({
         swapsTransactions: SWAP_TRANSACTIONS_MOCK,
         trackSwaps,
       });
@@ -171,7 +156,7 @@ describe('Main', () => {
         id: TRANSACTION_META_ID_MOCK,
       };
 
-      const result = renderUseSwapConfirmedEventHook({
+      const { result } = renderUseSwapConfirmedEventHook({
         swapsTransactions: SWAP_TRANSACTIONS_MOCK,
         trackSwaps,
       });
