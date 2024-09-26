@@ -1,6 +1,6 @@
 import Logger from '../../../util/Logger';
 import AppConstants from '../../AppConstants';
-import SDKConnect from '../SDKConnect';
+import SDKConnect, { SDKConnectState } from '../SDKConnect';
 import { waitForCondition } from '../utils/wait.util';
 import handleDeeplink from './handleDeeplink';
 import handleConnectionMessage from './handleConnectionMessage';
@@ -132,6 +132,8 @@ describe('handleDeeplink', () => {
     mockHasInitialized.mockReturnValue(true);
     mockGetConnections.mockReturnValue({ [channelId]: {} });
 
+    sdkConnect.state = { connecting: {} } as unknown as SDKConnectState;
+
     await handleDeeplink({
       sdkConnect,
       channelId,
@@ -202,6 +204,17 @@ describe('handleDeeplink', () => {
   it('should handle rpc calls for existing connections', async () => {
     mockHasInitialized.mockReturnValue(true);
     mockGetConnections.mockReturnValue({ [channelId]: {} });
+
+    sdkConnect.state = { connecting: {} } as unknown as SDKConnectState;
+
+    // Update mockGetConnected to return a connection with the decrypt method
+    mockGetConnected.mockReturnValue({
+      [channelId]: {
+        remote: {
+          decrypt: mockDecrypt,
+        },
+      },
+    });
 
     await handleDeeplink({
       sdkConnect,

@@ -34,13 +34,15 @@ describe('reconnectAll', () => {
   });
 
   describe('Reconnecting process', () => {
-    it('should reconnect to each channel in the connections list', () => {
+    it('should reconnect to each channel in the connections list with relayPersistence', () => {
       const mockChannelId = 'mockChannelId';
       const mockOtherPublicKey = 'mockOtherPublicKey';
 
       mockInstance.state.connections[mockChannelId] = {
         otherPublicKey: mockOtherPublicKey,
         origin: 'qr-code',
+        relayPersistence: true,
+        protocolVersion: '1.0',
       } as unknown as SDKConnect['state']['connections'][string];
 
       reconnectAll(mockInstance);
@@ -51,7 +53,23 @@ describe('reconnectAll', () => {
         initialConnection: false,
         trigger: 'reconnect',
         context: 'reconnectAll',
+        protocolVersion: '1.0',
       });
+    });
+
+    it('should not reconnect to channels without relayPersistence', () => {
+      const mockChannelId = 'mockChannelId';
+      const mockOtherPublicKey = 'mockOtherPublicKey';
+
+      mockInstance.state.connections[mockChannelId] = {
+        otherPublicKey: mockOtherPublicKey,
+        origin: 'qr-code',
+        relayPersistence: false,
+      } as unknown as SDKConnect['state']['connections'][string];
+
+      reconnectAll(mockInstance);
+
+      expect(mockReconnect).not.toHaveBeenCalled();
     });
   });
 
