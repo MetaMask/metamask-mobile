@@ -39,13 +39,10 @@ const styleSheet = (params: { theme: Theme; vars: ListItemStyleSheetVars }) => {
       } as ViewStyle,
       style,
     ) as ViewStyle,
-    item: Object.assign(
-      {
-        flexDirection: 'row',
-        alignItems,
-      } as ViewStyle,
-      style,
-    ) as ViewStyle,
+    item: {
+      flexDirection: 'row',
+      alignItems,
+    } as ViewStyle,
     topAccessory: {
       marginBottom: topAccessoryGap ?? 0,
     },
