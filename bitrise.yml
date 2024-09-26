@@ -479,10 +479,16 @@ workflows:
     after_run:
       - wdio_android_e2e_test
   run_testrail_update_automated_test_results:
+    before_run:
+      - code_setup
     steps:
-      - script:
-          title: Report Automated Test Results
-          after_run: node ./scripts/testrail/testrail.api.js
+      - script@1:
+          title: 'Report Automated Test Results'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo 'REPORT AUTOMATED TEST RESULTS'
+                node ./scripts/testrail/testrail.api.js
   ### Separating workflows so they run concurrently during smoke runs
   run_tag_smoke_accounts_ios:
     envs:
