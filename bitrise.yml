@@ -644,8 +644,8 @@ workflows:
   android_e2e_test:
     before_run:
       - setup
-      - install_detox
       - prep_environment
+      - install_detox
     after_run:
       - notify_failure
     steps:
@@ -737,8 +737,8 @@ workflows:
   ios_api_specs:
     before_run:
       - setup
-      - install_detox
       - prep_environment
+      - install_detox
     after_run:
       - notify_failure
     steps:
@@ -890,8 +890,8 @@ workflows:
   ios_e2e_test:
     before_run:
       - setup
-      - install_detox
       - prep_environment
+      - install_detox
     after_run:
       - notify_failure
     steps:
