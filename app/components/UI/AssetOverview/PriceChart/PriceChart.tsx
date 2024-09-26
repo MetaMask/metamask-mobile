@@ -69,7 +69,7 @@ const PriceChart = ({
 
   const chartColor =
     priceDiff > 0
-      ? theme.colors.success.default
+      ? theme.colors.primary.default
       : priceDiff < 0
       ? theme.colors.error.default
       : theme.colors.text.alternative;
