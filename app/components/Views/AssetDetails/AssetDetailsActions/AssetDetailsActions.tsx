@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Platform } from 'react-native';
+import { Platform, View } from 'react-native';
 import styleSheet from './AssetDetailsActions.styles';
 import { useStyles } from '../../../../component-library/hooks';
 import WalletAction from '../../../../components/UI/WalletAction';
@@ -17,6 +17,7 @@ import {
   TOKEN_OVERVIEW_SEND_BUTTON,
   TOKEN_OVERVIEW_SWAP_BUTTON,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+import { WalletActionType } from '../../../UI/WalletAction/WalletAction.types';
 
 export interface AssetDetailsActionsProps {
   displayBuyButton: boolean | undefined;
@@ -44,6 +45,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
       {displayBuyButton && (
         <View style={styles.buttonWrapper}>
           <WalletAction
+            actionType={WalletActionType.Buy}
             iconName={IconName.Add}
             iconSize={AvatarSize.Lg}
             onPress={onBuy}
@@ -60,6 +62,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
       {displaySwapsButton && (
         <View style={styles.buttonWrapper}>
           <WalletAction
+            actionType={WalletActionType.Swap}
             iconName={IconName.SwapHorizontal}
             iconSize={AvatarSize.Lg}
             onPress={goToSwaps}
@@ -75,6 +78,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
 
       <View style={styles.buttonWrapper}>
         <WalletAction
+          actionType={WalletActionType.Bridge}
           iconName={IconName.Bridge}
           iconSize={AvatarSize.Lg}
           onPress={goToBridge}
@@ -88,6 +92,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
       </View>
       <View style={styles.buttonWrapper}>
         <WalletAction
+          actionType={WalletActionType.Send}
           iconName={IconName.Arrow2Upright}
           iconSize={AvatarSize.Lg}
           onPress={onSend}
@@ -101,6 +106,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
       </View>
       <View style={styles.buttonWrapper}>
         <WalletAction
+          actionType={WalletActionType.Receive}
           iconName={IconName.QrCode}
           iconSize={AvatarSize.Lg}
           onPress={onReceive}
