@@ -3286,6 +3286,10 @@
   "stake": {
     "stake": "Stake",
     "stake_eth": "Stake ETH",
+    "staked_ethereum": "Staked Ethereum",
+    "unstake": "Unstake",
+    "stake_more": "Stake more",
+    "claim": "Claim",
     "your_earnings": "Your earnings",
     "annual_rate": "Annual rate",
     "lifetime_rewards": "Lifetime rewards",
@@ -3298,7 +3302,35 @@
     "enter_amount": "Enter amount",
     "review": "Review",
     "not_enough_eth": "Not enough ETH",
-    "balance": "Balance"
+    "balance": "Balance",
+    "your_balance": "Your balance",
+    "day": {
+      "zero": "",
+      "one": "day",
+      "other": "days"
+    },
+    "hour": {
+      "zero": "",
+      "one": "hour",
+      "other": "hours"
+    },
+    "minute": {
+      "zero": "",
+      "one": "minute",
+      "other": "minutes"
+    },
+    "banner_text": {
+      "has_claimable_eth": "You can claim {{amountEth}} ETH. Once claimed, you'll get ETH back in your wallet.",
+      "unstaking_in_progress": {
+        "base": "Unstaking {{amountEth}} ETH in progress. Come back in",
+        "and": "and",
+        "to_claim_it": "to claim it.",
+        "default": "Unstaking {{amountEth}} ETH in progress. Come back later to claim it."
+      },
+      "geo_blocked": "You are located in a geographic location where unstaking or staking is not permitted.",
+      "approximately": "approximately"
+    }
+>>>>>>> origin/main
   },
   "default_settings": {
     "title": "Your Wallet is ready",
