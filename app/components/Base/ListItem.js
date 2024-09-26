@@ -29,7 +29,7 @@ const createStyles = (colors) =>
     },
     icon: {
       flexDirection: 'row',
-      alignItems: 'center',
+      alignSelf: 'center',
       marginRight: 15,
     },
     body: {
