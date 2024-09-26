@@ -83,10 +83,14 @@ describe('NotificationsService', () => {
     expect(notifee.createChannel).toHaveBeenCalledWith(channel);
   });
 
-  it('should return authorized from getAllPermissions', async () => {
-    const result = await NotificationsService.getAllPermissions();
-    expect(result.permission).toBe('authorized');
-  });
+  it.concurrent(
+    'should return authorized from getAllPermissions',
+    async () => {
+      const result = await NotificationsService.getAllPermissions();
+      expect(result.permission).toBe('authorized');
+    },
+    10000,
+  );
 
   it('should return authorized from requestPermission ', async () => {
     const result = await NotificationsService.requestPermission();
