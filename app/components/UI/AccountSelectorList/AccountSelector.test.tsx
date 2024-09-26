@@ -8,7 +8,12 @@ import { View } from 'react-native';
 import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { regex } from '../../../../app/util/regex';
-import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
+import {
+  createMockAccountsControllerState,
+  createMockAccountsControllerStateWithSnap,
+  MOCK_ADDRESS_1,
+  MOCK_ADDRESS_2,
+} from '../../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
@@ -198,6 +203,30 @@ describe('AccountSelectorList', () => {
       const accountNameItems = getAllByTestId('cellbase-avatar-title');
       expect(within(accountNameItems[0]).getByText('Account 1')).toBeDefined();
       expect(within(accountNameItems[1]).getByText('Account 2')).toBeDefined();
+    });
+  });
+  it('renders "Snaps (beta)" tag for Snap accounts', async () => {
+    const mockAccountsWithSnap = createMockAccountsControllerStateWithSnap([
+      MOCK_ADDRESS_1,
+      MOCK_ADDRESS_2,
+    ]);
+
+    const stateWithSnapAccount = {
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          AccountsController: mockAccountsWithSnap,
+        },
+      },
+    };
+
+    const { queryByText } = renderComponent(stateWithSnapAccount);
+
+    await waitFor(async () => {
+      const snapTag = await queryByText('Snaps (beta)');
+      expect(snapTag).toBeDefined();
     });
   });
 });
