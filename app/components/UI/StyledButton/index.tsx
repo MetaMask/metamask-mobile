@@ -1,4 +1,6 @@
-import StyledButton from './StyledButton'; // eslint-disable-line import/no-unresolved
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import StyledButton from './StyledButton';
 /**
  * @deprecated The `<StyledButton>` component has been deprecated in favor of the new `<Button>` component from the component-library.
  * Please update your code to use the new `<Button>` component instead, which can be found at app/component-library/components/Buttons/Button/Button.tsx.
