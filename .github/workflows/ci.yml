@@ -182,7 +182,7 @@ jobs:
       
   ship-js-bundle-size-check:
     runs-on: ubuntu-20.04
-    needs: [setup, js-bundle-size-check]
+    needs: [check-diff, js-bundle-size-check]
     #if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v3
@@ -194,6 +194,9 @@ jobs:
 
       - name: Push bundle size to mobile_bundlesize_stats repo
         run: ./scripts/push-bundle-size.sh
+        env:
+          GITHUB_ACTOR: metamaskbot
+          MOBILE_BUNDLESIZE_TOKEN: ${{ secrets.MOBILE_BUNDLESIZE_TOKEN }}
 
   sonar-cloud:
     runs-on: ubuntu-20.04
