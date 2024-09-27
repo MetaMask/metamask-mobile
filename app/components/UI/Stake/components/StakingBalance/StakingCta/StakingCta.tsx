@@ -13,8 +13,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 
-const nonBreakingSpace = '\u00A0';
-
 interface StakingCtaProps extends Pick<ViewProps, 'style'> {
   estimatedRewardRate: string;
 }
@@ -35,14 +33,12 @@ const StakingCta = ({ estimatedRewardRate, style }: StakingCtaProps) => {
         {strings('stake.stake_eth_and_earn')}
       </Text>
       <View style={styles.contentMain}>
-        <Text>
+        <Text style={styles.rightPad}>
           {strings('stake.stake_your_eth_cta.base')}
-          {nonBreakingSpace}
         </Text>
         <Text color={TextColor.Success}>{estimatedRewardRate}</Text>
-        <Text>
+        <Text style={styles.rightPad}>
           {strings('stake.stake_your_eth_cta.annually')}
-          {nonBreakingSpace}
         </Text>
         <Button
           label={strings('stake.stake_your_eth_cta.learn_more_with_period')}

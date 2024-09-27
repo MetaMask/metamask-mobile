@@ -10,6 +10,9 @@ const styleSheet = () =>
       flexDirection: 'row',
       flexWrap: 'wrap',
     },
+    rightPad: {
+      paddingRight: 3,
+    },
   });
 
 export default styleSheet;
