@@ -140,7 +140,8 @@
     "react-native/ws": "^6.2.3",
     "socket.io-client/engine.io-client/ws": "^8.17.1",
     "micromatch": "4.0.8",
-    "send": "0.19.0"
+    "send": "0.19.0",
+    "@ledgerhq/hw-app-eth": "6.26.1"
   },
   "dependencies": {
     "@consensys/on-ramp-sdk": "1.28.3",
@@ -593,7 +594,18 @@
       "detox>ws>utf-8-validate": false,
       "ganache>@trufflesuite/uws-js-unofficial>utf-8-validate": false,
       "@react-native-firebase/app>firebase>@firebase/firestore>@grpc/proto-loader>protobufjs": false,
-      "@metamask/eth-ledger-bridge-keyring>@ledgerhq/hw-app-eth>@ledgerhq/domain-service>eip55>keccak": false
+      "@metamask/eth-ledger-bridge-keyring>@ledgerhq/hw-app-eth>@ledgerhq/domain-service>eip55>keccak": false,
+      "@keystonehq/ur-decoder>@keystonehq/bc-ur-registry-eth>ethereumjs-util>ethereum-cryptography>keccak": false,
+      "@metamask/keyring-controller>ethereumjs-wallet>ethereum-cryptography>keccak": false,
+      "@metamask/swaps-controller>@metamask/gas-fee-controller>ethereumjs-util>ethereum-cryptography>keccak": false,
+      "eth-json-rpc-filters>eth-json-rpc-middleware>ethereumjs-util>ethereum-cryptography>keccak": false,
+      "eth-json-rpc-middleware>eth-sig-util>ethereumjs-util>ethereum-cryptography>keccak": false,
+      "eth-json-rpc-middleware>ethereumjs-block>ethereumjs-util>ethereum-cryptography>keccak": false,
+      "eth-json-rpc-middleware>ethereumjs-tx>ethereumjs-util>ethereum-cryptography>keccak": false,
+      "eth-json-rpc-middleware>ethereumjs-util>ethereum-cryptography>keccak": false,
+      "eth-json-rpc-middleware>ethereumjs-vm>ethereumjs-account>ethereumjs-util>ethereum-cryptography>keccak": false,
+      "eth-json-rpc-middleware>ethereumjs-vm>ethereumjs-util>ethereum-cryptography>keccak": false,
+      "eth-json-rpc-middleware>ethereumjs-vm>merkle-patricia-tree>ethereumjs-util>ethereum-cryptography>keccak": false
     }
   },
   "packageManager": "yarn@1.22.22"
