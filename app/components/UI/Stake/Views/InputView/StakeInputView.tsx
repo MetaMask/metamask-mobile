@@ -35,6 +35,7 @@ import QuickAmounts from '../../components/QuickAmounts';
 import useBalance from '../../hooks/useBalance';
 import styleSheet from './StakeInputView.styles';
 import EstimatedAnnualRewardsCard from '../../components/EstimatedAnnualRewardsCard';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const StakeInputView = () => {
   const navigation = useNavigation();
@@ -55,6 +56,12 @@ const StakeInputView = () => {
   const [isEth, setIsEth] = useState<boolean>(true);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate) || 1;
+
+  const navigateToLearnMoreModal = () => {
+    navigation.navigate('StakeModals', {
+      screen: Routes.STAKING.MODALS.LEARN_MORE,
+    });
+  };
 
   const balanceText = isEth
     ? `${balance} ETH`
@@ -219,9 +226,7 @@ const StakeInputView = () => {
       <View style={styles.rewardsRateContainer}>
         <EstimatedAnnualRewardsCard
           estimatedAnnualRewards={estimatedAnnualRewards}
-          onIconPress={() => {
-            // TODO: Add tooltip modal
-          }}
+          onIconPress={navigateToLearnMoreModal}
         />
       </View>
       <QuickAmounts
