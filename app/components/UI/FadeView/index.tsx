@@ -11,7 +11,7 @@ interface FadeViewPropTypes {
    * it can be a text node, an image, or an icon
    * or an Array with a combination of them
    */
-  children: ReactNode;
+  children?: ReactNode;
   /**
    * Styles to be applied to the FadeView
    */
