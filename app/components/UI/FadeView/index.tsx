@@ -1,21 +1,21 @@
-import React, { PureComponent } from 'react';
-import { Animated, ViewStyle } from 'react-native';
+import React, { PureComponent, ReactNode } from 'react';
+import { Animated, StyleProp, ViewStyle } from 'react-native';
 
-interface FadeViewProps {
+interface FadeViewPropTypes {
   /**
    * Determines to show / hide the children components
    */
-  visible?: boolean;
+  visible: boolean;
   /**
    * Children components of the FadeView
    * it can be a text node, an image, or an icon
    * or an Array with a combination of them
    */
-  children?: React.ReactNode;
+  children: ReactNode;
   /**
    * Styles to be applied to the FadeView
    */
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
 interface FadeViewState {
@@ -26,17 +26,19 @@ interface FadeViewState {
  * View that has the ability to fade in / out
  * his children by using the visible prop
  */
-export default class FadeView extends PureComponent<FadeViewProps, FadeViewState> {
+export default class FadeView extends PureComponent<
+  FadeViewPropTypes,
+  FadeViewState
+> {
   visibility: Animated.Value;
-  mounted: boolean;
+  mounted: boolean = false;
 
-  constructor(props: FadeViewProps) {
+  constructor(props: FadeViewPropTypes) {
     super(props);
     this.state = {
-      visible: props.visible || false,
+      visible: props.visible,
     };
     this.visibility = new Animated.Value(props.visible ? 1 : 0);
-    this.mounted = false;
   }
 
   componentDidMount() {
@@ -56,7 +58,7 @@ export default class FadeView extends PureComponent<FadeViewProps, FadeViewState
     }).start(() => {
       if (this.props.visible !== this.state.visible) {
         setTimeout(() => {
-          this.mounted && this.setState({ visible: this.props.visible || false });
+          this.mounted && this.setState({ visible: this.props.visible });
         }, 500);
       }
     });
