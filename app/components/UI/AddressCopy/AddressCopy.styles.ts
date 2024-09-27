@@ -7,14 +7,18 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = theme;
 
   return StyleSheet.create({
-    address: { flexDirection: 'row' },
+    address: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
     copyButton: {
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: colors.primary.muted,
       borderRadius: 20,
-      paddingHorizontal: 8,
-      marginLeft: 8,
+      paddingHorizontal: 12,
+      padding: 4,
+      marginLeft: 12,
     },
     icon: { marginLeft: 4 },
   });
