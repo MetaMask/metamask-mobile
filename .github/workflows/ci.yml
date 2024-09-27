@@ -191,6 +191,8 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: ios-bundle
+          path: ios/main.jsbundle
+
 
       - name: Push bundle size to mobile_bundlesize_stats repo
         run: ./scripts/push-bundle-size.sh
