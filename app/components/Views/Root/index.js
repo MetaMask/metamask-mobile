@@ -33,9 +33,11 @@ export default class Root extends PureComponent {
       const intervalId = setInterval(() => {
         if (store && persistor) {
           clearInterval(intervalId);
+          console.log(`AAA -> waitForStore before promise resolve`);
           resolve();
+          console.log(`AAA -> waitForStore after promise resolve`);
         }
-      }, 100);
+      }, 1000);
     });
   }
 
