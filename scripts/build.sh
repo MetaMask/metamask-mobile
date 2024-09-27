@@ -391,9 +391,9 @@ buildIosQA(){
 buildAndroidQA(){
   	remapEnvVariableQA
 
-	if [ "$PRE_RELEASE" = false ] ; then
-		adb uninstall io.metamask.qa
-	fi
+	# if [ "$PRE_RELEASE" = false ] ; then
+	# 	adb uninstall io.metamask.qa
+	# fi
 
 	prebuild_android
 
@@ -410,9 +410,9 @@ buildAndroidQA(){
 		yarn build:android:checksum:qa
 	fi
 
-	 if [ "$PRE_RELEASE" = false ] ; then
-	 	adb install app/build/outputs/apk/qa/release/app-qa-release.apk
-	 fi
+	#  if [ "$PRE_RELEASE" = false ] ; then
+	#  	adb install app/build/outputs/apk/qa/release/app-qa-release.apk
+	#  fi
 }
 
 buildAndroidRelease(){
@@ -479,7 +479,7 @@ buildAndroidReleaseE2E(){
 
 buildAndroidQAE2E(){
 	prebuild_android
-	cd android && ./gradlew assembleQaRelease -PminSdkVersion=26 -DtestBuildType=release
+	cd android && ./gradlew assembleQaRelease app:assembleQaReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
 }
 
 buildAndroid() {
