@@ -1,8 +1,6 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Snaps team directory
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
-import { Status } from '@metamask/snaps-utils';
+import { Snap, SnapStatus, Status } from '@metamask/snaps-utils';
 import SnapSettings from '../SnapSettings';
 import Engine from '../../../../../core/Engine';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -15,87 +13,38 @@ import SNAP_SETTINGS_REMOVE_BUTTON from '../SnapSettings.constants';
 import { SNAP_DETAILS_CELL } from '../../components/SnapDetails/SnapDetails.constants';
 import SNAP_PERMISSIONS from '../../components/SnapPermissions/SnapPermissions.contants';
 import { SNAP_PERMISSION_CELL } from '../../components/SnapPermissionCell/SnapPermissionCell.constants';
+import { SnapId } from '@metamask/snaps-sdk';
+import {
+  createMockAccountsControllerState,
+  createMockAccountsControllerStateWithSnap,
+  MOCK_ADDRESS_1,
+  MOCK_ADDRESS_2,
+} from '../../../../../util/test/accountsControllerTestUtils';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { KEYRING_SNAP_REMOVAL_WARNING } from '../../KeyringSnapRemovalWarning/KeyringSnapRemovalWarning.constants';
 
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    SnapController: {
-      removeSnap: jest.fn(),
-    },
-  },
-}));
+const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
+  MOCK_ADDRESS_1,
+  MOCK_ADDRESS_2,
+]);
 
+jest.mock('react-native-safe-area-context', () => {
+  // using disting digits for mock rects to make sure they are not mixed up
+  const inset = { top: 1, right: 2, bottom: 3, left: 4 };
+  const frame = { width: 5, height: 6, x: 7, y: 8 };
+  return {
+    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
+    SafeAreaConsumer: jest
+      .fn()
+      .mockImplementation(({ children }) => children(inset)),
+    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
+    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
+  };
+});
+
+const mockUseParams = jest.fn();
 jest.mock('../../../../../util/navigation/navUtils', () => ({
-  useParams: () => ({
-    snap: {
-      blocked: false,
-      enabled: true,
-      permissionName: 'wallet_snap_npm:@chainsafe/filsnap',
-      id: 'npm:@chainsafe/filsnap',
-      initialPermissions: {
-        'endowment:network-access': {},
-        'endowment:rpc': {
-          dapps: true,
-          snaps: true,
-        },
-        snap_confirm: {},
-        snap_getBip44Entropy: [
-          {
-            coinType: 1,
-          },
-          {
-            coinType: 461,
-          },
-        ],
-        snap_manageState: {},
-      },
-      manifest: {
-        version: '2.3.13' as SemVerVersion,
-        proposedName: 'Filsnap',
-        description: 'The Filecoin snap.',
-        repository: {
-          type: 'git',
-          url: 'https://github.com/Chainsafe/filsnap.git',
-        },
-        source: {
-          shasum: 'Z7lh6iD1yjfKES/WutUyxepg5Dgp8Xjo3kivsz9vpwc=',
-          location: {
-            npm: {
-              filePath: 'dist/bundle.js',
-              packageName: '@chainsafe/filsnap',
-              registry: 'https://registry.npmjs.org/',
-            },
-          },
-        },
-        initialPermissions: {
-          'endowment:network-access': {},
-          'endowment:rpc': {
-            dapps: true,
-            snaps: true,
-          },
-          snap_confirm: {},
-          snap_getBip44Entropy: [
-            {
-              coinType: 1,
-            },
-            {
-              coinType: 461,
-            },
-          ],
-          snap_manageState: {},
-        },
-        manifestVersion: '0.1',
-      },
-      status: 'runing' as Status,
-      version: '2.3.13' as SemVerVersion,
-      versionHistory: [
-        {
-          version: '2.3.13',
-          date: 1684964145490,
-          origin: 'metamask-mobile',
-        },
-      ],
-    },
-  }),
+  useParams: () => mockUseParams(),
   createNavigationDetails: jest.fn(),
 }));
 
@@ -172,9 +121,11 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const engineState = {
+const initialState = {
+  settings: {},
   engine: {
     backgroundState: {
+      ...backgroundState,
       PermissionController: {
         subjects: {
           'npm:@chainsafe/filsnap': {
@@ -182,16 +133,135 @@ const engineState = {
           },
         },
       },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
 };
 
-describe('SnapSettings', () => {
+const mockSnap = {
+  blocked: false,
+  enabled: true,
+  permissionName: 'wallet_snap_npm:@chainsafe/filsnap',
+  id: 'npm:@chainsafe/filsnap',
+  initialPermissions: {
+    'endowment:network-access': {},
+    'endowment:rpc': {
+      dapps: true,
+      snaps: true,
+    },
+    snap_confirm: {},
+    snap_getBip44Entropy: [
+      {
+        coinType: 1,
+      },
+      {
+        coinType: 461,
+      },
+    ],
+    snap_manageState: {},
+  },
+  manifest: {
+    version: '2.3.13' as SemVerVersion,
+    proposedName: 'Filsnap',
+    description: 'The Filecoin snap.',
+    repository: {
+      type: 'git',
+      url: 'https://github.com/Chainsafe/filsnap.git',
+    },
+    source: {
+      shasum: 'Z7lh6iD1yjfKES/WutUyxepg5Dgp8Xjo3kivsz9vpwc=',
+      location: {
+        npm: {
+          filePath: 'dist/bundle.js',
+          packageName: '@chainsafe/filsnap',
+          registry: 'https://registry.npmjs.org/',
+        },
+      },
+    },
+    initialPermissions: {
+      'endowment:network-access': {},
+      'endowment:rpc': {
+        dapps: true,
+        snaps: true,
+      },
+      snap_confirm: {},
+      snap_getBip44Entropy: [
+        {
+          coinType: 1,
+        },
+        {
+          coinType: 461,
+        },
+      ],
+      snap_manageState: {},
+    },
+    manifestVersion: '0.1',
+  },
+  status: 'runing' as Status,
+  version: '2.3.13' as SemVerVersion,
+  versionHistory: [
+    {
+      version: '2.3.13',
+      date: 1684964145490,
+      origin: 'metamask-mobile',
+    },
+  ],
+};
+
+jest.mock('../../../../../core/Engine', () => {
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  const { MOCK_ADDRESS_1, MOCK_ADDRESS_2 } = jest.requireActual(
+    '../../../../../util/test/accountsControllerTestUtils',
+  );
+  return {
+    getSnapKeyring: jest.fn().mockReturnValue({
+      type: 'Snap Keyring',
+      getAccountsBySnapId: jest
+        .fn()
+        .mockReturnValue([
+          MOCK_ADDRESS_1.toLowerCase(),
+          MOCK_ADDRESS_2.toLowerCase(),
+        ]),
+    }),
+    context: {
+      SnapController: {
+        removeSnap: jest.fn(),
+      },
+      KeyringController: {
+        state: {
+          keyrings: [
+            {
+              accounts: [MOCK_ADDRESS_1.toLowerCase()],
+              index: 0,
+              type: 'Snap Keyring',
+            },
+            {
+              accounts: [MOCK_ADDRESS_2.toLowerCase()],
+              index: 1,
+              type: 'Snap Keyring',
+            },
+          ],
+        },
+      },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+    },
+  };
+});
+
+describe('SnapSettings with non keyring snap', () => {
+  beforeEach(() => {
+    jest.restoreAllMocks();
+    mockUseParams.mockReturnValue({
+      snap: mockSnap,
+    });
+  });
+
   it('renders correctly', () => {
     const { getAllByTestId, getByTestId } = renderWithProvider(
       <SnapSettings />,
       {
-        state: engineState,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        state: initialState as any,
       },
     );
 
@@ -210,7 +280,8 @@ describe('SnapSettings', () => {
 
   it('remove snap and goes back when Remove button is pressed', async () => {
     const { getByTestId } = renderWithProvider(<SnapSettings />, {
-      state: engineState,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      state: initialState as any,
     });
 
     const removeButton = getByTestId(SNAP_SETTINGS_REMOVE_BUTTON);
@@ -220,6 +291,128 @@ describe('SnapSettings', () => {
     );
     await waitFor(() => {
       expect(mockGoBack).toHaveBeenCalled();
+    });
+  });
+});
+
+describe('SnapSettings with keyring snap', () => {
+  const mockSnapName = 'MetaMask Simple Snap Keyring';
+  const mockKeyringSnapId = 'npm:@metamask/snap-simple-keyring-snap' as SnapId;
+  const mockKeyringSnap: Snap = {
+    blocked: false,
+    enabled: true,
+    id: mockKeyringSnapId,
+    initialPermissions: {
+      'endowment:keyring': {
+        allowedOrigins: ['https://metamask.github.io', 'metamask.github.io'],
+      },
+      'endowment:rpc': {
+        dapps: true,
+      },
+      snap_manageAccounts: {},
+      snap_manageState: {},
+    },
+    manifest: {
+      version: '1.1.6' as SemVerVersion,
+      description: 'An example of a key management snap for a simple keyring.',
+      proposedName: mockSnapName,
+      repository: {
+        type: 'git',
+        url: 'git+https://github.com/MetaMask/snap-simple-keyring.git',
+      },
+      source: {
+        shasum: 'P2BbaJn6jb7+ecBF6mJJnheQ4j8dtEZ8O4FLqLv8e8M=',
+        location: {
+          npm: {
+            filePath: 'dist/bundle.js',
+            iconPath: 'images/icon.svg',
+            packageName: '@metamask/snap-simple-keyring-snap',
+            registry: 'https://registry.npmjs.org/',
+          },
+        },
+      },
+      initialPermissions: {
+        'endowment:keyring': {
+          allowedOrigins: ['https://metamask.github.io', 'metamask.github.io'],
+        },
+        'endowment:rpc': {
+          dapps: true,
+        },
+        snap_manageAccounts: {},
+        snap_manageState: {},
+      },
+      manifestVersion: '0.1',
+    },
+    status: 'stopped' as SnapStatus,
+    sourceCode: '',
+    version: '1.1.6' as SemVerVersion,
+    versionHistory: [
+      {
+        version: '1.1.6',
+        date: 1727403640652,
+        origin: 'https://metamask.github.io',
+      },
+    ],
+    auxiliaryFiles: [],
+    localizationFiles: [],
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseParams.mockReturnValue({
+      snap: mockKeyringSnap,
+    });
+  });
+
+  const MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_SNAP =
+    createMockAccountsControllerStateWithSnap([MOCK_ADDRESS_1, MOCK_ADDRESS_2]);
+
+  it('renders KeyringSnapRemovalWarning when removing a keyring snap', async () => {
+    const mockKeyringSnapPermissions: SubjectPermissions<PermissionConstraint> =
+      {
+        'endowment:keyring': {
+          id: 'Bjj3InYtb6U4ak-uja0f_',
+          parentCapability: 'endowment:keyring',
+          invoker: 'npm:@chainsafe/filsnap',
+          caveats: null,
+          date: mockDate,
+        },
+        snap_manageAccounts: {
+          id: 'BKbg3uDSHHu0D1fCUTOmS',
+          parentCapability: 'snap_manageAccounts',
+          invoker: mockKeyringSnapId,
+          caveats: null,
+          date: mockDate2,
+        },
+      };
+
+    const initialStateWithKeyringSnap = {
+      settings: {},
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          PermissionController: {
+            subjects: {
+              [mockKeyringSnapId]: {
+                permissions: mockKeyringSnapPermissions,
+              },
+            },
+          },
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_SNAP,
+        },
+      },
+    };
+
+    const { getByTestId } = renderWithProvider(<SnapSettings />, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      state: initialStateWithKeyringSnap as any,
+    });
+
+    const removeButton = getByTestId(SNAP_SETTINGS_REMOVE_BUTTON);
+    fireEvent(removeButton, 'onPress');
+
+    await waitFor(() => {
+      expect(getByTestId(KEYRING_SNAP_REMOVAL_WARNING)).toBeTruthy();
     });
   });
 });
