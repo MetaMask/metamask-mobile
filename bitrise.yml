@@ -739,9 +739,8 @@ workflows:
         stack: linux-docker-android-22.04
   ios_api_specs:
     before_run:
-      - setup
+      - code_setup
       - install_detox
-      - prep_environment
     after_run:
       - notify_failure
     steps:
