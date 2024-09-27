@@ -312,51 +312,35 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                       testID="tokens"
                     >
                       <RCTScrollView
-                        ListFooterComponent={[Function]}
-                        ListHeaderComponent={
-                          <View
-                            style={
-                              {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "justifyContent": "space-between",
-                                "marginHorizontal": 16,
-                                "marginVertical": 24,
-                              }
-                            }
-                          >
-                            <View>
-                              <Text
-                                style={
-                                  {
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 32,
-                                    "fontWeight": "500",
-                                    "lineHeight": 40,
-                                  }
-                                }
-                                testID="total-balance-text"
-                              >
-                                0 USD
-                              </Text>
-                              <AggregatedPercentage />
-                            </View>
-                            <Button
-                              endIconName="Export"
-                              label="Portfolio"
-                              onPress={[Function]}
-                              size="40"
-                              style={
+                        ListFooterComponent={
+                          <TokenListFooter
+                            goToAddToken={[Function]}
+                            isAddTokenEnabled={true}
+                            showDetectedTokens={[Function]}
+                            tokens={
+                              [
                                 {
-                                  "marginVertical": 5,
-                                }
-                              }
-                              testID="portfolio-button"
-                              variant="Secondary"
-                              width="full"
-                            />
-                          </View>
+                                  "address": "0x0",
+                                  "balanceFiat": "< $0.01",
+                                  "decimals": 18,
+                                  "iconUrl": "",
+                                  "isETH": true,
+                                  "name": "Ethereum",
+                                  "symbol": "ETH",
+                                },
+                                {
+                                  "address": "0x01",
+                                  "balanceFiat": "$0",
+                                  "decimals": 18,
+                                  "iconUrl": "",
+                                  "name": "Bat",
+                                  "symbol": "BAT",
+                                },
+                              ]
+                            }
+                          />
                         }
+                        ListHeaderComponent={<Networth />}
                         data={
                           [
                             {
@@ -1577,51 +1561,35 @@ exports[`Tokens should render correctly 1`] = `
                       testID="tokens"
                     >
                       <RCTScrollView
-                        ListFooterComponent={[Function]}
-                        ListHeaderComponent={
-                          <View
-                            style={
-                              {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "justifyContent": "space-between",
-                                "marginHorizontal": 16,
-                                "marginVertical": 24,
-                              }
-                            }
-                          >
-                            <View>
-                              <Text
-                                style={
-                                  {
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 32,
-                                    "fontWeight": "500",
-                                    "lineHeight": 40,
-                                  }
-                                }
-                                testID="total-balance-text"
-                              >
-                                0 USD
-                              </Text>
-                              <AggregatedPercentage />
-                            </View>
-                            <Button
-                              endIconName="Export"
-                              label="Portfolio"
-                              onPress={[Function]}
-                              size="40"
-                              style={
+                        ListFooterComponent={
+                          <TokenListFooter
+                            goToAddToken={[Function]}
+                            isAddTokenEnabled={true}
+                            showDetectedTokens={[Function]}
+                            tokens={
+                              [
                                 {
-                                  "marginVertical": 5,
-                                }
-                              }
-                              testID="portfolio-button"
-                              variant="Secondary"
-                              width="full"
-                            />
-                          </View>
+                                  "address": "0x0",
+                                  "balanceFiat": "< $0.01",
+                                  "decimals": 18,
+                                  "iconUrl": "",
+                                  "isETH": true,
+                                  "name": "Ethereum",
+                                  "symbol": "ETH",
+                                },
+                                {
+                                  "address": "0x01",
+                                  "balanceFiat": "$0",
+                                  "decimals": 18,
+                                  "iconUrl": "",
+                                  "name": "Bat",
+                                  "symbol": "BAT",
+                                },
+                              ]
+                            }
+                          />
                         }
+                        ListHeaderComponent={<Networth />}
                         data={
                           [
                             {
@@ -2842,51 +2810,43 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                       testID="tokens"
                     >
                       <RCTScrollView
-                        ListFooterComponent={[Function]}
-                        ListHeaderComponent={
-                          <View
-                            style={
-                              {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "justifyContent": "space-between",
-                                "marginHorizontal": 16,
-                                "marginVertical": 24,
-                              }
-                            }
-                          >
-                            <View>
-                              <Text
-                                style={
-                                  {
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 32,
-                                    "fontWeight": "500",
-                                    "lineHeight": 40,
-                                  }
-                                }
-                                testID="total-balance-text"
-                              >
-                                0 USD
-                              </Text>
-                              <AggregatedPercentage />
-                            </View>
-                            <Button
-                              endIconName="Export"
-                              label="Portfolio"
-                              onPress={[Function]}
-                              size="40"
-                              style={
+                        ListFooterComponent={
+                          <TokenListFooter
+                            goToAddToken={[Function]}
+                            isAddTokenEnabled={true}
+                            showDetectedTokens={[Function]}
+                            tokens={
+                              [
                                 {
-                                  "marginVertical": 5,
-                                }
-                              }
-                              testID="portfolio-button"
-                              variant="Secondary"
-                              width="full"
-                            />
-                          </View>
+                                  "address": "0x0",
+                                  "balanceFiat": "< $0.01",
+                                  "decimals": 18,
+                                  "iconUrl": "",
+                                  "isETH": true,
+                                  "name": "Ethereum",
+                                  "symbol": "ETH",
+                                },
+                                {
+                                  "address": "0x01",
+                                  "balanceFiat": "$0",
+                                  "decimals": 18,
+                                  "iconUrl": "",
+                                  "name": "Bat",
+                                  "symbol": "BAT",
+                                },
+                                {
+                                  "address": "0x02",
+                                  "balanceFiat": "$0",
+                                  "decimals": 18,
+                                  "iconUrl": "",
+                                  "name": "Link",
+                                  "symbol": "LINK",
+                                },
+                              ]
+                            }
+                          />
                         }
+                        ListHeaderComponent={<Networth />}
                         data={
                           [
                             {
