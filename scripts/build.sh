@@ -479,6 +479,10 @@ buildAndroidQAE2E(){
 buildAndroid() {
 	if [ "$MODE" == "release" ] ; then
 		buildAndroidRelease
+	elif [ "$MODE" == "releaseSourcemap" ] ; then
+		# Enable Sentry to auto upload source maps and debug symbols
+		export SENTRY_DISABLE_AUTO_UPLOAD="false"
+		buildAndroidRelease
 	elif [ "$MODE" == "flask" ] ; then
 		buildAndroidFlaskRelease
 	elif [ "$MODE" == "QA" ] ; then
@@ -487,8 +491,8 @@ buildAndroid() {
 		buildAndroidReleaseE2E
 	elif [ "$MODE" == "QAE2E" ] ; then
 		buildAndroidQAE2E
-  elif [ "$MODE" == "debugE2E" ] ; then
-		buildAndroidRunE2E
+	elif [ "$MODE" == "debugE2E" ] ; then
+			buildAndroidRunE2E
 	elif [ "$MODE" == "qaDebug" ] ; then
 		buildAndroidRunQA
 	elif [ "$MODE" == "flaskDebug" ] ; then
@@ -511,13 +515,17 @@ buildIos() {
 	echo "Build iOS $MODE started..."
 	if [ "$MODE" == "release" ] ; then
 		buildIosRelease
+	elif [ "$MODE" == "releaseSourcemap" ] ; then
+		# Enable Sentry to auto upload source maps and debug symbols
+		export SENTRY_DISABLE_AUTO_UPLOAD="false"
+		buildIosRelease
 	elif [ "$MODE" == "flask" ] ; then
 		buildIosFlaskRelease
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildIosReleaseE2E
-  elif [ "$MODE" == "debugE2E" ] ; then
-		buildIosSimulatorE2E
-  elif [ "$MODE" == "qadebugE2E" ] ; then
+	elif [ "$MODE" == "debugE2E" ] ; then
+			buildIosSimulatorE2E
+	elif [ "$MODE" == "qadebugE2E" ] ; then
 		buildIosQASimulatorE2E
 	elif [ "$MODE" == "QA" ] ; then
 		buildIosQA
