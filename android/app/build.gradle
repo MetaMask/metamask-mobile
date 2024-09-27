@@ -229,11 +229,7 @@ android {
         release {
             manifestPlaceholders.isDebug = false
             minifyEnabled enableProguardInReleaseBuilds
-            proguardFiles 
-              getDefaultProguardFile("proguard-android.txt"),
-              "proguard-rules.pro",
-              "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules-app.pro",
-              "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules.pro"
+            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules-app.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules.pro"
         }
     }
 
