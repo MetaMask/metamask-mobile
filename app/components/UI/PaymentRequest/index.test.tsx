@@ -111,8 +111,8 @@ const mockRoute = {
   },
 };
 
-const renderComponent = (props = {}) => {
-  return render(
+const renderComponent = (props = {}) =>
+  render(
     <Provider store={store}>
       <ThemeContext.Provider value={mockTheme}>
         <PaymentRequest
@@ -123,7 +123,6 @@ const renderComponent = (props = {}) => {
       </ThemeContext.Provider>
     </Provider>,
   );
-};
 
 describe('PaymentRequest', () => {
   it('renders correctly', () => {
