@@ -29,8 +29,10 @@ interface ModalContentProps {
   hascheckBox?: boolean | null
   handleCta: () => void;
   handleCancel: () => void;
+  loading?: boolean;
 }
-const ModalContent = ({ title, message, iconName, iconColor, iconSize, checkBoxLabel, btnLabelCancel, btnLabelCta, isChecked, setIsChecked, hascheckBox, handleCancel, handleCta } :ModalContentProps) => {
+
+const ModalContent = ({ title, message, iconName, iconColor, iconSize, checkBoxLabel, btnLabelCancel, btnLabelCta, isChecked, setIsChecked, hascheckBox, handleCancel, handleCta, loading } :ModalContentProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -77,6 +79,7 @@ const ModalContent = ({ title, message, iconName, iconColor, iconSize, checkBoxL
           accessible
           label={btnLabelCta}
           onPress={handleCta}
+          loading={loading}
         />
       </View>
     </View>

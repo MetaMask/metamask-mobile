@@ -49,4 +49,14 @@ export default (colors: ThemeColors) =>
     bottom: { paddingTop: 20 },
     spacer: { width: 20 },
     icon: { alignSelf: 'center', marginBottom: 10 },
+    loaderWrapper: {
+      flex: 1,
+      alignItems: 'center',
+      paddingVertical: 30,
+    },
+    loader: {
+      marginTop: 180,
+      justifyContent: 'center',
+      textAlign: 'center',
+    },
   });

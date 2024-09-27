@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 // External dependencies.
 import { useMetrics } from '../../../hooks/useMetrics';
@@ -21,25 +21,26 @@ const ResetNotificationsModal = () => {
   const { trackEvent } = useMetrics();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isChecked, setIsChecked] = React.useState(false);
-  const { resetNotificationsStorageKey } = useResetNotificationsStorageKey();
+  const { resetNotificationsStorageKey, loading } = useResetNotificationsStorageKey();
 
 
-  const closeBottomSheet = () => {
-    bottomSheetRef.current?.onCloseBottomSheet(async () => {
-      await resetNotificationsStorageKey();
+  const closeBottomSheet = () => bottomSheetRef.current?.onCloseBottomSheet();
+
+  const handleCta = async () => {
+    await resetNotificationsStorageKey();
       trackEvent(MetaMetricsEvents.NOTIFICATION_STORAGE_KEY_DELETED, {
         settings_type: 'reset_notifications_storage_key',
       });
-    });
   };
 
-  const handleCta = () => {
-    closeBottomSheet();
-  };
+  const prevLoading = useRef(loading);
+  useEffect(() => {
+    if (prevLoading.current && !loading) {
+      closeBottomSheet();
+    }
+    prevLoading.current = loading;
+  }, [loading]);
 
-  const handleCancel = () => {
-    bottomSheetRef.current?.onCloseBottomSheet();
-  };
 
   return (
     <BottomSheet ref={bottomSheetRef}>
@@ -55,7 +56,8 @@ const ResetNotificationsModal = () => {
         isChecked={isChecked}
         setIsChecked={setIsChecked}
         handleCta={handleCta}
-        handleCancel={handleCancel}
+        handleCancel={closeBottomSheet}
+        loading={loading}
         />
     </BottomSheet>
   );
