@@ -5,6 +5,25 @@ import React from 'react';
 import BasicFunctionalityModal from './BasicFunctionalityModal';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 
+/**
+ * @typedef {import('../../../../reducers').RootState} RootState
+ * @typedef {import('redux').DeepPartial<RootState>} MockRootState
+ */
+
+/** @type {MockRootState} */
+const mockInitialState = {
+  engine: {
+    backgroundState: {
+      UserStorageController: {
+        isProfileSyncingEnabled: false,
+      },
+      NotificationServicesController: {
+        isNotificationServicesEnabled: false,
+      },
+    },
+  },
+};
+
 jest.mock('react-native-safe-area-context', () => {
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };
   const frame = { width: 0, height: 0, x: 0, y: 0 };
@@ -38,6 +57,7 @@ describe('BasicFunctionalityModal', () => {
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(
       <BasicFunctionalityModal route={{ params: { caller: 'test' } }} />,
+      { state: mockInitialState },
     );
     expect(toJSON()).toMatchSnapshot();
   });
