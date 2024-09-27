@@ -13,6 +13,11 @@ if [[ "${GITHUB_ACTIONS:-}" != 'true' ]]; then
     exit 1
 fi
 
+if [[ -z "${GITHUB_ACTOR:-}" ]]; then
+    log "Error: GITHUB_ACTOR environment variable must be set"
+    exit 1
+fi
+
 # Check for MOBILE_BUNDLESIZE_TOKEN
 if [[ -z "${MOBILE_BUNDLESIZE_TOKEN:-}" ]]; then
     log "Error: MOBILE_BUNDLESIZE_TOKEN environment variable must be set"
@@ -28,7 +33,7 @@ temp_dir=$(mktemp -d)
 trap 'rm -rf "$temp_dir"' EXIT
 
 # Clone the repository
-repo_url="https://$GITHUB_ACTOR:$MOBILE_BUNDLESIZE_TOKEN@github.com/mobile_bundlesize_stats.git"
+repo_url="https://$GITHUB_ACTOR:$MOBILE_BUNDLESIZE_TOKEN@github.com/metamask/mobile_bundlesize_stats.git"
 if ! git clone "$repo_url" "$temp_dir"; then
     log "Error: Failed to clone repository"
     exit 1
