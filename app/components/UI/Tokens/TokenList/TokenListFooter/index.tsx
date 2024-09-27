@@ -53,13 +53,11 @@ export const TokenListFooter = ({
   const styles = createStyles(colors);
 
   const mainToken = tokens.find(({ isETH }) => isETH);
-  if (
-    !mainToken ||
-    !isZero(mainToken.balance) ||
-    !(isNetworkRampSupported && isNativeTokenRampSupported)
-  ) {
-    return null;
-  }
+  const isBuyableToken =
+    mainToken &&
+    isZero(mainToken.balance) &&
+    isNetworkRampSupported &&
+    isNativeTokenRampSupported;
 
   const goToBuy = () => {
     navigation.navigate(...createBuyNavigationDetails());
@@ -71,7 +69,7 @@ export const TokenListFooter = ({
   };
 
   return (
-    <View>
+    <>
       {/* renderTokensDetectedSection */}
       <TouchableOpacity
         style={styles.tokensDetectedButton}
@@ -88,19 +86,21 @@ export const TokenListFooter = ({
         </Text>
       </TouchableOpacity>
       {/* render buy button */}
-      <View style={styles.buy}>
-        <Text variant={TextVariant.HeadingSM} style={styles.buyTitle}>
-          {strings('wallet.add_to_get_started')}
-        </Text>
-        <Button
-          variant={ButtonVariants.Primary}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          style={styles.buyButton}
-          onPress={goToBuy}
-          label={strings('wallet.buy_asset', { asset: mainToken.symbol })}
-        />
-      </View>
+      {isBuyableToken && (
+        <View style={styles.buy}>
+          <Text variant={TextVariant.HeadingSM} style={styles.buyTitle}>
+            {strings('wallet.add_to_get_started')}
+          </Text>
+          <Button
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            style={styles.buyButton}
+            onPress={goToBuy}
+            label={strings('wallet.buy_asset', { asset: mainToken.symbol })}
+          />
+        </View>
+      )}
       {/* render footer */}
       <View style={styles.footer} key={'tokens-footer'}>
         <TouchableOpacity
@@ -117,6 +117,6 @@ export const TokenListFooter = ({
           </Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </>
   );
 };
