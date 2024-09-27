@@ -479,6 +479,10 @@ buildAndroidQAE2E(){
 buildAndroid() {
 	if [ "$MODE" == "release" ] ; then
 		buildAndroidRelease
+	if [ "$MODE" == "releaseSourcemap" ] ; then
+		# Enable Sentry to auto upload source maps and debug symbols
+		export SENTRY_DISABLE_AUTO_UPLOAD="false"
+		buildAndroidRelease
 	elif [ "$MODE" == "flask" ] ; then
 		buildAndroidFlaskRelease
 	elif [ "$MODE" == "QA" ] ; then
@@ -510,6 +514,10 @@ buildAndroidRunE2E(){
 buildIos() {
 	echo "Build iOS $MODE started..."
 	if [ "$MODE" == "release" ] ; then
+		buildIosRelease
+	if [ "$MODE" == "releaseSourcemap" ] ; then
+		# Enable Sentry to auto upload source maps and debug symbols
+		export SENTRY_DISABLE_AUTO_UPLOAD="false"
 		buildIosRelease
 	elif [ "$MODE" == "flask" ] ; then
 		buildIosFlaskRelease

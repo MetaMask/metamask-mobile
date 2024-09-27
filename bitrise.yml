@@ -999,12 +999,12 @@ workflows:
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
   build_ios_release_with_sourcemaps:
     envs:
-      - SENTRY_DISABLE_AUTO_UPLOAD: false
+      - UPLOAD_SOURCEMAP: true
     after_run:
       - build_ios_release
   build_android_release_with_sourcemaps:
     envs:
-      - SENTRY_DISABLE_AUTO_UPLOAD: false
+      - UPLOAD_SOURCEMAP: true
     after_run:
       - build_android_release
   build_android_release:
@@ -1031,9 +1031,14 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                node -v
-                METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle
-          title: Build Android Pre-Release Bundle
+                if [ "$UPLOAD_SOURCEMAP" = "true" ]; then
+                  echo "Skipping Sentry sourcemap creation and upload..."
+                  METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle:sourcemap
+                else
+                  echo "Creating and uploading Sentry sourcemap..."
+                  METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle
+                fi
+          title: Android Build
           is_always_run: false
       - save-gradle-cache@1: {}
       - deploy-to-bitrise-io@2.2.3:
@@ -1261,8 +1266,14 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
-          title: iOS Sourcemaps & Build
+                if [ "$UPLOAD_SOURCEMAP" = "true" ]; then
+                  echo "Skipping Sentry sourcemap creation and upload..."
+                  METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release:sourcemap
+                else
+                  echo "Creating and uploading Sentry sourcemap..."
+                  METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
+                fi          
+          title: iOS Build
           is_always_run: false
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
