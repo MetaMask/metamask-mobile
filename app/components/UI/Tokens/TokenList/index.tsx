@@ -63,14 +63,14 @@ export const TokenList = ({
     trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
       source: 'detected',
       chain_id: getDecimalChainId(chainId),
-      tokens: detectedTokens.map(
+      tokens: detectedTokens?.map(
         (token) => `${token.symbol} - ${token.address}`,
       ),
     });
     setIsAddTokenEnabled(true);
   };
 
-  return tokens.length ? (
+  return tokens?.length ? (
     <FlatList
       ListHeaderComponent={<Networth />}
       data={tokens}
