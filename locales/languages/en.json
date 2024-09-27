@@ -3401,6 +3401,9 @@
   },
   "confirm": {
     "reject": "Reject",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "title": {
+      "signature": "Signature request"
+      }
   }
 }
