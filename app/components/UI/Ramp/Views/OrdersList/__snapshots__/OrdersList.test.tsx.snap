@@ -375,7 +375,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               style={
                 [
                   {
-                    "alignSelf": "center",
+                    "alignItems": "center",
                     "flexDirection": "row",
                     "marginRight": 15,
                   },
@@ -674,7 +674,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               style={
                 [
                   {
-                    "alignSelf": "center",
+                    "alignItems": "center",
                     "flexDirection": "row",
                     "marginRight": 15,
                   },
@@ -925,7 +925,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               style={
                 [
                   {
-                    "alignSelf": "center",
+                    "alignItems": "center",
                     "flexDirection": "row",
                     "marginRight": 15,
                   },
@@ -1533,7 +1533,7 @@ exports[`OrdersList renders correctly 1`] = `
               style={
                 [
                   {
-                    "alignSelf": "center",
+                    "alignItems": "center",
                     "flexDirection": "row",
                     "marginRight": 15,
                   },
@@ -1832,7 +1832,7 @@ exports[`OrdersList renders correctly 1`] = `
               style={
                 [
                   {
-                    "alignSelf": "center",
+                    "alignItems": "center",
                     "flexDirection": "row",
                     "marginRight": 15,
                   },
@@ -2131,7 +2131,7 @@ exports[`OrdersList renders correctly 1`] = `
               style={
                 [
                   {
-                    "alignSelf": "center",
+                    "alignItems": "center",
                     "flexDirection": "row",
                     "marginRight": 15,
                   },
@@ -2382,7 +2382,7 @@ exports[`OrdersList renders correctly 1`] = `
               style={
                 [
                   {
-                    "alignSelf": "center",
+                    "alignItems": "center",
                     "flexDirection": "row",
                     "marginRight": 15,
                   },
@@ -3424,7 +3424,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
               style={
                 [
                   {
-                    "alignSelf": "center",
+                    "alignItems": "center",
                     "flexDirection": "row",
                     "marginRight": 15,
                   },
@@ -3968,7 +3968,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
               style={
                 [
                   {
-                    "alignSelf": "center",
+                    "alignItems": "center",
                     "flexDirection": "row",
                     "marginRight": 15,
                   },
@@ -4576,7 +4576,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               style={
                 [
                   {
-                    "alignSelf": "center",
+                    "alignItems": "center",
                     "flexDirection": "row",
                     "marginRight": 15,
                   },
@@ -4875,7 +4875,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               style={
                 [
                   {
-                    "alignSelf": "center",
+                    "alignItems": "center",
                     "flexDirection": "row",
                     "marginRight": 15,
                   },
@@ -5174,7 +5174,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               style={
                 [
                   {
-                    "alignSelf": "center",
+                    "alignItems": "center",
                     "flexDirection": "row",
                     "marginRight": 15,
                   },
@@ -5425,7 +5425,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               style={
                 [
                   {
-                    "alignSelf": "center",
+                    "alignItems": "center",
                     "flexDirection": "row",
                     "marginRight": 15,
                   },

@@ -526,7 +526,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                           style={
                                             [
                                               {
-                                                "alignSelf": "center",
+                                                "alignItems": "center",
                                                 "flexDirection": "row",
                                                 "marginRight": 15,
                                               },
@@ -1008,7 +1008,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                           style={
                                             [
                                               {
-                                                "alignSelf": "center",
+                                                "alignItems": "center",
                                                 "flexDirection": "row",
                                                 "marginRight": 15,
                                               },
@@ -1511,7 +1511,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                           style={
                                             [
                                               {
-                                                "alignSelf": "center",
+                                                "alignItems": "center",
                                                 "flexDirection": "row",
                                                 "marginRight": 15,
                                               },
@@ -2588,7 +2588,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                           style={
                                             [
                                               {
-                                                "alignSelf": "center",
+                                                "alignItems": "center",
                                                 "flexDirection": "row",
                                                 "marginRight": 15,
                                               },
@@ -3070,7 +3070,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                           style={
                                             [
                                               {
-                                                "alignSelf": "center",
+                                                "alignItems": "center",
                                                 "flexDirection": "row",
                                                 "marginRight": 15,
                                               },
@@ -3573,7 +3573,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                           style={
                                             [
                                               {
-                                                "alignSelf": "center",
+                                                "alignItems": "center",
                                                 "flexDirection": "row",
                                                 "marginRight": 15,
                                               },
@@ -4646,7 +4646,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                       style={
                                         [
                                           {
-                                            "alignSelf": "center",
+                                            "alignItems": "center",
                                             "flexDirection": "row",
                                             "marginRight": 15,
                                           },
@@ -4959,7 +4959,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                       style={
                                         [
                                           {
-                                            "alignSelf": "center",
+                                            "alignItems": "center",
                                             "flexDirection": "row",
                                             "marginRight": 15,
                                           },
@@ -5274,7 +5274,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                       style={
                                         [
                                           {
-                                            "alignSelf": "center",
+                                            "alignItems": "center",
                                             "flexDirection": "row",
                                             "marginRight": 15,
                                           },
@@ -8204,7 +8204,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                       style={
                                         [
                                           {
-                                            "alignSelf": "center",
+                                            "alignItems": "center",
                                             "flexDirection": "row",
                                             "marginRight": 15,
                                           },
@@ -8517,7 +8517,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                       style={
                                         [
                                           {
-                                            "alignSelf": "center",
+                                            "alignItems": "center",
                                             "flexDirection": "row",
                                             "marginRight": 15,
                                           },
@@ -8832,7 +8832,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                       style={
                                         [
                                           {
-                                            "alignSelf": "center",
+                                            "alignItems": "center",
                                             "flexDirection": "row",
                                             "marginRight": 15,
                                           },
@@ -9641,7 +9641,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                           style={
                                             [
                                               {
-                                                "alignSelf": "center",
+                                                "alignItems": "center",
                                                 "flexDirection": "row",
                                                 "marginRight": 15,
                                               },
@@ -10123,7 +10123,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                           style={
                                             [
                                               {
-                                                "alignSelf": "center",
+                                                "alignItems": "center",
                                                 "flexDirection": "row",
                                                 "marginRight": 15,
                                               },
@@ -10626,7 +10626,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                           style={
                                             [
                                               {
-                                                "alignSelf": "center",
+                                                "alignItems": "center",
                                                 "flexDirection": "row",
                                                 "marginRight": 15,
                                               },
@@ -12445,7 +12445,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                           style={
                                             [
                                               {
-                                                "alignSelf": "center",
+                                                "alignItems": "center",
                                                 "flexDirection": "row",
                                                 "marginRight": 15,
                                               },
@@ -12927,7 +12927,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                           style={
                                             [
                                               {
-                                                "alignSelf": "center",
+                                                "alignItems": "center",
                                                 "flexDirection": "row",
                                                 "marginRight": 15,
                                               },
@@ -13430,7 +13430,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                           style={
                                             [
                                               {
-                                                "alignSelf": "center",
+                                                "alignItems": "center",
                                                 "flexDirection": "row",
                                                 "marginRight": 15,
                                               },

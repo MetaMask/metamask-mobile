@@ -74,7 +74,7 @@ exports[`OrderListItem should render correctly 1`] = `
       style={
         [
           {
-            "alignSelf": "center",
+            "alignItems": "center",
             "flexDirection": "row",
             "marginRight": 15,
           },
@@ -356,7 +356,7 @@ exports[`OrderListItem should render correctly 2`] = `
       style={
         [
           {
-            "alignSelf": "center",
+            "alignItems": "center",
             "flexDirection": "row",
             "marginRight": 15,
           },
@@ -638,7 +638,7 @@ exports[`OrderListItem should render correctly 3`] = `
       style={
         [
           {
-            "alignSelf": "center",
+            "alignItems": "center",
             "flexDirection": "row",
             "marginRight": 15,
           },
@@ -920,7 +920,7 @@ exports[`OrderListItem should render correctly 4`] = `
       style={
         [
           {
-            "alignSelf": "center",
+            "alignItems": "center",
             "flexDirection": "row",
             "marginRight": 15,
           },
@@ -1202,7 +1202,7 @@ exports[`OrderListItem should render correctly 5`] = `
       style={
         [
           {
-            "alignSelf": "center",
+            "alignItems": "center",
             "flexDirection": "row",
             "marginRight": 15,
           },
@@ -1484,7 +1484,7 @@ exports[`OrderListItem should render correctly 6`] = `
       style={
         [
           {
-            "alignSelf": "center",
+            "alignItems": "center",
             "flexDirection": "row",
             "marginRight": 15,
           },
@@ -1766,7 +1766,7 @@ exports[`OrderListItem should render correctly 7`] = `
       style={
         [
           {
-            "alignSelf": "center",
+            "alignItems": "center",
             "flexDirection": "row",
             "marginRight": 15,
           },
@@ -2000,7 +2000,7 @@ exports[`OrderListItem should render correctly 8`] = `
       style={
         [
           {
-            "alignSelf": "center",
+            "alignItems": "center",
             "flexDirection": "row",
             "marginRight": 15,
           },
