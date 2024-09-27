@@ -37,6 +37,7 @@ import {
   KEYRING_SNAP_REMOVAL_WARNING,
   KEYRING_SNAP_REMOVAL_WARNING_CANCEL,
   KEYRING_SNAP_REMOVAL_WARNING_CONTINUE,
+  KEYRING_SNAP_REMOVAL_WARNING_TEXT_INPUT
 } from './KeyringSnapRemovalWarning.constants';
 
 interface KeyringSnapRemovalWarningProps {
@@ -174,6 +175,7 @@ export default function KeyringSnapRemovalWarning({
               style={styles.input}
               value={confirmationInput}
               onChangeText={handleConfirmationInputChange}
+              testID={KEYRING_SNAP_REMOVAL_WARNING_TEXT_INPUT}
             />
             {error && (
               <Text variant={TextVariant.BodySM} style={styles.errorText}>
