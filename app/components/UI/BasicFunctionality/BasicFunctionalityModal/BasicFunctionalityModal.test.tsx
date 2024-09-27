@@ -11,8 +11,20 @@ import { useNavigation } from '@react-navigation/native';
  * @typedef {import('redux').DeepPartial<RootState>} MockRootState
  */
 
-/** @type {MockRootState} */
-const mockInitialState = {
+interface MockRootState {
+  engine: {
+    backgroundState: {
+      UserStorageController: {
+        isProfileSyncingEnabled: boolean;
+      };
+      NotificationServicesController: {
+        isNotificationServicesEnabled: boolean;
+      };
+    };
+  };
+}
+
+const mockInitialState: MockRootState = {
   engine: {
     backgroundState: {
       UserStorageController: {
@@ -29,10 +41,10 @@ jest.mock('react-native-safe-area-context', () => {
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };
   const frame = { width: 0, height: 0, x: 0, y: 0 };
   return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
+    SafeAreaProvider: jest.fn().mockImplementation(({ children }: { children: React.ReactNode }) => children),
     SafeAreaConsumer: jest
       .fn()
-      .mockImplementation(({ children }) => children(inset)),
+      .mockImplementation(({ children }: { children: (inset: typeof inset) => React.ReactNode }) => children(inset)),
     useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
     useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
   };
