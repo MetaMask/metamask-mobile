@@ -1,5 +1,4 @@
 import React, { PureComponent } from 'react';
-import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import StepIndicator from 'react-native-step-indicator';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -20,17 +19,6 @@ interface OnboardingProgressProps {
 export default class OnboardingProgress extends PureComponent<OnboardingProgressProps> {
   static defaultProps = {
     currentStep: 0,
-  };
-
-  static propTypes = {
-    /**
-     * int specifying the currently selected step
-     */
-    currentStep: PropTypes.number,
-    /**
-     * array of text strings representing each step
-     */
-    steps: PropTypes.array.isRequired,
   };
 
   render() {
