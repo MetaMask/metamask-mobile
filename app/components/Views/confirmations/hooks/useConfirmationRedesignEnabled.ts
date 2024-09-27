@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 
 import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
-import useApprovalRequest from '../hooks/useApprovalRequest';
+import useApprovalRequest from './useApprovalRequest';
 
-const useRedesignEnabled = () => {
+const useConfirmationRedesignEnabled = () => {
   const { approvalRequest } = useApprovalRequest();
   const approvalRequestType = approvalRequest?.type;
 
@@ -18,4 +18,4 @@ const useRedesignEnabled = () => {
   return { isRedesignedEnabled };
 };
 
-export default useRedesignEnabled;
+export default useConfirmationRedesignEnabled;
