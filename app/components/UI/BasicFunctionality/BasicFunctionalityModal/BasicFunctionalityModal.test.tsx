@@ -45,7 +45,7 @@ jest.mock('react-native-safe-area-context', () => {
     SafeAreaProvider: jest.fn().mockImplementation(({ children }: { children: React.ReactNode }) => children),
     SafeAreaConsumer: jest
       .fn()
-      .mockImplementation(({ children }: { children: (inset: typeof inset) => React.ReactNode }) => children(inset)),
+      .mockImplementation(({ children }: { children: (safeAreaInset: typeof inset) => React.ReactNode }) => children(inset)),
     useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
     useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
   };
@@ -60,17 +60,22 @@ jest.mock('@react-navigation/native', () => {
       setOptions: jest.fn(),
       goBack: jest.fn(),
       reset: jest.fn(),
-      dangerouslyGetParent: () => ({
-        pop: jest.fn(),
-      }),
+      dispatch: jest.fn(),
+      isFocused: jest.fn(),
+      canGoBack: jest.fn(),
+      dangerouslyGetState: jest.fn(),
+      dangerouslyGetParent: jest.fn().mockReturnValue(undefined),
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      setParams: jest.fn(),
     }),
   };
 });
 
 describe('BasicFunctionalityModal', () => {
   it('should render correctly', () => {
-    const { toJSON } = renderWithProvider<React.ReactElement>(
-      <BasicFunctionalityModal navigation={useNavigation()} />,
+    const { toJSON } = renderWithProvider(
+      <BasicFunctionalityModal route={{ params: { caller: 'test' } }} />,
       { state: mockInitialState },
     );
     expect(toJSON()).toMatchSnapshot();
