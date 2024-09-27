@@ -28,6 +28,7 @@ exports[`Footer should match snapshot for personal sign 1`] = `
             "borderWidth": 1,
           },
           {
+            "backgroundColor": "#f2f4f6",
             "flex": 1,
           },
         ],
