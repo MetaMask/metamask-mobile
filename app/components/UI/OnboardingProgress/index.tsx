@@ -6,7 +6,18 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const strokeWidth = 2;
 
-export default class OnboardingProgress extends PureComponent {
+interface OnboardingProgressProps {
+  /**
+   * int specifying the currently selected step
+   */
+  currentStep?: number;
+  /**
+   * array of text strings representing each step
+   */
+  steps: string[];
+}
+
+export default class OnboardingProgress extends PureComponent<OnboardingProgressProps> {
   static defaultProps = {
     currentStep: 0,
   };
