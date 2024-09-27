@@ -36,6 +36,7 @@ export default class FadeView extends PureComponent<FadeViewProps, FadeViewState
       visible: props.visible || false,
     };
     this.visibility = new Animated.Value(props.visible ? 1 : 0);
+    this.mounted = false;
   }
 
   componentDidMount() {
