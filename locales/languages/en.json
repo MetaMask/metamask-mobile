@@ -1065,7 +1065,7 @@
           "description": "Removing this Snap removes these accounts from MetaMask:",
           "remove_account_snap_alert_description_1": "Type ",
           "remove_account_snap_alert_description_2": " to confirm you want to remove this snap:",
-          "banner_title": "Be sure you can access any accounts created by this Snap on your own before removing it",
+          "banner_title": "Be sure you can access any accounts created by the Snap via private keys before removing them",
           "cancel_button": "Cancel",
           "continue_button": "Continue",
           "remove_snap_button": "Remove Snap",
