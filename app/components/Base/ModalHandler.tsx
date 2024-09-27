@@ -1,8 +1,8 @@
-import React, { ReactNode } from 'react';
+import { ReactNode } from 'react';
 import useModalHandler from './hooks/useModalHandler';
 
 interface ModalHandlerProps {
-  children: ReactNode | ((props: {
+  children: ((props: {
     isVisible: boolean;
     toggleModal: () => void;
     showModal: () => void;
