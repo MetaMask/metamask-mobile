@@ -1,6 +1,5 @@
 // Third party dependencies.
 import React, { useRef } from 'react';
-import { View } from 'react-native';
 
 // External dependencies.
 import { useMetrics } from '../../../hooks/useMetrics';
@@ -8,28 +7,18 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { strings } from '../../../../../locales/i18n';
-import Text, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../util/theme';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
-import Checkbox from '../../../../component-library/components/Checkbox/Checkbox';
-import createStyles from '../../ProfileSyncing/ProfileSyncingModal/ProfileSyncingModal.styles';
-import Icon, {
+
+import  {
   IconColor,
   IconName,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useResetNotificationsStorageKey } from '../../../../util/notifications/hooks/useNotifications';
+import ModalContent from '../Modal';
 
 const ResetNotificationsModal = () => {
   const { trackEvent } = useMetrics();
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isChecked, setIsChecked] = React.useState(false);
   const { resetNotificationsStorageKey } = useResetNotificationsStorageKey();
@@ -44,7 +33,7 @@ const ResetNotificationsModal = () => {
     });
   };
 
-  const handleSwitchToggle = () => {
+  const handleCta = () => {
     closeBottomSheet();
   };
 
@@ -52,55 +41,23 @@ const ResetNotificationsModal = () => {
     bottomSheetRef.current?.onCloseBottomSheet();
   };
 
-  const resetNotificationsStoreKey = () => (
-    <View style={styles.container}>
-      <Icon
-        name={IconName.Danger}
-        color={IconColor.Error}
-        size={IconSize.Xl}
-        style={styles.icon}
-      />
-      <Text variant={TextVariant.HeadingMD} style={styles.title}>
-        {strings('app_settings.reset_notifications_title')}
-      </Text>
-      <Text variant={TextVariant.BodyMD} style={styles.description}>
-        {strings('app_settings.reset_notifications_description')}
-      </Text>
-      <View style={styles.bottom}>
-          <Checkbox
-            label={strings('default_settings.sheet.checkbox_label')}
-            isChecked={isChecked}
-            onPress={() => setIsChecked(!isChecked)}
-          />
-        <View style={styles.buttonsContainer}>
-          <Button
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Lg}
-            style={styles.button}
-            accessibilityRole={'button'}
-            accessible
-            label={strings('default_settings.sheet.buttons.cancel')}
-            onPress={handleCancel}
-          />
-          <View style={styles.spacer} />
-          <Button
-            variant={ButtonVariants.Primary}
-            isDisabled={!isChecked}
-            isDanger
-            size={ButtonSize.Lg}
-            style={styles.button}
-            accessibilityRole={'button'}
-            accessible
-            label={strings('default_settings.sheet.buttons.reset')}
-            onPress={handleSwitchToggle}
-          />
-        </View>
-      </View>
-    </View>
-  );
-
   return (
-    <BottomSheet ref={bottomSheetRef}>{resetNotificationsStoreKey()}</BottomSheet>
+    <BottomSheet ref={bottomSheetRef}>
+      <ModalContent
+        title={strings('app_settings.reset_notifications_title')}
+        message={strings('app_settings.reset_notifications_description')}
+        iconName={IconName.Danger}
+        iconColor={IconColor.Error}
+        iconSize={IconSize.Xl}
+        checkBoxLabel={strings('default_settings.sheet.checkbox_label')}
+        btnLabelCancel={strings('default_settings.sheet.buttons.cancel')}
+        btnLabelCta={strings('default_settings.sheet.buttons.reset')}
+        isChecked={isChecked}
+        setIsChecked={setIsChecked}
+        handleCta={handleCta}
+        handleCancel={handleCancel}
+        />
+    </BottomSheet>
   );
 };
 

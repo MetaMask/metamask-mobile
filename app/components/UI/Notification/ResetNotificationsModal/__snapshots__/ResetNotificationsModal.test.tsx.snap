@@ -179,57 +179,6 @@ exports[`ProfileSyncingModal should render correctly 1`] = `
             }
           }
         >
-          <TouchableOpacity
-            disabled={false}
-            onPress={[Function]}
-            style={
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "height": 24,
-                "opacity": 1,
-              }
-            }
-          >
-            <View
-              accessibilityRole="checkbox"
-              style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#ffffff",
-                  "borderColor": "#141618",
-                  "borderRadius": 4,
-                  "borderWidth": 2,
-                  "height": 20,
-                  "justifyContent": "center",
-                  "width": 20,
-                }
-              }
-            />
-            <View
-              style={
-                {
-                  "marginLeft": 12,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 14,
-                    "fontWeight": "400",
-                    "letterSpacing": 0,
-                    "lineHeight": 22,
-                  }
-                }
-              >
-                I understand and want to continue
-              </Text>
-            </View>
-          </TouchableOpacity>
           <View
             style={
               {
@@ -288,7 +237,7 @@ exports[`ProfileSyncingModal should render correctly 1`] = `
               accessibilityRole="button"
               accessible={true}
               activeOpacity={1}
-              disabled={true}
+              disabled={false}
               onPress={[Function]}
               onPressIn={[Function]}
               onPressOut={[Function]}
@@ -296,13 +245,12 @@ exports[`ProfileSyncingModal should render correctly 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#d73847",
+                  "backgroundColor": "#0376c9",
                   "borderRadius": 24,
                   "flex": 1,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
-                  "opacity": 0.5,
                   "paddingHorizontal": 16,
                 }
               }
