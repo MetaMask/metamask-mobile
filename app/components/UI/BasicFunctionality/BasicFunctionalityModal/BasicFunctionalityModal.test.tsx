@@ -1,5 +1,6 @@
 // Third party dependencies.
 import React from 'react';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
 // Internal dependencies.
 import BasicFunctionalityModal from './BasicFunctionalityModal';
@@ -54,7 +55,7 @@ jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
     ...actualReactNavigation,
-    useNavigation: () => ({
+    useNavigation: (): NavigationProp<ParamListBase> => ({
       navigate: jest.fn(),
       setOptions: jest.fn(),
       goBack: jest.fn(),
@@ -68,7 +69,7 @@ jest.mock('@react-navigation/native', () => {
 
 describe('BasicFunctionalityModal', () => {
   it('should render correctly', () => {
-    const { toJSON } = renderWithProvider(
+    const { toJSON } = renderWithProvider<React.ReactElement>(
       <BasicFunctionalityModal navigation={useNavigation()} />,
       { state: mockInitialState },
     );
