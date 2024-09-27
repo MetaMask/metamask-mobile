@@ -98,7 +98,7 @@
     "test:e2e:ios:run": "IS_TEST='true' detox test -c ios.sim.qa",
     "build:ios:qa": "./scripts/build.sh ios QA",
     "test:e2e:android:build": "IS_TEST='true' detox build -c android.emu.release.qa",
-    "test:e2e:android:run": "IS_TEST='true' detox test -c android.emu.release.qa --headless",
+    "test:e2e:android:run": "IS_TEST='true' detox test -c android.emu.release.qa --headless --record-logs all",
     "build:android:qa": "./scripts/build.sh android QA"
   },
   "husky": {
