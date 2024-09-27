@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Platform, View } from 'react-native';
 import styleSheet from './AssetDetailsActions.styles';
 import { useStyles } from '../../../../component-library/hooks';
@@ -40,84 +40,78 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
+  const walletActionProps = useMemo(
+    () => ({
+      iconStyle: styles.icon,
+      containerStyle: styles.containerStyle,
+      iconSize: AvatarSize.Lg,
+    }),
+    [styles],
+  );
+
+  const renderWalletAction = useMemo(
+    () =>
+      (
+        actionType: WalletActionType,
+        iconName: IconName,
+        onPress: () => void,
+        testID: string,
+        labelKey: string,
+      ) =>
+        (
+          <View style={styles.buttonWrapper}>
+            <WalletAction
+              actionType={actionType}
+              iconName={iconName}
+              onPress={onPress}
+              {...walletActionProps}
+              {...generateTestId(Platform, testID)}
+            />
+            <Text variant={TextVariant.BodyMD}>{strings(labelKey)}</Text>
+          </View>
+        ),
+    [walletActionProps, styles.buttonWrapper],
+  );
+
   return (
     <View style={styles.activitiesButton}>
-      {displayBuyButton && (
-        <View style={styles.buttonWrapper}>
-          <WalletAction
-            actionType={WalletActionType.Buy}
-            iconName={IconName.Add}
-            iconSize={AvatarSize.Lg}
-            onPress={onBuy}
-            iconStyle={styles.icon}
-            containerStyle={styles.containerStyle}
-            {...generateTestId(Platform, TOKEN_OVERVIEW_BUY_BUTTON)}
-          />
-          <Text variant={TextVariant.BodyMD}>
-            {strings('asset_overview.buy_button')}
-          </Text>
-        </View>
+      {displayBuyButton &&
+        renderWalletAction(
+          WalletActionType.Buy,
+          IconName.Add,
+          onBuy,
+          TOKEN_OVERVIEW_BUY_BUTTON,
+          'asset_overview.buy_button',
+        )}
+      {displaySwapsButton &&
+        renderWalletAction(
+          WalletActionType.Swap,
+          IconName.SwapHorizontal,
+          goToSwaps,
+          TOKEN_OVERVIEW_SWAP_BUTTON,
+          'asset_overview.swap',
+        )}
+      {renderWalletAction(
+        WalletActionType.Bridge,
+        IconName.Bridge,
+        goToBridge,
+        TOKEN_OVERVIEW_BRIDGE_BUTTON,
+        'asset_overview.bridge',
       )}
-
-      {displaySwapsButton && (
-        <View style={styles.buttonWrapper}>
-          <WalletAction
-            actionType={WalletActionType.Swap}
-            iconName={IconName.SwapHorizontal}
-            iconSize={AvatarSize.Lg}
-            onPress={goToSwaps}
-            iconStyle={styles.icon}
-            containerStyle={styles.containerStyle}
-            {...generateTestId(Platform, TOKEN_OVERVIEW_SWAP_BUTTON)}
-          />
-          <Text variant={TextVariant.BodyMD}>
-            {strings('asset_overview.swap')}
-          </Text>
-        </View>
+      {renderWalletAction(
+        WalletActionType.Send,
+        IconName.Arrow2Upright,
+        onSend,
+        TOKEN_OVERVIEW_SEND_BUTTON,
+        'asset_overview.send_button',
       )}
-
-      <View style={styles.buttonWrapper}>
-        <WalletAction
-          actionType={WalletActionType.Bridge}
-          iconName={IconName.Bridge}
-          iconSize={AvatarSize.Lg}
-          onPress={goToBridge}
-          iconStyle={styles.icon}
-          containerStyle={styles.containerStyle}
-          {...generateTestId(Platform, TOKEN_OVERVIEW_BRIDGE_BUTTON)}
-        />
-        <Text variant={TextVariant.BodyMD}>
-          {strings('asset_overview.bridge')}
-        </Text>
-      </View>
-      <View style={styles.buttonWrapper}>
-        <WalletAction
-          actionType={WalletActionType.Send}
-          iconName={IconName.Arrow2Upright}
-          iconSize={AvatarSize.Lg}
-          onPress={onSend}
-          iconStyle={styles.icon}
-          containerStyle={styles.containerStyle}
-          {...generateTestId(Platform, TOKEN_OVERVIEW_SEND_BUTTON)}
-        />
-        <Text variant={TextVariant.BodyMD}>
-          {strings('asset_overview.send_button')}
-        </Text>
-      </View>
-      <View style={styles.buttonWrapper}>
-        <WalletAction
-          actionType={WalletActionType.Receive}
-          iconName={IconName.QrCode}
-          iconSize={AvatarSize.Lg}
-          onPress={onReceive}
-          iconStyle={styles.icon}
-          containerStyle={styles.containerStyle}
-          {...generateTestId(Platform, TOKEN_OVERVIEW_RECEIVE_BUTTON)}
-        />
-        <Text variant={TextVariant.BodyMD}>
-          {strings('asset_overview.receive_button')}
-        </Text>
-      </View>
+      {renderWalletAction(
+        WalletActionType.Receive,
+        IconName.QrCode,
+        onReceive,
+        TOKEN_OVERVIEW_RECEIVE_BUTTON,
+        'asset_overview.receive_button',
+      )}
     </View>
   );
 };

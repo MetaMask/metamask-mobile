@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { View } from 'react-native';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { useDispatch, useSelector } from 'react-redux';
@@ -62,8 +62,15 @@ const WalletActions = () => {
     [selectedAccount],
   );
 
-  const onReceive = () => {
-    sheetRef.current?.onCloseBottomSheet(() => {
+  const closeBottomSheetAndNavigate = useCallback(
+    (navigateFunc: () => void) => {
+      sheetRef.current?.onCloseBottomSheet(navigateFunc);
+    },
+    [],
+  );
+
+  const onReceive = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
       navigate(Routes.QR_TAB_SWITCHER, {
         initialScreen: QRTabSwitcherScreens.Receive,
       });
@@ -75,44 +82,55 @@ const WalletActions = () => {
       location: 'TabBar',
       chain_id: getDecimalChainId(chainId),
     });
-  };
+  }, [closeBottomSheetAndNavigate, navigate, trackEvent, chainId]);
 
-  const onBuy = () => {
-    sheetRef.current?.onCloseBottomSheet(() => {
+  const onBuy = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
       navigate(...createBuyNavigationDetails());
-      trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
-        text: 'Buy',
-        location: 'TabBar',
-        chain_id_destination: getDecimalChainId(chainId),
-      });
     });
-  };
 
-  const onSell = () => {
-    sheetRef.current?.onCloseBottomSheet(() => {
-      navigate(...createSellNavigationDetails());
-      trackEvent(MetaMetricsEvents.SELL_BUTTON_CLICKED, {
-        text: 'Sell',
-        location: 'TabBar',
-        chain_id_source: getDecimalChainId(chainId),
-      });
+    trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+      text: 'Buy',
+      location: 'TabBar',
+      chain_id_destination: getDecimalChainId(chainId),
     });
-  };
-  const onSend = () => {
-    sheetRef.current?.onCloseBottomSheet(() => {
+  }, [closeBottomSheetAndNavigate, navigate, trackEvent, chainId]);
+
+  const onSell = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
+      navigate(...createSellNavigationDetails());
+    });
+
+    trackEvent(MetaMetricsEvents.SELL_BUTTON_CLICKED, {
+      text: 'Sell',
+      location: 'TabBar',
+      chain_id_source: getDecimalChainId(chainId),
+    });
+  }, [closeBottomSheetAndNavigate, navigate, trackEvent, chainId]);
+
+  const onSend = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
       navigate('SendFlowView');
       ticker && dispatch(newAssetTransaction(getEther(ticker)));
-      trackEvent(MetaMetricsEvents.SEND_BUTTON_CLICKED, {
-        text: 'Send',
-        tokenSymbol: '',
-        location: 'TabBar',
-        chain_id: getDecimalChainId(chainId),
-      });
     });
-  };
 
-  const goToSwaps = () => {
-    sheetRef.current?.onCloseBottomSheet(() => {
+    trackEvent(MetaMetricsEvents.SEND_BUTTON_CLICKED, {
+      text: 'Send',
+      tokenSymbol: '',
+      location: 'TabBar',
+      chain_id: getDecimalChainId(chainId),
+    });
+  }, [
+    closeBottomSheetAndNavigate,
+    navigate,
+    ticker,
+    dispatch,
+    trackEvent,
+    chainId,
+  ]);
+
+  const goToSwaps = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
       navigate('Swaps', {
         screen: 'SwapsAmountView',
         params: {
@@ -120,14 +138,31 @@ const WalletActions = () => {
           sourcePage: 'MainView',
         },
       });
-      trackEvent(MetaMetricsEvents.SWAP_BUTTON_CLICKED, {
-        text: 'Swap',
-        tokenSymbol: '',
-        location: 'TabBar',
-        chain_id: getDecimalChainId(chainId),
-      });
     });
-  };
+
+    trackEvent(MetaMetricsEvents.SWAP_BUTTON_CLICKED, {
+      text: 'Swap',
+      tokenSymbol: '',
+      location: 'TabBar',
+      chain_id: getDecimalChainId(chainId),
+    });
+  }, [closeBottomSheetAndNavigate, navigate, trackEvent, chainId]);
+
+  const walletActionBaseProps = useMemo(
+    () => ({
+      iconSize: AvatarSize.Md,
+      disabled: !canSignTransactions,
+    }),
+    [canSignTransactions],
+  );
+
+  const sendIconStyle = useMemo(
+    () => ({
+      transform: [{ rotate: '-45deg' }],
+      ...styles.icon,
+    }),
+    [styles.icon],
+  );
 
   return (
     <BottomSheet ref={sheetRef}>
@@ -136,22 +171,20 @@ const WalletActions = () => {
           <WalletAction
             actionType={WalletActionType.Buy}
             iconName={IconName.Add}
-            iconSize={AvatarSize.Md}
             onPress={onBuy}
-            iconStyle={styles.icon}
             actionID={WalletActionsModalSelectorsIDs.BUY_BUTTON}
-            disabled={!canSignTransactions}
+            iconStyle={styles.icon}
+            {...walletActionBaseProps}
           />
         )}
         {isNetworkRampSupported && (
           <WalletAction
             actionType={WalletActionType.Sell}
             iconName={IconName.MinusBold}
-            iconSize={AvatarSize.Md}
             onPress={onSell}
-            iconStyle={styles.icon}
             actionID={WalletActionsModalSelectorsIDs.SELL_BUTTON}
-            disabled={!canSignTransactions}
+            iconStyle={styles.icon}
+            {...walletActionBaseProps}
           />
         )}
         {AppConstants.SWAPS.ACTIVE &&
@@ -160,43 +193,38 @@ const WalletActions = () => {
             <WalletAction
               actionType={WalletActionType.Swap}
               iconName={IconName.SwapHorizontal}
-              iconSize={AvatarSize.Md}
               onPress={goToSwaps}
-              iconStyle={styles.icon}
               actionID={WalletActionsModalSelectorsIDs.SWAP_BUTTON}
-              disabled={!canSignTransactions}
+              iconStyle={styles.icon}
+              {...walletActionBaseProps}
             />
           )}
         {isBridgeAllowed(chainId) && (
           <WalletAction
             actionType={WalletActionType.Bridge}
             iconName={IconName.Bridge}
-            iconSize={AvatarSize.Md}
             onPress={goToBridge}
-            iconStyle={styles.icon}
             actionID={WalletActionsModalSelectorsIDs.BRIDGE_BUTTON}
-            disabled={!canSignTransactions}
+            iconStyle={styles.icon}
+            {...walletActionBaseProps}
           />
         )}
         <WalletAction
           actionType={WalletActionType.Send}
           iconName={IconName.Arrow2Right}
-          iconSize={AvatarSize.Md}
           onPress={onSend}
-          iconStyle={{
-            transform: [{ rotate: '-45deg' }],
-            ...styles.icon,
-          }}
+          iconStyle={sendIconStyle}
           actionID={WalletActionsModalSelectorsIDs.SEND_BUTTON}
-          disabled={!canSignTransactions}
+          {...walletActionBaseProps}
         />
         <WalletAction
           actionType={WalletActionType.Receive}
           iconName={IconName.Received}
-          iconSize={AvatarSize.Md}
           onPress={onReceive}
-          iconStyle={styles.icon}
           actionID={WalletActionsModalSelectorsIDs.RECEIVE_BUTTON}
+          iconStyle={styles.icon}
+          {...walletActionBaseProps}
+          disabled={false}
         />
       </View>
     </BottomSheet>
