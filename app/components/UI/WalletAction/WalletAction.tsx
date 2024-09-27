@@ -1,6 +1,6 @@
 // Third party dependencies.
-import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import React, { useMemo } from 'react';
+import { TouchableOpacity, View } from 'react-native';
 import { lightTheme } from '@metamask/design-tokens';
 
 // External dependencies.
@@ -10,7 +10,7 @@ import Text, {
 import { useStyles } from '../../../component-library/hooks';
 
 // Internal dependencies.
-import { WalletActionProps, walletActionDetails } from './WalletAction.types';
+import { walletActionDetails, WalletActionProps } from './WalletAction.types';
 import styleSheet from './WalletAction.styles';
 import Avatar, {
   AvatarVariant,
@@ -35,6 +35,27 @@ const WalletAction = ({
   const { colors } = lightTheme;
   const { styles } = useStyles(styleSheet, {});
 
+  const avatarStyle = useMemo(
+    () => ({
+      ...iconStyle,
+      backgroundColor: disabled ? colors.primary.muted : colors.primary.default,
+    }),
+    [disabled, colors, iconStyle],
+  );
+
+  const titleStyle = useMemo(
+    () => (disabled ? { color: colors.text.muted } : undefined),
+    [disabled, colors],
+  );
+
+  const descriptionStyle = useMemo(
+    () => [
+      styles.descriptionLabel,
+      disabled ? { color: colors.text.muted } : undefined,
+    ],
+    [styles, disabled, colors],
+  );
+
   return (
     <TouchableOpacity
       style={{ ...styles.base, ...containerStyle }}
@@ -45,28 +66,16 @@ const WalletAction = ({
     >
       <Avatar
         variant={AvatarVariant.Icon}
-        style={iconStyle}
+        style={avatarStyle}
         size={iconSize}
         name={iconName}
-        backgroundColor={
-          disabled ? colors.primary.muted : colors.primary.default
-        }
         iconColor={colors.background.default}
       />
       <View>
-        <Text
-          variant={TextVariant.BodyLGMedium}
-          style={disabled ? { color: colors.text.muted } : undefined}
-        >
+        <Text variant={TextVariant.BodyLGMedium} style={titleStyle}>
           {actionTitle}
         </Text>
-        <Text
-          variant={TextVariant.BodyMD}
-          style={[
-            styles.descriptionLabel,
-            disabled ? { color: colors.text.muted } : undefined,
-          ]}
-        >
+        <Text variant={TextVariant.BodyMD} style={descriptionStyle}>
           {actionDescription}
         </Text>
       </View>
