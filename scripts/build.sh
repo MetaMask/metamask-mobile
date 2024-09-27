@@ -398,7 +398,7 @@ buildAndroidQA(){
 	prebuild_android
 
 	# Generate APK
-	cd android && ./gradlew assembleQaRelease --no-daemon --max-workers 2
+	cd android && ./gradlew assembleQaRelease app:assembleQaReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
 
 	# GENERATE BUNDLE
 	if [ "$GENERATE_BUNDLE" = true ] ; then
