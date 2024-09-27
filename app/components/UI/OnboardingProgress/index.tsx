@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import StepIndicator from 'react-native-step-indicator';
-import { ThemeContext, mockTheme, Theme } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const strokeWidth = 2;
 
