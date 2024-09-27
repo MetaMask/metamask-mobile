@@ -3315,10 +3315,10 @@
     "learn_more":"Learn more",
     "got_it":"Got it",
     "your_balance": "Your balance",
-    "stake_eth_and_earn": "Stake ETH and earn",
     "stake_your_eth_cta": {
       "base": "Stake your ETH with MetaMask Pool and earn",
-      "annually": "annually."
+      "annually": "annually.",
+      "learn_more_with_period": "Learn more."
     },
     "day": {
       "zero": "",
@@ -3345,8 +3345,7 @@
       },
       "geo_blocked": "You’re located in a region where unstaking or staking isn’t permitted.",
       "approximately": "approximately"
-    },
-    "learn_more": "Learn more."
+    }
   },
   "default_settings": {
     "title": "Your Wallet is ready",
