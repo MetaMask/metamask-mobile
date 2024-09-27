@@ -48,7 +48,6 @@ const StakingBalance = () => {
 
   const [isGeoBlocked] = useState(false);
   const [hasStakedPositions] = useState(false);
-  const [balanceEth] = useState('4.9999 ETH');
 
   const { unstakingRequests, claimableRequests } = useMemo(
     () =>
@@ -75,7 +74,7 @@ const StakingBalance = () => {
 
   return (
     <View>
-      {Boolean(balanceEth) && !isGeoBlocked && (
+      {Boolean(MOCK_STAKED_ETH_ASSET.balance) && !isGeoBlocked && (
         <AssetElement
           asset={MOCK_STAKED_ETH_ASSET}
           mainBalance={MOCK_STAKED_ETH_ASSET.balance}
