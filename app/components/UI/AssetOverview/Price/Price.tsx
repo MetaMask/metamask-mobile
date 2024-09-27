@@ -83,16 +83,15 @@ const Price = ({
         {asset.name ? (
           <Text
             variant={TextVariant.BodyMDMedium}
-            style={styles.name}
             color={TextColor.Alternative}
           >
             {asset.name} ({asset.symbol})
           </Text>
         ) : (
-          <Text variant={TextVariant.BodySM}>{asset.symbol}</Text>
+          <Text variant={TextVariant.BodyMDMedium}>{asset.symbol}</Text>
         )}
         {!isNaN(price) && (
-          <Title style={styles.price} testID={TOKEN_PRICE}>
+          <Text testID={TOKEN_PRICE} variant={TextVariant.HeadingLG}>
             {isLoading ? (
               <View style={styles.loadingPrice}>
                 <SkeletonPlaceholder>
@@ -106,7 +105,7 @@ const Price = ({
             ) : (
               addCurrencySymbol(price, currentCurrency, true)
             )}
-          </Title>
+          </Text>
         )}
         <Text>
           {isLoading ? (
@@ -120,7 +119,7 @@ const Price = ({
               </SkeletonPlaceholder>
             </View>
           ) : distributedPriceData.length > 0 ? (
-            <Text style={styles.priceDiff}>
+            <Text style={styles.priceDiff} variant={TextVariant.BodyMDMedium}>
               {
                 <Icon
                   name={
@@ -139,8 +138,8 @@ const Price = ({
               {diff === 0 ? '0' : ((diff / comparePrice) * 100).toFixed(2)}
               %){' '}
               <Text
-                style={styles.priceDiffDateText}
                 color={TextColor.Alternative}
+                variant={TextVariant.BodyMDMedium}
               >
                 {date}
               </Text>
