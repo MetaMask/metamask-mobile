@@ -43,11 +43,12 @@ fi
 commit_id=$(git rev-parse HEAD)
 bundle_size=$(stat -f%z "ios/main.jsbundle" 2>/dev/null || stat -c%s "ios/main.jsbundle")
 timestamp=$(date +%s%3N)
+output_file="$temp_dir/stats/bundle_size_data.js"
 
-./scripts/update_bundle_size.py "./stats/bundle_size_data.js" "$commit_id" "$bundle_size" "$timestamp"
+./scripts/update_bundle_size.py "$output_file" "$commit_id" "$bundle_size" "$timestamp"
 
-# Commit and push changes
 cd "$temp_dir"
+# Commit and push changes
 git add "$output_file"
 if git commit -m "Add bundle size for commit: ${commit_id}"; then
     if git push origin HEAD:main; then
