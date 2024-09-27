@@ -11,8 +11,10 @@ jest.mock('../../../util/test/utils', () => ({
 }));
 
 const mockNavigate: jest.Mock = jest.fn();
+const mockSetOptions: jest.Mock = jest.fn();
 const mockNavigation = {
   navigate: mockNavigate,
+  setOptions: mockSetOptions,
 } as unknown as NavigationProp<ParamListBase>;
 
 
