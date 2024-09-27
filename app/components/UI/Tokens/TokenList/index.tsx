@@ -21,8 +21,7 @@ import { TokenListFooter } from './TokenListFooter';
 import { TokenListItem } from './TokenListItem';
 
 interface TokenListProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  tokens: any[];
+  tokens: TokenI[];
   refreshing: boolean;
   onRefresh: () => void;
   showRemoveMenu: (arg: TokenI) => void;

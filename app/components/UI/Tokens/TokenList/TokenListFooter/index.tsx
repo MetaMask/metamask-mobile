@@ -25,10 +25,10 @@ import {
 } from '../../../../../components/hooks/useMetrics';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { selectChainId } from '../../../../../selectors/networkController';
+import { TokenI } from '../../types';
 
 interface TokenListFooterProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  tokens: any[];
+  tokens: TokenI[];
   isAddTokenEnabled: boolean;
   goToAddToken: () => void;
   showDetectedTokens: () => void;
