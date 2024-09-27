@@ -3404,5 +3404,9 @@
       "title": "Reward rate",
       "tooltip": "Expected yearly increase in the value of your stake, based on the reward rate over the past week."
     }
+  },
+  "confirm": {
+    "reject": "Reject",
+    "confirm": "Confirm"
   }
 }
