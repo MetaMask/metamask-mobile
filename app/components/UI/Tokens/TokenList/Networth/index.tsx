@@ -1,24 +1,15 @@
-// Core and React imports
 import React from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-
-// Third-party libraries
 import { useSelector } from 'react-redux';
-
-// Local hooks
 import useIsOriginalNativeTokenSymbol from '../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import { useTheme } from '../../../../../util/theme';
-
-// Constants and core functionality
 import AppConstants from '../../../../../core/AppConstants';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-
-// Selectors
 import {
   selectChainId,
   selectProviderConfig,
@@ -26,13 +17,9 @@ import {
 } from '../../../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { RootState } from '../../../../../reducers';
-
-// Utilities
 import { renderFiat } from '../../../../../util/number';
 import { isTestNet } from '../../../../../util/networks';
 import { isPortfolioUrl } from '../../../../../../app/util/url';
-
-// Styles and Components
 import createStyles from '../../styles';
 import Button, {
   ButtonVariants,
@@ -42,12 +29,8 @@ import Button, {
 import Text from '../../../../../component-library/components/Texts/Text';
 import AggregatedPercentage from '../../../../../component-library/components-temp/Price/AggregatedPercentage';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
-
-// Types
 import { BrowserTab } from '../../types';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
-
-// Localization
 import { strings } from '../../../../../../locales/i18n';
 
 export const Networth = () => {
