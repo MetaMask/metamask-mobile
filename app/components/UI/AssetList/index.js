@@ -6,7 +6,6 @@ import StyledButton from '../StyledButton'; // eslint-disable-line  import/no-un
 import AssetIcon from '../AssetIcon';
 import { fontStyles } from '../../../styles/common';
 import Text from '../../Base/Text';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
 
 const styles = StyleSheet.create({
   rowWrapper: {
