@@ -1032,10 +1032,10 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 if [ "$UPLOAD_SOURCEMAP" = "true" ]; then
-                  echo "Skipping Sentry sourcemap creation and upload..."
+                  echo "Creating and uploading Sentry sourcemap..."
                   METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle:sourcemap
                 else
-                  echo "Creating and uploading Sentry sourcemap..."
+                  echo "Skipping Sentry sourcemap creation and upload..."
                   METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle
                 fi
           title: Android Build
@@ -1267,10 +1267,10 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 if [ "$UPLOAD_SOURCEMAP" = "true" ]; then
-                  echo "Skipping Sentry sourcemap creation and upload..."
+                  echo "Creating and uploading Sentry sourcemap..."
                   METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release:sourcemap
                 else
-                  echo "Creating and uploading Sentry sourcemap..."
+                  echo "Skipping Sentry sourcemap creation and upload..."
                   METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
                 fi          
           title: iOS Build
