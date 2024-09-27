@@ -2,15 +2,16 @@ import React from 'react';
 import { View, ViewProps } from 'react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './StakingCta.styles';
-import Title from '../../../../../Base/Title';
 import Text, {
+  TextVariant,
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
 import Button, {
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
-import useTooltipModal from '../../../../../hooks/useTooltipModal';
 import { strings } from '../../../../../../../locales/i18n';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../../../../constants/navigation/Routes';
 
 const nonBreakingSpace = '\u00A0';
 
@@ -21,14 +22,18 @@ interface StakingCtaProps extends Pick<ViewProps, 'style'> {
 const StakingCta = ({ estimatedRewardRate, style }: StakingCtaProps) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const { openTooltipModal } = useTooltipModal();
+  const { navigate } = useNavigation();
 
-  const onLearnMorePress = () =>
-    openTooltipModal('TODO', "Connect to learn more component once it's ready");
+  const navigateToLearnMoreModal = () =>
+    navigate('StakeModals', {
+      screen: Routes.STAKING.MODALS.LEARN_MORE,
+    });
 
   return (
     <View style={style}>
-      <Title style={styles.title}>{strings('stake.stake_eth_and_earn')}</Title>
+      <Text variant={TextVariant.HeadingMD} style={styles.title}>
+        {strings('stake.stake_eth_and_earn')}
+      </Text>
       <View style={styles.contentMain}>
         <Text>
           {strings('stake.stake_your_eth_cta.base')}
@@ -42,7 +47,7 @@ const StakingCta = ({ estimatedRewardRate, style }: StakingCtaProps) => {
         <Button
           label={strings('stake.stake_your_eth_cta.learn_more_with_period')}
           variant={ButtonVariants.Link}
-          onPress={onLearnMorePress}
+          onPress={navigateToLearnMoreModal}
         />
       </View>
     </View>
