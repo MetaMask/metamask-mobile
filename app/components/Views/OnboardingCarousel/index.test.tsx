@@ -1,6 +1,7 @@
 import React from 'react';
 import { waitFor } from '@testing-library/react-native';
 import OnboardingCarousel from './';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { PerformanceRegressionSelectorIDs } from '../../../../e2e/selectors/PerformanceRegression.selectors';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 
@@ -9,10 +10,12 @@ jest.mock('../../../util/test/utils', () => ({
   isTest: true,
 }));
 
+const mockNavigate: jest.Mock = jest.fn();
 const mockNavigation = {
-  navigate: jest.fn(),
-  setOptions: jest.fn(),
-};
+  navigate: mockNavigate,
+} as unknown as NavigationProp<ParamListBase>;
+
+
 describe('OnboardingCarousel', () => {
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(
