@@ -8,6 +8,7 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './StakingButtons.styles';
 import useTooltipModal from '../../../../../hooks/useTooltipModal';
 import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../../../../constants/navigation/Routes';
 
 const StakingButtons = () => {
   const [hasStakedPosition] = useState(true);
@@ -23,7 +24,8 @@ const StakingButtons = () => {
   const onUnstakePress = () =>
     openTooltipModal('TODO', 'Connect to unstaking flow');
 
-  const onStakePress = () => navigate('Stake');
+  const onStakePress = () =>
+    navigate('StakeScreens', { screen: Routes.STAKING.STAKE });
 
   return (
     <View style={styles.balanceButtonsContainer}>
