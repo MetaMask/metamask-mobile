@@ -6,6 +6,7 @@ exports[`SelectValue should render snapshot correctly 1`] = `
   accessible={true}
   style={
     {
+      "flex": 1,
       "padding": 0,
     }
   }

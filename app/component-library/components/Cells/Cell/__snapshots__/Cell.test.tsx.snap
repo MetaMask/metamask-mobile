@@ -584,7 +584,6 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
       "backgroundColor": "#ffffff",
       "borderRadius": 4,
       "opacity": 1,
-      "padding": 16,
       "position": "relative",
     }
   }
@@ -595,7 +594,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
     accessible={true}
     style={
       {
-        "padding": 0,
+        "padding": 16,
       }
     }
   >

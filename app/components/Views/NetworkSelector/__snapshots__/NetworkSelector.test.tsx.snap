@@ -475,7 +475,6 @@ exports[`Network Selector renders correctly 1`] = `
                                     "backgroundColor": "#ffffff",
                                     "borderRadius": 4,
                                     "opacity": 1,
-                                    "padding": 16,
                                     "position": "relative",
                                   }
                                 }
@@ -486,7 +485,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   accessible={true}
                                   style={
                                     {
-                                      "padding": 0,
+                                      "padding": 16,
                                     }
                                   }
                                 >
@@ -603,7 +602,6 @@ exports[`Network Selector renders correctly 1`] = `
                                     "backgroundColor": "#ffffff",
                                     "borderRadius": 4,
                                     "opacity": 1,
-                                    "padding": 16,
                                     "position": "relative",
                                   }
                                 }
@@ -614,7 +612,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   accessible={true}
                                   style={
                                     {
-                                      "padding": 0,
+                                      "padding": 16,
                                     }
                                   }
                                 >
@@ -704,7 +702,6 @@ exports[`Network Selector renders correctly 1`] = `
                                     "backgroundColor": "#ffffff",
                                     "borderRadius": 4,
                                     "opacity": 1,
-                                    "padding": 16,
                                     "position": "relative",
                                   }
                                 }
@@ -715,7 +712,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   accessible={true}
                                   style={
                                     {
-                                      "padding": 0,
+                                      "padding": 16,
                                     }
                                   }
                                 >
@@ -808,7 +805,6 @@ exports[`Network Selector renders correctly 1`] = `
                                     "backgroundColor": "#ffffff",
                                     "borderRadius": 4,
                                     "opacity": 1,
-                                    "padding": 16,
                                     "position": "relative",
                                   }
                                 }
@@ -819,7 +815,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   accessible={true}
                                   style={
                                     {
-                                      "padding": 0,
+                                      "padding": 16,
                                     }
                                   }
                                 >
@@ -912,7 +908,6 @@ exports[`Network Selector renders correctly 1`] = `
                                     "backgroundColor": "#ffffff",
                                     "borderRadius": 4,
                                     "opacity": 1,
-                                    "padding": 16,
                                     "position": "relative",
                                   }
                                 }
@@ -923,7 +918,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   accessible={true}
                                   style={
                                     {
-                                      "padding": 0,
+                                      "padding": 16,
                                     }
                                   }
                                 >
@@ -1016,7 +1011,6 @@ exports[`Network Selector renders correctly 1`] = `
                                     "backgroundColor": "#ffffff",
                                     "borderRadius": 4,
                                     "opacity": 1,
-                                    "padding": 16,
                                     "position": "relative",
                                   }
                                 }
@@ -1027,7 +1021,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   accessible={true}
                                   style={
                                     {
-                                      "padding": 0,
+                                      "padding": 16,
                                     }
                                   }
                                 >
