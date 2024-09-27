@@ -155,12 +155,12 @@ remapFlaskEnvVariables() {
 
 loadJSEnv(){
 	# Load JS specific env variables
-	# if [ "$PRE_RELEASE" = false ] ; then
-	# 	if [ -e $JS_ENV_FILE ]
-	# 	then
-	# 		source $JS_ENV_FILE
-	# 	fi
-	# fi
+	if [ "$PRE_RELEASE" = false ] ; then
+		if [ -e $JS_ENV_FILE ]
+		then
+			source $JS_ENV_FILE
+		fi
+	fi
 	# Disable auto Sentry file upload by default
 	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
 }
@@ -201,12 +201,12 @@ prebuild_android(){
     exit 1
   fi
 
-	# if [ "$PRE_RELEASE" = false ] ; then
-	# 	if [ -e $ANDROID_ENV_FILE ]
-	# 	then
-	# 		source $ANDROID_ENV_FILE
-	# 	fi
-	# fi
+	if [ "$PRE_RELEASE" = false ] ; then
+		if [ -e $ANDROID_ENV_FILE ]
+		then
+			source $ANDROID_ENV_FILE
+		fi
+	fi
 }
 
 buildAndroidRun(){
@@ -479,7 +479,7 @@ buildAndroidReleaseE2E(){
 
 buildAndroidQAE2E(){
 	prebuild_android
-	cd android && ./gradlew assembleQaRelease app:assembleQaReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
+	cd android && ./gradlew assembleQaRelease -PminSdkVersion=26 -DtestBuildType=release
 }
 
 buildAndroid() {
