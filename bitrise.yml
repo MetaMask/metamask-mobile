@@ -13,11 +13,11 @@ pipelines:
   build_all_targets_pipeline:
     stages:
       - create_build_all_targets: {}
-  #Releases MetaMask apps and stores apk/ipa into Play(Internal Testing)/App(TestFlight) Store
-  release_builds_to_store_pipeline:
+  #Builds MetaMask apps and stores apk/ipa into Play(Internal Testing)/App(TestFlight) Store. Not for production release.
+  release_builds_to_test_flight:
     stages:
-      - create_build_release: {}
-      - deploy_build_release: {}
+      - create_build_for_test_flight: {}
+      - deploy_build_for_test_flight: {}
       - create_build_qa: {} #Generate QA builds for E2E app upgrade tests
   #Releases MetaMask apps and stores ipa into App(TestFlight) Store
   release_ios_to_store_pipeline:
@@ -89,11 +89,11 @@ stages:
       - build_ios_release: {}
       - build_android_qa: {}
       - build_ios_qa: {}
-  create_build_release:
+  create_build_for_test_flight:
     workflows:
       - build_android_release: {}
       - build_ios_release: {}
-  deploy_build_release:
+  deploy_build_for_test_flight:
     workflows:
       - deploy_android_to_store: {}
       - deploy_ios_to_store: {}
@@ -644,8 +644,8 @@ workflows:
   android_e2e_test:
     before_run:
       - setup
-      - install_detox
       - prep_environment
+      - install_detox
     after_run:
       - notify_failure
     steps:
@@ -737,8 +737,8 @@ workflows:
   ios_api_specs:
     before_run:
       - setup
-      - install_detox
       - prep_environment
+      - install_detox
     after_run:
       - notify_failure
     steps:
@@ -890,8 +890,8 @@ workflows:
   ios_e2e_test:
     before_run:
       - setup
-      - install_detox
       - prep_environment
+      - install_detox
     after_run:
       - notify_failure
     steps:
@@ -997,6 +997,16 @@ workflows:
           inputs:
             - abort_on_fail: 'yes'
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+  build_ios_release_with_sourcemaps:
+    envs:
+      - SENTRY_DISABLE_AUTO_UPLOAD: false
+    after_run:
+      - build_ios_release
+  build_android_release_with_sourcemaps:
+    envs:
+      - SENTRY_DISABLE_AUTO_UPLOAD: false
+    after_run:
+      - build_android_release
   build_android_release:
     before_run:
       - code_setup
@@ -1060,7 +1070,7 @@ workflows:
           inputs:
             - pipeline_intermediate_files: sourcemaps/android/index.js.map:BITRISE_PLAY_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/android/index.js.map
-          title: Bitrise Deploy Sourcemaps
+          title: Deploy Source Map
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
