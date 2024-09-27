@@ -592,7 +592,8 @@
       "@metamask/sdk-communication-layer>eciesjs>secp256k1": false,
       "detox>ws>utf-8-validate": false,
       "ganache>@trufflesuite/uws-js-unofficial>utf-8-validate": false,
-      "@react-native-firebase/app>firebase>@firebase/firestore>@grpc/proto-loader>protobufjs": false
+      "@react-native-firebase/app>firebase>@firebase/firestore>@grpc/proto-loader>protobufjs": false,
+      "@metamask/eth-ledger-bridge-keyring>@ledgerhq/hw-app-eth>@ledgerhq/domain-service>eip55>keccak": false
     }
   },
   "packageManager": "yarn@1.22.22"
