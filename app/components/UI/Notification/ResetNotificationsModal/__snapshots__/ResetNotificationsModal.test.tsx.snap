@@ -238,6 +238,7 @@ exports[`ProfileSyncingModal should render correctly 1`] = `
               accessible={true}
               activeOpacity={1}
               disabled={false}
+              loading={false}
               onPress={[Function]}
               onPressIn={[Function]}
               onPressOut={[Function]}
