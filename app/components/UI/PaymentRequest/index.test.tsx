@@ -84,16 +84,17 @@ const initialState = {
 };
 
 let mockSetShowError: jest.Mock;
+let mockShowError = false;
 
 beforeEach(() => {
-  mockSetShowError = jest.fn();
-  (React.useState as jest.Mock).mockImplementation((initialState) => [
-    initialState,
+  mockSetShowError = jest.fn((value) => {
+    mockShowError = value;
+  });
+  (React.useState as jest.Mock).mockImplementation((state) => [
+    state,
     mockSetShowError,
   ]);
 });
-
-let mockShowError = false;
 
 const store = mockStore(initialState);
 
@@ -143,12 +144,6 @@ describe('PaymentRequest', () => {
   });
 
   it('switches to amount input mode when an asset is selected', async () => {
-    const mockNavigation = {
-      setOptions: jest.fn(),
-      setParams: jest.fn(),
-      navigate: jest.fn(),
-      goBack: jest.fn(),
-    };
     const { getByText } = renderComponent({ navigation: mockNavigation });
 
     await act(async () => {
@@ -181,10 +176,6 @@ describe('PaymentRequest', () => {
   it('displays an error when an invalid amount is entered', async () => {
     const { getByText, getByPlaceholderText, debug, queryByText } =
       renderComponent();
-    let mockShowError = false;
-    const mockSetShowError = jest.fn((value) => {
-      mockShowError = value;
-    });
 
     (React.useState as jest.Mock).mockImplementation(() => [
       mockShowError,
