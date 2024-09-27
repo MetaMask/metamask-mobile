@@ -4,9 +4,11 @@ import Engine from '../../../core/Engine';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
 import {
+  wait,
   waitForCondition,
   waitForKeychainUnlocked
 } from '../utils/wait.util';
+import Routes from '../../../constants/navigation/Routes';
 
 async function postInit(instance: SDKConnect, callback?: () => void) {
   if (!instance.state._initialized) {
@@ -41,6 +43,22 @@ async function postInit(instance: SDKConnect, callback?: () => void) {
   );
 
   await waitForKeychainUnlocked({ keyringController, context: 'init' });
+
+  let currentRouteName = instance.state.navigation?.getCurrentRoute()?.name;
+  DevLogger.log(`SDKConnect::postInit() - currentRouteName=${currentRouteName}`);
+
+  const waitRoutes = [Routes.LOCK_SCREEN, Routes.ONBOARDING.LOGIN];
+  await waitForCondition({
+    fn: () => {
+      currentRouteName = instance.state.navigation?.getCurrentRoute()?.name;
+      return !waitRoutes.includes(currentRouteName ?? '');
+    },
+    context: 'post_init',
+    waitTime: 1000,
+  });
+  DevLogger.log(`SDKConnect::postInit() - currentRouteName=${currentRouteName} - start reconnectAll`);
+
+  // Also wait for user to be logged in (outside of login screen)
   instance.state.appStateListener = AppState.addEventListener(
     'change',
     instance._handleAppState.bind(instance),

@@ -1,7 +1,9 @@
+import { KeyringController } from '@metamask/keyring-controller';
 import {
   CommunicationLayerMessage,
   OriginatorInfo,
 } from '@metamask/sdk-communication-layer';
+import { Platform } from 'react-native';
 import Logger from '../../../util/Logger';
 import AppConstants from '../../AppConstants';
 import Engine from '../../Engine';
@@ -9,8 +11,6 @@ import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
 import { waitForCondition, waitForKeychainUnlocked } from '../utils/wait.util';
 import handleConnectionMessage from './handleConnectionMessage';
-import { Platform } from 'react-native';
-import { KeyringController } from '@metamask/keyring-controller';
 
 const QRCODE_PARAM_PATTERN = '&t=q';
 
@@ -84,24 +84,40 @@ const handleDeeplink = async ({
 
   try {
     if (channelExists) {
-      if(sdkConnect.state.connecting[channelId]) {
-        // skip reconnect if connecting
-        DevLogger.log(`handleDeeplink:: channel=${channelId} is connecting --- SKIP reconnect`);
-        return;
+      // is it already connected?
+      let connected = sdkConnect.getConnected()[channelId]?.remote.isConnected() ?? false;
+      if(!connected) {
+        if(sdkConnect.state.connecting[channelId] === true) {
+          // skip reconnect if connecting
+          DevLogger.log(`handleDeeplink:: channel=${channelId} is connecting --- SKIP reconnect`, sdkConnect.state.connecting);
+          // wait for connection to be established
+          await waitForCondition({
+            fn: () => {
+              DevLogger.log(`handleDeeplink:: channel=${channelId} is connecting --- wait for connection to be established`, sdkConnect.state.connecting);
+              return sdkConnect.state.connecting[channelId] === false;
+            },
+            context: 'handleDeeplink',
+            waitTime: 1000,
+          });
+        } else {
+          DevLogger.log(`handleDeeplink:: channel=${channelId} reconnecting`);
+          await sdkConnect.reconnect({
+            channelId,
+            otherPublicKey,
+            context,
+            protocolVersion,
+            initialConnection: false,
+            trigger: 'deeplink',
+            updateKey: true,
+          });
+        }
+      } else {
+        DevLogger.log(`handleDeeplink:: channel=${channelId} is already connected`);
       }
 
-      await sdkConnect.reconnect({
-        channelId,
-        otherPublicKey,
-        context,
-        protocolVersion,
-        initialConnection: false,
-        trigger: 'deeplink',
-        updateKey: true,
-      });
-
+      connected = sdkConnect.getConnected()[channelId]?.remote.isConnected() ?? false;
       DevLogger.log(
-        `handleDeeplink:: channel=${channelId} reconnected -- handle rcp`,
+        `handleDeeplink:: channel=${channelId} reconnected=${connected} -- handle rcp`,
       );
       // If msg contains rpc calls, handle them
       if (rpc) {
@@ -121,6 +137,14 @@ const handleDeeplink = async ({
 
         const message = JSON.parse(clearRPC) as CommunicationLayerMessage;
         DevLogger.log(`handleDeeplink:: message`, message);
+
+        // Check if already received via websocket
+        const rpcMethodTracker = connection.remote.getRPCMethodTracker();
+        if (rpcMethodTracker?.[message.id ?? '']) {
+          // Already received via websocket
+          DevLogger.log(`handleDeeplink:: rpcId=${message.id} already received via websocket`);
+          return;
+        }
 
         await handleConnectionMessage({
           message,

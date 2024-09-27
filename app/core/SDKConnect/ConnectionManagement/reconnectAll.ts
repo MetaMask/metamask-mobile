@@ -16,8 +16,10 @@ async function reconnectAll(instance: SDKConnect) {
 
   channelIds.forEach((channelId) => {
     const connection = instance.state.connections[channelId];
+    const connecting = instance.state.connecting[channelId];
+    const connected = instance.getConnected()?.[channelId]?.remote.isConnected() ?? false;
     if (
-      connection.relayPersistence
+      !connecting && !connected
     ) {
       DevLogger.log(
         `SDKConnect::reconnectAll - reconnecting to ${channelId} origin=${connection.origin} relayPersistence=${connection.relayPersistence} protocolVersion=${connection.protocolVersion}`,
@@ -39,7 +41,7 @@ async function reconnectAll(instance: SDKConnect) {
         });
     } else {
       DevLogger.log(
-        `SDKConnect::reconnectAll -- SKIP MISSING relayPersistence -- ${channelId} origin=${connection.origin} relayPersistence=${connection.relayPersistence} protocolVersion=${connection.protocolVersion}`,
+        `SDKConnect::reconnectAll -- SKIP connected / connecting -- ${channelId} connected=${connected} connecting=${connecting} origin=${connection.origin} relayPersistence=${connection.relayPersistence} protocolVersion=${connection.protocolVersion}`,
       );
     }
   });

@@ -48,6 +48,13 @@ export const handleConnectionMessage = async ({
   engine: typeof Engine;
   connection: Connection;
 }) => {
+  // Check if message has already been processed
+  const rpcQueueManager = connection.rpcQueueManager;
+  if (message.id && rpcQueueManager.getId(message.id)) {
+    DevLogger.log(`Connection::onMessage rpcId=${message.id} already processed`);
+    return;
+  }
+
   // TODO should probably handle this in a separate EventType.TERMINATE event.
   // handle termination message
   if (message.type === MessageType.TERMINATE) {

@@ -1,4 +1,4 @@
-import { MessageType } from '@metamask/sdk-communication-layer';
+import { MessageType, SendAnalytics, TrackingEvents } from '@metamask/sdk-communication-layer';
 import { Platform } from 'react-native';
 import { resetConnections } from '../../../../app/actions/sdk';
 import { store } from '../../../../app/store';
@@ -16,6 +16,9 @@ import { SDKConnect } from './../SDKConnect';
 import { wait, waitForCondition } from '../utils/wait.util';
 import Logger from '../../../util/Logger';
 import AppConstants from '../../AppConstants';
+
+import packageJSON from '../../../../package.json';
+const { version: walletVersion } = packageJSON;
 
 async function connectToChannel({
   id,
@@ -156,6 +159,10 @@ async function connectToChannel({
         DevLogger.log(`SDKConnect::connectToChannel - checkPermissions - error`, error);
         // first needs to connect without key exchange to send the event
         await instance.state.connected[id].remote.reject({channelId: id});
+        // Send rejection event without awaiting
+        SendAnalytics({id, event: TrackingEvents.REJECTED, ...originatorInfo}, instance.state.socketServerUrl).catch((err: Error) => {
+          Logger.error(err, 'SendAnalytics failed');
+        });
 
         instance.removeChannel({ channelId: id, sendTerminate: true });
         // cleanup connection
@@ -204,6 +211,8 @@ async function connectToChannel({
       const data = {
         accounts,
         chainId: currentChainId,
+        walletVersion,
+        deeplinkProtocol: true,
         walletKey:
           instance.state.connected[id].remote.getKeyInfo()?.ecies.public,
       };
@@ -249,6 +258,7 @@ async function connectToChannel({
   } catch (error) {
     Logger.error(error as Error, 'Failed to connect to channel');
   } finally {
+    DevLogger.log(`SDKConnect::connectToChannel - finally - state.connecting[${id}]=${instance.state.connecting[id]}`);
     instance.state.connecting[id] = false;
   }
 }
