@@ -1236,7 +1236,7 @@ class Engine {
       });
 
     const snapInterfaceController = new SnapInterfaceController({
-      // @ts-ignore TODO: Resolve mismatch between base-controller versions.
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: snapInterfaceControllerMessenger,
       state: initialState.SnapInterfaceController,
     });
