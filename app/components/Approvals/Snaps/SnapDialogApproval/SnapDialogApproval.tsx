@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps)
 import React, { useCallback } from 'react';
 import { useStyles } from '../../../hooks/useStyles';
 import { strings } from '../../../../../locales/i18n';
