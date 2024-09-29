@@ -26,6 +26,9 @@ const styleSheet = () =>
     buttonsContainer: {
       paddingTop: 8,
     },
+    stakingCta: {
+      paddingBottom: 8,
+    },
   });
 
 export default styleSheet;
