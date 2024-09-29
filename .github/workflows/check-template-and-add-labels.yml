@@ -19,13 +19,14 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
 
       - name: Install dependencies
         run: yarn --immutable
+        working-directory: '.github/scripts'
 
       - name: Check template and add labels
         id: check-template-and-add-labels
         env:
           LABEL_TOKEN: ${{ secrets.LABEL_TOKEN }}
         run: npm run check-template-and-add-labels
+        working-directory: '.github/scripts'

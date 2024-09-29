@@ -3318,6 +3318,11 @@
     "learn_more":"Learn more",
     "got_it":"Got it",
     "your_balance": "Your balance",
+    "stake_your_eth_cta": {
+      "base": "Stake your ETH with MetaMask Pool and earn",
+      "annually": "annually.",
+      "learn_more_with_period": "Learn more."
+    },
     "day": {
       "zero": "",
       "one": "day",
@@ -3341,7 +3346,7 @@
         "to_claim_it": "to claim it.",
         "default": "Unstaking {{amountEth}} ETH in progress. Come back later to claim it."
       },
-      "geo_blocked": "You are located in a geographic location where unstaking or staking is not permitted.",
+      "geo_blocked": "You’re located in a region where unstaking or staking isn’t permitted.",
       "approximately": "approximately"
     }
   },
@@ -3405,6 +3410,9 @@
   },
   "confirm": {
     "reject": "Reject",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "title": {
+      "signature": "Signature request"
+      }
   }
 }

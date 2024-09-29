@@ -17,7 +17,7 @@ const Footer = () => {
     <View style={styles.buttonsContainer}>
       <StyledButton
         onPress={onReject}
-        containerStyle={styles.fill}
+        containerStyle={styles.rejectButton}
         type={'normal'}
       >
         {strings('confirm.reject')}
@@ -25,7 +25,7 @@ const Footer = () => {
       <View style={styles.buttonDivider} />
       <StyledButton
         onPress={onConfirm}
-        containerStyle={styles.fill}
+        containerStyle={styles.confirmButton}
         type={'confirm'}
       >
         {strings('confirm.confirm')}
