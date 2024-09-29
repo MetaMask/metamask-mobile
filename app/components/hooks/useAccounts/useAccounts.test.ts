@@ -2,9 +2,10 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { toChecksumAddress } from 'ethereumjs-util';
 import useAccounts from './useAccounts';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { Account } from './useAccounts.types';
+import { Hex } from '@metamask/utils';
 
 const MOCK_ENS_CACHED_NAME = 'fox.eth';
 
@@ -16,7 +17,7 @@ const MOCK_ACCOUNT_ADDRESSES = Object.values(
 
 const MOCK_ACCOUNT_1: Account = {
   name: 'Account 1',
-  address: toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[0]),
+  address: toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[0]) as Hex,
   type: KeyringTypes.hd,
   yOffset: 0,
   isSelected: false,
@@ -27,7 +28,7 @@ const MOCK_ACCOUNT_1: Account = {
 };
 const MOCK_ACCOUNT_2: Account = {
   name: 'Account 2',
-  address: toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[1]),
+  address: toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[1]) as Hex,
   type: KeyringTypes.hd,
   yOffset: 78,
   isSelected: true,
@@ -41,7 +42,7 @@ const MOCK_STORE_STATE = {
   settings: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       AccountTrackerController: {
         accounts: {
@@ -51,11 +52,6 @@ const MOCK_STORE_STATE = {
           [MOCK_ACCOUNT_2.address]: {
             balance: '0x5',
           },
-        },
-      },
-      NetworkController: {
-        providerConfig: {
-          chainId: MOCK_CHAIN_ID,
         },
       },
     },

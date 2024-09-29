@@ -1,6 +1,5 @@
 import enContent from '../../locales/languages/en.json';
 
-// eslint-disable-next-line import/prefer-default-export
 export const TransactionConfirmViewSelectorsIDs = {
   COMFIRM_TXN_AMOUNT: 'confirm-txn-amount',
   TRANSACTION_VIEW_CONTAINER_ID: 'txn-confirm-screen',
@@ -11,4 +10,5 @@ export const TransactionConfirmViewSelectorsIDs = {
 
 export const TransactionConfirmViewSelectorsText = {
   CANCEL_BUTTON: enContent.transaction.cancel,
+  EDIT_PRIORITY_MODAL: enContent.edit_gas_fee_eip1559.edit_priority,
 };

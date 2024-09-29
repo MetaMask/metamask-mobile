@@ -7,20 +7,17 @@ import {
   JsonRpcSuccess,
 } from 'json-rpc-engine';
 import type { TransactionParams } from '@metamask/transaction-controller';
-import type { ProviderConfig } from '@metamask/network-controller';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import Engine from '../Engine';
 import { store } from '../../store';
 import { getPermittedAccounts } from '../Permissions';
-import { RPC } from '../../constants/network';
 import { getRpcMethodMiddleware } from './RPCMethodMiddleware';
-import AppConstants from '../AppConstants';
 import {
   PermissionConstraint,
   PermissionController,
 } from '@metamask/permission-controller';
 import PPOMUtil from '../../lib/ppom/ppom-util';
-import initialBackgroundState from '../../util/test/initial-background-state.json';
+import { backgroundState } from '../../util/test/initial-root-state';
 import { Store } from 'redux';
 import { RootState } from 'app/reducers';
 import { addTransaction } from '../../util/transaction-controller';
@@ -31,6 +28,17 @@ import {
   unrestrictedMethods,
 } from '../Permissions/specifications';
 import { EthAccountType, EthMethod } from '@metamask/keyring-api';
+import {
+  processOriginThrottlingRejection,
+  validateOriginThrottling,
+} from './spam';
+import {
+  NUMBER_OF_REJECTIONS_THRESHOLD,
+  OriginThrottlingState,
+} from '../redux/slices/originThrottling';
+import { ProviderConfig } from '../../selectors/networkController';
+
+jest.mock('./spam');
 
 jest.mock('../Engine', () => ({
   context: {
@@ -38,7 +46,6 @@ jest.mock('../Engine', () => ({
       state: {},
     },
     SignatureController: {
-      newUnsignedMessage: jest.fn(),
       newUnsignedPersonalMessage: jest.fn(),
       newUnsignedTypedMessage: jest.fn(),
     },
@@ -47,9 +54,11 @@ jest.mock('../Engine', () => ({
       getPermissions: jest.fn(),
     },
     NetworkController: {
-      state: {
-        providerConfig: { chainId: '0x1' },
-      },
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+        },
+      }),
     },
   },
 }));
@@ -77,6 +86,10 @@ jest.mock('../Permissions', () => ({
 }));
 const mockGetPermittedAccounts = getPermittedAccounts as jest.Mock;
 const mockAddTransaction = addTransaction as jest.Mock;
+
+const mockProcessOriginThrottlingRejection =
+  processOriginThrottlingRejection as jest.Mock;
+const mockValidateOriginThrottling = validateOriginThrottling as jest.Mock;
 
 /**
  * This is used to build JSON-RPC requests. It is defined here for convenience, so that we don't
@@ -219,14 +232,21 @@ function setupGlobalState({
   activeTab,
   addTransactionResult,
   permittedAccounts,
-  providerConfig,
+  selectedNetworkClientId,
+  networksMetadata,
+  networkConfigurations,
   selectedAddress,
+  originThrottling,
 }: {
   activeTab?: number;
   addTransactionResult?: Promise<string>;
   permittedAccounts?: Record<string, string[]>;
+  selectedNetworkClientId: string;
+  networksMetadata?: Record<string, object>;
+  networkConfigurations?: Record<string, object>;
   providerConfig?: ProviderConfig;
   selectedAddress?: string;
+  originThrottling?: OriginThrottlingState;
 }) {
   // TODO: Remove any cast once PermissionController type is fixed. Currently, the state shows never.
   jest
@@ -241,15 +261,20 @@ function setupGlobalState({
         : {},
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           NetworkController: {
-            providerConfig: providerConfig || {},
+            selectedNetworkClientId: selectedNetworkClientId || '',
+            networksMetadata: networksMetadata || {},
           },
           PreferencesController: selectedAddress ? { selectedAddress } : {},
+          networkConfigurations: networkConfigurations || {},
         },
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any,
+      originThrottling: originThrottling || {
+        origins: {},
+      },
     }));
   mockStore.dispatch.mockImplementation((obj) => obj);
   if (addTransactionResult) {
@@ -282,10 +307,19 @@ const signatureMock = '0x1234567890';
 function setupSignature() {
   setupGlobalState({
     activeTab: 1,
-    providerConfig: {
-      chainId: '0x1',
-      type: RPC,
-      ticker: 'ETH',
+    selectedNetworkClientId: 'mainnet',
+    networksMetadata: {},
+    networkConfigurations: {
+      mainnet: {
+        id: 'mainnet',
+        rpcUrl: 'https://mainnet.infura.io/v3',
+        chainId: '0x1',
+        ticker: 'ETH',
+        nickname: 'Sepolia network',
+        rpcPrefs: {
+          blockExplorerUrl: 'https://etherscan.com',
+        },
+      },
     },
     selectedAddress: addressMock,
     permittedAccounts: { [hostMock]: [addressMock] },
@@ -330,7 +364,6 @@ describe('getRpcMethodMiddleware', () => {
       options: {},
       methods: [
         EthMethod.PersonalSign,
-        EthMethod.Sign,
         EthMethod.SignTransaction,
         EthMethod.SignTypedDataV1,
         EthMethod.SignTypedDataV3,
@@ -352,6 +385,7 @@ describe('getRpcMethodMiddleware', () => {
       },
     ]);
     const permissionController = new PermissionController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: controllerMessenger.getRestricted({
         name: 'PermissionController',
         allowedActions: [],
@@ -406,10 +440,11 @@ describe('getRpcMethodMiddleware', () => {
       describe('browser', () => {
         it('returns permitted accounts for connected site', async () => {
           const mockAddress1 = '0x0000000000000000000000000000000000000001';
-          const mockAddress2 = '0x0000000000000000000000000000000000000001';
+          const mockAddress2 = '0x0000000000000000000000000000000000000002';
           setupGlobalState({
             permittedAccounts: { 'example.metamask.io': [mockAddress1] },
             selectedAddress: mockAddress2,
+            selectedNetworkClientId: 'testNetworkClientId',
           });
           const middleware = getRpcMethodMiddleware({
             ...getMinimalBrowserOptions(),
@@ -434,6 +469,7 @@ describe('getRpcMethodMiddleware', () => {
           setupGlobalState({
             permittedAccounts: {},
             selectedAddress: mockAddress,
+            selectedNetworkClientId: 'testNetworkClientId',
           });
           const middleware = getRpcMethodMiddleware({
             ...getMinimalBrowserOptions(),
@@ -459,6 +495,7 @@ describe('getRpcMethodMiddleware', () => {
           setupGlobalState({
             permittedAccounts: { 'example.metamask.io': [mockAddress1] },
             selectedAddress: mockAddress2,
+            selectedNetworkClientId: 'testNetworkClientId',
           });
           const middleware = getRpcMethodMiddleware({
             ...getMinimalWalletConnectOptions(),
@@ -482,10 +519,11 @@ describe('getRpcMethodMiddleware', () => {
       describe('SDK', () => {
         it('returns permitted account for connected host', async () => {
           const mockAddress1 = '0x0000000000000000000000000000000000000001';
-          const mockAddress2 = '0x0000000000000000000000000000000000000001';
+          const mockAddress2 = '0x0000000000000000000000000000000000000002';
           setupGlobalState({
             permittedAccounts: { 'example.metamask.io': [mockAddress1] },
             selectedAddress: mockAddress2,
+            selectedNetworkClientId: 'testNetworkClientId',
           });
           const middleware = getRpcMethodMiddleware({
             ...getMinimalSDKOptions(),
@@ -510,6 +548,7 @@ describe('getRpcMethodMiddleware', () => {
           setupGlobalState({
             permittedAccounts: {},
             selectedAddress: mockAddress2,
+            selectedNetworkClientId: 'testNetworkClientId',
           });
           const middleware = getRpcMethodMiddleware({
             ...getMinimalSDKOptions(),
@@ -633,10 +672,19 @@ describe('getRpcMethodMiddleware', () => {
           addTransactionResult: Promise.resolve('fake-hash'),
           permittedAccounts: { 'example.metamask.io': [mockAddress] },
           // Set minimal network controller state to support validation
-          providerConfig: {
-            chainId: '0x1',
-            type: RPC,
-            ticker: 'ETH',
+          selectedNetworkClientId: 'mainnet',
+          networksMetadata: {},
+          networkConfigurations: {
+            mainnet: {
+              id: 'mainnet',
+              rpcUrl: 'https://mainnet.infura.io/v3',
+              chainId: '0x1',
+              ticker: 'ETH',
+              nickname: 'Sepolia network',
+              rpcPrefs: {
+                blockExplorerUrl: 'https://etherscan.com',
+              },
+            },
           },
         });
         const middleware = getRpcMethodMiddleware({
@@ -668,10 +716,19 @@ describe('getRpcMethodMiddleware', () => {
           addTransactionResult: Promise.resolve('fake-hash'),
           permittedAccounts: { 'example.metamask.io': [mockAddress] },
           // Set minimal network controller state to support validation
-          providerConfig: {
-            chainId: '0x1',
-            type: RPC,
-            ticker: 'ETH',
+          selectedNetworkClientId: 'mainnet',
+          networksMetadata: {},
+          networkConfigurations: {
+            mainnet: {
+              id: 'mainnet',
+              rpcUrl: 'https://mainnet.infura.io/v3',
+              chainId: '0x1',
+              ticker: 'ETH',
+              nickname: 'Sepolia network',
+              rpcPrefs: {
+                blockExplorerUrl: 'https://etherscan.com',
+              },
+            },
           },
         });
         const middleware = getRpcMethodMiddleware({
@@ -707,10 +764,19 @@ describe('getRpcMethodMiddleware', () => {
           // Note that no accounts are permitted
           permittedAccounts: {},
           // Set minimal network controller state to support validation
-          providerConfig: {
-            chainId: '0x1',
-            type: RPC,
-            ticker: 'ETH',
+          selectedNetworkClientId: 'mainnet',
+          networksMetadata: {},
+          networkConfigurations: {
+            mainnet: {
+              id: 'mainnet',
+              rpcUrl: 'https://mainnet.infura.io/v3',
+              chainId: '0x1',
+              ticker: 'ETH',
+              nickname: 'Sepolia network',
+              rpcPrefs: {
+                blockExplorerUrl: 'https://etherscan.com',
+              },
+            },
           },
         });
         const middleware = getRpcMethodMiddleware({
@@ -747,10 +813,19 @@ describe('getRpcMethodMiddleware', () => {
           addTransactionResult: Promise.resolve('fake-hash'),
           permittedAccounts: { 'example.metamask.io': [mockAddress] },
           // Set minimal network controller state to support validation
-          providerConfig: {
-            chainId: '0x1',
-            type: RPC,
-            ticker: 'ETH',
+          selectedNetworkClientId: 'mainnet',
+          networksMetadata: {},
+          networkConfigurations: {
+            mainnet: {
+              id: 'mainnet',
+              rpcUrl: 'https://mainnet.infura.io/v3',
+              chainId: '0x1',
+              ticker: 'ETH',
+              nickname: 'Sepolia network',
+              rpcPrefs: {
+                blockExplorerUrl: 'https://etherscan.com',
+              },
+            },
           },
           selectedAddress: mockAddress,
         });
@@ -780,10 +855,19 @@ describe('getRpcMethodMiddleware', () => {
           addTransactionResult: Promise.resolve('fake-hash'),
           // Set minimal network controller state to support validation
           permittedAccounts: { 'example.metamask.io': [] },
-          providerConfig: {
-            chainId: '0x1',
-            type: RPC,
-            ticker: 'ETH',
+          selectedNetworkClientId: 'mainnet',
+          networksMetadata: {},
+          networkConfigurations: {
+            mainnet: {
+              id: 'mainnet',
+              rpcUrl: 'https://mainnet.infura.io/v3',
+              chainId: '0x1',
+              ticker: 'ETH',
+              nickname: 'Sepolia network',
+              rpcPrefs: {
+                blockExplorerUrl: 'https://etherscan.com',
+              },
+            },
           },
           selectedAddress: differentMockAddress,
         });
@@ -822,10 +906,19 @@ describe('getRpcMethodMiddleware', () => {
             '70a863a4-a756-4660-8c72-dc367d02f625': [mockAddress],
           },
           // Set minimal network controller state to support validation
-          providerConfig: {
-            chainId: '0x1',
-            type: RPC,
-            ticker: 'ETH',
+          selectedNetworkClientId: 'mainnet',
+          networksMetadata: {},
+          networkConfigurations: {
+            mainnet: {
+              id: 'mainnet',
+              rpcUrl: 'https://mainnet.infura.io/v3',
+              chainId: '0x1',
+              ticker: 'ETH',
+              nickname: 'Sepolia network',
+              rpcPrefs: {
+                blockExplorerUrl: 'https://etherscan.com',
+              },
+            },
           },
           selectedAddress: mockAddress,
         });
@@ -855,10 +948,19 @@ describe('getRpcMethodMiddleware', () => {
         setupGlobalState({
           addTransactionResult: Promise.resolve('fake-hash'),
           // Set minimal network controller state to support validation
-          providerConfig: {
-            chainId: '0x1',
-            type: RPC,
-            ticker: 'ETH',
+          selectedNetworkClientId: 'mainnet',
+          networksMetadata: {},
+          networkConfigurations: {
+            mainnet: {
+              id: 'mainnet',
+              rpcUrl: 'https://mainnet.infura.io/v3',
+              chainId: '0x1',
+              ticker: 'ETH',
+              nickname: 'Sepolia network',
+              rpcPrefs: {
+                blockExplorerUrl: 'https://etherscan.com',
+              },
+            },
           },
           selectedAddress: differentMockAddress,
         });
@@ -893,10 +995,19 @@ describe('getRpcMethodMiddleware', () => {
       setupGlobalState({
         addTransactionResult: Promise.resolve('fake-hash'),
         // Set minimal network controller state to support validation
-        providerConfig: {
-          chainId: '0x1',
-          type: RPC,
-          ticker: 'ETH',
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {},
+        networkConfigurations: {
+          mainnet: {
+            id: 'mainnet',
+            rpcUrl: 'https://mainnet.infura.io/v3',
+            chainId: '0x1',
+            ticker: 'ETH',
+            nickname: 'Sepolia network',
+            rpcPrefs: {
+              blockExplorerUrl: 'https://etherscan.com',
+            },
+          },
         },
       });
       const middleware = getRpcMethodMiddleware({
@@ -922,6 +1033,7 @@ describe('getRpcMethodMiddleware', () => {
       setupGlobalState({
         addTransactionResult: Promise.resolve('fake-hash'),
         permittedAccounts: { 'example.metamask.io': [mockAddress] },
+        selectedNetworkClientId: 'mainnet', // Added to fix the linting error
       });
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
@@ -976,6 +1088,7 @@ describe('getRpcMethodMiddleware', () => {
         addTransactionResult: Promise.reject(
           new Error('Failed to process transaction'),
         ),
+        selectedNetworkClientId: 'mainnet', // Added to fix the linting error
       });
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
@@ -1111,72 +1224,6 @@ describe('getRpcMethodMiddleware', () => {
     });
   });
 
-  describe('eth_sign', () => {
-    async function sendRequest({ data = dataMock } = {}) {
-      const { middleware } = setupSignature();
-
-      const request = {
-        jsonrpc,
-        id: 1,
-        method: 'eth_sign',
-        params: [addressMock, data],
-      };
-
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return (await callMiddleware({ middleware, request })) as any;
-    }
-
-    beforeEach(() => {
-      Engine.context.PreferencesController.state.disabledRpcMethodPreferences =
-        { eth_sign: true };
-    });
-
-    it('creates unsigned message', async () => {
-      await sendRequest();
-
-      expect(
-        Engine.context.SignatureController.newUnsignedMessage,
-      ).toHaveBeenCalledTimes(1);
-      expect(
-        Engine.context.SignatureController.newUnsignedMessage,
-      ).toHaveBeenCalledWith({
-        data: dataMock,
-        from: addressMock,
-        meta: expect.any(Object),
-        origin: hostMock,
-      });
-    });
-
-    it('returns resolved value from message promise', async () => {
-      MockEngine.context.SignatureController.newUnsignedMessage.mockResolvedValue(
-        signatureMock,
-      );
-
-      const response = await sendRequest();
-
-      expect(response.error).toBeUndefined();
-      expect(response.result).toBe(signatureMock);
-    });
-
-    it('returns error if eth_sign disabled in preferences', async () => {
-      Engine.context.PreferencesController.state.disabledRpcMethodPreferences =
-        { eth_sign: false };
-
-      const response = await sendRequest();
-
-      expect(response.error.message).toBe(
-        'eth_sign has been disabled. You must enable it in the advanced settings',
-      );
-    });
-
-    it('returns error if data is wrong length', async () => {
-      const response = await sendRequest({ data: '0x1' });
-
-      expect(response.error.message).toBe(AppConstants.ETH_SIGN_ERROR);
-    });
-  });
-
   describe('personal_sign', () => {
     async function sendRequest() {
       const { middleware } = setupSignature();
@@ -1289,6 +1336,88 @@ describe('getRpcMethodMiddleware', () => {
       const spy = jest.spyOn(PPOMUtil, 'validateRequest');
       await sendRequest();
       expect(spy).toBeCalledTimes(1);
+    });
+  });
+
+  describe('originThrottling', () => {
+    const assumedBlockableRPCMethod = 'eth_sendTransaction';
+    const mockBlockedOrigin = 'blocked.origin';
+
+    it('blocks the request when the origin has an active spam filter for origin', async () => {
+      // Restore mock for this test
+      mockValidateOriginThrottling.mockImplementationOnce(
+        jest.requireActual('./spam').validateOriginThrottling,
+      );
+
+      setupGlobalState({
+        originThrottling: {
+          origins: {
+            [mockBlockedOrigin]: {
+              rejections: NUMBER_OF_REJECTIONS_THRESHOLD,
+              lastRejection: Date.now() - 1,
+            },
+          },
+        },
+        selectedNetworkClientId: 'testNetworkId', // Added to meet the required property
+      });
+
+      const middleware = getRpcMethodMiddleware(getMinimalBrowserOptions());
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: assumedBlockableRPCMethod,
+        params: [],
+        origin: mockBlockedOrigin,
+      };
+
+      const response = await callMiddleware({ middleware, request });
+
+      const expectedError = jest.requireActual('./spam').SPAM_FILTER_ACTIVATED;
+      expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
+      expect((response as JsonRpcFailure).error.message).toBe(
+        expectedError.message,
+      );
+    });
+
+    it('calls processOriginThrottlingRejection hook after receiving error', async () => {
+      jest.doMock('./eth_sendTransaction', () => ({
+        __esModule: true,
+        default: jest.fn(() =>
+          Promise.reject(providerErrors.userRejectedRequest()),
+        ),
+      }));
+
+      mockProcessOriginThrottlingRejection.mockClear();
+
+      setupGlobalState({
+        originThrottling: {
+          origins: {
+            [mockBlockedOrigin]: {
+              rejections: 1,
+              lastRejection: Date.now() - 1,
+            },
+          },
+        },
+        selectedNetworkClientId: 'testNetworkId', // Added to meet the required property
+      });
+
+      const middleware = getRpcMethodMiddleware(getMinimalBrowserOptions());
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: assumedBlockableRPCMethod,
+        params: [],
+        origin: mockBlockedOrigin,
+      };
+
+      await callMiddleware({ middleware, request });
+
+      expect(mockProcessOriginThrottlingRejection).toHaveBeenCalledTimes(1);
+      expect(mockProcessOriginThrottlingRejection).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error: providerErrors.userRejectedRequest(),
+        }),
+      );
     });
   });
 });

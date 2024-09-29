@@ -1,6 +1,5 @@
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
-
 import {
   EditGasViewSelectorsText,
   EditGasViewSelectorsIDs,
@@ -40,7 +39,7 @@ class TransactionConfirmationView {
   }
 
   get transactionAmount() {
-    return Matchers.getElementByText(
+    return Matchers.getElementByID(
       TransactionConfirmViewSelectorsIDs.COMFIRM_TXN_AMOUNT,
     );
   }
@@ -72,16 +71,23 @@ class TransactionConfirmationView {
     return Matchers.getElementByText(EditGasViewSelectorsText.ADVANCE_OPTIONS);
   }
 
+  get editPriorityModal() {
+    return Matchers.getElementByText(
+      TransactionConfirmViewSelectorsText.EDIT_PRIORITY_MODAL,
+    );
+  }
+
   async tapConfirmButton() {
-    await Gestures.waitAndTap(await this.confirmButton);
+    await Gestures.waitAndTap(this.confirmButton);
   }
 
   async tapCancelButton() {
     await Gestures.waitAndTap(this.cancelButton);
   }
 
-  async tapEstimatedGasLink() {
-    await Gestures.waitAndTap(this.estimatedGasLink);
+  async tapEstimatedGasLink(index = 0) {
+    await Gestures.swipe(this.transactionAmount, 'up', 'fast');
+    await Gestures.TapAtIndex(this.estimatedGasLink, index);
   }
 
   async tapLowPriorityGasOption() {

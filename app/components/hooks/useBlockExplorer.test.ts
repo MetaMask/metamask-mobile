@@ -1,8 +1,7 @@
 import { NetworkController } from '@metamask/network-controller';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../constants/navigation/Routes';
-import { LINEA_GOERLI, RPC } from '../../../app/constants/network';
-import initialBackgroundState from '../../util/test/initial-background-state.json';
+import { backgroundState } from '../../util/test/initial-root-state';
 import { renderHookWithProvider } from '../../util/test/renderWithProvider';
 import useBlockExplorer from './useBlockExplorer';
 
@@ -10,12 +9,27 @@ const mockInitialState = {
   settings: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       NetworkController: {
-        providerConfig: {
-          type: LINEA_GOERLI,
-          rpcTarget: 'https://mainnet.infura.io/v3/1234567890abcdef',
+        networkConfigurations: {
+          linea_goerli: {
+            chainId: '0xe704',
+            id: 'linea_goerli',
+            nickname: 'Linea Goerli',
+            rpcPrefs: { blockExplorerUrl: 'https://goerli.lineascan.build' },
+            rpcUrl: 'https://linea-goerli.infura.io/v3',
+            ticker: 'LINEA',
+          },
         },
+        networksMetadata: {
+          linea_goerli: {
+            EIPS: { '1559': true },
+            status: 'available',
+          },
+          mainnet: { EIPS: { '1559': true }, status: 'available' },
+        },
+        providerConfig: { chainId: '0x1', ticker: 'ETH', type: 'mainnet' },
+        selectedNetworkClientId: 'linea_goerli',
       } as unknown as NetworkController['state'],
     },
   },
@@ -42,9 +56,7 @@ jest.mock('@react-navigation/native', () => {
 
 describe('useBlockExplorer', () => {
   it('should navigate to the correct block explorer for no-RPC provider', () => {
-    const { result } = renderHookWithProvider(() => useBlockExplorer(), {
-      state: mockInitialState,
-    });
+    const { result } = renderHookWithProvider(() => useBlockExplorer());
     const { toBlockExplorer } = result.current;
     const address = '0x1234567890abcdef';
     toBlockExplorer(address);
@@ -57,22 +69,7 @@ describe('useBlockExplorer', () => {
   });
 
   it('should navigate to the correct block explorer for RPC provider', () => {
-    const { result } = renderHookWithProvider(() => useBlockExplorer(), {
-      state: {
-        settings: {},
-        engine: {
-          backgroundState: {
-            ...initialBackgroundState,
-            NetworkController: {
-              providerConfig: {
-                type: RPC,
-                rpcTarget: 'http://localhost/v3/',
-              },
-            } as NetworkController['state'],
-          },
-        },
-      },
-    });
+    const { result } = renderHookWithProvider(() => useBlockExplorer());
     const { toBlockExplorer } = result.current;
     const address = '0x1234567890abcdef';
     toBlockExplorer(address);

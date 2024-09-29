@@ -10,7 +10,7 @@ import NotificationManager from '../../../../../core/NotificationManager';
 import { InteractionManager } from 'react-native';
 import AppConstants from '../../../../../core/AppConstants';
 import { strings } from '../../../../../../locales/i18n';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 
 jest.mock('../../../../../components/hooks/useMetrics');
@@ -26,6 +26,11 @@ jest.mock('../../../../../core/Engine', () => ({
     KeyringController: {
       state: {
         keyrings: [],
+      },
+    },
+    PreferencesController: {
+      state: {
+        securityAlertsEnabled: true,
       },
     },
   },
@@ -48,7 +53,7 @@ const mockStore = configureMockStore();
 
 const initialState = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 
@@ -216,10 +221,11 @@ describe('PersonalSign', () => {
       expect(lastMockCall[1]).toEqual({
         account_type: 'Metamask',
         dapp_host_name: 'localhost:8545',
-        chain_id: undefined,
+        chain_id: 'N/A',
         signature_type: 'personal_sign',
         security_alert_response: 'Benign',
         security_alert_reason: '',
+        security_alert_source: undefined,
         ppom_eth_chainId_count: 1,
       });
     });
@@ -242,10 +248,11 @@ describe('PersonalSign', () => {
       expect(lastMockCall[1]).toEqual({
         account_type: 'Metamask',
         dapp_host_name: 'localhost:8545',
-        chain_id: undefined,
+        chain_id: 'N/A',
         signature_type: 'personal_sign',
         security_alert_response: 'Benign',
         security_alert_reason: '',
+        security_alert_source: undefined,
         ppom_eth_chainId_count: 1,
       });
     });

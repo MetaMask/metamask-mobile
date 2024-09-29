@@ -48,6 +48,7 @@ import { FIAT_ORDER_PROVIDERS } from '../../constants/on-ramp';
 import { CustomIdData, Action, FiatOrder, Region } from './types';
 import initialRootState from '../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../util/test/accountsControllerTestUtils';
+import mockedEngine from '../../core/__mocks__/MockedEngine';
 
 const MOCK_ADDRESS_1 = '0x4567';
 const MOCK_ADDRESS_2 = '0x1234';
@@ -148,89 +149,127 @@ const dummyCustomOrderIdData3: CustomIdData = {
 const networks: AggregatorNetwork[] = [
   {
     active: true,
-    chainId: 1,
+    chainId: '1',
     chainName: 'Ethereum Mainnet',
     shortName: 'Ethereum',
     nativeTokenSupported: true,
   },
   {
     active: true,
-    chainId: 10,
+    chainId: '10',
     chainName: 'Optimism Mainnet',
     shortName: 'Optimism',
     nativeTokenSupported: true,
   },
   {
     active: true,
-    chainId: 25,
+    chainId: '25',
     chainName: 'Cronos Mainnet',
     shortName: 'Cronos',
     nativeTokenSupported: true,
   },
   {
     active: true,
-    chainId: 56,
+    chainId: '56',
     chainName: 'BNB Chain Mainnet',
     shortName: 'BNB Chain',
     nativeTokenSupported: true,
   },
   {
     active: true,
-    chainId: 137,
+    chainId: '137',
     chainName: 'Polygon Mainnet',
     shortName: 'Polygon',
     nativeTokenSupported: true,
   },
   {
     active: true,
-    chainId: 250,
+    chainId: '250',
     chainName: 'Fantom Mainnet',
     shortName: 'Fantom',
     nativeTokenSupported: true,
   },
   {
     active: true,
-    chainId: 1284,
+    chainId: '1284',
     chainName: 'Moonbeam Mainnet',
     shortName: 'Moonbeam',
     nativeTokenSupported: true,
   },
   {
     active: true,
-    chainId: 42161,
+    chainId: '42161',
     chainName: 'Arbitrum Mainnet',
     shortName: 'Arbitrum',
     nativeTokenSupported: true,
   },
   {
     active: true,
-    chainId: 42220,
+    chainId: '42220',
     chainName: 'Celo Mainnet',
     shortName: 'Celo',
     nativeTokenSupported: false,
   },
   {
     active: true,
-    chainId: 43114,
+    chainId: '43114',
     chainName: 'Avalanche C-Chain Mainnet',
     shortName: 'Avalanche',
     nativeTokenSupported: true,
   },
   {
     active: true,
-    chainId: 1313161554,
+    chainId: '1313161554',
     chainName: 'Aurora Mainnet',
     shortName: 'Aurora',
     nativeTokenSupported: false,
   },
   {
     active: true,
-    chainId: 1666600000,
+    chainId: '1666600000',
     chainName: 'Harmony Mainnet (Shard 0)',
     shortName: 'Harmony (Shard 0)',
     nativeTokenSupported: true,
   },
 ];
+
+jest.mock('../../core/Engine', () => ({
+  init: () => mockedEngine.init(),
+  context: {
+    NetworkController: {
+      getNetworkClientById: (selectedNetwork: string) => {
+        if (selectedNetwork === 'aurora') {
+          return {
+            configuration: {
+              chainId: '0x4e454152',
+              rpcUrl: 'https://aurora.infura.io/v3',
+              ticker: 'ETH',
+              type: 'custom',
+            },
+          };
+        }
+        if (selectedNetwork === 'unknown-network') {
+          return {
+            configuration: {
+              chainId: '0x36bbbe6d',
+              rpcUrl: 'https://unknown-network.infura.io/v3',
+              ticker: 'ETH',
+              type: 'custom',
+            },
+          };
+        }
+        return {
+          configuration: {
+            chainId: '0x38',
+            rpcUrl: 'https://binance.infura.io/v3',
+            ticker: 'BNB',
+            type: 'custom',
+          },
+        };
+      },
+    },
+  },
+}));
 
 describe('fiatOrderReducer', () => {
   it('should return the initial state', () => {
@@ -705,8 +744,19 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
-                chainId: '0x38',
+              selectedNetworkClientId: 'binance',
+              networksMetadata: {},
+              networkConfigurations: {
+                binance: {
+                  id: 'binance',
+                  rpcUrl: 'https://binance.infura.io/v3',
+                  chainId: '0x38',
+                  ticker: 'BNB',
+                  nickname: 'Binance network',
+                  rpcPrefs: {
+                    blockExplorerUrl: 'https://etherscan.com',
+                  },
+                },
               },
             },
           },
@@ -810,8 +860,19 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
-                chainId: '0x38',
+              selectedNetworkClientId: 'binance',
+              networksMetadata: {},
+              networkConfigurations: {
+                binance: {
+                  id: 'binance',
+                  rpcUrl: 'https://mainnet.infura.io/v3',
+                  chainId: '0x38',
+                  ticker: 'BNB',
+                  nickname: 'Binance network',
+                  rpcPrefs: {
+                    blockExplorerUrl: 'https://etherscan.com',
+                  },
+                },
               },
             },
             AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_1,
@@ -863,8 +924,19 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
-                chainId: '0x1',
+              selectedNetworkClientId: 'mainnet',
+              networksMetadata: {},
+              networkConfigurations: {
+                mainnet: {
+                  id: 'mainnet',
+                  rpcUrl: 'https://mainnet.infura.io/v3',
+                  chainId: '0x1',
+                  ticker: 'ETH',
+                  nickname: 'Ethereum network',
+                  rpcPrefs: {
+                    blockExplorerUrl: 'https://etherscan.com',
+                  },
+                },
               },
             },
             AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_2,
@@ -933,8 +1005,19 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
-                chainId: toHex('11155111'),
+              selectedNetworkClientId: 'sepolia',
+              networksMetadata: {},
+              networkConfigurations: {
+                sepolia: {
+                  id: 'sepolia',
+                  rpcUrl: 'https://sepolia.infura.io/v3',
+                  chainId: toHex('11155111'),
+                  ticker: 'ETH',
+                  nickname: 'Sepolia network',
+                  rpcPrefs: {
+                    blockExplorerUrl: 'https://sepolia-etherscan.com',
+                  },
+                },
               },
             },
             AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_1,
@@ -986,8 +1069,19 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
-                chainId: '0xaa36a7',
+              selectedNetworkClientId: 'sepolia',
+              networksMetadata: {},
+              networkConfigurations: {
+                sepolia: {
+                  id: 'sepolia',
+                  rpcUrl: 'https://sepolia.infura.io/v3',
+                  chainId: '0xaa36a7',
+                  ticker: 'ETH',
+                  nickname: 'Sepolia network',
+                  rpcPrefs: {
+                    blockExplorerUrl: 'https://etherscan.com',
+                  },
+                },
               },
             },
             AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_2,
@@ -1061,8 +1155,19 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
-                chainId: '0x1',
+              selectedNetworkClientId: 'mainnet',
+              networksMetadata: {},
+              networkConfigurations: {
+                mainnet: {
+                  id: 'mainnet',
+                  rpcUrl: 'https://mainnet.infura.io/v3',
+                  chainId: '0x1',
+                  ticker: 'ETH',
+                  nickname: 'Sepolia network',
+                  rpcPrefs: {
+                    blockExplorerUrl: 'https://etherscan.com',
+                  },
+                },
               },
             },
             AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_2,
@@ -1081,8 +1186,19 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
-                chainId: '0x38',
+              selectedNetworkClientId: 'binance',
+              networksMetadata: {},
+              networkConfigurations: {
+                binance: {
+                  id: 'binance',
+                  rpcUrl: 'https://binance.infura.io/v3',
+                  chainId: '0x38',
+                  ticker: 'BNB',
+                  nickname: 'Binance network',
+                  rpcPrefs: {
+                    blockExplorerUrl: 'https://etherscan.com',
+                  },
+                },
               },
             },
             AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_1,
@@ -1136,8 +1252,19 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
-                chainId: '0x1',
+              selectedNetworkClientId: 'mainnet',
+              networksMetadata: {},
+              networkConfigurations: {
+                mainnet: {
+                  id: 'mainnet',
+                  rpcUrl: 'https://mainnet.infura.io/v3',
+                  chainId: '0x1',
+                  ticker: 'ETH',
+                  nickname: 'Ethereum network',
+                  rpcPrefs: {
+                    blockExplorerUrl: 'https://etherscan.com',
+                  },
+                },
               },
             },
             AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_2,
@@ -1209,8 +1336,19 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
-                chainId: '0x1',
+              selectedNetworkClientId: 'mainnet',
+              networksMetadata: {},
+              networkConfigurations: {
+                mainnet: {
+                  id: 'mainnet',
+                  rpcUrl: 'https://mainnet.infura.io/v3',
+                  chainId: '0x1',
+                  ticker: 'ETH',
+                  nickname: 'Sepolia network',
+                  rpcPrefs: {
+                    blockExplorerUrl: 'https://etherscan.com',
+                  },
+                },
               },
             },
             AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_2,
@@ -1244,8 +1382,19 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
-                chainId: '0x38',
+              selectedNetworkClientId: 'binance',
+              networksMetadata: {},
+              networkConfigurations: {
+                binance: {
+                  id: 'binance',
+                  rpcUrl: 'https://binance.infura.io/v3',
+                  chainId: '0x38',
+                  ticker: 'BNB',
+                  nickname: 'Binance network',
+                  rpcPrefs: {
+                    blockExplorerUrl: 'https://etherscan.com',
+                  },
+                },
               },
             },
             AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_1,
@@ -1289,8 +1438,19 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
-                chainId: '0x1',
+              selectedNetworkClientId: 'mainnet',
+              networksMetadata: {},
+              networkConfigurations: {
+                mainnet: {
+                  id: 'mainnet',
+                  rpcUrl: 'https://mainnet.infura.io/v3',
+                  chainId: '0x1',
+                  ticker: 'ETH',
+                  nickname: 'Sepolia network',
+                  rpcPrefs: {
+                    blockExplorerUrl: 'https://etherscan.com',
+                  },
+                },
               },
             },
             AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_2,
@@ -1309,8 +1469,19 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
-                chainId: '0x1',
+              selectedNetworkClientId: 'mainnet',
+              networksMetadata: {},
+              networkConfigurations: {
+                mainnet: {
+                  id: 'mainnet',
+                  rpcUrl: 'https://mainnet.infura.io/v3',
+                  chainId: '0x1',
+                  ticker: 'ETH',
+                  nickname: 'Sepolia network',
+                  rpcPrefs: {
+                    blockExplorerUrl: 'https://etherscan.com',
+                  },
+                },
               },
             },
             AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_2,
@@ -1376,8 +1547,19 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
-                chainId: '0x1',
+              selectedNetworkClientId: 'mainnet',
+              networksMetadata: {},
+              networkConfigurations: {
+                mainnet: {
+                  id: 'mainnet',
+                  rpcUrl: 'https://mainnet.infura.io/v3',
+                  chainId: '0x1',
+                  ticker: 'ETH',
+                  nickname: 'Ethereum network',
+                  rpcPrefs: {
+                    blockExplorerUrl: 'https://etherscan.com',
+                  },
+                },
               },
             },
             AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_2,
@@ -1436,8 +1618,19 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
-                chainId: '0x38',
+              selectedNetworkClientId: 'binance',
+              networksMetadata: {},
+              networkConfigurations: {
+                binance: {
+                  id: 'binance',
+                  rpcUrl: 'https://binance.infura.io/v3',
+                  chainId: '0x38',
+                  ticker: 'BNB',
+                  nickname: 'Binance network',
+                  rpcPrefs: {
+                    blockExplorerUrl: 'https://bscscan.com',
+                  },
+                },
               },
             },
             AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_2,
@@ -1588,8 +1781,19 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
-                chainId: '0x1',
+              selectedNetworkClientId: 'mainnet',
+              networksMetadata: {},
+              networkConfigurations: {
+                mainnet: {
+                  id: 'mainnet',
+                  rpcUrl: 'https://mainnet.infura.io/v3',
+                  chainId: '0x1',
+                  ticker: 'ETH',
+                  nickname: 'Sepolia network',
+                  rpcPrefs: {
+                    blockExplorerUrl: 'https://etherscan.com',
+                  },
+                },
               },
             },
           },
@@ -1603,8 +1807,19 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
-                chainId: '0x4e454152',
+              selectedNetworkClientId: 'aurora',
+              networksMetadata: {},
+              networkConfigurations: {
+                aurora: {
+                  id: 'aurora',
+                  rpcUrl: 'https://aurora.infura.io/v3',
+                  chainId: '0x4e454152',
+                  ticker: 'ETH',
+                  nickname: 'Aurora Network',
+                  rpcPrefs: {
+                    blockExplorerUrl: 'https://etherscan.com',
+                  },
+                },
               },
             },
           },
@@ -1618,8 +1833,19 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
-                chainId: '0x36bbbe6d',
+              selectedNetworkClientId: 'unknown-network',
+              networksMetadata: {},
+              networkConfigurations: {
+                'unknown-network': {
+                  id: 'unknown-network',
+                  rpcUrl: 'https://unknown-network.infura.io/v3',
+                  chainId: '0x36bbbe6d',
+                  ticker: 'ETH',
+                  nickname: 'Unknown network',
+                  rpcPrefs: {
+                    blockExplorerUrl: 'https://etherscan.com',
+                  },
+                },
               },
             },
           },

@@ -7,7 +7,7 @@ import { createStore } from 'redux';
 import { Provider } from 'react-redux';
 
 // External dependencies.
-import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 
 // Internal dependencies.
 import { default as TabBarComponent } from './TabBar';
@@ -18,7 +18,7 @@ const mockInitialState = {
     step: 1,
   },
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 const rootReducer = (state = mockInitialState) => state;

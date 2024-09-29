@@ -9,8 +9,12 @@ import Logger from '../../../../util/Logger';
 
 /**
  * Hook that fetches the available networks from the aggregator
- * and updates the store
- * @returns {null}
+ * and updates the store.
+ *
+ * @returns {[boolean, Error | undefined, () => Promise<void>]} A tuple where:
+ * - The first element is a boolean indicating if the data is loading.
+ * - The second element is an Error object if there was an error, or undefined if there was no error.
+ * - The third element is a function to fetch the networks.
  */
 function useFetchRampNetworks() {
   const dispatch = useDispatch();

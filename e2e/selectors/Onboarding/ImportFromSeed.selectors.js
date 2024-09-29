@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/prefer-default-export
 export const ImportFromSeedSelectorsIDs = {
   CONTAINER_ID: 'import-from-seed-screen',
   SEED_PHRASE_INPUT_ID: 'import-from-seed-screen-seed-phrase-input-id',

@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { VirtualFile } from '@metamask/snaps-utils';
 import { stringToBytes } from '@metamask/utils';
 import { NativeModules } from 'react-native';

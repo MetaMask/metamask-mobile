@@ -1,13 +1,12 @@
 import TestHelpers from '../helpers';
 import {
   TOKEN_PRICE,
-  TOKEN_ASSET_OVERVIEW,
   TOKEN_OVERVIEW_SEND_BUTTON,
   TOKEN_OVERVIEW_RECEIVE_BUTTON,
   TOKEN_OVERVIEW_BUY_BUTTON,
   TOKEN_OVERVIEW_SWAP_BUTTON,
-  ASSET_BACK_BUTTON,
 } from '../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+import { ImportTokenViewSelectorsIDs } from '../selectors/wallet/ImportTokenView.selectors';
 import enContent from '../../locales/languages/en.json';
 
 const chartTimePeriod = [
@@ -33,11 +32,11 @@ export default class TokenOverview {
   }
 
   static async tapBackButton() {
-    await TestHelpers.waitAndTap(ASSET_BACK_BUTTON);
+    await TestHelpers.waitAndTap(ImportTokenViewSelectorsIDs.BACK_BUTTON);
   }
 
   static async isVisible() {
-    await TestHelpers.checkIfVisible(TOKEN_ASSET_OVERVIEW);
+    await TestHelpers.checkIfVisible(TOKEN_OVERVIEW_SEND_BUTTON);
   }
 
   static async selectChart(chartPeriod) {

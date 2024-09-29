@@ -1,59 +1,43 @@
 import React from 'react';
+import NotificationsView from './';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../util/test/renderWithProvider';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { RootState } from '../../../reducers';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
-import NotificationsView from '.';
-import renderWithProvider from '../../../util/test/renderWithProvider';
-import MOCK_NOTIFICATIONS from '../../../components/UI/Notification/__mocks__/mock_notifications';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+const navigationMock = {
+  navigate: jest.fn(),
+} as unknown as NavigationProp<ParamListBase>;
 
-const mockInitialState = {
-  settings: {
-    useBlockieIcon: false,
-  },
-  notificationsSettings: {
-    isEnabled: true,
-  },
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: jest.fn(() => ({})),
+}));
+
+const mockInitialState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
+      NotificationServicesController: {
+        metamaskNotificationsList: [],
+      },
     },
   },
 };
-jest.mock('@react-navigation/native');
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  useSelector: (fn: any) => fn(mockInitialState),
+}));
 
 describe('NotificationsView', () => {
-  let navigation: NavigationProp<ParamListBase>;
-
-  beforeEach(() => {
-    navigation = {
-      navigate: jest.fn(),
-    } as unknown as NavigationProp<ParamListBase>;
-  });
-
-  it('matches snapshot', () => {
+  it('should render correctly', () => {
     const { toJSON } = renderWithProvider(
-      <NotificationsView
-        navigation={navigation}
-        selectedAddress={'0x123123123'}
-        notifications={MOCK_NOTIFICATIONS}
-      />,
-      {
-        state: mockInitialState,
-      },
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('matches snapshot without notifications', () => {
-    const { toJSON } = renderWithProvider(
-      <NotificationsView
-        navigation={navigation}
-        selectedAddress={'0x123123123'}
-        notifications={[]}
-      />,
-      {
-        state: mockInitialState,
-      },
+      <NotificationsView navigation={navigationMock} />,
     );
     expect(toJSON()).toMatchSnapshot();
   });

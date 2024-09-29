@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { StyleSheet, ScrollView, Alert } from 'react-native';
-import { useNavigation, CommonActions } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import SettingsDrawer from '../../UI/SettingsDrawer';
 import { getSettingsNavigationOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
@@ -11,13 +11,14 @@ import Routes from '../../../constants/navigation/Routes';
 import { Authentication } from '../../../core/';
 import { Colors } from '../../../util/theme/models';
 import { SettingsViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SettingsView.selectors';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/SnapsSettingsList';
 ///: END:ONLY_INCLUDE_IF
 import { TextColor } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isTest } from '../../../util/test/utils';
+import { isMultichainVersion1Enabled } from '../../../util/networks';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -41,9 +42,6 @@ const Settings = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.user.seedphraseBackedUp,
   );
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const passwordSet = useSelector((state: any) => state.user.passwordSet);
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
@@ -102,6 +100,14 @@ const Settings = () => {
     navigation.navigate('ContactsSettings');
   };
 
+  const onPressDeveloperOptions = () => {
+    navigation.navigate('DeveloperOptions');
+  };
+
+  const goToManagePermissions = () => {
+    navigation.navigate('PermissionsManager');
+  };
+
   const goToBrowserUrl = (url: string, title: string) => {
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
@@ -112,7 +118,7 @@ const Settings = () => {
     });
   };
 
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   const onPressSnaps = () => {
     navigation.navigate(...createSnapsSettingsListNavDetails());
   };
@@ -135,20 +141,7 @@ const Settings = () => {
   };
 
   const onPressLock = async () => {
-    await Authentication.lockApp();
-    if (!passwordSet) {
-      navigation.navigate('OnboardingRootNav', {
-        screen: Routes.ONBOARDING.NAV,
-        params: { screen: 'Onboarding' },
-      });
-    } else {
-      // TODO: Consolidate navigation action for locking app
-      const resetAction = CommonActions.reset({
-        index: 0,
-        routes: [{ name: Routes.ONBOARDING.LOGIN, params: { locked: true } }],
-      });
-      navigation.dispatch(resetAction);
-    }
+    await Authentication.lockApp({ locked: true });
   };
 
   const lock = () => {
@@ -209,6 +202,14 @@ const Settings = () => {
           testID={SettingsViewSelectorsIDs.NOTIFICATIONS}
         />
       )}
+      {isMultichainVersion1Enabled && (
+        <SettingsDrawer
+          description={strings('app_settings.permissions_desc')}
+          onPress={goToManagePermissions}
+          title={strings('app_settings.permissions_title')}
+          testID={SettingsViewSelectorsIDs.PERMISSIONS}
+        />
+      )}
       <SettingsDrawer
         description={strings('app_settings.contacts_desc')}
         onPress={onPressContacts}
@@ -222,7 +223,7 @@ const Settings = () => {
         testID={SettingsViewSelectorsIDs.NETWORKS}
       />
       {
-        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+        ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
       }
       <SettingsDrawer
         title={strings('app_settings.snaps.title')}
@@ -267,6 +268,12 @@ const Settings = () => {
         onPress={onPressInfo}
         testID={SettingsViewSelectorsIDs.ABOUT_METAMASK}
       />
+      {process.env.MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS === 'true' && (
+        <SettingsDrawer
+          title={strings('app_settings.developer_options.title')}
+          onPress={onPressDeveloperOptions}
+        />
+      )}
       <SettingsDrawer
         title={strings('app_settings.request_feature')}
         onPress={submitFeedback}

@@ -1,12 +1,7 @@
 {
   "KeyringController": {
     "isUnlocked": false,
-    "keyrings": [],
-    "vault": {
-      "cipher": "mock-cipher",
-      "iv": "mock-iv",
-      "lib": "original"
-    }
+    "keyrings": []
   },
   "LoggingController": {
     "logs": {}
@@ -51,7 +46,6 @@
     "storageMetadata": [],
     "versionInfo": []
   },
-
   "CurrencyRateController": {
     "currentCurrency": "usd",
     "currencyRates": {
@@ -64,17 +58,16 @@
   },
   "NetworkController": {
     "networkConfigurations": {},
-    "providerConfig": {
-      "type": "mainnet",
-      "chainId": "0x1",
-      "ticker": "ETH"
-    },
     "networksMetadata": {
-      "mainnet": { "EIPS": {}, "status": "unknown" }
+      "mainnet": {
+        "EIPS": {},
+        "status": "unknown"
+      }
     },
     "selectedNetworkClientId": "mainnet"
   },
   "PhishingController": {
+    "c2DomainBlocklistLastFetched": 0,
     "phishingLists": [],
     "whitelist": [],
     "hotlistLastFetched": 0,
@@ -87,7 +80,7 @@
     "lostIdentities": {},
     "selectedAddress": "",
     "useTokenDetection": true,
-    "useNftDetection": false,
+    "useNftDetection": true,
     "useSafeChainsListValidation": true,
     "displayNftMedia": true,
     "securityAlertsEnabled": true,
@@ -126,7 +119,7 @@
     "contractBalances": {}
   },
   "TokenRatesController": {
-    "marketData":{}
+    "marketData": {}
   },
   "TransactionController": {
     "lastFetchedBlockNumbers": {},
@@ -136,7 +129,30 @@
   },
   "SmartTransactionsController": {
     "smartTransactionsState": {
-      "liveness": true
+      "smartTransactions": {
+        "0x1": []
+      },
+      "userOptIn": null,
+      "userOptInV2": null,
+      "fees": {
+        "approvalTxFees": null,
+        "tradeTxFees": null
+      },
+      "liveness": true,
+      "livenessByChainId": {
+        "0x1": true,
+        "0xaa36a7": true
+      },
+      "feesByChainId": {
+        "0x1": {
+          "approvalTxFees": null,
+          "tradeTxFees": null
+        },
+        "0xaa36a7": {
+          "approvalTxFees": null,
+          "tradeTxFees": null
+        }
+      }
     }
   },
   "SnapController": {
@@ -214,12 +230,32 @@
   "PermissionController": {
     "subjects": {}
   },
+  "SelectedNetworkController": {
+    "domains": {}
+  },
   "SignatureController": {
-    "unapprovedMsgs": {},
     "unapprovedPersonalMsgs": {},
     "unapprovedTypedMessages": {},
-    "unapprovedMsgCount": 0,
     "unapprovedPersonalMsgCount": 0,
     "unapprovedTypedMessagesCount": 0
+  },
+  "AuthenticationController": {
+    "isSignedIn": false
+  },
+  "NotificationServicesController": {
+    "isCheckingAccountsPresence": false,
+    "isFeatureAnnouncementsEnabled": false,
+    "isFetchingMetamaskNotifications": false,
+    "isMetamaskNotificationsFeatureSeen": false,
+    "isNotificationServicesEnabled": false,
+    "isUpdatingMetamaskNotifications": false,
+    "isUpdatingMetamaskNotificationsAccount": [],
+    "metamaskNotificationsList": [],
+    "metamaskNotificationsReadList": [],
+    "subscriptionAccountsSeen": []
+  },
+  "UserStorageController": {
+    "isProfileSyncingEnabled": true,
+    "isProfileSyncingUpdateLoading": false
   }
 }

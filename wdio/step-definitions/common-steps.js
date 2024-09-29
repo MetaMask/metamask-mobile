@@ -14,8 +14,11 @@ import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModa
 import LoginScreen from '../screen-objects/LoginScreen';
 import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
 import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
-import Gestures from "../helpers/Gestures";
+import Gestures from '../helpers/Gestures';
 import OnboardingSucessScreen from '../screen-objects/OnboardingSucessScreen.js';
+import ExperienceEnhancerModal from '../screen-objects/Modals/ExperienceEnhancerModal';
+import TransactionProtectionModal from '../screen-objects/Modals/TransactionProtectionModal';
+import SettingsScreen from '../screen-objects/SettingsScreen';
 
 Then(/^the Welcome screen is displayed$/, async () => {
   await WelcomeScreen.isScreenDisplayed();
@@ -23,10 +26,6 @@ Then(/^the Welcome screen is displayed$/, async () => {
 
 Given(/^the app displayed the splash animation$/, async () => {
   await WelcomeScreen.isScreenDisplayed();
-});
-
-Given(/^the splash animation disappears$/, async () => {
-  await WelcomeScreen.waitForSplashAnimationToNotExit();
 });
 
 Then(/^Terms of Use is displayed$/, async () => {
@@ -67,9 +66,9 @@ Given(/^I have imported my wallet$/, async () => {
   await ImportFromSeedScreen.isScreenTitleVisible();
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(validAccount.seedPhrase);
   await ImportFromSeedScreen.typeNewPassword(validAccount.password);
-  await ImportFromSeedScreen.tapImportFromSeedTextToDismissKeyboard();
+  await ImportFromSeedScreen.tapImportScreenTitleToDismissKeyboard();
   await ImportFromSeedScreen.typeConfirmPassword(validAccount.password);
-  await ImportFromSeedScreen.tapImportFromSeedTextToDismissKeyboard();
+  await ImportFromSeedScreen.tapConfirmPasswordTextToDismissKeyboard();
   await ImportFromSeedScreen.clickImportButton();
   await OnboardingSucessScreen.tapDone()
 });
@@ -77,7 +76,6 @@ Given(/^I have imported my wallet$/, async () => {
 Given(/^I create a new wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
 
-  await WelcomeScreen.waitForSplashAnimationToDisplay();
   await WelcomeScreen.waitForScreenToDisplay();
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
@@ -271,6 +269,7 @@ Given(/^I close the Whats New modal$/, async () => {
 
 When(/^I tap on the Settings tab option$/, async () => {
   await TabBarModal.tapSettingButton();
+  await SettingsScreen.waitForDisplay();
 });
 
 When(/^I tap on the Activity tab option$/, async () => {
@@ -297,9 +296,6 @@ Then(/^removed test app$/, async () => {
   }
 });
 
-Given(/^the splash animation completes$/, async () => {
-  await WelcomeScreen.waitForSplashAnimationToComplete();
-});
 
 Then(/^I am on the "([^"]*)" account$/, async (accountName) => {
   await CommonScreen.isTextDisplayed(accountName)
@@ -311,4 +307,49 @@ When(/^I tap on the Identicon$/, async () => {
 
 Then(/^tokens (.*) in account should be displayed$/, async (token) => {
   await CommonScreen.isTextDisplayed(token)
+});
+
+Given(/^I close all the onboarding modals$/, async () => {
+  // Handle Onboarding wizard
+  try {
+    await OnboardingWizardModal.isVisible();
+    await OnboardingWizardModal.tapNoThanksButton();
+    await OnboardingWizardModal.isNotVisible();
+  } catch {
+    /* eslint-disable no-console */
+
+    console.log('The onboarding modal is not visible');
+  }
+
+  try {
+    await TransactionProtectionModal.isVisible();
+    await TransactionProtectionModal.tapEnableButton();
+    await TransactionProtectionModal.isNotVisible();
+  } catch {
+    /* eslint-disable no-console */
+
+    console.log('The whats new modal is not visible');
+  }
+
+  try {
+    // Handle Marketing consent modal
+
+    await ExperienceEnhancerModal.waitForDisplay();
+    await ExperienceEnhancerModal.tapNoThanks();
+    await ExperienceEnhancerModal.waitForDisappear();
+  } catch {
+    console.log('The marketing consent modal is not visible');
+  }
+  try {
+    await OnboardingWizardModal.isVisible();
+    await OnboardingWizardModal.tapNoThanksButton();
+    await OnboardingWizardModal.isNotVisible();
+  } catch {
+    /* eslint-disable no-console */
+
+    console.log('The onboarding modal is not visible');
+  }
+});
+Then(/^I use the back button on Android$/, async () => {
+  await driver.back();
 });

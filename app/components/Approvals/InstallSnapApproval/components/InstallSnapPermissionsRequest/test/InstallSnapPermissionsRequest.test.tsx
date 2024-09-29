@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import InstallSnapPermissionsRequest from '../InstallSnapPermissionsRequest';
@@ -52,6 +52,7 @@ describe('InstallSnapPermissionsRequest', () => {
         approvalRequest={installSnapDataApprovalRequest}
         onConfirm={onConfirm}
         onCancel={onCancel}
+        snapId="mockId"
       />,
     );
     const permissionCells = getAllByTestId(SNAP_PERMISSION_CELL);

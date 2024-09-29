@@ -51,11 +51,14 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         await TestDApp.tapApproveButton();
 
         //Input custom token amount
+        await Assertions.checkIfVisible(
+          ContractApprovalModal.approveTokenAmount,
+        );
         await ContractApprovalModal.clearInput();
         await ContractApprovalModal.inputCustomAmount('2');
 
         // Assert that custom token amount is shown
-        await Assertions.checkIfHasText(
+        await Assertions.checkIfElementToHaveText(
           ContractApprovalModal.approveTokenAmount,
           '2',
         );

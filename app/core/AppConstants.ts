@@ -104,6 +104,8 @@ export default {
     },
     TERMS_AND_CONDITIONS: 'https://legal.consensys.io/metamask/terms-of-use/',
     PRIVACY_POLICY: 'https://consensys.io/privacy-policy',
+    PROFILE_SYNC:
+      'https://support.metamask.io/privacy-and-security/profile-privacy',
     DATA_RETENTION_UPDATE:
       'https://consensys.net/blog/news/consensys-data-retention-update/',
     CONNECTIVITY_ISSUES:
@@ -115,8 +117,6 @@ export default {
       'https://support.metamask.io/troubleshooting/what-to-do-when-your-balance-of-tokens-is-incorrect/',
     WHY_TRANSACTION_TAKE_TIME:
       'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172',
-    WHAT_IS_ETH_SIGN_AND_WHY_IS_IT_A_RISK:
-      'https://support.metamask.io/privacy-and-security/what-is-eth_sign-and-why-is-it-a-risk/',
     TESTNET_ETH_SCAMS:
       'https://support.metamask.io/privacy-and-security/staying-safe-in-web3/testnet-eth-scams/',
     WHAT_IS_SRP:
@@ -188,7 +188,6 @@ export default {
   NETWORK_DID_CHANGE_EVENT: 'NetworkController:networkDidChange',
   KEYRING_STATE_CHANGE_EVENT: 'KeyringController:stateChange',
   TOKEN_LIST_STATE_CHANGE_EVENT: 'TokenListController:stateChange',
-  ETH_SIGN_ERROR: 'eth_sign requires 32 byte message hash',
   TERMS_OF_USE: {
     TERMS_DISPLAYED: 'ToU Displayed',
     TERMS_ACCEPTED: 'ToU Accepted',
@@ -211,4 +210,8 @@ export default {
     'static.cx',
     'config-api.metamask.io/featureFlags',
   ],
+  FEATURE_FLAGS_API: {
+    BASE_URL: 'https://client-config.api.cx.metamask.io/',
+    VERSION: 'v1',
+  },
 } as const;

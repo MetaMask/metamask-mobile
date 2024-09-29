@@ -5,25 +5,10 @@ import { RootState } from '../reducers';
 const selectPreferencesControllerState = (state: RootState) =>
   state.engine.backgroundState.PreferencesController;
 
-export const selectIdentities = createSelector(
-  selectPreferencesControllerState,
-  (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.identities,
-);
-
 export const selectIpfsGateway = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.ipfsGateway,
-);
-
-/**
- * @deprecated use selectSelectedInternal or selectSelectedInternalAccountChecksummedAddress account from selectors/accountsController.ts
- */
-export const selectSelectedAddress = createSelector(
-  selectPreferencesControllerState,
-  (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.selectedAddress,
 );
 
 export const selectUseNftDetection = createSelector(
@@ -48,12 +33,6 @@ export const selectUseSafeChainsListValidation = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.useSafeChainsListValidation,
-);
-
-export const selectDisabledRpcMethodPreferences = createSelector(
-  selectPreferencesControllerState,
-  (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.disabledRpcMethodPreferences,
 );
 
 // isMultiAccountBalancesEnabled is a patched property - ref patches/@metamask+preferences-controller+2.1.0.patch

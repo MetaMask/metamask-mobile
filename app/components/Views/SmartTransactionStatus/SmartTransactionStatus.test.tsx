@@ -4,7 +4,7 @@ import SmartTransactionStatus, {
   showRemainingTimeInMinAndSec,
 } from './SmartTransactionStatus';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { fireEvent } from '@testing-library/react-native';
@@ -12,7 +12,7 @@ import { SmartTransactionStatuses } from '@metamask/smart-transactions-controlle
 
 const initialState = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 

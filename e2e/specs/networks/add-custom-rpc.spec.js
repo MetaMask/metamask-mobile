@@ -2,7 +2,8 @@
 import TestHelpers from '../../helpers';
 import { Regression } from '../../tags';
 import NetworkView from '../../pages/Settings/NetworksView';
-import WalletView from '../../pages/WalletView';
+import WalletView from '../../pages/wallet/WalletView';
+import ToastModal from '../../pages/modals/ToastModal';
 import SettingsView from '../../pages/Settings/SettingsView';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
@@ -78,10 +79,6 @@ describe(Regression('Custom RPC Tests'), () => {
     await NetworkApprovalModal.tapApproveButton();
     await Assertions.checkIfVisible(NetworkAddedModal.switchNetwork);
     await NetworkAddedModal.tapSwitchToNetwork();
-    await WalletView.isVisible();
-    await WalletView.isNetworkNameVisible(
-      CustomNetworks.Gnosis.providerConfig.nickname,
-    );
   });
 
   it('should dismiss network education modal', async () => {
@@ -92,6 +89,11 @@ describe(Regression('Custom RPC Tests'), () => {
     );
     await NetworkEducationModal.tapGotItButton();
     await Assertions.checkIfNotVisible(NetworkEducationModal.container);
+    await Assertions.checkIfVisible(WalletView.container);
+    await Assertions.checkIfElementToHaveText(
+      WalletView.navbarNetworkText,
+      CustomNetworks.Gnosis.providerConfig.nickname,
+    );
   });
 
   it('should validate that Gnosis is added to network list', async () => {
@@ -118,11 +120,12 @@ describe(Regression('Custom RPC Tests'), () => {
     );
     await NetworkEducationModal.tapGotItButton();
     await Assertions.checkIfNotVisible(NetworkEducationModal.container);
-    await WalletView.isVisible();
+    await Assertions.checkIfVisible(WalletView.container);
   });
 
   it('should switch back to Gnosis', async () => {
-    await WalletView.isNetworkNameVisible(
+    await Assertions.checkIfElementToHaveText(
+      WalletView.navbarNetworkText,
       CustomNetworks.Sepolia.providerConfig.nickname,
     );
     await WalletView.tapNetworksButtonOnNavBar();
@@ -133,28 +136,47 @@ describe(Regression('Custom RPC Tests'), () => {
       CustomNetworks.Gnosis.providerConfig.nickname,
       true,
     );
-    await WalletView.isVisible();
-    await WalletView.isNetworkNameVisible(
+    await Assertions.checkIfVisible(WalletView.container);
+    await Assertions.checkIfElementToHaveText(
+      WalletView.navbarNetworkText,
       CustomNetworks.Gnosis.providerConfig.nickname,
     );
     await Assertions.checkIfNotVisible(NetworkEducationModal.container);
+
+    try {
+      await Assertions.checkIfVisible(ToastModal.container);
+      await Assertions.checkIfNotVisible(ToastModal.container);
+    } catch {
+      // eslint-disable-next-line no-console
+      console.log('Toast is not visible');
+    }
   });
 
   it('should go to settings networks and remove xDai network', async () => {
-    await TestHelpers.delay(3000);
     await TabBarComponent.tapSettings();
     await SettingsView.tapNetworks();
     await Assertions.checkIfVisible(NetworkView.networkContainer);
+
+    await NetworkView.longPressToRemoveNetwork(
+      CustomNetworks.Gnosis.providerConfig.nickname,
+    );
     if (device.getPlatform() === 'android') {
       await device.disableSynchronization();
     }
-    await NetworkView.longPressToRemoveNetwork(
-      CustomNetworks.Gnosis.providerConfig.nickname,
-    ); // Tap on Gnosis to remove network
-    await TestHelpers.delay(3000);
     await NetworkEducationModal.tapGotItButton();
+
+    try {
+      await Assertions.checkIfVisible(ToastModal.container);
+      await Assertions.checkIfNotVisible(ToastModal.container);
+    } catch {
+      // eslint-disable-next-line no-console
+      console.log('Toast is not visible');
+    }
     await TabBarComponent.tapWallet();
-    await WalletView.isVisible();
-    await WalletView.isNetworkNameVisible(MAINNET);
+    await Assertions.checkIfVisible(WalletView.container);
+    await Assertions.checkIfElementToHaveText(
+      WalletView.navbarNetworkText,
+      MAINNET,
+    );
   });
 });

@@ -5,7 +5,9 @@ import { fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import WebsiteIcon from '../WebsiteIcon';
 import { getHost, getUrlObj } from '../../../util/browser';
-import networkList from '../../../util/networks';
+import networkList, {
+  isMultichainVersion1Enabled,
+} from '../../../util/networks';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
 import { renderShortAddress } from '../../../util/address';
@@ -25,9 +27,9 @@ const createStyles = (colors) =>
       alignItems: 'center',
     },
     domainLogo: {
-      width: 56,
-      height: 56,
-      borderRadius: 32,
+      width: isMultichainVersion1Enabled ? 32 : 56,
+      height: isMultichainVersion1Enabled ? 32 : 56,
+      borderRadius: isMultichainVersion1Enabled ? 16 : 32,
     },
     assetLogo: {
       alignItems: 'center',
@@ -192,19 +194,27 @@ const TransactionHeader = (props) => {
     return <Text style={styles.domainUrl}>{title}</Text>;
   };
 
+  const renderDomainUrlContainer = () => (
+    <View style={styles.domanUrlContainer}>
+      {renderSecureIcon()}
+      {renderTitle()}
+    </View>
+  );
+
+  const renderNetworkContainer = () => (
+    <View style={styles.networkContainer}>
+      {renderNetworkStatusIndicator()}
+      <Text style={styles.network}>
+        {props.nickname || networkList[props.networkType]?.shortName}
+      </Text>
+    </View>
+  );
+
   return (
     <View style={styles.transactionHeader}>
       {renderTopIcon()}
-      <View style={styles.domanUrlContainer}>
-        {renderSecureIcon()}
-        {renderTitle()}
-      </View>
-      <View style={styles.networkContainer}>
-        {renderNetworkStatusIndicator()}
-        <Text style={styles.network}>
-          {props.nickname || networkList[props.networkType]?.shortName}
-        </Text>
-      </View>
+      {isMultichainVersion1Enabled ? null : renderDomainUrlContainer()}
+      {isMultichainVersion1Enabled ? null : renderNetworkContainer()}
     </View>
   );
 };

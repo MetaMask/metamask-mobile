@@ -36,6 +36,9 @@ const ONBOARDING_WIZARD_STEP_DESCRIPTION: { [key: number]: string } = {
  * Analytics Tracking Events
  */
 enum EVENT_NAME {
+  // App
+  APP_OPENED = 'App Opened',
+
   // Error
   ERROR = 'Error occurred',
   ERROR_SCREEN_VIEWED = 'Error Screen Viewed',
@@ -72,9 +75,13 @@ enum EVENT_NAME {
   WALLET_OPENED = 'Wallet Opened',
   TOKEN_ADDED = 'Token Added',
   COLLECTIBLE_ADDED = 'Collectible Added',
+  COLLECTIBLE_DETAILS_OPENED = 'Collectible Details Opened',
+  COLLECTIBLE_REMOVED = 'Collectible Removed',
 
   // Network
   NETWORK_SWITCHED = 'Network Switched',
+  NETWORK_SWITCH_REQUESTED_AND_MODAL_SHOWN = 'Network Switch Requested and Modal Shown',
+  NETWORK_SWITCH_CONFIRM_PRESSED = 'Network Switch Confirm Pressed',
   NETWORK_ADDED = 'Network Added',
   NETWORK_REQUESTED = 'Network Requested',
   NETWORK_REQUEST_REJECTED = 'Network Request Rejected',
@@ -157,10 +164,13 @@ enum EVENT_NAME {
 
   // Security & Privacy Settings
   VIEW_SECURITY_SETTINGS = 'Views Security & Privacy',
+  BASIC_FUNCTIONALITY_ENABLED = 'Basic Functionality Enabled',
+  BASIC_FUNCTIONALITY_DISABLED = 'Basic Functionality Disabled',
 
   // Settings
   SETTINGS_VIEWED = 'Settings Viewed',
   SETTINGS_UPDATED = 'Settings Updated',
+  CURRENCY_CHANGED = 'Selected Currency Changed',
 
   // Reveal SRP
   REVEAL_SRP_CTA = 'Clicks Reveal Secret Recovery Phrase',
@@ -353,17 +363,36 @@ enum EVENT_NAME {
   CONNECT_LEDGER_SUCCESS = 'Connected Account with hardware wallet',
   LEDGER_HARDWARE_TRANSACTION_CANCELLED = 'User canceled Ledger hardware transaction',
   LEDGER_HARDWARE_WALLET_ERROR = 'Ledger hardware wallet error',
-  LEDGER_HARDWARE_WALLET_FORGOTTEN = 'Ledger hardware wallet forgotten',
+
+  // common hardware wallet
+  HARDWARE_WALLET_FORGOTTEN = 'Hardware wallet forgotten',
+
+  // Remove an account
+  ACCOUNT_REMOVED = 'Account removed',
 
   //Notifications
   ALL_NOTIFICATIONS = 'All Notifications',
   WALLET_NOTIFICATIONS = 'Wallet Notifications',
   ANNOUCEMENTS_NOTIFICATIONS = 'Annoucements Notifications',
+  NOTIFICATIONS_ACTIVATED = 'Notifications Activated',
+  NOTIFICATIONS_MENU_OPENED = 'Notifications Menu Opened',
+  NOTIFICATIONS_SETTINGS_UPDATED = 'Notifications Settings Updated',
+  NOTIFICATION_CLICKED = 'Notification Clicked',
+  NOTIFICATIONS_MARKED_ALL_AS_READ = 'Notifications Marked All as Read',
+  NOTIFICATION_DETAIL_CLICKED = 'Notification Detail Clicked',
+
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
 
   // Simulations
   INCOMPLETE_ASSET_DISPLAYED = 'Incomplete Asset Displayed',
+  // Nft auto detection modal
+  NFT_AUTO_DETECTION_ENABLED_MODAL = 'Nft Autodetection Enabled from modal',
+  NFT_AUTO_DETECTION_DISBLED_MODAL = 'Nft Autodetection Disabled from modal',
+  // NFT auto detection events
+  NFT_AUTO_DETECTION_ENABLED = 'nft_autodetection_enabled',
+  PRIMARY_CURRENCY_TOGGLE = 'primary_currency_toggle',
+  LOGIN_DOWNLOAD_LOGS = 'Download State Logs Button Clicked',
 }
 
 enum ACTIONS {
@@ -407,10 +436,6 @@ enum ACTIONS {
   BRIDGE = 'Bridge',
   PERMISSION_NEW_ACCOUNT = 'Connected new account(s)',
   PERMISSION_REVOKE_ACCOUNT = 'Revoked account(s)',
-  ADVANCED_SETTINGS_ETH_SIGN_FRICTION_FIRST_STEP = 'eth_sign_checkbox_seen',
-  ADVANCED_SETTINGS_ETH_SIGN_FRICTION_SECOND_STEP = 'eth_sign_input_seen',
-  ADVANCED_SETTINGS_ETH_SIGN_ENABLED = 'eth_sign_enabled',
-  ADVANCED_SETTINGS_ETH_SIGN_DISABLED = 'eth_sign_disabled',
   STAKE = 'Stake',
   // Notifications
   SELECTS_ALL_NOTIFICATIONS = 'Selects All Notifications',
@@ -419,6 +444,7 @@ enum ACTIONS {
 }
 
 const events = {
+  APP_OPENED: generateOpt(EVENT_NAME.APP_OPENED),
   ERROR: generateOpt(EVENT_NAME.ERROR),
   ERROR_SCREEN_VIEWED: generateOpt(EVENT_NAME.ERROR_SCREEN_VIEWED),
   APPROVAL_STARTED: generateOpt(EVENT_NAME.APPROVAL_STARTED),
@@ -452,7 +478,18 @@ const events = {
   WALLET_OPENED: generateOpt(EVENT_NAME.WALLET_OPENED),
   TOKEN_ADDED: generateOpt(EVENT_NAME.TOKEN_ADDED),
   COLLECTIBLE_ADDED: generateOpt(EVENT_NAME.COLLECTIBLE_ADDED),
+  COLLECTIBLE_DETAILS_OPENED: generateOpt(
+    EVENT_NAME.COLLECTIBLE_DETAILS_OPENED,
+  ),
+  COLLECTIBLE_REMOVED: generateOpt(EVENT_NAME.COLLECTIBLE_REMOVED),
+  CURRENCY_CHANGED: generateOpt(EVENT_NAME.CURRENCY_CHANGED),
   NETWORK_SWITCHED: generateOpt(EVENT_NAME.NETWORK_SWITCHED),
+  NETWORK_SWITCH_REQUESTED_AND_MODAL_SHOWN: generateOpt(
+    EVENT_NAME.NETWORK_SWITCH_REQUESTED_AND_MODAL_SHOWN,
+  ),
+  NETWORK_SWITCH_CONFIRM_PRESSED: generateOpt(
+    EVENT_NAME.NETWORK_SWITCH_CONFIRM_PRESSED,
+  ),
   NETWORK_ADDED: generateOpt(EVENT_NAME.NETWORK_ADDED),
   NETWORK_REQUESTED: generateOpt(EVENT_NAME.NETWORK_REQUESTED),
   NETWORK_REQUEST_REJECTED: generateOpt(EVENT_NAME.NETWORK_REQUEST_REJECTED),
@@ -558,6 +595,12 @@ const events = {
   DAPP_VIEWED: generateOpt(EVENT_NAME.DAPP_VIEWED),
   // Security & Privacy Settings
   VIEW_SECURITY_SETTINGS: generateOpt(EVENT_NAME.VIEW_SECURITY_SETTINGS),
+  BASIC_FUNCTIONALITY_ENABLED: generateOpt(
+    EVENT_NAME.BASIC_FUNCTIONALITY_ENABLED,
+  ),
+  BASIC_FUNCTIONALITY_DISABLED: generateOpt(
+    EVENT_NAME.BASIC_FUNCTIONALITY_DISABLED,
+  ),
   // Reveal SRP
   REVEAL_SRP_CTA: generateOpt(EVENT_NAME.REVEAL_SRP_CTA),
   REVEAL_SRP_SCREEN: generateOpt(EVENT_NAME.REVEAL_SRP_SCREEN),
@@ -807,22 +850,7 @@ const events = {
   ACCOUNT_RENAMED: generateOpt(EVENT_NAME.ACCOUNT_RENAMED),
 
   // Settings
-  SETTINGS_ADVANCED_ETH_SIGN_FRICTION_FIRST_STEP_VIEWED: generateOpt(
-    EVENT_NAME.SETTINGS_VIEWED,
-    ACTIONS.ADVANCED_SETTINGS_ETH_SIGN_FRICTION_FIRST_STEP,
-  ),
-  SETTINGS_ADVANCED_ETH_SIGN_FRICTION_SECOND_STEP_VIEWED: generateOpt(
-    EVENT_NAME.SETTINGS_VIEWED,
-    ACTIONS.ADVANCED_SETTINGS_ETH_SIGN_FRICTION_SECOND_STEP,
-  ),
-  SETTINGS_ADVANCED_ETH_SIGN_ENABLED: generateOpt(
-    EVENT_NAME.SETTINGS_UPDATED,
-    ACTIONS.ADVANCED_SETTINGS_ETH_SIGN_ENABLED,
-  ),
-  SETTINGS_ADVANCED_ETH_SIGN_DISABLED: generateOpt(
-    EVENT_NAME.SETTINGS_UPDATED,
-    ACTIONS.ADVANCED_SETTINGS_ETH_SIGN_DISABLED,
-  ),
+  SETTINGS_UPDATED: generateOpt(EVENT_NAME.SETTINGS_UPDATED),
 
   // Experimental Settings
   SETTINGS_SECURITY_ALERTS_ENABLED: generateOpt(EVENT_NAME.SETTINGS_UPDATED),
@@ -839,9 +867,10 @@ const events = {
   LEDGER_HARDWARE_WALLET_ERROR: generateOpt(
     EVENT_NAME.LEDGER_HARDWARE_WALLET_ERROR,
   ),
-  LEDGER_HARDWARE_WALLET_FORGOTTEN: generateOpt(
-    EVENT_NAME.LEDGER_HARDWARE_WALLET_FORGOTTEN,
-  ),
+  HARDWARE_WALLET_FORGOTTEN: generateOpt(EVENT_NAME.HARDWARE_WALLET_FORGOTTEN),
+
+  // Remove an account
+  ACCOUNT_REMOVED: generateOpt(EVENT_NAME.ACCOUNT_REMOVED),
 
   // Smart transactions
   SMART_TRANSACTION_OPT_IN: generateOpt(EVENT_NAME.SMART_TRANSACTION_OPT_IN),
@@ -859,10 +888,35 @@ const events = {
     EVENT_NAME.ANNOUCEMENTS_NOTIFICATIONS,
     ACTIONS.SELECTS_ANNOUCEMENTS_NOTIFICATIONS,
   ),
+  NOTIFICATIONS_ACTIVATED: generateOpt(EVENT_NAME.NOTIFICATIONS_ACTIVATED),
+  NOTIFICATIONS_MENU_OPENED: generateOpt(EVENT_NAME.NOTIFICATIONS_MENU_OPENED),
+  NOTIFICATIONS_SETTINGS_UPDATED: generateOpt(
+    EVENT_NAME.NOTIFICATIONS_SETTINGS_UPDATED,
+  ),
+  NOTIFICATION_CLICKED: generateOpt(EVENT_NAME.NOTIFICATION_CLICKED),
+  NOTIFICATIONS_MARKED_ALL_AS_READ: generateOpt(
+    EVENT_NAME.NOTIFICATIONS_MARKED_ALL_AS_READ,
+  ),
+  NOTIFICATION_DETAIL_CLICKED: generateOpt(
+    EVENT_NAME.NOTIFICATION_DETAIL_CLICKED,
+  ),
   // Simulations
   INCOMPLETE_ASSET_DISPLAYED: generateOpt(
     EVENT_NAME.INCOMPLETE_ASSET_DISPLAYED,
   ),
+  // Nft auto detection modal
+  NFT_AUTO_DETECTION_MODAL_ENABLE: generateOpt(
+    EVENT_NAME.NFT_AUTO_DETECTION_ENABLED_MODAL,
+  ),
+  NFT_AUTO_DETECTION_MODAL_DISABLE: generateOpt(
+    EVENT_NAME.NFT_AUTO_DETECTION_DISBLED_MODAL,
+  ),
+  // Nft detection event
+  NFT_AUTO_DETECTION_ENABLED: generateOpt(
+    EVENT_NAME.NFT_AUTO_DETECTION_ENABLED,
+  ),
+  PRIMARY_CURRENCY_TOGGLE: generateOpt(EVENT_NAME.PRIMARY_CURRENCY_TOGGLE),
+  LOGIN_DOWNLOAD_LOGS: generateOpt(EVENT_NAME.LOGIN_DOWNLOAD_LOGS),
 };
 
 /**
@@ -915,6 +969,7 @@ enum DESCRIPTION {
   WALLET_QR_SCANNER = 'QR scanner',
   WALLET_COPIED_ADDRESS = 'Copied Address',
   WALLET_ADD_COLLECTIBLES = 'Add Collectibles',
+
   // Transactions
   TRANSACTIONS_CONFIRM_STARTED = 'Confirm Started',
   TRANSACTIONS_EDIT_TRANSACTION = 'Edit Transaction',
@@ -1166,6 +1221,7 @@ const legacyMetaMetricsEvents = {
     ACTIONS.WALLET_VIEW,
     DESCRIPTION.WALLET_ADD_COLLECTIBLES,
   ),
+
   // Transactions
   TRANSACTIONS_CONFIRM_STARTED: generateOpt(
     EVENT_NAME.TRANSACTIONS,

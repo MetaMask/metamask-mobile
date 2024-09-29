@@ -14,14 +14,14 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import Title from '../../../Base/Title';
-import { Asset } from '../AssetOverview.types';
 import PriceChart from '../PriceChart/PriceChart';
 import { distributeDataPoints } from '../PriceChart/utils';
 import styleSheet from './Price.styles';
 import { TOKEN_PRICE } from '../../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+import { TokenI } from '../../Tokens/types';
 
 interface PriceProps {
-  asset: Asset;
+  asset: TokenI;
   prices: TokenPrice[];
   priceDiff: number;
   currentPrice: number;
@@ -79,11 +79,12 @@ const Price = ({
   return (
     <>
       <View style={styles.wrapper}>
-        <Text variant={TextVariant.BodySM}>{asset.symbol}</Text>
-        {asset.name && (
+        {asset.name ? (
           <Text variant={TextVariant.HeadingMD} style={styles.name}>
-            {asset.name}
+            {asset.name} ({asset.symbol})
           </Text>
+        ) : (
+          <Text variant={TextVariant.BodySM}>{asset.symbol}</Text>
         )}
         {!isNaN(price) && (
           <Title style={styles.price} testID={TOKEN_PRICE}>
@@ -115,21 +116,23 @@ const Price = ({
             </View>
           ) : distributedPriceData.length > 0 ? (
             <Text style={styles.priceDiff}>
-              <Icon
-                name={
-                  diff > 0
-                    ? 'trending-up'
-                    : diff < 0
-                    ? 'trending-down'
-                    : 'minus'
-                }
-                size={16}
-                style={styles.priceDiffIcon}
-              />{' '}
+              {
+                <Icon
+                  name={
+                    diff > 0
+                      ? 'trending-up'
+                      : diff < 0
+                      ? 'trending-down'
+                      : 'minus'
+                  }
+                  size={16}
+                  style={styles.priceDiffIcon}
+                />
+              }{' '}
               {addCurrencySymbol(diff, currentCurrency, true)} (
               {diff > 0 ? '+' : ''}
               {diff === 0 ? '0' : ((diff / comparePrice) * 100).toFixed(2)}
-              %) <Text>{date}</Text>
+              %) <Text style={styles.priceDiffDateText}>{date}</Text>
             </Text>
           ) : null}
         </Text>

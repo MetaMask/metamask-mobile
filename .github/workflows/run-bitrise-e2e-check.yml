@@ -12,9 +12,25 @@ env:
   WORKFLOW_NAME: 'run-bitrise-e2e-check'
 
 jobs:
-  run-bitrise-e2e-check:
-    runs-on: ubuntu-latest
+  is-fork-pull-request:
+    name: Determine pull request source
     if: ${{ github.event.issue.pull_request || github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    outputs:
+      IS_FORK: ${{ steps.is-fork.outputs.IS_FORK }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Determine whether this PR is from a fork
+        id: is-fork
+        run: echo "IS_FORK=$(gh pr view --json isCrossRepository --jq '.isCrossRepository' "${PR_NUMBER}" )" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.number || github.event.issue.number }}
+
+  run-bitrise-e2e-check:
+    needs: is-fork-pull-request
+    runs-on: ubuntu-latest
+    if: ${{ needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
     permissions:
       pull-requests: write
       contents: write
@@ -27,10 +43,10 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
 
       - name: Install dependencies
         run: yarn --immutable
+        working-directory: '.github/scripts'
 
       - name: Check Bitrise E2E Status
         env:
@@ -40,3 +56,4 @@ jobs:
         # The status check created under this workflow may be bucketed under another check suite in Github actions. This is a result of workflows with the same triggers.
         # For example, the status check may show as `CLA Signature Bot / Bitrise E2E Status`. This is a bug on Github's UI. https://github.com/orgs/community/discussions/24616
         run: yarn run run-bitrise-e2e-check
+        working-directory: '.github/scripts'

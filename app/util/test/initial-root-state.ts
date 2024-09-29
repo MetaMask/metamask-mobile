@@ -5,12 +5,15 @@ import { initialState as initialSecurityState } from '../../reducers/security';
 import { initialState as initialInpageProvider } from '../../core/redux/slices/inpageProvider';
 import { initialState as initialSmartTransactions } from '../../core/redux/slices/smartTransactions';
 import { initialState as transactionMetrics } from '../../core/redux/slices/transactionMetrics';
+import { initialState as originThrottling } from '../../core/redux/slices/originThrottling';
+import { initialState as initialFeatureFlagsState } from '../../core/redux/slices/featureFlags';
 import initialBackgroundState from './initial-background-state.json';
+import { userInitialState } from '../../reducers/user';
 
-// Cast because TypeScript is incorrectly inferring the type of this JSON object
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const backgroundState: EngineState = initialBackgroundState as any;
+// A cast is needed here because we use enums in some controllers, and TypeScript doesn't consider
+// the string value of an enum as satisfying an enum type.
+export const backgroundState: EngineState =
+  initialBackgroundState as unknown as EngineState;
 
 const initialRootState: RootState = {
   legalNotices: undefined,
@@ -19,12 +22,13 @@ const initialRootState: RootState = {
   privacy: undefined,
   bookmarks: undefined,
   browser: undefined,
+  featureFlags: initialFeatureFlagsState,
   modals: undefined,
   settings: undefined,
   alert: undefined,
   transaction: undefined,
   smartTransactions: initialSmartTransactions,
-  user: {},
+  user: userInitialState,
   wizard: undefined,
   onboarding: undefined,
   notification: undefined,
@@ -45,6 +49,8 @@ const initialRootState: RootState = {
   accounts: undefined,
   inpageProvider: initialInpageProvider,
   transactionMetrics,
+  originThrottling,
+  notifications: {},
 };
 
 export default initialRootState;

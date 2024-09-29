@@ -12,6 +12,7 @@ function loadStories() {
   require('../app/component-library/components/Avatars/Avatar/variants/AvatarIcon/AvatarIcon.stories');
   require('../app/component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.stories');
   require('../app/component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken.stories');
+  require('../app/component-library/components/Avatars/AvatarGroup/AvatarGroup.stories');
   require('../app/component-library/components/Badges/Badge/Badge.stories');
   require('../app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories');
   require('../app/component-library/components/Badges/Badge/variants/BadgeNotifications/BadgeNotifications.stories');
@@ -71,12 +72,18 @@ function loadStories() {
   require('../app/components/UI/Name/Name.stories');
   require('../app/components/UI/SimulationDetails/SimulationDetails.stories');
   require('../app/components/UI/StyledButton/StyledButton.stories');
-  require('../app/components/UI/TextEstimated/TextEstimated.stories');
   require('../app/components/UI/WarningAlert/WarningAlert.stories');
+  require('../app/components/Views/AssetDetails/AssetDetailsActions/AssetDetailsActions.stories');
   require('../app/components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.stories');
+  require('../app/components/Views/QRAccountDisplay/QRAccountDisplay.stories');
   require('../app/component-library/components-temp/Accounts/AccountBalance/AccountBalance.stories');
+  require('../app/component-library/components-temp/CellSelectWithMenu/CellSelectWithMenu.stories');
   require('../app/component-library/components-temp/Contracts/ContractBox/ContractBox.stories');
   require('../app/component-library/components-temp/CustomSpendCap/CustomSpendCap.stories');
+  require('../app/component-library/components-temp/KeyValueRow/KeyValueRow.stories');
+  require('../app/component-library/components-temp/ListItemMultiSelectButton/ListItemMultiSelectButton.stories');
+  require('../app/component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentage.stories');
+  require('../app/component-library/components-temp/Price/PercentageChange/PercentageChange.stories');
   require('../app/component-library/components-temp/TagColored/TagColored.stories');
 }
 
@@ -89,6 +96,7 @@ const stories = [
   '../app/component-library/components/Avatars/Avatar/variants/AvatarIcon/AvatarIcon.stories',
   '../app/component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.stories',
   '../app/component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken.stories',
+  '../app/component-library/components/Avatars/AvatarGroup/AvatarGroup.stories',
   '../app/component-library/components/Badges/Badge/Badge.stories',
   '../app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories',
   '../app/component-library/components/Badges/Badge/variants/BadgeNotifications/BadgeNotifications.stories',
@@ -148,12 +156,18 @@ const stories = [
   '../app/components/UI/Name/Name.stories',
   '../app/components/UI/SimulationDetails/SimulationDetails.stories',
   '../app/components/UI/StyledButton/StyledButton.stories',
-  '../app/components/UI/TextEstimated/TextEstimated.stories',
   '../app/components/UI/WarningAlert/WarningAlert.stories',
+  '../app/components/Views/AssetDetails/AssetDetailsActions/AssetDetailsActions.stories',
   '../app/components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.stories',
+  '../app/components/Views/QRAccountDisplay/QRAccountDisplay.stories',
   '../app/component-library/components-temp/Accounts/AccountBalance/AccountBalance.stories',
+  '../app/component-library/components-temp/CellSelectWithMenu/CellSelectWithMenu.stories',
   '../app/component-library/components-temp/Contracts/ContractBox/ContractBox.stories',
   '../app/component-library/components-temp/CustomSpendCap/CustomSpendCap.stories',
+  '../app/component-library/components-temp/KeyValueRow/KeyValueRow.stories',
+  '../app/component-library/components-temp/ListItemMultiSelectButton/ListItemMultiSelectButton.stories',
+  '../app/component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentage.stories',
+  '../app/component-library/components-temp/Price/PercentageChange/PercentageChange.stories',
   '../app/component-library/components-temp/TagColored/TagColored.stories',
 ];
 

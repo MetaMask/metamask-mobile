@@ -20,6 +20,20 @@ jest.mock('react-native', () => {
   return originalModule;
 });
 
+/*
+ * NOTE: react-native-webview requires a jest mock starting on v12.
+ * More info on https://github.com/react-native-webview/react-native-webview/issues/2934
+ */
+jest.mock('@metamask/react-native-webview', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const { View } = require('react-native');
+  const WebView = (props) => <View {...props} />;
+
+  return {
+    WebView,
+  };
+});
+
 jest.mock('../../lib/snaps/preinstalled-snaps');
 
 const mockFs = {
@@ -227,7 +241,7 @@ NativeModules.AesForked = {
 
 NativeModules.RNTar = {
   unTar: jest.fn().mockResolvedValue('/document-dir/archive'),
-}
+};
 
 jest.mock(
   'react-native/Libraries/Components/Touchable/TouchableOpacity',
@@ -250,8 +264,6 @@ jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
   clearInteractionHandle: jest.fn(),
   setDeadline: jest.fn(),
 }));
-
-jest.mock('../../images/static-logos.js', () => ({}));
 
 jest.mock('@react-native-clipboard/clipboard', () => mockClipboard);
 
@@ -299,9 +311,9 @@ jest.mock('redux-persist', () => ({
   createMigrate: jest.fn(),
 }));
 
-jest.mock('react-native-default-preference', () => ({
-  get: jest.fn(),
-  set: jest.fn(),
+jest.mock('../../store/storage-wrapper', () => ({
+  getItem: jest.fn(),
+  setItem: jest.fn(),
 }));
 
 // eslint-disable-next-line import/no-commonjs
@@ -309,9 +321,8 @@ require('react-native-reanimated/lib/module/reanimated2/jestUtils').setUpTests()
 global.__reanimatedWorkletInit = jest.fn();
 global.__DEV__ = false;
 
-jest.mock(
-  '../../core/Engine',
-  () => require('../../core/__mocks__/MockedEngine').default,
+jest.mock('../../core/Engine', () =>
+  require('../../core/__mocks__/MockedEngine'),
 );
 
 afterEach(() => {

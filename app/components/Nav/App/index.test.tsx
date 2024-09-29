@@ -1,15 +1,19 @@
-import { renderScreen } from '../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import {
+  DeepPartial,
+  renderScreen,
+} from '../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import App from './';
 import { MetaMetrics } from '../../../core/Analytics';
 import { waitFor } from '@testing-library/react-native';
+import { RootState } from '../../../reducers';
 
-const initialState = {
+const initialState: DeepPartial<RootState> = {
   user: {
-    loggedIn: true,
+    userLoggedIn: true,
   },
   engine: {
-    ...initialBackgroundState,
+    backgroundState,
   },
 };
 
@@ -43,12 +47,18 @@ describe('App', () => {
       App,
       { name: 'App' },
       { state: initialState },
+      { supressRender: true },
     );
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('configures MetaMetrics instance and identifies user on startup', async () => {
-    renderScreen(App, { name: 'App' }, { state: initialState });
+    renderScreen(
+      App,
+      { name: 'App' },
+      { state: initialState },
+      { supressRender: true },
+    );
     await waitFor(() => {
       expect(mockMetrics.configure).toHaveBeenCalledTimes(1);
       expect(mockMetrics.addTraitsToUser).toHaveBeenNthCalledWith(1, {

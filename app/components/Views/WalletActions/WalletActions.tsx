@@ -15,11 +15,9 @@ import {
   selectTicker,
 } from '../../../selectors/networkController';
 import { swapsLivenessSelector } from '../../../reducers/swaps';
-import { toggleReceiveModal } from '../../../actions/modals';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import isBridgeAllowed from '../../UI/Bridge/utils/isBridgeAllowed';
 import useGoToBridge from '../../../components/UI/Bridge/utils/useGoToBridge';
-import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -29,12 +27,18 @@ import WalletAction from '../../../components/UI/WalletAction';
 import { useStyles } from '../../../component-library/hooks';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import useRampNetwork from '../../UI/Ramp/hooks/useRampNetwork';
+import Routes from '../../../constants/navigation/Routes';
 import { getDecimalChainId } from '../../../util/networks';
 import { WalletActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/WalletActionsModal.selectors';
 
 // Internal dependencies
 import styleSheet from './WalletActions.styles';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { QRTabSwitcherScreens } from '../QRTabSwitcher';
+import {
+  createBuyNavigationDetails,
+  createSellNavigationDetails,
+} from '../../UI/Ramp/routes/utils';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -51,7 +55,12 @@ const WalletActions = () => {
   const { trackEvent } = useMetrics();
 
   const onReceive = () => {
-    sheetRef.current?.onCloseBottomSheet(() => dispatch(toggleReceiveModal()));
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigate(Routes.QR_TAB_SWITCHER, {
+        initialScreen: QRTabSwitcherScreens.Receive,
+      });
+    });
+
     trackEvent(MetaMetricsEvents.RECEIVE_BUTTON_CLICKED, {
       text: 'Receive',
       tokenSymbol: '',
@@ -62,7 +71,7 @@ const WalletActions = () => {
 
   const onBuy = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigate(Routes.RAMP.BUY);
+      navigate(...createBuyNavigationDetails());
       trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy',
         location: 'TabBar',
@@ -73,7 +82,7 @@ const WalletActions = () => {
 
   const onSell = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigate(Routes.RAMP.SELL);
+      navigate(...createSellNavigationDetails());
       trackEvent(MetaMetricsEvents.SELL_BUTTON_CLICKED, {
         text: 'Sell',
         location: 'TabBar',
@@ -100,6 +109,7 @@ const WalletActions = () => {
         screen: 'SwapsAmountView',
         params: {
           sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+          sourcePage: 'MainView',
         },
       });
       trackEvent(MetaMetricsEvents.SWAP_BUTTON_CLICKED, {
@@ -130,7 +140,7 @@ const WalletActions = () => {
           <WalletAction
             actionTitle={strings('asset_overview.sell_button')}
             actionDescription={strings('asset_overview.sell_description')}
-            iconName={IconName.Minus}
+            iconName={IconName.MinusBold}
             iconSize={AvatarSize.Md}
             onPress={onSell}
             iconStyle={styles.icon}

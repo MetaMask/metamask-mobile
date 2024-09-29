@@ -1,6 +1,7 @@
 'use strict';
 
 import EnableAutomaticSecurityChecksView from './pages/EnableAutomaticSecurityChecksView';
+import EnableDeviceNotificationsAlert from './pages/EnableDeviceNotificationsAlert';
 import ImportWalletView from './pages/Onboarding/ImportWalletView';
 import MetaMetricsOptIn from './pages/Onboarding/MetaMetricsOptInView';
 import NetworkEducationModal from './pages/modals/NetworkEducationModal';
@@ -9,10 +10,8 @@ import NetworkView from './pages/Settings/NetworksView';
 import OnboardingView from './pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from './pages/Onboarding/OnboardingCarouselView';
 import OnboardingWizardModal from './pages/modals/OnboardingWizardModal';
-import ExperienceEnhancerModal from './pages/modals/ExperienceEnhancerModal';
 import SettingsView from './pages/Settings/SettingsView';
-import WalletView from './pages/WalletView';
-import WhatsNewModal from './pages/modals/WhatsNewModal';
+import WalletView from './pages/wallet/WalletView';
 import Accounts from '../wdio/helpers/Accounts';
 import SkipAccountSecurityModal from './pages/modals/SkipAccountSecurityModal';
 import ProtectYourWalletModal from './pages/modals/ProtectYourWalletModal';
@@ -35,11 +34,9 @@ const validAccount = Accounts.getValidAccount();
 
 export const acceptTermOfUse = async () => {
   // tap on accept term of use screen
-  await TestHelpers.delay(3500);
   await Assertions.checkIfVisible(TermsOfUseModal.container);
   await TermsOfUseModal.tapScrollEndButton();
   await TermsOfUseModal.tapAgreeCheckBox();
-  await TestHelpers.delay(3500);
   await TermsOfUseModal.tapAcceptButton();
   await Assertions.checkIfNotVisible(TermsOfUseModal.container);
 };
@@ -49,16 +46,6 @@ These onboarding modals are becoming a bit wild. We need less of these so we don
 have to have all these workarounds in the tests
   */
   await TestHelpers.delay(1000);
-
-  try {
-    await Assertions.checkIfVisible(WhatsNewModal.container);
-    await WhatsNewModal.tapCloseButton();
-    await Assertions.checkIfNotVisible(WhatsNewModal.container);
-  } catch {
-    /* eslint-disable no-console */
-
-    console.log('The whats new modal is not visible');
-  }
 
   // Handle Onboarding wizard
   try {
@@ -71,27 +58,6 @@ have to have all these workarounds in the tests
     console.log('The onboarding modal is not visible');
   }
 
-  // TODO: Define the correct order of onboarding modals to be displayed
-  try {
-    await Assertions.checkIfVisible(WhatsNewModal.container);
-    await WhatsNewModal.tapCloseButton();
-    await Assertions.checkIfNotVisible(WhatsNewModal.container);
-  } catch {
-    /* eslint-disable no-console */
-
-    console.log('The whats new modal is not visible');
-  }
-
-  try {
-    // Handle Marketing consent modal
-
-    await Assertions.checkIfVisible(ExperienceEnhancerModal.container);
-    await ExperienceEnhancerModal.tapNoThanks();
-    await Assertions.checkIfNotVisible(ExperienceEnhancerModal.container);
-  } catch {
-    console.log('The marketing consent modal is not visible');
-  }
-
   try {
     await Assertions.checkIfVisible(ToastModal.container);
     await ToastModal.tapToastCloseButton();
@@ -100,6 +66,21 @@ have to have all these workarounds in the tests
     /* eslint-disable no-undef */
 
     console.log('The marketing toast is not visible');
+  }
+};
+
+export const skipNotificationsDeviceSettings = async () => {
+
+  await TestHelpers.delay(1000);
+
+  try {
+    await Assertions.checkIfVisible(EnableDeviceNotificationsAlert.stepOneContainer);
+    await EnableDeviceNotificationsAlert.tapOnNotEnableDeviceNotificationsButton();
+    await Assertions.checkIfNotVisible(EnableDeviceNotificationsAlert.stepOneContainer);
+  } catch {
+    /* eslint-disable no-console */
+
+    console.log('The notification device alert modal is not visible');
   }
 };
 
@@ -118,12 +99,13 @@ export const importWalletWithRecoveryPhrase = async () => {
   await ImportWalletView.enterPassword(validAccount.password);
   await ImportWalletView.reEnterPassword(validAccount.password);
 
-  // Should dismiss Automatic Security checks screen
   await TestHelpers.delay(3500);
   await OnboardingSuccessView.tapDone();
+  //'Should dismiss Enable device Notifications checks alert'
+  await this.skipNotificationsDeviceSettings();
+  // Should dismiss Automatic Security checks screen
   await EnableAutomaticSecurityChecksView.isVisible();
   await EnableAutomaticSecurityChecksView.tapNoThanks();
-
   // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.
   await this.closeOnboardingModals();
@@ -153,11 +135,13 @@ export const CreateNewWallet = async () => {
   await SkipAccountSecurityModal.tapIUnderstandCheckBox();
   await SkipAccountSecurityModal.tapSkipButton();
   await device.enableSynchronization();
-  await WalletView.isVisible();
+  await Assertions.checkIfVisible(WalletView.container);
 
-  //'Should dismiss Automatic Security checks screen'
   await TestHelpers.delay(3500);
   await OnboardingSuccessView.tapDone();
+  //'Should dismiss Enable device Notifications checks alert'
+  await this.skipNotificationsDeviceSettings();
+  //'Should dismiss Automatic Security checks screen'
   await EnableAutomaticSecurityChecksView.isVisible();
   await EnableAutomaticSecurityChecksView.tapNoThanks();
 
@@ -208,16 +192,24 @@ export const switchToSepoliaNetwork = async () => {
   await NetworkListModal.changeNetworkTo(
     CustomNetworks.Sepolia.providerConfig.nickname,
   );
-  await WalletView.isNetworkNameVisible(
+  await Assertions.checkIfVisible(NetworkEducationModal.container);
+  await Assertions.checkIfElementToHaveText(
+    NetworkEducationModal.networkName,
     CustomNetworks.Sepolia.providerConfig.nickname,
   );
   await NetworkEducationModal.tapGotItButton();
+  await Assertions.checkIfNotVisible(NetworkEducationModal.container);
+  try {
+    await Assertions.checkIfVisible(ToastModal.container);
+    await Assertions.checkIfNotVisible(ToastModal.container);
+  } catch {
+    // eslint-disable-next-line no-console
+    console.log('Toast is not visible');
+  }
 };
 
 export const loginToApp = async () => {
   const PASSWORD = '123123123';
   await LoginView.isVisible();
   await LoginView.enterPassword(PASSWORD);
-
-  await this.closeOnboardingModals();
 };

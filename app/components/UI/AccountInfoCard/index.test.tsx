@@ -1,11 +1,14 @@
 import React from 'react';
 import AccountInfoCard from './';
-import renderWithProvider from '../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_1,
 } from '../../../util/test/accountsControllerTestUtils';
+import { RootState } from '../../../reducers';
 
 jest.mock('../../../core/Engine', () => ({
   resetState: jest.fn(),
@@ -21,13 +24,13 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-const mockInitialState = {
+const mockInitialState: DeepPartial<RootState> = {
   settings: {
     useBlockieIcon: false,
   },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountTrackerController: {
         accounts: {
           [MOCK_ADDRESS_1]: {
@@ -45,11 +48,19 @@ const mockInitialState = {
         },
       },
       NetworkController: {
-        providerConfig: {
-          chainId: '0xaa36a7',
-          type: 'sepolia',
-          nickname: 'Sepolia',
-          ticker: 'ETH',
+        selectedNetworkClientId: 'sepolia',
+        networksMetadata: {},
+        networkConfigurations: {
+          sepolia: {
+            id: 'sepolia',
+            rpcUrl: 'http://localhost/v3/',
+            chainId: '0xaa36a7',
+            ticker: 'ETH',
+            nickname: 'sepolia',
+            rpcPrefs: {
+              blockExplorerUrl: 'https://etherscan.com',
+            },
+          },
         },
       },
       TokenBalancesController: {
@@ -67,6 +78,20 @@ jest.mock('react-redux', () => ({
   useSelector: jest
     .fn()
     .mockImplementation((callback) => callback(mockInitialState)),
+}));
+
+jest.mock('is-url', () => jest.fn());
+jest.mock('../../../core/SDKConnect/SDKConnect', () => ({
+  getInstance: () => ({
+    getConnections: jest.fn().mockReturnValue({
+      'https://metamask.io': {
+        originatorInfo: {
+          url: 'https://metamask.io',
+          icon: 'https://metamask.io/icon.png',
+        },
+      },
+    }),
+  }),
 }));
 
 describe('AccountInfoCard', () => {
@@ -94,6 +119,7 @@ describe('AccountInfoCard', () => {
       <AccountInfoCard
         fromAddress="0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
         operation="signing"
+        origin="https://metamask.io"
       />,
       { state: mockInitialState },
     );

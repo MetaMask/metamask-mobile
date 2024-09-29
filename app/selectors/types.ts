@@ -11,24 +11,24 @@ import {
 } from '@metamask/assets-controllers';
 import SwapsController from '@metamask/swaps-controller';
 import { NetworkState } from '@metamask/network-controller';
-import { AddressBookState } from '@metamask/address-book-controller';
+import { AddressBookControllerState } from '@metamask/address-book-controller';
 import { BaseState } from '@metamask/base-controller';
 import { KeyringControllerMemState } from '@metamask/keyring-controller';
 import { PreferencesState } from '@metamask/preferences-controller';
 import { PhishingControllerState } from '@metamask/phishing-controller';
-import { TransactionState } from '@metamask/transaction-controller';
+import { TransactionControllerState } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import { PPOMState } from '@metamask/ppom-validator';
 import { ApprovalControllerState } from '@metamask/approval-controller';
 import { AccountsControllerState } from '@metamask/accounts-controller';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapController } from '@metamask/snaps-controllers';
 ///: END:ONLY_INCLUDE_IF
 export interface EngineState {
   engine: {
     backgroundState: {
       AccountTrackerController: AccountTrackerState;
-      AddressBookController: AddressBookState;
+      AddressBookController: AddressBookControllerState;
       AssetsContractController: BaseState;
       NftController: NftState;
       TokenListController: TokenListState;
@@ -40,9 +40,9 @@ export interface EngineState {
       PPOMController: PPOMState;
       TokenBalancesController: TokenBalancesControllerState;
       TokenRatesController: TokenRatesState;
-      TransactionController: TransactionState;
+      TransactionController: TransactionControllerState;
       SwapsController: SwapsController;
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController: SnapController;
       ///: END:ONLY_INCLUDE_IF
       GasFeeController: GasFeeController;

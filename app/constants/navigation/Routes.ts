@@ -29,11 +29,12 @@ const Routes = {
     SELECT_DEVICE: 'SelectHardwareWallet',
     CONNECT_QR_DEVICE: 'ConnectQRHardwareFlow',
     CONNECT_LEDGER: 'ConnectLedgerFlow',
-    LEDGER_ACCOUNT: 'LedgerAccountInfo',
     LEDGER_CONNECT: 'LedgerConnect',
   },
   LEDGER_MESSAGE_SIGN_MODAL: 'LedgerMessageSignModal',
   LEDGER_TRANSACTION_MODAL: 'LedgerTransactionModal',
+  QR_TAB_SWITCHER: 'QRTabSwitcher',
+  OPTIONS_SHEET: 'OptionsSheet',
   QR_SCANNER: 'QRScanner',
   TRANSACTIONS_VIEW: 'TransactionsView',
   MODAL: {
@@ -49,6 +50,7 @@ const Routes = {
     DETECTED_TOKENS: 'DetectedTokens',
     SRP_REVEAL_QUIZ: 'SRPRevealQuiz',
     WALLET_ACTIONS: 'WalletActions',
+    NFT_AUTO_DETECTION_MODAL: 'NFTAutoDetectionModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -73,18 +75,20 @@ const Routes = {
     STEP_1_B: 'AccountBackupStep1B',
   },
   SETTINGS: {
-    CONTACT_FORM: 'ContactForm',
-    REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
-    CHANGE_PASSWORD: 'ResetPassword',
-    EXPERIMENTAL_SETTINGS: 'ExperimentalSettings',
-    SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
     ADVANCED_SETTINGS: 'AdvancedSettings',
+    CHANGE_PASSWORD: 'ResetPassword',
+    CONTACT_FORM: 'ContactForm',
+    DEVELOPER_OPTIONS: 'DeveloperOptions',
+    EXPERIMENTAL_SETTINGS: 'ExperimentalSettings',
     NOTIFICATIONS: 'NotificationsSettings',
+    REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
+    SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     BASIC_FUNCTIONALITY: 'BasicFunctionality',
+    PROFILE_SYNCING: 'ProfileSyncing',
     SDK_LOADING: 'SDKLoading',
     SDK_FEEDBACK: 'SDKFeedback',
     DATA_COLLECTION: 'DataCollection',
@@ -93,13 +97,16 @@ const Routes = {
     SDK_DISCONNECT: 'SDKDisconnect',
     ACCOUNT_CONNECT: 'AccountConnect',
     ACCOUNT_PERMISSIONS: 'AccountPermissions',
+    REVOKE_ALL_ACCOUNT_PERMISSIONS: 'RevokeAllAccountPermissions',
     NETWORK_SELECTOR: 'NetworkSelector',
     RETURN_TO_DAPP_MODAL: 'ReturnToDappModal',
     ACCOUNT_ACTIONS: 'AccountActions',
-    ETH_SIGN_FRICTION: 'SettingsAdvancedEthSignFriction',
     FIAT_ON_TESTNETS_FRICTION: 'SettingsAdvancedFiatOnTestnetsFriction',
     SHOW_IPFS: 'ShowIpfs',
     SHOW_NFT_DISPLAY_MEDIA: 'ShowNftDisplayMedia',
+    SHOW_TOKEN_ID: 'ShowTokenId',
+    ORIGIN_SPAM_MODAL: 'OriginSpamModal',
+    TOOLTIP_MODAL: 'tooltipModal',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',
@@ -121,6 +128,7 @@ const Routes = {
     WALLET_RESET_NEEDED: 'WalletResetNeeded',
   },
   ADD_NETWORK: 'AddNetwork',
+  EDIT_NETWORK: 'EditNetwork',
   SWAPS: 'Swaps',
   LOCK_SCREEN: 'LockScreen',
   NOTIFICATIONS: {
@@ -129,12 +137,21 @@ const Routes = {
     OPT_IN_STACK: 'OptInStack',
     DETAILS: 'NotificationsDetails',
   },
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  STAKING: {
+    STAKE: 'Stake',
+    UNSTAKE: 'Unstake',
+    CLAIM: 'Claim',
+    MODALS: {
+      LEARN_MORE: 'LearnMore',
+    },
+  },
+  ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {
     SNAPS_SETTINGS_LIST: 'SnapsSettingsList',
     SNAP_SETTINGS: 'SnapSettings',
   },
   ///: END:ONLY_INCLUDE_IF
+  FOX_LOADER: 'FoxLoader',
 };
 
 export default Routes;

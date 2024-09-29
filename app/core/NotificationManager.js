@@ -1,9 +1,9 @@
 'use strict';
 
-import notifee from '@notifee/react-native';
 import Engine from './Engine';
 import { hexToBN, renderFromWei } from '../util/number';
 import Device from '../util/device';
+import notifee from '@notifee/react-native';
 import { STORAGE_IDS } from '../util/notifications/settings/storage/constants';
 import { strings } from '../../locales/i18n';
 import { AppState } from 'react-native';
@@ -11,15 +11,16 @@ import { AppState } from 'react-native';
 import {
   NotificationTransactionTypes,
   isNotificationsFeatureEnabled,
-  requestPushNotificationsPermission,
+
 } from '../util/notifications';
+
 import { safeToChecksumAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
 import { selectChainId } from '../selectors/networkController';
 import { store } from '../store';
-const constructTitleAndMessage = (data) => {
+export const constructTitleAndMessage = (notification) => {
   let title, message;
-  switch (data.type) {
+  switch (notification.type) {
     case NotificationTransactionTypes.pending:
       title = strings('notifications.pending_title');
       message = strings('notifications.pending_message');
@@ -34,13 +35,13 @@ const constructTitleAndMessage = (data) => {
       break;
     case NotificationTransactionTypes.success:
       title = strings('notifications.success_title', {
-        nonce: data?.transaction?.nonce || '',
+        nonce: notification?.transaction?.nonce || '',
       });
       message = strings('notifications.success_message');
       break;
     case NotificationTransactionTypes.speedup:
       title = strings('notifications.speedup_title', {
-        nonce: data?.transaction?.nonce || '',
+        nonce: notification?.transaction?.nonce || '',
       });
       message = strings('notifications.speedup_message');
       break;
@@ -62,16 +63,20 @@ const constructTitleAndMessage = (data) => {
       break;
     case NotificationTransactionTypes.received:
       title = strings('notifications.received_title', {
-        amount: data.transaction.amount,
-        assetType: data.transaction.assetType,
+        amount: notification.transaction.amount,
+        assetType: notification.transaction.assetType,
       });
       message = strings('notifications.received_message');
       break;
     case NotificationTransactionTypes.received_payment:
       title = strings('notifications.received_payment_title');
       message = strings('notifications.received_payment_message', {
-        amount: data.transaction.amount,
+        amount: notification.transaction.amount,
       });
+      break;
+    default:
+      title = notification.data.title || strings('notifications.default_message_title');
+      message = notification.data.shortDescription || strings('notifications.default_message_description');
       break;
   }
   return { title, message };
@@ -102,6 +107,12 @@ class NotificationManager {
    */
   _transactionsWatchTable = {};
 
+  _transactionFailedListener;
+
+  _transactionConfirmedListener;
+
+  _transactionSpeedupListener;
+
   _handleAppStateChange = (appState) => {
     this._backgroundMode = appState === 'background';
   };
@@ -111,10 +122,21 @@ class NotificationManager {
     this.goTo('TransactionsHome');
   };
 
-  _removeListeners = (transactionId) => {
-    const { TransactionController } = Engine.context;
-    TransactionController.hub.removeAllListeners(`${transactionId}:confirmed`);
-    TransactionController.hub.removeAllListeners(`${transactionId}:finished`);
+  _removeListeners = () => {
+    Engine.controllerMessenger.tryUnsubscribe(
+      'TransactionController:transactionConfirmed',
+      this._transactionConfirmedListener,
+    );
+
+    Engine.controllerMessenger.tryUnsubscribe(
+      'TransactionController:transactionFailed',
+      this._transactionFailedListener,
+    );
+
+    Engine.controllerMessenger.tryUnsubscribe(
+      'TransactionController:speedupTransactionAdded',
+      this._transactionSpeedupListener,
+    );
   };
 
   // TODO: Refactor this method to use notifee's channels in combination with MM auth
@@ -130,7 +152,7 @@ class NotificationManager {
         title,
         body: message,
         android: {
-          lightUpScreen: false,
+          lightUpScreen: true,
           channelId,
           smallIcon: 'ic_notification_small',
           largeIcon: 'ic_notification',
@@ -141,11 +163,11 @@ class NotificationManager {
         },
         ios: {
           foregroundPresentationOptions: {
-            alert: false,
-            sound: false,
-            badge: false,
-            banner: false,
-            list: false,
+            alert: true,
+            sound: true,
+            badge: true,
+            banner: true,
+            list: true,
           },
         },
       };
@@ -157,7 +179,6 @@ class NotificationManager {
       } else {
         pushData.userInfo = extraData; // check if is still needed
       }
-
       isNotificationsFeatureEnabled() && notifee.displayNotification(pushData);
     } else {
       this._showTransactionNotification({
@@ -168,7 +189,7 @@ class NotificationManager {
     }
   }
 
-  _finishedCallback = (transactionMeta) => {
+  _failedCallback = (transactionMeta) => {
     // If it fails we hide the pending tx notification
     this._removeNotificationById(transactionMeta.id);
     const transaction =
@@ -233,11 +254,6 @@ class NotificationManager {
             break;
         }
         Promise.all(pollPromises);
-
-        Device.isIos() &&
-          setTimeout(() => {
-            requestPushNotificationsPermission();
-          }, 5000);
 
         // Prompt review
         ReviewManager.promptReview();
@@ -353,24 +369,32 @@ class NotificationManager {
       ? this._transactionsWatchTable[nonce].push(transactionMeta.id)
       : (this._transactionsWatchTable[nonce] = [transactionMeta.id]);
 
-    TransactionController.hub.once(
-      `${transaction.id}:confirmed`,
-      (transactionMeta) => {
-        this._confirmedCallback(transactionMeta, transaction);
-      },
-    );
-    TransactionController.hub.once(
-      `${transaction.id}:finished`,
-      (transactionMeta) => {
-        this._finishedCallback(transactionMeta);
-      },
-    );
-    TransactionController.hub.once(
-      `${transaction.id}:speedup`,
-      (transactionMeta) => {
-        this._speedupCallback(transactionMeta);
-      },
-    );
+    this._transactionConfirmedListener =
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionConfirmed',
+        (transactionMeta) => {
+          this._confirmedCallback(transactionMeta, transaction);
+        },
+        (transactionMeta) => transactionMeta.id === transaction.id,
+      );
+
+    this._transactionFailedListener =
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionFailed',
+        (transactionMeta) => {
+          this._failedCallback(transactionMeta);
+        },
+        (transactionMeta) => transactionMeta.id === transaction.id,
+      );
+
+    this._transactionSpeedupListener =
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:speedupTransactionAdded',
+        (transactionMeta) => {
+          this._speedupCallback(transactionMeta);
+        },
+        (transactionMeta) => transactionMeta.id === transaction.id,
+      );
   }
 
   /**
@@ -380,13 +404,19 @@ class NotificationManager {
     const {
       AccountTrackerController,
       TransactionController,
-      PreferencesController,
+      AccountsController,
     } = Engine.context;
-    const { selectedAddress } = PreferencesController.state;
+    const selectedInternalAccount = AccountsController.getSelectedAccount();
+    const selectedInternalAccountChecksummedAddress = safeToChecksumAddress(
+      selectedInternalAccount.address,
+    );
+
     const chainId = selectChainId(store.getState());
 
     /// Find the incoming TX
-    const { transactions } = TransactionController.state;
+    const transactions = TransactionController.getTransactions({
+      filterToCurrentNetwork: false,
+    });
 
     // If a TX has been confirmed more than 10 min ago, it's considered old
     const oldestTimeAllowed = Date.now() - 1000 * 60 * 10;
@@ -396,8 +426,10 @@ class NotificationManager {
         .reverse()
         .filter(
           (tx) =>
-            safeToChecksumAddress(tx.txParams?.to) === selectedAddress &&
-            safeToChecksumAddress(tx.txParams?.from) !== selectedAddress &&
+            safeToChecksumAddress(tx.txParams?.to) ===
+            selectedInternalAccountChecksummedAddress &&
+            safeToChecksumAddress(tx.txParams?.from) !==
+            selectedInternalAccountChecksummedAddress &&
             tx.chainId === chainId &&
             tx.status === 'confirmed' &&
             lastBlock <= parseInt(tx.blockNumber, 10) &&
@@ -452,9 +484,6 @@ export default {
   },
   gotIncomingTransaction(lastBlock) {
     return instance?.gotIncomingTransaction(lastBlock);
-  },
-  requestPushNotificationsPermission() {
-    return instance?.requestPushNotificationsPermission();
   },
   showSimpleNotification(data) {
     return instance?.showSimpleNotification(data);

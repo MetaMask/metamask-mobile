@@ -11,16 +11,7 @@ export enum BadgeVariant {
   NotificationsKinds = 'notifications-kinds',
 }
 
-/**
- * Badge Account component props.
- */
-export type BadgeProps = (
-  | BadgeNetworkProps
-  | BadgeStatusProps
-  | BadgeNotificationsProps
-) & {
-  /**
-   * Optional prop to control the variant of Badge.
-   */
-  variant: BadgeVariant;
-};
+export type BadgeProps =
+  | (BadgeNetworkProps & { variant: BadgeVariant.Network })
+  | (BadgeStatusProps & { variant: BadgeVariant.Status })
+  | (BadgeNotificationsProps & { variant: BadgeVariant.NotificationsKinds });

@@ -8,7 +8,6 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
       "flex": 1,
     }
   }
-  testID="add-custom-token-screen"
 >
   <RCTScrollView>
     <View>
@@ -226,15 +225,14 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
           "width": "90%",
         }
       }
-      testID="next-button-custom-import"
-      variant="Primary"
+      testID="token-import-next-button"
     >
       <Text
         accessibilityRole="text"
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,

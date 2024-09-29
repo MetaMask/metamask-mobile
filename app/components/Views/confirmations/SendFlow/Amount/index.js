@@ -102,6 +102,7 @@ import { isNetworkRampNativeTokenSupported } from '../../../../../components/UI/
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
+import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -886,6 +887,7 @@ class Amount extends PureComponent {
       contractExchangeRates,
     } = this.props;
     const { internalPrimaryCurrencyIsCrypto, estimatedTotalGas } = this.state;
+    const tokenBalance = contractBalances[selectedAsset.address] || '0x0';
     let input;
     if (selectedAsset.isETH) {
       const balanceBN = hexToBN(accounts[selectedAddress].balance);
@@ -906,15 +908,12 @@ class Amount extends PureComponent {
         : undefined;
       if (internalPrimaryCurrencyIsCrypto || !exchangeRate) {
         input = fromTokenMinimalUnitString(
-          contractBalances[selectedAsset.address]?.toString(10),
+          tokenBalance,
           selectedAsset.decimals,
         );
       } else {
         input = `${balanceToFiatNumber(
-          fromTokenMinimalUnitString(
-            contractBalances[selectedAsset.address]?.toString(10),
-            selectedAsset.decimals,
-          ),
+          fromTokenMinimalUnitString(tokenBalance, selectedAsset.decimals),
           conversionRate,
           exchangeRate,
         )}`;
@@ -1254,6 +1253,7 @@ class Amount extends PureComponent {
         params: {
           sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
           destinationToken: selectedAsset.address,
+          sourcePage: 'SendFlow',
         },
       });
     };
@@ -1277,7 +1277,7 @@ class Amount extends PureComponent {
           location: 'insufficient_funds_warning',
           text: 'buy_more',
         });
-        navigation.navigate(Routes.RAMP.BUY);
+        navigation.navigate(...createBuyNavigationDetails());
       }
     };
 

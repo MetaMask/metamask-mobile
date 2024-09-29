@@ -14,15 +14,18 @@ import { Task } from 'redux-saga';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import LockManagerService from '../../core/LockManagerService';
-import AppConstants from '../../../app/core/AppConstants';
-import { XMLHttpRequest as _XMLHttpRequest } from 'xhr2';
+import {
+  overrideXMLHttpRequest,
+  restoreXMLHttpRequest,
+} from './xmlHttpRequestOverride';
 
-if (typeof global.XMLHttpRequest === 'undefined') {
-  global.XMLHttpRequest = _XMLHttpRequest;
-}
+import {
+  getFeatureFlagsSuccess,
+  getFeatureFlagsError,
+  FeatureFlagsState,
+} from '../../../app/core/redux/slices/featureFlags';
 
-const originalSend = XMLHttpRequest.prototype.send;
-const originalOpen = XMLHttpRequest.prototype.open;
+import launchDarklyURL from '../../../app/util/featureFlags';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -115,44 +118,6 @@ export function* biometricsStateMachine(originalBioStateMachineId: string) {
 }
 
 export function* basicFunctionalityToggle() {
-  const overrideXMLHttpRequest = () => {
-    // Store the URL of the current request
-    let currentUrl = '';
-    const blockList = AppConstants.BASIC_FUNCTIONALITY_BLOCK_LIST;
-
-    const shouldBlockRequest = (url: string) =>
-      blockList.some((blockedUrl) => url.includes(blockedUrl));
-
-    const handleError = () =>
-      Promise.reject(new Error(`Disallowed URL: ${currentUrl}`)).catch(
-        (error) => {
-          console.error(error);
-        },
-      );
-
-    // Override the 'open' method to capture the request URL
-    XMLHttpRequest.prototype.open = function (method, url) {
-      currentUrl = url.toString(); // Convert URL object to string
-      return originalOpen.apply(this, [method, currentUrl]);
-    };
-
-    // Override the 'send' method to implement the blocking logic
-    XMLHttpRequest.prototype.send = function (body) {
-      // Check if the current request should be blocked
-      if (shouldBlockRequest(currentUrl)) {
-        handleError(); // Trigger an error callback or handle the blocked request as needed
-        return; // Do not proceed with the request
-      }
-      // For non-blocked requests, proceed as normal
-      return originalSend.call(this, body);
-    };
-  };
-
-  function restoreXMLHttpRequest() {
-    XMLHttpRequest.prototype.open = originalOpen;
-    XMLHttpRequest.prototype.send = originalSend;
-  }
-
   while (true) {
     const { basicFunctionalityEnabled } = yield take(
       'TOGGLE_BASIC_FUNCTIONALITY',
@@ -161,8 +126,42 @@ export function* basicFunctionalityToggle() {
     if (basicFunctionalityEnabled) {
       restoreXMLHttpRequest();
     } else {
+      // apply global blocklist
       overrideXMLHttpRequest();
     }
+  }
+}
+
+function arrayToObject(data: []): FeatureFlagsState['featureFlags'] {
+  return data.reduce((obj, current) => {
+    Object.assign(obj, current);
+    return obj;
+  }, {} as FeatureFlagsState['featureFlags']);
+}
+
+function* fetchFeatureFlags(): Generator {
+  try {
+    const response: Response = (yield fetch(
+      launchDarklyURL(
+        process.env.METAMASK_BUILD_TYPE,
+        process.env.METAMASK_ENVIRONMENT,
+      ),
+    )) as Response;
+    const jsonData = (yield response.json()) as { message: string } | [];
+
+    if (!response.ok) {
+      if (jsonData && typeof jsonData === 'object' && 'message' in jsonData) {
+        yield put(getFeatureFlagsError(jsonData.message));
+      } else {
+        yield put(getFeatureFlagsError('Unknown error'));
+      }
+      return;
+    }
+
+    yield put(getFeatureFlagsSuccess(arrayToObject(jsonData as [])));
+  } catch (error) {
+    Logger.log(error);
+    yield put(getFeatureFlagsError(error as string));
   }
 }
 
@@ -170,4 +169,5 @@ export function* basicFunctionalityToggle() {
 export function* rootSaga() {
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
+  yield fork(fetchFeatureFlags);
 }

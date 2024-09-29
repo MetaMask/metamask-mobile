@@ -11,9 +11,6 @@ import android.util.Log;
 import io.branch.rnbranch.*;
 import android.content.Intent;
 import android.os.Bundle;
-
-import org.devio.rn.splashscreen.SplashScreen;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -37,7 +34,6 @@ public class MainActivity extends ReactActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		SplashScreen.show(this);
 		super.onCreate(null);
 	}
 
@@ -66,7 +62,7 @@ public class MainActivity extends ReactActivity {
    */
 	@Override
 	protected ReactActivityDelegate createReactActivityDelegate() {
-		return new ReactActivityDelegate(this, getMainComponentName()) {
+		return new DefaultReactActivityDelegate(this, getMainComponentName(), DefaultNewArchitectureEntryPoint.getFabricEnabled()) {
 		@Override
 		protected Bundle getLaunchOptions() {
 			Bundle initialProperties = new Bundle();

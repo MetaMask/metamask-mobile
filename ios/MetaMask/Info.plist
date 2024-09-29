@@ -20,13 +20,6 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
-	<key>branch_universal_link_domains</key>
-	<array>
-		<string>metamask.app.link</string>
-		<string>metamask-alternate.app.link</string>
-		<string>metamask.test.app.link</string>
-		<string>metamask-alternate.test.app.link</string>
-	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -119,6 +112,13 @@
 		<string>EuclidCircularB-RegularItalic.otf</string>
 		<string>EuclidCircularB-Semibold.otf</string>
 		<string>EuclidCircularB-SemiboldItalic.otf</string>
+		<string>CentraNo1-Bold.otf</string>
+		<string>CentraNo1-BoldItalic.otf</string>
+		<string>CentraNo1-Book.otf</string>
+		<string>CentraNo1-BookItalic.otf</string>
+		<string>CentraNo1-Medium.otf</string>
+		<string>CentraNo1-MediumItalic.otf</string>
+		<string>MMSans-Regular.otf</string>
 	</array>
 	<key>UIBackgroundModes</key>
 	<array>
@@ -126,7 +126,7 @@
 		<string>remote-notification</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
+	<string>LaunchScreen.xib</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>
@@ -144,14 +144,16 @@
 		<key>test</key>
 		<string>$(MM_BRANCH_KEY_TEST)</string>
 	</dict>
-	<key>mixpanel_token</key>
-	<string>$(MM_MIXPANEL_TOKEN)</string>
+	<key>branch_universal_link_domains</key>
+	<array>
+		<string>metamask.app.link</string>
+		<string>metamask-alternate.app.link</string>
+		<string>metamask.test.app.link</string>
+		<string>metamask-alternate.test.app.link</string>
+	</array>
 	<key>fox_code</key>
 	<string>$(MM_FOX_CODE)</string>
-	<key>LSApplicationQueriesSchemes</key>
-	<array>
-		<string>twitter</string>
-		<string>itms-apps</string>
-	</array>
+	<key>mixpanel_token</key>
+	<string>$(MM_MIXPANEL_TOKEN)</string>
 </dict>
 </plist>
