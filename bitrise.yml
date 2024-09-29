@@ -737,8 +737,8 @@ workflows:
   ios_api_specs:
     before_run:
       - setup
-      - prep_environment
       - install_applesimutils
+      - prep_environment
     after_run:
       - notify_failure
     steps:
@@ -803,8 +803,8 @@ workflows:
           title: Deploy test report files
   ios_e2e_build:
     before_run:
-      - code_setup
       - install_applesimutils
+      - code_setup
       - set_commit_hash
     after_run:
       - notify_failure
@@ -890,8 +890,8 @@ workflows:
   ios_e2e_test:
     before_run:
       - setup
-      - prep_environment
       - install_applesimutils
+      - prep_environment
     after_run:
       - notify_failure
     steps:
