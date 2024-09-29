@@ -4,8 +4,12 @@ import { Colors } from '../../../../../../util/theme/models';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
-    fill: {
+    confirmButton: {
       flex: 1,
+    },
+    rejectButton: {
+      flex: 1,
+      backgroundColor: colors.background.alternative,
     },
     divider: {
       height: 1,

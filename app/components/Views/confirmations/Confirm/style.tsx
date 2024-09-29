@@ -6,7 +6,7 @@ import { Colors } from '../../../../util/theme/models';
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     container: {
-      backgroundColor: colors.background.default,
+      backgroundColor: colors.background.alternative,
       paddingTop: 24,
       minHeight: '90%',
       borderTopLeftRadius: 20,
