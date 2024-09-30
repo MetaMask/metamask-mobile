@@ -3,15 +3,15 @@ import { SmokeCore } from '../../tags';
 import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
-import AddCustomTokenView from '../../pages/AddCustomTokenView';
 import AmountView from '../../pages/Send/AmountView';
 import SendView from '../../pages/Send/SendView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import TokenOverview from '../../pages/TokenOverview';
+import ConfirmAddAssetView from '../../pages/wallet/ImportTokenFlow/ConfirmAddAsset';
+import ImportTokensView from '../../pages/wallet/ImportTokenFlow/ImportTokensView';
 import Assertions from '../../utils/Assertions';
-import ConfirmAddAssetView from '../../pages/ConfirmAddAsset';
 import { CustomNetworks } from '../../resources/networks.e2e';
 
 const TOKEN_ADDRESS = '0x779877A7B0D9E8603169DdbD7836e478b4624789';
@@ -45,16 +45,13 @@ describe(SmokeCore('Send ERC Token'), () => {
 
   it('should Import custom token', async () => {
     await WalletView.tapImportTokensButton();
-    await AddCustomTokenView.switchToCustomTab();
-    await AddCustomTokenView.typeTokenAddress(TOKEN_ADDRESS);
-    await TestHelpers.delay(1000);
-    await AddCustomTokenView.tapTokenSymbolInputBox();
-    await TestHelpers.delay(1000);
-    await AddCustomTokenView.tapTokenSymbolText();
-    await AddCustomTokenView.scrollDownOnImportCustomTokens();
-    await AddCustomTokenView.tapNextButton();
-    await TestHelpers.delay(500);
-    await ConfirmAddAssetView.isVisible();
+    await ImportTokensView.switchToCustomTab();
+    await ImportTokensView.typeTokenAddress(TOKEN_ADDRESS);
+    await ImportTokensView.tapSymbolInput();
+    await ImportTokensView.tapTokenSymbolText();
+    await ImportTokensView.scrollDownOnImportCustomTokens();
+    await ImportTokensView.tapOnNextButton();
+    await Assertions.checkIfVisible(ConfirmAddAssetView.container);
     await ConfirmAddAssetView.tapOnConfirmButton();
     await Assertions.checkIfVisible(WalletView.container);
   });

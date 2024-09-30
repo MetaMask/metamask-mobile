@@ -1,16 +1,23 @@
 /* eslint-disable no-console */
 import performance, { PerformanceObserver } from 'react-native-performance';
+import StorageWrapper from '../../store/storage-wrapper';
+import { isTest } from '../../util/test/utils';
 
 /**
  * Service for measuring app performance
  */
+
+async function setPerformanceValues(appStartTime: number) {
+  await StorageWrapper.setItem('appStartTime', appStartTime.toString());
+}
+
 class Performance {
   /**
    * Measures app start and JS bundle loading times
    */
   static setupPerformanceObservers = () => {
     // Don't run in release mode
-    if (!__DEV__) return;
+    if (!isTest) return;
 
     new PerformanceObserver((list) => {
       // Get measurement entries
@@ -51,6 +58,9 @@ class Performance {
         );
         console.info(`-------------------------------------------------------`);
         console.info(`-------------------------------------------------------`);
+
+        setPerformanceValues(appStartTime);
+
       }
     }).observe({ type: 'react-native-mark', buffered: true });
   };

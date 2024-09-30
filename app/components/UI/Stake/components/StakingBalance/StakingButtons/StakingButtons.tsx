@@ -3,13 +3,15 @@ import Button, {
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../../locales/i18n';
-import { View } from 'react-native';
+import { View, ViewProps } from 'react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './StakingButtons.styles';
 import useTooltipModal from '../../../../../hooks/useTooltipModal';
 import { useNavigation } from '@react-navigation/native';
 
-const StakingButtons = () => {
+interface StakingButtonsProps extends Pick<ViewProps, 'style'> {}
+
+const StakingButtons = ({ style }: StakingButtonsProps) => {
   const [hasStakedPosition] = useState(true);
   const [hasEthToUnstake] = useState(true);
 
@@ -26,7 +28,7 @@ const StakingButtons = () => {
   const onStakePress = () => navigate('Stake');
 
   return (
-    <View style={styles.balanceButtonsContainer}>
+    <View style={[styles.balanceButtonsContainer, style]}>
       {hasEthToUnstake && (
         <Button
           style={styles.balanceActionButton}

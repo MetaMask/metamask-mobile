@@ -28,7 +28,6 @@ import PickerNetwork from '../../../component-library/components/Pickers/PickerN
 import BrowserUrlBar from '../BrowserUrlBar';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { NAV_ANDROID_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
-import { ASSET_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import { REQUEST_SEARCH_RESULTS_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from '../../../../wdio/screen-objects/testIDs/Components/SimpleWebView.testIds';
 import Routes from '../../../constants/navigation/Routes';
@@ -53,6 +52,7 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { AddContactViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
+import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event, params);
@@ -1119,7 +1119,7 @@ export function getImportTokenNavbarOptions(
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
         style={styles.backButton}
-        {...generateTestId(Platform, ASSET_BACK_BUTTON)}
+        testID={ImportTokenViewSelectorsIDs.BACK_BUTTON}
       >
         <ButtonIcon
           iconName={IconName.Close}
@@ -1178,7 +1178,7 @@ export function getNftDetailsNavbarOptions(
       <TouchableOpacity
         onPress={() => navigation.pop()}
         style={styles.backButton}
-        {...generateTestId(Platform, ASSET_BACK_BUTTON)}
+        testID={ImportTokenViewSelectorsIDs.BACK_BUTTON}
       >
         <Icon
           name={IconName.ArrowLeft}
@@ -1301,7 +1301,7 @@ export function getNetworkNavbarOptions(
       <TouchableOpacity
         onPress={() => navigation.pop()}
         style={styles.backButton}
-        {...generateTestId(Platform, ASSET_BACK_BUTTON)}
+        testID={ImportTokenViewSelectorsIDs.BACK_BUTTON}
       >
         <IonicIcon
           name={'ios-close'}
