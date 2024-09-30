@@ -191,7 +191,7 @@ class NotificationsService {
       await this.cancelTriggerNotification(detail.notification.id);
     }
 
-    if (detail?.notification?.data?.url) {
+    if (detail?.notification?.data) {
       callback?.(detail.notification as Notification);
     }
   };
