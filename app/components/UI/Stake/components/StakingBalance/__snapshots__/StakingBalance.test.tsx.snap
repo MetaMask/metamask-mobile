@@ -703,43 +703,32 @@ exports[`StakingBalance render matches snapshot 1`] = `
                         <View
                           style={
                             {
-                              "backgroundColor": "#bf52081a",
-                              "borderColor": "#bf5208",
-                              "borderLeftWidth": 4,
-                              "borderRadius": 4,
-                              "flexDirection": "row",
-                              "marginVertical": 8,
-                              "padding": 12,
-                              "paddingLeft": 8,
+                              "paddingBottom": 8,
                             }
                           }
-                          testID="banneralert"
-                          variant="Alert"
                         >
-                          <View
+                          <Text
+                            accessibilityRole="text"
                             style={
                               {
-                                "marginRight": 8,
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Bold",
+                                "fontSize": 18,
+                                "fontWeight": "700",
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                                "paddingBottom": 16,
+                                "paddingTop": 14,
                               }
                             }
                           >
-                            <SvgMock
-                              color="#bf5208"
-                              height={24}
-                              name="Danger"
-                              style={
-                                {
-                                  "height": 24,
-                                  "width": 24,
-                                }
-                              }
-                              width={24}
-                            />
-                          </View>
+                            Stake ETH and earn
+                          </Text>
                           <View
                             style={
                               {
-                                "flex": 1,
+                                "flexDirection": "row",
+                                "flexWrap": "wrap",
                               }
                             }
                           >
@@ -753,108 +742,172 @@ exports[`StakingBalance render matches snapshot 1`] = `
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 22,
+                                  "paddingRight": 3,
                                 }
                               }
                             >
-                              You are located in a geographic location where unstaking or staking is not permitted.
+                              Stake your ETH with MetaMask Pool and earn
+                            </Text>
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#1c8234",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
+                                }
+                              }
+                            >
+                              2.9%
+                            </Text>
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#141618",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
+                                  "paddingRight": 3,
+                                }
+                              }
+                            >
+                              annually.
+                            </Text>
+                            <Text
+                              accessibilityRole="link"
+                              accessible={true}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "backgroundColor": "transparent",
+                                  "color": "#141618",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
+                                }
+                              }
+                              suppressHighlighting={true}
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#0376c9",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                  }
+                                }
+                              >
+                                Learn more.
+                              </Text>
                             </Text>
                           </View>
                         </View>
                         <View
                           style={
-                            {
-                              "paddingTop": 8,
-                            }
-                          }
-                        >
-                          <View
-                            style={
+                            [
                               {
                                 "flexDirection": "row",
                                 "gap": 8,
                                 "justifyContent": "space-between",
+                              },
+                              {
+                                "paddingTop": 8,
+                              },
+                            ]
+                          }
+                        >
+                          <TouchableOpacity
+                            accessibilityRole="button"
+                            accessible={true}
+                            activeOpacity={1}
+                            onPress={[Function]}
+                            onPressIn={[Function]}
+                            onPressOut={[Function]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "flex-start",
+                                "backgroundColor": "transparent",
+                                "borderColor": "#0376c9",
+                                "borderRadius": 20,
+                                "borderWidth": 1,
+                                "flex": 1,
+                                "flexDirection": "row",
+                                "height": 40,
+                                "justifyContent": "center",
+                                "paddingHorizontal": 16,
                               }
                             }
                           >
-                            <TouchableOpacity
-                              accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
+                            <Text
+                              accessibilityRole="text"
                               style={
                                 {
-                                  "alignItems": "center",
-                                  "alignSelf": "flex-start",
-                                  "backgroundColor": "transparent",
-                                  "borderColor": "#0376c9",
-                                  "borderRadius": 20,
-                                  "borderWidth": 1,
-                                  "flex": 1,
-                                  "flexDirection": "row",
-                                  "height": 40,
-                                  "justifyContent": "center",
-                                  "paddingHorizontal": 16,
+                                  "color": "#0376c9",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
                                 }
                               }
                             >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#0376c9",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 14,
-                                    "fontWeight": "400",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
-                                  }
-                                }
-                              >
-                                Unstake
-                              </Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                              accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
+                              Unstake
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            accessibilityRole="button"
+                            accessible={true}
+                            activeOpacity={1}
+                            onPress={[Function]}
+                            onPressIn={[Function]}
+                            onPressOut={[Function]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "flex-start",
+                                "backgroundColor": "transparent",
+                                "borderColor": "#0376c9",
+                                "borderRadius": 20,
+                                "borderWidth": 1,
+                                "flex": 1,
+                                "flexDirection": "row",
+                                "height": 40,
+                                "justifyContent": "center",
+                                "paddingHorizontal": 16,
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
                               style={
                                 {
-                                  "alignItems": "center",
-                                  "alignSelf": "flex-start",
-                                  "backgroundColor": "transparent",
-                                  "borderColor": "#0376c9",
-                                  "borderRadius": 20,
-                                  "borderWidth": 1,
-                                  "flex": 1,
-                                  "flexDirection": "row",
-                                  "height": 40,
-                                  "justifyContent": "center",
-                                  "paddingHorizontal": 16,
+                                  "color": "#0376c9",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
                                 }
                               }
                             >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#0376c9",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 14,
-                                    "fontWeight": "400",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
-                                  }
-                                }
-                              >
-                                Stake more
-                              </Text>
-                            </TouchableOpacity>
-                          </View>
+                              Stake more
+                            </Text>
+                          </TouchableOpacity>
                         </View>
                       </View>
                     </View>
