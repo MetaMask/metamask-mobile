@@ -22,13 +22,6 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
-jest.mock('../RpcQueueManager', () => ({
-    RpcQueueManager: jest.fn().mockImplementation(() => ({
-      getId: jest.fn(),
-      add: jest.fn(),
-    })),
-  }));
-
 jest.mock('../../Engine');
 jest.mock('@metamask/keyring-controller');
 jest.mock('@metamask/network-controller');
