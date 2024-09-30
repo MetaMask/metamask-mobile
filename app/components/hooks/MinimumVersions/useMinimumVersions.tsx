@@ -9,15 +9,18 @@ import { SecurityState } from '../../../../app/reducers/security';
 
 const useMinimumVersions = () => {
   const allowAutomaticSecurityChecks = useSelector(
-    (state: SecurityState) => state.automaticSecurityChecksEnabled,
+    (state: SecurityState) => state.security.automaticSecurityChecksEnabled,
   );
-  const { appMinimumBuild } = useSelector(
-    (state: FeatureFlagsState) => state.featureFlags.mobileMinimumVersions,
+  const minimumBuilds = useSelector(
+    (state: FeatureFlagsState) =>
+      state.featureFlags.featureFlags.mobileMinimumVersions,
   );
+
   const currentBuildNumber = Number(getBuildNumber());
   const navigation = useNavigation();
   const shouldTriggerUpdateFlow =
-    allowAutomaticSecurityChecks && appMinimumBuild > currentBuildNumber;
+    allowAutomaticSecurityChecks &&
+    minimumBuilds?.appMinimumBuild > currentBuildNumber;
 
   useEffect(() => {
     if (shouldTriggerUpdateFlow) {
