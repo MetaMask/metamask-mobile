@@ -153,8 +153,6 @@ async function connectToChannel({
         });
         DevLogger.log(`SDKConnect::connectToChannel - checkPermissions - authorized`, res);
         authorized = true;
-
-        // Wait for the per
       } catch (error) {
         DevLogger.log(`SDKConnect::connectToChannel - checkPermissions - error`, error);
         // first needs to connect without key exchange to send the event
@@ -179,12 +177,9 @@ async function connectToChannel({
         }
         return;
       }
-    } else {
-      // OLD SDK PROTOCOL
-      Logger.log(`SDKConnect::connectToChannel - invalid SDK protocol - channelId=${id} origin=${origin} protocolVersion=${protocolVersion}`);
-      console.warn(`OLD SDK PROTOCOL - channelId=${id} origin=${origin} protocolVersion=${protocolVersion}`);
     }
 
+    // SDK PROTOCOL pre 0.28.0
     DevLogger.log(`SDKConnect::connectToChannel - before connect`, instance.state.connected[id]);
 
     // Initialize connection
@@ -216,8 +211,7 @@ async function connectToChannel({
         walletKey:
           instance.state.connected[id].remote.getKeyInfo()?.ecies.public,
       };
-      DevLogger.log(`send account / chainId to dapp`, data);
-      DevLogger.log(`connected.navigation channelId=${connected.remote.getChannelId()}`, connected.remote);
+      DevLogger.log(`Sending WALLET_INIT message to dapp`, data);
       // Directly send the account / chainId to the dapp
       await connected.remote.sendMessage({
         type: MessageType.WALLET_INIT,
