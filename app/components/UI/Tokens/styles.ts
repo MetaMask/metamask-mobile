@@ -94,7 +94,7 @@ const createStyles = (colors: Colors) =>
       flexDirection: 'row',
       alignItems: 'center',
     },
-    networth: {
+    portfolioBalance: {
       flexDirection: 'row',
       alignItems: 'center',
       marginHorizontal: 16,

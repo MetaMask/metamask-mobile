@@ -16,7 +16,7 @@ import createStyles from '../styles';
 import Text from '../../../../component-library/components/Texts/Text';
 import { TokenI } from '../types';
 import { strings } from '../../../../../locales/i18n';
-import { Networth } from './Networth';
+import { PortfolioBalance } from './PortfolioBalance';
 import { TokenListFooter } from './TokenListFooter';
 import { TokenListItem } from './TokenListItem';
 
@@ -71,7 +71,7 @@ export const TokenList = ({
 
   return tokens?.length ? (
     <FlatList
-      ListHeaderComponent={<Networth />}
+      ListHeaderComponent={<PortfolioBalance />}
       data={tokens}
       renderItem={({ item }) => (
         <TokenListItem
