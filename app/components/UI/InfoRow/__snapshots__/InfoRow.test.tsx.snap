@@ -1,0 +1,40 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`InfoRow should match snapshot for simple text value 1`] = `
+<View
+  style={
+    {
+      "display": "flex",
+      "flexDirection": "row",
+      "flexWrap": "wrap",
+      "justifyContent": "space-between",
+      "padding": 8,
+    }
+  }
+>
+  <Text
+    style={
+      {
+        "color": "#141618",
+        "fontFamily": "EuclidCircularB-Bold",
+        "fontSize": 14,
+        "fontWeight": "500",
+      }
+    }
+  >
+    label-Key
+  </Text>
+  <Text
+    style={
+      {
+        "color": "#141618",
+        "fontFamily": "EuclidCircularB-Regular",
+        "fontSize": 14,
+        "fontWeight": "400",
+      }
+    }
+  >
+    Value-Text
+  </Text>
+</View>
+`;
