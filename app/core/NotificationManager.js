@@ -1,9 +1,9 @@
 'use strict';
 
-import notifee from '@notifee/react-native';
 import Engine from './Engine';
 import { hexToBN, renderFromWei } from '../util/number';
 import Device from '../util/device';
+import notifee from '@notifee/react-native';
 import { STORAGE_IDS } from '../util/notifications/settings/storage/constants';
 import { strings } from '../../locales/i18n';
 import { AppState } from 'react-native';
@@ -11,9 +11,8 @@ import { AppState } from 'react-native';
 import {
   NotificationTransactionTypes,
   isNotificationsFeatureEnabled,
-  requestPushNotificationsPermission,
-  asyncAlert,
 } from '../util/notifications';
+
 import { safeToChecksumAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
 import { selectChainId } from '../selectors/networkController';
@@ -75,8 +74,12 @@ export const constructTitleAndMessage = (notification) => {
       });
       break;
     default:
-      title = notification.data.title || strings('notifications.default_message_title');
-      message = notification.data.shortDescription || strings('notifications.default_message_description');
+      title =
+        notification.data.title ||
+        strings('notifications.default_message_title');
+      message =
+        notification.data.shortDescription ||
+        strings('notifications.default_message_description');
       break;
   }
   return { title, message };
@@ -152,7 +155,7 @@ class NotificationManager {
         title,
         body: message,
         android: {
-          lightUpScreen: false,
+          lightUpScreen: true,
           channelId,
           smallIcon: 'ic_notification_small',
           largeIcon: 'ic_notification',
@@ -179,7 +182,6 @@ class NotificationManager {
       } else {
         pushData.userInfo = extraData; // check if is still needed
       }
-
       isNotificationsFeatureEnabled() && notifee.displayNotification(pushData);
     } else {
       this._showTransactionNotification({
@@ -255,11 +257,6 @@ class NotificationManager {
             break;
         }
         Promise.all(pollPromises);
-
-        Device.isIos() &&
-          setTimeout(() => {
-            requestPushNotificationsPermission(asyncAlert);
-          }, 5000);
 
         // Prompt review
         ReviewManager.promptReview();
@@ -433,9 +430,9 @@ class NotificationManager {
         .filter(
           (tx) =>
             safeToChecksumAddress(tx.txParams?.to) ===
-            selectedInternalAccountChecksummedAddress &&
+              selectedInternalAccountChecksummedAddress &&
             safeToChecksumAddress(tx.txParams?.from) !==
-            selectedInternalAccountChecksummedAddress &&
+              selectedInternalAccountChecksummedAddress &&
             tx.chainId === chainId &&
             tx.status === 'confirmed' &&
             lastBlock <= parseInt(tx.blockNumber, 10) &&
@@ -490,9 +487,6 @@ export default {
   },
   gotIncomingTransaction(lastBlock) {
     return instance?.gotIncomingTransaction(lastBlock);
-  },
-  requestPushNotificationsPermission() {
-    return instance?.requestPushNotificationsPermission(asyncAlert);
   },
   showSimpleNotification(data) {
     return instance?.showSimpleNotification(data);

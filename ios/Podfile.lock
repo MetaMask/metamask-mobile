@@ -15,18 +15,18 @@ PODS:
     - React-Core (= 0.72.15)
     - React-jsi (= 0.72.15)
     - ReactCommon/turbomodule/core (= 0.72.15)
-  - Firebase (10.27.0):
-    - Firebase/Core (= 10.27.0)
-  - Firebase/Core (10.27.0):
+  - Firebase (10.29.0):
+    - Firebase/Core (= 10.29.0)
+  - Firebase/Core (10.29.0):
     - Firebase/CoreOnly
-    - FirebaseAnalytics (~> 10.27.0)
-  - Firebase/CoreOnly (10.27.0):
-    - FirebaseCore (= 10.27.0)
-  - Firebase/Messaging (10.27.0):
+    - FirebaseAnalytics (~> 10.29.0)
+  - Firebase/CoreOnly (10.29.0):
+    - FirebaseCore (= 10.29.0)
+  - Firebase/Messaging (10.29.0):
     - Firebase/CoreOnly
-    - FirebaseMessaging (~> 10.27.0)
-  - FirebaseAnalytics (10.27.0):
-    - FirebaseAnalytics/AdIdSupport (= 10.27.0)
+    - FirebaseMessaging (~> 10.29.0)
+  - FirebaseAnalytics (10.29.0):
+    - FirebaseAnalytics/AdIdSupport (= 10.29.0)
     - FirebaseCore (~> 10.0)
     - FirebaseInstallations (~> 10.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 7.11)
@@ -34,29 +34,29 @@ PODS:
     - GoogleUtilities/Network (~> 7.11)
     - "GoogleUtilities/NSData+zlib (~> 7.11)"
     - nanopb (< 2.30911.0, >= 2.30908.0)
-  - FirebaseAnalytics/AdIdSupport (10.27.0):
+  - FirebaseAnalytics/AdIdSupport (10.29.0):
     - FirebaseCore (~> 10.0)
     - FirebaseInstallations (~> 10.0)
-    - GoogleAppMeasurement (= 10.27.0)
+    - GoogleAppMeasurement (= 10.29.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 7.11)
     - GoogleUtilities/MethodSwizzler (~> 7.11)
     - GoogleUtilities/Network (~> 7.11)
     - "GoogleUtilities/NSData+zlib (~> 7.11)"
     - nanopb (< 2.30911.0, >= 2.30908.0)
-  - FirebaseCore (10.27.0):
+  - FirebaseCore (10.29.0):
     - FirebaseCoreInternal (~> 10.0)
     - GoogleUtilities/Environment (~> 7.12)
     - GoogleUtilities/Logger (~> 7.12)
-  - FirebaseCoreExtension (10.28.0):
+  - FirebaseCoreExtension (10.29.0):
     - FirebaseCore (~> 10.0)
-  - FirebaseCoreInternal (10.28.0):
+  - FirebaseCoreInternal (10.29.0):
     - "GoogleUtilities/NSData+zlib (~> 7.8)"
-  - FirebaseInstallations (10.28.0):
+  - FirebaseInstallations (10.29.0):
     - FirebaseCore (~> 10.0)
     - GoogleUtilities/Environment (~> 7.8)
     - GoogleUtilities/UserDefaults (~> 7.8)
     - PromisesObjC (~> 2.1)
-  - FirebaseMessaging (10.27.0):
+  - FirebaseMessaging (10.29.0):
     - FirebaseCore (~> 10.0)
     - FirebaseInstallations (~> 10.0)
     - GoogleDataTransport (~> 9.3)
@@ -125,21 +125,21 @@ PODS:
     - FlipperKit/FlipperKitNetworkPlugin
   - fmt (6.2.1)
   - glog (0.3.5)
-  - GoogleAppMeasurement (10.27.0):
-    - GoogleAppMeasurement/AdIdSupport (= 10.27.0)
+  - GoogleAppMeasurement (10.29.0):
+    - GoogleAppMeasurement/AdIdSupport (= 10.29.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 7.11)
     - GoogleUtilities/MethodSwizzler (~> 7.11)
     - GoogleUtilities/Network (~> 7.11)
     - "GoogleUtilities/NSData+zlib (~> 7.11)"
     - nanopb (< 2.30911.0, >= 2.30908.0)
-  - GoogleAppMeasurement/AdIdSupport (10.27.0):
-    - GoogleAppMeasurement/WithoutAdIdSupport (= 10.27.0)
+  - GoogleAppMeasurement/AdIdSupport (10.29.0):
+    - GoogleAppMeasurement/WithoutAdIdSupport (= 10.29.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 7.11)
     - GoogleUtilities/MethodSwizzler (~> 7.11)
     - GoogleUtilities/Network (~> 7.11)
     - "GoogleUtilities/NSData+zlib (~> 7.11)"
     - nanopb (< 2.30911.0, >= 2.30908.0)
-  - GoogleAppMeasurement/WithoutAdIdSupport (10.27.0):
+  - GoogleAppMeasurement/WithoutAdIdSupport (10.29.0):
     - GoogleUtilities/AppDelegateSwizzler (~> 7.11)
     - GoogleUtilities/MethodSwizzler (~> 7.11)
     - GoogleUtilities/Network (~> 7.11)
@@ -200,9 +200,9 @@ PODS:
   - lottie-react-native (5.1.5):
     - lottie-ios (~> 3.4.0)
     - React-Core
-  - MMKV (1.3.5):
-    - MMKVCore (~> 1.3.5)
-  - MMKVCore (1.3.5)
+  - MMKV (1.3.9):
+    - MMKVCore (~> 1.3.9)
+  - MMKVCore (1.3.9)
   - MultiplatformBleAdapter (0.2.0)
   - nanopb (2.30910.0):
     - nanopb/decode (= 2.30910.0)
@@ -708,11 +708,11 @@ PODS:
     - React
   - RNDeviceInfo (9.0.2):
     - React-Core
-  - RNFBApp (20.1.0):
-    - Firebase/CoreOnly (= 10.27.0)
+  - RNFBApp (20.5.0):
+    - Firebase/CoreOnly (= 10.29.0)
     - React-Core
-  - RNFBMessaging (20.1.0):
-    - Firebase/Messaging (= 10.27.0)
+  - RNFBMessaging (20.5.0):
+    - Firebase/Messaging (= 10.29.0)
     - FirebaseCoreExtension
     - React-Core
     - RNFBApp
@@ -726,10 +726,10 @@ PODS:
     - React-Core
   - RNKeychain (8.0.0):
     - React-Core
-  - RNNotifee (7.8.2):
+  - RNNotifee (9.0.2):
     - React-Core
-    - RNNotifee/NotifeeCore (= 7.8.2)
-  - RNNotifee/NotifeeCore (7.8.2):
+    - RNNotifee/NotifeeCore (= 9.0.2)
+  - RNNotifee/NotifeeCore (9.0.2):
     - React-Core
   - RNOS (1.2.6):
     - React
@@ -1174,13 +1174,13 @@ SPEC CHECKSUMS:
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
   FBLazyVector: 25cbffbaec517695d376ab4bc428948cd0f08088
   FBReactNativeSpec: e03b22fbf7017a6f76641ea4472e73c915dcdda7
-  Firebase: 26b040b20866a55f55eb3611b9fcf3ae64816b86
-  FirebaseAnalytics: f9211b719db260cc91aebee8bb539cb367d0dfd1
-  FirebaseCore: a2b95ae4ce7c83ceecfbbbe3b6f1cddc7415a808
-  FirebaseCoreExtension: f63147b723e2a700fe0f34ec6fb7f358d6fe83e0
-  FirebaseCoreInternal: 58d07f1362fddeb0feb6a857d1d1d1c5e558e698
-  FirebaseInstallations: 60c1d3bc1beef809fd1ad1189a8057a040c59f2e
-  FirebaseMessaging: 585984d0a1df120617eb10b44cad8968b859815e
+  Firebase: cec914dab6fd7b1bd8ab56ea07ce4e03dd251c2d
+  FirebaseAnalytics: 23717de130b779aa506e757edb9713d24b6ffeda
+  FirebaseCore: 30e9c1cbe3d38f5f5e75f48bfcea87d7c358ec16
+  FirebaseCoreExtension: 705ca5b14bf71d2564a0ddc677df1fc86ffa600f
+  FirebaseCoreInternal: df84dd300b561c27d5571684f389bf60b0a5c934
+  FirebaseInstallations: 913cf60d0400ebd5d6b63a28b290372ab44590dd
+  FirebaseMessaging: 7b5d8033e183ab59eb5b852a53201559e976d366
   Flipper: 6edb735e6c3e332975d1b17956bcc584eccf5818
   Flipper-Boost-iOSX: fd1e2b8cbef7e662a122412d7ac5f5bea715403c
   Flipper-DoubleConversion: 2dc99b02f658daf147069aad9dbd29d8feb06d30
@@ -1191,7 +1191,7 @@ SPEC CHECKSUMS:
   FlipperKit: 2efad7007d6745a3f95e4034d547be637f89d3f6
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
-  GoogleAppMeasurement: f65fc137531af9ad647f1c0a42f3b6a4d3a98049
+  GoogleAppMeasurement: f9de05ee17401e3355f68e8fc8b5064d429f5918
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
   GoogleUtilities: ea963c370a38a8069cc5f7ba4ca849a60b6d7d15
   GZIP: 3c0abf794bfce8c7cb34ea05a1837752416c8868
@@ -1199,8 +1199,8 @@ SPEC CHECKSUMS:
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   lottie-ios: 016449b5d8be0c3dcbcfa0a9988469999cd04c5d
   lottie-react-native: 3e722c63015fdb9c27638b0a77969fc412067c18
-  MMKV: 506311d0494023c2f7e0b62cc1f31b7370fa3cfb
-  MMKVCore: 9e2e5fd529b64a9fe15f1a7afb3d73b2e27b4db9
+  MMKV: 817ba1eea17421547e01e087285606eb270a8dcb
+  MMKVCore: af055b00e27d88cd92fad301c5fecd1ff9b26dd9
   MultiplatformBleAdapter: b1fddd0d499b96b607e00f0faa8e60648343dc1d
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
@@ -1277,14 +1277,14 @@ SPEC CHECKSUMS:
   RNDateTimePicker: 4f3c4dbd4f908be32ec8c93f086e8924bd4a2e07
   RNDefaultPreference: 2f8d6d54230edbd78708ada8d63bb275e5a8415b
   RNDeviceInfo: 1e3f62b9ec32f7754fac60bd06b8f8a27124e7f0
-  RNFBApp: 1ae7462cddf74a49df206d3418bc0170f8fa53e5
-  RNFBMessaging: 85f661b9f16e2b081e6809ef63d3daa4458b9042
+  RNFBApp: 5f87753a8d8b37d229adf85cd0ff37709ffdf008
+  RNFBMessaging: 3fa1114c0868dd21f20dfe186adf42297ea316b1
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
   RNI18n: e2f7e76389fcc6e84f2c8733ea89b92502351fd8
   RNInAppBrowser: e36d6935517101ccba0e875bac8ad7b0cb655364
   RNKeychain: 4f63aada75ebafd26f4bc2c670199461eab85d94
-  RNNotifee: 8e2d3df3f0e9ce8f5d1fe4c967431138190b6175
+  RNNotifee: 2b7df6e32a9cc24b9af6b410fa7db1cd2f411d6d
   RNOS: 6f2f9a70895bbbfbdad7196abd952e7b01d45027
   RNPermissions: 4e3714e18afe7141d000beae3755e5b5fb2f5e05
   RNReanimated: f8379347f71248607d530a21e31e4140c5910c25
@@ -1302,6 +1302,6 @@ SPEC CHECKSUMS:
   Yoga: 6f5ab94cd8b1ecd04b6e973d0bc583ede2a598cc
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 0e9407472193b5f7d5cfe4715c8f1f2c2fed42e5
+PODFILE CHECKSUM: 876298d4a106643492005466f7a314cd08711f4d
 
 COCOAPODS: 1.15.2

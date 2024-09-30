@@ -246,7 +246,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const renderStakeButton = (asset: TokenI) => {
     const onStakeButtonPress = () => {
       if (isPooledStakingFeatureEnabled()) {
-        navigation.navigate(Routes.STAKE.STAKE);
+        navigation.navigate('StakeScreens', { screen: Routes.STAKING.STAKE });
       } else {
         const existingStakeTab = browserTabs.find((tab: BrowserTab) =>
           tab.url.includes(AppConstants.STAKE.URL),

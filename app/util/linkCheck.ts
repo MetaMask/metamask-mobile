@@ -8,12 +8,12 @@ const DENYLISTED_DOMAINS = ['metamask.app.link'];
 const isAllowedProtocol = (protocol: string): boolean =>
   ALLOWED_PROTOCOLS.includes(protocol);
 
-const isAllowedHostname = (hostname: string): boolean => {
+const isAllowedUrl = ({ hostname, origin }: Url<string>): boolean => {
   const { PhishingController } = Engine.context as {
     PhishingController: PhishingControllerClass;
   };
   PhishingController.maybeUpdateState();
-  const phishingControllerTestResult = PhishingController.test(hostname);
+  const phishingControllerTestResult = PhishingController.test(origin);
 
   return !(
     phishingControllerTestResult.result || DENYLISTED_DOMAINS.includes(hostname)
@@ -23,10 +23,8 @@ const isAllowedHostname = (hostname: string): boolean => {
 export const isLinkSafe = (link: string): boolean => {
   try {
     const url = new Url(link);
-    const { protocol, hostname, href } = url;
-    return (
-      isUrl(href) && isAllowedProtocol(protocol) && isAllowedHostname(hostname)
-    );
+    const { protocol, href } = url;
+    return isUrl(href) && isAllowedProtocol(protocol) && isAllowedUrl(url);
   } catch (err) {
     return false;
   }

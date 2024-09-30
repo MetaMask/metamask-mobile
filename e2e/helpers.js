@@ -1,4 +1,4 @@
-import { waitFor, web } from 'detox';
+import { waitFor, web, system } from 'detox';
 import {
   getFixturesServerPort,
   getGanachePort,

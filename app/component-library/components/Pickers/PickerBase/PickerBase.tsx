@@ -24,7 +24,7 @@ const PickerBase: React.ForwardRefRenderFunction<
       {children}
       <Icon
         size={IconSize.Md}
-        color={colors.icon.alternative}
+        color={colors.icon.default}
         name={IconName.ArrowDown}
         style={styles.dropdownIcon}
       />

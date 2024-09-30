@@ -4,7 +4,6 @@ import React, { PureComponent } from 'react';
 import { Linking, SafeAreaView, StyleSheet, Switch, View } from 'react-native';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
 
 import { typography } from '@metamask/design-tokens';
 
@@ -44,6 +43,7 @@ import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import { wipeTransactions } from '../../../../util/transaction-controller';
 import AppConstants from '../../../../../app/core/AppConstants';
 import { downloadStateLogs } from '../../../../util/logs';
+import AutoDetectTokensSettings from '../AutoDetectTokensSettings';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -170,14 +170,6 @@ class AdvancedSettings extends PureComponent {
      */
     fullState: PropTypes.object,
     /**
-     * ChainID of network
-     */
-    chainId: PropTypes.string,
-    /**
-     * Boolean that checks if token detection is enabled
-     */
-    isTokenDetectionEnabled: PropTypes.bool,
-    /**
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
@@ -261,47 +253,6 @@ class AdvancedSettings extends PureComponent {
   toggleTokenDetection = (detectionStatus) => {
     const { PreferencesController } = Engine.context;
     PreferencesController.setUseTokenDetection(detectionStatus);
-  };
-
-  renderTokenDetectionSection = () => {
-    const { isTokenDetectionEnabled, chainId } = this.props;
-    const { styles, colors } = this.getStyles();
-    const theme = this.context || mockTheme;
-    if (!isTokenDetectionSupportedForNetwork(chainId)) {
-      return null;
-    }
-    return (
-      <View
-        style={styles.setting}
-        testID={AdvancedViewSelectorsIDs.TOKEN_DETECTION_TOGGLE}
-      >
-        <View style={styles.titleContainer}>
-          <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-            {strings('app_settings.token_detection_title')}
-          </Text>
-          <View style={styles.toggle}>
-            <Switch
-              value={isTokenDetectionEnabled}
-              onValueChange={this.toggleTokenDetection}
-              trackColor={{
-                true: colors.primary.default,
-                false: colors.border.muted,
-              }}
-              thumbColor={theme.brandColors.white}
-              ios_backgroundColor={colors.border.muted}
-              style={styles.switch}
-            />
-          </View>
-        </View>
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
-          style={styles.desc}
-        >
-          {strings('app_settings.token_detection_description')}
-        </Text>
-      </View>
-    );
   };
 
   toggleSmartTransactionsOptInStatus = (smartTransactionsOptInStatus) => {
@@ -477,7 +428,7 @@ class AdvancedSettings extends PureComponent {
                 {strings('app_settings.custom_nonce_desc')}
               </Text>
             </View>
-            {this.renderTokenDetectionSection()}
+            <AutoDetectTokensSettings />
             <View style={styles.setting}>
               <View style={styles.titleContainer}>
                 <Text variant={TextVariant.BodyLGMedium} style={styles.title}>

@@ -36,7 +36,7 @@ const styleSheet = (params: {
       justifyContent: 'space-between',
       alignItems: 'center',
       backgroundColor: colors.background.default,
-      padding: 20,
+      padding: 16,
       borderWidth: 0,
       borderColor: colors.border.default,
       borderRadius: 8,

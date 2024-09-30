@@ -1,10 +1,10 @@
 import {
-  ASSET_BACK_BUTTON,
   TOKEN_ASSET_OVERVIEW,
   TOKEN_OVERVIEW_SEND_BUTTON,
 } from './testIDs/Screens/TokenOverviewScreen.testIds.js';
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
+import { ImportTokenViewSelectorsIDs } from '../../e2e/selectors/wallet/ImportTokenView.selectors';
 
 class TokenOverviewScreen {
   get tokenAssetOverview() {
@@ -16,7 +16,7 @@ class TokenOverviewScreen {
   }
 
   get backButtonTokenOverview() {
-    return Selectors.getElementByPlatform(ASSET_BACK_BUTTON);
+    return Selectors.getElementByPlatform(ImportTokenViewSelectorsIDs.BACK_BUTTON);
   }
 
   async tapBackButton() {
