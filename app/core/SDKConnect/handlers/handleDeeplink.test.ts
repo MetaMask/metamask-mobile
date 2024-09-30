@@ -132,6 +132,15 @@ describe('handleDeeplink', () => {
     mockHasInitialized.mockReturnValue(true);
     mockGetConnections.mockReturnValue({ [channelId]: {} });
 
+    // Mock the getConnected method to return a connection that's not connected
+    mockGetConnected.mockReturnValue({
+      [channelId]: {
+        remote: {
+          isConnected: jest.fn().mockReturnValue(false),
+        },
+      },
+    });
+
     sdkConnect.state = { connecting: {} } as unknown as SDKConnectState;
 
     await handleDeeplink({
@@ -207,11 +216,13 @@ describe('handleDeeplink', () => {
 
     sdkConnect.state = { connecting: {} } as unknown as SDKConnectState;
 
-    // Update mockGetConnected to return a connection with the decrypt method
+    // Mock a connected channel
     mockGetConnected.mockReturnValue({
       [channelId]: {
         remote: {
+          isConnected: jest.fn().mockReturnValue(true),
           decrypt: mockDecrypt,
+          getRPCMethodTracker: jest.fn().mockReturnValue({}),
         },
       },
     });
