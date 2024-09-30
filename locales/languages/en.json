@@ -673,6 +673,7 @@
     "receive": "RECEIVE"
   },
   "accounts": {
+    "snap_account_tag": "Snaps (Beta)",
     "create_new_account": "Create a new account",
     "import_account": "Import an account",
     "connect_hardware": "Connect hardware wallet",
@@ -3302,8 +3303,23 @@
     "enter_amount": "Enter amount",
     "review": "Review",
     "not_enough_eth": "Not enough ETH",
-    "balance": "Balance",
+    "balance":"Balance",
+    "stake_eth_and_earn":"Stake ETH and earn",
+    "stake_any_amount_of_eth":"Stake any amount of ETH",
+    "no_minimum_required":"No minimum required.",
+    "earn_eth_rewards":"Earn ETH rewards",
+    "earn_eth_rewards_description":"Start earning as soon as you stake. Rewards compound automatically.",
+    "flexible_unstaking":"Flexible unstaking",
+    "flexible_unstaking_description":"Unstake anytime. Typically takes up to 11 days to process.",
+    "disclaimer":"Staking does not guarantee rewards, and involves risks including a loss of funds.",
+    "learn_more":"Learn more",
+    "got_it":"Got it",
     "your_balance": "Your balance",
+    "stake_your_eth_cta": {
+      "base": "Stake your ETH with MetaMask Pool and earn",
+      "annually": "annually.",
+      "learn_more_with_period": "Learn more."
+    },
     "day": {
       "zero": "",
       "one": "day",
@@ -3327,7 +3343,7 @@
         "to_claim_it": "to claim it.",
         "default": "Unstaking {{amountEth}} ETH in progress. Come back later to claim it."
       },
-      "geo_blocked": "You are located in a geographic location where unstaking or staking is not permitted.",
+      "geo_blocked": "You’re located in a region where unstaking or staking isn’t permitted.",
       "approximately": "approximately"
     }
   },
@@ -3387,5 +3403,12 @@
       "title": "Reward rate",
       "tooltip": "Expected yearly increase in the value of your stake, based on the reward rate over the past week."
     }
+  },
+  "confirm": {
+    "reject": "Reject",
+    "confirm": "Confirm",
+    "title": {
+      "signature": "Signature request"
+      }
   }
 }
