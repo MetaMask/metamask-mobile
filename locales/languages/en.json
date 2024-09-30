@@ -673,6 +673,7 @@
     "receive": "RECEIVE"
   },
   "accounts": {
+    "snap_account_tag": "Snaps (Beta)",
     "create_new_account": "Create a new account",
     "import_account": "Import an account",
     "connect_hardware": "Connect hardware wallet",
@@ -947,7 +948,7 @@
     "invalid_number_range": "Invalid number. Enter a number between 1 and %{maxSafeChainId}",
     "hide_zero_balance_tokens_title": "Hide Tokens Without Balance",
     "hide_zero_balance_tokens_desc": "Prevents tokens with no balance from displaying in your token listing.",
-    "token_detection_title": "Enhanced Token Detection",
+    "token_detection_title": "Autodetect tokens",
     "token_detection_description": "We use third-party APIs to detect and display new tokens sent to your wallet. Turn off if you don’t want the app to pull data from those services.",
     "theme_button_text": "Change Theme",
     "theme_title": "Theme ({{theme}})",
@@ -2077,6 +2078,7 @@
     "back_to_safety": "Back to safety"
   },
   "notifications": {
+    "timeout": "Timeout",
     "no_date": "Unknown",
     "yesterday": "Yesterday",
     "staked": "Staked",
@@ -3230,7 +3232,6 @@
     "ledger_legacy_label": " (legacy)",
     "blind_sign_error": "Blind signing error",
     "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings."
-
   },
   "account_actions": {
     "edit_name": "Edit account name",
@@ -3286,6 +3287,10 @@
   "stake": {
     "stake": "Stake",
     "stake_eth": "Stake ETH",
+    "staked_ethereum": "Staked Ethereum",
+    "unstake": "Unstake",
+    "stake_more": "Stake more",
+    "claim": "Claim",
     "your_earnings": "Your earnings",
     "annual_rate": "Annual rate",
     "lifetime_rewards": "Lifetime rewards",
@@ -3298,7 +3303,49 @@
     "enter_amount": "Enter amount",
     "review": "Review",
     "not_enough_eth": "Not enough ETH",
-    "balance":"Balance"
+    "balance":"Balance",
+    "stake_eth_and_earn":"Stake ETH and earn",
+    "stake_any_amount_of_eth":"Stake any amount of ETH",
+    "no_minimum_required":"No minimum required.",
+    "earn_eth_rewards":"Earn ETH rewards",
+    "earn_eth_rewards_description":"Start earning as soon as you stake. Rewards compound automatically.",
+    "flexible_unstaking":"Flexible unstaking",
+    "flexible_unstaking_description":"Unstake anytime. Typically takes up to 11 days to process.",
+    "disclaimer":"Staking does not guarantee rewards, and involves risks including a loss of funds.",
+    "learn_more":"Learn more",
+    "got_it":"Got it",
+    "your_balance": "Your balance",
+    "stake_your_eth_cta": {
+      "base": "Stake your ETH with MetaMask Pool and earn",
+      "annually": "annually.",
+      "learn_more_with_period": "Learn more."
+    },
+    "day": {
+      "zero": "",
+      "one": "day",
+      "other": "days"
+    },
+    "hour": {
+      "zero": "",
+      "one": "hour",
+      "other": "hours"
+    },
+    "minute": {
+      "zero": "",
+      "one": "minute",
+      "other": "minutes"
+    },
+    "banner_text": {
+      "has_claimable_eth": "You can claim {{amountEth}} ETH. Once claimed, you'll get ETH back in your wallet.",
+      "unstaking_in_progress": {
+        "base": "Unstaking {{amountEth}} ETH in progress. Come back in",
+        "and": "and",
+        "to_claim_it": "to claim it.",
+        "default": "Unstaking {{amountEth}} ETH in progress. Come back later to claim it."
+      },
+      "geo_blocked": "You’re located in a region where unstaking or staking isn’t permitted.",
+      "approximately": "approximately"
+    }
   },
   "default_settings": {
     "title": "Your Wallet is ready",
@@ -3356,5 +3403,12 @@
       "title": "Reward rate",
       "tooltip": "Expected yearly increase in the value of your stake, based on the reward rate over the past week."
     }
+  },
+  "confirm": {
+    "reject": "Reject",
+    "confirm": "Confirm",
+    "title": {
+      "signature": "Signature request"
+      }
   }
 }
