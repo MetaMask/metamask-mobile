@@ -9,7 +9,7 @@ import useTokenBalancesController from '../../../../hooks/useTokenBalancesContro
 import useIsOriginalNativeTokenSymbol from '../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import { useTheme } from '../../../../../util/theme';
 import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from '../../constants';
-import { handleBalance } from '../../util/handleBalance';
+import { deriveBalanceFromAssetMarketDetails } from '../../util/deriveBalanceFromAssetMarketDetails';
 import {
   selectChainId,
   selectProviderConfig,
@@ -88,13 +88,14 @@ export const TokenListItem = ({
 
   const itemAddress = safeToChecksumAddress(asset.address);
 
-  const { balanceFiat, balanceValueFormatted } = handleBalance(
-    asset,
-    tokenExchangeRates,
-    tokenBalances,
-    conversionRate,
-    currentCurrency,
-  );
+  const { balanceFiat, balanceValueFormatted } =
+    deriveBalanceFromAssetMarketDetails(
+      asset,
+      tokenExchangeRates,
+      tokenBalances,
+      conversionRate,
+      currentCurrency,
+    );
 
   const pricePercentChange1d = itemAddress
     ? tokenExchangeRates?.[itemAddress as `0x${string}`]?.pricePercentChange1d

@@ -9,7 +9,7 @@ import { TokenI } from '../types';
 import { Hex } from '@metamask/utils';
 import { MarketDataDetails } from '..';
 
-export const handleBalance = (
+export const deriveBalanceFromAssetMarketDetails = (
   asset: TokenI,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   tokenExchangeRates: any,

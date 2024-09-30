@@ -6,7 +6,7 @@ import {
 import { safeToChecksumAddress } from '../../../../util/address';
 import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from '../constants';
 import { TokenI } from '../types';
-import { handleBalance } from './handleBalance';
+import { deriveBalanceFromAssetMarketDetails } from './deriveBalanceFromAssetMarketDetails';
 
 // Mock utility functions
 jest.mock('../../../../util/number', () => ({
@@ -19,7 +19,7 @@ jest.mock('../../../../util/address', () => ({
   safeToChecksumAddress: jest.fn(),
 }));
 
-describe('handleBalance', () => {
+describe('deriveBalanceFromAssetMarketDetails', () => {
   const asset: TokenI = {
     address: '0x123',
     symbol: 'ABC',
@@ -55,7 +55,7 @@ describe('handleBalance', () => {
     (balanceToFiatNumber as jest.Mock).mockReturnValue(4);
     (addCurrencySymbol as jest.Mock).mockReturnValue('$4.00');
 
-    const result = handleBalance(
+    const result = deriveBalanceFromAssetMarketDetails(
       asset,
       tokenExchangeRates,
       tokenBalances,
@@ -73,7 +73,7 @@ describe('handleBalance', () => {
     const modifiedAsset = { ...asset, balance: '' };
     (renderFromTokenMinimalUnit as jest.Mock).mockReturnValue('');
 
-    const result = handleBalance(
+    const result = deriveBalanceFromAssetMarketDetails(
       modifiedAsset,
       tokenExchangeRates,
       tokenBalances,
@@ -88,7 +88,7 @@ describe('handleBalance', () => {
   });
 
   it('should return balanceFiat and TOKEN_BALANCE_LOADING if conversionRate is not available and asset is not ETH', () => {
-    const result = handleBalance(
+    const result = deriveBalanceFromAssetMarketDetails(
       asset,
       tokenExchangeRates,
       tokenBalances,
@@ -104,7 +104,7 @@ describe('handleBalance', () => {
 
   it('should return balanceFiat and TOKEN_BALANCE_LOADING if conversionRate is not available and asset is ETH', () => {
     const modifiedAsset = { ...asset, isETH: true };
-    const result = handleBalance(
+    const result = deriveBalanceFromAssetMarketDetails(
       modifiedAsset,
       tokenExchangeRates,
       tokenBalances,
@@ -119,7 +119,7 @@ describe('handleBalance', () => {
   });
 
   it('should return TOKEN_RATE_UNDEFINED when tokenMarketData is not available', () => {
-    const result = handleBalance(
+    const result = deriveBalanceFromAssetMarketDetails(
       asset,
       {},
       tokenBalances,
@@ -140,7 +140,7 @@ describe('handleBalance', () => {
 
     const modifiedAsset = { ...asset, balanceFiat: '0.00001' };
 
-    const result = handleBalance(
+    const result = deriveBalanceFromAssetMarketDetails(
       modifiedAsset,
       tokenExchangeRates,
       tokenBalances,
