@@ -130,7 +130,6 @@ const createStyles = (colors: Colors) =>
       color: colors.text.default,
       alignItems: 'center',
     },
-
     textMoadlHeader: {
       ...typography.lBodyMDBold,
       fontSize: 18,
