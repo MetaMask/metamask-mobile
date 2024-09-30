@@ -7,7 +7,7 @@ import { View, TouchableOpacity } from 'react-native';
 // Exgernal dependencies
 import {
   renderShortAddress,
-  getAccountLabelTextByKeyring,
+  getLabelTextByAddress,
 } from '../../../../../util/address';
 import Identicon from '../../../../UI/Identicon';
 import { useSelector } from 'react-redux';
@@ -58,7 +58,7 @@ const AddressElement: React.FC<AddressElementProps> = ({
       : renderShortAddress(address);
   const secondaryLabel =
     displayName && !displayName.startsWith(' ') && renderShortAddress(address);
-  const accountTypeLabel = getAccountLabelTextByKeyring(address);
+  const accountTypeLabel = getLabelTextByAddress(address);
 
   return (
     <TouchableOpacity
@@ -85,7 +85,7 @@ const AddressElement: React.FC<AddressElementProps> = ({
               variant={TextVariant.BodySM}
               style={styles.accountNameLabelText}
             >
-              {strings(accountTypeLabel)}
+              {accountTypeLabel}
             </Text>
           )}
         </View>

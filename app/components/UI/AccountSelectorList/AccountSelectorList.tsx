@@ -20,7 +20,7 @@ import AvatarGroup from '../../../component-library/components/Avatars/AvatarGro
 import {
   formatAddress,
   safeToChecksumAddress,
-  getAccountLabelTextByKeyring,
+  getLabelTextByAddress,
 } from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
@@ -170,13 +170,31 @@ const AccountSelectorList = ({
     ],
   );
 
+  const getTagLabel = useCallback((address: string) => {
+    const label = getLabelTextByAddress(address);
+    console.log(
+      '[LABEL DEBUG] getTagLabel called for address:',
+      address,
+      'label:',
+      label,
+    );
+    return label;
+  }, []);
+
   const renderAccountItem: ListRenderItem<Account> = useCallback(
     ({
       item: { name, address, assets, type, isSelected, balanceError },
       index,
     }) => {
+      console.log('[LABEL DEBUG] Rendering account item for address:', address);
       const shortAddress = formatAddress(address, 'short');
-      const tagLabel = getAccountLabelTextByKeyring(address);
+      const tagLabel = getTagLabel(address);
+      console.log(
+        '[LABEL DEBUG] tagLabel for address:',
+        address,
+        'is:',
+        tagLabel,
+      );
       const ensName = ensByAccountAddress[address];
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;
@@ -239,6 +257,7 @@ const AccountSelectorList = ({
       renderRightAccessory,
       isSelectionDisabled,
       onLongPress,
+      getTagLabel,
     ],
   );
 
