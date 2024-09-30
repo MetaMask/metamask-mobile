@@ -36,15 +36,6 @@ class MetaMetricsOptIn {
     await Gestures.swipe(this.optInMetricsContent, 'up', 'fast', 0.9);
     await Gestures.waitAndTap(this.noThanksButton);
   }
-
-  async tapEditDefaultNetworkHere() {
-    await Gestures.swipe(this.optInMetricsContent, 'up', 'fast', 0.9);
-    if (device.getPlatform() === 'ios') {
-      await Gestures.tapAtPoint(this.container, { x: 333, y: 534 });
-    } else {
-      await Gestures.tapAtPoint(this.optInMetricsContent, { x: 15, y: 570 });
-    }
-  }
 }
 
 export default new MetaMetricsOptIn();

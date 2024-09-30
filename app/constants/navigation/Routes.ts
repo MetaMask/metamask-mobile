@@ -33,6 +33,7 @@ const Routes = {
   },
   LEDGER_MESSAGE_SIGN_MODAL: 'LedgerMessageSignModal',
   LEDGER_TRANSACTION_MODAL: 'LedgerTransactionModal',
+  QR_TAB_SWITCHER: 'QRTabSwitcher',
   OPTIONS_SHEET: 'OptionsSheet',
   QR_SCANNER: 'QRScanner',
   TRANSACTIONS_VIEW: 'TransactionsView',
@@ -74,13 +75,14 @@ const Routes = {
     STEP_1_B: 'AccountBackupStep1B',
   },
   SETTINGS: {
-    CONTACT_FORM: 'ContactForm',
-    REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
-    CHANGE_PASSWORD: 'ResetPassword',
-    EXPERIMENTAL_SETTINGS: 'ExperimentalSettings',
-    SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
     ADVANCED_SETTINGS: 'AdvancedSettings',
+    CHANGE_PASSWORD: 'ResetPassword',
+    CONTACT_FORM: 'ContactForm',
+    DEVELOPER_OPTIONS: 'DeveloperOptions',
+    EXPERIMENTAL_SETTINGS: 'ExperimentalSettings',
     NOTIFICATIONS: 'NotificationsSettings',
+    REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
+    SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
@@ -99,12 +101,12 @@ const Routes = {
     NETWORK_SELECTOR: 'NetworkSelector',
     RETURN_TO_DAPP_MODAL: 'ReturnToDappModal',
     ACCOUNT_ACTIONS: 'AccountActions',
-    ETH_SIGN_FRICTION: 'SettingsAdvancedEthSignFriction',
     FIAT_ON_TESTNETS_FRICTION: 'SettingsAdvancedFiatOnTestnetsFriction',
     SHOW_IPFS: 'ShowIpfs',
     SHOW_NFT_DISPLAY_MEDIA: 'ShowNftDisplayMedia',
     SHOW_TOKEN_ID: 'ShowTokenId',
     ORIGIN_SPAM_MODAL: 'OriginSpamModal',
+    TOOLTIP_MODAL: 'tooltipModal',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',
@@ -135,12 +137,21 @@ const Routes = {
     OPT_IN_STACK: 'OptInStack',
     DETAILS: 'NotificationsDetails',
   },
+  STAKING: {
+    STAKE: 'Stake',
+    UNSTAKE: 'Unstake',
+    CLAIM: 'Claim',
+    MODALS: {
+      LEARN_MORE: 'LearnMore',
+    },
+  },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {
     SNAPS_SETTINGS_LIST: 'SnapsSettingsList',
     SNAP_SETTINGS: 'SnapSettings',
   },
   ///: END:ONLY_INCLUDE_IF
+  FOX_LOADER: 'FoxLoader',
 };
 
 export default Routes;

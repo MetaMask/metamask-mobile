@@ -1,8 +1,11 @@
 import { StyleSheet } from 'react-native';
-import { isMutichainVersion1Enabled } from '../../../../util/networks';
+import { isMultichainVersion1Enabled } from '../../../../util/networks';
 
-const styleSheet = () =>
-  StyleSheet.create({
+const styleSheet = (params: {
+  vars: { isRenderedAsBottomSheet: boolean | undefined };
+}) => {
+  const { vars } = params;
+  return StyleSheet.create({
     bottomSheetContainer: {
       height: '100%',
     },
@@ -10,8 +13,8 @@ const styleSheet = () =>
       paddingHorizontal: 16,
     },
     buttonsContainer: {
-      marginTop: isMutichainVersion1Enabled ? 0 : 24,
-      marginBottom: 16,
+      marginTop: isMultichainVersion1Enabled ? 0 : 24,
+      marginBottom: vars.isRenderedAsBottomSheet ? 0 : 16,
     },
     updateButtonContainer: { flexDirection: 'row' },
     buttonPositioning: { flex: 1 },
@@ -33,5 +36,6 @@ const styleSheet = () =>
       flexDirection: 'row',
     },
   });
+};
 
 export default styleSheet;

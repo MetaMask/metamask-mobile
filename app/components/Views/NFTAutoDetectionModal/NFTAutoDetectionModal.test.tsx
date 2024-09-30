@@ -9,8 +9,6 @@ import Engine from '../../../core/Engine';
 import { fireEvent } from '@testing-library/react-native';
 import { RootState } from 'app/reducers';
 
-const mockEngine = Engine;
-
 const setUseNftDetectionSpy = jest.spyOn(
   Engine.context.PreferencesController,
   'setUseNftDetection',
@@ -21,7 +19,6 @@ const setDisplayNftMediaSpy = jest.spyOn(
   'setDisplayNftMedia',
 );
 jest.mock('../../../core/Engine', () => ({
-  init: () => mockEngine.init({}),
   context: {
     PreferencesController: {
       setUseNftDetection: jest.fn(),

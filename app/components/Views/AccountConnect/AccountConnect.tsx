@@ -69,6 +69,10 @@ import {
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
+import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
+import PermissionsSummary from '../../../components/UI/PermissionsSummary';
+import { isMultichainVersion1Enabled } from '../../../util/networks';
+import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -170,11 +174,11 @@ const AccountConnect = (props: AccountConnectProps) => {
     channelIdOrHostname,
   ]);
 
-  const urlWithProtocol = hostname
+  const urlWithProtocol = (hostname && !isUUID(hostname))
     ? prefixUrlWithProtocol(hostname)
     : domainTitle;
 
-  const isAllowedUrl = useCallback((url: string) => {
+  const isAllowedOrigin = useCallback((origin: string) => {
     const { PhishingController } = Engine.context;
 
     // Update phishing configuration if it is out-of-date
@@ -182,23 +186,20 @@ const AccountConnect = (props: AccountConnectProps) => {
     // down network requests. The configuration is updated for the next request.
     PhishingController.maybeUpdateState();
 
-    const phishingControllerTestResult = PhishingController.test(url);
+    const phishingControllerTestResult = PhishingController.test(origin);
 
     return !phishingControllerTestResult.result;
   }, []);
 
   useEffect(() => {
     const url = dappUrl || channelIdOrHostname || '';
-
-    const cleanUrl = url.replace(/^https?:\/\//, '');
-
-    const isAllowed = isAllowedUrl(cleanUrl);
+    const isAllowed = isAllowedOrigin(url);
 
     if (!isAllowed) {
       setBlockedUrl(dappUrl);
       setShowPhishingModal(true);
     }
-  }, [isAllowedUrl, dappUrl, channelIdOrHostname]);
+  }, [isAllowedOrigin, dappUrl, channelIdOrHostname]);
 
   const faviconSource = useFavicon(
     inappBrowserOrigin || (!isChannelId ? channelIdOrHostname : ''),
@@ -546,6 +547,24 @@ const AccountConnect = (props: AccountConnectProps) => {
     setUserIntent,
   ]);
 
+  const renderPermissionsSummaryScreen = useCallback(() => {
+    const permissionsSummaryProps: PermissionsSummaryProps = {
+      currentPageInformation: {
+        currentEnsName: '',
+        icon: faviconSource as string,
+        url: urlWithProtocol,
+      },
+      onEdit: () => {
+        setScreen(AccountConnectScreens.MultiConnectSelector);
+      },
+      onEditNetworks: () =>
+        setScreen(AccountConnectScreens.MultiConnectNetworkSelector),
+      onUserAction: setUserIntent,
+      isAlreadyConnected: false,
+    };
+    return <PermissionsSummary {...permissionsSummaryProps} />;
+  }, [faviconSource, urlWithProtocol]);
+
   const renderSingleConnectSelectorScreen = useCallback(
     () => (
       <AccountConnectSingleSelector
@@ -599,6 +618,20 @@ const AccountConnect = (props: AccountConnectProps) => {
     ],
   );
 
+  const renderMultiConnectNetworkSelectorScreen = useCallback(
+    () => (
+      <NetworkConnectMultiSelector
+        onSelectNetworkIds={setSelectedAddresses}
+        isLoading={isLoading}
+        onUserAction={setUserIntent}
+        urlWithProtocol={urlWithProtocol}
+        hostname={hostname}
+        onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
+      />
+    ),
+    [isLoading, urlWithProtocol, hostname],
+  );
+
   const renderPhishingModal = useCallback(
     () => (
       <Modal
@@ -638,17 +671,23 @@ const AccountConnect = (props: AccountConnectProps) => {
   const renderConnectScreens = useCallback(() => {
     switch (screen) {
       case AccountConnectScreens.SingleConnect:
-        return renderSingleConnectScreen();
+        return isMultichainVersion1Enabled
+          ? renderPermissionsSummaryScreen()
+          : renderSingleConnectScreen();
       case AccountConnectScreens.SingleConnectSelector:
         return renderSingleConnectSelectorScreen();
       case AccountConnectScreens.MultiConnectSelector:
         return renderMultiConnectSelectorScreen();
+      case AccountConnectScreens.MultiConnectNetworkSelector:
+        return renderMultiConnectNetworkSelectorScreen();
     }
   }, [
     screen,
     renderSingleConnectScreen,
+    renderPermissionsSummaryScreen,
     renderSingleConnectSelectorScreen,
     renderMultiConnectSelectorScreen,
+    renderMultiConnectNetworkSelectorScreen,
   ]);
 
   return (

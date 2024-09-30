@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useCallback, useContext } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useCallback,
+  useContext,
+  useLayoutEffect,
+} from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -6,6 +12,8 @@ import {
   TextStyle,
   InteractionManager,
   Linking,
+  AppState,
+  AppStateStatus,
 } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import { connect, useDispatch, useSelector } from 'react-redux';
@@ -27,6 +35,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
+import NotificationsService from '../../../util/notifications/services/NotificationService';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -81,10 +90,12 @@ import { getCurrentRoute } from '../../../reducers/navigation';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import {
   getMetamaskNotificationsUnreadCount,
+  getMetamaskNotificationsReadCount,
   selectIsMetamaskNotificationsEnabled,
+  selectIsProfileSyncingEnabled,
 } from '../../../selectors/notifications';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
-
+import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
     base: {
@@ -146,7 +157,9 @@ const Wallet = ({
   showNftFetchingLoadingIndicator,
   hideNftFetchingLoadingIndicator,
 }: WalletProps) => {
+  const appState = useRef(AppState.currentState);
   const { navigate } = useNavigation();
+  const { listNotifications } = useListNotifications();
   const walletRef = useRef(null);
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
@@ -275,9 +288,13 @@ const Wallet = ({
     selectIsMetamaskNotificationsEnabled,
   );
 
+  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+
   const unreadNotificationCount = useSelector(
     getMetamaskNotificationsUnreadCount,
   );
+
+  const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
 
   const networkName = useSelector(selectNetworkName);
 
@@ -322,6 +339,11 @@ const Wallet = ({
     ) {
       checkNftAutoDetectionModal();
     }
+
+    async function checkIfNotificationsAreEnabled() {
+      await NotificationsService.isDeviceNotificationEnabled();
+    }
+    checkIfNotificationsAreEnabled();
   });
 
   /**
@@ -384,15 +406,36 @@ const Wallet = ({
   useEffect(
     () => {
       requestAnimationFrame(async () => {
-        const { TokenDetectionController, AccountTrackerController } =
+        const { AccountTrackerController } =
           Engine.context;
-        TokenDetectionController.detectTokens();
         AccountTrackerController.refresh();
       });
     },
     /* eslint-disable-next-line */
     [navigation, providerConfig.chainId],
   );
+
+  useLayoutEffect(() => {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        listNotifications();
+      }
+
+      appState.current = nextAppState;
+    };
+
+    const subscription = AppState.addEventListener(
+      'change',
+      handleAppStateChange,
+    );
+    listNotifications();
+    return () => {
+      subscription.remove();
+    };
+  }, [listNotifications]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -403,7 +446,9 @@ const Wallet = ({
         navigation,
         colors,
         isNotificationEnabled,
+        isProfileSyncingEnabled,
         unreadNotificationCount,
+        readNotificationCount,
       ),
     );
     /* eslint-disable-next-line */
@@ -414,7 +459,9 @@ const Wallet = ({
     networkImageSource,
     onTitlePress,
     isNotificationEnabled,
+    isProfileSyncingEnabled,
     unreadNotificationCount,
+    readNotificationCount,
   ]);
 
   const renderTabBar = useCallback(

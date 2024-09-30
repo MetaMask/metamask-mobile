@@ -29,12 +29,12 @@ jest.mock('../../../util/transaction-controller', () => ({
 }));
 
 jest.mock('../../../core/Engine', () => ({
-  init: () => mockEngine.init({}),
   getTotalFiatAccountBalance: jest.fn(),
   context: {
     NetworkController: {
       setActiveNetwork: jest.fn(),
       setProviderType: jest.fn(),
+      getNetworkClientById: jest.fn().mockReturnValue({ chainId: '0x1' }),
     },
     PreferencesController: {
       setShowTestNetworks: jest.fn(),
@@ -62,12 +62,8 @@ const initialState = {
         },
       },
       NetworkController: {
-        providerConfig: {
-          type: 'mainnet',
-          nickname: 'Ethereum mainnet',
-          ticket: 'eth',
-          chainId: '0x1',
-        },
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {},
         networkConfigurations: {
           networkId1: {
             chainId: '0xa86a',
@@ -176,11 +172,29 @@ describe('Network Selector', () => {
           ...initialState.engine.backgroundState,
           NetworkController: {
             ...initialState.engine.backgroundState.NetworkController,
-            providerConfig: {
-              type: 'mainnet',
-              nickname: 'Sepolia mainnet',
-              ticket: 'eth',
-              chainId: CHAIN_IDS.SEPOLIA,
+            selectedNetworkClientId: 'sepolia',
+            networksMetadata: {},
+            networkConfigurations: {
+              mainnet: {
+                id: 'mainnet',
+                rpcUrl: 'http://mainnet.infura.io',
+                chainId: CHAIN_IDS.MAINNET,
+                ticker: 'ETH',
+                nickname: 'Ethereum Mainnet',
+                rpcPrefs: {
+                  blockExplorerUrl: 'https://etherscan.com',
+                },
+              },
+              sepolia: {
+                id: 'sepolia',
+                rpcUrl: 'http://sepolia.infura.io',
+                chainId: CHAIN_IDS.SEPOLIA,
+                ticker: 'ETH',
+                nickname: 'Sepolia',
+                rpcPrefs: {
+                  blockExplorerUrl: 'https://etherscan.com',
+                },
+              },
             },
           },
         },

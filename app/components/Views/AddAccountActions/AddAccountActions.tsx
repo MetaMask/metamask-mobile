@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { Fragment, useCallback, useState } from 'react';
-import { View } from 'react-native';
+import { SafeAreaView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
@@ -55,34 +55,36 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   }, [onBack, setIsLoading, trackEvent]);
 
   return (
-    <Fragment>
-      <SheetHeader
-        title={strings('account_actions.add_account')}
-        onBack={onBack}
-      />
-      <View>
-        <AccountAction
-          actionTitle={strings('account_actions.add_new_account')}
-          iconName={IconName.Add}
-          onPress={createNewAccount}
-          disabled={isLoading}
-          testID={AddAccountModalSelectorsIDs.NEW_ACCOUNT_BUTTON}
+    <SafeAreaView>
+      <Fragment>
+        <SheetHeader
+          title={strings('account_actions.add_account')}
+          onBack={onBack}
         />
-        <AccountAction
-          actionTitle={strings('account_actions.import_account')}
-          iconName={IconName.Import}
-          onPress={openImportAccount}
-          disabled={isLoading}
-          testID={AddAccountModalSelectorsIDs.IMPORT_ACCOUNT_BUTTON}
-        />
-        <AccountAction
-          actionTitle={strings('account_actions.add_hardware_wallet')}
-          iconName={IconName.Hardware}
-          onPress={openConnectHardwareWallet}
-          disabled={isLoading}
-        />
-      </View>
-    </Fragment>
+        <View>
+          <AccountAction
+            actionTitle={strings('account_actions.add_new_account')}
+            iconName={IconName.Add}
+            onPress={createNewAccount}
+            disabled={isLoading}
+            testID={AddAccountModalSelectorsIDs.NEW_ACCOUNT_BUTTON}
+          />
+          <AccountAction
+            actionTitle={strings('account_actions.import_account')}
+            iconName={IconName.Import}
+            onPress={openImportAccount}
+            disabled={isLoading}
+            testID={AddAccountModalSelectorsIDs.IMPORT_ACCOUNT_BUTTON}
+          />
+          <AccountAction
+            actionTitle={strings('account_actions.add_hardware_wallet')}
+            iconName={IconName.Hardware}
+            onPress={openConnectHardwareWallet}
+            disabled={isLoading}
+          />
+        </View>
+      </Fragment>
+    </SafeAreaView>
   );
 };
 
