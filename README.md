@@ -41,15 +41,19 @@ cd metamask-mobile
 
 **Firebase Messaging Setup**
 
-Before running the app, keep in mind that MetaMask uses FCM (Firebase Cloud Message) to empower communications. Based on this, would be preferable that you provide your own Firebase project config file and update your `google-services.json` file in the `android/app` directory as well your .env files (ios.env, js.env, android.env), adding GOOGLE_SERVICES_B64 variable depending on the environment you are running the app (ios/android).
+Before running the app, keep in mind that MetaMask uses FCM (Firebase Cloud Message) to empower communications. Based on this, as an external contributor you would preferably need to provide your own FREE Firebase project config file with a matching client for package name `io.metamask`, and update your `google-services.json` file in the `android/app` directory as well your .env files (ios.env, js.env, android.env), adding GOOGLE_SERVICES_B64 variable depending on the environment you are running the app (ios/android).
 
-ATTENTION: In case you don't provide your own Firebase project config file, you can make usage of a mock file at `android/app/google-services-example.json`, following the steps below from the root of the project:
+The value you should provide to GOOGLE_SERVICES_B64 is the base64 encoded version of your Firebase project config file, which can be generated as follows:
 
 ```bash
 base64 -i ./android/app/google-services-example.json
 ```
 
 Copy the result to your clipboard and paste it in the GOOGLE_SERVICES_B64 variable in the .env file you are running the app.
+
+ATTENTION: In case you don't provide your own Firebase project config file, you will face the error `No matching client found for package name 'io.metamask'`.
+
+You can make usage of a mock file at `android/app/google-services-example.json`, following the same steps above from the root of the project.
 
 In case of any doubt, please follow the instructions in the link below to get your Firebase project config file.
 
