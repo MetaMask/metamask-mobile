@@ -19,7 +19,9 @@ describe('reconnectAll', () => {
         paused: false,
         reconnected: false,
         connections: {},
+        connecting: {}
       },
+      getConnected: jest.fn().mockReturnValue({}),
       reconnect: mockReconnect,
       emit: jest.fn(),
     } as unknown as SDKConnect;
@@ -57,7 +59,7 @@ describe('reconnectAll', () => {
       });
     });
 
-    it('should not reconnect to channels without relayPersistence', () => {
+    it('should reconnect to channels without relayPersistence', () => {
       const mockChannelId = 'mockChannelId';
       const mockOtherPublicKey = 'mockOtherPublicKey';
 
@@ -69,7 +71,7 @@ describe('reconnectAll', () => {
 
       reconnectAll(mockInstance);
 
-      expect(mockReconnect).not.toHaveBeenCalled();
+      expect(mockReconnect).toHaveBeenCalled();
     });
   });
 
