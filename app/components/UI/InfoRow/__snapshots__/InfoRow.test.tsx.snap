@@ -8,7 +8,8 @@ exports[`InfoRow should match snapshot for simple text value 1`] = `
       "flexDirection": "row",
       "flexWrap": "wrap",
       "justifyContent": "space-between",
-      "padding": 8,
+      "paddingBottom": 8,
+      "paddingHorizontal": 8,
     }
   }
 >
@@ -19,6 +20,7 @@ exports[`InfoRow should match snapshot for simple text value 1`] = `
         "fontFamily": "EuclidCircularB-Bold",
         "fontSize": 14,
         "fontWeight": "500",
+        "marginTop": 8,
       }
     }
   >
@@ -31,6 +33,7 @@ exports[`InfoRow should match snapshot for simple text value 1`] = `
         "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",
+        "marginTop": 8,
       }
     }
   >
