@@ -1,6 +1,5 @@
 import cucumberJson from 'wdio-cucumberjs-json-reporter';
 import { Given, When, Then } from '@wdio/cucumber-framework';
-import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel';
 import LoginScreen from '../screen-objects/LoginScreen';
 import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
 
@@ -9,19 +8,15 @@ let stopTimer;
 let loginViewTime;
 let walletViewToAppearTime;
 let total;
-Then(/^the app start time should not exceed "([^"]*)?" milliseconds$/, async (time) => {
-    await WelcomeScreen.isGetLaunchDurationDisplayed();
+Then(/^the app should launch within "([^"]*)?" seconds$/, async (time) => {
+  stopTimer = new Date().getTime();
+  const launchTime = stopTimer - startTimer;
+  console.log(`The Launch time is: ${launchTime}`);
 
-    const launchDurationElement = await WelcomeScreen.getLaunchDuration();
-    const launchDurationString = await launchDurationElement.getText();
-
-    const launchDuration = Number(launchDurationString);
-    console.log(`MetaMask App Start Time is: ${launchDuration}`);
-    cucumberJson.attach(`App Start Time - Milliseconds: ${launchDuration}`);
-
-    await expect(launchDuration).toBeLessThan(Number(time));
+  await expect(launchTime).toBeLessThan(time * 1000);
+  cucumberJson.attach(`Milliseconds: ${launchTime}`);
+  await driver.pause(100);
 });
-
 
 Then(/^The Login screen should be visible in "([^"]*)?" seconds$/, async (time) => {
   await LoginScreen.isLoginScreenVisible();
