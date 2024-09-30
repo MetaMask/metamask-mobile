@@ -5409,10 +5409,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/slip44/-/slip44-4.0.0.tgz#690a52d2ba74ea677d9bd0e827a90c8809fbecd3"
   integrity sha512-MQMocMvFmp1MWownjKMuxevivwYeNQPSpNyIg9K7nmxKuoatp5NUc9L8EJ3Bh//rOfl6fBfXn9byfS0t+NE02Q==
 
-"@metamask/smart-transactions-controller@^13.0.0":
-  version "13.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/smart-transactions-controller/-/smart-transactions-controller-13.0.0.tgz#4a1f47cc5831598edc1bffb00ff74dbda6a3499e"
-  integrity sha512-7tNtCBXmkWnjHRHVskd2NuJnn+nAZQ3r0oX8QOcc4yINzTk+rBTPEMbPyCmlGP8md53t2EeTuM80iLO61BTGug==
+"@metamask/smart-transactions-controller@^13.1.0":
+  version "13.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/smart-transactions-controller/-/smart-transactions-controller-13.1.0.tgz#0cb4acf14cbc0b1aeecd118f0728820c7a074888"
+  integrity sha512-kl3CRl+eKpegc/L8QIN5ZSR3e3eYIi1rKdAYJYTbOs3jHD8KW288XeuSP8S4puixWoJwwxrlTZ0f7LSUmmR9VQ==
   dependencies:
     "@babel/runtime" "^7.24.1"
     "@ethereumjs/tx" "^5.2.1"
