@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import notifee from '@notifee/react-native';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { NotificationsViewSelectorsIDs } from '../../../../e2e/selectors/NotificationsView.selectors';
 import styles from './styles';
@@ -29,6 +28,7 @@ import {
   useMarkNotificationAsRead,
 } from '../../../util/notifications/hooks/useNotifications';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import NotificationsService from '../../../util/notifications/services/NotificationService';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
@@ -53,7 +53,7 @@ const NotificationsView = ({
 
   const handleMarkAllAsRead = useCallback(() => {
     markNotificationAsRead(notifications);
-    notifee.setBadgeCount(0);
+    NotificationsService.setBadgeCount(0);
     trackEvent(MetaMetricsEvents.NOTIFICATIONS_MARKED_ALL_AS_READ);
   }, [markNotificationAsRead, notifications, trackEvent]);
 
@@ -143,7 +143,7 @@ NotificationsView.navigationOptions = ({
     />
   ),
   headerTitle: () => (
-    <Text variant={TextVariant.HeadingMD}>
+    <Text variant={TextVariant.HeadingMD} style={styles.title}>
       {strings('app_settings.notifications_title')}
     </Text>
   ),
