@@ -407,7 +407,10 @@ const NetworkVerificationInfo = ({
       />
     </View>
   ) : (
-    <View testID={NetworkApprovalModalSelectorsIDs.CONTAINER}>
+    <View
+      style={styles.container}
+      testID={NetworkApprovalModalSelectorsIDs.CONTAINER}
+    >
       <BottomSheetHeader>
         <Text variant={TextVariant.HeadingMD}>
           {isCustomNetwork

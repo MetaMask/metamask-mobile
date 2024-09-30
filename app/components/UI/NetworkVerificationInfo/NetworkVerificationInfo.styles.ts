@@ -1,7 +1,10 @@
 import { StyleSheet, TextStyle } from 'react-native';
 // External dependencies.
 import { Theme } from '../../../util/theme/models';
+import Device from '../../../util/device';
 
+const height = Device.getDeviceHeight();
+const isSmallScreen = height < 780;
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors, typography } = theme;
@@ -10,6 +13,9 @@ const styleSheet = (params: { theme: Theme }) => {
     root: {
       backgroundColor: colors.background.default,
       paddingHorizontal: 16,
+    },
+    container: {
+      marginBottom: isSmallScreen ? 20 : 0,
     },
     accountCardWrapper: {
       borderWidth: 1,
