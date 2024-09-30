@@ -19,7 +19,7 @@ const SignatureApproval = () => {
   useEffect(() => {
     endTrace({
       name: TraceName.NotificationDisplay,
-      id: approvalRequest?.requestData?.requestId,
+      id: signatureRequestId,
     });
   }, [signatureRequestId]);
 
