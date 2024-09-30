@@ -37,7 +37,12 @@ import { InternalAccount } from '@metamask/keyring-api';
 import { AddressBookControllerState } from '@metamask/address-book-controller';
 import { NetworkType, toChecksumHexAddress } from '@metamask/controller-utils';
 import { NetworkClientId, NetworkState } from '@metamask/network-controller';
-import { AccountImportStrategy } from '@metamask/keyring-controller';
+import {
+  AccountImportStrategy,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  KeyringTypes,
+  ///: END:ONLY_INCLUDE_IF
+} from '@metamask/keyring-controller';
 import { Hex, isHexString } from '@metamask/utils';
 
 const {
@@ -244,6 +249,10 @@ export function getLabelTextByAddress(address: string) {
         return 'accounts.qr_hardware';
       case ExtendedKeyringTypes.simple:
         return 'accounts.imported';
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      case KeyringTypes.snap:
+        return 'accounts.snap_account_tag';
+      ///: END:ONLY_INCLUDE_IF
     }
   }
   return null;
