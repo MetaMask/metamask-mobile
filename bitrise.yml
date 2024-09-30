@@ -253,7 +253,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 echo "Gems being installed with bundler gem"
-                bundle install
+                bundle install --gemfile=ios/Gemfile
                 echo "Node $NODE_VERSION being installed"
 
                 set -e
@@ -644,8 +644,8 @@ workflows:
   android_e2e_test:
     before_run:
       - setup
-      - install_detox
       - prep_environment
+      - install_detox
     after_run:
       - notify_failure
     steps:
@@ -737,8 +737,8 @@ workflows:
   ios_api_specs:
     before_run:
       - setup
-      - install_detox
       - prep_environment
+      - install_detox
     after_run:
       - notify_failure
     steps:
@@ -890,8 +890,8 @@ workflows:
   ios_e2e_test:
     before_run:
       - setup
-      - install_detox
       - prep_environment
+      - install_detox
     after_run:
       - notify_failure
     steps:
