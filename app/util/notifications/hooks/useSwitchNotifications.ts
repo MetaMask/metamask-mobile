@@ -115,7 +115,6 @@ export function useAccountSettingsProps(accounts: string[]) {
   const accountsBeingUpdated = useSelector(
     selectIsUpdatingMetamaskNotificationsAccount,
   );
-
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
