@@ -15739,13 +15739,6 @@ detect-node@^2.0.4:
   resolved "https://registry.yarnpkg.com/detect-node/-/detect-node-2.1.0.tgz#c9c70775a49c3d03bc2c06d9a73be550f978f8b1"
   integrity sha512-T0NIuQpnTvFDATNuHN5roPwSBG83rFsuO+MXXH9/3N1eFbn4wcPjttvjMLEPWJ0RGUYgQE7cGgS3tNxbqCGM7g==
 
-detox-cli@^20.0.0:
-  version "20.0.0"
-  resolved "https://registry.yarnpkg.com/detox-cli/-/detox-cli-20.0.0.tgz#ea70b45db7ff10cb8ca9e304b02e6593cc27a645"
-  integrity sha512-0xfPs6q8vxYlai0bjqmw34/iTmQle4PLAI9W/u5DldOq94/nMP2sZn4ZF3ieQ39oWrPeGHco/pXG845p5TSe3Q==
-  dependencies:
-    chalk "^4.0.0"
-
 detox-copilot@^0.0.9:
   version "0.0.9"
   resolved "https://registry.yarnpkg.com/detox-copilot/-/detox-copilot-0.0.9.tgz#cc1ddd869868987d3527c93d2604b5d66f3c8466"
