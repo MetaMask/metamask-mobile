@@ -71,7 +71,16 @@ describe('Engine', () => {
   // Use this to keep the unit test initial background state fixture up-to-date
   it('matches initial state fixture', () => {
     const engine = Engine.init({});
-    const initialBackgroundState = engine.datamodel.state;
+    const initialBackgroundState = {
+      ...engine.datamodel.state,
+      PhishingController: {
+        phishingLists: [],
+        whitelist: [],
+        c2DomainBlocklistLastFetched: 0,
+        hotlistLastFetched: 0,
+        stalelistLastFetched: 0,
+      },
+    };
 
     expect(initialBackgroundState).toStrictEqual(backgroundState);
   });
