@@ -115,7 +115,12 @@ export const handleConnectionMessage = async ({
       NetworkController: NetworkController;
     }
   ).NetworkController;
-  const chainId = networkController.state.providerConfig.chainId;
+
+  const {
+    configuration: { chainId },
+  } = networkController.getNetworkClientById(
+    networkController.state?.selectedNetworkClientId,
+  );
 
   // Wait for bridge to be ready before handling messages.
   // It will wait until user accept/reject the connection request.

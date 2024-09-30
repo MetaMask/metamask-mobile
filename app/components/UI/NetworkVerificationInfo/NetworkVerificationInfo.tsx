@@ -38,7 +38,7 @@ import BottomSheetHeader from '../../../component-library/components/BottomSheet
 import {
   getNetworkImageSource,
   toggleUseSafeChainsListValidation,
-  isMutichainVersion1Enabled,
+  isMultichainVersion1Enabled,
 } from '../../../util/networks';
 import { NetworkApprovalModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkApprovalModal.selectors';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
@@ -104,7 +104,7 @@ const NetworkVerificationInfo = ({
     <>
       <Text
         variant={
-          !isMutichainVersion1Enabled
+          !isMultichainVersion1Enabled
             ? TextVariant.BodyMDBold
             : TextVariant.BodyMDMedium
         }
@@ -119,7 +119,7 @@ const NetworkVerificationInfo = ({
     <>
       <Text
         variant={
-          !isMutichainVersion1Enabled
+          !isMultichainVersion1Enabled
             ? TextVariant.BodyMDBold
             : TextVariant.BodyMDMedium
         }
@@ -136,7 +136,7 @@ const NetworkVerificationInfo = ({
     <>
       <Text
         variant={
-          !isMutichainVersion1Enabled
+          !isMultichainVersion1Enabled
             ? TextVariant.BodyMDBold
             : TextVariant.BodyMDMedium
         }
@@ -201,23 +201,23 @@ const NetworkVerificationInfo = ({
         networkDetailsExpanded ? styles.nestedScrollContent : undefined
       }
     >
-      {!isMutichainVersion1Enabled && renderNetworkDisplayName()}
+      {!isMultichainVersion1Enabled && renderNetworkDisplayName()}
 
-      {isMutichainVersion1Enabled && renderCurrencySymbol()}
+      {isMultichainVersion1Enabled && renderCurrencySymbol()}
 
-      {!isMutichainVersion1Enabled && renderChainId()}
+      {!isMultichainVersion1Enabled && renderChainId()}
 
-      {isMutichainVersion1Enabled ? (
+      {isMultichainVersion1Enabled ? (
         renderNetworkRpcUrlLabel()
       ) : (
         <Text
           variant={
-            !isMutichainVersion1Enabled
+            !isMultichainVersion1Enabled
               ? TextVariant.BodyMDBold
               : TextVariant.BodyMDMedium
           }
         >
-          {isMutichainVersion1Enabled
+          {isMultichainVersion1Enabled
             ? strings('networks.network_rpc_url_label')
             : strings('add_custom_network.network_url')}
         </Text>
@@ -230,15 +230,15 @@ const NetworkVerificationInfo = ({
         title={strings('spend_limit_edition.view_details')}
         onPress={() => setNetworkDetailsExpanded(!networkDetailsExpanded)}
       >
-        {isMutichainVersion1Enabled && renderChainId()}
+        {isMultichainVersion1Enabled && renderChainId()}
 
-        {isMutichainVersion1Enabled && renderNetworkDisplayName()}
+        {isMultichainVersion1Enabled && renderNetworkDisplayName()}
 
-        {!isMutichainVersion1Enabled && renderCurrencySymbol()}
+        {!isMultichainVersion1Enabled && renderCurrencySymbol()}
 
         <Text
           variant={
-            !isMutichainVersion1Enabled
+            !isMultichainVersion1Enabled
               ? TextVariant.BodyMDBold
               : TextVariant.BodyMDMedium
           }
@@ -361,7 +361,7 @@ const NetworkVerificationInfo = ({
     );
   }, [alerts, styles.textSection, safeChainsListValidationEnabled]);
 
-  return isMutichainVersion1Enabled && showReviewDefaultRpcUrlChanges ? (
+  return isMultichainVersion1Enabled && showReviewDefaultRpcUrlChanges ? (
     renderReviewDefaultNetworkRpcUrlChange()
   ) : showCheckNetwork ? (
     <View>
@@ -412,7 +412,7 @@ const NetworkVerificationInfo = ({
         <Text variant={TextVariant.HeadingMD}>
           {isCustomNetwork
             ? strings('networks.add_custom_network')
-            : isMutichainVersion1Enabled
+            : isMultichainVersion1Enabled
             ? strings('networks.add_specific_network', {
                 network_name: customNetworkInformation.chainName,
               })
@@ -428,11 +428,11 @@ const NetworkVerificationInfo = ({
         />
         {renderAlerts()}
         {renderBanner()}
-        {isMutichainVersion1Enabled &&
+        {isMultichainVersion1Enabled &&
           isCustomNetwork &&
           renderCustomNetworkBanner()}
         <Text style={styles.textCentred}>
-          {isMutichainVersion1Enabled ? (
+          {isMultichainVersion1Enabled ? (
             <Text>
               {strings(
                 'switch_custom_network.add_network_and_give_dapp_permission_warning',
