@@ -4,7 +4,7 @@ import { Theme } from '../../../util/theme/models';
 import Device from '../../../util/device';
 
 const height = Device.getDeviceHeight();
-const isSmallScreen = height < 780;
+const isMediumScreen = height < 780;
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors, typography } = theme;
@@ -15,7 +15,7 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
     },
     container: {
-      marginBottom: isSmallScreen ? 20 : 0,
+      marginBottom: isMediumScreen ? 20 : 0,
     },
     accountCardWrapper: {
       borderWidth: 1,

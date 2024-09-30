@@ -141,6 +141,11 @@ exports[`NetworkDetails renders correctly 1`] = `
           }
         >
           <View
+            style={
+              {
+                "marginBottom": 0,
+              }
+            }
             testID="approve-network-modal"
           >
             <View
