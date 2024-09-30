@@ -56,7 +56,7 @@ const AccountBase = ({
               variant={TextVariant.BodyMDBold}
               style={styles.accountNameLabelText}
             >
-              {strings(accountTypeLabel)}
+              {accountTypeLabel}
             </Text>
         </View>
         )}

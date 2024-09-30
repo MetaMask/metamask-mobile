@@ -48,6 +48,7 @@ import { Hex, isHexString } from '@metamask/utils';
 const {
   ASSET: { ERC721, ERC1155 },
 } = TransactionTypes;
+
 /**
  * Returns full checksummed address
  *
@@ -236,26 +237,27 @@ export function isExternalHardwareAccount(address: string) {
  * gets the internal account by address
  *
  * @param {String} address - String corresponding to an address
- * @returns {InternalAccount | null} - Returns the internal account by address
+ * @returns {InternalAccount | undefined} - Returns the internal account by address
  */
-function getInternalAccountByAddress(address: string): InternalAccount | null {
+function getInternalAccountByAddress(
+  address: string,
+): InternalAccount | undefined {
   const { accounts } = Engine.context.AccountsController.state.internalAccounts;
-  const account = Object.values(accounts).find(
+  return Object.values(accounts).find(
     (a: InternalAccount) => a.address === address,
   );
-  return account || null;
 }
 
 /**
- * gets i18n account label tag text based on the keyring type for that address
+ * gets account label tag text based on address
  *
  * @param {String} address - String corresponding to an address
- * @returns {String} - Returns address's i18n label text
+ * @returns {String} - Returns address's translated label text
  */
-export function getAccountLabelTextByKeyring(address: string) {
+export function getLabelTextByAddress(address: string) {
   if (!address) return null;
   const internalAccount = getInternalAccountByAddress(address);
-  const keyring = internalAccount?.metadata.keyring;
+  const keyring = internalAccount?.metadata?.keyring;
   if (keyring) {
     switch (keyring.type) {
       case ExtendedKeyringTypes.ledger:
@@ -268,7 +270,7 @@ export function getAccountLabelTextByKeyring(address: string) {
       case KeyringTypes.snap:
         return (
           internalAccount?.metadata.snap?.name ||
-          strings('account.snap_account_tag')
+          strings('accounts.snap_account_tag')
         );
       ///: END:ONLY_INCLUDE_IF
     }
@@ -560,6 +562,7 @@ export async function validateAddressOrENS(
     confusableCollection,
   };
 }
+
 /** Method to evaluate if an input is a valid ethereum address
  * via QR code scanning.
  *

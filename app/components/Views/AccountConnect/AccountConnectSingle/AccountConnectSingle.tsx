@@ -26,10 +26,7 @@ import Text, {
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
-import {
-  formatAddress,
-  getAccountLabelTextByKeyring,
-} from '../../../../util/address';
+import { formatAddress, getLabelTextByAddress } from '../../../../util/address';
 import { AccountConnectScreens } from '../AccountConnect.types';
 
 // Internal dependencies.
@@ -135,7 +132,7 @@ const AccountConnectSingle = ({
     if (!defaultSelectedAccount) return null;
     const { name, address, balanceError } = defaultSelectedAccount;
     const shortAddress = formatAddress(address, 'short');
-    const tagLabel = getAccountLabelTextByKeyring(address);
+    const tagLabel = getLabelTextByAddress(address);
 
     return (
       <Cell
@@ -149,7 +146,7 @@ const AccountConnectSingle = ({
           type: accountAvatarType,
           accountAddress: address,
         }}
-        tagLabel={tagLabel ? strings(tagLabel) : ''}
+        tagLabel={tagLabel || ''}
         disabled={isLoading}
         style={isLoading && styles.disabled}
       >
