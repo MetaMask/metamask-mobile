@@ -99,7 +99,7 @@ export const TokenListItem = ({
     : tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
 
   // render balances according to primary currency
-  let mainBalance = TOKEN_BALANCE_LOADING;
+  let mainBalance;
   let secondaryBalance;
 
   // Set main and secondary balances based on the primary currency and asset type.
