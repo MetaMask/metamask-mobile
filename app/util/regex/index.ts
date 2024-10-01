@@ -47,7 +47,7 @@ export const regex: RegexTypes = {
   transactionNonce: /^#/,
   url: new RegExp(
     // eslint-disable-next-line no-useless-escape
-    /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w.-]+)+[\w\-._~:\/?#[\]@!&',,=.+]+$/g,
+    /^(?:http(s)?:\/\/)?(?:[\w-]+\.)+[\w\-._~:\/?#[\]@!&',,=.+]+$/g,
   ),
   urlHttpToHttps: /^http:\/\//,
   validChainId: /^[0-9]+$/u,
