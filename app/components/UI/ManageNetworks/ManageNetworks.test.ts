@@ -27,7 +27,7 @@ const mockNetworkName: string = 'Ethereum Main Network';
 
 describe('ManageNetworks', () => {
   it('should render correctly', () => {
-    (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+    (useSelector as jest.Mock).mockImplementation((selector: (state: any) => any) => {
       if (selector === selectNetworkName) return mockNetworkName;
     });
     const { toJSON } = renderWithProvider(
