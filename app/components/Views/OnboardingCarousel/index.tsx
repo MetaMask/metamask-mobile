@@ -143,12 +143,8 @@ const carousel_images = [
 
 interface OnboardingCarouselProps {
   navigation: NavigationProp<ParamListBase>;
-  saveOnboardingEvent: (event: IMetaMetricsEvent) => {
-    event: IMetaMetricsEvent;
-    type: string;
-  };
+  saveOnboardingEvent: (...eventArgs: [IMetaMetricsEvent]) => void;
 }
-
 /**
  * View that is displayed to first time (new) users
  */
@@ -298,13 +294,9 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
   );
 };
 
-type AppDispatch = Dispatch<OnboardingActionTypes>;
-
-const mapDispatchToProps = (dispatch: AppDispatch) => ({
-  saveOnboardingEvent: (...eventArgs: [IMetaMetricsEvent]) => {
-    const [event] = eventArgs;
-    return dispatch(SaveEvent(event));
-  },
+const mapDispatchToProps = (dispatch: Dispatch<OnboardingActionTypes>) => ({
+  saveOnboardingEvent: (...eventArgs: [IMetaMetricsEvent]) =>
+    dispatch(SaveEvent(eventArgs)),
 });
 
 export default connect(null, mapDispatchToProps)(OnboardingCarousel);
