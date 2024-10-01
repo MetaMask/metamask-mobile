@@ -489,6 +489,7 @@
     "rn-nodeify": "10.3.0",
     "serve-handler": "^6.1.5",
     "simple-git": "^3.25.0",
+    "ts-jest": "^29.2.5",
     "typescript": "~5.4.5",
     "wdio-cucumberjs-json-reporter": "^4.4.3",
     "webpack": "^5.88.2",

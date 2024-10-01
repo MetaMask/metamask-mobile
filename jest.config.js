@@ -1,3 +1,8 @@
+/* eslint-disable import/no-extraneous-dependencies */
+/* eslint-disable import/no-commonjs */
+const { pathsToModuleNameMapper } = require('ts-jest');
+const { compilerOptions } = require('./tsconfig.json');
+
 process.env.TZ = 'America/Toronto';
 
 process.env.SEGMENT_DELETE_API_SOURCE_ID = 'testSourceId';
@@ -40,14 +45,17 @@ const config = {
   coverageReporters: ['text-summary', 'lcov'],
   coverageDirectory: '<rootDir>/tests/coverage',
   maxWorkers: process.env.NODE_ENV === 'production' ? '50%' : '20%',
+  modulePaths: [compilerOptions.baseUrl],
   moduleNameMapper: {
     '\\.svg': '<rootDir>/app/__mocks__/svgMock.js',
     '\\.png': '<rootDir>/app/__mocks__/pngMock.js',
     '\\webview/index.html': '<rootDir>/app/__mocks__/htmlMock.ts',
+    ...pathsToModuleNameMapper(compilerOptions.paths, {
+      prefix: '<rootDir>/',
+    }),
   },
   // Disable jest cache
   cache: false,
 };
-
 // eslint-disable-next-line import/no-commonjs
 module.exports = config;
