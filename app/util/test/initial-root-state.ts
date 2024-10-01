@@ -6,6 +6,7 @@ import { initialState as initialInpageProvider } from '../../core/redux/slices/i
 import { initialState as initialSmartTransactions } from '../../core/redux/slices/smartTransactions';
 import { initialState as transactionMetrics } from '../../core/redux/slices/transactionMetrics';
 import { initialState as originThrottling } from '../../core/redux/slices/originThrottling';
+import { initialState as initialFeatureFlagsState } from '../../core/redux/slices/featureFlags';
 import initialBackgroundState from './initial-background-state.json';
 import { userInitialState } from '../../reducers/user';
 
@@ -21,6 +22,7 @@ const initialRootState: RootState = {
   privacy: undefined,
   bookmarks: undefined,
   browser: undefined,
+  featureFlags: initialFeatureFlagsState,
   modals: undefined,
   settings: undefined,
   alert: undefined,
@@ -48,6 +50,7 @@ const initialRootState: RootState = {
   inpageProvider: initialInpageProvider,
   transactionMetrics,
   originThrottling,
+  notifications: {},
 };
 
 export default initialRootState;

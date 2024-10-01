@@ -47,7 +47,6 @@ jest.mock('./RPCQueueManager');
 jest.mock('./SDKConnectConstants');
 jest.mock('./SessionManagement');
 jest.mock('./StateManagement');
-jest.mock('../../core/Engine');
 
 describe('SDKConnect', () => {
   let sdkConnect: SDKConnect;
@@ -95,7 +94,7 @@ describe('SDKConnect', () => {
   >;
 
   const mockRemoveAll = removeAll as jest.MockedFunction<typeof removeAll>;
-  mockRemoveAll.mockResolvedValue(Promise.resolve());
+  mockRemoveAll.mockResolvedValue(true);
 
   const mockInvalidateChannel = invalidateChannel as jest.MockedFunction<
     typeof invalidateChannel

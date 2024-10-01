@@ -1,7 +1,11 @@
 /* eslint-disable import/no-commonjs */
 import URL from 'url-parse';
-import { ChainId } from '@metamask/controller-utils';
 import { JsonRpcEngine } from 'json-rpc-engine';
+import {
+  createSelectedNetworkMiddleware,
+  METAMASK_DOMAIN,
+} from '@metamask/selected-network-controller';
+import EthQuery from '@metamask/eth-query';
 import MobilePortStream from '../MobilePortStream';
 import { setupMultiplex } from '../../util/streams';
 import {
@@ -10,17 +14,12 @@ import {
 } from '../../util/middlewares';
 import Engine from '../Engine';
 import { createSanitizationMiddleware } from '../SanitizationMiddleware';
-import { getAllNetworks } from '../../util/networks';
 import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
 import { createEngineStream } from 'json-rpc-middleware-stream';
 import RemotePort from './RemotePort';
 import WalletConnectPort from './WalletConnectPort';
 import Port from './Port';
-import {
-  selectChainId,
-  selectProviderConfig,
-} from '../../selectors/networkController';
 import { store } from '../../store';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
@@ -81,6 +80,7 @@ export class BackgroundBridge extends EventEmitter {
     this.disconnected = false;
     this.getApprovedHosts = getApprovedHosts;
     this.channelId = channelId;
+    this.deprecatedNetworkVersions = {};
 
     this.createMiddleware = getRpcMethodMiddleware;
 
@@ -92,8 +92,22 @@ export class BackgroundBridge extends EventEmitter {
 
     this.engine = null;
 
-    this.chainIdSent = selectChainId(store.getState());
-    this.networkVersionSent = store.getState().inpageProvider.networkId;
+    const networkClientId = Engine.controllerMessenger.call(
+      'SelectedNetworkController:getNetworkClientIdForDomain',
+      this.hostname,
+    );
+
+    const networkClient = Engine.controllerMessenger.call(
+      'NetworkController:getNetworkClientById',
+      networkClientId,
+    );
+
+    this.lastChainIdSent = networkClient.configuration.chainId;
+
+    this.networkVersionSent = parseInt(
+      networkClient.configuration.chainId,
+      16,
+    ).toString();
 
     // This will only be used for WalletConnect for now
     this.addressSent =
@@ -116,6 +130,11 @@ export class BackgroundBridge extends EventEmitter {
 
     Engine.controllerMessenger.subscribe(
       'PreferencesController:stateChange',
+      this.sendStateUpdate,
+    );
+
+    Engine.controllerMessenger.subscribe(
+      'SelectedNetworkController:stateChange',
       this.sendStateUpdate,
     );
 
@@ -148,13 +167,12 @@ export class BackgroundBridge extends EventEmitter {
       DevLogger.log(`Error in BackgroundBridge: ${err}`);
     }
 
-    this.on('update', this.onStateUpdate);
+    this.on('update', () => this.onStateUpdate());
 
     if (this.isRemoteConn) {
       const memState = this.getState();
-      const publicState = this.getProviderNetworkState();
       const selectedAddress = memState.selectedAddress;
-      this.notifyChainChanged(publicState);
+      this.notifyChainChanged();
       this.notifySelectedAddressChanged(selectedAddress);
     }
   }
@@ -207,36 +225,46 @@ export class BackgroundBridge extends EventEmitter {
     });
   }
 
-  getProviderNetworkState() {
-    const providerConfig = selectProviderConfig(store.getState());
-    const networkType = providerConfig.type;
+  async getProviderNetworkState(origin = METAMASK_DOMAIN) {
+    const networkClientId = Engine.controllerMessenger.call(
+      'SelectedNetworkController:getNetworkClientIdForDomain',
+      origin,
+    );
 
-    const isInitialNetwork =
-      networkType && getAllNetworks().includes(networkType);
-    let chainId;
+    const networkClient = Engine.controllerMessenger.call(
+      'NetworkController:getNetworkClientById',
+      networkClientId,
+    );
 
-    if (isInitialNetwork) {
-      chainId = ChainId[networkType];
-    } else if (networkType === 'rpc') {
-      chainId = providerConfig.chainId;
+    const { chainId } = networkClient.configuration;
+
+    let networkVersion = this.deprecatedNetworkVersions[networkClientId];
+    if (!networkVersion) {
+      const ethQuery = new EthQuery(networkClient.provider);
+      networkVersion = await new Promise((resolve) => {
+        ethQuery.sendAsync({ method: 'net_version' }, (error, result) => {
+          if (error) {
+            console.error(error);
+            resolve(null);
+          } else {
+            resolve(result);
+          }
+        });
+      });
+      this.deprecatedNetworkVersions[networkClientId] = networkVersion;
     }
-    if (chainId && !chainId.startsWith('0x')) {
-      // Convert to hex
-      chainId = `0x${parseInt(chainId, 10).toString(16)}`;
-    }
 
-    const result = {
-      networkVersion: legacyNetworkId(),
+    return {
       chainId,
+      networkVersion: networkVersion ?? 'loading',
     };
-    return result;
   }
 
-  notifyChainChanged(params) {
+  async notifyChainChanged(params) {
     DevLogger.log(`notifyChainChanged: `, params);
     this.sendNotification({
       method: NOTIFICATION_NAMES.chainChanged,
-      params,
+      params: params ?? (await this.getProviderNetworkState(this.hostname)),
     });
   }
 
@@ -280,21 +308,21 @@ export class BackgroundBridge extends EventEmitter {
     }
   }
 
-  onStateUpdate(memState) {
+  async onStateUpdate(memState) {
     if (!memState) {
       memState = this.getState();
     }
-    const publicState = this.getProviderNetworkState();
+    const publicState = await this.getProviderNetworkState(this.hostname);
 
     // Check if update already sent
     if (
-      this.chainIdSent !== publicState.chainId ||
+      this.lastChainIdSent !== publicState.chainId ||
       (this.networkVersionSent !== publicState.networkVersion &&
         publicState.networkVersion !== NETWORK_ID_LOADING)
     ) {
-      this.chainIdSent = publicState.chainId;
+      this.lastChainIdSent = publicState.chainId;
       this.networkVersionSent = publicState.networkVersion;
-      this.notifyChainChanged(publicState);
+      await this.notifyChainChanged(publicState);
     }
     // ONLY NEEDED FOR WC FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
     if (this.isWalletConnect || this.isRemoteConn) {
@@ -312,10 +340,10 @@ export class BackgroundBridge extends EventEmitter {
     return Engine.context.KeyringController.isUnlocked();
   }
 
-  getProviderState() {
+  async getProviderState(origin) {
     return {
       isUnlocked: this.isUnlocked(),
-      ...this.getProviderNetworkState(),
+      ...(await this.getProviderNetworkState(origin)),
     };
   }
 
@@ -369,23 +397,29 @@ export class BackgroundBridge extends EventEmitter {
     const origin = this.hostname;
     // setup json rpc engine stack
     const engine = new JsonRpcEngine();
-    const { blockTracker, provider } =
-      Engine.context.NetworkController.getProviderAndBlockTracker();
+
+    // If the origin is not in the selectedNetworkController's `domains` state
+    // when the provider engine is created, the selectedNetworkController will
+    // fetch the globally selected networkClient from the networkController and wrap
+    // it in a proxy which can be switched to use its own state if/when the origin
+    // is added to the `domains` state
+    const proxyClient =
+      Engine.context.SelectedNetworkController.getProviderAndBlockTracker(
+        origin,
+      );
 
     // create filter polyfill middleware
-    const filterMiddleware = createFilterMiddleware({ provider, blockTracker });
+    const filterMiddleware = createFilterMiddleware(proxyClient);
 
     // create subscription polyfill middleware
-    const subscriptionManager = createSubscriptionManager({
-      provider,
-      blockTracker,
-    });
+    const subscriptionManager = createSubscriptionManager(proxyClient);
     subscriptionManager.events.on('notification', (message) =>
       engine.emit('notification', message),
     );
 
     // metadata
     engine.push(createOriginMiddleware({ origin }));
+    engine.push(createSelectedNetworkMiddleware(Engine.controllerMessenger));
     engine.push(createLoggerMiddleware({ origin }));
     // filter and subscription polyfills
     engine.push(filterMiddleware);
@@ -417,7 +451,7 @@ export class BackgroundBridge extends EventEmitter {
       snapMethodMiddlewareBuilder(
         Engine.context,
         Engine.controllerMessenger,
-        origin,
+        this.url,
         // We assume that origins connecting through the BackgroundBridge are websites
         SubjectType.Website,
       ),
@@ -435,7 +469,7 @@ export class BackgroundBridge extends EventEmitter {
     engine.push(createSanitizationMiddleware());
 
     // forward to metamask primary provider
-    engine.push(providerAsMiddleware(provider));
+    engine.push(providerAsMiddleware(proxyClient.provider));
     return engine;
   }
 

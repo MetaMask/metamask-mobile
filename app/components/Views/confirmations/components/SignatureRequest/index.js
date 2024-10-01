@@ -20,7 +20,6 @@ import ActionView, { ConfirmButtonState } from '../../../../UI/ActionView';
 import QRSigningDetails from '../../../../UI/QRHardware/QRSigningDetails';
 import withQRHardwareAwareness from '../../../../UI/QRHardware/withQRHardwareAwareness';
 import WebsiteIcon from '../../../../UI/WebsiteIcon';
-import WarningMessage from '../../SendFlow/WarningMessage';
 import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
 import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 
@@ -130,10 +129,6 @@ const createStyles = (colors) =>
 class SignatureRequest extends PureComponent {
   static propTypes = {
     /**
-     * Object representing the navigator
-     */
-    navigation: PropTypes.object,
-    /**
      * Callback triggered when this message signature is rejected
      */
     onReject: PropTypes.func,
@@ -158,10 +153,6 @@ class SignatureRequest extends PureComponent {
      */
     networkType: PropTypes.string,
     /**
-     * Whether it should display the warning message
-     */
-    showWarning: PropTypes.bool,
-    /**
      * Whether it should render the expand arrow icon
      */
     truncateMessage: PropTypes.bool,
@@ -175,10 +166,6 @@ class SignatureRequest extends PureComponent {
     fromAddress: PropTypes.string,
     isSigningQRObject: PropTypes.bool,
     QRState: PropTypes.object,
-    /**
-     * A string that represents the selected address
-     */
-    selectedAddress: PropTypes.string,
     testID: PropTypes.string,
     securityAlertResponse: PropTypes.object,
     /**
@@ -222,34 +209,9 @@ class SignatureRequest extends PureComponent {
     };
   };
 
-  goToWarning = () => {
-    this.props.onReject();
-    this.props.navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: 'https://support.metamask.io',
-        title: 'support.metamask.io',
-      },
-    });
-  };
-
   getStyles = () => {
     const colors = this.context.colors || mockTheme.colors;
     return createStyles(colors);
-  };
-
-  renderWarning = () => {
-    const styles = this.getStyles();
-
-    return (
-      <Text>
-        {strings('signature_request.eth_sign_warning')}
-        {` `}
-        <Text style={styles.warningLink}>
-          {strings('signature_request.learn_more')}
-        </Text>
-      </Text>
-    );
   };
 
   renderActionViewChildren = () => {
@@ -335,20 +297,15 @@ class SignatureRequest extends PureComponent {
   };
 
   renderSignatureRequest() {
-    const { securityAlertResponse, showWarning, type, selectedAddress } =
-      this.props;
+    const { securityAlertResponse, fromAddress } = this.props;
     let expandedHeight;
     const styles = this.getStyles();
-
-    const isLedgerAccount = isHardwareAccount(selectedAddress, [
+    const isLedgerAccount = isHardwareAccount(fromAddress, [
       ExtendedKeyringTypes.ledger,
     ]);
 
     if (Device.isMediumDevice()) {
       expandedHeight = styles.expandedHeight2;
-      if (type === 'ethSign') {
-        expandedHeight = styles.expandedHeight1;
-      }
     }
 
     let confirmButtonState = ConfirmButtonState.Normal;
@@ -379,17 +336,6 @@ class SignatureRequest extends PureComponent {
               <Text style={styles.signText}>
                 {strings('signature_request.signing')}
               </Text>
-              {showWarning ? (
-                <TouchableOpacity
-                  style={styles.warningWrapper}
-                  onPress={this.goToWarning}
-                >
-                  <WarningMessage
-                    type={'error'}
-                    warningMessage={this.renderWarning()}
-                  />
-                </TouchableOpacity>
-              ) : null}
             </View>
             <BlockaidBanner
               securityAlertResponse={securityAlertResponse}

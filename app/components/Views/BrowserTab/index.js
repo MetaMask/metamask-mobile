@@ -1,4 +1,10 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from 'react';
 import {
   Text,
   StyleSheet,
@@ -105,6 +111,7 @@ import { selectPermissionControllerState } from '../../../selectors/snaps/permis
 import { useIsFocused } from '@react-navigation/native';
 import handleWebViewFocus from '../../../util/browser/webViewFocus';
 import { isTest } from '../../../util/test/utils.js';
+import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -426,9 +433,9 @@ export const BrowserTab = (props) => {
   };
 
   /**
-   * Check if a hostname is allowed
+   * Check if an origin is allowed
    */
-  const isAllowedUrl = useCallback((hostname) => {
+  const isAllowedOrigin = useCallback((origin) => {
     const { PhishingController } = Engine.context;
 
     // Update phishing configuration if it is out-of-date
@@ -436,14 +443,14 @@ export const BrowserTab = (props) => {
     // down network requests. The configuration is updated for the next request.
     PhishingController.maybeUpdateState();
 
-    const phishingControllerTestResult = PhishingController.test(hostname);
+    const phishingControllerTestResult = PhishingController.test(origin);
 
     // Only assign the if the hostname is on the block list
     if (phishingControllerTestResult.result)
       blockListType.current = phishingControllerTestResult.name;
 
     return (
-      (allowList.current && allowList.current.includes(hostname)) ||
+      (allowList.current && allowList.current.includes(origin)) ||
       !phishingControllerTestResult.result
     );
   }, []);
@@ -563,7 +570,7 @@ export const BrowserTab = (props) => {
     async (url, initialCall) => {
       setIsResolvedIpfsUrl(false);
       const prefixedUrl = prefixUrlWithProtocol(url);
-      const { hostname, query, pathname } = new URL(prefixedUrl);
+      const { hostname, query, pathname, origin } = new URL(prefixedUrl);
       let urlToGo = prefixedUrl;
       const isEnsUrl = isENSUrl(url);
       const { current } = webviewRef;
@@ -585,7 +592,7 @@ export const BrowserTab = (props) => {
         }
       }
 
-      if (isAllowedUrl(hostname)) {
+      if (isAllowedOrigin(origin)) {
         if (initialCall || !firstUrlLoaded) {
           setInitialUrl(urlToGo);
           setFirstUrlLoaded(true);
@@ -609,7 +616,7 @@ export const BrowserTab = (props) => {
       handleNotAllowedUrl(urlToGo);
       return null;
     },
-    [firstUrlLoaded, handleIpfsContent, isAllowedUrl],
+    [firstUrlLoaded, handleIpfsContent, isAllowedOrigin],
   );
 
   /**
@@ -865,7 +872,7 @@ export const BrowserTab = (props) => {
    *  Return `true` to continue loading the request and `false` to stop loading.
    */
   const onShouldStartLoadWithRequest = ({ url }) => {
-    const { hostname } = new URL(url);
+    const { origin } = new URL(url);
 
     // Stops normal loading when it's ens, instead call go to be properly set up
     if (isENSUrl(url)) {
@@ -874,7 +881,7 @@ export const BrowserTab = (props) => {
     }
 
     // Cancel loading the page if we detect its a phishing page
-    if (!isAllowedUrl(hostname)) {
+    if (!isAllowedOrigin(origin)) {
       handleNotAllowedUrl(url);
       return false;
     }
@@ -1074,19 +1081,14 @@ export const BrowserTab = (props) => {
    */
   const onLoadStart = async ({ nativeEvent }) => {
     // Use URL to produce real url. This should be the actual website that the user is viewing.
-    const {
-      origin,
-      pathname = '',
-      query = '',
-      hostname,
-    } = new URL(nativeEvent.url);
+    const { origin, pathname = '', query = '' } = new URL(nativeEvent.url);
 
     // Reset the previous bridges
     backgroundBridges.current.length &&
       backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
 
     // Cancel loading the page if we detect its a phishing page
-    if (!isAllowedUrl(hostname)) {
+    if (!isAllowedOrigin(origin)) {
       handleNotAllowedUrl(url);
       return false;
     }
@@ -1504,6 +1506,11 @@ export const BrowserTab = (props) => {
     </View>
   );
 
+  const isExternalLink = useMemo(
+    () => props.linkType === EXTERNAL_LINK_TYPE,
+    [props.linkType],
+  );
+
   /**
    * Main render
    */
@@ -1525,13 +1532,18 @@ export const BrowserTab = (props) => {
                   'wc://',
                   'ethereum://',
                   'file://',
+                  // Needed for Recaptcha
+                  'about:srcdoc',
                 ]}
                 decelerationRate={'normal'}
                 ref={webviewRef}
                 renderError={() => (
                   <WebviewError error={error} returnHome={returnHome} />
                 )}
-                source={{ uri: initialUrl }}
+                source={{
+                  uri: initialUrl,
+                  ...(isExternalLink ? { headers: { Cookie: '' } } : null),
+                }}
                 injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
                 style={styles.webview}
                 onLoadStart={onLoadStart}
@@ -1576,6 +1588,10 @@ BrowserTab.propTypes = {
    * InitialUrl
    */
   initialUrl: PropTypes.string,
+  /**
+   * linkType - type of link to open
+   */
+  linkType: PropTypes.string,
   /**
    * Protocol string to append to URLs that have none
    */

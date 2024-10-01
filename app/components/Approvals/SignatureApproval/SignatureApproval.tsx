@@ -9,7 +9,6 @@ const SignatureApproval = () => {
   const onSignConfirm = useCallback(async () => {
     await onConfirm({
       waitForResult: true,
-      //@ts-expect-error - this is added via patch of approval controller
       deleteAfterResult: true,
       handleErrors: false,
     });
@@ -17,11 +16,9 @@ const SignatureApproval = () => {
 
   const messageParams =
     approvalRequest &&
-    [
-      ApprovalTypes.ETH_SIGN,
-      ApprovalTypes.PERSONAL_SIGN,
-      ApprovalTypes.ETH_SIGN_TYPED_DATA,
-    ].includes(approvalRequest.type as ApprovalTypes)
+    [ApprovalTypes.PERSONAL_SIGN, ApprovalTypes.ETH_SIGN_TYPED_DATA].includes(
+      approvalRequest.type as ApprovalTypes,
+    )
       ? approvalRequest?.requestData
       : undefined;
 

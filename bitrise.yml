@@ -66,7 +66,7 @@ pipelines:
       - create_build_qa_android: {}
       - app_launch_times_test_stage: {}
 
-#App Upgrade pipeline. Runs on browserstack
+  #App Upgrade pipeline. Runs on browserstack
   app_upgrade_pipeline:
     stages:
       - create_build_qa_android: {}
@@ -166,6 +166,7 @@ stages:
       - run_tag_smoke_core_ios: {}
       - run_tag_smoke_core_android: {}
       - run_tag_upgrade_android: {}
+      - run_android_app_launch_times_appium_test: {}
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
@@ -248,16 +249,17 @@ workflows:
   prep_environment:
     steps:
       - script@1:
+          title: node, yarn, corepack installation
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 echo "Gems being installed with bundler gem"
-                bundle install
+                bundle install --gemfile=ios/Gemfile
                 echo "Node $NODE_VERSION being installed"
 
                 set -e
 
-                # Install and enable NVM
+                # Add and enable NVM
                 wget -O install-nvm.sh "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh"
                 echo "${NVM_SHA256SUM} install-nvm.sh" > install-nvm.sh.SHA256SUM
                 sha256sum -c install-nvm.sh.SHA256SUM
@@ -275,15 +277,16 @@ workflows:
                 npm i -g "corepack@$COREPACK_VERSION"
                 echo "Corepack enabling $YARN_VERSION"
                 corepack enable
-          title: Install node, yarn and corepack
-  install_detox:
+  install_applesimutils:
     steps:
-    - script@1:
-        inputs:
-          - content: |-
-              #!/usr/bin/env bash
-              scripts/detox-setup.sh
-        title: Install Detox Dependencies
+      - script@1:
+          title: applesimutils installation
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo "Now installing applesimutils..."
+                brew tap wix/brew
+                brew install applesimutils
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
@@ -397,6 +400,9 @@ workflows:
                 >[!NOTE]
                 >- You can kick off another `${BITRISEIO_PIPELINE_TITLE}` on Bitrise by removing and re-applying the `Run Smoke E2E` label on the pull request
 
+                > [!TIP]
+                >- Check the [documentation](https://www.notion.so/metamask-consensys/Bitrise-Pipeline-Overview-43159500c43748a389556f0593e8834b#26052f2ea6e24f8c9cfdb57a7522dc1f) if you have any doubts on how to understand the failure on bitrise
+
                 <!-- BITRISE_TAG -->
                 <!-- BITRISE_FAIL_TAG -->
             - repository_url: '$GIT_REPOSITORY_URL'
@@ -459,9 +465,9 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - PRODUCTION_APP_URL: 'bs://f0eefdd04dd0b913eb8b6494e4990e3e9f1c2bd3' # Last production's QA build
-      - PRODUCTION_BUILD_NAME: 7.26.1
-      - PRODUCTION_BUILD_NUMBER: 1360
+      - PRODUCTION_APP_URL: 'bs://46f0542276828b691f56adec25ac81065b5abf73' # Last production's QA build
+      - PRODUCTION_BUILD_NAME: 7.30.0
+      - PRODUCTION_BUILD_NUMBER: 1410
       - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
       - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_NAME ($PRODUCTION_BUILD_NUMBER)'
       - NEW_BUILD_STRING: 'MetaMask-QA v$VERSION_NAME ($VERSION_NUMBER)'
@@ -565,7 +571,6 @@ workflows:
   android_e2e_build:
     before_run:
       - code_setup
-      - install_detox
       - set_commit_hash
     after_run:
       - notify_failure
@@ -640,7 +645,6 @@ workflows:
   android_e2e_test:
     before_run:
       - setup
-      - install_detox
       - prep_environment
     after_run:
       - notify_failure
@@ -733,7 +737,7 @@ workflows:
   ios_api_specs:
     before_run:
       - setup
-      - install_detox
+      - install_applesimutils
       - prep_environment
     after_run:
       - notify_failure
@@ -799,8 +803,8 @@ workflows:
           title: Deploy test report files
   ios_e2e_build:
     before_run:
+      - install_applesimutils
       - code_setup
-      - install_detox
       - set_commit_hash
     after_run:
       - notify_failure
@@ -829,7 +833,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                brew install ccache with HOMEBREW_NO_DEPENDENTS_CHECK=1
+                HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew install ccache
                 ln -s $(which ccache) /usr/local/bin/gcc
                 ln -s $(which ccache) /usr/local/bin/g++
                 ln -s $(which ccache) /usr/local/bin/cc
@@ -886,7 +890,7 @@ workflows:
   ios_e2e_test:
     before_run:
       - setup
-      - install_detox
+      - install_applesimutils
       - prep_environment
     after_run:
       - notify_failure
@@ -1493,16 +1497,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.29.0
+      VERSION_NAME: 7.31.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1397
+      VERSION_NUMBER: 1432
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.29.0
+      FLASK_VERSION_NAME: 7.31.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1397
+      FLASK_VERSION_NUMBER: 1432
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -1533,10 +1537,12 @@ meta:
     machine_type_id: g2-m1-max.5core
 trigger_map:
   - push_branch: release/*
-    pipeline: release_e2e_pipeline
+    pipeline: pr_regression_e2e_pipeline
   - push_branch: main
-    pipeline: pr_smoke_e2e_pipeline
+    pipeline: app_launch_times_pipeline
   - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline
+  - tag: 'v*.*.*-RC-*'
+    pipeline: release_e2e_pipeline

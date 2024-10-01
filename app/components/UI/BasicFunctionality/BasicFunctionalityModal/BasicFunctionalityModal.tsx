@@ -26,11 +26,14 @@ import Icon, {
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../constants/navigation/Routes';
-import {
-  asyncAlert,
-  requestPushNotificationsPermission,
-} from '../../../../util/notifications';
+import NotificationsService from '../../../../util/notifications/services/NotificationService';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
+import { useMetrics } from '../../../hooks/useMetrics';
+import {
+  selectIsProfileSyncingEnabled,
+  selectIsMetamaskNotificationsEnabled,
+} from '../../../../selectors/notifications';
 
 interface Props {
   route: {
@@ -41,6 +44,7 @@ interface Props {
 }
 
 const BasicFunctionalityModal = ({ route }: Props) => {
+  const { trackEvent } = useMetrics();
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -49,28 +53,38 @@ const BasicFunctionalityModal = ({ route }: Props) => {
   const isEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
+  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+  const isNotificationsFeatureEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
 
   const { enableNotifications } = useEnableNotifications();
 
   const enableNotificationsFromModal = useCallback(async () => {
-    const nativeNotificationStatus = await requestPushNotificationsPermission(
-      asyncAlert,
-    );
-
-    if (nativeNotificationStatus) {
-      /**
-       * Although this is an async function, we are dispatching an action (firing & forget)
-       * to emulate optimistic UI.
-       *
-       */
-      enableNotifications();
+    const { permission } = await NotificationsService.getAllPermissions(false);
+    if (permission !== 'authorized') {
+      return;
     }
+      enableNotifications();
   }, [enableNotifications]);
 
   const closeBottomSheet = async () => {
-    bottomSheetRef.current?.onCloseBottomSheet(() =>
-      dispatch(toggleBasicFunctionality(!isEnabled)),
-    );
+    bottomSheetRef.current?.onCloseBottomSheet(() => {
+      dispatch(toggleBasicFunctionality(!isEnabled));
+      trackEvent(
+        !isEnabled
+          ? MetaMetricsEvents.BASIC_FUNCTIONALITY_ENABLED
+          : MetaMetricsEvents.BASIC_FUNCTIONALITY_DISABLED,
+      );
+      trackEvent(MetaMetricsEvents.SETTINGS_UPDATED, {
+        settings_group: 'security_privacy',
+        settings_type: 'basic_functionality',
+        old_value: isEnabled,
+        new_value: !isEnabled,
+        was_notifications_on: isEnabled ? isNotificationsFeatureEnabled : false,
+        was_profile_syncing_on: isEnabled ? isProfileSyncingEnabled : false,
+      });
+    });
 
     if (
       route.params.caller === Routes.SETTINGS.NOTIFICATIONS ||
