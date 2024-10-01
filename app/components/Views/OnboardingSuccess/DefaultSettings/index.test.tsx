@@ -2,7 +2,7 @@
 import React from 'react';
 
 // Internal dependencies.
-import DefaultSettings from './index';
+import DefaultSettings from '.';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { useSelector } from 'react-redux';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
