@@ -47,8 +47,8 @@ const AmountInput: React.FC<Props> = ({
   onPress,
   onCurrencyPress,
 }: Props) => (
-  <Box label={label} highlighted={highlighted}>
-    <ListItem style={{ padding: 0 }}>
+  <Box label={label} highlighted={highlighted} compact>
+    <ListItem>
       <ListItemColumn widthType={WidthType.Fill}>
         <TouchableOpacity
           accessible
