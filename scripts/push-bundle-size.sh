@@ -33,7 +33,7 @@ temp_dir="$(mktemp -d)"
 trap 'rm -rf "$temp_dir"' EXIT
 
 # Clone the repository
-repo_url="https://$GITHUB_ACTOR:$MOBILE_BUNDLESIZE_TOKEN@github.com/metamask/mobile_bundlesize_stats.git"
+repo_url="https://$GITHUB_ACTOR:$GITHUB_TOKEN@github.com/metamask/mobile_bundlesize_stats.git"
 if ! git clone "$repo_url" "$temp_dir"; then
     log "Error: Failed to clone repository"
     exit 1
