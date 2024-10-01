@@ -249,16 +249,17 @@ workflows:
   prep_environment:
     steps:
       - script@1:
+          title: node, yarn, corepack installation
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 echo "Gems being installed with bundler gem"
-                bundle install
+                bundle install --gemfile=ios/Gemfile
                 echo "Node $NODE_VERSION being installed"
 
                 set -e
 
-                # Install and enable NVM
+                # Add and enable NVM
                 wget -O install-nvm.sh "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh"
                 echo "${NVM_SHA256SUM} install-nvm.sh" > install-nvm.sh.SHA256SUM
                 sha256sum -c install-nvm.sh.SHA256SUM
@@ -276,15 +277,16 @@ workflows:
                 npm i -g "corepack@$COREPACK_VERSION"
                 echo "Corepack enabling $YARN_VERSION"
                 corepack enable
-          title: Install node, yarn and corepack
-  install_detox:
+  install_applesimutils:
     steps:
       - script@1:
+          title: applesimutils installation
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                scripts/detox-setup.sh
-          title: Install Detox Dependencies
+                echo "Now installing applesimutils..."
+                brew tap wix/brew
+                brew install applesimutils
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
@@ -569,7 +571,6 @@ workflows:
   android_e2e_build:
     before_run:
       - code_setup
-      - install_detox
       - set_commit_hash
     after_run:
       - notify_failure
@@ -644,7 +645,6 @@ workflows:
   android_e2e_test:
     before_run:
       - setup
-      - install_detox
       - prep_environment
     after_run:
       - notify_failure
@@ -737,7 +737,7 @@ workflows:
   ios_api_specs:
     before_run:
       - setup
-      - install_detox
+      - install_applesimutils
       - prep_environment
     after_run:
       - notify_failure
@@ -803,8 +803,8 @@ workflows:
           title: Deploy test report files
   ios_e2e_build:
     before_run:
+      - install_applesimutils
       - code_setup
-      - install_detox
       - set_commit_hash
     after_run:
       - notify_failure
@@ -833,7 +833,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                brew install ccache with HOMEBREW_NO_DEPENDENTS_CHECK=1
+                HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew install ccache
                 ln -s $(which ccache) /usr/local/bin/gcc
                 ln -s $(which ccache) /usr/local/bin/g++
                 ln -s $(which ccache) /usr/local/bin/cc
@@ -890,7 +890,7 @@ workflows:
   ios_e2e_test:
     before_run:
       - setup
-      - install_detox
+      - install_applesimutils
       - prep_environment
     after_run:
       - notify_failure
