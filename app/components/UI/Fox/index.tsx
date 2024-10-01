@@ -13,7 +13,7 @@ interface FoxProps {
   style?: ViewStyle;
   customStyle?: string;
   customContent?: string;
-  forwardedRef?: unknown;
+  forwardedRef?: React.ForwardedRef<WebView>;
 }
 
 const createStyles = (colors) =>
