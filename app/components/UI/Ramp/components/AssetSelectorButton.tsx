@@ -30,9 +30,15 @@ const AssetSelectorButton: React.FC<Props> = ({
   highlighted,
   ...props
 }: Props) => (
-  <Box label={label} onPress={onPress} highlighted={highlighted} {...props}>
+  <Box
+    label={label}
+    onPress={onPress}
+    highlighted={highlighted}
+    compact
+    {...props}
+  >
     <View>
-      <ListItem style={{ padding: 0 }}>
+      <ListItem>
         {Boolean(icon) && <ListItemColumn>{icon}</ListItemColumn>}
 
         <ListItemColumn widthType={WidthType.Fill}>

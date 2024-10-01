@@ -40,9 +40,9 @@ const PaymentMethodSelector: React.FC<IProps> = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
-    <Box label={label} onPress={onPress} highlighted={highlighted}>
+    <Box label={label} onPress={onPress} highlighted={highlighted} compact>
       <View>
-        <ListItem style={{ padding: 0 }}>
+        <ListItem>
           {Boolean(icon) && <ListItemColumn>{icon}</ListItemColumn>}
 
           <ListItemColumn widthType={WidthType.Fill}>
