@@ -1,8 +1,9 @@
 import { PureComponent } from 'react';
 import { BackHandler, InteractionManager } from 'react-native';
+import { NavigationProp } from '@react-navigation/native';
 
 interface AndroidBackHandlerProps {
-  navigation?: unknown;
+  navigation?: NavigationProp<any>;
   customBackPress?: (() => void) | undefined;
 }
 
@@ -35,10 +36,11 @@ export default class AndroidBackHandler extends PureComponent<AndroidBackHandler
       if (customBackPress) {
         customBackPress();
       } else {
-        navigation && (navigation as { goBack: () => void }).goBack();
+        navigation?.goBack();
       }
       setTimeout(() => (this.pressed = false), 300);
     }
+    return true;
   };
 
   render() {
