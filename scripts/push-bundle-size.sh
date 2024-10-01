@@ -29,7 +29,7 @@ git config --global user.email "metamaskbot@users.noreply.github.com"
 git config --global user.name "MetaMask Bot"
 
 # Create a temporary directory
-temp_dir=$(mktemp -d)
+temp_dir="$(mktemp -d)"
 trap 'rm -rf "$temp_dir"' EXIT
 
 # Clone the repository
