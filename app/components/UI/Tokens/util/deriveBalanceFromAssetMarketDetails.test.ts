@@ -50,7 +50,7 @@ describe('deriveBalanceFromAssetMarketDetails', () => {
     (safeToChecksumAddress as jest.Mock).mockReturnValue('0x123');
   });
 
-  it('should return balanceFiat and balanceValueFormatted when token data is available', () => {
+  it('returns balanceFiat and balanceValueFormatted when token data is available', () => {
     (renderFromTokenMinimalUnit as jest.Mock).mockReturnValue('2');
     (balanceToFiatNumber as jest.Mock).mockReturnValue(4);
     (addCurrencySymbol as jest.Mock).mockReturnValue('$4.00');
