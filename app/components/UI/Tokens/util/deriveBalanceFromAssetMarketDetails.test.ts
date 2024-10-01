@@ -69,7 +69,7 @@ describe('deriveBalanceFromAssetMarketDetails', () => {
     });
   });
 
-  it('should return TOKEN_BALANCE_LOADING when balance is missing and asset is not ETH', () => {
+  it('returns TOKEN_BALANCE_LOADING when token balance is missing', () => {
     const modifiedAsset = { ...asset, balance: '' };
     (renderFromTokenMinimalUnit as jest.Mock).mockReturnValue('');
 
