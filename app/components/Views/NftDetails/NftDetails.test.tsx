@@ -1,5 +1,5 @@
 import React from 'react';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider, { DeepPartial } from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { RootState } from 'app/reducers';
@@ -152,10 +152,6 @@ jest.mock('../../../../app/reducers/collectibles/index.js', () => ({
 
 const mockCollectiblesSelector = collectiblesSelector as unknown as jest.Mock;
 
-type PartialDeepState<T> = {
-  [P in keyof T]?: PartialDeepState<T[P]>;
-};
-
 const initialState = {
   engine: {
     backgroundState,
@@ -180,7 +176,7 @@ jest.mock('@react-navigation/native', () => {
 
 const Stack = createStackNavigator();
 
-const renderComponent = (state: PartialDeepState<RootState> = {}) =>
+const renderComponent = (state: DeepPartial<RootState> = {}) =>
   renderWithProvider(
     <Stack.Navigator>
       <Stack.Screen name="NftDetails">{() => <NftDetails />}</Stack.Screen>
@@ -239,7 +235,7 @@ describe('NftDetails', () => {
     mockUseParamsValues = {
       collectible: {
         ...TEST_COLLECTIBLE,
-        description: undefined,
+        description: null as unknown as string,
       },
     };
 
