@@ -10,7 +10,7 @@ const style = {
   title: { marginTop: 20, fontSize: 20, fontWeight: '700' },
 };
 
-storiesOf('App Components / InfoRow', module)
+storiesOf('Confirmations / InfoRow', module)
   .addDecorator((getStory) => getStory())
   .add('Default', () => (
     <View style={style.container}>

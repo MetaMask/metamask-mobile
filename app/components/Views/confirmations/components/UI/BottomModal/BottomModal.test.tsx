@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import BottomModal from '.';
 
 describe('BottomModal', () => {

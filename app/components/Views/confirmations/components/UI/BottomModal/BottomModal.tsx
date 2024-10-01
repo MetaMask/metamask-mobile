@@ -1,11 +1,11 @@
-import React, { ReactChild } from 'react';
+import React, { ReactNode } from 'react';
 import Modal from 'react-native-modal';
 import { StyleSheet } from 'react-native';
 
-import { useTheme } from '../../../util/theme';
+import { useTheme } from '../../../../../../util/theme';
 
 interface BottomModalProps {
-  children: ReactChild;
+  children: ReactNode;
   onClose?: () => void;
 }
 

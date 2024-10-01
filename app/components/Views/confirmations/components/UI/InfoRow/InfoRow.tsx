@@ -1,12 +1,12 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { Text, View } from 'react-native';
 
-import { useTheme } from '../../../util/theme';
+import { useTheme } from '../../../../../../util/theme';
 import createStyles from './style';
 
 interface InfoRowProps {
   label: string;
-  children: React.ReactNode | string;
+  children: ReactNode | string;
   tooltip?: string;
 }
 

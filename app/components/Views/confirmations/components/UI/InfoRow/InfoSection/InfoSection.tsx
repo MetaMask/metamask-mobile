@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { View } from 'react-native';
 
-import { useTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../../../../util/theme';
 import createStyles from './style';
 
 interface InfoSectionProps {
-  children: React.ReactNode | string;
+  children: ReactNode;
 }
 
 const InfoSection = ({ children }: InfoSectionProps) => {
