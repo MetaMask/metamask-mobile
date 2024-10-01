@@ -1,18 +1,15 @@
-import configureStore from 'redux-mock-store';
 import { useSwapConfirmedEvent } from './RootRPCMethodsUI';
 import { act } from '@testing-library/react-hooks';
 import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 
 const TRANSACTION_META_ID_MOCK = '04541dc0-2e69-11ef-b995-33aef2c88d1e';
 
-const mockStore = configureStore([]);
-
 function renderUseSwapConfirmedEventHook({
   swapsTransactions,
   trackSwaps,
 }: {
-  swapsTransactions: any;
-  trackSwaps?: jest.Func;
+  swapsTransactions: Record<string, unknown>;
+  trackSwaps?: jest.Mock;
 }) {
   const finalTrackSwaps = trackSwaps || jest.fn();
 
@@ -32,8 +29,6 @@ function renderUseSwapConfirmedEventHook({
     },
   );
 }
-
-const mockTrackSwaps = jest.fn();
 
 describe('useSwapConfirmedEvent', () => {
   it('queues transactionMeta ids correctly', () => {
