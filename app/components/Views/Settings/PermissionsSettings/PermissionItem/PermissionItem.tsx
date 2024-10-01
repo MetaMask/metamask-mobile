@@ -40,14 +40,14 @@ const PermissionItem: React.FC<PermissionListItemProps> = ({
         </View>
         <View style={styles.row}>
           <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-            {item.numberOfAccountPermissions}
+            {item.numberOfAccountPermissions}{' '}
             {item.numberOfAccountPermissions > 1
               ? strings('app_settings.accounts')
               : strings('app_settings.account')}
           </Text>
           <Text style={styles.dot}> • </Text>
           <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-            {item.numberOfNetworkPermissions}
+            {item.numberOfNetworkPermissions}{' '}
             {item.numberOfNetworkPermissions > 1
               ? strings('app_settings.networks')
               : strings('app_settings.network')}
