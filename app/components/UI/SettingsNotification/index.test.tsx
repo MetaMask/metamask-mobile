@@ -4,9 +4,7 @@ import SettingsNotification from './';
 import { StyleSheet } from 'react-native';
 
 const defaultStyle = StyleSheet.create({
-  defaultStyle: {
-    flex: 1,
-  },
+  defaultStyle: {},
 });
 
 describe('SettingsNotification', () => {
