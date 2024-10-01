@@ -2,10 +2,8 @@
 import React from 'react';
 
 // Internal dependencies.
-import DefaultSettings from '.';
+import DefaultSettings from './index';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-// @ts-expect-error - useNavigation is imported but not used, suppressing the error
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
 
@@ -32,18 +30,12 @@ jest.mock('react-redux', () => ({
 
 const mockNetworkName = 'Ethereum Main Network';
 
-// @ts-expect-error - Using any for RootState in test file
-type RootState = any; // TODO: Replace 'any' with the actual RootState type
-type Selector = (state: RootState) => string;
-
 describe('DefaultSettings', () => {
   it('should render correctly', () => {
-    (useSelector as jest.Mock).mockImplementation((selector: Selector) => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectNetworkName) return mockNetworkName;
     });
-    const { toJSON } = renderWithProvider(
-      <DefaultSettings />,
-    );
+    const { toJSON } = renderWithProvider(<DefaultSettings />);
     expect(toJSON()).toMatchSnapshot();
   });
 });
