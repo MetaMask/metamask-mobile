@@ -4544,6 +4544,17 @@
     "@metamask/utils" "^8.1.0"
     ethereum-cryptography "^2.1.2"
 
+"@metamask/eth-hd-keyring@^7.0.4":
+  version "7.0.4"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-hd-keyring/-/eth-hd-keyring-7.0.4.tgz#1db788db66d956b8334a1b174983b753e39701d6"
+  integrity sha512-+qXgo8hetQbRJb/j4poloBng1HxNMTQvZG2SsGmfXaauQrpIk7T7T/r3i8K0v1rKVwhqELooyRuB0QzWE1OrRQ==
+  dependencies:
+    "@ethereumjs/util" "^8.1.0"
+    "@metamask/eth-sig-util" "^7.0.3"
+    "@metamask/scure-bip39" "^2.1.1"
+    "@metamask/utils" "^9.2.1"
+    ethereum-cryptography "^2.1.2"
+
 "@metamask/eth-json-rpc-infura@^9.0.0", "@metamask/eth-json-rpc-infura@^9.1.0":
   version "9.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-infura/-/eth-json-rpc-infura-9.1.0.tgz#8e09588ed58f49058615cab7040dcbce4682a292"
@@ -4648,6 +4659,17 @@
     "@ethereumjs/util" "^8.1.0"
     "@metamask/eth-sig-util" "^7.0.0"
     "@metamask/utils" "^8.1.0"
+    ethereum-cryptography "^2.1.2"
+    randombytes "^2.1.0"
+
+"@metamask/eth-simple-keyring@^6.0.5":
+  version "6.0.5"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-simple-keyring/-/eth-simple-keyring-6.0.5.tgz#3e2f783092f9d873740e43852880216192802290"
+  integrity sha512-VqpD/TnBMHyEC/16YNEcGF+A29tZ/bwMKZTjFvQTQbTjbDS9ext2zmZsO9KA6PBGqGkoIdAERuKoxedjcCWoYg==
+  dependencies:
+    "@ethereumjs/util" "^8.1.0"
+    "@metamask/eth-sig-util" "^7.0.3"
+    "@metamask/utils" "^9.2.1"
     ethereum-cryptography "^2.1.2"
     randombytes "^2.1.0"
 
@@ -4873,6 +4895,18 @@
     bech32 "^2.0.0"
     uuid "^9.0.1"
 
+"@metamask/keyring-api@^8.1.3":
+  version "8.1.3"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-8.1.3.tgz#53e6a68236b88592db5bd43cf7e0d7e97dfad818"
+  integrity sha512-Ztm4G/U5hc+GKS/VOnqLWYVh2O26lFQ03bNpeufrfKq7regydIqYuHFcSowbQyj7xCZqKPsvl9jxhKdYIxvCXQ==
+  dependencies:
+    "@metamask/snaps-sdk" "^6.5.1"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^9.2.1"
+    "@types/uuid" "^9.0.8"
+    bech32 "^2.0.0"
+    uuid "^9.0.1"
+
 "@metamask/keyring-controller@^16.0.0":
   version "16.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-16.1.0.tgz#f15e9a0fd0242dc049e964d0a72d0f2ce00d3463"
@@ -4905,6 +4939,25 @@
     "@metamask/eth-sig-util" "^7.0.1"
     "@metamask/eth-simple-keyring" "^6.0.1"
     "@metamask/keyring-api" "^8.1.0"
+    "@metamask/message-manager" "^10.1.1"
+    "@metamask/utils" "^9.1.0"
+    async-mutex "^0.5.0"
+    ethereumjs-wallet "^1.0.1"
+    immer "^9.0.6"
+
+"@metamask/keyring-controller@^17.2.2":
+  version "17.2.2"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-17.2.2.tgz#944bc693305b4a6e4f1e73739a82c4bc6573dd9a"
+  integrity sha512-Shqk0ybcTPrHQLlBJ1V+InuYC7nD3/a6Ws0XCcBCOfkLTXvtSooKIWBioK83XlHMHkfsM6+bySxSqXJVgJvBZw==
+  dependencies:
+    "@ethereumjs/util" "^8.1.0"
+    "@keystonehq/metamask-airgapped-keyring" "^0.14.1"
+    "@metamask/base-controller" "^7.0.1"
+    "@metamask/browser-passworder" "^4.3.0"
+    "@metamask/eth-hd-keyring" "^7.0.4"
+    "@metamask/eth-sig-util" "^7.0.1"
+    "@metamask/eth-simple-keyring" "^6.0.5"
+    "@metamask/keyring-api" "^8.1.3"
     "@metamask/message-manager" "^10.1.1"
     "@metamask/utils" "^9.1.0"
     async-mutex "^0.5.0"
@@ -5239,12 +5292,14 @@
     "@metamask/base-controller" "^5.0.2"
     "@metamask/controller-utils" "^9.1.0"
 
-"@metamask/profile-sync-controller@^0.8.1":
-  version "0.8.1"
-  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-0.8.1.tgz#f2c5c89710286ad885756fe887405edb51fd3d81"
-  integrity sha512-kD9NxAJxly1ngD8RE6wK+hGIDhoHwYG5RBqP3rRAdtr2pOVlCFAbNVFZjfjFyEK8fpOw+5qwhR3h0yKzjVrzaw==
+"@metamask/profile-sync-controller@npm:@metamask-previews/profile-sync-controller@0.9.4-preview-2b91ea1":
+  version "0.9.4-preview-2b91ea1"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/profile-sync-controller/-/profile-sync-controller-0.9.4-preview-2b91ea1.tgz#f35df9100210ba99754b889472f2bd49170ba810"
+  integrity sha512-hbadGM2Py2y23eW2m9R72sGLdi+UmcIFzWph+EhNMHV0bhwr9+4LoCznI/T94iyOlarIpAhJMVnqT671hTSjCA==
   dependencies:
     "@metamask/base-controller" "^7.0.1"
+    "@metamask/keyring-api" "^8.1.3"
+    "@metamask/keyring-controller" "^17.2.2"
     "@metamask/snaps-sdk" "^6.5.0"
     "@metamask/snaps-utils" "^8.1.1"
     "@noble/ciphers" "^0.5.2"
