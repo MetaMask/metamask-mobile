@@ -133,7 +133,7 @@ describe('deriveBalanceFromAssetMarketDetails', () => {
     });
   });
 
-  it('should return < 0.01 USD if fiat balance is less than 0.01', () => {
+  it('returns "< 0.01 USD" if fiat balance is less than 0.01', () => {
     (renderFromTokenMinimalUnit as jest.Mock).mockReturnValue('2');
     (balanceToFiatNumber as jest.Mock).mockReturnValue(0.005);
     (addCurrencySymbol as jest.Mock).mockReturnValue('$0.01');
