@@ -102,7 +102,7 @@ describe('deriveBalanceFromAssetMarketDetails', () => {
     });
   });
 
-  it('should return balanceFiat and TOKEN_BALANCE_LOADING if conversionRate is not available and asset is ETH', () => {
+  it('returns balanceFiat and TOKEN_BALANCE_LOADING if ETH conversionRate is not available', () => {
     const modifiedAsset = { ...asset, isETH: true };
     const result = deriveBalanceFromAssetMarketDetails(
       modifiedAsset,
