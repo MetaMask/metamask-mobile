@@ -51,7 +51,8 @@ base64 -i ./android/app/google-services-example.json
 
 Copy the result to your clipboard and paste it in the GOOGLE_SERVICES_B64 variable in the .env file you are running the app.
 
-ATTENTION: In case you don't provide your own Firebase project config file, you will face the error `No matching client found for package name 'io.metamask'`.
+> [!CAUTION]
+> In case you don't provide your own Firebase project config file, you will face the error `No matching client found for package name 'io.metamask'`.
 
 You can make usage of a mock file at `android/app/google-services-example.json`, following the same steps above from the root of the project.
 
