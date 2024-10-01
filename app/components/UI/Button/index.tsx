@@ -50,15 +50,15 @@ interface ButtonPropTypes {
    * it can be a text node, an image, or an icon
    * or an Array with a combination of them
    */
-  children: ReactNode;
+  children?: ReactNode;
   /**
    * Styles to be applied to the Button
    */
-  style: StyleProp<ViewStyle>;
+  style?: StyleProp<ViewStyle>;
   /**
    * Function to be called on press
    */
-  onPress: (event: GestureResponderEvent) => void;
+  onPress?: (event: GestureResponderEvent) => void;
 }
 
 export default Button;
