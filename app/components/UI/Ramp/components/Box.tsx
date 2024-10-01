@@ -27,6 +27,9 @@ const createStyles = (colors: Colors) =>
     thin: {
       paddingVertical: 12,
     },
+    compact: {
+      padding: 0,
+    },
   });
 
 interface Props {
@@ -40,6 +43,7 @@ interface Props {
   onPress?: () => any;
   accessible?: boolean;
   accessibilityLabel?: string;
+  compact?: boolean;
 }
 
 const Box: React.FC<Props> = ({
@@ -51,6 +55,7 @@ const Box: React.FC<Props> = ({
   activeOpacity,
   accessible,
   accessibilityLabel,
+  compact,
   ...props
 }: Props) => {
   const { colors } = useTheme();
@@ -71,6 +76,7 @@ const Box: React.FC<Props> = ({
             styles.wrapper,
             thin && styles.thin,
             highlighted && styles.highlighted,
+            compact && styles.compact,
             style,
           ]}
           {...props}
