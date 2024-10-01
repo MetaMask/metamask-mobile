@@ -564,7 +564,7 @@ const Wallet = ({
         {selectedAddress ? (
           <WalletAccount style={styles.walletAccount} ref={walletRef} />
         ) : null}
-        <View>
+        <>
           <PortfolioBalance />
           <ScrollableTabView
             renderTabBar={renderTabBar}
@@ -589,7 +589,7 @@ const Wallet = ({
               navigation={navigation}
             />
           </ScrollableTabView>
-        </View>
+        </>
       </View>
     );
   }, [
