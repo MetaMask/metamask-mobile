@@ -139,10 +139,10 @@ const createStyles = (colors: Theme['colors']) =>
     },
   });
 
-function getStyles(type: string, colors: Colors) {
+function getStyles(type: string, colors: Theme['colors']) {
   const styles = createStyles(colors);
 
-  let fontStyle: TextStyle, containerStyle: ViewStyle;
+  let fontStyle, containerStyle;
 
   switch (type) {
     case 'orange':
