@@ -16,7 +16,6 @@ import createStyles from '../styles';
 import Text from '../../../../component-library/components/Texts/Text';
 import { TokenI } from '../types';
 import { strings } from '../../../../../locales/i18n';
-import { PortfolioBalance } from './PortfolioBalance';
 import { TokenListFooter } from './TokenListFooter';
 import { TokenListItem } from './TokenListItem';
 

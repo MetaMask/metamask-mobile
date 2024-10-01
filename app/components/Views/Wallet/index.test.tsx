@@ -1,19 +1,23 @@
 import React from 'react';
 import Wallet from './';
 import { renderScreen } from '../../../util/test/renderWithProvider';
-import { screen } from '@testing-library/react-native';
+import { screen, fireEvent } from '@testing-library/react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
+import AppConstants from '../../../core/AppConstants';
+import { BN } from 'ethereumjs-util';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 
 const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS,
 ]);
+
+const mockNavigate = jest.fn();
 
 jest.mock('../../../core/Engine', () => ({
   getTotalFiatAccountBalance: jest.fn(),
@@ -76,12 +80,67 @@ const mockInitialState = {
   },
   settings: {
     primaryCurrency: 'usd',
+    hideZeroBalanceTokens: true,
   },
   engine: {
     backgroundState: {
       ...backgroundState,
       AccountsController: {
         ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+      },
+    },
+    TokensController: {
+      tokens: [
+        {
+          name: 'Ethereum',
+          symbol: 'ETH',
+          address: '0x0',
+          decimals: 18,
+          isETH: true,
+
+          balanceFiat: '< $0.01',
+          iconUrl: '',
+        },
+        {
+          name: 'Bat',
+          symbol: 'BAT',
+          address: '0x01',
+          decimals: 18,
+          balanceFiat: '$0',
+          iconUrl: '',
+        },
+        {
+          name: 'Link',
+          symbol: 'LINK',
+          address: '0x02',
+          decimals: 18,
+          balanceFiat: '$0',
+          iconUrl: '',
+        },
+      ],
+    },
+    TokenRatesController: {
+      marketData: {
+        '0x1': {
+          '0x0': { price: 0.005 },
+          '0x01': { price: 0.005 },
+          '0x02': { price: 0.005 },
+        },
+      },
+    },
+    CurrencyRateController: {
+      currentCurrency: 'USD',
+      currencyRates: {
+        ETH: {
+          conversionRate: 1,
+        },
+      },
+    },
+    TokenBalancesController: {
+      contractBalances: {
+        '0x00': new BN(2),
+        '0x01': new BN(2),
+        '0x02': new BN(0),
       },
     },
   },
@@ -106,6 +165,16 @@ jest.mock('react-native-scrollable-tab-view', () => {
     renderTabBar: jest.fn(),
   };
   return ScrollableTabViewMock;
+});
+
+jest.mock('@react-navigation/native', () => {
+  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualReactNavigation,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+    }),
+  };
 });
 
 const render = (Component: React.ComponentType) =>
