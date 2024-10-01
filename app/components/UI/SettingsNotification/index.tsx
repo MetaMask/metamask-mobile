@@ -72,9 +72,9 @@ interface SettingsNotificationProps {
 }
 
 const SettingsNotification: React.FC<SettingsNotificationProps> = ({
-  style,
+  style = {},
   isWarning = false,
-  isNotification,
+  isNotification = false,
   children,
 }) => {
   const { colors } = useTheme();
