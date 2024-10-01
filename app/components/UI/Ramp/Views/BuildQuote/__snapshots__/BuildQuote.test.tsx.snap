@@ -8922,7 +8922,9 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       },
                                       undefined,
                                       false,
-                                      undefined,
+                                      {
+                                        "padding": 0,
+                                      },
                                       undefined,
                                     ]
                                   }
@@ -8932,7 +8934,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                     accessible={true}
                                     style={
                                       {
-                                        "padding": 0,
+                                        "padding": 16,
                                       }
                                     }
                                   >
@@ -12141,7 +12143,9 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       },
                                       undefined,
                                       false,
-                                      undefined,
+                                      {
+                                        "padding": 0,
+                                      },
                                       undefined,
                                     ]
                                   }
@@ -12151,7 +12155,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                     accessible={true}
                                     style={
                                       {
-                                        "padding": 0,
+                                        "padding": 16,
                                       }
                                     }
                                   >
